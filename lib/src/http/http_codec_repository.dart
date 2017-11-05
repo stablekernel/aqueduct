@@ -9,7 +9,7 @@ import 'http.dart';
 /// transform a [Response.body] into a list of bytes that can be transferred as an HTTP response body.
 ///
 /// Additional mappings are added via [add]. This method must be called per-isolate and it is recommended
-/// to add mappings in an application's [RequestSink] subclass constructor.
+/// to add mappings in an application's [ApplicationChannel] subclass constructor.
 class HTTPCodecRepository {
   HTTPCodecRepository._() {
     add(new ContentType("application", "json", charset: "utf-8"), const JsonCodec(), allowCompression: true);

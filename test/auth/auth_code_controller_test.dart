@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:async';
 
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
@@ -8,7 +9,7 @@ import '../helpers.dart';
 import 'dart:convert';
 
 void main() {
-  Application<TestSink> application;
+  Application<TestChannel> application;
   TestClient client = new TestClient.onPort(8081);
 
   var codeResponse = (Map<String, String> form) {
@@ -21,7 +22,7 @@ void main() {
   };
 
   setUp(() async {
-    application = new Application<TestSink>();
+    application = new Application<TestChannel>();
 
     await application.test();
   });
@@ -126,7 +127,7 @@ void main() {
 
       var redirectURI = Uri.parse(res.headers["location"].first);
       var codeParam = redirectURI.queryParameters["code"];
-      var token = await application.mainIsolateSink.authServer.exchange(codeParam, "com.stablekernel.scoped", "kilimanjaro");
+      var token = await application.channel.authServer.exchange(codeParam, "com.stablekernel.scoped", "kilimanjaro");
       expect(token.scopes.length, 1);
       expect(token.scopes.first.isExactly("user"), true);
     });
@@ -145,7 +146,7 @@ void main() {
 
       var redirectURI = Uri.parse(res.headers["location"].first);
       var codeParam = redirectURI.queryParameters["code"];
-      var token = await application.mainIsolateSink.authServer.exchange(codeParam, "com.stablekernel.scoped", "kilimanjaro");
+      var token = await application.channel.authServer.exchange(codeParam, "com.stablekernel.scoped", "kilimanjaro");
       expect(token.scopes.length, 2);
       expect(token.scopes.any((s) => s.isExactly("user")), true);
       expect(token.scopes.any((s) => s.isExactly("other_scope")), true);
@@ -529,17 +530,19 @@ void main() {
   });
 }
 
-class TestSink extends RequestSink {
-  TestSink(ApplicationConfiguration opts) : super(opts) {
+class TestChannel extends ApplicationChannel {
+  AuthServer authServer;
+
+  @override
+  Future prepare() async {
     var storage = new InMemoryAuthStorage();
     storage.createUsers(2);
     authServer = new AuthServer(storage);
   }
 
-  AuthServer authServer;
-
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router.route("/auth/code").generate(() => new AuthCodeController(authServer,
             renderAuthorizationPageHTML: (AuthCodeController c, Uri uri,
                 Map<String, String> queryParams) async {
@@ -548,6 +551,7 @@ class TestSink extends RequestSink {
         }));
 
     router.route("/nopage").generate(() => new AuthCodeController(authServer));
+    return router;
   }
 }
 

@@ -18,15 +18,7 @@ void main() {
     test(
         "Application start fails and logs appropriate message if request stream doesn't open",
             () async {
-          var crashingApp = new Application<CrashSink>();
-
-          try {
-            crashingApp.configuration.options = {"crashIn": "constructor"};
-            await crashingApp.start(consoleLogging: true);
-            expect(true, false);
-          } on ApplicationStartupException catch (e) {
-            expect(e.toString(), contains("TestException: constructor"));
-          }
+          var crashingApp = new Application<CrashChannel>();
 
           try {
             crashingApp.configuration.options = {"crashIn": "addRoutes"};
@@ -37,11 +29,11 @@ void main() {
           }
 
           try {
-            crashingApp.configuration.options = {"crashIn": "willOpen"};
+            crashingApp.configuration.options = {"crashIn": "prepare"};
             await crashingApp.start(consoleLogging: true);
             expect(true, false);
           } on ApplicationStartupException catch (e) {
-            expect(e.toString(), contains("TestException: willOpen"));
+            expect(e.toString(), contains("TestException: prepare"));
           }
 
           crashingApp.configuration.options = {"crashIn": "dontCrash"};
@@ -57,7 +49,7 @@ void main() {
           var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8081);
           server.listen((req) {});
 
-          var conflictingApp = new Application<TestSink>();
+          var conflictingApp = new Application<TestChannel>();
           conflictingApp.configuration.port = 8081;
 
           try {
@@ -71,7 +63,7 @@ void main() {
         });
 
     test("Isolate timeout kills application when first isolate fails", () async {
-      var timeoutApp = new Application<TimeoutSink>()
+      var timeoutApp = new Application<TimeoutChannel>()
         ..isolateStartupTimeout = new Duration(seconds: 4)
         ..configuration.options = {
           "timeout1" : 10
@@ -89,7 +81,7 @@ void main() {
     });
 
     test("Isolate timeout kills application when first isolate succeeds, but next fails", () async {
-      var timeoutApp = new Application<TimeoutSink>()
+      var timeoutApp = new Application<TimeoutChannel>()
         ..isolateStartupTimeout = new Duration(seconds: 4)
         ..configuration.options = {
           "timeout2" : 10
@@ -108,15 +100,16 @@ void main() {
   });
 }
 
-class TimeoutSink extends RequestSink {
+class TimeoutChannel extends ApplicationChannel {
   Timer timer;
 
-  TimeoutSink(ApplicationConfiguration config) : super(config);
   @override
-  void setupRouter(Router router) {}
+  RequestController get entryPoint {
+    return new Router();
+  }
 
   @override
-  Future willOpen() async {
+  Future prepare() async {
     int timeoutLength = configuration.options["timeout${server.identifier}"];
     if (timeoutLength == null) {
       return;
@@ -152,32 +145,26 @@ class TestException implements Exception {
   }
 }
 
-class CrashSink extends RequestSink {
-  CrashSink(ApplicationConfiguration opts) : super(opts) {
-    if (opts.options["crashIn"] == "constructor") {
-      throw new TestException("constructor");
-    }
-  }
-
+class CrashChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
     }
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
+    return router;
   }
 
   @override
-  Future willOpen() async {
-    if (configuration.options["crashIn"] == "willOpen") {
-      throw new TestException("willOpen");
+  Future prepare() async {
+    if (configuration.options["crashIn"] == "prepare") {
+      throw new TestException("prepare");
     }
   }
 }
 
-class TestSink extends RequestSink {
-  TestSink(ApplicationConfiguration opts) : super(opts);
-
+class TestChannel extends ApplicationChannel {
   static Future initializeApplication(ApplicationConfiguration config) async {
     List<int> v = config.options["startup"] ?? [];
     v.add(1);
@@ -185,12 +172,14 @@ class TestSink extends RequestSink {
   }
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
     router.route("/r").listen((req) async => new Response.ok("r_ok"));
     router.route("startup").listen((r) async {
       var total = configuration.options["startup"].fold(0, (a, b) => a + b);
       return new Response.ok("$total");
     });
+    return router;
   }
 }

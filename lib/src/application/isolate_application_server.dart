@@ -4,7 +4,6 @@ import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
 
-import '../http/request_sink.dart';
 import '../utilities/resource_registry.dart';
 import 'application.dart';
 import 'application_configuration.dart';
@@ -13,13 +12,10 @@ import 'isolate_supervisor.dart';
 class ApplicationIsolateServer extends ApplicationServer {
   SendPort supervisingApplicationPort;
   ReceivePort supervisingReceivePort;
-  bool logToConsole;
 
-  ApplicationIsolateServer(
-      ApplicationConfiguration configuration,
-      int identifier,
-      this.supervisingApplicationPort, this.logToConsole)
-      : super(configuration, identifier) {
+  ApplicationIsolateServer(ClassMirror channelType, ApplicationConfiguration configuration, int identifier,
+      this.supervisingApplicationPort, {bool logToConsole: false})
+      : super(channelType, configuration, identifier) {
     if (logToConsole) {
       hierarchicalLoggingEnabled = true;
       logger.level = Level.ALL;
@@ -33,8 +29,8 @@ class ApplicationIsolateServer extends ApplicationServer {
   }
 
   @override
-  Future start(RequestSink sink, {bool shareHttpServer: false}) async {
-    var result = await super.start(sink, shareHttpServer: shareHttpServer);
+  Future start({bool shareHttpServer: false}) async {
+    var result = await super.start(shareHttpServer: shareHttpServer);
     logger.fine("ApplicationIsolateServer($identifier) started, sending listen message");
     supervisingApplicationPort.send(ApplicationIsolateSupervisor.MessageListening);
 
@@ -66,25 +62,19 @@ class ApplicationIsolateServer extends ApplicationServer {
     await ServiceRegistry.defaultInstance.close();
     logger.clearListeners();
     logger.fine("ApplicationIsolateServer($identifier) sending stop acknowledgement");
-    supervisingApplicationPort
-        .send(ApplicationIsolateSupervisor.MessageStop);
+    supervisingApplicationPort.send(ApplicationIsolateSupervisor.MessageStop);
   }
 }
 
-/// This method is used internally.
+
 void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
-  var server = new ApplicationIsolateServer(
-      params.configuration, params.identifier, params.parentMessagePort, params.logToConsole);
+  var channelSourceLibrary = currentMirrorSystem().libraries[params.streamLibraryURI];
+  var channelType = channelSourceLibrary.declarations[new Symbol(params.streamTypeName)] as ClassMirror;
 
-  var sinkSourceLibraryMirror =
-  currentMirrorSystem().libraries[params.streamLibraryURI];
-  var sinkTypeMirror = sinkSourceLibraryMirror
-      .declarations[new Symbol(params.streamTypeName)] as ClassMirror;
+  var server = new ApplicationIsolateServer(channelType,
+      params.configuration, params.identifier, params.parentMessagePort, logToConsole: params.logToConsole);
 
-  RequestSink sink = sinkTypeMirror
-      .newInstance(new Symbol(""), [params.configuration]).reflectee;
-
-  server.start(sink, shareHttpServer: true);
+  server.start(shareHttpServer: true);
 }
 
 class ApplicationInitialServerMessage {
@@ -95,8 +85,9 @@ class ApplicationInitialServerMessage {
   int identifier;
   bool logToConsole = false;
 
-  ApplicationInitialServerMessage(this.streamTypeName, this.streamLibraryURI,
-      this.configuration, this.identifier, this.parentMessagePort, {this.logToConsole: false});
+  ApplicationInitialServerMessage(
+      this.streamTypeName, this.streamLibraryURI, this.configuration, this.identifier, this.parentMessagePort,
+      {this.logToConsole: false});
 }
 
 class MessageHubMessage {

@@ -14,7 +14,7 @@ void main() {
     test("Start with HTTPS", () async {
       var ciDirUri = new Directory("ci").uri;
 
-      app = new Application<TestSink>()
+      app = new Application<TestChannel>()
         ..configuration.certificateFilePath = ciDirUri.resolve("aqueduct.cert.pem").path
         ..configuration.privateKeyFilePath = ciDirUri.resolve("aqueduct.key.pem").path;
 
@@ -33,11 +33,11 @@ void main() {
   });
 }
 
-class TestSink extends RequestSink {
-  TestSink(ApplicationConfiguration opts) : super(opts);
-
+class TestChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router.route("/r").listen((r) async => new Response.ok(null));
+    return router;
   }
 }

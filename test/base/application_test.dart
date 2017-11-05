@@ -6,14 +6,14 @@ import 'dart:convert';
 
 void main() {
   group("App launch status", () {
-    Application<TestSink> app;
+    Application<TestChannel> app;
 
     tearDown(() async {
       await app?.stop();
     });
 
     test("didFinishLaunching is false before launch, true after, false after stop", () async {
-      app = new Application<TestSink>();
+      app = new Application<TestChannel>();
       expect(app.hasFinishedLaunching, false);
 
       await app.test();
@@ -25,10 +25,10 @@ void main() {
   });
 
   group("Application lifecycle", () {
-    Application<TestSink> app;
+    Application<TestChannel> app;
 
     setUp(() async {
-      app = new Application<TestSink>();
+      app = new Application<TestChannel>();
       await app.test();
     });
 
@@ -37,7 +37,7 @@ void main() {
     });
 
     test("Application starts", () async {
-      expect(app.mainIsolateSink, isNotNull);
+      expect(app.channel, isNotNull);
       expect(app.supervisors.length, 0);
     });
 
@@ -93,15 +93,7 @@ void main() {
     test(
         "Application (on main thread) start fails and logs appropriate message if request stream doesn't open",
         () async {
-      var crashingApp = new Application<CrashingTestSink>();
-
-      try {
-        crashingApp.configuration.options = {"crashIn": "constructor"};
-        await crashingApp.test();
-        expect(true, false);
-      } on ApplicationStartupException catch (e) {
-        expect(e.originalException.toString(), contains("constructor"));
-      }
+      var crashingApp = new Application<CrashingTestChannel>();
 
       try {
         crashingApp.configuration.options = {"crashIn": "addRoutes"};
@@ -112,11 +104,11 @@ void main() {
       }
 
       try {
-        crashingApp.configuration.options = {"crashIn": "willOpen"};
+        crashingApp.configuration.options = {"crashIn": "prepare"};
         await crashingApp.test();
         expect(true, false);
       } on ApplicationStartupException catch (e) {
-        expect(e.originalException.toString(), contains("willOpen"));
+        expect(e.originalException.toString(), contains("prepare"));
       }
 
       crashingApp.configuration.options = {"crashIn": "dontCrash"};
@@ -136,32 +128,26 @@ class TestException implements Exception {
   String toString() => message;
 }
 
-class CrashingTestSink extends RequestSink {
-  CrashingTestSink(ApplicationConfiguration opts) : super(opts) {
-    if (opts.options["crashIn"] == "constructor") {
-      throw new TestException("constructor");
-    }
-  }
-
+class CrashingTestChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
     }
     router.route("/t").generate(() => new TController());
+    return router;
   }
 
   @override
-  Future willOpen() async {
-    if (configuration.options["crashIn"] == "willOpen") {
-      throw new TestException("willOpen");
+  Future prepare() async {
+    if (configuration.options["crashIn"] == "prepare") {
+      throw new TestException("prepare");
     }
   }
 }
 
-class TestSink extends RequestSink {
-  TestSink(ApplicationConfiguration opts) : super(opts);
-
+class TestChannel extends ApplicationChannel {
   static Future initializeApplication(ApplicationConfiguration config) async {
     List<int> v = config.options["startup"] ?? [];
     v.add(1);
@@ -169,13 +155,15 @@ class TestSink extends RequestSink {
   }
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router.route("/t").generate(() => new TController());
     router.route("/r").generate(() => new RController());
     router.route("startup").listen((r) async {
       var total = configuration.options["startup"].fold(0, (a, b) => a + b);
       return new Response.ok("$total");
     });
+    return router;
   }
 }
 

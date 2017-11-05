@@ -12,10 +12,10 @@ void main() {
   });
 
   group("Lifecycle", () {
-    Application<TestSink> app;
+    Application<TestChannel> app;
 
     setUp(() async {
-      app = new Application<TestSink>();
+      app = new Application<TestChannel>();
       await app.start(numberOfInstances: 2, consoleLogging: true);
       print("started");
     });
@@ -59,14 +59,8 @@ void main() {
 
       await Future.wait(reqs);
 
-      expect(
-          responses.any(
-              (http.Response resp) => resp.headers["server"] == "aqueduct/1"),
-          true);
-      expect(
-          responses.any(
-              (http.Response resp) => resp.headers["server"] == "aqueduct/2"),
-          true);
+      expect(responses.any((http.Response resp) => resp.headers["server"] == "aqueduct/1"), true);
+      expect(responses.any((http.Response resp) => resp.headers["server"] == "aqueduct/2"), true);
     });
 
     test("Application stops", () async {
@@ -82,9 +76,7 @@ void main() {
       expect(resp.statusCode, 200);
     });
 
-    test(
-        "Application runs app startup function once, regardless of isolate count",
-        () async {
+    test("Application runs app startup function once, regardless of isolate count", () async {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
         var result = await http.get("http://localhost:8081/startup");
@@ -95,14 +87,14 @@ void main() {
   });
 
   group("App launch status", () {
-    Application<TestSink> app;
+    Application<TestChannel> app;
 
     tearDown(() async {
       await app?.stop();
     });
 
     test("didFinishLaunching is false before launch, true after, false after stop", () async {
-      app = new Application<TestSink>();
+      app = new Application<TestChannel>();
       expect(app.hasFinishedLaunching, false);
 
       var future = app.start(numberOfInstances: 2, consoleLogging: true);
@@ -116,9 +108,7 @@ void main() {
   });
 }
 
-class TestSink extends RequestSink {
-  TestSink(ApplicationConfiguration opts) : super(opts);
-
+class TestChannel extends ApplicationChannel {
   static Future initializeApplication(ApplicationConfiguration config) async {
     List<int> v = config.options["startup"] ?? [];
     v.add(1);
@@ -126,12 +116,14 @@ class TestSink extends RequestSink {
   }
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
     router.route("/r").listen((req) async => new Response.ok("r_ok"));
     router.route("startup").listen((r) async {
       var total = configuration.options["startup"].fold(0, (a, b) => a + b);
       return new Response.ok("$total");
     });
+    return router;
   }
 }

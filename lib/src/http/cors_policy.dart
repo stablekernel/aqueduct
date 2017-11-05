@@ -10,7 +10,7 @@ import 'http.dart';
 ///
 /// Modifications to policy for a specific [RequestController] can be accomplished in the initializer of the controller.
 ///
-/// Application-wide defaults can be managed by modifying [defaultPolicy] in a [RequestSink]'s constructor.
+/// Application-wide defaults can be managed by modifying [defaultPolicy] in a [ApplicationChannel]'s constructor.
 ///
 class CORSPolicy {
   /// Create a new instance of [CORSPolicy].

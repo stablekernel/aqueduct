@@ -27,7 +27,7 @@ For more information, see [Getting Started](https://aqueduct.io/docs/) and [Test
 
 ## Application Structure
 
-Routes and other initialization are configured in `lib/wildfire_sink.dart`. Endpoint controller files are in `lib/controller/`.
+Routes and other initialization are configured in `lib/channel.dart`. Endpoint controller files are in `lib/controller/`.
 
 ## Configuration
 

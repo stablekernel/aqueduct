@@ -1,43 +1,53 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
 import '../http/request.dart';
-import '../http/request_sink.dart';
+import 'package:aqueduct/src/application/channel.dart';
+import '../http/request_controller.dart';
 import 'application.dart';
 import 'application_configuration.dart';
 import 'package:stack_trace/stack_trace.dart';
 
-/// Manages listening for HTTP requests and delivering them to [RequestSink] instances.
+/// Listens for HTTP requests and delivers them to its [ApplicationChannel] instance.
 ///
 /// An Aqueduct application creates instances of this type to pair an HTTP server and an
-/// instance of an application-specific [RequestSink]. Instances are created by [Application]
+/// instance of an [ApplicationChannel] subclass. Instances are created by [Application]
 /// and shouldn't be created otherwise.
 class ApplicationServer {
-  /// Creates an instance of this type.
+  /// Creates a new server that sending requests to [channelType].
   ///
   /// You should not need to invoke this method directly.
-  ApplicationServer(this.configuration, this.identifier, {this.captureStack: false});
+  ApplicationServer(ClassMirror channelType, this.configuration, this.identifier, {this.captureStack: false}) {
+    channel = channelType.newInstance(new Symbol(""), []).reflectee;
+    channel.server = this;
+    channel.configuration = configuration;
+  }
 
-  /// The configuration this instance used to start its [sink].
+  /// The configuration this instance used to start its [channel].
   ApplicationConfiguration configuration;
 
   /// The underlying [HttpServer].
   HttpServer server;
 
-  /// The instance of [RequestSink] serving requests.
-  RequestSink sink;
+  /// The instance of [ApplicationChannel] serving requests.
+  ApplicationChannel channel;
+
+  /// The cached entrypoint of [channel].
+  RequestController entryPoint;
 
   /// Used during debugging to capture the stacktrace better for asynchronous calls.
   ///
   /// Defaults to false.
   bool captureStack;
 
-  /// Target for sending messages to other [RequestSink] isolates.
+  /// Target for sending messages to other [ApplicationChannel.messageHub]s.
   ///
-  /// Events are added to this sink by instances of [ApplicationMessageHub] and should not otherwise be used.
+  /// Events are added to this property by instances of [ApplicationMessageHub] and should not otherwise be used.
   EventSink<dynamic> hubSink;
 
+  /// Whether or not this server requires an HTTPS listener.
   bool get requiresHTTPS => _requiresHTTPS;
   bool _requiresHTTPS = false;
 
@@ -52,19 +62,17 @@ class ApplicationServer {
 
   /// Starts this instance, allowing it to receive HTTP requests.
   ///
-  /// Do not invoke this method directly, [Application] instances are responsible
-  /// for calling this method.
-  Future start(RequestSink sink, {bool shareHttpServer: false}) async {
+  /// Do not invoke this method directly.
+  Future start({bool shareHttpServer: false}) async {
     logger.fine("ApplicationServer($identifier).start entry");
-    this.sink = sink;
-    sink.server = this;
 
-    sink.setupRouter(sink.router);
-    sink.router?.prepare();
-    sink.pipe(sink.initialController);
+    await channel.prepare();
+
+    entryPoint = channel.entryPoint;
+    entryPoint.prepare();
 
     logger.fine("ApplicationServer($identifier).start binding HTTP");
-    var securityContext = sink.securityContext;
+    var securityContext = channel.securityContext;
     if (securityContext != null) {
       _requiresHTTPS = true;
 
@@ -85,41 +93,36 @@ class ApplicationServer {
     return didOpen();
   }
 
+  /// Closes this HTTP server and channel.
   Future close() async {
     logger.fine("ApplicationServer($identifier).close Closing HTTP listener");
     await server?.close(force: true);
-    logger.fine("ApplicationServer($identifier).close Closing request sink");
-    await sink?.close();
+    logger.fine("ApplicationServer($identifier).close Closing channel");
+    await channel?.close();
 
-    // This is actually closed by sink.messageHub.close, but this shuts up the analyzer.
+    // This is actually closed by channel.messageHub.close, but this shuts up the analyzer.
     hubSink?.close();
     logger.fine("ApplicationServer($identifier).close Closing complete");
   }
 
   /// Invoked when this server becomes ready receive requests.
   ///
-  /// This method will invoke [RequestSink.willOpen] and await for it to finish.
-  /// Once [RequestSink.willOpen] completes, the underlying [server]'s HTTP requests
-  /// will be sent to this instance's [sink].
-  ///
-  /// [RequestSink.didOpen] is invoked after this opening has completed.
+  /// [ApplicationChannel.willStartReceivingRequests] is invoked after this opening has completed.
   Future didOpen() async {
     server.serverHeader = "aqueduct/${this.identifier}";
-
-    await sink.willOpen();
 
     logger.fine("ApplicationServer($identifier).didOpen start listening");
     if (captureStack) {
       server.map((baseReq) => new Request(baseReq)).listen((req) {
         Chain.capture(() {
-          sink.receive(req);
+          entryPoint.receive(req);
         });
       });
     } else {
-      server.map((baseReq) => new Request(baseReq)).listen(sink.receive);
+      server.map((baseReq) => new Request(baseReq)).listen(entryPoint.receive);
     }
 
-    sink.didOpen();
+    channel.willStartReceivingRequests();
     logger.info("Server aqueduct/$identifier started.");
   }
 

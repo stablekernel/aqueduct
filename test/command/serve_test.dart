@@ -48,14 +48,14 @@ void main() {
     expect(result.statusCode, 200);
   });
 
-  test("Ensure we don't find the base RequestSink class", () async {
+  test("Ensure we don't find the base ApplicatioNChannel class", () async {
     var libDir = new Directory.fromUri(temporaryDirectory.uri.resolve("lib"));
     var libFile = new File.fromUri(libDir.uri.resolve("wildfire.dart"));
     libFile.writeAsStringSync("import 'package:aqueduct/aqueduct.dart';");
 
     var res = await runAqueductProcess(["serve"], temporaryDirectory);
     expect(res.exitCode, isNot(0));
-    expect(res.output, contains("No RequestSink subclass"));
+    expect(res.output, contains("No ApplicationChannel subclass"));
   });
 
   test("Exception throw during initializeApplication halts startup", () async {
@@ -63,7 +63,7 @@ void main() {
     var libFile = new File.fromUri(libDir.uri.resolve("wildfire.dart"));
     addLinesToFile(
         libFile,
-        "class WildfireSink extends RequestSink {",
+        "class WildfireChannel extends ApplicationChannel {",
         """
     static Future initializeApplication(ApplicationConfiguration x) async { throw new Exception("error"); }
     """);
@@ -72,7 +72,7 @@ void main() {
     expect(res.exitCode, isNot(0));
     expect(res.output, contains("Application failed to start"));
     expect(res.output, contains("Exception: error")); // error generated
-    expect(res.output, contains("WildfireSink.initializeApplication")); // stacktrace
+    expect(res.output, contains("WildfireChannel.initializeApplication")); // stacktrace
   });
 
   test("Start with valid SSL args opens https server", () async {

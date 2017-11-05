@@ -17,15 +17,15 @@ class TestApplication {
   static const String DefaultClientSecret = "kilimanjaro";
   static const String DefaultPublicClientID = "com.aqueduct.public";
 
-  Application<WildfireSink> application;
-  WildfireSink get sink => application.mainIsolateSink;
+  Application<WildfireChannel> application;
+  WildfireChannel get channel => application.channel;
   TestClient client;
 
   /// Starts running this test harness.
   ///
-  /// This method will start an [Application] with [WildfireSink].
+  /// This method will start an [Application] with [WildfireChannel].
   /// The declared [ManagedObject]s in this application will be
-  /// used to generate a temporary database schema. The [WildfireSink] instance will use
+  /// used to generate a temporary database schema. The [WildfireChannel] instance will use
   /// this temporary database. Stopping this application will remove the data from the
   /// temporary database.
   ///
@@ -39,7 +39,7 @@ class TestApplication {
   /// You must call [stop] on this instance when tearing down your tests.
   Future start() async {
     RequestController.letUncaughtExceptionsEscape = true;
-    application = new Application<WildfireSink>();
+    application = new Application<WildfireChannel>();
     application.configuration.port = 0;
     application.configuration.configurationFilePath = "config.src.yaml";
 

@@ -6,7 +6,7 @@ void main() {
   test(
       "RequestController requiring instantion throws exception when instantiated early",
       () async {
-    var app = new Application<TestSink>();
+    var app = new Application<TestChannel>();
     try {
       await app.start();
       expect(true, false);
@@ -18,17 +18,17 @@ void main() {
     }
   });
 
-  test("Find default RequestSink", () {
-    expect(RequestSink.defaultSinkType, equals(TestSink));
+  test("Find default ApplicationChannel", () {
+    expect(ApplicationChannel.defaultType, equals(TestChannel));
   });
 }
 
-class TestSink extends RequestSink {
-  TestSink(ApplicationConfiguration opts) : super(opts);
-
+class TestChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router.route("/controller/[:id]").pipe(new FailingController());
+    return router;
   }
 }
 

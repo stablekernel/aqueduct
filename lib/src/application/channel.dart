@@ -1,87 +1,77 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
 
-import 'request.dart';
-import 'request_controller.dart';
-import 'documentable.dart';
-import 'router.dart';
-import '../application/application.dart';
+import '../http/http.dart';
+import 'application.dart';
 import '../utilities/resource_registry.dart';
-import 'http_codec_repository.dart';
 
-/// Instances of this type are the root of an Aqueduct application.
+/// Subclasses of this type initialize an application's routes and services.
 ///
-/// [Application]s set up HTTP(S) listeners, but do not do anything with them. The behavior of how an application
-/// responds to requests is defined by its [RequestSink]. Must be subclassed. This class must be visible
-/// to the application library file for tools like `aqueduct serve` to run Aqueduct applications.
+/// The behavior of an Aqueduct application is defined by subclassing this type and overriding its lifecycle callback methods. An
+/// Aqueduct application may have exactly one subclass of this type declared in its `lib/` directory.
 ///
-/// A [RequestSink] must implement its constructor and [setupRouter]. HTTP requests to the [Application] are added to a [RequestSink]
-/// for processing. The path the HTTP request takes is determined by the [RequestController] chains in [setupRouter]. A [RequestSink]
-/// is also a [RequestController], but will always forward HTTP requests on to its [initialController].
+/// At minimum, a subclass must override [entryPoint] to return the first instance of [RequestController] that receives a new HTTP request.
+/// This instance is typically a [Router]. An example minimum application follows:
 ///
-/// Multiple instances of this type will be created for an [Application], each processing requests independently. Initialization code for
-/// a [RequestSink] instance happens in the constructor, [setupRouter] and [willOpen] - in that order. The constructor instantiates resources,
-/// [setupRouter] sets up routing and [willOpen] performs any tasks that occur asynchronously, like opening database connections. These initialization
-/// steps occur for every instance of [RequestSink] in an application.
+///       class MyChannel extends ApplicationChannel {
+///         RequestController get entryPoint {
+///           final router = new Router();
+///           router.route("/endpoint").listen((req) => new Response.ok('Hello, world!'));
+///           return router;
+///         }
+///       }
 ///
-/// Any initialization that occurs once per application cannot
-/// be performed in one of above methods. Instead, one-time initialization must be performed by implementing a static method in the
-/// [RequestSink] subclass named `initializeApplication`. This method gets executed once when an application starts, prior to instances of [RequestSink]
-/// being created. This method takes an [ApplicationConfiguration],
-/// and may attach values to its [ApplicationConfiguration.options] for use by the [RequestSink] instances. This method is often used to
-/// read configuration values from a file.
+/// [entryPoint] is the root of the application channel. It receives an HTTP request that flows through the channel until it is responded to.
 ///
+/// Other forms of initialization, e.g. creating a service that interact with a database, should be initialized in [prepare]. This method is invoked
+/// prior to [entryPoint] so that any services it creates can be injected into the [RequestController]s in the channel.
+///
+/// An instance of this type is created for each isolate the running application spawns. The number of isolates spawned is determined by an argument to [Application.start]
+/// (which often comes from the command-line tool `aqueduct serve`). Any initialization that occurs in subclasses of this type will be called for each instance.
+///
+/// For initialization that must occur only once per application, you may implement the *static* method [initializeApplication] in a subclass of this type.
 /// The signature of this method is ([ApplicationConfiguration]) -> [Future], for example:
 ///
-///         class MyRequestSink extends RequestSink {
+///         class Channel extends ApplicationChannel {
 ///           static Future initializeApplication(ApplicationConfiguration config) async {
-///             // Do one-time setup here, e.g read configuration values from a file
-///             var configurationValuesFromFile = ...;
-///             config.options = configurationValuesFromFile;
+///             // Do one-time setup here
 ///           }
 ///           ...
 ///         }
 ///
-abstract class RequestSink extends RequestController
-    implements APIDocumentable {
-  /// Default constructor.
-  ///
-  /// The default constructor takes a [Map] of configuration [configuration]. This [Map] is the same [Map] in [ApplicationConfiguration.options].
-  ///
-  /// For any code that requires async initialization, use [willOpen]. However, it is important to note that any properties that are used during initialization callbacks (like [setupRouter]) should be
-  /// initialized in this constructor and not during [willOpen]. If properties that are needed during initialization callbacks
-  /// must be initialized asynchronously, those properties should implement their own deferred initialization mechanism
-  /// that can be triggered in [willOpen], but still must be initialized in this constructor.
-  RequestSink(this.configuration);
-
+/// This method is executed in the main isolate of the application, prior to any [ApplicationChannel]s being instantiated. Its values cannot directly be accessed by the isolates that are spawned
+/// to serve requests through their [entryPoint]. See the documentation for [initializeApplication] for passing values computed in this method to each instance
+/// of [ApplicationChannel].
+///
+/// [ApplicationChannel] instances may pass values to each other through [messageHub].
+abstract class ApplicationChannel extends Object with APIDocumentable {
   /// One-time setup method for an application.
   ///
   /// This method is invoked as the first step during application startup. It is only invoked once per application, whereas other initialization
-  /// methods are invoked once per isolate. Implement this method in an application's [RequestSink] subclass. If you are sharing some resource
+  /// methods are invoked once per isolate. Implement this method in an application's [ApplicationChannel] subclass. If you are sharing some resource
   /// across isolates, it must be instantiated in this method.
   ///
-  ///         class MyRequestSink extends RequestSink {
+  ///         class MyChannel extends ApplicationChannel {
   ///           static Future initializeApplication(ApplicationConfiguration config) async {
   ///
   ///           }
   ///
-  /// Any modifications to [config] are available in each [RequestSink] and therefore must be isolate-safe data. Do not configure
-  /// types like [HTTPCodecRepository] or any other types that are referenced by your code. If it can't be safely passed in [ApplicationConfiguration],
-  /// it shouldn't be modified.
+  /// Any modifications to [config] will be available in each [ApplicationChannel] and therefore must be isolate-safe data. Do not configure
+  /// types like [HTTPCodecRepository], [CORSPolicy.defaultPolicy] or any other value that isn't explicitly passed through [config].
   ///
-  /// * Note that static methods are not inherited in Dart and therefore you are not overriding this method. The declaration of this method in the base [RequestSink] class
+  /// * Note that static methods are not inherited in Dart and therefore you are not overriding this method. The declaration of this method in the base [ApplicationChannel] class
   /// is for documentation purposes.
   static Future initializeApplication(ApplicationConfiguration config) async {}
 
-  /// Documentation info for this instance.
-  APIInfo apiInfo = new APIInfo();
+  /// The logger of this instance
+  Logger get logger => new Logger("aqueduct");
 
   /// This instance's owning server.
   ///
-  /// Reference back to the owning server that adds requests into this sink.
+  /// Reference back to the owning server that adds requests into this channel.
   ApplicationServer get server => _server;
   set server(ApplicationServer server) {
     _server = server;
@@ -90,30 +80,22 @@ abstract class RequestSink extends RequestController
   }
   ApplicationServer _server;
 
-  /// Sends and receives messages to other isolates running a [RequestSink].
+  /// Sends and receives messages to other isolates running a [ApplicationChannel].
   ///
   /// Messages may be sent to other instances of this type via [ApplicationMessageHub.add]. An instance of this type
   /// may listen for those messages via [ApplicationMessageHub.listen]. See [ApplicationMessageHub] for more details.
   final ApplicationMessageHub messageHub = new ApplicationMessageHub();
-
-  /// This instance's router.
-  ///
-  /// The default router for this instance. Configure [router] by adding routes to it in [setupRouter].
-  /// Using a router other than this router will impede the sink's ability to generate documentation.
-  Router router = new Router();
 
   /// The context used for setting up HTTPS in an application.
   ///
   /// By default, this value is null. When null, an [Application] using this instance will listen over HTTP, and not HTTPS.
   /// If this instance [configuration] has non-null values for both [ApplicationConfiguration.certificateFilePath] and [ApplicationConfiguration.privateKeyFilePath],
   /// this value is a valid [SecurityContext] configured to use the certificate chain and private key as indicated by the configuration. The listening server
-  /// will allow connections over HTTPS only. This getter is only invoked once per instance, after [initializeApplication] and [RequestSink]'s constructor have been
-  /// called, but before any other initialization occurs.
+  /// will allow connections over HTTPS only. This getter is only invoked once per instance, after [entryPoint] is invoked.
   ///
   /// You may override this getter to provide a customized [SecurityContext].
   SecurityContext get securityContext {
-    if (configuration?.certificateFilePath == null
-    || configuration?.privateKeyFilePath == null) {
+    if (configuration?.certificateFilePath == null || configuration?.privateKeyFilePath == null) {
       return null;
     }
 
@@ -128,53 +110,51 @@ abstract class RequestSink extends RequestController
   /// from configuration data. This property is set in the constructor.
   ApplicationConfiguration configuration;
 
-  /// Returns the first [RequestController] to handle HTTP requests added to this sink.
+  /// The first [RequestController] to receive HTTP requests.
   ///
-  /// When a [Request] is delivered to this instance, this
-  /// controller will be the first to act on it.  By default, this is [router].
-  RequestController get initialController => router;
+  /// Subclasses must override this getter to provide the first controller in the application channel to handle an HTTP request.
+  /// This property is most often a configured [Router], but could be any type of [RequestController].
+  ///
+  /// This method is invoked exactly once for each instance, and the result is stored throughout the remainder of the application's lifetime.
+  /// This method must fully configure the entire application channel; no controllers may be added to the channel after this method completes.
+  ///
+  /// This method is always invoked after [prepare].
+  RequestController get entryPoint;
 
-  /// Callback for implementing this instances's routing table.
+  /// Initialization callback.
   ///
-  /// Routes should only be added to [router] in this method. This method will execute prior to [willOpen] being called,
-  /// so any properties this instance needs to handle route setup must be set in this instance's constructor. The argument
-  /// to this method is the same instance as the property [RequestSink.router].
-  void setupRouter(Router router);
+  /// This method allows this instance to perform any initialization (other than setting up the [entryPoint]). This method
+  /// is often used to set up services that [RequestController]s use to fulfill their duties. This method is invoked
+  /// prior to [entryPoint], so that the services it creates can be injected into [RequestController]s.
+  Future prepare() async {}
 
-  /// Callback executed prior to this instance receiving requests.
+  /// Executed after the instance has been initialized, but right before it will start receiving requests.
   ///
-  /// This method allows the instance to perform any asynchronous initialization prior to
-  /// receiving requests. The instance will not start accepting HTTP requests until the [Future] returned from this method completes.
-  Future willOpen() async {}
-
-  /// Executed after the instance is is open to handle HTTP requests.
-  ///
-  /// This method is executed after the [HttpServer] is started and
-  /// the [initialController] has been set to start receiving requests.
-  /// Because requests could potentially be queued prior to this instance
-  /// being opened, a request could be received prior to this method being executed.
-  void didOpen() {}
+  /// Override this method to take action just before [entryPoint] starts receiving requests. By default, does nothing.
+  void willStartReceivingRequests() {}
 
   /// Closes this instance.
   ///
-  /// Tell the sink that no further requests will be added, and it may release any resources it is using. Prefer using [ServiceRegistry]
+  /// Tell the channel that no further requests will be added, and it may release any resources it is using. Prefer using [ServiceRegistry]
   /// to overriding this method.
   ///
   /// If you do override this method, you must call the super implementation. The default behavior of this method removes
   /// any listeners from [logger], so it is advantageous to invoke the super implementation at the end of the override.
   Future close() async {
-    logger.fine("RequestSink(${server.identifier}).close: closing messageHub");
+    logger.fine("ApplicationChannel(${server.identifier}).close: closing messageHub");
     await messageHub.close();
-    logger.fine("RequestSink(${server.identifier}).close: clear logger listeners");
+    logger.fine("ApplicationChannel(${server.identifier}).close: clear logger listeners");
     logger?.clearListeners();
   }
 
   @override
   APIDocument documentAPI(PackagePathResolver resolver) {
-    var doc = new APIDocument()..info = apiInfo;
+    var doc = new APIDocument();
+    final root = entryPoint;
+    root.prepare();
 
-    doc.paths = initialController.documentPaths(resolver);
-    doc.securitySchemes = this.documentSecuritySchemes(resolver);
+    doc.paths = root.documentPaths(resolver);
+    doc.securitySchemes = documentSecuritySchemes(resolver);
 
     var host = new Uri(scheme: "http", host: "localhost");
     if (doc.hosts.length > 0) {
@@ -210,25 +190,21 @@ abstract class RequestSink extends RequestController
         return false;
       }).toList();
     };
-    doc.consumes = distinct(
-        doc.paths.expand((p) => p.operations.expand((op) => op.consumes)));
-    doc.produces = distinct(
-        doc.paths.expand((p) => p.operations.expand((op) => op.produces)));
+    doc.consumes = distinct(doc.paths.expand((p) => p.operations.expand((op) => op.consumes)));
+    doc.produces = distinct(doc.paths.expand((p) => p.operations.expand((op) => op.produces)));
 
     return doc;
   }
 
-  static Type get defaultSinkType {
-    var sinkType = reflectClass(RequestSink);
+  /// Returns the subclass of [ApplicationChannel] found in an application library.
+  static Type get defaultType {
+    var channelType = reflectClass(ApplicationChannel);
     var classes = currentMirrorSystem()
         .libraries
         .values
         .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
         .expand((lib) => lib.declarations.values)
-        .where((decl) =>
-            decl is ClassMirror &&
-            decl.isSubclassOf(sinkType) &&
-            decl.reflectedType != RequestSink)
+        .where((decl) => decl is ClassMirror && decl.isSubclassOf(channelType) && decl.reflectedType != ApplicationChannel)
         .map((decl) => decl as ClassMirror)
         .toList();
 
@@ -245,9 +221,7 @@ abstract class RequestSink extends RequestController
           op.responses.any((resp) {
             return resp.statusCode == HttpStatus.MOVED_TEMPORARILY &&
                 ["client_id", "username", "password", "state"].every((qp) {
-                  return op.parameters
-                      .map((apiParam) => apiParam.name)
-                      .contains(qp);
+                  return op.parameters.map((apiParam) => apiParam.name).contains(qp);
                 });
           });
     }, orElse: () => null);
@@ -265,8 +239,7 @@ abstract class RequestSink extends RequestController
       return op.method.toLowerCase() == "post" &&
           op.responses.any((resp) {
             return ["access_token", "token_type", "expires_in", "refresh_token"]
-                .every((property) =>
-                    resp.schema?.properties?.containsKey(property) ?? false);
+                .every((property) => resp.schema?.properties?.containsKey(property) ?? false);
           });
     }, orElse: () => null);
 
@@ -281,12 +254,11 @@ abstract class RequestSink extends RequestController
 
 /// Sends and receives messages from other isolates started by an [Application].
 ///
-/// Messages added to an instance of this type - through [add] - are broadcast to every isolate running a [RequestSink].
+/// Messages added to an instance of this type - through [add] - are broadcast to every isolate running a [ApplicationChannel].
 /// These messages are be received by [listen]ing to an instance of this type. A hub only receives messages from other isolates - it will not
 /// receive messages that it sent.
 ///
-/// This type implements both [Stream] (for receiving events from other isolates) and [Sink] (for sending events to other isolates). Avoid
-/// [Stream] methods such as [Stream.first], which will stop the hub from listening to future events.
+/// This type implements both [Stream] (for receiving events from other isolates) and [Sink] (for sending events to other isolates).
 ///
 /// For example, an application may want to send data to every connected websocket. A reference to each websocket
 /// is only known to the isolate it established a connection on. This data must be sent to each isolate so that each websocket
@@ -317,12 +289,11 @@ class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
   /// that failed to send the data will receive [onError] events.
   @override
   StreamSubscription<dynamic> listen(void onData(dynamic event),
-      {Function onError, void onDone(), bool cancelOnError: false}) =>
-    _inboundController.stream.listen(
-        onData,
-        onError: onError ?? (err, st) => _logger.severe("ApplicationMessageHub error", err, st),
-        onDone: onDone,
-        cancelOnError: cancelOnError);
+          {Function onError, void onDone(), bool cancelOnError: false}) =>
+      _inboundController.stream.listen(onData,
+          onError: onError ?? (err, st) => _logger.severe("ApplicationMessageHub error", err, st),
+          onDone: onDone,
+          cancelOnError: cancelOnError);
 
   /// Sends a message to all other isolates.
   ///

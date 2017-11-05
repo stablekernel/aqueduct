@@ -6,28 +6,26 @@ import 'controller/user_controller.dart';
 import 'model/user.dart';
 import 'utility/html_template.dart';
 
-/// This class handles setting up this application.
+
+/// This type initializes an application.
 ///
-/// Override methods from [RequestSink] to set up the resources your
-/// application uses and the routes it exposes.
-///
-/// See the documentation in this file for the constructor, [setupRouter] and [willOpen]
-/// for the purpose and order of the initialization methods.
-///
-/// Instances of this class are the type argument to [Application].
-/// See http://aqueduct.io/docs/http/request_sink
-/// for more details.
-class WildfireSink extends RequestSink {
-  /// Constructor called for each isolate run by an [Application].
+/// Override methods in this class to set up routes and initialize services like
+/// database connections. See http://aqueduct.io/docs/http/channel/.
+class WildfireChannel extends ApplicationChannel {
+  HTMLRenderer htmlRenderer = new HTMLRenderer();
+  AuthServer authServer;
+
+  /// Initialize services in this method.
   ///
-  /// This constructor is called for each isolate an [Application] creates to serve requests.
-  /// The [appConfig] is made up of command line arguments from `aqueduct serve`.
+  /// Implement this method to initialize services, read values from [configuration]
+  /// and any other initialization required before constructing [entryPoint].
   ///
-  /// Configuration of database connections, [HTTPCodecRepository] and other per-isolate resources should be done in this constructor.
-  WildfireSink(ApplicationConfiguration appConfig) : super(appConfig) {
+  /// This method is invoked prior to [entryPoint] being accessed.
+  @override
+  Future prepare() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
-    var options = new WildfireConfiguration(appConfig.configurationFilePath);
+    var options = new WildfireConfiguration(configuration.configurationFilePath);
 
     ManagedContext.defaultContext = contextWithConnectionInfo(options.database);
 
@@ -35,15 +33,16 @@ class WildfireSink extends RequestSink {
     authServer = new AuthServer(authStorage);
   }
 
-  HTMLRenderer htmlRenderer = new HTMLRenderer();
-  AuthServer authServer;
-
-  /// All routes must be configured in this method.
+  /// Construct the request channel.
   ///
-  /// This method is invoked after the constructor and before [willOpen] Routes must be set up in this method, as
-  /// the router gets 'compiled' after this method completes and routes cannot be added later.
+  /// Return an instance of some [RequestController] that will be the initial receiver
+  /// of all [Request]s.
+  ///
+  /// This method is invoked after [prepare].
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
+
     /* OAuth 2.0 Endpoints */
     router.route("/auth/token").generate(() => new AuthController(authServer));
 
@@ -68,16 +67,8 @@ class WildfireSink extends RequestSink {
         .pipe(new Authorizer.bearer(authServer))
         .generate(() => new UserController(authServer));
 
-
+    return router;
   }
-
-  /// Final initialization method for this instance.
-  ///
-  /// This method allows any resources that require asynchronous initialization to complete their
-  /// initialization process. This method is invoked after [setupRouter] and prior to this
-  /// instance receiving any requests.
-  @override
-  Future willOpen() async {}
 
   /*
    * Helper methods

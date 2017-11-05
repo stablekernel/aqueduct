@@ -13,10 +13,10 @@ import 'base.dart';
 class CLIServer extends CLIServeBase {
   CLIServer() {
     options
-      ..addOption("sink",
+      ..addOption("channel",
           abbr: "s",
           help:
-              "The name of the RequestSink subclass to be instantiated to serve requests. "
+              "The name of the ApplicationChannel subclass to be instantiated to serve requests. "
               "By default, this subclass is determined by reflecting on the application library in the [directory] being served.")
       ..addOption("port",
           abbr: "p",
@@ -31,7 +31,7 @@ class CLIServer extends CLIServeBase {
           abbr: "c",
           help:
               "The path to a configuration file. This File is available in the ApplicationConfiguration "
-              "for a RequestSink to use to read application-specific configuration values. Relative paths are relative to [directory].",
+              "for a ApplicationChannel to use to read application-specific configuration values. Relative paths are relative to [directory].",
           defaultsTo: "config.yaml")
       ..addOption("timeout",
           help: "Number of seconds to wait to ensure startup succeeded.",
@@ -69,7 +69,7 @@ class CLIServer extends CLIServeBase {
     registerCommand(new CLIServeStop());
   }
 
-  String derivedRequestSinkType;
+  String derivedChannelType;
   ArgResults get command => values.command;
   int get startupTimeout => int.parse(values["timeout"]);
   bool get monitorStartup => values["monitor"];
@@ -82,7 +82,7 @@ class CLIServer extends CLIServeBase {
   int get port => int.parse(values["port"]);
   int get numberOfIsolates => int.parse(values["isolates"]);
   String get address => values["address"];
-  String get requestSinkType => values["sink"] ?? derivedRequestSinkType;
+  String get channelType => values["channel"] ?? derivedChannelType;
   File get configurationFile {
     String path = values["config-path"];
     if (path_lib.isRelative(path)) {
@@ -115,7 +115,7 @@ class CLIServer extends CLIServeBase {
     var replacements = {
       "PACKAGE_NAME": packageName,
       "LIBRARY_NAME": libraryName,
-      "SINK_TYPE": requestSinkType,
+      "CHANNEL_TYPE": channelType,
       "PORT": port,
       "ADDRESS": address,
       "IPV6_ONLY": ipv6Only,
@@ -126,7 +126,7 @@ class CLIServer extends CLIServeBase {
     };
 
     displayInfo("Starting application '$packageName/$libraryName'");
-    displayProgress("Sink Type: $requestSinkType");
+    displayProgress("Channel: $channelType");
     displayProgress("Config: ${configurationFile?.path}");
     displayProgress("Port: $port");
 
@@ -266,15 +266,15 @@ class CLIServer extends CLIServeBase {
   }
 
   Future deriveApplicationLibraryDetails() async {
-    // Find request sink type
+    // Find request channel type
     var generator = new SourceGenerator(
         (List<String> args, Map<String, dynamic> values) async {
-      var sinkType = RequestSink.defaultSinkType;
+      var channelType = ApplicationChannel.defaultType;
 
-      if (sinkType == null) {
+      if (channelType == null) {
         return "null";
       }
-      return MirrorSystem.getName(reflectClass(sinkType).simpleName);
+      return MirrorSystem.getName(reflectClass(channelType).simpleName);
     }, imports: [
       "package:aqueduct/aqueduct.dart",
       "package:$packageName/$libraryName.dart",
@@ -288,9 +288,9 @@ class CLIServer extends CLIServeBase {
     var result = await executor.execute(projectDirectory.uri);
     if (result == "null") {
       throw new CLIException(
-          "No RequestSink subclass found in $packageName/$libraryName");
+          "No ApplicationChannel subclass found in $packageName/$libraryName");
     }
-    derivedRequestSinkType = result;
+    derivedChannelType = result;
   }
 
   void prepare() {
@@ -353,7 +353,7 @@ import 'package:___PACKAGE_NAME___/___LIBRARY_NAME___.dart';
 
 main() async {
   try {
-    var app = new Application<___SINK_TYPE___>();
+    var app = new Application<___CHANNEL_TYPE___>();
     var config = new ApplicationConfiguration()
       ..port = ___PORT___
       $certificateString

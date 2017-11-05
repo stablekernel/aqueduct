@@ -6,7 +6,7 @@ import 'package:aqueduct/aqueduct.dart';
 
 void main() {
   group("Standard operations", () {
-    var app = new Application<TestSink>();
+    var app = new Application<TestChannel>();
     RequestController.letUncaughtExceptionsEscape = true;
     app.configuration.port = 8081;
     var client = new TestClient.onPort(app.configuration.port);
@@ -27,7 +27,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.mainIsolateSink.context.persistentStore.close();
+      await app.channel.context.persistentStore.close();
       await app.stop();
     });
 
@@ -100,19 +100,17 @@ void main() {
   });
 }
 
-class TestSink extends RequestSink {
-  TestSink(ApplicationConfiguration opts) : super(opts) {
+class TestChannel extends ApplicationChannel {
+  ManagedContext context;
+
+  @override
+  Future prepare() async {
     var dataModel = new ManagedDataModel([TestModel]);
     var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(
         "dart", "dart", "localhost", 5432, "dart_test");
     context = new ManagedContext(dataModel, persistentStore);
     ManagedContext.defaultContext = context;
-  }
 
-  ManagedContext context;
-
-  @override
-  Future willOpen() async {
     var targetSchema = new Schema.fromDataModel(context.dataModel);
     var schemaBuilder = new SchemaBuilder.toSchema(
         context.persistentStore, targetSchema,
@@ -125,10 +123,12 @@ class TestSink extends RequestSink {
   }
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router
         .route("/controller/[:id]")
         .generate(() => new Subclass());
+    return router;
   }
 }
 

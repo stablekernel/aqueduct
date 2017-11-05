@@ -22,16 +22,19 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 ///
 /// An example Aqueduct application:
 ///
-///       class Sink extends RequestSink {
-///         Sink(ApplicationConfiguration config) : super(config);
+///       class Channel extends ApplicationChannel {
 ///
 ///         @override
-///         void setupRouter(Router router) {
+///         RequestController get entryPoint {
+///           final router = new Router();
+///
 ///           router
 ///             .route("/ok")
 ///             .listen((req) async {
 ///               return new Response.ok(null);
 ///             });
+///
+///           return router;
 ///         }
 ///       }
 library aqueduct;

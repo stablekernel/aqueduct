@@ -1,21 +1,25 @@
 import 'managed.dart';
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
-import '../../http/request_sink.dart';
+import 'package:aqueduct/src/application/channel.dart';
 
 /// The target for database queries and coordinator of [Query]s.
 ///
 /// An application that uses Aqueduct's ORM functionality must create an instance of this type. This is done
-/// in a [RequestSink]'s constructor:
+/// in a [ApplicationChannel]'s constructor:
 ///
-///         class MyRequestSink extends RequestSink {
-///            MyRequestSink(ApplicationConfiguration config) : super(config) {
+///         class Channel extends ApplicationChannel {
+///            ManagedContext context;
+///
+///            @override
+///            Future prepare() async {
 ///               var store = new PostgreSQLPersistentStore(...);
 ///               var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
 ///               context = new ManagedContext(dataModel, store);
 ///            }
 ///
-///            ManagedContext context;
+///            @override
+///            RequestController get entryPoint => ...;
 ///         }
 ///
 /// A [Query] must have a valid [ManagedContext] to execute. Most applications only need one [ManagedContext],

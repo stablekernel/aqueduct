@@ -16,8 +16,8 @@ void main() {
       await app?.stop();
     });
 
-    test("A message sent to the hub is received by other request sinks, but not by sender", () async {
-      app = new Application<HubSink>()..configuration.port = 8000;
+    test("A message sent to the hub is received by other channels, but not by sender", () async {
+      app = new Application<HubChannel>()..configuration.port = 8000;
       await app.start(numberOfInstances: numberOfIsolates);
 
       var resp = await postMessage("msg1");
@@ -36,10 +36,10 @@ void main() {
       expect(messages[id2], [{"isolateID": receivingID, "message": "msg1"}]);
     });
 
-    test("A message sent in willOpen is received by all sinks eventually", () async {
-      app = new Application<HubSink>()
+    test("A message sent in prepare is received by all channels eventually", () async {
+      app = new Application<HubChannel>()
         ..configuration.port = 8000
-        ..configuration.options = {"sendIn": "willOpen"};
+        ..configuration.options = {"sendIn": "prepare"};
       await app.start(numberOfInstances: numberOfIsolates);
 
       var messages = await getMessagesFromIsolates();
@@ -56,24 +56,6 @@ void main() {
       expect(messages[3].any((i) => i["isolateID"] == 1 && i["message"] == "init"), true);
       expect(messages[3].any((i) => i["isolateID"] == 2 && i["message"] == "init"), true);
     });
-
-    test("Message sent in constructor is received by all sinks eventually", () async {
-      app = new Application<HubSink>()
-        ..configuration.port = 8000
-        ..configuration.options = {"sendIn": "constructor"};
-      await app.start(numberOfInstances: numberOfIsolates);
-
-      var messages = await getMessagesFromIsolates();
-
-      expect(messages[1].length, 2);
-      expect(messages[1].every((m) => m.length == 1 && m["key"] == "constructor"), true);
-
-      expect(messages[2].length, 2);
-      expect(messages[2].every((m) => m.length == 1 && m["key"] == "constructor"), true);
-
-      expect(messages[3].length, 2);
-      expect(messages[3].every((m) => m.length == 1 && m["key"] == "constructor"), true);
-    });
   });
 
   group("Multiple listeners", () {
@@ -84,7 +66,7 @@ void main() {
     });
 
     test("Message hub stream can have multiple listeners", () async {
-      app = new Application<HubSink>()
+      app = new Application<HubChannel>()
         ..configuration.port = 8000
         ..configuration.options = {"multipleListeners": true};
       await app.start(numberOfInstances: numberOfIsolates);
@@ -115,7 +97,7 @@ void main() {
     });
 
     test("Send invalid x-isolate data returns error in error stream", () async {
-      app = new Application<HubSink>()
+      app = new Application<HubChannel>()
         ..configuration.port = 8000;
       await app.start(numberOfInstances: numberOfIsolates);
 
@@ -183,32 +165,34 @@ int isolateIdentifierFromResponse(http.Response response) {
   return int.parse(response.headers["server"].split("/").last);
 }
 
-class HubSink extends RequestSink {
-  HubSink(ApplicationConfiguration config) : super(config) {
+class HubChannel extends ApplicationChannel {
+  List<Map<String, dynamic>> messages = [];
+  List<String> errors = [];
+
+  @override
+  Future prepare() async {
     messageHub.listen((event) {
       messages.add(event);
     }, onError: (err) {
       errors.add(err.toString());
     });
 
-    if (config.options["sendIn"] == "constructor") {
-      messageHub.add({"key": "constructor"});
-    }
-
-    if (config.options["multipleListeners"] == true) {
+    if (configuration.options["multipleListeners"] == true) {
       messageHub.listen((event) {
         messages.add(event);
       }, onError: (err) {
         errors.add(err.toString());
       });
     }
+
+    if (configuration.options["sendIn"] == "prepare") {
+      messageHub.add({"isolateID": server.identifier, "message": "init"});
+    }
   }
 
-  List<Map<String, dynamic>> messages = [];
-  List<String> errors = [];
-
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router.route("/messages").listen((req) async {
       var msgs = new List.from(messages);
       messages = [];
@@ -230,12 +214,6 @@ class HubSink extends RequestSink {
       }
       return new Response.accepted();
     });
-  }
-
-  @override
-  Future willOpen() async {
-    if (configuration.options["sendIn"] == "willOpen") {
-      messageHub.add({"isolateID": server.identifier, "message": "init"});
-    }
+    return router;
   }
 }

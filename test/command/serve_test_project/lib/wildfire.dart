@@ -1,10 +1,10 @@
 import 'package:aqueduct/aqueduct.dart';
 
-class WildfireSink extends RequestSink {
-  WildfireSink(ApplicationConfiguration config) : super(config);
-
+class WildfireChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router r) {
+  RequestController get entryPoint {
+    final r = new Router();
     r.route("/endpoint").listen((req) async => new Response.ok(null));
+    return r;
   }
 }
