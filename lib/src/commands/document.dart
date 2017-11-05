@@ -152,7 +152,7 @@ class CLIDocument extends CLICommand with CLIProject, CLIDocumentOptions {
         "\tAppplicationChannel.willOpej\n"
         "\tAppplicationChannel.entryPoint\n\n"
         "After these initialization methods are called, ApplicationChannel.document is invoked. Note that the full initialization process does not"
-        " occur: Application.didOpen is not called because no web server is started. However, it is important that"
+        " occur: Application.willStartReceivingRequests is not called because no web server is started. However, it is important that"
         " the first three steps of initialization can occur without error when generating documentation. This often requires having a"
         " valid configuration file (--config-path) when running this tool. The suggested approach is to use config.src.yaml as the configuration"
         " file for the document tool. The flag 'isDocumenting' will be set to true in ApplicationConfiguration.";

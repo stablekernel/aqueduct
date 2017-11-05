@@ -36,10 +36,10 @@ void main() {
       expect(messages[id2], [{"isolateID": receivingID, "message": "msg1"}]);
     });
 
-    test("A message sent in willOpen is received by all channels eventually", () async {
+    test("A message sent in prepare is received by all channels eventually", () async {
       app = new Application<HubChannel>()
         ..configuration.port = 8000
-        ..configuration.options = {"sendIn": "willOpen"};
+        ..configuration.options = {"sendIn": "prepare"};
       await app.start(numberOfInstances: numberOfIsolates);
 
       var messages = await getMessagesFromIsolates();
@@ -170,7 +170,7 @@ class HubChannel extends ApplicationChannel {
   List<String> errors = [];
 
   @override
-  Future willOpen() async {
+  Future prepare() async {
     messageHub.listen((event) {
       messages.add(event);
     }, onError: (err) {
@@ -185,7 +185,7 @@ class HubChannel extends ApplicationChannel {
       });
     }
 
-    if (configuration.options["sendIn"] == "willOpen") {
+    if (configuration.options["sendIn"] == "prepare") {
       messageHub.add({"isolateID": server.identifier, "message": "init"});
     }
   }

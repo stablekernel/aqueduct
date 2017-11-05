@@ -22,7 +22,7 @@ class WildfireChannel extends ApplicationChannel {
   ///
   /// This method is invoked prior to [entryPoint] being accessed.
   @override
-  Future willOpen() async {
+  Future prepare() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
     var options = new WildfireConfiguration(configuration.configurationFilePath);
@@ -38,7 +38,7 @@ class WildfireChannel extends ApplicationChannel {
   /// Return an instance of some [RequestController] that will be the initial receiver
   /// of all [Request]s.
   ///
-  /// This method is invoked after [willOpen].
+  /// This method is invoked after [prepare].
   @override
   RequestController get entryPoint {
     final router = new Router();

@@ -27,7 +27,7 @@ import 'auth.dart';
 ///           AuthServer authServer;
 ///
 ///           @override
-///           Future willOpen() async {
+///           Future prepare() async {
 ///             context = createContext();
 ///             authServer = new AuthServer(new ManagedAuthStorage<User>(context));
 ///           }
@@ -179,7 +179,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// Returns a [Authorization] for [accessToken].
   ///
   /// This method obtains an [AuthToken] for [accessToken] from [storage] and then verifies that the token is valid.
-  /// If the token is valid, an [Authorization] object is returned. Otherwise, [null] is returned.
+  /// If the token is valid, an [Authorization] object is returned. Otherwise, null is returned.
   Future<Authorization> verify(String accessToken, {List<AuthScope> scopesRequired}) async {
     if (accessToken == null) {
       return null;
