@@ -10,10 +10,14 @@ Using an `AuthController` in an application is straightforward - hook it up to a
 
 ```dart
 @override
-void setupRouter(Router router) {
+RequestController get entryPoint {
+  final router = new Router();
+
   router
     .route("/auth/token")
     .generate(() => new AuthController(authServer));
+
+  return router;
 }
 ```
 
@@ -92,11 +96,15 @@ Setting up an `AuthCodeController` is nearly as simple as setting up an `AuthCon
 
 ```dart
 @override
-void setupRouter(Router router) {
+RequestController get entryPoint {
+  final router = new Router();
+
   router
     .route("/auth/code")
     .generate(() => new AuthCodeController(
       authServer, renderAuthorizationPageHTML: renderLogin));
+
+  return router;
 }
 
 Future<String> renderLogin(

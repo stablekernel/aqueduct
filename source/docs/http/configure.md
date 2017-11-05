@@ -6,14 +6,14 @@ This guide covers configuring an Aqueduct application.
 
 Aqueduct applications use YAML configuration files to provide environment-specific values like database connection information. Use separate configuration files for testing and different deployment environments.
 
-The path of a configuration file is available at runtime via `ApplicationConfiguration.configurationFilePath` and is read in a `RequestSink` constructor (and sometimes `RequestSink.initializeApplication`).
+The path of a configuration file is available at runtime via `ApplicationConfiguration.configurationFilePath` and is read in a `ApplicationChannel` constructor (and sometimes `ApplicationChannel.initializeApplication`).
 
 ```dart
-class TodoAppSink extends RequestSink {
-  TodoAppSink(ApplicationConfiguration options) : super(options) {
-    var configFilePath = options.configurationFilePath;
-    var config = new TodoConfiguration(configFilePath);
-
+class TodoAppChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
+    var config = new TodoConfiguration(configuration.configurationFilePath);
+    ...
   }
 }
 ```
@@ -87,7 +87,7 @@ It can sometimes makes sense to have a `local.yaml` with values for running the 
 
 ## Preventing Resource Leaks
 
-When an Aqueduct application starts, the application and its `RequestSink`s will likely create services that they use to respond to requests. In order for application tests to complete successfully, these services must be "closed" when the application stops. For built-in services, like `PostgreSQLPersistentStore`, this happens automatically when `Application.stop()` is invoked.
+When an Aqueduct application starts, the application and its `ApplicationChannel`s will likely create services that they use to respond to requests. In order for application tests to complete successfully, these services must be "closed" when the application stops. For built-in services, like `PostgreSQLPersistentStore`, this happens automatically when `Application.stop()` is invoked.
 
 A `ServiceRegistry` automatically stops registered services. Registration looks like this:
 
@@ -128,8 +128,9 @@ Every `RequestController` has a `policy` property (a `CORSPolicy` instance). The
 Policies can be set at the controller level or at the application level. The static property `CORSPolicy.defaultPolicy` can be modified at initialization time to set the CORS options for every controller.
 
 ```dart
-class MyRequestSink extends RequestSink {
-  MyRequestSink(ApplicationConfiguration config) : super(config) {
+class MyApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     CORSPolicy.defaultPolicy.allowedOrigins = ["http://mywebsite.com/"];
   }
 }
@@ -161,10 +162,10 @@ Both the key and certificate file must be unencrypted PEM files, and both must b
 
 When an application is started with these options, the `certificateFilePath` and `keyFilePath` are set on the `ApplicationConfiguration` your application is being run with. (If you are not using `aqueduct serve`, you can set these values directly when instantiating `ApplicationConfiguration`.)
 
-For more granular control over setting up an HTTPS server, you may override `securityContext` in `RequestSink`. By default, this property will create a `SecurityContext` from the `certificateFilePath` and `keyFilePath` in the sink's `configuration`. A `SecurityContext` allows for password-encrypted credential files, configuring client certificates and other less used HTTPS schemes.
+For more granular control over setting up an HTTPS server, you may override `securityContext` in `ApplicationChannel`. By default, this property will create a `SecurityContext` from the `certificateFilePath` and `keyFilePath` in the channels's `configuration`. A `SecurityContext` allows for password-encrypted credential files, configuring client certificates and other less used HTTPS schemes.
 
 ```dart
-class MyRequestSink extends RequestSink {
+class MyApplicationChannel extends ApplicationChannel {
   @override
   SecurityContext get securityContext {
     return new SecurityContext()

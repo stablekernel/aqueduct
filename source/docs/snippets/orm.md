@@ -93,17 +93,19 @@ var team = await query.updateOne();
 ## Configure a Database Connection from Configuration File
 
 ```dart
-class AppSink extends RequestSink {
-  AppSink(ApplicationConfiguration config) : super(config) {  
-    var options = new MyAppConfiguration(appConfig.configurationFilePath);
-    context = contextWithConnectionInfo(options.database);
+class AppChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
+    context = contextWithConnectionInfo(configuration.configurationFilePath.database);
   }
 
   ManagedContext context;
 
   @override
-  void setupRouter(Router r) {
-
+  RequestController get entryPoint {
+    final router = new Router();
+    ...
+    return router;
   }
 
   ManagedContext contextWithConnectionInfo(

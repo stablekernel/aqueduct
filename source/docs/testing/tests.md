@@ -19,13 +19,13 @@ export 'package:test/test.dart';
 export 'package:aqueduct/aqueduct.dart';
 
 class TestApplication {
-  Application<AppSink> application;
-  AppSink get sink => application.mainIsolateSink;
+  Application<AppChannel> application;
+  AppChannel get channel => application.channel;
   TestClient client;
 
   Future start() async {
     RequestController.letUncaughtExceptionsEscape = true;
-    application = new Application<AppSink>();
+    application = new Application<AppChannel>();
     application.configuration.port = 0;
     application.configuration.configurationFilePath = "config.src.yaml";
 
@@ -40,7 +40,7 @@ class TestApplication {
 }
 ```
 
-The type `AppSink` is replaced with your application's `RequestSink` subclass. A test file need only import this harness and start and stop the application in its `setUpAll` and `tearDownAll` callbacks:
+Replace the type argument for `application` with your `ApplicationChannel` subclass. A test file need only import this harness and start and stop the application in its `setUpAll` and `tearDownAll` callbacks:
 
 ```dart
 import 'harness/app.dart';
@@ -240,7 +240,7 @@ test("Starting an upload creates a pending record in the database", () async {
 });
 ```
 
-Anything the `RequestSink` can access, so too can the tests.
+Anything the `ApplicationChannel` can access, so too can the tests.
 
 ## Configuring the Test Harness
 
@@ -249,7 +249,7 @@ The test harness' primary responsibility is to start and stop the application. R
 ```dart
 Future start() async {
   RequestController.letUncaughtExceptionsEscape = true;
-  application = new Application<AppSink>();
+  application = new Application<AppChannel>();
   application.configuration.port = 0;
   application.configuration.configurationFilePath = "config.src.yaml";
 
@@ -296,7 +296,7 @@ This method should be invoked within `TestApplication.start`, right after the ap
 ```dart
 Future start() async {
   RequestController.letUncaughtExceptionsEscape = true;
-  application = new Application<FoobarSink>();
+  application = new Application<FoobarChannel>();
   application.configuration.port = 0;
   application.configuration.configurationFilePath = "config.src.yaml";
 
@@ -308,7 +308,7 @@ Future start() async {
 }
 ```
 
-Notice that the `ManagedContext.defaultContext` will have already been set by the application's `RequestSink`.
+Notice that the `ManagedContext.defaultContext` will have already been set by the application's `ApplicationChannel`.
 
 After a test is executed, the test database should be cleared of data so that none of the stored data test leaks into the next test. Because starting and stopping an application isn't a cheap operation, it is often better to simply delete the contents of the database rather than restart the whole application. This is why the flag `isTemporary` in `SchemaBuilder.toSchema` matters: it creates *temporary* tables that only live as long as the database connection. By simply reconnecting to the database, all of the tables and data created are discarded. Therefore, all you have to do is close the connection and add the database schema again.
 

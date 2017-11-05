@@ -18,21 +18,24 @@ An Aqueduct application is a series of controllers that form a *channel* for a r
 
 ### Initialization
 
-An application's channel is created by subclassing [RequestSink](http/request_sink.md). This type also performs any other application initialization, like creating database connections and defining how authorization occurs.
+An application's channel is created by subclassing [ApplicationChannel](http/channel.md). This type also performs any other application initialization, like creating database connections and defining how authorization occurs.
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
 
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfiguration config) : super(config) {
-    databaseContext = contextFrom(config);
+class AppApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
+    databaseContext = contextFrom(configuration);
   }
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router
       .route("/resource/[:id]")
       .generate(() => new ResourceController(databaseContext));
+    return router;
   }
 }
 ```
@@ -43,7 +46,9 @@ A [router](http/routing.md) splits a channel into sub-channels based on the path
 
 ```dart
 @override
-void setupRouter(Router router) {    
+RequestController get entryPoint {
+  final router = new Router();
+
   router
     .route("/users/[:id]")
     .generate(() => new UserController());
@@ -55,6 +60,8 @@ void setupRouter(Router router) {
   router
     .route("/health")
     .listen((req) async => new Response.ok(null));
+
+  return router;
 }    
 ```
 
@@ -163,9 +170,10 @@ Read the configuration file identified by an `ApplicationConfiguration`:
 ```dart
 import 'package:aqueduct/aqueduct.dart';
 
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfig config) : super(config) {
-    var options = new AppOptions(config.configurationFilePath);
+class AppApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
+    var options = new AppOptions(configuration.configurationFilePath);
     ...
   }
 }
@@ -318,20 +326,22 @@ Authentication and authorization are enabled at application startup by creating 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfig config) : super(config) {
+class AppApplicationChannel extends ApplicationChannel {
+  AuthServer authServer;
+
+  @override
+  Future prepare() async {
     var storage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
     authServer = new AuthServer(storage);
-  }
-
-  AuthServer authServer;
+  }  
 }
 ```
 
 Set up routes to exchange credentials for tokens using `AuthController` and `AuthCodeController`. Add `Authorizer`s between routes and their controller to restrict access to authorized resource owners only:
 
 ```dart
-void setupRouter(Router router) {
+RequestController get entryPoint {
+  final router = new Router();
   router
     .route("/auth/token")
     .generate(() => new AuthController(authServer));
@@ -344,6 +354,8 @@ void setupRouter(Router router) {
     .route("/protected")
     .pipe(new Authorizer.bearer(authServer))
     .generate(() => new ProtectedController());
+
+  return router;
 }
 ```
 
@@ -355,12 +367,13 @@ aqueduct auth add-client --id com.app.mobile --secret foobar --redirect-uri http
 
 ### Logging
 
-All requests are logged to an instance of `Logger`. Set up a listener for logger in `RequestSink` to print log messages to the console. (See also [scribe](https://pub.dartlang.org/packages/scribe) for logging to rotating files.)
+All requests are logged to an instance of `Logger`. Set up a listener for logger in `ApplicationChannel` to print log messages to the console. (See also [scribe](https://pub.dartlang.org/packages/scribe) for logging to rotating files.)
 
 
 ```dart
-class WildfireSink extends RequestSink {
-  WildfireSink(ApplicationConfiguration config) : super(config) {
+class WildfireChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     logger.onRecord.listen((record) {
       print("$record");
     });

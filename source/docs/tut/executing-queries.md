@@ -1,19 +1,25 @@
 # 3. Executing Queries
 
-We will continue to build on the last chapter's project, `quiz`, by storing questions in a database and retrieving them from the database.
+We will continue to build on the last chapter's project, `quiz`, by fetching questions from a database instead of a constant list in code.
 
 ## Object-Relational Mapping
 
-For a quick prelude, let's make sure we understand what an object-relational mapping (ORM) is. There are different kinds of databases that have different use cases. A relational database management system - which pretty much means a 'SQL' database - stores its data in the form of tables. A table represents some sort of entity - like a person or a bank account - and has columns that describe the attributes of that entity - like a name or a balance. Every row in a table is an instance of that entity - like a single person named Bob or Bob's bank account.
+A relational database management system (like PostgreSQL or MySQL) stores its data in the form of tables. A table represents some sort of entity - like a person or a bank account. Each table has columns that describe the attributes of that entity - like a name or a balance. Every row in a table is an instance of that entity - like a single person named Bob or a bank account.
 
-In an object-oriented framework like Aqueduct, we have a similar concept: a class represents some sort of entity, and an object with that class is an instance of that entity. An ORM maps rows in a database to and from objects in an application. In Aqueduct, each database table-class pairing is called an *entity*. Collectively, an application's entities are called its data model.
+In an object-oriented framework like Aqueduct, we have representations for tables, columns and rows. A class represents a table, an instance of that class is a row in the table and each property of an instance is a column. An ORM translates rows in a database to and from objects in an application.
+
+| Aqueduct | Database | Example #1 | Example #2 |
+|-|-|-|-|
+|Class|Table|Person|Bank Account|
+|Property|Column|Person's Name|Bank Account Balance|
+|Instance|Row|A person named Bob|Sally's Bank Account|
+
+In Aqueduct, each database table-class pairing is called an *entity*. Collectively, an application's entities are called its *data model*.
 
 Building a Data Model
 ---
 
-In our `quiz` application, we really have one type of entity - a "question". We will create an entity by declaring a class whose instances represent a question.
-
-Create a new directory `lib/model/` and then add a new file to it named `lib/model/question.dart`. Add the following code:
+In our `quiz` application, we have one type of entity - a "question". To create a new entity, we must create a subclass of `ManagedObject<T>`. Create a new directory `lib/model/` and then add a new file to this directory named `question.dart`. Add the following code:
 
 ```dart
 import '../quiz.dart';
@@ -28,77 +34,108 @@ class _Question {
 }
 ```
 
-This declares a "question" entity. The class `_Question` is a one-to-one mapping to a database table with the same name. Each of its properties - `index` and `description` - are columns in that table. When the ORM fetches rows from the `_Question` table, they will be returned as instances of `Question`.
+This declares a `Question` entity. Entities are always made up of two classes.
 
-![ManagedObject Diagram](../img/tut3_db.png)
+The `_Question` class is a one-to-one representation of a database table. This table's name will have the same name, `_Question`. Every property declared in this class will have a corresponding column in this table. In other words, the `_Question` table will have two columns - `index` and `description`. The `index` column is this table's primary key (a unique identifier for each question).
 
-When declaring an entity, there must be two classes:
+When we get a row from this table from the database, it will be an instance of the other class - `Question`.
 
-- A *persistent type* that starts with a `_`, has exactly one primary key property, and declares a property for each database column. In the above, the persistent type is `_Question`.
-- An *instance type* that extends `ManagedObject<T>` (where `T` is the persistent type). The instance type also implements the persistent type so that it has the same properties. In the above, the instance type is `Question`.
+`Question` is called the *instance type* of the entity, because that's what we have instances of. `_Question` is the *persistent type* of the entity, because it declares what is stored in the database.
 
-!!! tip "Why two classes?"
-    The two classes allow for much of the powerful behavior of the Aqueduct ORM. Answering this question requires a understanding of those behaviors, which we won't cover much in this beginner's tutorial. Once you've got the basics down, check out [this guide](../db/modeling_data.md) for more detail.
+An instance type must *implement* its persistent type. This is how our instance type has the properties from the persistent type. Our instance type also inherits behavior that allows us to use it to represent rows in the database. The type parameter for `ManagedObject<T>` must be the persistent type; this tells the ORM which table to use.
 
-During application initialization, the data model gets compiled so that it information about these entities is available at runtime to the components that need it. In `quiz_sink.dart`, add the following code to the constructor:
-
-```dart
-QuizSink(ApplicationConfiguration appConfig) : super(appConfig) {
-  /* This line was added by the template */
-  logger.onRecord.listen((rec) =>
-    print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
-
-  var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-}
-```
-
-The `fromCurrentMirrorSystem` constructor will be able to find all of the `ManagedObject<T>` subclasses in your application. This data model will be one of the two necessary components for our next task, creating a `ManagedContext`.
+!!! tip "Transient Properties"
+    Properties declared in the instance type aren't stored in the database. This is different than properties in the persistent type. This behavior is useful for a number of reasons: providing tiny bits of logic, expanding a value into multiple columns, collapsing a value into a single column, etc. For example, a database table might have a `firstName` and `lastName`, but it's useful in some places to have a `fullName` property without having to store it in the database.
 
 Defining a Context
 ---
 
-A `ManagedContext` is an application's gateway to a database. It maintains a connection to a database, executes queries on that database, and translates the results to and from `ManagedObject<T>`s according to a `ManagedDataModel`. We have the data model already, so now we must provide database connection information. In `quiz_sink.dart`, declare a new property and add a few more lines to the constructor:
+Our application needs to know two things to execute database queries:
+
+1. What is the data model (our collection of entities)?
+2. What database are we connecting to?
+
+Both of these things are determined when an application is first started. In `channel.dart`, add a new property `context` and update `prepare()`:
 
 ```dart
-class QuizSink extends RequestSink {
-  QuizSink(ApplicationConfiguration options) : super(options) {
-    logger.onRecord.listen((rec) =>
-      print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
+class QuizChannel extends ApplicationChannel {
+  ManagedContext context;
 
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+  @override
+  Future prepare() async {
+    logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
-    var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(
-      "dart", "dart", "localhost", 5432, "dart_test");
+    final dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+    final persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(
+      "quiz_user", "password", "localhost", 5432, "quiz");
 
     context = new ManagedContext(dataModel, persistentStore);
   }
 
-  ManagedContext context;
+  @override
+  RequestController get entryPoint {
+    ...
+```
 
+`ManagedDataModel.fromCurrentMirrorSystem()` will find all of our `ManagedObject<T>` subclasses and 'compile' them into a data model. A `PostgreSQLPersistentStore` takes database connection information that it will use to connect and send queries to a database. Together, these objects are packaged up into a `ManagedContext`.
+
+Once we have a context, we don't have to directly concern ourselves with the persistent store or data model. It will coordinate these two objects to execute queries and translate objects to and from the database. If an object has a reference to the context, it can execute queries on the database it coordinates. So, we'll want `QuestionController` to have access to the context.
+
+In `question_controller.dart`, add a property and create a new constructor:
+
+```dart
+class QuestionController {
+  QuestionController(this.context);
+
+  ManagedContext context;
+  // You can delete the list of questions if you like, we won't use it. But
+  // the analyzer will yell at you for a bit.
   ...
 ```
 
-This creates a context that connects to the database `postgres://dart:dart@localhost:5432/dart_test` that has a single `_Question` table. Before we create that database, let's finish writing the code that will fetch questions from a database.
+The analyzer should tell us we have an error in our `channel.dart` file; the constructor for `QuestionController` now requires a `ManagedContext`. Update the `entryPoint` so that each time a new `QuestionController` is created, the context we created in the channel is passed to its constructor:
+
+```dart
+@override
+RequestController get entryPoint {
+  final router = new Router();
+
+  router
+    .route("/questions/[:index]")
+    .generate(() => new QuestionController(context));
+
+  router
+    .route("/example")
+    .listen((request) async {
+      return new Response.ok({"key": "value"});
+  });
+
+  return router;
+}
+```
+
+Now that we've 'injected' this context into our `QuestionController` instances, they can execute database queries.
 
 Executing Queries
 ---
 
-Once a context has been created, when can execute `Query<T>`s on it. In `lib/controller/question_controller.dart`, replace the implementation of `getAllQuestions` to fetch questions from a database and import the file that declares `Question`:
+Our operation methods in `QuestionController` currently return questions from an in-memory list. We will replace the implementation of these methods so that these questions are fetched from a PostgreSQL database. To get data from a database, we create and execute instances of `Query<T>` in our `ManagedContext`.
+
+Let's start by replacing `getAllQuestions` in `question_controller.dart`. Make sure to import your `question.dart` file at the top:
 
 ```dart
 import '../quiz.dart';
 import '../model/question.dart';
 
 class QuestionController extends HttpController {
-  var questions = [
-    "How much wood can a woodchuck chuck?",
-    "What's the tallest mountain in the world?"
-  ];
+  QuestionController(this.context);
+
+  ManagedContext context;
 
   @Bind.get()
   Future<Response> getAllQuestions() async {
-    var questionQuery = new Query<Question>();
-    var databaseQuestions = await questionQuery.fetch();
+    final questionQuery = new Query<Question>(context);
+    final databaseQuestions = await questionQuery.fetch();
 
     return new Response.ok(databaseQuestions);
   }
@@ -106,20 +143,17 @@ class QuestionController extends HttpController {
 ...
 ```
 
-In `getAllQuestions`, we create an instance of `Query<Question>` and then execute its `fetch()` method. This method will fetch every question from the database and returns them as a `List<Question>` into the variable `databaseQuestions`. This list is the body object to the `Response`, which by default, encodes them as a list of JSON objects.
-
-!!! note "Where's the context?"
-    Most applications only talk to a single database and therefore have a single `ManagedContext`. When creating a `Query<T>` without specifying a context, the query defaults to executing on the last context created - which happens to be the one we instantiated in `QuizSink`.
+Here, we create an instance of `Query<Question>` and then execute its `fetch()` method. The type argument to `Query<T>` is an instance type; it lets the query know which table to fetch rows from. The context argument tells it which database to fetch it from. The `fetch()` execution method returns a `List<T>` of that instance type. That list gets returned as the body of the response.
 
 Now, let's update `getQuestionAtIndex` to fetch a single question by its index from the database.
 
 ```dart
 @Bind.get()
 Future<Response> getQuestionAtIndex(@Bind.path("index") int index) async {
-  var questionQuery = new Query<Question>()
+  final questionQuery = new Query<Question>(context)
     ..where.index = whereEqualTo(index);    
 
-  var question = await questionQuery.fetchOne();
+  final question = await questionQuery.fetchOne();
 
   if (question == null) {
     return new Response.notFound();
@@ -128,24 +162,149 @@ Future<Response> getQuestionAtIndex(@Bind.path("index") int index) async {
 }
 ```
 
-This query does two interesting things: it filters the result of the query by the question's index and only fetches a single question with `fetchOne()`.
+This query does two interesting things. First, it uses the `where` property to filter questions that have the same `index` as the path variable; i.e., `/questions/1` will fetch only questions with an index of `1`. This works because the `where` property adds a SQL WHERE clause to the query. We'd get the following SQL:
 
-Filtering is accomplished through the `where` property of a `Query<Question>`; this property has all of the same properties as `Question`. *Matchers* like `whereEqualTo` are set as the values of `where`'s properties. This adds conditions to the where clause of the generated SQL query. In the above code, we constrain the query to only fetch questions whose `index` is equal to the `index` from the path variable. Since `index` is the primary key of `Question`, this will either give us a single question or return null.
+```sql
+SELECT index, description FROM _question WHERE index = 1;
+```
+
+The `where` property is actually an instance of `Question`, so it will have an `index` and `description` property. We apply *matchers* to those properties. A matcher is a function or constant that starts with the word `where` - like `whereEqualTo()`. By applying matchers, we specify which values and operators are used in the WHERE clause.
 
 !!! tip "Matching All the Things"
     There are a lot of matchers available to build different queries. All matchers start with the word `where` and can be found by searching the [API reference](https://www.dartdocs.org/documentation/aqueduct/latest/).
 
+The `fetchOne()` query execution method will return a single object that fulfills any matcher applied to the query's `where`. If no database row meets the criteria, `null` is returned. In that case, we return a 404 Not Found response.
+
+We have now written code that fetches questions from a database instead of from in memory, but we don't have a database - yet.
+
+!!! tip "Use fetchOne() on Unique Properties"
+    If more than one object meets the criteria of a `fetchOne()`, an exception is thrown.
+    It's only safe to use `fetchOne()` when applying a matcher to a unique property, like an entity's primary key.
+
 Setting Up a Database
 ---
 
-Ensure that your PostgreSQL installation is running and open the command-line tool `psql`. In this tool, create a new database and a user that can connect to it with the following SQL:
+For development, you'll need to install a PostgreSQL server on your local machine. If you are on macOS, your best bet is to use [Postgres.app](http://postgresapp.com). This application starts a PostgreSQL instance when it is open, and closes it when the application is shut down. For other platforms, see [this page](https://www.postgresql.org/download/).
+
+Once you have PostgreSQL installed and running, open a command line interface to it. If you are using `Postgres.app`, select the elephant icon in your status bar and then select `Open psql`. Otherwise, enter `psql` into the command-line.
+
+!!! warning "If you installed Postgres.app"
+    The `psql` command-line utility is inside the `Postgres.app` application bundle, so entering `psql` from the command-line won't find the executable. Once you open `psql` from the status bar item, you'll see the full path to `psql` on your machine.
+
+In `psql`, create a new database and a user to manage it.
 
 ```sql
-CREATE DATABASE dart_test;
-CREATE USER dart WITH createdb;
-ALTER USER dart WITH password 'dart';
-GRANT all ON database dart_test TO dart;
+CREATE DATABASE quiz;
+CREATE USER quiz_user WITH createdb;
+ALTER USER quiz_user WITH password 'password';
+GRANT all ON database quiz TO quiz_user;
 ```
+
+This creates a database named `quiz` that a user named `quiz_user` has access to. Our `PostgreSQLPersistentStore` created in `QuizChannel` is already set up to connect to this database, so make sure the names for the database, username and password all match up. (Keep this terminal open for now.)
+
+The `quiz` database is currently empty - not only does it not have questions, it doesn't even have a table to store questions. We'll need to:
+
+1. Create a `_Question` table in the `quiz` database.
+2. Insert a few rows into that table.
+
+Fortunately, Aqueduct has a command-line tool to manage a database schema. This tool will synchronize the entities in your application with the tables in a database. From the project directory, run the following command:
+
+```
+aqueduct db generate
+```
+
+This will create a new *migration file*. A migration file runs a series of SQL commands to alter a database's schema. It is created in a new directory in your project named `migrations/`. Review the contents of `migrations/00000001_Initial.migration.dart`; you'll notice that it creates a new table with columns for each property of our persistent type, `_Question`.
+
+Apply this migration file to our locally running `quiz` database with the following command in the project directory:
+
+```dart
+aqueduct db upgrade --connect postgres://quiz_user:password@localhost:5432/quiz
+```
+
+This command executes all of the migration files for a project, and in this case, that creates the `_Question` table. Now, we will add some question rows. Back in our `psql` terminal, run the following SQL commands:
+
+```sql
+\c quiz
+INSERT INTO _question (description) VALUES ('How much wood could a woodchuck chuck?');
+INSERT INTO _question (description) VALUES ('What is the tallest mountain in the world?');
+```
+
+Re-run your application with `aqueduct serve` and enter the following URLs into a browser:
+
+```
+http://localhost:8081/questions
+http://localhost:8081/questions/1
+http://localhost:8081/questions/9999
+```
+
+You should see the full list of questions, the first question, and then a 404 Not Found.
+
+(You can now close `psql`.)
+
+!!! note
+    Notice that `/questions/1` now returns the first question, where previously `/questions/0` did. This is because PostgreSQL automatically generates a value for the primary key column of an inserted row, and that generation starts at 1 instead of 0.
+
+## Inserting Data
+
+A `Query<T>` can also insert, delete or update rows. Let's create an operation to "create a new question". This operation will be `POST /questions` and it will need to send a JSON object that represents a question in the body.
+
+In `question_controller.dart`, add the following operation method:
+
+```dart
+@Bind.post()
+Future<Response> createQuestion(@HTTPBody() Question question) async {
+  final query = new Query<Question>()
+    ..values.description = question.description;
+
+  final insertedQuestion = await query.insert();
+
+  return new Response.ok(insertedQuestion);
+}
+```
+
+There's a bit going on here, so let's deconstruct it. First, we know this operation method is bound to `POST /questions` because:
+
+1. The `@Bind.post()` metadata indicates this method responds to `POST`.
+2. We've routed both `/questions` and `/questions/:index` to this controller.
+2. There are no path variable bindings, so it is expected that path variable `index` is null, i.e. `/questions`.
+
+
+An instance of `Question` will be passed to us as an argument. Its `description` will be set to the value of a `description` key in the JSON request body. So, if we made the following request:
+
+```
+POST /questions HTTP/1.1
+Content-Type: application/json; charset=utf-8
+
+{
+    "description": "What is 10+10?"
+}
+```
+
+The value of `question.description` in this method would be `What is 10+10?` (its `index` would be `null`). This value is set on the query `values`. Like `where`, `values` is an instance of the type being inserted. Any property set on it will be inserted into a new row. In our case, the `insert()` function executes the following SQL:
+
+```sql
+INSERT INTO _questions (description) VALUES ('What is 10+10?');
+```
+
+!!! tip "Query Construction"
+    Properties like `values` and `where` prevent errors by type and name checking columns with the analyzer. They're also great for speeding up writing code because your IDE will autocomplete property names. There is [specific behavior](../db/advanced_queries.md) a query uses to decide whether it should include a value from these two properties in the SQL it generates.
+
+
+
+Then, this method would add a new row to the `_Question` table; the value of its description column would be `What is 10+10?` and its index column would be the next auto-incremented integer.
+
+The body of this request will be available in the `question` argument because it is bound to the body of request. When an argument has `@HTTPBody()` binding - and it
+
+The `@HTTPBody()` binding will bind the body of the request to an instance of `Question`. We'll get passed that question as an argument to this method, where we assign its `description` to the `values.description` of the query.
+
+The `values` property of a `Query<T>` works similar to the `where` property in that it has the same properties of the type being queried; the difference is `values` are values to be stored in the database. When we execute the query's `insert()`, a new row gets created in the database with the values that have been assigned.
+
+The `insert()` method returns the `Question` from the database after it has been inserted, which we then return in the response body.
+
+
+
+
+
 
 The user, password and database name match those provided when creating our `ManagedContext` in `QuizSink`. This database will be used during testing. Before the tests run, the test harness will create tables for all of your entities in this database. After the tests complete, the tables will be deleted from this database. Therefore, this database should only be used for running tests.
 

@@ -6,13 +6,15 @@ An Aqueduct application is a [channel of RequestController](structure.md) instan
 
 ![Aqueduct Structure](../img/callout_structure.png)
 
-The above diagram shows a request entering a channel at a `RequestSink` and then being passed to a `Router`. The `Router` splits the channel. If a request's path matches a registered route, the request is passed down the split channel. If it doesn't, the `Router` stops the request from continuing down the channel and responds to it with a 404 Not Found response. Likewise, `Authorizer` might reject a request if it doesn't have valid authorization credentials or let it pass to the next controller in the channel. At the end of the channel, some controller must respond to the request.
+The above diagram shows a request entering a channel at a `ApplicationChannel` and then being passed to a `Router`. The `Router` splits the channel. If a request's path matches a registered route, the request is passed down the split channel. If it doesn't, the `Router` stops the request from continuing down the channel and responds to it with a 404 Not Found response. Likewise, `Authorizer` might reject a request if it doesn't have valid authorization credentials or let it pass to the next controller in the channel. At the end of the channel, some controller must respond to the request.
 
-Channels always begin with a `RequestSink` and a `Router`. This channel is built upon by invoking `route` on the `Router`, which splits the channel into subchannels. These subchannels are added to with the methods `pipe`, `generate`, and `listen`. Each of these `RequestController` methods attaches another `RequestController` to form a channel. Here's an example:
+Channels always begin with a `ApplicationChannel` and a `Router`. This channel is built upon by invoking `route` on the `Router`, which splits the channel into subchannels. These subchannels are added to with the methods `pipe`, `generate`, and `listen`. Each of these `RequestController` methods attaches another `RequestController` to form a channel. Here's an example:
 
 ```dart
 @override
-void setupRouter(Router router) {
+RequestController get entryPoint {
+  final router = new Router();
+
   router
     .route("/path")
     .listen((Request request) async {
@@ -21,6 +23,8 @@ void setupRouter(Router router) {
     })
     .pipe(new FilteringController())
     .generate(() => new CRUDController());
+
+  return router;
 }
 ```
 

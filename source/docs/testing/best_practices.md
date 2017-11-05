@@ -37,15 +37,35 @@ Each project also has a `bin/main.dart` script to run the application without `a
 
 See [Aqueduct Project Structure](../http/structure.md#aqueduct-project-structure-and-organization).
 
-### Pass Services to Controllers in setupRouter
+### Pass Services to Controllers in entryPoint
 
-Pass service objects to a controller in `setupRouter` and only pass the services the controller will use.
+Pass service objects to controllers in `entryPoint` and only pass the services the controller will use.
 
 ```dart
-@override
-void setupRouter(Router router) {
-  router.route("/data").generate(() => new DBController(databaseConnection));
-  router.route("/github").generate(() => new GitHubController(githubService));
+class AppChannel extends ApplicationChannel {
+  GitHub githubService;
+  PostgreSQLConnection databaseConnection;
+
+  @override
+  Future prepare() async {
+      databaseConnection = new PostgreSQLConnection();
+      githubService = new GitHub();
+  }
+
+  @override
+  RequestController get entryPoint {
+    final router = new Router();
+
+    router
+      .route("/data")
+      .generate(() => new DBController(databaseConnection));
+
+    router
+      .route("/github")
+      .generate(() => new GitHubController(githubService));
+
+    return router;
+  }
 }
 ```
 
@@ -69,9 +89,9 @@ See more in [Application Structure](../http/structure.md).
 
 Subclassing [HTTPController](../http/http_controller.md) provides significant conveniences, safeties and behaviors used by the majority of an application's request handling logic. Prefer to use this class for non-middleware controllers.
 
-### Keep RequestSink Tidy
+### Keep ApplicationChannel Tidy
 
-A `RequestSink` should handle initialization, routing and nothing more. Consider moving non-initialization behavior into a service object in a separate file.
+A `ApplicationChannel` should handle initialization, routing and nothing more. Consider moving non-initialization behavior into a service object in a separate file.
 
 ### Avoid Raw SQL Queries
 

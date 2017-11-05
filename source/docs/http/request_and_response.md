@@ -4,7 +4,7 @@ In Aqueduct, HTTP requests and responses are instances of `Request` and `Respons
 
 ## The Request Object
 
-An instance of `Request` represents an HTTP request. They are automatically created when the application receives a request and are delivered to your application's `RequestSink`. A `Request` is a wrapper around the Dart standard library `HttpRequest` and its values - such as headers - can be accessed through its `raw` property.
+An instance of `Request` represents an HTTP request. They are automatically created when the application receives a request and are delivered to your application's `ApplicationChannel`. A `Request` is a wrapper around the Dart standard library `HttpRequest` and its values - such as headers - can be accessed through its `raw` property.
 
 A `Request` has a `body` property. This property decodes the HTTP request body into Dart objects based on the request's content type. The mechanism to decode the body is determined by `HTTPCodecRepository`, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data. The size of a request body is limited to 10MB by default and can be changed by setting the value of `HTTPRequestBody.maxSize` during application initialization.
 
@@ -140,14 +140,15 @@ In the above sections, we glossed over how a codec gets selected when preparing 
 If there isn't an exact match, but there is an entry for the primary type with the wildcard (`*`) subtype, that codec is used. For example, the built-in codec for `text/*` will be selected for both `text/plain` and `text/html`. If there was something special that had to be done for `text/html`, a more specific codec may be added for that type:
 
 ```dart
-class MySink extends RequestSink {
-  MySink(ApplicationConfiguration config) : super(config) {
+class MyChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     HTTPCodecRepository.defaultInstance.add(new ContentType("application", "html"), new HTMLCodec());
   }
 }
 ```
 
-Content type to codec mappings are added in the constructor of an application's [RequestSink](request_sink.md). The codec must implement `Codec` from `dart:convert`. In the above example, when a response's content type is `text/html`, the `HTMLCodec` will encode the body object. This codec takes precedence over `text/*` because it is more specific.
+Content type to codec mappings are added in the constructor of an application's [ApplicationChannel](channel.md). The codec must implement `Codec` from `dart:convert`. In the above example, when a response's content type is `text/html`, the `HTMLCodec` will encode the body object. This codec takes precedence over `text/*` because it is more specific.
 
 When selecting a codec for a response body, the `ContentType.charset` doesn't impact which codec is selected. For example, the following two lines are equivalent:
 
@@ -178,12 +179,10 @@ Body objects may be compressed with `gzip` if the HTTP client allows it *and* th
 Content types that are not in the codec repository will not trigger compression, even if the HTTP client allows compression with the `Accept-Encoding` header. This is to prevent binary contents like images from being 'compressed', since they are likely already compressed by a content-specific algorithm. In order for Aqueduct to compress a content type other than the built-in types, you may add a codec to the repository with the `allowCompression` flag. (The default value is `true`.)
 
 ```dart
-MySink(ApplicationConfiguration config) : super(config) {
-  HTTPCodecRepository.add(
-    new ContentType("application", "x-special"),
-    new MyCodec(),
-    allowCompression: true);
-}
+HTTPCodecRepository.add(
+  new ContentType("application", "x-special"),
+  new MyCodec(),
+  allowCompression: true);
 ```
 
 You may also set whether or not a content type uses compression without having to specify a codec if no conversion step needs to occur:

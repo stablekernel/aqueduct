@@ -3,15 +3,15 @@
 ## Hello, World
 
 ```dart
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfiguration config) : super(config);
-
+class AppApplicationChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router.route("/hello_world").listen((request) async {
       return new Response.ok("Hello, world!")
         ..contentType = ContentType.TEXT;
     });
+    return routerl
   }
 }
 ```
@@ -19,17 +19,17 @@ class AppRequestSink extends RequestSink {
 ## Route Variables
 
 ```dart
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfiguration config) : super(config);
-
+class AppApplicationChannel extends ApplicationChannel {  
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router.route("/variable/[:variable]").listen((request) async {
       return new Response.ok({
         "method": request.raw.method,
         "path": request.path.variables["variable"] ?? "not specified"
       });      
     });
+    return router;
   }
 }
 ```
@@ -37,14 +37,14 @@ class AppRequestSink extends RequestSink {
 ## Grouping Routes and Binding Path Variables
 
 ```dart
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfiguration config) : super(config);
-
+class AppApplicationChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router
       .route("/users/[:id]")
       .generate(() => new Controller());
+    return router;
   }
 }
 
@@ -69,17 +69,17 @@ class Controller extends HTTPController {
 ## Custom Middleware
 
 ```dart
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfiguration config) : super(config);
-
+class AppApplicationChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
     router
       .route("/rate_limit")
       .pipe(new RateLimiter())
       .listen((req) async => new Response.ok({
         "requests_remaining": req.attachments["remaining"]
       }));
+    return router;
   }
 }
 
@@ -105,17 +105,22 @@ class RateLimiter extends RequestController {
 ## Application-Wide CORS Allowed Origins
 
 ```dart
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfiguration config) : super(config) {
+class AppApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     // All controllers will use this policy by default
     CORSPolicy.defaultPolicy.allowedOrigins = ["https://mywebsite.com"];
   }
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
+
     router.route("/things").listen((request) async {
       return new Response.ok(["Widget", "Doodad", "Transformer"]);
     });
+
+    return router;
   }
 }
 ```
@@ -123,16 +128,19 @@ class AppRequestSink extends RequestSink {
 ## Serve Files and Set Cache-Control Headers
 
 ```dart
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfiguration config) : super(config);
-
+class AppApplicationChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router router) {
-    router.route("/files/*").pipe(
-      new HTTPFileController("web")
-        ..addCachePolicy(new HTTPCachePolicy(expirationFromNow: new Duration(days: 365)),
-          (path) => path.endsWith(".js") || path.endsWith(".css"))      
-    );
+  RequestController get entryPoint {
+    final router = new Router();
+
+    final fileController = new HTTPFileController("web")
+      ..addCachePolicy(
+        new HTTPCachePolicy(expirationFromNow: new Duration(days: 365)),
+          (path) => path.endsWith(".js") || path.endsWith(".css"));
+
+    router.route("/files/*").pipe(fileController);    
+
+    return router;
   }
 }
 ```
@@ -140,8 +148,9 @@ class AppRequestSink extends RequestSink {
 ## Streaming Responses (Server Side Events with text/event-stream)
 
 ```dart
-class AppSink extends RequestSink {
-  AppSink(ApplicationConfiguration appConfig) : super(appConfig) {
+class AppChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {  
     var count = 0;
     new Timer.periodic(new Duration(seconds: 1), (_) {
       count ++;
@@ -152,13 +161,17 @@ class AppSink extends RequestSink {
   final StreamController<String> controller = new StreamController<String>();  
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
+
     router.route("/stream").listen((req) async {
       return new Response.ok(controller.stream)
           ..bufferOutput = false
           ..contentType = new ContentType(
             "text", "event-stream", charset: "utf-8");
     });
+
+    return router;
   }
 }
 ```
@@ -166,8 +179,9 @@ class AppSink extends RequestSink {
 ## A websocket server
 
 ```dart
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfiguration config) : super(config) {
+class AppApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {  
     // When another isolate gets a websocket message, echo it to
     // websockets connected on this isolate.
     messageHub.listen(sendBytesToConnectedClients);
@@ -176,7 +190,9 @@ class AppRequestSink extends RequestSink {
   List<WebSocket> websockets = [];
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
+
     // Allow websocket clients to connect to ws://host/connect
     router.route("/connect").listen((request) async {
       var websocket = await WebSocketTransformer.upgrade(request.raw);
@@ -188,6 +204,8 @@ class AppRequestSink extends RequestSink {
       // Take request out of channel
       return null;
     });
+
+    return router;
   }
 
   void sendBytesToConnectedClients(List<int> bytes) {
@@ -208,21 +226,26 @@ class AppRequestSink extends RequestSink {
 ## Setting Content-Type and Encoding a Response Body
 
 ```dart
-class AppRequestSink extends RequestSink {
+class AppApplicationChannel extends ApplicationChannel {
   final ContentType CSV = new ContentType("text", "csv", charset: "utf-8");
 
-  AppRequestSink(ApplicationConfiguration config) : super(config) {
+  @override
+  Future prepare() async {
     // CsvCodec extends dart:convert.Codec
     HTTPCodecRepository.defaultInstance.add(CSV, new CsvCodec());
   }
 
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
+
     router.route("/csv").listen((req) async {
       // These values will get converted by CsvCodec into a comma-separated string
       return new Response.ok([[1, 2, 3], ["a", "b", "c"]])
         ..contentType = CSV;
     });
+
+    return router;
   }
 }
 
@@ -231,11 +254,11 @@ class AppRequestSink extends RequestSink {
 ## Proxy a File From Another Server
 
 ```dart
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfiguration config) : super(config);
-
+class AppApplicationChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router router) {
+  RequestController get entryPoint {
+    final router = new Router();
+
     router.route("/proxy/*").listen((req) async {
       var fileURL = "https://otherserver/${req.path.remainingPath}";
       var fileRequest = await client.getUrl(url);
@@ -252,6 +275,8 @@ class AppRequestSink extends RequestSink {
         // an issue
         ..encodeBody = false;
     });
+
+    return router;
   }
 }
 ```

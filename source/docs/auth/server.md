@@ -1,6 +1,6 @@
 # Creating AuthServers to Authenticate and Authorize
 
-An instance of `AuthServer` handles creating, verifying and refreshing authorization tokens. They are created in a `RequestSink` constructor and are used by instances of `Authorizer`, `AuthController` and `AuthCodeController`.
+An instance of `AuthServer` handles creating, verifying and refreshing authorization tokens. They are created in a `ApplicationChannel` constructor and are used by instances of `Authorizer`, `AuthController` and `AuthCodeController`.
 
 An `AuthServer` must persist the data it uses and creates - like client identifiers and access tokens. Storage is often performed by a database, but it can be in memory, a cache or some files. For that reason, an `AuthServer` doesn't perform any storage itself - it relies on an instance of `AuthStorage` specific to your use case.
 
@@ -8,7 +8,7 @@ This allows storage to be independent of verification logic.
 
 ## Creating Instances of AuthServer and AuthStorage
 
-An instance of `AuthServer` is created in a `RequestSink`'s constructor along with its instance of `AuthStorage`. `AuthStorage` is just an interface - storage is implemented by providing an implementation for each of its methods.
+An instance of `AuthServer` is created in a `ApplicationChannel`'s constructor along with its instance of `AuthStorage`. `AuthStorage` is just an interface - storage is implemented by providing an implementation for each of its methods.
 
 Because storage can be quite complex and sensitive, the type `ManagedAuthStorage<T>` implements storage with `ManagedObject<T>`s and `Query<T>`s. It is highly recommended to use this type instead of implementing your own storage because it has been thoroughly tested and handles cleaning up expired data correctly.
 
@@ -18,14 +18,15 @@ Because storage can be quite complex and sensitive, the type `ManagedAuthStorage
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 
-class MyRequestSink extends RequestSink {
-  MyRequestSink(ApplicationConfiguration config) : super(config) {
+class MyApplicationChannel extends ApplicationChannel {  
+  AuthServer authServer;
+
+  @override
+  Future prepare() async {
     var context = new ManagedContext(...);
     var storage = new ManagedAuthStorage<User>(context);
     authServer = new AuthServer(storage);
   }
-
-  AuthServer authServer;
 
   ...
 }
@@ -35,23 +36,27 @@ class MyRequestSink extends RequestSink {
 
 While `AuthServer` has methods for handling authorization tasks, it is rarely used directly. Instead, `AuthCodeController` and `AuthController` are hooked up to routes to grant authorization tokens via the API. Instances of `Authorizer` secure routes in request channels. All of these types invoke the appropriate methods on the `AuthServer`.
 
-Therefore, a full authorization implementation rarely extends past a `RequestSink`. Here's an example `RequestSink` subclass that sets up and uses authorization:
+Therefore, a full authorization implementation rarely extends past a `ApplicationChannel`. Here's an example `ApplicationChannel` subclass that sets up and uses authorization:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 
-class MyRequestSink extends RequestSink {
-  MyRequestSink(ApplicationConfiguration config) : super(config) {
+class MyApplicationChannel extends ApplicationChannel {
+  AuthServer authServer;
+  ManagedContext context;
+
+  @override
+  Future prepare() async {
     context = new ManagedContext(...);
     var storage = new ManagedAuthStorage<User>(context);
     authServer = new AuthServer(storage);
   }
 
-  AuthServer authServer;
-  ManagedContext context;
+  @override
+  RequestController get entryPoint {
+    final router = new Router();
 
-  void setupRouter(Router router) {
     // Set up auth token route- this grants and refresh tokens
     router.route("/auth/token").generate(() => new AuthController(authServer));
 
@@ -63,6 +68,8 @@ class MyRequestSink extends RequestSink {
       .route("/protected")
       .pipe(new Authorizer.bearer(authServer))
       .generate(() => new ProtectedController());
+
+    return router;
   }
 }
 ```
