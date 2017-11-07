@@ -86,11 +86,14 @@ abstract class HTTPController extends RequestController {
 
   /// Types of content this [HTTPController] will accept.
   ///
-  /// By default, a resource controller will accept 'application/json' and 'application/x-www-form-urlencoded' requests.
-  /// If a request is sent to an instance of [HTTPController] and has an HTTP request body,
-  /// but the Content-Type of the request isn't within this list, the [HTTPController]
+  /// If a request is sent to this instance and has an HTTP request body and the Content-Type of the body is in this list,
+  /// the request will be accepted and the body will be decoded according to that Content-Type.
+  ///
+  /// If the Content-Type of the request isn't within this list, the [HTTPController]
   /// will automatically respond with an Unsupported Media Type response.
-  List<ContentType> acceptedContentTypes = [ContentType.JSON, new ContentType("application", "x-www-form-urlencoded")];
+  ///
+  /// By default, an instance will accept HTTP request bodies with 'application/json; charset=utf-8' encoding.
+  List<ContentType> acceptedContentTypes = [ContentType.JSON];
 
   /// The default content type of responses from this [HTTPController].
   ///

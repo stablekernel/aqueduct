@@ -562,6 +562,9 @@ class QController extends HTTPController {
 }
 
 class IntController extends HTTPController {
+  IntController() {
+    acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
+  }
   @Bind.get()
   Future<Response> getOne(@Bind.path("id") int id) async {
     return new Response.ok("${id * 2}");
