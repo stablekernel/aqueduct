@@ -5,21 +5,17 @@ import 'http.dart';
 import 'route_specification.dart';
 import 'route_node.dart';
 
-/// A router to split requests based on their URI path.
+/// Determines which [RequestController] should receive a [Request] based on its path.
 ///
-/// Instances of this class maintain a collection of [RouteController]s for each route that has been registered with it.
-/// Routes are registered through the [route] method.
-/// [RouteController]s are subclasses of [RequestController] so that further [RequestController]s can be chained off of it.
-/// When a [Request] is delivered to the router, it will pass it on to the associated [RouteController] or respond to the
-/// [Request] with a 404 status code.
+/// A router is a [RequestController] that evaluates the path of a [Request] and determines which controller should be the next to receive it.
+/// Valid paths for a [Router] are called *routes* and are added to a [Router] via [route].
 ///
-/// A route is defined by a [String] format, for example:
-///     router.route("/users");
-///     router.route("/posts/:id");
-///     router.route("/things[/:id]");
-///     router.route("/numbers/:id(\d+)");
-///     router.route("/files/*");
+/// Each [route] creates a new [RequestController] that will receive all requests whose path match the route pattern.
+/// If a request path does not match one of the registered routes, [Router] responds with 404 Not Found and does not pass
+/// the request to another controller.
 ///
+/// Unlike most [RequestController]s, a [Router] may have multiple controllers it sends requests to. In most applications,
+/// a [Router] is the [ApplicationChannel.entryPoint].
 class Router extends RequestController {
   /// Creates a new [Router].
   Router() {
@@ -27,53 +23,65 @@ class Router extends RequestController {
     policy.allowCredentials = false;
   }
 
-  List<RouteController> _routeControllers = [];
+  List<_RouteController> _routeControllers = [];
   RouteNode _rootRouteNode;
+  List<String> _basePathSegments = [];
+  Function _unhandledRequestController;
 
-  /// A string to be prepended to the beginning of every route this [Router] manages.
+  /// A prefix for all routes on this instance.
   ///
-  /// For example, if this [Router]'s base path is "/api" and the route "/users"
-  /// is added, the actual route will be "/api/users". Using this property will make route matching
-  /// more efficient than including the base path in each route.
+  /// If this value is non-null, each [route] is prefixed by this value.
+  ///
+  /// For example, if a route is "/users" and the value of this property is "/api",
+  /// a request's path must be "/api/users" to match the route.
+  ///
+  /// Trailing and leading slashes have no impact on this value.
   String get basePath => "/${_basePathSegments.join("/")}";
   set basePath(String bp) {
     _basePathSegments = bp.split("/").where((str) => str.isNotEmpty).toList();
   }
 
-  List<String> _basePathSegments = [];
-
-  /// How this router handles [Request]s that don't match its routes.
+  /// Invoked when a [Request] does not match a registered route.
   ///
   /// If a [Request] has no matching route, this function will be called.
-  /// By default, this function will respond to the incoming [Request] with a 404 response,
-  /// and does not forward or allow consumption of the [Request] for later controllers.
+  ///
+  /// By default, this function will send a 404 Not Found response.
   set unhandledRequestController(Future listener(Request req)) {
     _unhandledRequestController = listener;
   }
 
-  var _unhandledRequestController;
 
-  /// Adds a route to this instnace and provides a forwarding [RouteController] for all [Request]s that match that route to be delivered on.
+  /// Adds a route to this instance.
   ///
-  /// This method will create an instance of a [RouteController] and attach it to this router, returning the [RouteController] instance
-  /// to allow further [RequestController]s to be attached.
+  /// Requests that match [pattern] will be sent to the [RequestController] returned by this method. Controllers that
+  /// should receive these requests should be attached to the returned [RequestController] (via [pipe], [generate], or [listen]).
   ///
-  /// The [pattern] must follow the rules of route patterns (see the guide for more explanation).
-  /// A pattern consists of one or more path segments. A path segment can be a constant string,
-  /// a path variable (a word prefixed with the : character) or the wildcard character (the asterisk character *)
-  ///       /constantString/:pathVariable/*
-  /// Path variables may optionally contain regular expression syntax within parentheses to constrain their matches.
-  ///       /:pathVariable(\d+)
-  /// Path segments may be marked as optional by using square brackets around the segment. The opening square
-  /// bracket may be on either side of the preceding path delimiter (/) with no effect.
-  ///       /constantString/[:optionalVariable]
-  ///       /constantString[/:optionalVariable]
-  /// Routes may have multiple optional segments, but they must be nested.
-  ///       /constantString/[:optionalVariable/[optionalConstantString]]
-  /// Routes may also contain multiple path segments in the same optional grouping.
-  ///       /constantString/[segment1/segment2]
+  /// The [pattern] must follow the rules of route patterns (see also http://aqueduct.io/docs/http/routing/).
+  ///
+  /// A pattern consists of one or more path segments, e.g. "/path" or "/path/to".
+  ///
+  /// A path segment can be:
+  ///
+  /// - A literal string (e.g. `users`)
+  /// - A path variable: a literal string prefixed with `:` (e.g. `:id`)
+  /// - A wildcard: the character `*`
+  ///
+  /// A path variable may contain a regular expression by placing the expression in parentheses immediately after the variable name. (e.g. `:id(/d+)`).
+  ///
+  /// A path segment is required by default. Path segments may be marked as optional
+  /// by wrapping them in square brackets `[]`.
+  ///
+  /// Here are some example routes:
+  ///
+  ///         /users
+  ///         /users/:id
+  ///         /users/[:id]
+  ///         /users/:id/friends/[:friendID]
+  ///         /locations/:name([^0-9])
+  ///         /files/*
+  ///
   RequestController route(String pattern) {
-    var routeController = new RouteController(
+    var routeController = new _RouteController(
         RouteSpecification.specificationsForRoutePattern(pattern));
     _routeControllers.add(routeController);
     return routeController;
@@ -172,14 +180,10 @@ class Router extends RequestController {
   }
 }
 
-/// A [RequestController] for routes in a [Router].
-///
-/// When adding a route to a [Router] ([Router.route]), an instance of this type is returned. Subsequent
-/// [RequestController]s can be chained off instances of this class and will only be reached when a reqeust
-/// matches this instance's pattern. Do not create instances of this class manually.
-class RouteController extends RequestController {
+
+class _RouteController extends RequestController {
   /// Do not create instances of this class manually.
-  RouteController(this.patterns) {
+  _RouteController(this.patterns) {
     patterns.forEach((p) {
       p.controller = this;
     });
