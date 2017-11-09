@@ -125,8 +125,7 @@ class RouteNode {
 
   // Regular expression matcher for this node. May be null.
   RegExp patternMatcher;
-
-  // Specification for this node
+  Controller get controller => specification?.controller;
   RouteSpecification specification;
 
   // Includes children that are variables with and without regex patterns
@@ -137,8 +136,6 @@ class RouteNode {
 
   // Valid if has child that is a take all (*) segment.
   RouteNode takeAllChild;
-
-  RequestController get controller => specification?.controller;
 
   RouteNode nodeForPathSegments(Iterator<String> requestSegments, HTTPRequestPath path) {
     if (!requestSegments.moveNext()) {

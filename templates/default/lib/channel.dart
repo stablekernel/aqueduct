@@ -7,7 +7,7 @@ import 'wildfire.dart';
 class WildfireChannel extends ApplicationChannel {
   /// Initialize services in this method.
   ///
-  /// Implement this method to initialize services, read values from [configuration]
+  /// Implement this method to initialize services, read values from [options]
   /// and any other initialization required before constructing [entryPoint].
   ///
   /// This method is invoked prior to [entryPoint] being accessed.
@@ -18,12 +18,12 @@ class WildfireChannel extends ApplicationChannel {
 
   /// Construct the request channel.
   ///
-  /// Return an instance of some [RequestController] that will be the initial receiver
+  /// Return an instance of some [Controller] that will be the initial receiver
   /// of all [Request]s.
   ///
   /// This method is invoked after [prepare].
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     // Prefer to use `pipe` and `generate` instead of `listen`.

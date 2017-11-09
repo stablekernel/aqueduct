@@ -1,12 +1,12 @@
 import 'dart:io';
 
 import 'response.dart';
-import 'request_controller.dart';
+import 'controller.dart';
 import 'request.dart';
 
-/// An exception for early-exiting a [RequestController] to respond to a request.
+/// An exception for early-exiting a [Controller] to respond to a request.
 ///
-/// If thrown from a [RequestController], a [Response] instance with [statusCode] and [message]
+/// If thrown from a [Controller], a [Response] instance with [statusCode] and [message]
 /// is used to respond to the [Request] being processed. The [message] is returned
 /// as a value in a JSON Object for the key 'error'.
 class HTTPResponseException implements Exception {
@@ -21,7 +21,7 @@ class HTTPResponseException implements Exception {
   /// Whether or not this is a control flow exception.
   ///
   /// A control flow exception is considered normal behavior by an application.
-  /// When [RequestController.letUncaughtExceptionsEscape] is true, a control flow exception
+  /// When [Controller.letUncaughtExceptionsEscape] is true, a control flow exception
   /// will not escape and will instead be caught silently.
   ///
   /// By default, this value is true.

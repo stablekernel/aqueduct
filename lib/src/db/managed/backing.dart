@@ -2,6 +2,7 @@ import 'dart:mirrors';
 import '../query/query.dart';
 import 'managed.dart';
 import '../query/matcher_internal.dart';
+import 'relationship_type.dart';
 
 class ManagedValueBacking extends ManagedBacking {
   @override

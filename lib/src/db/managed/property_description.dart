@@ -2,6 +2,7 @@ import 'dart:mirrors';
 import 'managed.dart';
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
+import 'relationship_type.dart';
 
 /// Possible data types for [ManagedEntity] attributes.
 enum ManagedPropertyType {
@@ -159,10 +160,10 @@ abstract class ManagedPropertyDescription {
   dynamic convertFromPrimitiveValue(dynamic value);
 }
 
-/// Stores the specifics of database columns in [ManagedObject]s as indicated by [ManagedColumnAttributes].
+/// Stores the specifics of database columns in [ManagedObject]s as indicated by [Column].
 ///
 /// This class is used internally to manage data models. For specifying these attributes,
-/// see [ManagedColumnAttributes].
+/// see [Column].
 ///
 /// Attributes are the scalar values of a [ManagedObject] (as opposed to relationship values,
 /// which are [ManagedRelationshipDescription] instances).
@@ -172,7 +173,7 @@ abstract class ManagedPropertyDescription {
 class ManagedAttributeDescription extends ManagedPropertyDescription {
   ManagedAttributeDescription(
       ManagedEntity entity, String name, ManagedPropertyType type,
-      {ManagedTransientAttribute transientStatus,
+      {Serialize transientStatus,
         bool primaryKey: false,
         String defaultValue,
         bool unique: false,
@@ -239,7 +240,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   /// The validity of a transient attribute as input, output or both.
   ///
   /// If this property is non-null, the attribute is transient (not backed by a database field/column).
-  final ManagedTransientAttribute transientStatus;
+  final Serialize transientStatus;
 
   /// [ManagedValidator]s for this instance.
   List<Validate> get validators {
@@ -328,7 +329,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   final ManagedEntity destinationEntity;
 
   /// The delete rule for this relationship.
-  final ManagedRelationshipDeleteRule deleteRule;
+  final DeleteRule deleteRule;
 
   /// The type of relationship.
   final ManagedRelationshipType relationshipType;

@@ -9,7 +9,7 @@ typedef Future<String> _RenderAuthorizationPageFunction(
     Uri requestURI,
     Map<String, String> queryParameters);
 
-/// [HTTPController] for issuing OAuth 2.0 authorization codes.
+/// [RESTController] for issuing OAuth 2.0 authorization codes.
 ///
 /// This controller provides the necessary methods for issuing OAuth 2.0 authorization codes: returning
 /// a HTML login form and issuing a request for an authorization code. The login form's submit
@@ -22,7 +22,7 @@ typedef Future<String> _RenderAuthorizationPageFunction(
 ///
 ///
 /// See [getAuthorizationPage] (GET) and [authorize] (POST) for more details.
-class AuthCodeController extends HTTPController {
+class AuthCodeController extends RESTController {
   /// Creates a new instance of an [AuthCodeController].
   ///
   /// An [AuthCodeController] requires an [AuthServer] to carry out tasks.

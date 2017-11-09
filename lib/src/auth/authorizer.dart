@@ -17,7 +17,7 @@ enum AuthStrategy {
   bearer
 }
 
-/// A [RequestController] that will authorize further passage in a [RequestController] chain when a request has valid
+/// A [Controller] that will authorize further passage in a [Controller] chain when a request has valid
 /// credentials.
 ///
 /// An instance of [Authorizer] will validate a [Request] given a [strategy] and a [validator]. [validator] is typically the instance
@@ -31,7 +31,7 @@ enum AuthStrategy {
 ///           .route("/protectedroute")
 ///           .pipe(new Authorizer.bearer(authServer))
 ///           .generate(() => new ProtectedResourceController());
-class Authorizer extends RequestController {
+class Authorizer extends Controller {
   /// Creates an instance of [Authorizer].
   ///
   /// The default strategy is [AuthStrategy.bearer].
@@ -74,7 +74,7 @@ class Authorizer extends RequestController {
   AuthStrategy strategy;
 
   @override
-  FutureOr<RequestOrResponse> processRequest(Request req) {
+  FutureOr<RequestOrResponse> handle(Request req) {
     var header = req.raw.headers.value(HttpHeaders.AUTHORIZATION);
     if (header == null) {
       return new Response.unauthorized();

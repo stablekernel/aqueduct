@@ -444,7 +444,7 @@ void main() {
             new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
                 relatedTableName: "t",
                 relatedColumnName: "id",
-                rule: ManagedRelationshipDeleteRule.nullify)
+                rule: DeleteRule.nullify)
           ])
         ]),
         new Schema([
@@ -458,7 +458,7 @@ void main() {
             new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
                 relatedTableName: "t",
                 relatedColumnName: "id",
-                rule: ManagedRelationshipDeleteRule.cascade)
+                rule: DeleteRule.cascade)
           ])
         ]),
       ];

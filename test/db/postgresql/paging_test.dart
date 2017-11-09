@@ -343,7 +343,7 @@ class PageableTestModel extends ManagedObject<_PageableTestModel>
     implements _PageableTestModel {}
 
 class _PageableTestModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String value;
@@ -351,7 +351,7 @@ class _PageableTestModel {
 
 class HasMany extends ManagedObject<_HasMany> implements _HasMany {}
 class _HasMany {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   ManagedSet<BelongsTo> objects;
@@ -359,9 +359,9 @@ class _HasMany {
 
 class BelongsTo extends ManagedObject<_BelongsTo> implements _BelongsTo {}
 class _BelongsTo {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#objects)
+  @Relationship(#objects)
   HasMany hasMany;
 }

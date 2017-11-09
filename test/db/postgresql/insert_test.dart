@@ -294,12 +294,12 @@ void main() {
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
 
-  @ManagedColumnAttributes(nullable: true, unique: true)
+  @Column(nullable: true, unique: true)
   String emailAddress;
 
   static String tableName() {
@@ -310,7 +310,7 @@ class _TestModel {
 class GenUser extends ManagedObject<_GenUser> implements _GenUser {}
 
 class _GenUser {
-  @managedPrimaryKey
+  @primaryKey
   int id;
   String name;
 
@@ -320,33 +320,33 @@ class _GenUser {
 class GenPost extends ManagedObject<_GenPost> implements _GenPost {}
 
 class _GenPost {
-  @managedPrimaryKey
+  @primaryKey
   int id;
   String text;
 
-  @ManagedRelationship(#posts)
+  @Relationship(#posts)
   GenUser owner;
 }
 
 class GenTime extends ManagedObject<_GenTime> implements _GenTime {}
 
 class _GenTime {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String text;
 
-  @ManagedColumnAttributes(defaultValue: "(now() at time zone 'utc')")
+  @Column(defaultValue: "(now() at time zone 'utc')")
   DateTime dateCreated;
 }
 
 class TransientModel extends ManagedObject<_Transient> implements _Transient {
-  @managedTransientAttribute
+  @Serialize()
   String transientValue;
 }
 
 class _Transient {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String value;
@@ -354,7 +354,7 @@ class _Transient {
 
 class BoringObject extends ManagedObject<_BoringObject> implements _BoringObject {}
 class _BoringObject {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 }
 
@@ -366,7 +366,7 @@ class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField
   String get public => _private;
 }
 class _PrivateField {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String _private;
@@ -374,16 +374,16 @@ class _PrivateField {
 
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 class _EnumObject {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   EnumValues enumValues;
 }
 
 class MultiUnique extends ManagedObject<_MultiUnique> implements _MultiUnique {}
-@ManagedTableAttributes.unique(const [#a, #b])
+@Table.unique(const [#a, #b])
 class _MultiUnique {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String a;

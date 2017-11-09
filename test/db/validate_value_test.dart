@@ -312,7 +312,7 @@ void main() {
 
 class T extends ManagedObject<_T> implements _T {}
 class _T {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.matches(r"^[A-Z]+$")
@@ -379,7 +379,7 @@ class _T {
 
 class U extends ManagedObject<_U> implements _U {}
 class _U {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.present()
@@ -401,7 +401,7 @@ class CustomValidate extends Validate<dynamic> {
 
 class FailingDateTime extends ManagedObject<_FDT> {}
 class _FDT {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.compare(greaterThanEqualTo: "19x34")
@@ -410,7 +410,7 @@ class _FDT {
 
 class FailingRegex extends ManagedObject<_FRX> {}
 class _FRX {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.matches("xyz")
@@ -419,7 +419,7 @@ class _FRX {
 
 class FailingLength extends ManagedObject<_FLEN> {}
 class _FLEN {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.length(equalTo: 6)
@@ -428,7 +428,7 @@ class _FLEN {
 
 class FailingEmptyOneOf extends ManagedObject<_FEO> {}
 class _FEO {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.oneOf(const [])
@@ -437,7 +437,7 @@ class _FEO {
 
 class FailingOneOf extends ManagedObject<_FOO> {}
 class _FOO {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.oneOf(const ["x", "y"])
@@ -446,7 +446,7 @@ class _FOO {
 
 class FailingHeterogenous extends ManagedObject<_FH> {}
 class _FH {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.oneOf(const ["x", 1])
@@ -458,7 +458,7 @@ class FailingTransient extends ManagedObject<_FT> {
   int d;
 }
 class _FT {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 }
 
@@ -479,7 +479,7 @@ class V extends ManagedObject<_V> implements _V {
 }
 
 class _V {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.oneOf(const ["a", "b"])
@@ -489,7 +489,7 @@ class _V {
 
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 class _EnumObject {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   EnumValues enumValues;

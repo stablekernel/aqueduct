@@ -33,7 +33,7 @@ import 'auth.dart';
 ///           }
 ///
 ///           @override
-///           RequestController get entryPoint {
+///           Controller get entryPoint {
 ///             final router = new Router();
 ///             router
 ///               .route("/protected")

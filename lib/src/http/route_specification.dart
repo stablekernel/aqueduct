@@ -28,8 +28,8 @@ class RouteSpecification extends Object with APIDocumentable {
   /// A list of all variables in this route.
   List<String> variableNames;
 
-  /// A reference back to the [RequestController] to be used when this specification is matched.
-  RequestController controller;
+  /// A reference back to the [Controller] to be used when this specification is matched.
+  Controller controller;
 
   @override
   List<APIPath> documentPaths(PackagePathResolver resolver) {

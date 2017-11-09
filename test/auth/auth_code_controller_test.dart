@@ -541,7 +541,7 @@ class TestChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router.route("/auth/code").generate(() => new AuthCodeController(authServer,
             renderAuthorizationPageHTML: (AuthCodeController c, Uri uri,

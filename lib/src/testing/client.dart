@@ -6,7 +6,7 @@ import 'dart:mirrors';
 import 'dart:io';
 import 'package:aqueduct/aqueduct.dart';
 import '../application/application.dart';
-import '../application/application_configuration.dart';
+import '../application/options.dart';
 import 'matchers.dart';
 
 part 'response.dart';
@@ -25,8 +25,8 @@ class TestClient {
   /// Creates an instance that targets http://localhost:[_port].
   TestClient.onPort(this._port);
 
-  /// Creates an instance from an [ApplicationConfiguration].
-  TestClient.fromConfig(ApplicationConfiguration config, {bool useHTTPS: false}) :
+  /// Creates an instance from an [ApplicationOptions].
+  TestClient.fromOptions(ApplicationOptions config, {bool useHTTPS: false}) :
     _scheme = useHTTPS ? "https" : "http",
     _host = "localhost",
     _port = config.port;

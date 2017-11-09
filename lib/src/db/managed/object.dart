@@ -53,7 +53,7 @@ abstract class ManagedBacking {
 ///           @primaryKey
 ///           int id;
 ///
-///           @ManagedColumnAttributes(indexed: true)
+///           @Column(indexed: true)
 ///           String email;
 ///         }
 ///

@@ -1,5 +1,6 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 void main() {
   group("Table generation command mapping", () {
@@ -197,7 +198,7 @@ void main() {
           "foobar",
           ManagedPropertyType.string,
           dm.entityForType(GeneratorModel2),
-          ManagedRelationshipDeleteRule.cascade,
+          DeleteRule.cascade,
           ManagedRelationshipType.belongsTo,
           new Symbol(dm.entityForType(GeneratorModel2).primaryKey),
           indexed: true,
@@ -307,12 +308,12 @@ void main() {
       var schema = new Schema.fromDataModel(dm);
       var postTable = schema.tables.firstWhere((t) => t.name == "_GenPost");
       var originalColumn = postTable.columns.firstWhere((sc) => sc.name == "owner");
-      expect(originalColumn.deleteRule, ManagedRelationshipDeleteRule.restrict);
+      expect(originalColumn.deleteRule, DeleteRule.restrict);
 
       var col = new SchemaColumn.from(originalColumn);
 
       // Change delete rule
-      col.deleteRule = ManagedRelationshipDeleteRule.nullify;
+      col.deleteRule = DeleteRule.nullify;
       var cmds = psc.alterColumnDeleteRule(postTable, col);
       expect(cmds.first, "ALTER TABLE ONLY _GenPost DROP CONSTRAINT _GenPost_owner_id_fkey");
       expect(cmds.last,
@@ -354,58 +355,58 @@ void main() {
 }
 
 class GeneratorModel1 extends ManagedObject<_GeneratorModel1> implements _GeneratorModel1 {
-  @managedTransientAttribute
+  @Serialize()
   String foo;
 }
 
 class _GeneratorModel1 {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
 
   bool option;
 
-  @ManagedColumnAttributes(unique: true)
+  @Column(unique: true)
   double points;
 
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   DateTime validDate;
 }
 
 class GeneratorModel2 extends ManagedObject<_GeneratorModel2> implements _GeneratorModel2 {}
 
 class _GeneratorModel2 {
-  @ManagedColumnAttributes(primaryKey: true, indexed: true)
+  @Column(primaryKey: true, indexed: true)
   int id;
 }
 
 class GeneratorModel3 extends ManagedObject<_GeneratorModel3> implements _GeneratorModel3 {}
 
 class _GeneratorModel3 {
-  @ManagedColumnAttributes(defaultValue: "(now() at time zone 'utc')")
+  @Column(defaultValue: "(now() at time zone 'utc')")
   DateTime creationDate;
 
-  @ManagedColumnAttributes(primaryKey: true, defaultValue: "18")
+  @Column(primaryKey: true, defaultValue: "18")
   int id;
 
-  @ManagedColumnAttributes(defaultValue: "\$\$dflt\$\$")
+  @Column(defaultValue: "\$\$dflt\$\$")
   String textValue;
 
-  @ManagedColumnAttributes(defaultValue: "true")
+  @Column(defaultValue: "true")
   bool option;
 
-  @ManagedColumnAttributes(defaultValue: "'1900-01-01T00:00:00.000Z'")
+  @Column(defaultValue: "'1900-01-01T00:00:00.000Z'")
   DateTime otherTime;
 
-  @ManagedColumnAttributes(defaultValue: "20.0")
+  @Column(defaultValue: "20.0")
   double value;
 }
 
 class GenUser extends ManagedObject<_GenUser> implements _GenUser {}
 
 class _GenUser {
-  @ManagedColumnAttributes(primaryKey: true)
+  @Column(primaryKey: true)
   int id;
 
   String name;
@@ -416,19 +417,19 @@ class _GenUser {
 class GenPost extends ManagedObject<_GenPost> implements _GenPost {}
 
 class _GenPost {
-  @ManagedColumnAttributes(primaryKey: true)
+  @Column(primaryKey: true)
   int id;
 
   String text;
 
-  @ManagedRelationship(#posts, isRequired: false, onDelete: ManagedRelationshipDeleteRule.restrict)
+  @Relationship(#posts, isRequired: false, onDelete: DeleteRule.restrict)
   GenUser owner;
 }
 
 class GenNamed extends ManagedObject<_GenNamed> implements _GenNamed {}
 
 class _GenNamed {
-  @ManagedColumnAttributes(primaryKey: true)
+  @Column(primaryKey: true)
   int id;
 
   static String tableName() {
@@ -439,7 +440,7 @@ class _GenNamed {
 class GenOwner extends ManagedObject<_GenOwner> implements _GenOwner {}
 
 class _GenOwner {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   GenAuth auth;
@@ -448,17 +449,17 @@ class _GenOwner {
 class GenAuth extends ManagedObject<_GenAuth> implements _GenAuth {}
 
 class _GenAuth {
-  @ManagedColumnAttributes(primaryKey: true)
+  @Column(primaryKey: true)
   int id;
 
-  @ManagedRelationship(#auth, isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
+  @Relationship(#auth, isRequired: false, onDelete: DeleteRule.cascade)
   GenOwner owner;
 }
 
 class GenLeft extends ManagedObject<_GenLeft> implements _GenLeft {}
 
 class _GenLeft {
-  @ManagedColumnAttributes(primaryKey: true)
+  @Column(primaryKey: true)
   int id;
 
   ManagedSet<GenJoin> join;
@@ -467,7 +468,7 @@ class _GenLeft {
 class GenRight extends ManagedObject<_GenRight> implements _GenRight {}
 
 class _GenRight {
-  @ManagedColumnAttributes(primaryKey: true)
+  @Column(primaryKey: true)
   int id;
 
   ManagedSet<GenJoin> join;
@@ -476,20 +477,20 @@ class _GenRight {
 class GenJoin extends ManagedObject<_GenJoin> implements _GenJoin {}
 
 class _GenJoin {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#join)
+  @Relationship(#join)
   GenLeft left;
 
-  @ManagedRelationship(#join)
+  @Relationship(#join)
   GenRight right;
 }
 
 class GenObj extends ManagedObject<_GenObj> implements _GenObj {}
 
 class _GenObj {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   GenNotNullable gen;
@@ -498,10 +499,10 @@ class _GenObj {
 class GenNotNullable extends ManagedObject<_GenNotNullable> implements _GenNotNullable {}
 
 class _GenNotNullable {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#gen, onDelete: ManagedRelationshipDeleteRule.nullify, isRequired: false)
+  @Relationship(#gen, onDelete: DeleteRule.nullify, isRequired: false)
   GenObj ref;
 }
 
@@ -514,7 +515,7 @@ class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField
 }
 
 class _PrivateField {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String _private;
@@ -524,7 +525,7 @@ enum EnumValues { abcd, efgh, other18 }
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 
 class _EnumObject {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   EnumValues enumValues;
@@ -532,9 +533,9 @@ class _EnumObject {
 
 class Unique extends ManagedObject<_Unique> {}
 
-@ManagedTableAttributes.unique(const [#a, #b])
+@Table.unique(const [#a, #b])
 class _Unique {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String a;
@@ -544,19 +545,19 @@ class _Unique {
 
 class UniqueContainer extends ManagedObject<_UniqueContainer> {}
 class _UniqueContainer {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   UniqueBelongsTo contains;
 }
 
 class UniqueBelongsTo extends ManagedObject<_UniqueBelongsTo> {}
-@ManagedTableAttributes.unique(const [#a, #container])
+@Table.unique(const [#a, #container])
 class _UniqueBelongsTo {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   int a;
-  @ManagedRelationship(#contains)
+  @Relationship(#contains)
   UniqueContainer container;
 }

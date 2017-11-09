@@ -2,6 +2,7 @@ import 'dart:mirrors';
 import 'managed.dart';
 import '../../http/documentable.dart';
 import '../query/query.dart';
+import 'relationship_type.dart';
 
 /// Mapping information between a table in a database and a [ManagedObject] object.
 ///
@@ -17,7 +18,7 @@ import '../query/query.dart';
 /// defined by the [instanceType].
 /// Attributes are represented by [ManagedAttributeDescription].
 ///
-/// The value of a relationship property is a reference to another [ManagedObject]. If a relationship property has [ManagedRelationship] metadata,
+/// The value of a relationship property is a reference to another [ManagedObject]. If a relationship property has [Relationship] metadata,
 /// the property is backed be a foreign key column in the underlying database. Relationships are represented by [ManagedRelationshipDescription].
 class ManagedEntity {
   /// Creates an instance of this type..
@@ -75,7 +76,7 @@ class ManagedEntity {
   /// All relationship values of this entity.
   ///
   /// A relationship represents a value that is another [ManagedObject] or [ManagedSet] of [ManagedObject]s. Not all relationships
-  /// correspond to a column or field in a database, only those with [ManagedRelationship] metadata (see also [ManagedRelationshipType.belongsTo]). In
+  /// correspond to a column or field in a database, only those with [Relationship] metadata (see also [ManagedRelationshipType.belongsTo]). In
   /// this case, the underlying database column is a foreign key reference. The underlying database does not have storage
   /// for [ManagedRelationshipType.hasMany] or [ManagedRelationshipType.hasOne] properties, as those values are derived by the foreign key reference
   /// on the inverse relationship property.
@@ -100,10 +101,10 @@ class ManagedEntity {
   /// If non-null, each instance of this entity is unique for the combination of values
   /// for these properties. Instances may have the same values for each property in [uniquePropertySet],
   /// but cannot have the same value for all properties in [uniquePropertySet]. This differs from setting
-  /// a single property as unique with [ManagedColumnAttributes], where each instance has
+  /// a single property as unique with [Column], where each instance has
   /// a unique value for that property.
   ///
-  /// This value is set by adding [ManagedTableAttributes] to the persistent type of a [ManagedObject].
+  /// This value is set by adding [Table] to the persistent type of a [ManagedObject].
   List<ManagedPropertyDescription> uniquePropertySet;
 
   /// List of [ManagedValidator]s for attributes of this entity.
@@ -115,8 +116,8 @@ class ManagedEntity {
   ///
   /// By default, a [Query] will return all the properties named in this list. You may specify
   /// a different set of properties by setting the [Query.returningProperties] value. The default
-  /// set of properties is a list of all attributes that do not have the [ManagedColumnAttributes.shouldOmitByDefault] flag
-  /// set in their [ManagedColumnAttributes] and all [ManagedRelationshipType.belongsTo] relationships.
+  /// set of properties is a list of all attributes that do not have the [Column.shouldOmitByDefault] flag
+  /// set in their [Column] and all [ManagedRelationshipType.belongsTo] relationships.
   List<String> get defaultProperties {
     if (_defaultProperties == null) {
       _defaultProperties = attributes.values
@@ -139,7 +140,7 @@ class ManagedEntity {
 
   /// Name of primary key property.
   ///
-  /// If this has a primary key (as determined by the having an [ManagedColumnAttributes] with [ManagedColumnAttributes.isPrimaryKey] set to true,
+  /// If this has a primary key (as determined by the having an [Column] with [Column.isPrimaryKey] set to true,
   /// returns the name of that property. Otherwise, returns null. Entities should always have a primary key.
   String get primaryKey {
     return _primaryKey;

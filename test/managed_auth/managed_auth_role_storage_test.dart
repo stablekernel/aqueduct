@@ -258,7 +258,7 @@ class User extends ManagedObject<_User>
 }
 
 class _User extends ManagedAuthenticatable {
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   String role;
 }
 
