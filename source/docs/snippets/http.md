@@ -85,7 +85,7 @@ class AppApplicationChannel extends ApplicationChannel {
 
 class RateLimiter extends RequestController {
   @override
-  Future<RequestOrResponse> processRequest(Request request) async {
+  Future<RequestOrResponse> handle(Request request) async {
     var apiKey = request.raw.headers.value("x-apikey");
     var requestsRemaining = await remainingRequestsForAPIKey(apiKey);
     if (requestsRemaining <= 0) {

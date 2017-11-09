@@ -125,7 +125,7 @@ router
 ```dart
 class VerifyingController extends RequestController {
   @override
-  Future<RequestOrResponse> processRequest(Request request) async {
+  Future<RequestOrResponse> handle(Request request) async {
     if (request.raw.headers.value("x-secret-key") == "secret!") {
       return request;
     }

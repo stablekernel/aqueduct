@@ -32,12 +32,12 @@ First, notice that these methods can be chained together in this way because the
 
 The `listen` method is the easiest to understand: it takes an async closure that takes a `Request` and may either return a `Response` or that same `Request`. If it returns the `Request`, the request is passed to the next controller in the channel. If it returns a `Response`, a response is sent to the HTTP client and no more controllers get the request.
 
-Concrete implementations of `RequestController` - like the mythical `FilteringController` and `CRUDController` above - override a method with the same signature as the `listen` closure. This method is named `processRequest` and it looks like this:
+Concrete implementations of `RequestController` - like the mythical `FilteringController` and `CRUDController` above - override a method with the same signature as the `listen` closure. This method is named `handle` and it looks like this:
 
 ```dart
 class FilteringController {
   @override
-  Future<RequestOrResponse> processRequest(Request request) async {
+  Future<RequestOrResponse> handle(Request request) async {
     if (isThereSomethingWrongWith(request)) {
       return new Response.badRequest();
     }
@@ -47,7 +47,7 @@ class FilteringController {
 }
 ```
 
-(In fact, the `listen` closure is simply wrapped by an instance of `RequestController`. The default behavior of `processRequest` is to invoke its closure.)
+(In fact, the `listen` closure is simply wrapped by an instance of `RequestController`. The default behavior of `handle` is to invoke its closure.)
 
 The difference between `pipe` and `generate` is important. A `RequestController` like `FilteringController` doesn't have any properties that change when processing a request. But let's pretend `CRUDController` is defined like the following, where it reads the body into a property and then accesses that property later:
 
@@ -56,7 +56,7 @@ class CRUDController {
   Map<String, dynamic> body;
 
   @override
-  Future<RequestOrResponse> processRequest(Request request) async {
+  Future<RequestOrResponse> handle(Request request) async {
     body = await request.body.asMap();
 
     if (request.raw.method == "POST") {
@@ -82,7 +82,7 @@ The most common controller in an Aqueduct is an `HTTPController`. This controlle
 
 ## Exception Handling
 
-`RequestController`s wrap `processRequest` in a try-catch block. If an exception is thrown during the processing of a request, it is caught and the controller will send a response on your behalf. The request is then removed from the channel and no more controllers will receive it.
+`RequestController`s wrap `handle` in a try-catch block. If an exception is thrown during the processing of a request, it is caught and the controller will send a response on your behalf. The request is then removed from the channel and no more controllers will receive it.
 
 There are two types of exceptions that a `RequestController` will interpret to return a meaningful status code: `HTTPResponseException` and `QueryException`. Any other uncaught exceptions will result in a 500 status code error.
 
@@ -101,7 +101,7 @@ If you have code that can throw for legitimate reasons, you may catch those exce
 
 ```dart
 class Controller extends RequestController {
-  Future<RequestOrResponse> processRequest(Request request) async {
+  Future<RequestOrResponse> handle(Request request) async {
     try {
       await someFailableOperation();
     } on OperationException catch (e) {
@@ -126,7 +126,7 @@ To pass a request on to the next controller in the channel, a controller must re
 For example, an `Authorizer`'s pseudo code looks like this:
 
 ```dart
-Future<RequestOrResponse> processRequest(Request request) async {
+Future<RequestOrResponse> handle(Request request) async {
     if (!isAuthorized(request)) {
       return new Response.unauthorized();
     }
@@ -139,7 +139,7 @@ Future<RequestOrResponse> processRequest(Request request) async {
 The next controller in the channel can look up the value of `authInfo`:
 
 ```dart
-Future<RequestOrResponse> processRequest(Request request) async {
+Future<RequestOrResponse> handle(Request request) async {
     var authInfo = request.attachments["authInfo"];
 
 
