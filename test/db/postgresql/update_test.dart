@@ -319,32 +319,32 @@ void main() {
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
 
-  @ManagedColumnAttributes(nullable: true, unique: true)
+  @Column(nullable: true, unique: true)
   String emailAddress;
 }
 
 class Child extends ManagedObject<_Child> implements _Child {}
 
 class _Child {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
 
-  @ManagedRelationship(#child,
-      isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
+  @Relationship(#child,
+      isRequired: false, onDelete: DeleteRule.cascade)
   Parent parent;
 }
 
 class Parent extends ManagedObject<_Parent> implements _Child {}
 
 class _Parent {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
@@ -354,7 +354,7 @@ class _Parent {
 
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 class _EnumObject {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   EnumValues enumValues;

@@ -8,7 +8,7 @@ import 'http.dart';
 ///
 /// See the constructor for usage.
 ///
-class HTTPFileController extends RequestController {
+class HTTPFileController extends Controller {
   static Map<String, ContentType> _defaultExtensionMap = {
     /* Web content */
     "html": new ContentType("text", "html", charset: "utf-8"),
@@ -141,7 +141,7 @@ class HTTPFileController extends RequestController {
   }
 
   @override
-  Future<RequestOrResponse> processRequest(Request request) async {
+  Future<RequestOrResponse> handle(Request request) async {
     if (request.raw.method.toLowerCase() != "get") {
       return new Response(HttpStatus.METHOD_NOT_ALLOWED, null, null);
     }

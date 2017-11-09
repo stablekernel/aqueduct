@@ -20,7 +20,7 @@ void main() {
 
     test("Create from app, explicit port", () async {
       app = new Application<SomeChannel>()
-          ..configuration.port = 4111;
+          ..options.port = 4111;
       await app.test();
       var client = new TestClient(app);
       expect(client.baseURL, "http://localhost:4111");
@@ -28,7 +28,7 @@ void main() {
 
     test("Create from app, assigned port", () async {
       app = new Application<SomeChannel>()
-        ..configuration.port = 0;
+        ..options.port = 0;
       await app.test();
 
       var client = new TestClient(app);
@@ -49,7 +49,7 @@ void main() {
 
     test("Create from unstarted app, start app, works OK", () async {
       app = new Application<SomeChannel>()
-        ..configuration.port = 0;
+        ..options.port = 0;
       var tc = new TestClient(app);
       await app.test();
 
@@ -58,14 +58,14 @@ void main() {
 
     test("Host created correctly", () {
       var defaultTestClient = new TestClient.onPort(4040);
-      var portConfiguredClient = new TestClient.fromConfig(
-          new ApplicationConfiguration()..port = 2121);
+      var portConfiguredClient = new TestClient.fromOptions(
+          new ApplicationOptions()..port = 2121);
       var hostPortConfiguredClient =
-          new TestClient.fromConfig(new ApplicationConfiguration()
+          new TestClient.fromOptions(new ApplicationOptions()
             ..port = 2121
             ..address = "foobar.com");
       var hostPortSSLConfiguredClient =
-          new TestClient.fromConfig(new ApplicationConfiguration()
+          new TestClient.fromOptions(new ApplicationOptions()
             ..port = 2121
             ..address = "foobar.com", useHTTPS: true);
       expect(defaultTestClient.baseURL, "http://localhost:4040");
@@ -310,7 +310,7 @@ void main() {
 
 class SomeChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final r = new Router();
     r.route("/").listen((r) async => new Response.ok(null));
     return r;

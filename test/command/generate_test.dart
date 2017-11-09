@@ -69,7 +69,7 @@ void main() {
       var modelFile = new File.fromUri(
           projectDirectory.uri.resolve("lib/").resolve("wildfire.dart"));
       var contents = modelFile.readAsStringSync().replaceFirst(
-          "String foo;", "@ManagedColumnAttributes(indexed: true) String foo;");
+          "String foo;", "@Column(indexed: true) String foo;");
       modelFile.writeAsStringSync(contents);
 
       res = await runAqueductProcess(["db", "generate"], projectDirectory);

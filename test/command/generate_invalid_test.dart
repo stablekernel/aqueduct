@@ -26,7 +26,7 @@ void main() {
         """
         class U extends ManagedObject<_U> implements _U {}
         class _U {
-          @managedPrimaryKey int id;
+          @primaryKey int id;
           int foo;
         }
         """,
@@ -34,7 +34,7 @@ void main() {
         class U extends ManagedObject<_U> implements _U {}
         class _U {
           int id;
-          @managedPrimaryKey int foo;
+          @primaryKey int foo;
         }
         """
       ];
@@ -56,30 +56,30 @@ void main() {
         """
         class U extends ManagedObject<_U> {}
         class _U {
-          @managedPrimaryKey int id;
+          @primaryKey int id;
           T x;
         }
         class T extends ManagedObject<_T> {}
         class _T {
-          @managedPrimaryKey int id;
-          @ManagedRelationship(#x)
+          @primaryKey int id;
+          @Relationship(#x)
           U y;
         }
         """,
         """
         class U extends ManagedObject<_U> {}
         class _U {
-          @managedPrimaryKey int id;
+          @primaryKey int id;
         }
         class T extends ManagedObject<_T> {}
         class _T {
-          @managedPrimaryKey int id;
-          @ManagedRelationship(#x)
+          @primaryKey int id;
+          @Relationship(#x)
           V y;
         }
         class V extends ManagedObject<_V> {}
         class _V {
-          @managedPrimaryKey int id;
+          @primaryKey int id;
           T x;
         }
         """
@@ -102,7 +102,7 @@ void main() {
         """
         class U extends ManagedObject<_U> {}
         class _U {
-          @managedPrimaryKey int id;
+          @primaryKey int id;
           int x;
         }
         """,
@@ -132,7 +132,7 @@ void main() {
         """
         class U extends ManagedObject<_U> {}
         class _U {
-          @managedPrimaryKey int id;
+          @primaryKey int id;
           int x;
         }
         """,
@@ -140,7 +140,7 @@ void main() {
         class U extends ManagedObject<_U> {}
         class _U {
           int id;
-          @managedPrimaryKey int x;
+          @primaryKey int x;
         }
         """
       ];
@@ -162,16 +162,16 @@ void main() {
         """
         class U extends ManagedObject<_U> {}
         class _U {
-          @managedPrimaryKey int id;
+          @primaryKey int id;
           int x;
         }
         """,
         """
         class U extends ManagedObject<_U> {}
         class _U {
-          @managedPrimaryKey int id;
+          @primaryKey int id;
 
-          @ManagedColumnAttributes(autoincrement: true)
+          @Column(autoincrement: true)
           int x;
         }
         """
@@ -194,14 +194,14 @@ void main() {
         """
         class U extends ManagedObject<_U> {}
         class _U {
-          @managedPrimaryKey int id;
+          @primaryKey int id;
           int x;
         }
         """,
         """
         class U extends ManagedObject<_U> {}
         class _U {
-          @managedPrimaryKey int id;
+          @primaryKey int id;
 
           String x;
         }

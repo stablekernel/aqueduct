@@ -6,18 +6,18 @@ import 'package:logging/logging.dart';
 
 import '../http/http.dart';
 import 'application.dart';
-import '../utilities/resource_registry.dart';
+import 'package:aqueduct/src/application/service_registry.dart';
 
 /// Subclasses of this type initialize an application's routes and services.
 ///
 /// The behavior of an Aqueduct application is defined by subclassing this type and overriding its lifecycle callback methods. An
 /// Aqueduct application may have exactly one subclass of this type declared in its `lib/` directory.
 ///
-/// At minimum, a subclass must override [entryPoint] to return the first instance of [RequestController] that receives a new HTTP request.
+/// At minimum, a subclass must override [entryPoint] to return the first instance of [Controller] that receives a new HTTP request.
 /// This instance is typically a [Router]. An example minimum application follows:
 ///
 ///       class MyChannel extends ApplicationChannel {
-///         RequestController get entryPoint {
+///         Controller get entryPoint {
 ///           final router = new Router();
 ///           router.route("/endpoint").listen((req) => new Response.ok('Hello, world!'));
 ///           return router;
@@ -27,16 +27,16 @@ import '../utilities/resource_registry.dart';
 /// [entryPoint] is the root of the application channel. It receives an HTTP request that flows through the channel until it is responded to.
 ///
 /// Other forms of initialization, e.g. creating a service that interact with a database, should be initialized in [prepare]. This method is invoked
-/// prior to [entryPoint] so that any services it creates can be injected into the [RequestController]s in the channel.
+/// prior to [entryPoint] so that any services it creates can be injected into the [Controller]s in the channel.
 ///
 /// An instance of this type is created for each isolate the running application spawns. The number of isolates spawned is determined by an argument to [Application.start]
 /// (which often comes from the command-line tool `aqueduct serve`). Any initialization that occurs in subclasses of this type will be called for each instance.
 ///
 /// For initialization that must occur only once per application, you may implement the *static* method [initializeApplication] in a subclass of this type.
-/// The signature of this method is ([ApplicationConfiguration]) -> [Future], for example:
+/// The signature of this method is ([ApplicationOptions]) -> [Future], for example:
 ///
 ///         class Channel extends ApplicationChannel {
-///           static Future initializeApplication(ApplicationConfiguration config) async {
+///           static Future initializeApplication(ApplicationOptions config) async {
 ///             // Do one-time setup here
 ///           }
 ///           ...
@@ -55,7 +55,7 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   /// across isolates, it must be instantiated in this method.
   ///
   ///         class MyChannel extends ApplicationChannel {
-  ///           static Future initializeApplication(ApplicationConfiguration config) async {
+  ///           static Future initializeApplication(ApplicationOptions config) async {
   ///
   ///           }
   ///
@@ -64,7 +64,7 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   ///
   /// * Note that static methods are not inherited in Dart and therefore you are not overriding this method. The declaration of this method in the base [ApplicationChannel] class
   /// is for documentation purposes.
-  static Future initializeApplication(ApplicationConfiguration config) async {}
+  static Future initializeApplication(ApplicationOptions config) async {}
 
   /// The logger of this instance
   Logger get logger => new Logger("aqueduct");
@@ -89,43 +89,43 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   /// The context used for setting up HTTPS in an application.
   ///
   /// By default, this value is null. When null, an [Application] using this instance will listen over HTTP, and not HTTPS.
-  /// If this instance [configuration] has non-null values for both [ApplicationConfiguration.certificateFilePath] and [ApplicationConfiguration.privateKeyFilePath],
+  /// If this instance [options] has non-null values for both [ApplicationOptions.certificateFilePath] and [ApplicationOptions.privateKeyFilePath],
   /// this value is a valid [SecurityContext] configured to use the certificate chain and private key as indicated by the configuration. The listening server
   /// will allow connections over HTTPS only. This getter is only invoked once per instance, after [entryPoint] is invoked.
   ///
   /// You may override this getter to provide a customized [SecurityContext].
   SecurityContext get securityContext {
-    if (configuration?.certificateFilePath == null || configuration?.privateKeyFilePath == null) {
+    if (options?.certificateFilePath == null || options?.privateKeyFilePath == null) {
       return null;
     }
 
     return new SecurityContext()
-      ..useCertificateChain(configuration.certificateFilePath)
-      ..usePrivateKey(configuration.privateKeyFilePath);
+      ..useCertificateChain(options.certificateFilePath)
+      ..usePrivateKey(options.privateKeyFilePath);
   }
 
   /// Configuration options from the application.
   ///
   /// Options allow passing of application-specific information - like database connection information -
   /// from configuration data. This property is set in the constructor.
-  ApplicationConfiguration configuration;
+  ApplicationOptions options;
 
-  /// The first [RequestController] to receive HTTP requests.
+  /// The first [Controller] to receive HTTP requests.
   ///
   /// Subclasses must override this getter to provide the first controller in the application channel to handle an HTTP request.
-  /// This property is most often a configured [Router], but could be any type of [RequestController].
+  /// This property is most often a configured [Router], but could be any type of [Controller].
   ///
   /// This method is invoked exactly once for each instance, and the result is stored throughout the remainder of the application's lifetime.
   /// This method must fully configure the entire application channel; no controllers may be added to the channel after this method completes.
   ///
   /// This method is always invoked after [prepare].
-  RequestController get entryPoint;
+  Controller get entryPoint;
 
   /// Initialization callback.
   ///
   /// This method allows this instance to perform any initialization (other than setting up the [entryPoint]). This method
-  /// is often used to set up services that [RequestController]s use to fulfill their duties. This method is invoked
-  /// prior to [entryPoint], so that the services it creates can be injected into [RequestController]s.
+  /// is often used to set up services that [Controller]s use to fulfill their duties. This method is invoked
+  /// prior to [entryPoint], so that the services it creates can be injected into [Controller]s.
   Future prepare() async {}
 
   /// Executed after the instance has been initialized, but right before it will start receiving requests.
@@ -135,7 +135,7 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
 
   /// Closes this instance.
   ///
-  /// Tell the channel that no further requests will be added, and it may release any resources it is using. Prefer using [ServiceRegistry]
+  /// Tell the channel that no further requests will be added, and it may release any resources it is using. Prefer using [ApplicationServiceRegistry]
   /// to overriding this method.
   ///
   /// If you do override this method, you must call the super implementation. The default behavior of this method removes

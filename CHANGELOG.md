@@ -7,6 +7,22 @@
 - Renames `Request.innerRequest` to `Request.raw`.
 - Removes `runOnMainIsolate` from `Application.start()` and introduces `Application.test()` as replacement.
 - Renames `RequestSink` to `ApplicationChannel` and improves its structure.
+- Renames the following:
+    - `ApplicationConfiguration` -> `ApplicationOptions`
+    - `Application.configuration` -> `Application.options`
+    - `ServiceRegistry` -> `ApplicationServiceRegistry`
+    - `ManagedTableAttributes` -> `Table`
+    - `ManagedRelationshipDeleteRule` -> `DeleteRule`
+    - `ManagedRelationship` -> `Relationship`
+    - `ManagedColumnAttributes` -> `Column`
+    - `managedPrimaryKey` -> `primaryKey`
+    - `ManagedTransientAttribute` -> `Serialize`
+        - `Serialize` now replaces `managedTransientAttribute`, `managedTransientInputAttribute`, and `managedTransientOutputAttribute`.
+    - `RequestController` -> `Controller`
+    - `RequestController.processRequest` -> `Controller.handle`
+    - `HTTPController` -> `RESTController`
+    - `Router.unhandledRequestController` -> `Router.unmatchedController`
+    - `TestClient.fromConfig` -> `TestClient.fromOptions`        
 
 ## 2.5.0
 

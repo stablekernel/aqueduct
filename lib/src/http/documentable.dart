@@ -27,12 +27,12 @@ Map<String, dynamic> _stripNullAndEmpty(Map<String, dynamic> m) {
 ///
 /// Documentation behavior starts at the root of an application (its [ApplicationChannel]) by invoking [documentAPI].
 /// The [ApplicationChannel] will invoke methods from this interface on its [ApplicationChannel.entryPoint]. These methods
-/// travel down the object graph formed by a [ApplicationChannel], its [Router], [RequestController]s, [AuthServer] and [ManagedObject]s.
+/// travel down the object graph formed by a [ApplicationChannel], its [Router], [Controller]s, [AuthServer] and [ManagedObject]s.
 ///
 /// Classes that extend this class will override methods such as [documentPaths] and [documentOperations] if they have the information
 /// available to complete those requests. Any method from this interface that a subclasses does not override will automatically
 /// be forwarded on to its [documentableChild]. Thus, subclasses should override [documentableChild] to return the 'next' documentable
-/// item in their logical flow. For [RequestController]s, this will be their 'next' handler.
+/// item in their logical flow. For [Controller]s, this will be their 'next' handler.
 class APIDocumentable {
   /// Returns the next documentable object in a chain of documentable objects.
   ///

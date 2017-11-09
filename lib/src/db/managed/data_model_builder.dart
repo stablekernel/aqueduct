@@ -1,6 +1,7 @@
 import 'entity_mirrors.dart';
 import 'dart:mirrors';
 import 'managed.dart';
+import 'relationship_type.dart';
 
 class DataModelBuilder {
   DataModelBuilder(ManagedDataModel dataModel, List<Type> instanceTypes) {
@@ -91,7 +92,7 @@ class DataModelBuilder {
         // If there is both a getter and setter declared to represent one transient property,
         // then we need to combine them here. No other reason a property would appear twice.
         map[attribute.name] = new ManagedAttributeDescription.transient(
-            entity, attribute.name, attribute.type, managedTransientAttribute);
+            entity, attribute.name, attribute.type, new Serialize(input: true, output: true));
       } else {
         map[attribute.name] = attribute;
       }
@@ -161,7 +162,7 @@ class DataModelBuilder {
     });
   }
 
-  ManagedTransientAttribute transienceForProperty(DeclarationMirror property) {
+  Serialize transienceForProperty(DeclarationMirror property) {
     if (property is VariableMirror) {
       return transientMetadataFromDeclaration(property);
     }
@@ -169,11 +170,11 @@ class DataModelBuilder {
     var metadata = transientMetadataFromDeclaration(property);
     MethodMirror m = property as MethodMirror;
     if (m.isGetter && metadata.isAvailableAsOutput) {
-      return new ManagedTransientAttribute(
-          availableAsOutput: true, availableAsInput: false);
+      return new Serialize(
+          output: true, input: false);
     } else if (m.isSetter && metadata.isAvailableAsInput) {
-      return new ManagedTransientAttribute(
-          availableAsInput: true, availableAsOutput: false);
+      return new Serialize(
+          input: true, output: false);
     }
 
     return null;
@@ -216,7 +217,7 @@ class DataModelBuilder {
     var relationship = relationshipMetadataFromProperty(property);
 
     // Make sure the relationship parameters are valid
-    if (relationship.onDelete == ManagedRelationshipDeleteRule.nullify &&
+    if (relationship.onDelete == DeleteRule.nullify &&
         relationship.isRequired) {
       throw new ManagedDataModelException.incompatibleDeleteRule(
           owningEntity, property.simpleName);
@@ -422,8 +423,8 @@ class DataModelBuilder {
   }
 
   List<ManagedPropertyDescription> instanceUniquePropertiesForEntity(ManagedEntity entity) {
-    ManagedTableAttributes tableAttributes = entity.persistentType.metadata
-        .firstWhere((im) => im.type.isSubtypeOf(reflectType(ManagedTableAttributes)),
+    Table tableAttributes = entity.persistentType.metadata
+        .firstWhere((im) => im.type.isSubtypeOf(reflectType(Table)),
           orElse: () => null)?.reflectee;
 
     if (tableAttributes?.uniquePropertySet != null) {

@@ -81,11 +81,11 @@ class ManagedDataModelException implements Exception {
     return new ManagedDataModelException(
         "Class '${_getPersistentClassName(entity)}'"
         " doesn't declare a primary key property. All 'ManagedObject' subclasses "
-        "must have a primary key. Usually, this means you want to add '@managedPrimaryKey int id;' "
+        "must have a primary key. Usually, this means you want to add '@primaryKey int id;' "
         "to ${_getPersistentClassName(entity)}, but if you want more control over "
         "the type of primary key, declare the property as one of "
         "${ManagedPropertyDescription.supportedDartTypes.join(", ")} and "
-        "add '@ManagedColumnAttribute(primaryKey: true)' above it.");
+        "add '@Column(primaryKey: true)' above it.");
   }
 
   factory ManagedDataModelException.invalidType(
@@ -94,7 +94,7 @@ class ManagedDataModelException implements Exception {
         "'${_getPersistentClassName(entity)}'"
         " has an unsupported type. Must be "
         "${ManagedPropertyDescription.supportedDartTypes.join(", ")}"
-        ", an enum, or ManagedObject subclass (see also 'ManagedRelationship.deferred'). "
+        ", an enum, or ManagedObject subclass (see also 'Relationship.deferred'). "
         "If you want to store something "
         "weird in the database, try declaring accessors in the ManagedObject subclass, "
         "and have those set values of the properties in the persistent type that are "
@@ -106,9 +106,9 @@ class ManagedDataModelException implements Exception {
     return new ManagedDataModelException(
         "Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' "
-        "cannot both have 'ManagedColumnAttributes' and 'ManagedRelationship' metadata. "
+        "cannot both have 'Column' and 'Relationship' metadata. "
         "To add flags for indexing or nullability to a relationship, see the constructor "
-        "for 'ManagedRelationship'.");
+        "for 'Relationship'.");
   }
 
   factory ManagedDataModelException.missingInverse(
@@ -150,8 +150,8 @@ class ManagedDataModelException implements Exception {
         "on '${_getPersistentClassName(entity)}' "
         "and '${_getName(inverseProperty)}' "
         "on '${_getPersistentClassName(destinationEntity)}' "
-        "both have 'ManagedRelationship' metadata, but only one side can. "
-        "The property with 'ManagedRelationship' metadata is actually a foreign key column "
+        "both have 'Relationship' metadata, but only one side can. "
+        "The property with 'Relationship' metadata is actually a foreign key column "
         "in the database. The other one isn't a column, but an entire row or rows."
         "Ask yourself which makes more sense: "
         "\"${_getInstanceClassName(entity)}.${_getName(property)} has "
@@ -244,29 +244,29 @@ class ManagedDataModelException implements Exception {
   factory ManagedDataModelException.emptyEntityUniqueProperties(
       ManagedEntity entity) {
     return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
-        "has empty set for unique 'ManagedTableAttributes'. Must contain two or "
+        "has empty set for unique 'Table'. Must contain two or "
         "more attributes (or belongs-to relationship properties).");
   }
 
   factory ManagedDataModelException.singleEntityUniqueProperty(
       ManagedEntity entity, Symbol property) {
     return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
-        "has only one attribute for unique 'ManagedTableAttributes'. Must contain two or "
+        "has only one attribute for unique 'Table'. Must contain two or "
         "more attributes (or belongs-to relationship properties). To make this property unique, "
-        "add 'ManagedColumnAttributes(unique: true)' to declaration of '${_getName(property)}'.");
+        "add 'Column(unique: true)' to declaration of '${_getName(property)}'.");
   }
 
   factory ManagedDataModelException.invalidEntityUniqueProperty(
       ManagedEntity entity, Symbol property) {
     return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
-        "declares '${MirrorSystem.getName(property)}' as unique in 'ManagedTableAttributes', "
+        "declares '${MirrorSystem.getName(property)}' as unique in 'Table', "
         "but '${MirrorSystem.getName(property)}' is not a property of this type.");
   }
 
   factory ManagedDataModelException.relationshipEntityUniqueProperty(
       ManagedEntity entity, Symbol property) {
     return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
-        "declares '${_getName(property)}' as unique in 'ManagedTableAttributes'. This property cannot "
+        "declares '${_getName(property)}' as unique in 'Table'. This property cannot "
         "be used to make an instance unique; only attributes or belongs-to relationships may used "
         "in this way.");
   }

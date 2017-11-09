@@ -196,7 +196,7 @@ void main() {
 
 class Test extends ManagedObject<_Test> implements _Test {}
 class _Test {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String s;

@@ -3,6 +3,7 @@ import 'entity_table.dart';
 import 'predicate_builder.dart';
 import 'property_mapper.dart';
 import '../query/sort_descriptor.dart';
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 class RowMapper extends PostgresMapper
     with PredicateBuilder, EntityTableMapper {

@@ -455,23 +455,23 @@ void main() {
 class Game extends ManagedObject<_Game> implements _Game {}
 
 class _Game {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   int homeScore;
   int awayScore;
 
-  @ManagedRelationship(#homeGames)
+  @Relationship(#homeGames)
   Team homeTeam;
 
-  @ManagedRelationship(#awayGames)
+  @Relationship(#awayGames)
   Team awayTeam;
 }
 
 class Team extends ManagedObject<_Team> implements _Team {}
 
 class _Team {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;

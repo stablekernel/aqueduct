@@ -16,7 +16,7 @@ before_script:
 script: bash ci/script.sh
 env:
   - STAGE=tests
-  - STAGE=coverage COVERAGE_SLICE='auth base'
+  - STAGE=coverage COVERAGE_SLICE='auth http'
   - STAGE=coverage COVERAGE_SLICE='command'
   - STAGE=coverage COVERAGE_SLICE='db managed_auth utilities testing'
 branches:
@@ -29,7 +29,7 @@ after_success:
 matrix:
   exclude:
     - dart: dev
-      env: STAGE=coverage COVERAGE_SLICE='auth base'
+      env: STAGE=coverage COVERAGE_SLICE='auth http'
     - dart: dev
       env: STAGE=coverage COVERAGE_SLICE='command'
     - dart: dev

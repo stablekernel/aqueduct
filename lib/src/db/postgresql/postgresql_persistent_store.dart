@@ -3,7 +3,7 @@ import 'package:postgres/postgres.dart';
 import 'dart:async';
 
 import '../postgresql/postgresql_query.dart';
-import '../../utilities/resource_registry.dart';
+import 'package:aqueduct/src/application/service_registry.dart';
 import '../managed/managed.dart';
 import '../query/query.dart';
 import '../persistent_store/persistent_store.dart';
@@ -21,14 +21,14 @@ class PostgreSQLPersistentStore extends PersistentStore
     with PostgreSQLSchemaGenerator {
   /// Creates an instance of this type from a manual function.
   PostgreSQLPersistentStore(this.connectFunction) : super() {
-    ServiceRegistry.defaultInstance.register<PostgreSQLPersistentStore>(this, (store) => store.close());
+    ApplicationServiceRegistry.defaultInstance.register<PostgreSQLPersistentStore>(this, (store) => store.close());
   }
 
   /// Creates an instance of this type from connection info.
   PostgreSQLPersistentStore.fromConnectionInfo(
       this.username, this.password, this.host, this.port, this.databaseName,
       {this.timeZone: "UTC", bool useSSL: false}) {
-    ServiceRegistry.defaultInstance.register<PostgreSQLPersistentStore>(this, (store) => store.close());
+    ApplicationServiceRegistry.defaultInstance.register<PostgreSQLPersistentStore>(this, (store) => store.close());
 
     this.connectFunction = () async {
       logger

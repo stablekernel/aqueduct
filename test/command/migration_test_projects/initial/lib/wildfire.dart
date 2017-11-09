@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 class TestObject extends ManagedObject<_TestObject> {}
 
 class _TestObject {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String foo;

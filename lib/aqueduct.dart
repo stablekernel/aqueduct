@@ -25,7 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 ///       class Channel extends ApplicationChannel {
 ///
 ///         @override
-///         RequestController get entryPoint {
+///         Controller get entryPoint {
 ///           final router = new Router();
 ///
 ///           router
@@ -46,5 +46,4 @@ export 'src/application/application.dart';
 export 'src/auth/auth.dart';
 export 'src/db/db.dart';
 export 'src/http/http.dart';
-export 'src/utilities/resource_registry.dart';
 
