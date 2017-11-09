@@ -7,7 +7,7 @@ import 'package:aqueduct/src/application/channel.dart';
 /// Instances of this type are configured by the command-line arguments for `aqueduct serve` and passed to [ApplicationChannel] instances in their constructor.
 /// Instances of this type are also passed to to a [ApplicationChannel] subclass's `initializeApplication` method before it is instantiated. This allows
 /// values to be modified prior to starting the server. See [ApplicationChannel] for example usage.
-class ApplicationConfiguration {
+class ApplicationOptions {
   /// Whether or not this application is being used to document an API.
   ///
   /// Defaults to false. If the application is being instantiated for the purpose of documenting the API,
@@ -59,9 +59,9 @@ class ApplicationConfiguration {
   /// over how HTTPS is configured for an application, see [ApplicationChannel.securityContext].
   String privateKeyFilePath;
 
-  /// Options for each [ApplicationChannel] to use when in this application.
+  /// Contextual values for each [ApplicationChannel] provided by [ApplicationChannel.initializeApplication]
   ///
-  /// This is a user-specific set of configuration options. These values are typically set in [ApplicationChannel]'s `initializeApplication`
-  /// method so that each individual instance of [ApplicationChannel] has actionable configuration options to use during their initialization.
-  Map<String, dynamic> options = {};
+  /// This is a user-specific set of configuration options provided by [ApplicationChannel.initializeApplication].
+  /// Each instance of [ApplicationChannel] has access to these values if set.
+  Map<String, dynamic> context = {};
 }

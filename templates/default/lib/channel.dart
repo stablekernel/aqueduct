@@ -7,7 +7,7 @@ import 'wildfire.dart';
 class WildfireChannel extends ApplicationChannel {
   /// Initialize services in this method.
   ///
-  /// Implement this method to initialize services, read values from [configuration]
+  /// Implement this method to initialize services, read values from [options]
   /// and any other initialization required before constructing [entryPoint].
   ///
   /// This method is invoked prior to [entryPoint] being accessed.

@@ -2,6 +2,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 import 'dart:mirrors';
 import '../helpers.dart';
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 void main() {
   group("Valid data model", () {
@@ -134,7 +135,7 @@ void main() {
                   .entityForType(User)
                   .relationships[MirrorSystem.getName(relDesc.inverseKey)],
           true);
-      expect(relDesc.deleteRule, ManagedRelationshipDeleteRule.cascade);
+      expect(relDesc.deleteRule, DeleteRule.cascade);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
       expect(relDesc.relationshipType, ManagedRelationshipType.belongsTo);
 
@@ -149,7 +150,7 @@ void main() {
                   .entityForType(User)
                   .relationships[MirrorSystem.getName(relDesc.inverseKey)],
           true);
-      expect(relDesc.deleteRule, ManagedRelationshipDeleteRule.nullify);
+      expect(relDesc.deleteRule, DeleteRule.nullify);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
       expect(relDesc.relationshipType, ManagedRelationshipType.belongsTo);
 
@@ -585,18 +586,18 @@ void main() {
 }
 
 class User extends ManagedObject<_User> implements _User {
-  @managedTransientAttribute
+  @Serialize()
   String stringID;
 }
 
 class _User {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String username;
   bool flag;
 
-  @ManagedColumnAttributes(
+  @Column(
       nullable: true,
       defaultValue: "'now()'",
       unique: true,
@@ -612,30 +613,30 @@ class _User {
 class Item extends ManagedObject<_Item> implements _Item {}
 
 class _Item {
-  @ManagedColumnAttributes(primaryKey: true)
+  @Column(primaryKey: true)
   String name;
 
-  @ManagedRelationship(#items,
-      onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
+  @Relationship(#items,
+      onDelete: DeleteRule.cascade, isRequired: true)
   User user;
 }
 
 class Manager extends ManagedObject<_Manager> implements _Manager {}
 
 class _Manager {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
 
-  @ManagedRelationship(#manager)
+  @Relationship(#manager)
   User worker;
 }
 
 class Owner extends ManagedObject<_Owner> implements _Owner {}
 
 class _Owner {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   FailingChild gen;
@@ -645,11 +646,11 @@ class FailingChild extends ManagedObject<_FailingChild>
     implements _FailingChild {}
 
 class _FailingChild {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#gen,
-      onDelete: ManagedRelationshipDeleteRule.nullify, isRequired: true)
+  @Relationship(#gen,
+      onDelete: DeleteRule.nullify, isRequired: true)
   Owner ref;
 }
 
@@ -657,60 +658,60 @@ class TransientTest extends ManagedObject<_TransientTest>
     implements _TransientTest {
   String notAnAttribute;
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   String get defaultedText => "Mr. $text";
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set defaultedText(String str) {
     text = str.split(" ").last;
   }
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set inputOnly(String s) {
     text = s;
   }
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   String get outputOnly => text;
   set outputOnly(String s) {
     text = s;
   }
 
   // This is intentionally invalid
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   String get invalidInput => text;
 
   // This is intentionally invalid
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   set invalidOutput(String s) {
     text = s;
   }
 
-  @managedTransientAttribute
+  @Serialize()
   String get bothButOnlyOnOne => text;
   set bothButOnlyOnOne(String s) {
     text = s;
   }
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   int inputInt;
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   int outputInt;
 
-  @managedTransientAttribute
+  @Serialize()
   int inOut;
 
-  @managedTransientAttribute
+  @Serialize()
   String get bothOverQualified => text;
-  @managedTransientAttribute
+  @Serialize()
   set bothOverQualified(String s) {
     text = s;
   }
 }
 
 class _TransientTest {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String text;
@@ -727,7 +728,7 @@ class InvalidModel extends ManagedObject<_InvalidModel>
     implements _InvalidModel {}
 
 class _InvalidModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   Uri uri;
@@ -735,17 +736,17 @@ class _InvalidModel {
 
 class InvalidTransientModel extends ManagedObject<_InvalidTransientModel>
     implements _InvalidTransientModel {
-  @managedTransientAttribute
+  @Serialize()
   Uri uri;
 }
 
 class _InvalidTransientModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 }
 
 class TotalModel extends ManagedObject<_TotalModel> implements _TotalModel {
-  @managedTransientAttribute
+  @Serialize()
   int transient;
 }
 
@@ -756,16 +757,16 @@ class _TotalModel extends PartialModel {
 class OverriddenTotalModel extends ManagedObject<_OverriddenTotalModel> implements _OverriddenTotalModel {}
 class _OverriddenTotalModel extends PartialModel {
   @override
-  @ManagedColumnAttributes(indexed: true, unique: true)
+  @Column(indexed: true, unique: true)
   @Validate.oneOf(const ["a", "b"])
   String field;
 }
 
 class PartialModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedColumnAttributes(indexed: true)
+  @Column(indexed: true)
   String field;
 
   ManagedSet<PartialReferenceModel> hasManyRelationship;
@@ -779,12 +780,12 @@ class PartialReferenceModel extends ManagedObject<_PartialReferenceModel>
     implements _PartialReferenceModel {}
 
 class _PartialReferenceModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String field;
 
-  @ManagedRelationship.deferred(ManagedRelationshipDeleteRule.cascade,
+  @Relationship.deferred(DeleteRule.cascade,
       isRequired: true)
   PartialModel foreignKeyColumn;
 }
@@ -794,16 +795,16 @@ class DoubleRelationshipForeignKeyModel
     implements _DoubleRelationshipForeignKeyModel {}
 
 class _DoubleRelationshipForeignKeyModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#hasManyOf)
+  @Relationship(#hasManyOf)
   DoubleRelationshipHasModel isManyOf;
 
-  @ManagedRelationship(#hasOneOf)
+  @Relationship(#hasOneOf)
   DoubleRelationshipHasModel isOneOf;
 
-  @ManagedRelationship.deferred(ManagedRelationshipDeleteRule.cascade)
+  @Relationship.deferred(DeleteRule.cascade)
   SomeOtherPartialModel partial;
 }
 
@@ -812,7 +813,7 @@ class DoubleRelationshipHasModel
     implements _DoubleRelationshipHasModel {}
 
 class _DoubleRelationshipHasModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   ManagedSet<DoubleRelationshipForeignKeyModel> hasManyOf;
@@ -823,7 +824,7 @@ class SomeOtherRelationshipModel
     extends ManagedObject<_SomeOtherRelationshipModel> {}
 
 class _SomeOtherRelationshipModel extends SomeOtherPartialModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 }
 
@@ -834,7 +835,7 @@ class SomeOtherPartialModel {
 class LeftMany extends ManagedObject<_LeftMany> implements _LeftMany {}
 
 class _LeftMany {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   ManagedSet<JoinMany> join;
@@ -843,7 +844,7 @@ class _LeftMany {
 class RightMany extends ManagedObject<_RightMany> implements _RightMany {}
 
 class _RightMany {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   ManagedSet<JoinMany> join;
@@ -852,40 +853,40 @@ class _RightMany {
 class JoinMany extends ManagedObject<_JoinMany> implements _JoinMany {}
 
 class _JoinMany {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#join)
+  @Relationship(#join)
   LeftMany left;
 
-  @ManagedRelationship(#join)
+  @Relationship(#join)
   RightMany right;
 }
 
 class InvalidCyclicLeft extends ManagedObject<_InvalidCyclicLeft> {}
 class _InvalidCyclicLeft {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#ref)
+  @Relationship(#ref)
   InvalidCyclicRight ref;
 }
 
 class InvalidCyclicRight extends ManagedObject<_InvalidCyclicRight> {}
 class _InvalidCyclicRight {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#ref)
+  @Relationship(#ref)
   InvalidCyclicLeft ref;
 }
 
 class CyclicLeft extends ManagedObject<_CyclicLeft> {}
 class _CyclicLeft  {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#from)
+  @Relationship(#from)
   CyclicRight leftRef;
 
   CyclicRight from;
@@ -893,10 +894,10 @@ class _CyclicLeft  {
 
 class CyclicRight extends ManagedObject<_CyclicRight> {}
 class _CyclicRight  {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#from)
+  @Relationship(#from)
   CyclicLeft rightRef;
 
   CyclicLeft from;
@@ -904,7 +905,7 @@ class _CyclicRight  {
 
 class SameNameOne extends ManagedObject<_SameNameOne> {}
 class _SameNameOne {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   static String tableName() => "fo";
@@ -912,7 +913,7 @@ class _SameNameOne {
 
 class SameNameTwo extends ManagedObject<_SameNameTwo> {}
 class _SameNameTwo {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   static String tableName() => "fo";
@@ -920,17 +921,17 @@ class _SameNameTwo {
 
 class InvalidMetadata extends ManagedObject<_InvalidMetadata> {}
 class _InvalidMetadata {
-  @ManagedColumnAttributes(primaryKey: true)
+  @Column(primaryKey: true)
   int id;
 
-  @ManagedRelationship(#foo)
-  @ManagedColumnAttributes(indexed: true)
+  @Relationship(#foo)
+  @Column(indexed: true)
   InvalidMetadata1 bar;
 }
 
 class InvalidMetadata1 extends ManagedObject<_InvalidMetadata1> {}
 class _InvalidMetadata1 {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   InvalidMetadata foo;
@@ -938,7 +939,7 @@ class _InvalidMetadata1 {
 
 class MissingInverse1 extends ManagedObject<_MissingInverse1> {}
 class _MissingInverse1 {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   MissingInverseWrongSymbol inverse;
@@ -946,16 +947,16 @@ class _MissingInverse1 {
 
 class MissingInverseWrongSymbol extends ManagedObject<_MissingInverseWrongSymbol> {}
 class _MissingInverseWrongSymbol {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#foobar)
+  @Relationship(#foobar)
   MissingInverse1 has;
 }
 
 class MissingInverse2 extends ManagedObject<_MissingInverse2> {}
 class _MissingInverse2 {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   ManagedSet<MissingInverseAbsent> inverseMany;
@@ -963,13 +964,13 @@ class _MissingInverse2 {
 
 class MissingInverseAbsent extends ManagedObject<_MissingInverseAbsent> {}
 class _MissingInverseAbsent {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 }
 
 class DupInverseHas extends ManagedObject<_DupInverseHas> {}
 class _DupInverseHas {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   ManagedSet<DupInverse> inverse;
@@ -977,19 +978,19 @@ class _DupInverseHas {
 
 class DupInverse extends ManagedObject<_DupInverse> {}
 class _DupInverse {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#inverse)
+  @Relationship(#inverse)
   DupInverseHas foo;
 
-  @ManagedRelationship(#inverse)
+  @Relationship(#inverse)
   DupInverseHas bar;
 }
 
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 class _EnumObject {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   EnumValues enumValues;
@@ -1001,9 +1002,9 @@ enum EnumValues {
 
 
 class MultiUnique extends ManagedObject<_MultiUnique> {}
-@ManagedTableAttributes.unique(const [#a, #b])
+@Table.unique(const [#a, #b])
 class _MultiUnique {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   int a;
@@ -1011,34 +1012,34 @@ class _MultiUnique {
 }
 
 class MultiUniqueFailureSingleElement extends ManagedObject<_MultiUniqueFailureSingleElement> {}
-@ManagedTableAttributes.unique(const [#a])
+@Table.unique(const [#a])
 class _MultiUniqueFailureSingleElement {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   int a;
 }
 
 class MultiUniqueFailureNoElement extends ManagedObject<_MultiUniqueFailureNoElement> {}
-@ManagedTableAttributes.unique(const [])
+@Table.unique(const [])
 class _MultiUniqueFailureNoElement {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 }
 
 class MultiUniqueFailureUnknown extends ManagedObject<_MultiUniqueFailureUnknown> {}
-@ManagedTableAttributes.unique(const [#a, #b])
+@Table.unique(const [#a, #b])
 class _MultiUniqueFailureUnknown {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   int b;
 }
 
 class MultiUniqueFailureRelationship extends ManagedObject<_MultiUniqueFailureRelationship> {}
-@ManagedTableAttributes.unique(const [#a, #b])
+@Table.unique(const [#a, #b])
 class _MultiUniqueFailureRelationship {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   MultiUniqueFailureRelationshipInverse a;
@@ -1047,20 +1048,20 @@ class _MultiUniqueFailureRelationship {
 
 class MultiUniqueFailureRelationshipInverse extends ManagedObject<_MultiUniqueFailureRelationshipInverse> {}
 class _MultiUniqueFailureRelationshipInverse {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#a)
+  @Relationship(#a)
   MultiUniqueFailureRelationship rel;
 }
 
 class MultiUniqueBelongsTo extends ManagedObject<_MultiUniqueBelongsTo> {}
-@ManagedTableAttributes.unique(const [#rel, #b])
+@Table.unique(const [#rel, #b])
 class _MultiUniqueBelongsTo {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#a)
+  @Relationship(#a)
   MultiUniqueHasA rel;
 
   String b;
@@ -1068,7 +1069,7 @@ class _MultiUniqueBelongsTo {
 
 class MultiUniqueHasA extends ManagedObject<_MultiUniqueHasA> {}
 class _MultiUniqueHasA {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   MultiUniqueBelongsTo a;

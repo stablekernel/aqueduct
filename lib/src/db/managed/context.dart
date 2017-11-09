@@ -19,7 +19,7 @@ import 'package:aqueduct/src/application/channel.dart';
 ///            }
 ///
 ///            @override
-///            RequestController get entryPoint => ...;
+///            Controller get entryPoint => ...;
 ///         }
 ///
 /// A [Query] must have a valid [ManagedContext] to execute. Most applications only need one [ManagedContext],

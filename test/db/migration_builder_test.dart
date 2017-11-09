@@ -18,7 +18,7 @@ void main() {
         new SchemaColumn.relationship(
             "ref", ManagedPropertyType.bigInteger, relatedColumnName: "xyz",
             relatedTableName: "abc",
-            rule: ManagedRelationshipDeleteRule.cascade)
+            rule: DeleteRule.cascade)
       ]),
       new SchemaTable("abc", [
         new SchemaColumn("xyz", ManagedPropertyType.bigInteger, isPrimaryKey: true)
@@ -59,7 +59,7 @@ void main() {
         new SchemaColumn.relationship(
             "ref", ManagedPropertyType.bigInteger, relatedColumnName: "xyz",
             relatedTableName: "abc",
-            rule: ManagedRelationshipDeleteRule.cascade)
+            rule: DeleteRule.cascade)
       ]),
       new SchemaTable("abc", [
         new SchemaColumn("xyz", ManagedPropertyType.bigInteger, isPrimaryKey: true)
@@ -83,7 +83,7 @@ void main() {
         new SchemaColumn.relationship(
             "ref", ManagedPropertyType.bigInteger, relatedColumnName: "xyz",
             relatedTableName: "abc",
-            rule: ManagedRelationshipDeleteRule.cascade)
+            rule: DeleteRule.cascade)
       ]),
       new SchemaTable("abc", [
         new SchemaColumn("xyz", ManagedPropertyType.bigInteger, isPrimaryKey: true)

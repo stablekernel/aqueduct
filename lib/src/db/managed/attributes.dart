@@ -16,11 +16,11 @@ import '../query/query.dart';
 ///           String name;
 ///           String email;
 ///         }
-class ManagedTableAttributes {
+class Table {
   /// Metadata for persistent type.
   ///
-  /// See also [ManagedTableAttributes.unique].
-  const ManagedTableAttributes({List<Symbol> uniquePropertySet})
+  /// See also [Table.unique].
+  const Table({List<Symbol> uniquePropertySet})
     : this.uniquePropertySet = uniquePropertySet;
 
   /// Configures each instance of persistent type to be unique for the combination of [properties].
@@ -28,8 +28,8 @@ class ManagedTableAttributes {
   /// Adding this metadata to a persistent type requires that all instances of this type
   /// must be unique for the combined properties in [properties]. [properties] must contain symbolic names of
   /// properties declared in the persistent type, and those properties must be either attributes
-  /// or belongs-to relationship properties. See [ManagedTableAttributes] for example.
-  const ManagedTableAttributes.unique(List<Symbol> properties) : this(uniquePropertySet: properties);
+  /// or belongs-to relationship properties. See [Table] for example.
+  const Table.unique(List<Symbol> properties) : this(uniquePropertySet: properties);
 
   /// Each instance of the associated persistent type is unique for these properties.
   ///
@@ -37,8 +37,8 @@ class ManagedTableAttributes {
   final List<Symbol> uniquePropertySet;
 }
 
-/// Possible values for a delete rule in a [ManagedRelationship].
-enum ManagedRelationshipDeleteRule {
+/// Possible values for a delete rule in a [Relationship].
+enum DeleteRule {
   /// Prevents a delete operation if the would-be deleted [ManagedObject] still has references to this relationship.
   restrict,
 
@@ -58,15 +58,15 @@ enum ManagedRelationshipDeleteRule {
 /// that has a foreign key reference to the related [ManagedObject]. Relationships are made up of two [ManagedObject]s, where each
 /// has a property that refers to the other. Only one of those properties may have this metadata. The property with this metadata
 /// resolves to a column in the database. The relationship property without this metadata resolves to a row or rows in the database.
-class ManagedRelationship {
+class Relationship {
   static const Symbol _deferredSymbol = #mdrDeferred;
 
   /// Creates an instance of this type.
-  const ManagedRelationship(this.inversePropertyName,
-      {this.onDelete: ManagedRelationshipDeleteRule.nullify,
+  const Relationship(this.inversePropertyName,
+      {this.onDelete: DeleteRule.nullify,
       this.isRequired: false});
 
-  const ManagedRelationship.deferred(ManagedRelationshipDeleteRule onDelete,
+  const Relationship.deferred(DeleteRule onDelete,
       {bool isRequired: false})
       : this(_deferredSymbol, onDelete: onDelete, isRequired: isRequired);
 
@@ -78,14 +78,14 @@ class ManagedRelationship {
 
   /// The delete rule to use when a related instance is deleted.
   ///
-  /// This rule dictates how the database should handle deleting objects that have relationships. See [ManagedRelationshipDeleteRule] for possible options.
+  /// This rule dictates how the database should handle deleting objects that have relationships. See [DeleteRule] for possible options.
   ///
-  /// If [isRequired] is true, this value may not be [ManagedRelationshipDeleteRule.nullify]. This value defaults to [ManagedRelationshipDeleteRule.nullify].
-  final ManagedRelationshipDeleteRule onDelete;
+  /// If [isRequired] is true, this value may not be [DeleteRule.nullify]. This value defaults to [DeleteRule.nullify].
+  final DeleteRule onDelete;
 
   /// Whether or not this relationship is required.
   ///
-  /// By default, [ManagedRelationship] properties are not required to support the default value of [onDelete].
+  /// By default, [Relationship] properties are not required to support the default value of [onDelete].
   /// By setting this value to true, an instance of this entity cannot be created without a valid value for the relationship property.
   final bool isRequired;
 
@@ -94,25 +94,11 @@ class ManagedRelationship {
   }
 }
 
-/// The different types of relationships for [ManagedRelationship] instances declared in [ManagedObject] persistent types.
-enum ManagedRelationshipType {
-  /// The relationship property is not backed by a database column, but instead represents a single row in the database.
-  hasOne,
-
-  /// The relationship property is not backed by a database column, but instead represents many rows in the database.
-  hasMany,
-
-  /// A relationship property of this kind will be a foreign key column.
-  ///
-  /// See [ManagedRelationship].
-  belongsTo
-}
-
 /// Metadata to mark a property as a primary key.
 ///
 /// This is a convenience for primary key, database type big integer, and autoincrementing. The corresponding property
 /// type must be [int]. The underlying database indexes and uniques the backing column.
-const ManagedColumnAttributes managedPrimaryKey = const ManagedColumnAttributes(
+const Column primaryKey = const Column(
     primaryKey: true,
     databaseType: ManagedPropertyType.bigInteger,
     autoincrement: true);
@@ -131,7 +117,7 @@ const ManagedColumnAttributes managedPrimaryKey = const ManagedColumnAttributes(
 ///           @ManagedColumnAttributes(indexed: true, unique: true)
 ///           String email;
 ///         }
-class ManagedColumnAttributes {
+class Column {
   /// When true, indicates that this property is the primary key.
   ///
   /// Only one property of a class may have primaryKey equal to true.
@@ -188,7 +174,7 @@ class ManagedColumnAttributes {
   ///
   /// [defaultValue] is sent as-is to the database, therefore, if the default value is the integer value 2,
   /// pass the string "2". If the default value is a string, it must also be wrapped in single quotes: "'defaultValue'".
-  const ManagedColumnAttributes(
+  const Column(
       {bool primaryKey: false,
       ManagedPropertyType databaseType,
       bool nullable: false,
@@ -207,27 +193,30 @@ class ManagedColumnAttributes {
         this.autoincrement = autoincrement;
 }
 
-/// Metadata for a subclass of [ManagedObject] that allows the property to be used in [ManagedObject.readFromMap] and [ManagedObject.asMap], but is not persisted in the underlying database.
-const ManagedTransientAttribute managedTransientAttribute =
-    const ManagedTransientAttribute(
-        availableAsInput: true, availableAsOutput: true);
-
-/// Metadata for a subclass of [ManagedObject] that indicates it can be used in [ManagedObject.readFromMap], but is not persisted in the underlying database.
-const ManagedTransientAttribute managedTransientInputAttribute =
-    const ManagedTransientAttribute(
-        availableAsInput: true, availableAsOutput: false);
-
-/// Metadata for a subclass of [ManagedObject] that indicates it can be used in [ManagedObject.asMap], but is not persisted in the underlying database.
-const ManagedTransientAttribute managedTransientOutputAttribute =
-    const ManagedTransientAttribute(
-        availableAsInput: false, availableAsOutput: true);
-
-/// See [managedTransientAttribute], [managedTransientInputAttribute] and [managedTransientOutputAttribute].
-class ManagedTransientAttribute {
+/// Annotation for [ManagedObject] properties that allows them to participate in [ManagedObject.asMap] and/or [ManagedObject.readFromMap].
+///
+/// See constructor.
+class Serialize {
+  /// See constructor.
   final bool isAvailableAsInput;
+
+  /// See constructor.
   final bool isAvailableAsOutput;
-  const ManagedTransientAttribute(
-      {bool availableAsInput: true, bool availableAsOutput: true})
-      : isAvailableAsInput = availableAsInput,
-        isAvailableAsOutput = availableAsOutput;
+
+  /// Annotates a [ManagedObject] property so it can be serialized.
+  ///
+  /// Properties declared in a [ManagedObject] subclass are not included in the result of [ManagedObject.asMap]
+  /// and are not read from a [Map] in [ManagedObject.readFromMap]. Adding an instance of this type as an annotation
+  /// allows those properties to be read from a map and written to a map.
+  ///
+  /// If [input] is true, this property can be assigned from a key in a [Map] passed to [ManagedObject.readFromMap].
+  ///
+  /// If [output] is true, this property will be written to the [Map] returned from [ManagedObject.asMap].
+  /// If the value of the property is null, the key is not included in the result of [ManagedObject.asMap].
+  ///
+  /// Both [input] and [output] default to true.
+  const Serialize(
+      {bool input: true, bool output: true})
+      : isAvailableAsInput = input,
+        isAvailableAsOutput = output;
 }

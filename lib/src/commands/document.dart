@@ -62,7 +62,7 @@ abstract class CLIDocumentOptions implements CLICommand {
     var generator = new SourceGenerator(
             (List<String> args, Map<String, dynamic> values) async {
           var resolver = new PackagePathResolver(".packages");
-          var config = new ApplicationConfiguration()
+          var config = new ApplicationOptions()
             ..configurationFilePath = values["configPath"];
 
           var document = await Application.document(

@@ -9,7 +9,7 @@ import "package:test/test.dart";
 // These tests are based on the specification found at http://www.w3.org/TR/cors/.
 void main() {
   var app = new Application<CORSChannel>();
-  app.configuration.port = 8000;
+  app.options.port = 8000;
 
   setUpAll(() async {
     await app.test();
@@ -631,7 +631,7 @@ class CORSChannel extends ApplicationChannel implements AuthValidator {
       null;
 }
 
-class NoPolicyController extends HTTPController {
+class NoPolicyController extends RESTController {
   NoPolicyController() {
     policy = null;
   }
@@ -647,7 +647,7 @@ class NoPolicyController extends HTTPController {
   }
 }
 
-class DefaultPolicyController extends HTTPController {
+class DefaultPolicyController extends RESTController {
   @Bind.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
@@ -659,7 +659,7 @@ class DefaultPolicyController extends HTTPController {
   }
 }
 
-class RestrictiveNoCredsOriginController extends HTTPController {
+class RestrictiveNoCredsOriginController extends RESTController {
   RestrictiveNoCredsOriginController() {
     policy.allowedOrigins = ["http://exclusive.com"];
     policy.allowCredentials = false;
@@ -677,7 +677,7 @@ class RestrictiveNoCredsOriginController extends HTTPController {
   }
 }
 
-class RestrictiveOriginController extends HTTPController {
+class RestrictiveOriginController extends RESTController {
   RestrictiveOriginController() {
     policy.allowedOrigins = ["http://exclusive.com"];
     policy.exposedResponseHeaders = ["foobar", "x-foo"];
@@ -693,7 +693,7 @@ class RestrictiveOriginController extends HTTPController {
   }
 }
 
-class OptionsController extends HTTPController {
+class OptionsController extends RESTController {
   OptionsController() {
     policy = null;
   }
@@ -704,13 +704,13 @@ class OptionsController extends HTTPController {
   }
 }
 
-class SingleMethodController extends HTTPController {
+class SingleMethodController extends RESTController {
   SingleMethodController() {
     policy.allowedMethods = ["GET"];
   }
 }
 
-class AdditiveController extends HTTPController {
+class AdditiveController extends RESTController {
   AdditiveController() {
     policy.exposedResponseHeaders.add("X-Header");
   }

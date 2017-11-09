@@ -1,43 +1,43 @@
-import 'http_controller_internal/internal.dart';
-import 'http_controller.dart';
+import 'rest_controller_internal/internal.dart';
+import 'rest_controller.dart';
 import 'request_path.dart';
 import 'serializable.dart';
 import '../db/managed/managed.dart';
 
 
-/// Binds elements of an HTTP request to a [HTTPController]'s operation method arguments and properties.
+/// Binds elements of an HTTP request to a [RESTController]'s operation method arguments and properties.
 ///
-/// See individual constructors and [HTTPController] for more details.
+/// See individual constructors and [RESTController] for more details.
 class Bind {
-  /// Binds an [HTTPController] operation method to GET requests.
+  /// Binds an [RESTController] operation method to GET requests.
   ///
   /// Equivalent to `Bind.method("get")`
   ///
   /// See [Bind.method].
   const Bind.get() : name = "get", _type = _BindType.method;
 
-  /// Binds an [HTTPController] operation method to PUT requests.
+  /// Binds an [RESTController] operation method to PUT requests.
   ///
   /// Equivalent to `Bind.method("put")`
   ///
   /// See [Bind.method].
   const Bind.put() : name = "put", _type = _BindType.method;
 
-  /// Binds an [HTTPController] operation method to POST requests.
+  /// Binds an [RESTController] operation method to POST requests.
   ///
   /// Equivalent to `Bind.method("post")`
   ///
   /// See [Bind.method].
   const Bind.post() : name = "post", _type = _BindType.method;
 
-  /// Binds an [HTTPController] operation method to DELETE requests.
+  /// Binds an [RESTController] operation method to DELETE requests.
   ///
   /// Equivalent to `Bind.method("delete")`
   ///
   /// See [Bind.method].
   const Bind.delete() : name = "delete", _type = _BindType.method;
 
-  /// Binds an HTTP query parameter to an [HTTPController] property or operation method argument.
+  /// Binds an HTTP query parameter to an [RESTController] property or operation method argument.
   ///
   /// When the incoming request's [Uri]
   /// has a query key that matches [name], the argument or property value is set to the query parameter's value. For example,
@@ -60,15 +60,15 @@ class Bind {
   /// If a declaration with this metadata is an optional argument in a operation method, it is optional for that method. The value of
   /// the bound property will be null if it was not present in the request.
   ///
-  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [HTTPController].
-  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [HTTPController].
+  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [RESTController].
+  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [RESTController].
   const Bind.query(this.name) : _type = _BindType.query;
 
-  /// Binds an HTTP method to a [HTTPController] operation method.
+  /// Binds an HTTP method to a [RESTController] operation method.
   ///
   /// See also [Bind.get], [Bind.put], [Bind.post], and [Bind.delete].
   ///
-  /// [HTTPController] methods with this metadata will be invoked when [name] matches the HTTP method
+  /// [RESTController] methods with this metadata will be invoked when [name] matches the HTTP method
   /// of the incoming request. [name] is case-insensitively compared; e.g. "GET" and "get" are identical.
   ///
   /// Note that multiple operation methods can have the same [Bind.method] metadata as long as each method
@@ -85,7 +85,7 @@ class Bind {
   /// This is the generic form of [Bind.get], [Bind.put], [Bind.delete] and [Bind.post].
   const Bind.method(this.name) : _type  = _BindType.method;
 
-  /// Binds an HTTP request header to an [HTTPController] property or operation method argument.
+  /// Binds an HTTP request header to an [RESTController] property or operation method argument.
   ///
   /// When the incoming request has a header with the name [name],
   /// the argument or property is set to the headers's value. For example,
@@ -104,11 +104,11 @@ class Bind {
   /// If a declaration with this metadata is an optional argument in a operation method, it is optional for that method. The value of
   /// the bound property will be null if it was not present in the request.
   ///
-  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [HTTPController].
-  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [HTTPController].
+  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [RESTController].
+  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [RESTController].
   const Bind.header(this.name) : _type  = _BindType.header;
 
-  /// Binds an HTTP request body to an [HTTPController] property or operation method argument.
+  /// Binds an HTTP request body to an [RESTController] property or operation method argument.
   ///
   /// The body of an incoming
   /// request is decoded into the bound argument or property. The argument or property *must* implement [HTTPSerializable] or be
@@ -132,8 +132,8 @@ class Bind {
   ///
   /// If a declaration with this metadata is a positional argument in a operation method, it is required for that method.
   /// If a declaration with this metadata is an optional argument in a operation method, it is optional for that method.
-  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [HTTPController].
-  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [HTTPController].
+  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [RESTController].
+  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [RESTController].
   ///
   /// Requirements that are not met will be evoke a 400 Bad Request response with the name of the missing header in the JSON error body.
   /// No operation method will be called in this case.
@@ -141,7 +141,7 @@ class Bind {
   /// If not required and not present in a request, the bound arguments and properties will be null when the operation method is invoked.
   const Bind.body() : name = null, _type  = _BindType.body;
 
-  /// Binds a route variable from [HTTPRequestPath.variables] to an [HTTPController] operation method argument.
+  /// Binds a route variable from [HTTPRequestPath.variables] to an [RESTController] operation method argument.
   ///
   /// Routes may have path variables, e.g., a route declared as follows has an optional path variable named 'id':
   ///
@@ -182,31 +182,31 @@ enum _BindType {
   query, method, header, body, path
 }
 
-/// Binds an [HTTPController] operation method to HTTP GET requests.
+/// Binds an [RESTController] operation method to HTTP GET requests.
 ///
 /// Equivalent to [Bind.method] with "GET" argument.
 @Deprecated("4.0; use Bind.get() instead")
 const Bind httpGet = const Bind.method("get");
 
-/// Binds an [HTTPController] operation method to HTTP PUT requests.
+/// Binds an [RESTController] operation method to HTTP PUT requests.
 ///
 /// Equivalent to [Bind.method] with "PUT" argument.
 @Deprecated("4.0; use Bind.put() instead")
 const Bind httpPut = const Bind.method("put");
 
-/// Binds an [HTTPController] operation method to HTTP POST requests.
+/// Binds an [RESTController] operation method to HTTP POST requests.
 ///
 /// Equivalent to [Bind.method] with "POST" argument.
 @Deprecated("4.0; use Bind.post() instead")
 const Bind httpPost = const Bind.method("post");
 
-/// Binds an [HTTPController] operation method to HTTP DELETE requests.
+/// Binds an [RESTController] operation method to HTTP DELETE requests.
 ///
 /// Equivalent to [Bind.method] with "DELETE" argument requests.
 @Deprecated("4.0; use Bind.delete() instead")
 const Bind httpDelete = const Bind.method("delete");
 
-/// Marks an [HTTPController] property binding as required.
+/// Marks an [RESTController] property binding as required.
 ///
 /// Bindings are often applied to operation method arguments, in which required vs. optional
 /// is determined by whether or not the argument is in required or optional in the method signature.

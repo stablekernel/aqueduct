@@ -5,7 +5,7 @@ import 'body_decoder.dart';
 
 /// Instances of this class decode HTTP request bodies according to their content type.
 ///
-/// Every instance of [Request] has a [Request.body] property of this type. [HTTPController]s automatically decode
+/// Every instance of [Request] has a [Request.body] property of this type. [RESTController]s automatically decode
 /// [Request.body] prior to invoking a operation method. Other [Controller]s should use [decodedData]
 /// or one of the typed methods ([asList], [asMap], [decodeAsMap], [decodeAsList]) to decode HTTP body data.
 ///

@@ -3,6 +3,7 @@ import 'entity_table.dart';
 import 'property_expression.dart';
 import 'property_mapper.dart';
 import 'row_mapper.dart';
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 abstract class PredicateBuilder implements EntityTableMapper {
   @override

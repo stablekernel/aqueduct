@@ -192,7 +192,7 @@ Future<http.Response> postJSON(dynamic json) {
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 class _TestModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
@@ -210,28 +210,28 @@ class CrashModel implements HTTPSerializable {
   }
 }
 
-class TestController extends HTTPController {
+class TestController extends RESTController {
   @Bind.post()
   Future<Response> create(@Bind.body() TestModel tm) async {
     return new Response.ok(tm);
   }
 }
 
-class ListTestController extends HTTPController {
+class ListTestController extends RESTController {
   @Bind.post()
   Future<Response> create(@Bind.body() List<TestModel> tms) async {
     return new Response.ok(tms);
   }
 }
 
-class OptionalTestController extends HTTPController {
+class OptionalTestController extends RESTController {
   @Bind.post()
   Future<Response> create({@Bind.body() TestModel tm}) async {
     return new Response.ok(tm);
   }
 }
 
-class PropertyTestController extends HTTPController {
+class PropertyTestController extends RESTController {
   @Bind.body()
   TestModel tm;
 
@@ -241,21 +241,21 @@ class PropertyTestController extends HTTPController {
   }
 }
 
-class NotSerializableController extends HTTPController {
+class NotSerializableController extends RESTController {
   @Bind.post()
   Future<Response> create(@Bind.body() Uri uri) async {
     return new Response.ok(null);
   }
 }
 
-class ListNotSerializableController extends HTTPController {
+class ListNotSerializableController extends RESTController {
   @Bind.post()
   Future<Response> create(@Bind.body() List<Uri> uri) async {
     return new Response.ok(null);
   }
 }
 
-class CrashController extends HTTPController {
+class CrashController extends RESTController {
   @Bind.post()
   Future<Response> create(@Bind.body() CrashModel tm) async {
     return new Response.ok(null);

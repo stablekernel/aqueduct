@@ -495,7 +495,7 @@ void main() {
   });
 }
 
-class FilteringController extends HTTPController {
+class FilteringController extends RESTController {
   @Bind.get()
   Future<Response> getAll() async {
     return new Response.ok(null);
@@ -510,7 +510,7 @@ class FilteringController extends HTTPController {
   }
 }
 
-class TController extends HTTPController {
+class TController extends RESTController {
   @Bind.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
@@ -540,7 +540,7 @@ class TController extends HTTPController {
   }
 }
 
-class QController extends HTTPController {
+class QController extends RESTController {
   @Bind.get()
   Future<Response> getAll({@Bind.query("opt") String opt}) async {
     if (opt == null) {
@@ -561,7 +561,7 @@ class QController extends HTTPController {
   }
 }
 
-class IntController extends HTTPController {
+class IntController extends RESTController {
   IntController() {
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
@@ -581,7 +581,7 @@ class IntController extends HTTPController {
   }
 }
 
-class DateTimeController extends HTTPController {
+class DateTimeController extends RESTController {
   @Bind.get()
   Future<Response> getOne(@Bind.path("time") DateTime time) async {
     return new Response.ok("${time.add(new Duration(seconds: 5))}");
@@ -593,21 +593,21 @@ class DateTimeController extends HTTPController {
   }
 }
 
-class MultiQueryParamController extends HTTPController {
+class MultiQueryParamController extends RESTController {
   @Bind.get()
   Future<Response> get({@Bind.query("params") List<String> params}) async {
     return new Response.ok(params.join(","));
   }
 }
 
-class BooleanQueryParamController extends HTTPController {
+class BooleanQueryParamController extends RESTController {
   @Bind.get()
   Future<Response> get({@Bind.query("param") bool param: false}) async {
     return new Response.ok(param ? "true" : "false");
   }
 }
 
-class HTTPParameterController extends HTTPController {
+class HTTPParameterController extends RESTController {
   @requiredHTTPParameter
   @Bind.header("X-Request-id")
   String requestId;
@@ -637,7 +637,7 @@ class HTTPParameterController extends HTTPController {
   }
 }
 
-class ModelEncodeController extends HTTPController {
+class ModelEncodeController extends RESTController {
   @Bind.get()
   Future<Response> getThings(@Bind.path("thing") String thing) async {
     if (thing == "list") {
@@ -673,7 +673,7 @@ class ModelEncodeController extends HTTPController {
   }
 }
 
-class ContentTypeController extends HTTPController {
+class ContentTypeController extends RESTController {
   @Bind.get()
   Future<Response> getThing(@Bind.query("opt") String opt) async {
     if (opt == "responseContentType") {
@@ -688,7 +688,7 @@ class ContentTypeController extends HTTPController {
   }
 }
 
-class DuplicateParamController extends HTTPController {
+class DuplicateParamController extends RESTController {
   @Bind.get()
   Future<Response> getThing(@Bind.query("list") List<String> list,
       @Bind.query("single") String single) async {
@@ -696,7 +696,7 @@ class DuplicateParamController extends HTTPController {
   }
 }
 
-class DecodeCallbackController extends HTTPController {
+class DecodeCallbackController extends RESTController {
   bool didDecode = false;
 
   @Bind.get()
@@ -730,7 +730,7 @@ Future<HttpServer> enableController(String pattern, Type controller) async {
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
   String name;
 }

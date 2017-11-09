@@ -1,6 +1,6 @@
 import 'dart:mirrors';
 import '../request.dart';
-import '../http_controller_binding.dart';
+import '../rest_controller_binding.dart';
 import 'internal.dart';
 
 class HTTPControllerParameterBinder {

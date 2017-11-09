@@ -5,7 +5,7 @@ import 'dart:mirrors';
 import 'package:logging/logging.dart';
 import '../http/request.dart';
 import 'package:aqueduct/src/application/channel.dart';
-import '../http/request_controller.dart';
+import '../http/controller.dart';
 import 'application.dart';
 import 'application_configuration.dart';
 import 'package:stack_trace/stack_trace.dart';
@@ -19,14 +19,14 @@ class ApplicationServer {
   /// Creates a new server that sending requests to [channelType].
   ///
   /// You should not need to invoke this method directly.
-  ApplicationServer(ClassMirror channelType, this.configuration, this.identifier, {this.captureStack: false}) {
+  ApplicationServer(ClassMirror channelType, this.options, this.identifier, {this.captureStack: false}) {
     channel = channelType.newInstance(new Symbol(""), []).reflectee;
     channel.server = this;
-    channel.configuration = configuration;
+    channel.options = options;
   }
 
   /// The configuration this instance used to start its [channel].
-  ApplicationConfiguration configuration;
+  ApplicationOptions options;
 
   /// The underlying [HttpServer].
   HttpServer server;
@@ -76,17 +76,17 @@ class ApplicationServer {
     if (securityContext != null) {
       _requiresHTTPS = true;
 
-      server = await HttpServer.bindSecure(configuration.address,
-          configuration.port, securityContext,
-          requestClientCertificate: configuration.isUsingClientCertificate,
-          v6Only: configuration.isIpv6Only,
+      server = await HttpServer.bindSecure(options.address,
+          options.port, securityContext,
+          requestClientCertificate: options.isUsingClientCertificate,
+          v6Only: options.isIpv6Only,
           shared: shareHttpServer);
     } else {
       _requiresHTTPS = false;
 
       server = await HttpServer.bind(
-          configuration.address, configuration.port,
-          v6Only: configuration.isIpv6Only, shared: shareHttpServer);
+          options.address, options.port,
+          v6Only: options.isIpv6Only, shared: shareHttpServer);
     }
 
     logger.fine("ApplicationServer($identifier).start bound HTTP");

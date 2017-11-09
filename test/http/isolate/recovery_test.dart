@@ -80,7 +80,7 @@ class TestChannel extends ApplicationChannel {
   }
 }
 
-class UncaughtCrashController extends HTTPController {
+class UncaughtCrashController extends RESTController {
   @Bind.get()
   Future<Response> crashUncaught() async {
     new Future(() {

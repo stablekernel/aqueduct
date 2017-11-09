@@ -1,6 +1,7 @@
 import '../db.dart';
 import 'entity_table.dart';
 import 'property_mapper.dart';
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 class PropertyToColumnMapper extends PropertyMapper {
   PropertyToColumnMapper(

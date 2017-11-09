@@ -437,12 +437,12 @@ void main() {
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
 
-  @ManagedColumnAttributes(nullable: true, unique: true)
+  @Column(nullable: true, unique: true)
   String email;
 
   InnerModel inner;
@@ -451,11 +451,11 @@ class _TestModel {
 class InnerModel extends ManagedObject<_InnerModel> implements _InnerModel {}
 
 class _InnerModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
 
-  @ManagedRelationship(#inner)
+  @Relationship(#inner)
   TestModel owner;
 }

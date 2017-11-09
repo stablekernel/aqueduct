@@ -162,19 +162,19 @@ void main() {
 
 class T extends ManagedObject<_T> implements _T {}
 class _T {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.oneOf(const ["a", "b"])
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   String aOrb;
 
   @Validate.compare(equalTo: 1, onUpdate: false, onInsert: true)
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   int equalTo1OnInsert;
 
   @Validate.compare(equalTo: 2, onUpdate: true, onInsert: false)
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   int equalTo2OnUpdate;
 }
 
@@ -190,7 +190,7 @@ class U extends ManagedObject<_U> implements _U {
   }
 }
 class _U {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String q;
@@ -203,11 +203,11 @@ class V extends ManagedObject<_V> implements _V {
   }
 }
 class _V {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.oneOf(const ["a", "b"])
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   String f;
 }
 
@@ -218,10 +218,10 @@ class W extends ManagedObject<_W> implements _W {
   }
 }
 class _W {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.oneOf(const ["a", "b"])
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   String f;
 }

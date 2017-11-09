@@ -19,14 +19,14 @@ import 'route_node.dart';
 class Router extends Controller {
   /// Creates a new [Router].
   Router() {
-    unhandledRequestController = _handleUnhandledRequest;
+    unmatchedController = _handleUnhandledRequest;
     policy.allowCredentials = false;
   }
 
   List<_RouteController> _routeControllers = [];
   RouteNode _rootRouteNode;
   List<String> _basePathSegments = [];
-  Function _unhandledRequestController;
+  Function _unmatchedController;
 
   /// A prefix for all routes on this instance.
   ///
@@ -46,8 +46,8 @@ class Router extends Controller {
   /// If a [Request] has no matching route, this function will be called.
   ///
   /// By default, this function will send a 404 Not Found response.
-  set unhandledRequestController(Future listener(Request req)) {
-    _unhandledRequestController = listener;
+  set unmatchedController(Future listener(Request req)) {
+    _unmatchedController = listener;
   }
 
 
@@ -113,7 +113,7 @@ class Router extends Controller {
   /// Routers override this method to throw an exception. Use [route] instead.
   @override
   Controller listen(
-      FutureOr<RequestOrResponse> requestControllerFunction(
+      FutureOr<RequestOrResponse> handler(
           Request request)) {
     throw new RouterException("Routers may not use listen, use route instead.");
   }
@@ -127,7 +127,7 @@ class Router extends Controller {
         for (var i = 0; i < _basePathSegments.length; i++) {
           requestURISegmentIterator.moveNext();
           if (_basePathSegments[i] != requestURISegmentIterator.current) {
-            await _unhandledRequestController(req);
+            await _unmatchedController(req);
             return null;
           }
         }
@@ -143,7 +143,7 @@ class Router extends Controller {
 
       var node = _rootRouteNode.nodeForPathSegments(remainingSegments);
       if (node?.specification == null) {
-        await _unhandledRequestController(req);
+        await _unmatchedController(req);
         return null;
       }
 

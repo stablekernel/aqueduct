@@ -12,14 +12,14 @@ import '../db/db.dart';
 /// A [Controller] must return an instance of this type from its [Controller.handle] method.
 abstract class RequestOrResponse {}
 
-typedef FutureOr<RequestOrResponse> _RequestControllerListener(Request request);
+typedef FutureOr<RequestOrResponse> _Handler(Request request);
 
 /// Base type that processes [Request]s.
 ///
 /// Instances of this type process requests by creating a [Response] or passing the [Request] to [nextController]. The [nextController]
 /// is set at startup in [ApplicationChannel.entryPoint] via [pipe], [generate], or [listen].
 ///
-/// This class is intended to be subclassed. [ApplicationChannel], [Router], [HTTPController] are all examples of this type.
+/// This class is intended to be subclassed. [ApplicationChannel], [Router], [RESTController] are all examples of this type.
 /// Subclasses should implement [handle] to respond to, modify or forward requests.
 class Controller extends Object with APIDocumentable {
   /// Default constructor.
@@ -61,7 +61,7 @@ class Controller extends Object with APIDocumentable {
   APIDocumentable get documentableChild => nextController;
 
   Controller _nextController;
-  _RequestControllerListener _listener;
+  _Handler _listener;
 
   /// Sets the [nextController] that will receive a request after this one.
   ///
@@ -72,8 +72,8 @@ class Controller extends Object with APIDocumentable {
   /// See [generate] for a variant of this method that creates a new instance for each request.
   Controller pipe(Controller next) {
     var typeMirror = reflect(next).type;
-    if (_requestControllerTypeRequiresInstantion(typeMirror)) {
-      throw new RequestControllerException("'${typeMirror
+    if (_controllerRequiresGeneration(typeMirror)) {
+      throw new ControllerException("'${typeMirror
               .reflectedType}' instances cannot be reused between requests. Rewrite as .generate(() => new ${typeMirror
               .reflectedType}())");
     }
@@ -92,7 +92,7 @@ class Controller extends Object with APIDocumentable {
   ///
   /// See [pipe] for a variant of this method that reuses the same object for each HTTP request.
   Controller generate(Controller instantiator()) {
-    _nextController = new _RequestControllerGenerator(instantiator);
+    _nextController = new _ControllerGenerator(instantiator);
     return _nextController;
   }
 
@@ -125,12 +125,12 @@ class Controller extends Object with APIDocumentable {
     _nextController?.prepare();
   }
 
-  bool _requestControllerTypeRequiresInstantion(ClassMirror mirror) {
+  bool _controllerRequiresGeneration(ClassMirror mirror) {
     if (mirror.metadata.firstWhere((im) => im.reflectee is _RequiresInstantiation, orElse: () => null) != null) {
       return true;
     }
     if (mirror.isSubtypeOf(reflectType(Controller))) {
-      return _requestControllerTypeRequiresInstantion(mirror.superclass);
+      return _controllerRequiresGeneration(mirror.superclass);
     }
     return false;
   }
@@ -263,7 +263,7 @@ class Controller extends Object with APIDocumentable {
 
   void applyCORSHeadersIfNecessary(Request req, Response resp) {
     if (req.isCORSRequest && !req.isPreflightRequest) {
-      var lastPolicyController = _lastRequestController();
+      var lastPolicyController = _lastController;
       var p = lastPolicyController.policy;
       if (p != null) {
         if (p.isRequestOriginAllowed(req.raw)) {
@@ -276,7 +276,7 @@ class Controller extends Object with APIDocumentable {
   Future _handlePreflightRequest(Request req) async {
     Controller controllerToDictatePolicy;
     try {
-      var lastControllerInChain = _lastRequestController();
+      var lastControllerInChain = _lastController;
       if (lastControllerInChain != this) {
         controllerToDictatePolicy = lastControllerInChain;
       } else {
@@ -313,7 +313,7 @@ class Controller extends Object with APIDocumentable {
     return request.respond(response);
   }
 
-  Controller _lastRequestController() {
+  Controller get _lastController {
     var controller = this;
     while (controller.nextController != null) {
       controller = controller.nextController;
@@ -326,13 +326,13 @@ class Controller extends Object with APIDocumentable {
 /// Thrown when [Controller] throws an exception.
 ///
 ///
-class RequestControllerException implements Exception {
-  RequestControllerException(this.message);
+class ControllerException implements Exception {
+  ControllerException(this.message);
 
   String message;
 
   @override
-  String toString() => "RequestControllerException: $message";
+  String toString() => "ControllerException: $message";
 }
 
 
@@ -346,21 +346,21 @@ class RequestControllerException implements Exception {
 /// a [Controller] subclass with this flag will ensure that an exception is thrown if an instance
 /// of [Controller] is chained in a [ApplicationChannel]. These instances must be generated with a closure:
 ///
-///       router.route("/path").generate(() => new RequestControllerSubclass());
+///       router.route("/path").generate(() => new Controller());
 const _RequiresInstantiation cannotBeReused = const _RequiresInstantiation();
 
 class _RequiresInstantiation {
   const _RequiresInstantiation();
 }
 
-typedef Controller RequestControllerGeneratorClosure();
+typedef Controller ControllerGeneratorClosure();
 
-class _RequestControllerGenerator extends Controller {
-  _RequestControllerGenerator(this.generator) {
+class _ControllerGenerator extends Controller {
+  _ControllerGenerator(this.generator) {
     nextInstanceToReceive = instantiate();
   }
 
-  RequestControllerGeneratorClosure generator;
+  ControllerGeneratorClosure generator;
   CORSPolicy policyOverride;
   Controller nextInstanceToReceive;
 

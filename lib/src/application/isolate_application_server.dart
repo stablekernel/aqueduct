@@ -13,7 +13,7 @@ class ApplicationIsolateServer extends ApplicationServer {
   SendPort supervisingApplicationPort;
   ReceivePort supervisingReceivePort;
 
-  ApplicationIsolateServer(ClassMirror channelType, ApplicationConfiguration configuration, int identifier,
+  ApplicationIsolateServer(ClassMirror channelType, ApplicationOptions configuration, int identifier,
       this.supervisingApplicationPort, {bool logToConsole: false})
       : super(channelType, configuration, identifier) {
     if (logToConsole) {
@@ -80,7 +80,7 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
 class ApplicationInitialServerMessage {
   String streamTypeName;
   Uri streamLibraryURI;
-  ApplicationConfiguration configuration;
+  ApplicationOptions configuration;
   SendPort parentMessagePort;
   int identifier;
   bool logToConsole = false;

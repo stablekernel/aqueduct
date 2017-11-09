@@ -24,7 +24,7 @@ class SchemaColumn {
       this.isUnique: false,
       this.relatedTableName,
       this.relatedColumnName,
-      ManagedRelationshipDeleteRule rule: ManagedRelationshipDeleteRule.nullify}) {
+      DeleteRule rule: DeleteRule.nullify}) {
     isIndexed = true;
     _type = typeStringForType(type);
     _deleteRule = deleteRuleStringForDeleteRule(rule);
@@ -139,9 +139,9 @@ class SchemaColumn {
   /// The delete rule for this column if it is a foreign key column.
   ///
   /// Undefined if not a foreign key column.
-  ManagedRelationshipDeleteRule get deleteRule => deleteRuleForDeleteRuleString(_deleteRule);
+  DeleteRule get deleteRule => deleteRuleForDeleteRuleString(_deleteRule);
 
-  set deleteRule(ManagedRelationshipDeleteRule t) {
+  set deleteRule(DeleteRule t) {
     _deleteRule = deleteRuleStringForDeleteRule(t);
   }
 
@@ -200,32 +200,32 @@ class SchemaColumn {
     return null;
   }
 
-  /// Returns string representation of [ManagedRelationshipDeleteRule].
-  static String deleteRuleStringForDeleteRule(ManagedRelationshipDeleteRule rule) {
+  /// Returns string representation of [DeleteRule].
+  static String deleteRuleStringForDeleteRule(DeleteRule rule) {
     switch (rule) {
-      case ManagedRelationshipDeleteRule.cascade:
+      case DeleteRule.cascade:
         return "cascade";
-      case ManagedRelationshipDeleteRule.nullify:
+      case DeleteRule.nullify:
         return "nullify";
-      case ManagedRelationshipDeleteRule.restrict:
+      case DeleteRule.restrict:
         return "restrict";
-      case ManagedRelationshipDeleteRule.setDefault:
+      case DeleteRule.setDefault:
         return "default";
     }
     return null;
   }
 
   /// Returns inverse of [deleteRuleStringForDeleteRule].
-  static ManagedRelationshipDeleteRule deleteRuleForDeleteRuleString(String rule) {
+  static DeleteRule deleteRuleForDeleteRuleString(String rule) {
     switch (rule) {
       case "cascade":
-        return ManagedRelationshipDeleteRule.cascade;
+        return DeleteRule.cascade;
       case "nullify":
-        return ManagedRelationshipDeleteRule.nullify;
+        return DeleteRule.nullify;
       case "restrict":
-        return ManagedRelationshipDeleteRule.restrict;
+        return DeleteRule.restrict;
       case "default":
-        return ManagedRelationshipDeleteRule.setDefault;
+        return DeleteRule.setDefault;
     }
     return null;
   }

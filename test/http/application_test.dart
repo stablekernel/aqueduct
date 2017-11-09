@@ -96,7 +96,7 @@ void main() {
       var crashingApp = new Application<CrashingTestChannel>();
 
       try {
-        crashingApp.configuration.options = {"crashIn": "addRoutes"};
+        crashingApp.options.context = {"crashIn": "addRoutes"};
         await crashingApp.test();
         expect(true, false);
       } on ApplicationStartupException catch (e) {
@@ -104,14 +104,14 @@ void main() {
       }
 
       try {
-        crashingApp.configuration.options = {"crashIn": "prepare"};
+        crashingApp.options.context = {"crashIn": "prepare"};
         await crashingApp.test();
         expect(true, false);
       } on ApplicationStartupException catch (e) {
         expect(e.originalException.toString(), contains("prepare"));
       }
 
-      crashingApp.configuration.options = {"crashIn": "dontCrash"};
+      crashingApp.options.context = {"crashIn": "dontCrash"};
       await crashingApp.test();
       var response = await http.get("http://localhost:8081/t");
       expect(response.statusCode, 200);
@@ -132,7 +132,7 @@ class CrashingTestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    if (configuration.options["crashIn"] == "addRoutes") {
+    if (options.context["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
     }
     router.route("/t").generate(() => new TController());
@@ -141,17 +141,17 @@ class CrashingTestChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    if (configuration.options["crashIn"] == "prepare") {
+    if (options.context["crashIn"] == "prepare") {
       throw new TestException("prepare");
     }
   }
 }
 
 class TestChannel extends ApplicationChannel {
-  static Future initializeApplication(ApplicationConfiguration config) async {
-    List<int> v = config.options["startup"] ?? [];
+  static Future initializeApplication(ApplicationOptions config) async {
+    List<int> v = config.context["startup"] ?? [];
     v.add(1);
-    config.options["startup"] = v;
+    config.context["startup"] = v;
   }
 
   @override
@@ -160,21 +160,21 @@ class TestChannel extends ApplicationChannel {
     router.route("/t").generate(() => new TController());
     router.route("/r").generate(() => new RController());
     router.route("startup").listen((r) async {
-      var total = configuration.options["startup"].fold(0, (a, b) => a + b);
+      var total = options.context["startup"].fold(0, (a, b) => a + b);
       return new Response.ok("$total");
     });
     return router;
   }
 }
 
-class TController extends HTTPController {
+class TController extends RESTController {
   @Bind.get()
   Future<Response> getAll() async {
     return new Response.ok("t_ok");
   }
 }
 
-class RController extends HTTPController {
+class RController extends RESTController {
   @Bind.get()
   Future<Response> getAll() async {
     return new Response.ok("r_ok");

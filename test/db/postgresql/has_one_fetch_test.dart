@@ -427,7 +427,7 @@ void main() {
 class Parent extends ManagedObject<_Parent> implements _Parent {}
 
 class _Parent {
-  @managedPrimaryKey
+  @primaryKey
   int pid;
   String name;
 
@@ -437,11 +437,11 @@ class _Parent {
 class Child extends ManagedObject<_Child> implements _Child {}
 
 class _Child {
-  @managedPrimaryKey
+  @primaryKey
   int cid;
   String name;
 
-  @ManagedRelationship(#child)
+  @Relationship(#child)
   Parent parent;
 
   Toy toy;
@@ -452,23 +452,23 @@ class _Child {
 class Toy extends ManagedObject<_Toy> implements _Toy {}
 
 class _Toy {
-  @managedPrimaryKey
+  @primaryKey
   int tid;
 
   String name;
 
-  @ManagedRelationship(#toy)
+  @Relationship(#toy)
   Child child;
 }
 
 class Vaccine extends ManagedObject<_Vaccine> implements _Vaccine {}
 
 class _Vaccine {
-  @managedPrimaryKey
+  @primaryKey
   int vid;
   String kind;
 
-  @ManagedRelationship(#vaccinations)
+  @Relationship(#vaccinations)
   Child child;
 }
 

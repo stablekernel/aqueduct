@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'response.dart';
-import 'request_controller.dart';
+import 'controller.dart';
 import 'request.dart';
 
 /// An exception for early-exiting a [Controller] to respond to a request.

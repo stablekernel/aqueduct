@@ -15,8 +15,8 @@ void main() {
       var ciDirUri = new Directory("ci").uri;
 
       app = new Application<TestChannel>()
-        ..configuration.certificateFilePath = ciDirUri.resolve("aqueduct.cert.pem").path
-        ..configuration.privateKeyFilePath = ciDirUri.resolve("aqueduct.key.pem").path;
+        ..options.certificateFilePath = ciDirUri.resolve("aqueduct.cert.pem").path
+        ..options.privateKeyFilePath = ciDirUri.resolve("aqueduct.key.pem").path;
 
       await app.start(numberOfInstances: 1);
 

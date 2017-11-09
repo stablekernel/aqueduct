@@ -575,7 +575,7 @@ void main() {
       expect(identical(b1, b2), true);
     });
 
-    test("Failed decoding yields 500 from RequestController", () async {
+    test("Failed decoding yields 500 from Controller", () async {
       HTTPCodecRepository.defaultInstance.add(new ContentType("application", "crasher"), new CrashingCodec());
       // If body decoding fails, we need to return 500 but also ensure we have closed the request
       // body stream

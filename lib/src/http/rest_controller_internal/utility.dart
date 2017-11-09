@@ -1,6 +1,6 @@
 import 'dart:mirrors';
 
-import '../http_controller_binding.dart';
+import '../rest_controller_binding.dart';
 import '../request.dart';
 import '../response.dart';
 import 'bindings.dart';

@@ -8,11 +8,11 @@ class Model extends ManagedObject<_Model> implements _Model {
 }
 
 class _Model {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
 
-  @ManagedColumnAttributes(indexed: true)
+  @Column(indexed: true)
   String name;
 
   DateTime createdAt;

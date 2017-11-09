@@ -20,7 +20,7 @@ class RootObject extends ManagedObject<_RootObject> implements _RootObject {
 }
 
 class _RootObject {
-  @managedPrimaryKey
+  @primaryKey
   int rid;
 
   int value1;
@@ -51,7 +51,7 @@ class ChildObject extends ManagedObject<_ChildObject> implements _ChildObject {
 }
 
 class _ChildObject {
-  @managedPrimaryKey
+  @primaryKey
   int cid;
 
   int value1;
@@ -60,10 +60,10 @@ class _ChildObject {
   ManagedSet<GrandChildObject> grandChildren;
   GrandChildObject grandChild;
 
-  @ManagedRelationship(#children)
+  @Relationship(#children)
   RootObject parents;
 
-  @ManagedRelationship(#child)
+  @Relationship(#child)
   RootObject parent;
 }
 
@@ -87,16 +87,16 @@ class GrandChildObject extends ManagedObject<_GrandChildObject>
 }
 
 class _GrandChildObject {
-  @managedPrimaryKey
+  @primaryKey
   int gid;
 
   int value1;
   int value2;
 
-  @ManagedRelationship(#grandChildren)
+  @Relationship(#grandChildren)
   ChildObject parents;
 
-  @ManagedRelationship(#grandChild)
+  @Relationship(#grandChild)
   ChildObject parent;
 }
 
@@ -120,7 +120,7 @@ class OtherRootObject extends ManagedObject<_OtherRootObject>
 }
 
 class _OtherRootObject {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   int value1;
@@ -141,13 +141,13 @@ class RootJoinObject extends ManagedObject<_RootJoinObject>
 }
 
 class _RootJoinObject {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#join)
+  @Relationship(#join)
   OtherRootObject other;
 
-  @ManagedRelationship(#join)
+  @Relationship(#join)
   RootObject root;
 }
 

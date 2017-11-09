@@ -9,7 +9,7 @@ import 'model/model.dart';
 class WildfireChannel extends ApplicationChannel {
   /// Initialize services in this method.
   ///
-  /// Implement this method to initialize services, read values from [configuration]
+  /// Implement this method to initialize services, read values from [options]
   /// and any other initialization required before constructing [entryPoint].
   ///
   /// This method is invoked prior to [entryPoint] being accessed.
@@ -17,8 +17,8 @@ class WildfireChannel extends ApplicationChannel {
   Future prepare() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
-    var options = new WildfireConfiguration(configuration.configurationFilePath);
-    ManagedContext.defaultContext = contextWithConnectionInfo(options.database);
+    var config = new WildfireConfiguration(options.configurationFilePath);
+    ManagedContext.defaultContext = contextWithConnectionInfo(config.database);
   }
 
   /// Construct the request channel.

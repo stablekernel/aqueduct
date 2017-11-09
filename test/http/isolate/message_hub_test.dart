@@ -17,7 +17,7 @@ void main() {
     });
 
     test("A message sent to the hub is received by other channels, but not by sender", () async {
-      app = new Application<HubChannel>()..configuration.port = 8000;
+      app = new Application<HubChannel>()..options.port = 8000;
       await app.start(numberOfInstances: numberOfIsolates);
 
       var resp = await postMessage("msg1");
@@ -38,8 +38,8 @@ void main() {
 
     test("A message sent in prepare is received by all channels eventually", () async {
       app = new Application<HubChannel>()
-        ..configuration.port = 8000
-        ..configuration.options = {"sendIn": "prepare"};
+        ..options.port = 8000
+        ..options.context = {"sendIn": "prepare"};
       await app.start(numberOfInstances: numberOfIsolates);
 
       var messages = await getMessagesFromIsolates();
@@ -67,8 +67,8 @@ void main() {
 
     test("Message hub stream can have multiple listeners", () async {
       app = new Application<HubChannel>()
-        ..configuration.port = 8000
-        ..configuration.options = {"multipleListeners": true};
+        ..options.port = 8000
+        ..options.context = {"multipleListeners": true};
       await app.start(numberOfInstances: numberOfIsolates);
 
       var resp = await postMessage("msg1");
@@ -98,7 +98,7 @@ void main() {
 
     test("Send invalid x-isolate data returns error in error stream", () async {
       app = new Application<HubChannel>()
-        ..configuration.port = 8000;
+        ..options.port = 8000;
       await app.start(numberOfInstances: numberOfIsolates);
 
       var resp = await postMessage("garbage");
@@ -177,7 +177,7 @@ class HubChannel extends ApplicationChannel {
       errors.add(err.toString());
     });
 
-    if (configuration.options["multipleListeners"] == true) {
+    if (options.context["multipleListeners"] == true) {
       messageHub.listen((event) {
         messages.add(event);
       }, onError: (err) {
@@ -185,7 +185,7 @@ class HubChannel extends ApplicationChannel {
       });
     }
 
-    if (configuration.options["sendIn"] == "prepare") {
+    if (options.context["sendIn"] == "prepare") {
       messageHub.add({"isolateID": server.identifier, "message": "init"});
     }
   }

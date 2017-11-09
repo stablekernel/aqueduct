@@ -228,7 +228,7 @@ void main() {
         c.isNullable = true;
         c.isUnique = true;
         c.defaultValue = "'bar'";
-        c.deleteRule = ManagedRelationshipDeleteRule.setDefault;
+        c.deleteRule = DeleteRule.setDefault;
       }, unencodedInitialValue: "'foo'");
 
       expect(
@@ -260,7 +260,7 @@ void main() {
               .tableForName("_LoadedItem")
               .columnForName("someIndexedThing")
               .deleteRule,
-          ManagedRelationshipDeleteRule.setDefault);
+          DeleteRule.setDefault);
     });
   });
 }
@@ -268,7 +268,7 @@ void main() {
 class Container extends ManagedObject<_Container> implements _Container {}
 
 class _Container {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   ManagedSet<DefaultItem> defaultItems;
@@ -278,24 +278,24 @@ class _Container {
 class DefaultItem extends ManagedObject<_DefaultItem> implements _DefaultItem {}
 
 class _DefaultItem {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#defaultItems)
+  @Relationship(#defaultItems)
   Container container;
 }
 
 class LoadedItem extends ManagedObject<_LoadedItem> {}
 
 class _LoadedItem {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedColumnAttributes(indexed: true)
+  @Column(indexed: true)
   String someIndexedThing;
 
-  @ManagedRelationship(#loadedItems,
-      onDelete: ManagedRelationshipDeleteRule.restrict, isRequired: false)
+  @Relationship(#loadedItems,
+      onDelete: DeleteRule.restrict, isRequired: false)
   Container container;
 
   LoadedSingleItem loadedSingleItem;
@@ -304,50 +304,50 @@ class _LoadedItem {
 class LoadedSingleItem extends ManagedObject<_LoadedSingleItem> {}
 
 class _LoadedSingleItem {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#loadedSingleItem,
-      onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
+  @Relationship(#loadedSingleItem,
+      onDelete: DeleteRule.cascade, isRequired: true)
   LoadedItem loadedItem;
 }
 
 class SimpleModel extends ManagedObject<_SimpleModel> implements _SimpleModel {}
 
 class _SimpleModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 }
 
 class ExtensiveModel extends ManagedObject<_ExtensiveModel>
     implements _ExtensiveModel {
-  @managedTransientAttribute
+  @Serialize()
   String transientProperty;
 }
 
 class _ExtensiveModel {
-  @ManagedColumnAttributes(
+  @Column(
       primaryKey: true, databaseType: ManagedPropertyType.string)
   String id;
 
   DateTime startDate;
 
-  @ManagedColumnAttributes(indexed: true)
+  @Column(indexed: true)
   int indexedValue;
 
-  @ManagedColumnAttributes(autoincrement: true)
+  @Column(autoincrement: true)
   int autoincrementValue;
 
-  @ManagedColumnAttributes(unique: true)
+  @Column(unique: true)
   String uniqueValue;
 
-  @ManagedColumnAttributes(defaultValue: "'foo'")
+  @Column(defaultValue: "'foo'")
   String defaultItem;
 
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   bool nullableValue;
 
-  @ManagedColumnAttributes(
+  @Column(
       databaseType: ManagedPropertyType.bigInteger,
       nullable: true,
       defaultValue: "7",

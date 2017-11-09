@@ -21,7 +21,7 @@ void main() {
           var crashingApp = new Application<CrashChannel>();
 
           try {
-            crashingApp.configuration.options = {"crashIn": "addRoutes"};
+            crashingApp.options.context = {"crashIn": "addRoutes"};
             await crashingApp.start(consoleLogging: true);
             expect(true, false);
           } on ApplicationStartupException catch (e) {
@@ -29,14 +29,14 @@ void main() {
           }
 
           try {
-            crashingApp.configuration.options = {"crashIn": "prepare"};
+            crashingApp.options.context = {"crashIn": "prepare"};
             await crashingApp.start(consoleLogging: true);
             expect(true, false);
           } on ApplicationStartupException catch (e) {
             expect(e.toString(), contains("TestException: prepare"));
           }
 
-          crashingApp.configuration.options = {"crashIn": "dontCrash"};
+          crashingApp.options.context = {"crashIn": "dontCrash"};
           await crashingApp.start(consoleLogging: true);
           var response = await http.get("http://localhost:8081/t");
           expect(response.statusCode, 200);
@@ -50,7 +50,7 @@ void main() {
           server.listen((req) {});
 
           var conflictingApp = new Application<TestChannel>();
-          conflictingApp.configuration.port = 8081;
+          conflictingApp.options.port = 8081;
 
           try {
             await conflictingApp.start(consoleLogging: true);
@@ -65,7 +65,7 @@ void main() {
     test("Isolate timeout kills application when first isolate fails", () async {
       var timeoutApp = new Application<TimeoutChannel>()
         ..isolateStartupTimeout = new Duration(seconds: 4)
-        ..configuration.options = {
+        ..options.context = {
           "timeout1" : 10
         };
 
@@ -83,7 +83,7 @@ void main() {
     test("Isolate timeout kills application when first isolate succeeds, but next fails", () async {
       var timeoutApp = new Application<TimeoutChannel>()
         ..isolateStartupTimeout = new Duration(seconds: 4)
-        ..configuration.options = {
+        ..options.context = {
           "timeout2" : 10
         };
 
@@ -110,7 +110,7 @@ class TimeoutChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    int timeoutLength = configuration.options["timeout${server.identifier}"];
+    int timeoutLength = options.context["timeout${server.identifier}"];
     if (timeoutLength == null) {
       return;
     }
@@ -149,7 +149,7 @@ class CrashChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    if (configuration.options["crashIn"] == "addRoutes") {
+    if (options.context["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
     }
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
@@ -158,17 +158,17 @@ class CrashChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    if (configuration.options["crashIn"] == "prepare") {
+    if (options.context["crashIn"] == "prepare") {
       throw new TestException("prepare");
     }
   }
 }
 
 class TestChannel extends ApplicationChannel {
-  static Future initializeApplication(ApplicationConfiguration config) async {
-    List<int> v = config.options["startup"] ?? [];
+  static Future initializeApplication(ApplicationOptions config) async {
+    List<int> v = config.context["startup"] ?? [];
     v.add(1);
-    config.options["startup"] = v;
+    config.context["startup"] = v;
   }
 
   @override
@@ -177,7 +177,7 @@ class TestChannel extends ApplicationChannel {
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
     router.route("/r").listen((req) async => new Response.ok("r_ok"));
     router.route("startup").listen((r) async {
-      var total = configuration.options["startup"].fold(0, (a, b) => a + b);
+      var total = options.context["startup"].fold(0, (a, b) => a + b);
       return new Response.ok("$total");
     });
     return router;

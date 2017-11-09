@@ -2,12 +2,12 @@ import '../wildfire.dart';
 
 class User extends ManagedObject<_User>
     implements _User, ManagedAuthResourceOwner {
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   String password;
 }
 
 class _User extends ManagedAuthenticatable {
-  @ManagedColumnAttributes(unique: true)
+  @Column(unique: true)
   String email;
 
 /* This class inherits the following from ManagedAuthenticatable:

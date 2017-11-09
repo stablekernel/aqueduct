@@ -8,8 +8,8 @@ void main() {
   group("Standard operations", () {
     var app = new Application<TestChannel>();
     Controller.letUncaughtExceptionsEscape = true;
-    app.configuration.port = 8081;
-    var client = new TestClient.onPort(app.configuration.port);
+    app.options.port = 8081;
+    var client = new TestClient.onPort(app.options.port);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
@@ -135,7 +135,7 @@ class TestChannel extends ApplicationChannel {
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;

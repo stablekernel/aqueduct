@@ -17,7 +17,7 @@ import 'package:aqueduct/src/application/service_registry.dart';
 /// This instance is typically a [Router]. An example minimum application follows:
 ///
 ///       class MyChannel extends ApplicationChannel {
-///         RequestController get entryPoint {
+///         Controller get entryPoint {
 ///           final router = new Router();
 ///           router.route("/endpoint").listen((req) => new Response.ok('Hello, world!'));
 ///           return router;
@@ -33,7 +33,7 @@ import 'package:aqueduct/src/application/service_registry.dart';
 /// (which often comes from the command-line tool `aqueduct serve`). Any initialization that occurs in subclasses of this type will be called for each instance.
 ///
 /// For initialization that must occur only once per application, you may implement the *static* method [initializeApplication] in a subclass of this type.
-/// The signature of this method is ([ApplicationConfiguration]) -> [Future], for example:
+/// The signature of this method is ([ApplicationOptions]) -> [Future], for example:
 ///
 ///         class Channel extends ApplicationChannel {
 ///           static Future initializeApplication(ApplicationConfiguration config) async {
@@ -64,7 +64,7 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   ///
   /// * Note that static methods are not inherited in Dart and therefore you are not overriding this method. The declaration of this method in the base [ApplicationChannel] class
   /// is for documentation purposes.
-  static Future initializeApplication(ApplicationConfiguration config) async {}
+  static Future initializeApplication(ApplicationOptions config) async {}
 
   /// The logger of this instance
   Logger get logger => new Logger("aqueduct");
@@ -89,26 +89,26 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   /// The context used for setting up HTTPS in an application.
   ///
   /// By default, this value is null. When null, an [Application] using this instance will listen over HTTP, and not HTTPS.
-  /// If this instance [configuration] has non-null values for both [ApplicationConfiguration.certificateFilePath] and [ApplicationConfiguration.privateKeyFilePath],
+  /// If this instance [options] has non-null values for both [ApplicationOptions.certificateFilePath] and [ApplicationOptions.privateKeyFilePath],
   /// this value is a valid [SecurityContext] configured to use the certificate chain and private key as indicated by the configuration. The listening server
   /// will allow connections over HTTPS only. This getter is only invoked once per instance, after [entryPoint] is invoked.
   ///
   /// You may override this getter to provide a customized [SecurityContext].
   SecurityContext get securityContext {
-    if (configuration?.certificateFilePath == null || configuration?.privateKeyFilePath == null) {
+    if (options?.certificateFilePath == null || options?.privateKeyFilePath == null) {
       return null;
     }
 
     return new SecurityContext()
-      ..useCertificateChain(configuration.certificateFilePath)
-      ..usePrivateKey(configuration.privateKeyFilePath);
+      ..useCertificateChain(options.certificateFilePath)
+      ..usePrivateKey(options.privateKeyFilePath);
   }
 
   /// Configuration options from the application.
   ///
   /// Options allow passing of application-specific information - like database connection information -
   /// from configuration data. This property is set in the constructor.
-  ApplicationConfiguration configuration;
+  ApplicationOptions options;
 
   /// The first [Controller] to receive HTTP requests.
   ///

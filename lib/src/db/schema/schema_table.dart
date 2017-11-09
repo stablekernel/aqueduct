@@ -1,5 +1,6 @@
 import 'schema.dart';
 import '../managed/managed.dart';
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 /// A portable representation of a database table.
 ///

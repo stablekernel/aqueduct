@@ -397,12 +397,12 @@ class TestModel extends ManagedObject<_TestModel> implements _TestModel {
 }
 
 class _TestModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
 
-  @ManagedColumnAttributes(nullable: true, unique: true)
+  @Column(nullable: true, unique: true)
   String email;
 
   static String tableName() {
@@ -418,7 +418,7 @@ class _TestModel {
 class GenUser extends ManagedObject<_GenUser> implements _GenUser {}
 
 class _GenUser {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
@@ -433,23 +433,23 @@ class _GenUser {
 class GenPost extends ManagedObject<_GenPost> implements _GenPost {}
 
 class _GenPost {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String text;
 
-  @ManagedRelationship(#posts,
-      onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: false)
+  @Relationship(#posts,
+      onDelete: DeleteRule.cascade, isRequired: false)
   GenUser owner;
 }
 
 class Omit extends ManagedObject<_Omit> implements _Omit {}
 
 class _Omit {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedColumnAttributes(omitByDefault: true)
+  @Column(omitByDefault: true)
   String text;
 }
 
@@ -465,7 +465,7 @@ class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField
   String get public => _private;
 }
 class _PrivateField {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String _private;
@@ -473,7 +473,7 @@ class _PrivateField {
 
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 class _EnumObject {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   EnumValues enumValues;

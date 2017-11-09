@@ -2,8 +2,8 @@ import 'dart:async';
 import 'dart:mirrors';
 
 import '../response.dart';
-import '../http_controller.dart';
-import '../http_controller_binding.dart';
+import '../rest_controller.dart';
+import '../rest_controller_binding.dart';
 import '../request.dart';
 import 'internal.dart';
 
@@ -91,7 +91,7 @@ class HTTPControllerBinder {
   }
 
   // At the end of this method, request.body.decodedData will have been invoked.
-  static Future<HTTPRequestBinding> bindRequest(HTTPController controller, Request request) async {
+  static Future<HTTPRequestBinding> bindRequest(RESTController controller, Request request) async {
     var controllerBinder = binderForType(controller.runtimeType);
     var methodBinder = controllerBinder.methodBinderForRequest(request);
     if (methodBinder == null) {

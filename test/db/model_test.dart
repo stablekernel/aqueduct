@@ -526,15 +526,15 @@ void main() {
 }
 
 class User extends ManagedObject<_User> implements _User {
-  @managedTransientAttribute
+  @Serialize()
   String value;
 }
 
 class _User {
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   String name;
 
-  @ManagedColumnAttributes(primaryKey: true)
+  @Column(primaryKey: true)
   int id;
 
   DateTime dateCreated;
@@ -545,12 +545,12 @@ class _User {
 class Post extends ManagedObject<_Post> implements _Post {}
 
 class _Post {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String text;
 
-  @ManagedRelationship(#posts)
+  @Relationship(#posts)
   User owner;
 }
 
@@ -558,60 +558,60 @@ class TransientTest extends ManagedObject<_TransientTest>
     implements _TransientTest {
   String notAnAttribute;
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   String get defaultedText => "Mr. $text";
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set defaultedText(String str) {
     text = str.split(" ").last;
   }
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set inputOnly(String s) {
     text = s;
   }
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   String get outputOnly => text;
   set outputOnly(String s) {
     text = s;
   }
 
   // This is intentionally invalid
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   String get invalidInput => text;
 
   // This is intentionally invalid
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   set invalidOutput(String s) {
     text = s;
   }
 
-  @managedTransientAttribute
+  @Serialize()
   String get bothButOnlyOnOne => text;
   set bothButOnlyOnOne(String s) {
     text = s;
   }
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   int inputInt;
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   int outputInt;
 
-  @managedTransientAttribute
+  @Serialize()
   int inOut;
 
-  @managedTransientAttribute
+  @Serialize()
   String get bothOverQualified => text;
-  @managedTransientAttribute
+  @Serialize()
   set bothOverQualified(String s) {
     text = s;
   }
 }
 
 class _TransientTest {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String text;
@@ -619,55 +619,55 @@ class _TransientTest {
 
 class TransientTypeTest extends ManagedObject<_TransientTypeTest>
     implements _TransientTypeTest {
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   int get transientInt => backingInt + 1;
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set transientInt(int i) {
     backingInt = i - 1;
   }
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   int get transientBigInt => backingBigInt ~/ 2;
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set transientBigInt(int i) {
     backingBigInt = i * 2;
   }
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   String get transientString => backingString.toLowerCase();
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set transientString(String s) {
     backingString = s.toUpperCase();
   }
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   DateTime get transientDate => backingDateTime.add(new Duration(days: 1));
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set transientDate(DateTime d) {
     backingDateTime = d.subtract(new Duration(days: 1));
   }
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   bool get transientBool => !backingBool;
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set transientBool(bool b) {
     backingBool = !b;
   }
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   double get transientDouble => backingDouble / 5;
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set transientDouble(double d) {
     backingDouble = d * 5;
   }
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   Map<String, String> get transientMap {
     List<String> pairs = backingMapString.split(",");
 
@@ -681,7 +681,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
     return returnMap;
   }
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set transientMap(Map<String, String> m) {
     var pairStrings = m.keys.map((key) {
       String value = m[key];
@@ -691,12 +691,12 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
     backingMapString = pairStrings.join(",");
   }
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   List<int> get transientList {
     return backingListString.split(",").map((s) => int.parse(s)).toList();
   }
 
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set transientList(List<int> l) {
     backingListString = l.map((i) => i.toString()).join(",");
   }
@@ -704,12 +704,12 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
 
 class _TransientTypeTest {
   // All of the types - ManagedPropertyType
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   int backingInt;
 
-  @ManagedColumnAttributes(databaseType: ManagedPropertyType.bigInteger)
+  @Column(databaseType: ManagedPropertyType.bigInteger)
   int backingBigInt;
 
   String backingString;
@@ -726,16 +726,16 @@ class _TransientTypeTest {
 }
 
 class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField {
-  @managedTransientInputAttribute
+  @Serialize(input: true, output: false)
   set public(String p) {
     _private = p;
   }
 
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   String get public => _private;
 }
 class _PrivateField {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String _private;
@@ -743,7 +743,7 @@ class _PrivateField {
 
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 class _EnumObject {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   EnumValues enumValues;
@@ -754,11 +754,11 @@ enum EnumValues {
 }
 
 class TransientOwner extends ManagedObject<_TransientOwner> implements _TransientOwner {
-  @managedTransientOutputAttribute
+  @Serialize(input: false, output: true)
   int v = 2;
 }
 class _TransientOwner {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   TransientBelongsTo t;
@@ -767,9 +767,9 @@ class _TransientOwner {
 class TransientBelongsTo extends ManagedObject<_TransientBelongsTo> implements _TransientBelongsTo {
 }
 class _TransientBelongsTo {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#t)
+  @Relationship(#t)
   TransientOwner owner;
 }

@@ -189,12 +189,12 @@ void main() {
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
 
-  @ManagedColumnAttributes(nullable: true, unique: true)
+  @Column(nullable: true, unique: true)
   String email;
 
   ManagedSet<RefModel> ref;
@@ -212,11 +212,11 @@ class _TestModel {
 class RefModel extends ManagedObject<_RefModel> implements _RefModel {}
 
 class _RefModel {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#ref,
-      isRequired: false, onDelete: ManagedRelationshipDeleteRule.nullify)
+  @Relationship(#ref,
+      isRequired: false, onDelete: DeleteRule.nullify)
   TestModel test;
 }
 
@@ -224,7 +224,7 @@ class GRestrictInverse extends ManagedObject<_GRestrictInverse>
     implements _GRestrictInverse {}
 
 class _GRestrictInverse {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
@@ -235,11 +235,11 @@ class _GRestrictInverse {
 class GRestrict extends ManagedObject<_GRestrict> implements _GRestrict {}
 
 class _GRestrict {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#test,
-      isRequired: false, onDelete: ManagedRelationshipDeleteRule.restrict)
+  @Relationship(#test,
+      isRequired: false, onDelete: DeleteRule.restrict)
   GRestrictInverse test;
 }
 
@@ -247,7 +247,7 @@ class GCascadeInverse extends ManagedObject<_GCascadeInverse>
     implements _GCascadeInverse {}
 
 class _GCascadeInverse {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
@@ -258,10 +258,10 @@ class _GCascadeInverse {
 class GCascade extends ManagedObject<_GCascade> implements _GCascade {}
 
 class _GCascade {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedRelationship(#test,
-      isRequired: false, onDelete: ManagedRelationshipDeleteRule.cascade)
+  @Relationship(#test,
+      isRequired: false, onDelete: DeleteRule.cascade)
   GCascadeInverse test;
 }

@@ -25,8 +25,8 @@ class TestClient {
   /// Creates an instance that targets http://localhost:[_port].
   TestClient.onPort(this._port);
 
-  /// Creates an instance from an [ApplicationConfiguration].
-  TestClient.fromConfig(ApplicationConfiguration config, {bool useHTTPS: false}) :
+  /// Creates an instance from an [ApplicationOptions].
+  TestClient.fromOptions(ApplicationOptions config, {bool useHTTPS: false}) :
     _scheme = useHTTPS ? "https" : "http",
     _host = "localhost",
     _port = config.port;

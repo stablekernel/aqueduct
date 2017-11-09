@@ -4,7 +4,7 @@ import 'dart:io';
 import '../http/http.dart';
 import 'auth.dart';
 
-/// [HTTPController] for issuing and refreshing OAuth 2.0 access tokens.
+/// [RESTController] for issuing and refreshing OAuth 2.0 access tokens.
 ///
 /// Instances of this class allow for the issuing and refreshing of access tokens and exchanging
 /// authorization codes (from a [AuthCodeController]) for access tokens.
@@ -17,7 +17,7 @@ import 'auth.dart';
 ///       router.route("/auth/token").generate(() => new AuthController(authServer));
 ///
 /// See [create] for more details.
-class AuthController extends HTTPController {
+class AuthController extends RESTController {
   /// Creates a new instance of an [AuthController].
   ///
   /// An [AuthController] requires an [AuthServer] to carry out tasks.

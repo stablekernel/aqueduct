@@ -103,7 +103,7 @@ class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
 
 class _ManagedAuthToken {
   /// A primary key identifier.
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   /// The authorization code of this token.
@@ -113,7 +113,7 @@ class _ManagedAuthToken {
   /// a token that has been exchanged for this code. This value is null
   /// if this instance represents a token that was not created through
   /// the authorization code process.
-  @ManagedColumnAttributes(indexed: true, unique: true, nullable: true)
+  @Column(indexed: true, unique: true, nullable: true)
   String code;
 
   /// The access token of an authorization token.
@@ -121,41 +121,41 @@ class _ManagedAuthToken {
   /// If this instance represents an authorization token, this value is its
   /// access token. This value is null if this instance represents an
   /// unexchanged authorization code.
-  @ManagedColumnAttributes(indexed: true, unique: true, nullable: true)
+  @Column(indexed: true, unique: true, nullable: true)
   String accessToken;
 
   /// The refresh token of an authorization token.
   ///
   /// If this token can be refreshed, this value is non-null.
-  @ManagedColumnAttributes(indexed: true, unique: true, nullable: true)
+  @Column(indexed: true, unique: true, nullable: true)
   String refreshToken;
 
   /// Scopes for this token, delimited by the space character.
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   String scope;
 
   /// When this token was last issued or refreshed.
   DateTime issueDate;
 
   /// When this token will expire.
-  @ManagedColumnAttributes(indexed: true)
+  @Column(indexed: true)
   DateTime expirationDate;
 
   /// The resource owner of this token.
   ///
   /// [ManagedAuthenticatable] must be implemented by some [ManagedObject] subclass in an application.
   /// That subclass will be the 'owner' of tokens. See [ManagedAuthenticatable] for more details.
-  @ManagedRelationship.deferred(ManagedRelationshipDeleteRule.cascade,
+  @Relationship.deferred(DeleteRule.cascade,
       isRequired: true)
   ManagedAuthenticatable resourceOwner;
 
   /// The client this token was issued for.
-  @ManagedRelationship(#tokens,
-      onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
+  @Relationship(#tokens,
+      onDelete: DeleteRule.cascade, isRequired: true)
   ManagedAuthClient client;
 
   /// The value 'bearer'.
-  @ManagedColumnAttributes(indexed: true, nullable: true)
+  @Column(indexed: true, nullable: true)
   String type;
 
   static String tableName() => "_authtoken";
@@ -188,18 +188,18 @@ class _ManagedAuthClient {
   ///
   /// An OAuth 2.0 client represents the client application that authorizes on behalf of the user
   /// with this server. For example 'com.company.mobile_apps'. This value is required.
-  @ManagedColumnAttributes(primaryKey: true)
+  @Column(primaryKey: true)
   String id;
 
   /// The client secret, hashed with [salt], if this client is confidential.
   ///
   /// A confidential client requires its secret to be included when used. If this value is null,
   /// this client is a public client.
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   String hashedSecret;
 
   /// The hashing salt for [hashedSecret].
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   String salt;
 
   /// The redirect URI for the authorization code flow.
@@ -207,13 +207,13 @@ class _ManagedAuthClient {
   /// This value must be a valid URI to allow the authorization code flow. A user agent
   /// is redirected to this URI with an authorization code that can be exchanged
   /// for a token. Only confidential clients may have a value.
-  @ManagedColumnAttributes(unique: true, nullable: true)
+  @Column(unique: true, nullable: true)
   String redirectURI;
 
   /// Scopes that this client allows.
   ///
   /// If null, this client does not support scopes and all tokens are valid for all routes.
-  @ManagedColumnAttributes(nullable: true)
+  @Column(nullable: true)
   String allowedScope;
 
   /// Tokens that have been issued for this client.
@@ -235,22 +235,22 @@ class _ManagedAuthClient {
 class ManagedAuthenticatable implements Authenticatable {
   /// The primary key of a resource owner.
   @override
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   /// The username of a resource owner.
   @override
-  @ManagedColumnAttributes(unique: true, indexed: true)
+  @Column(unique: true, indexed: true)
   String username;
 
   /// The hashed password of a resource owner.
   @override
-  @ManagedColumnAttributes(omitByDefault: true)
+  @Column(omitByDefault: true)
   String hashedPassword;
 
   /// The salt for [hashedPassword].
   @override
-  @ManagedColumnAttributes(omitByDefault: true)
+  @Column(omitByDefault: true)
   String salt;
 
   /// The list of tokens issue for this resource owner.

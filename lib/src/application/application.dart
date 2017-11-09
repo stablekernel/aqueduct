@@ -50,7 +50,7 @@ class Application<T extends ApplicationChannel> {
   /// The configuration for the HTTP server this application is running.
   ///
   /// This must be configured prior to [start]ing the [Application].
-  ApplicationConfiguration configuration = new ApplicationConfiguration();
+  ApplicationOptions options = new ApplicationOptions();
 
   /// Duration to wait for each isolate during startup before considered failure.
   ///
@@ -82,20 +82,20 @@ class Application<T extends ApplicationChannel> {
       throw new ApplicationStartupException("Application already started.");
     }
 
-    if (configuration.address == null) {
-      if (configuration.isIpv6Only) {
-        configuration.address = InternetAddress.ANY_IP_V6;
+    if (options.address == null) {
+      if (options.isIpv6Only) {
+        options.address = InternetAddress.ANY_IP_V6;
       } else {
-        configuration.address = InternetAddress.ANY_IP_V4;
+        options.address = InternetAddress.ANY_IP_V4;
       }
     }
 
     var channelType = reflectClass(T);
     try {
-      await _globalStart(channelType, configuration);
+      await _globalStart(channelType, options);
 
       for (int i = 0; i < numberOfInstances; i++) {
-        var supervisor = await _spawn(channelType, configuration, i + 1, logToConsole: consoleLogging);
+        var supervisor = await _spawn(channelType, options, i + 1, logToConsole: consoleLogging);
         supervisors.add(supervisor);
         await supervisor.resume();
       }
@@ -121,13 +121,13 @@ class Application<T extends ApplicationChannel> {
       throw new ApplicationStartupException("Application already started.");
     }
 
-    configuration.address = InternetAddress.LOOPBACK_IP_V4;
+    options.address = InternetAddress.LOOPBACK_IP_V4;
 
     var channelType = reflectClass(T);
     try {
-      await _globalStart(channelType, configuration);
+      await _globalStart(channelType, options);
 
-      server = new ApplicationServer(channelType, configuration, 1, captureStack: true);
+      server = new ApplicationServer(channelType, options, 1, captureStack: true);
 
       await server.start();
     } catch (e, st) {
@@ -161,7 +161,7 @@ class Application<T extends ApplicationChannel> {
 
   /// Creates an [APIDocument] for this application.
   static Future<APIDocument> document(
-      Type channelType, ApplicationConfiguration config, PackagePathResolver resolver) async {
+      Type channelType, ApplicationOptions config, PackagePathResolver resolver) async {
     var channelMirror = reflectClass(channelType);
 
     config.isDocumenting = true;
@@ -173,7 +173,7 @@ class Application<T extends ApplicationChannel> {
     return server.channel.documentAPI(resolver);
   }
 
-  static Future _globalStart(ClassMirror channelType, ApplicationConfiguration config) {
+  static Future _globalStart(ClassMirror channelType, ApplicationOptions config) {
     var globalStartSymbol = #initializeApplication;
     if (channelType.staticMembers[globalStartSymbol] != null) {
       return channelType.invoke(globalStartSymbol, [config]).reflectee;
@@ -182,7 +182,7 @@ class Application<T extends ApplicationChannel> {
     return null;
   }
 
-  Future<ApplicationIsolateSupervisor> _spawn(ClassMirror channelTypeMirror, ApplicationConfiguration config, int identifier,
+  Future<ApplicationIsolateSupervisor> _spawn(ClassMirror channelTypeMirror, ApplicationOptions config, int identifier,
       {bool logToConsole: false}) async {
     var receivePort = new ReceivePort();
 

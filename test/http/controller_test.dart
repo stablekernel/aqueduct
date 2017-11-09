@@ -122,7 +122,7 @@ void main() {
 
     setUp(() async {
       app = new Application<OutlierChannel>()
-        ..configuration.port = 8000;
+        ..options.port = 8000;
       await app.start(numberOfInstances: 1);
     });
 
@@ -148,7 +148,7 @@ void main() {
     });
 
     test(
-        "Request on bad state: header already sent is captured in RequestController",
+        "Request on bad state: header already sent is captured in Controller",
             () async {
       var completer = new Completer();
       app.logger.onRecord.listen((p) {
@@ -162,7 +162,7 @@ void main() {
     });
 
     test(
-        "Request controller throwing HttpResponseException that dies on bad state: header already sent is captured in RequestController",
+        "Request controller throwing HttpResponseException that dies on bad state: header already sent is captured in Controller",
             () async {
       var completer = new Completer();
       app.logger.onRecord.listen((p) {

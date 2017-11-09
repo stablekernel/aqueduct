@@ -24,7 +24,7 @@ void main() {
 
     setUp(() async {
       apiDocs = (await Application.document(
-              TestChannel, new ApplicationConfiguration(), resolver))
+              TestChannel, new ApplicationOptions(), resolver))
           .asMap();
     });
 
@@ -453,7 +453,7 @@ class TestChannel extends ApplicationChannel {
 ///
 /// Documentation
 ///
-class TController extends HTTPController {
+class TController extends RESTController {
   TController() {
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }

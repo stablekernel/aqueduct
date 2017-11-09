@@ -5,7 +5,7 @@ import 'dart:mirrors';
 import 'package:analyzer/analyzer.dart';
 
 import 'http.dart';
-import 'http_controller_internal/internal.dart';
+import 'rest_controller_internal/internal.dart';
 
 /// Base class for implementing REST endpoints.
 ///
@@ -70,10 +70,10 @@ import 'http_controller_internal/internal.dart';
 ///
 /// [Request.body] will always be decoded prior to invoking a operation method.
 @cannotBeReused
-abstract class HTTPController extends Controller {
-  /// The request being processed by this [HTTPController].
+abstract class RESTController extends Controller {
+  /// The request being processed by this [RESTController].
   ///
-  /// It is this [HTTPController]'s responsibility to return a [Response] object for this request. Operation methods
+  /// It is this [RESTController]'s responsibility to return a [Response] object for this request. Operation methods
   /// may access this request to determine how to respond to it.
   Request request;
 
@@ -84,18 +84,18 @@ abstract class HTTPController extends Controller {
   /// are the case-sensitive name of the path variables as defined by [Router.route].
   Map<String, String> get pathVariables => request.path?.variables;
 
-  /// Types of content this [HTTPController] will accept.
+  /// Types of content this [RESTController] will accept.
   ///
   /// If a request is sent to this instance and has an HTTP request body and the Content-Type of the body is in this list,
   /// the request will be accepted and the body will be decoded according to that Content-Type.
   ///
-  /// If the Content-Type of the request isn't within this list, the [HTTPController]
+  /// If the Content-Type of the request isn't within this list, the [RESTController]
   /// will automatically respond with an Unsupported Media Type response.
   ///
   /// By default, an instance will accept HTTP request bodies with 'application/json; charset=utf-8' encoding.
   List<ContentType> acceptedContentTypes = [ContentType.JSON];
 
-  /// The default content type of responses from this [HTTPController].
+  /// The default content type of responses from this [RESTController].
   ///
   /// If the [Response.contentType] has not explicitly been set by a operation method in this controller, the controller will set
   /// that property with this value. Defaults to "application/json".

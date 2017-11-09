@@ -109,10 +109,10 @@ void main() {
 }
 
 class TestChannel extends ApplicationChannel {
-  static Future initializeApplication(ApplicationConfiguration config) async {
-    List<int> v = config.options["startup"] ?? [];
+  static Future initializeApplication(ApplicationOptions config) async {
+    List<int> v = config.context["startup"] ?? [];
     v.add(1);
-    config.options["startup"] = v;
+    config.context["startup"] = v;
   }
 
   @override
@@ -121,7 +121,7 @@ class TestChannel extends ApplicationChannel {
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
     router.route("/r").listen((req) async => new Response.ok("r_ok"));
     router.route("startup").listen((r) async {
-      var total = configuration.options["startup"].fold(0, (a, b) => a + b);
+      var total = options.context["startup"].fold(0, (a, b) => a + b);
       return new Response.ok("$total");
     });
     return router;

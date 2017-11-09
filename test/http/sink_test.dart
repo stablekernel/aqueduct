@@ -4,7 +4,7 @@ import 'package:aqueduct/aqueduct.dart';
 
 void main() {
   test(
-      "RequestController requiring instantion throws exception when instantiated early",
+      "Controller requiring instantion throws exception when instantiated early",
       () async {
     var app = new Application<TestChannel>();
     try {
@@ -32,7 +32,7 @@ class TestChannel extends ApplicationChannel {
   }
 }
 
-class FailingController extends HTTPController {
+class FailingController extends RESTController {
   @Bind.get()
   Future<Response> get() async {
     return new Response.ok(null);

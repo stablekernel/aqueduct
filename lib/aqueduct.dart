@@ -25,7 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 ///       class Channel extends ApplicationChannel {
 ///
 ///         @override
-///         RequestController get entryPoint {
+///         Controller get entryPoint {
 ///           final router = new Router();
 ///
 ///           router

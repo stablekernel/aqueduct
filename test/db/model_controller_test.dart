@@ -161,7 +161,7 @@ class TestModelController extends QueryController<TestModel> {
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
-  @ManagedColumnAttributes(primaryKey: true)
+  @Column(primaryKey: true)
   int id;
 
   String name;
@@ -178,6 +178,6 @@ class StringController extends QueryController<StringModel> {
 
 class StringModel extends ManagedObject<_StringModel> implements _StringModel {}
 class _StringModel {
-  @ManagedColumnAttributes(primaryKey: true)
+  @Column(primaryKey: true)
   String foo;
 }

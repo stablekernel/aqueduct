@@ -4,10 +4,10 @@ import '../db/db.dart';
 import 'http.dart';
 
 
-/// A partial class for implementing an [HTTPController] that has a few conveniences
+/// A partial class for implementing an [RESTController] that has a few conveniences
 /// for executing [Query]s.
 ///
-/// Instances of [QueryController] are [HTTPController]s that have a pre-baked [Query] available. This [Query]'s type -
+/// Instances of [QueryController] are [RESTController]s that have a pre-baked [Query] available. This [Query]'s type -
 /// the [ManagedObject] type is operates on - is defined by [InstanceType].
 ///
 /// The values of [query] are set based on the HTTP method, HTTP path and request body.
@@ -19,7 +19,7 @@ import 'http.dart';
 /// its [Query.where] to match on the [ManagedObject] whose primary key is that value of the path parameter.
 /// 3. If the [Request] contains a body, it will be decoded per the [acceptedContentTypes] and deserialized into the [Query.values] property via [ManagedObject.readFromMap].
 abstract class QueryController<InstanceType extends ManagedObject>
-    extends HTTPController {
+    extends RESTController {
   /// Create an instance of [QueryController]. By default, [context] is the [ManagedContext.defaultContext].
   QueryController([ManagedContext context]) : super() {
     query = new Query<InstanceType>(context ?? ManagedContext.defaultContext);
