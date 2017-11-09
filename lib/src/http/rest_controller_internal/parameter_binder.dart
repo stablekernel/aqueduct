@@ -3,8 +3,8 @@ import '../request.dart';
 import '../rest_controller_binding.dart';
 import 'internal.dart';
 
-class HTTPControllerParameterBinder {
-  HTTPControllerParameterBinder(VariableMirror mirror, {this.isRequired: false}) {
+class RESTControllerParameterBinder {
+  RESTControllerParameterBinder(VariableMirror mirror, {this.isRequired: false}) {
     symbol = mirror.simpleName;
 
     Bind b = mirror.metadata.firstWhere((im) => im.reflectee is Bind).reflectee;

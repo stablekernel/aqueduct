@@ -12,16 +12,16 @@ class _User extends ManagedAuthenticatable {
 
 /* This class inherits the following from ManagedAuthenticatable:
 
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedColumnAttributes(unique: true, indexed: true)
+  @Column(unique: true, indexed: true)
   String username;
 
-  @ManagedColumnAttributes(omitByDefault: true)
+  @Column(omitByDefault: true)
   String hashedPassword;
 
-  @ManagedColumnAttributes(omitByDefault: true)
+  @Column(omitByDefault: true)
   String salt;
 
   ManagedSet<ManagedAuthToken> tokens;

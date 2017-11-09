@@ -6,7 +6,7 @@ import 'package:logging/logging.dart';
 
 import 'package:aqueduct/src/application/service_registry.dart';
 import 'application.dart';
-import 'application_configuration.dart';
+import 'options.dart';
 import 'isolate_supervisor.dart';
 
 class ApplicationIsolateServer extends ApplicationServer {

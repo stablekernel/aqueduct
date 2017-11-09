@@ -21,8 +21,8 @@ class HTTPRequestBinding {
   }
 }
 
-class HTTPControllerBinder {
-  HTTPControllerBinder(this.controllerType) {
+class RESTControllerBinder {
+  RESTControllerBinder(this.controllerType) {
     var allDeclarations = reflectClass(controllerType).declarations;
 
     var boundProperties = allDeclarations.values
@@ -30,7 +30,7 @@ class HTTPControllerBinder {
         .where((decl) => decl.metadata.any((im) => im.reflectee is Bind))
         .map((decl) {
       var isRequired = allDeclarations[decl.simpleName].metadata.any((im) => im.reflectee is HTTPRequiredParameter);
-      return new HTTPControllerParameterBinder(decl, isRequired: isRequired);
+      return new RESTControllerParameterBinder(decl, isRequired: isRequired);
     });
     propertyBinders.addAll(boundProperties);
 
@@ -38,19 +38,19 @@ class HTTPControllerBinder {
         .instanceMembers
         .values
         .where(isOperation)
-        .map((decl) => new HTTPControllerMethodBinder(decl))
-        .forEach((HTTPControllerMethodBinder method) {
+        .map((decl) => new RESTControllerMethodBinder(decl))
+        .forEach((RESTControllerMethodBinder method) {
       methodBinders.addBinder(method);
     });
   }
 
   Type controllerType;
-  List<HTTPControllerParameterBinder> propertyBinders = [];
+  List<RESTControllerParameterBinder> propertyBinders = [];
 
   // [method][arity] = binder
   MethodArityMap methodBinders = new MethodArityMap();
 
-  HTTPControllerMethodBinder methodBinderForRequest(Request req) {
+  RESTControllerMethodBinder methodBinderForRequest(Request req) {
     return methodBinders.getBinder(req.raw.method, req.path.orderedVariableNames.length);
   }
 
@@ -71,22 +71,22 @@ class HTTPControllerBinder {
     }
 
     if (isOperation(mm)) {
-      // todo (joeconwaystk): seems like we are creating a duplicate HTTPControllerMethodBinder here
+      // todo (joeconwaystk): seems like we are creating a duplicate RESTControllerMethodBinder here
       // it likely already exists in methodBinders.
-      HTTPControllerMethodBinder method = new HTTPControllerMethodBinder(mm);
+      RESTControllerMethodBinder method = new RESTControllerMethodBinder(mm);
       return method.positionalParameters.any((p) => p.binding is! HTTPPath && p.isRequired);
     }
 
     return false;
   }
 
-  static Map<Type, HTTPControllerBinder> _controllerBinders = {};
+  static Map<Type, RESTControllerBinder> _controllerBinders = {};
 
-  static void addBinder(HTTPControllerBinder binder) {
+  static void addBinder(RESTControllerBinder binder) {
     _controllerBinders[binder.controllerType] = binder;
   }
 
-  static HTTPControllerBinder binderForType(Type t) {
+  static RESTControllerBinder binderForType(Type t) {
     return _controllerBinders[t];
   }
 
@@ -101,7 +101,7 @@ class HTTPControllerBinder {
       throw new InternalControllerException("No operation found", 405, headers: allowHeaders);
     }
 
-    var parseWith = (HTTPControllerParameterBinder binder) {
+    var parseWith = (RESTControllerParameterBinder binder) {
       var value = binder.parse(request);
       if (value == null && binder.isRequired) {
         return new HTTPValueBinding.error("Missing ${binder.binding.type} '${binder.name ?? ""}'");
@@ -110,7 +110,7 @@ class HTTPControllerBinder {
       return new HTTPValueBinding(value, symbol: binder.symbol);
     };
 
-    var initiallyBindWith = (HTTPControllerParameterBinder binder) {
+    var initiallyBindWith = (RESTControllerParameterBinder binder) {
       if (binder.binding is HTTPBody || (binder.binding is HTTPQuery && requestHasFormData(request))) {
         return new HTTPValueBinding.deferred(binder, symbol: binder.symbol);
       }
@@ -159,9 +159,9 @@ class HTTPControllerBinder {
 }
 
 class MethodArityMap {
-  Map<String, Map<int, HTTPControllerMethodBinder>> contents = {};
+  Map<String, Map<int, RESTControllerMethodBinder>> contents = {};
 
-  HTTPControllerMethodBinder getBinder(String method, int pathArity) {
+  RESTControllerMethodBinder getBinder(String method, int pathArity) {
     final methodMap = contents[method.toLowerCase()];
     if (methodMap == null) {
       return null;
@@ -170,9 +170,9 @@ class MethodArityMap {
     return methodMap[pathArity];
   }
 
-  void addBinder(HTTPControllerMethodBinder binder) {
+  void addBinder(RESTControllerMethodBinder binder) {
     final methodMap =
-        contents.putIfAbsent(binder.httpMethod.externalName.toLowerCase(), () => <int, HTTPControllerMethodBinder>{});
+        contents.putIfAbsent(binder.httpMethod.externalName.toLowerCase(), () => <int, RESTControllerMethodBinder>{});
     methodMap[binder.pathParameters.length] = binder;
   }
 }

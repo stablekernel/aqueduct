@@ -8,9 +8,9 @@ import '../query/query.dart';
 ///
 ///         class User extends ManagedObject<_User> implements _User {}
 ///
-///         @ManagedTableAttributes(unique: const [#name, #email]);
+///         @Table(unique: const [#name, #email]);
 ///         class _User {
-///           @managedPrimaryKey
+///           @primaryKey
 ///           int id;
 ///
 ///           String name;
@@ -111,10 +111,10 @@ const Column primaryKey = const Column(
 ///
 ///         class User extends ManagedObject<_User> implements _User {}
 ///         class _User {
-///           @managedPrimaryKey
+///           @primaryKey
 ///           int id;
 ///
-///           @ManagedColumnAttributes(indexed: true, unique: true)
+///           @Column(indexed: true, unique: true)
 ///           String email;
 ///         }
 class Column {
@@ -141,7 +141,7 @@ class Column {
   ///
   ///         class User extends ManagedObject<_User> implements _User {}
   ///         class _User {
-  ///           @ManagedColumnAttributes(defaultValue: "now()")
+  ///           @Column(defaultValue: "now()")
   ///           DateTime createdDate;
   ///
   ///           ...

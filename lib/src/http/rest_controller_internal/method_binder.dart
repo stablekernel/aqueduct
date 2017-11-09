@@ -1,18 +1,18 @@
 import 'dart:mirrors';
 import 'internal.dart';
 
-class HTTPControllerMethodBinder {
-  HTTPControllerMethodBinder(MethodMirror mirror) {
+class RESTControllerMethodBinder {
+  RESTControllerMethodBinder(MethodMirror mirror) {
     httpMethod = methodBindingFrom(mirror);
     methodSymbol = mirror.simpleName;
 
     positionalParameters = mirror.parameters
         .where((pm) => !pm.isOptional)
-        .map((pm) => new HTTPControllerParameterBinder(pm, isRequired: true))
+        .map((pm) => new RESTControllerParameterBinder(pm, isRequired: true))
         .toList();
     optionalParameters = mirror.parameters
         .where((pm) => pm.isOptional)
-        .map((pm) => new HTTPControllerParameterBinder(pm, isRequired: false))
+        .map((pm) => new RESTControllerParameterBinder(pm, isRequired: false))
         .toList();
   }
 
@@ -22,9 +22,9 @@ class HTTPControllerMethodBinder {
 
   Symbol methodSymbol;
   HTTPMethod httpMethod;
-  List<HTTPControllerParameterBinder> positionalParameters = [];
-  List<HTTPControllerParameterBinder> optionalParameters = [];
+  List<RESTControllerParameterBinder> positionalParameters = [];
+  List<RESTControllerParameterBinder> optionalParameters = [];
 
-  List<HTTPControllerParameterBinder> get pathParameters =>
+  List<RESTControllerParameterBinder> get pathParameters =>
       positionalParameters.where((p) => p.binding is HTTPPath).toList();
 }

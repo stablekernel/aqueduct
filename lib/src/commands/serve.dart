@@ -30,7 +30,7 @@ class CLIServer extends CLIServeBase {
       ..addOption("config-path",
           abbr: "c",
           help:
-              "The path to a configuration file. This File is available in the ApplicationConfiguration "
+              "The path to a configuration file. This File is available in the ApplicationOptions"
               "for a ApplicationChannel to use to read application-specific configuration values. Relative paths are relative to [directory].",
           defaultsTo: "config.yaml")
       ..addOption("timeout",
@@ -354,7 +354,7 @@ import 'package:___PACKAGE_NAME___/___LIBRARY_NAME___.dart';
 main() async {
   try {
     var app = new Application<___CHANNEL_TYPE___>();
-    var config = new ApplicationConfiguration()
+    var config = new ApplicationOptions()
       ..port = ___PORT___
       $certificateString
       $keyString
@@ -362,7 +362,7 @@ main() async {
       $configString
       ..isIpv6Only = ___IPV6_ONLY___;
 
-    app.configuration = config;
+    app.options = config;
 
     await app.start(numberOfInstances: ___NUMBER_OF_ISOLATES___);
 

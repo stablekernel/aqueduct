@@ -155,6 +155,6 @@ class CLIDocument extends CLICommand with CLIProject, CLIDocumentOptions {
         " occur: Application.willStartReceivingRequests is not called because no web server is started. However, it is important that"
         " the first three steps of initialization can occur without error when generating documentation. This often requires having a"
         " valid configuration file (--config-path) when running this tool. The suggested approach is to use config.src.yaml as the configuration"
-        " file for the document tool. The flag 'isDocumenting' will be set to true in ApplicationConfiguration.";
+        " file for the document tool. The flag 'isDocumenting' will be set to true in ApplicationOptions.";
   }
 }

@@ -65,7 +65,7 @@ void main() {
         libFile,
         "class WildfireChannel extends ApplicationChannel {",
         """
-    static Future initializeApplication(ApplicationConfiguration x) async { throw new Exception("error"); }
+    static Future initializeApplication(ApplicationOptions x) async { throw new Exception("error"); }
     """);
 
     var res = await runAqueductProcess(["serve"], temporaryDirectory);

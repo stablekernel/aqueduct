@@ -387,7 +387,7 @@ class SchemaColumnDifference {
 
     if (actualColumn.relatedColumnName != expectedColumn.relatedColumnName) {
       throw new SchemaException(
-          "Cannot change ManagedRelationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
+          "Cannot change Relationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
     }
 
     if (actualColumn.relatedTableName != expectedColumn.relatedTableName) {

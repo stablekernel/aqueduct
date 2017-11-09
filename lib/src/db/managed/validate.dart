@@ -275,7 +275,7 @@ class ManagedValidator {
 ///
 ///         class Person extends ManagedObject<_Person> implements _Person {}
 ///         class _Person {
-///           @managedPrimaryKey
+///           @primaryKey
 ///           int id;
 ///
 ///           @Validate.length(greaterThan: 10)

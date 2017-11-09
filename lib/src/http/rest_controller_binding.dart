@@ -77,7 +77,7 @@ class Bind {
   ///
   /// Example:
   ///
-  ///         class UserController extends HTTPController {
+  ///         class UserController extends RESTController {
   ///           @Bind.method("get")
   ///           Future<Response> getThings() => return new Response.ok(null);
   ///         }
@@ -121,7 +121,7 @@ class Bind {
   /// to the properties of `User`:
   ///
   ///
-  ///       class UserController extends HTTPController {
+  ///       class UserController extends RESTController {
   ///         @Bind.method("post")
   ///         Future<Response> createUser(@Bind.body() User user) async {
   ///           var query = new Query<User>()..values = user;
@@ -151,7 +151,7 @@ class Bind {
   /// method is invoked if it has exactly the same path bindings as the incoming request's path variables. For example,
   /// consider the above route and a controller with the following operation methods:
   ///
-  ///         class UserController extends HTTPController {
+  ///         class UserController extends RESTController {
   ///           @Bind.get()
   ///           Future<Response> getUsers() async => new Response.ok(getAllUsers());
   ///           @Bind.get()
@@ -216,7 +216,7 @@ const Bind httpDelete = const Bind.method("delete");
 ///
 /// For example, the following controller requires the header 'X-Request-ID' for both of its operation methods:
 ///
-///         class UserController extends HTTPController {
+///         class UserController extends RESTController {
 ///           @requiredHTTPParameter
 ///           @Bind.header("x-request-id")
 ///           String requestID;

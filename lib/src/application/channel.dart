@@ -36,7 +36,7 @@ import 'package:aqueduct/src/application/service_registry.dart';
 /// The signature of this method is ([ApplicationOptions]) -> [Future], for example:
 ///
 ///         class Channel extends ApplicationChannel {
-///           static Future initializeApplication(ApplicationConfiguration config) async {
+///           static Future initializeApplication(ApplicationOptions config) async {
 ///             // Do one-time setup here
 ///           }
 ///           ...
@@ -55,7 +55,7 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   /// across isolates, it must be instantiated in this method.
   ///
   ///         class MyChannel extends ApplicationChannel {
-  ///           static Future initializeApplication(ApplicationConfiguration config) async {
+  ///           static Future initializeApplication(ApplicationOptions config) async {
   ///
   ///           }
   ///

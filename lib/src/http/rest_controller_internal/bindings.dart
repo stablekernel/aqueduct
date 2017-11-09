@@ -74,7 +74,7 @@ class HTTPValueBinding {
 
   Symbol symbol;
   dynamic value;
-  HTTPControllerParameterBinder deferredBinder;
+  RESTControllerParameterBinder deferredBinder;
   String errorMessage;
 }
 

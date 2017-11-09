@@ -7,7 +7,7 @@ import '../http/request.dart';
 import 'package:aqueduct/src/application/channel.dart';
 import '../http/controller.dart';
 import 'application.dart';
-import 'application_configuration.dart';
+import 'options.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 /// Listens for HTTP requests and delivers them to its [ApplicationChannel] instance.

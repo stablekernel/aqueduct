@@ -11,13 +11,13 @@ import 'rest_controller_internal/internal.dart';
 ///
 /// This class must be subclassed. A new instance must be created for each request and that request must have passed through a [Router] earlier in the channel, e.g.:
 ///
-///         router.route("/path").generate(() => new HTTPControllerSubclass());
+///         router.route("/path").generate(() => new RESTControllerSubclass());
 ///
 /// Subclasses implement instance methods that will be invoked when a [Request] meets certain criteria. These criteria are established by
 /// *binding* elements of the HTTP request to instance methods and their parameters. For example, an instance method
 /// that is bound to the HTTP `POST` method will be invoked when this controller handles a `POST` request.
 ///
-///         class EmployeeController extends HTTPController {
+///         class EmployeeController extends RESTController {
 ///            @Bind.method("post")
 ///            Future<Response> createEmployee(...) async => new Response.ok(null);
 ///         }
@@ -30,7 +30,7 @@ import 'rest_controller_internal/internal.dart';
 /// with [Bind.path] metadata are evaluated to 'break the tie'. For example, the route `/employees/[:id]` contains an optional route variable named `id`.
 /// A subclass can implement two operation methods, one for when `id` was present and the other for when it was not:
 ///
-///         class EmployeeController extends HTTPController {
+///         class EmployeeController extends RESTController {
 ///            // This method gets invoked when the path is '/employees'
 ///            @Bind.method("get")
 ///            Future<Response> getEmployees() async {
@@ -55,7 +55,7 @@ import 'rest_controller_internal/internal.dart';
 /// corresponding value doesn't exist in the incoming request, the operation method is successfully invoked and the associated variable is null. For example,
 /// this method is called whether the query parameter `name` is present or not:
 ///
-///         class EmployeeController extends HTTPController {
+///         class EmployeeController extends RESTController {
 ///           @Bind.method("get")
 ///           Future<Response> getEmployees({@Bind.query("name") String name}) async {
 ///             if (name == null) {
@@ -125,7 +125,7 @@ abstract class RESTController extends Controller {
   @override
   void prepare() {
     var type = reflect(this).type.reflectedType;
-    HTTPControllerBinder.addBinder(new HTTPControllerBinder(type));
+    RESTControllerBinder.addBinder(new RESTControllerBinder(type));
     super.prepare();
   }
 
@@ -144,7 +144,7 @@ abstract class RESTController extends Controller {
       }
     }
 
-    var binding = await HTTPControllerBinder.bindRequest(this, request);
+    var binding = await RESTControllerBinder.bindRequest(this, request);
     var response = await binding.invoke(reflect(this));
     if (!response.hasExplicitlySetContentType) {
       response.contentType = responseContentType;
@@ -177,7 +177,7 @@ abstract class RESTController extends Controller {
 
   @override
   List<APIOperation> documentOperations(PackagePathResolver resolver) {
-    var controllerCache = HTTPControllerBinder.binderForType(runtimeType);
+    var controllerCache = RESTControllerBinder.binderForType(runtimeType);
     var reflectedType = reflect(this).type;
     var uri = reflectedType.location.sourceUri;
     var fileUnit = parseDartFile(resolver.resolve(uri));
@@ -254,7 +254,7 @@ abstract class RESTController extends Controller {
 
     var symbol = APIOperation.symbolForID(operation.id, this);
     if (symbol != null) {
-      var controllerCache = HTTPControllerBinder.binderForType(runtimeType);
+      var controllerCache = RESTControllerBinder.binderForType(runtimeType);
       var methodMirror = reflect(this).type.declarations[symbol];
 
       if (controllerCache.hasRequiredBindingsForMethod(methodMirror)) {

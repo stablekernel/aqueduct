@@ -353,14 +353,14 @@ class _RequiresInstantiation {
   const _RequiresInstantiation();
 }
 
-typedef Controller ControllerGeneratorClosure();
+typedef Controller _ControllerGeneratorClosure();
 
 class _ControllerGenerator extends Controller {
   _ControllerGenerator(this.generator) {
     nextInstanceToReceive = instantiate();
   }
 
-  ControllerGeneratorClosure generator;
+  _ControllerGeneratorClosure generator;
   CORSPolicy policyOverride;
   Controller nextInstanceToReceive;
 

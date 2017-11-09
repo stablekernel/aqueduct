@@ -573,7 +573,7 @@ void main() {
       expect(diff.hasDifferences, true);
       expect(diff.errorMessages.length, 1);
       expect(diff.errorMessages.first,
-          'Column \'id\' in table \'_DefaultItem\' expected \'null\' for \'deleteRule\', but migration files yield \'ManagedRelationshipDeleteRule.setDefault\'');
+          'Column \'id\' in table \'_DefaultItem\' expected \'null\' for \'deleteRule\', but migration files yield \'DeleteRule.setDefault\'');
       column.deleteRule = capDeleteRule;
     });
 

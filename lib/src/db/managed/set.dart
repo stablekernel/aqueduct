@@ -18,7 +18,7 @@ import '../query/query.dart';
 ///        class Post extends ManagedObject<_Post> implements _Post {}
 ///        class _Post {
 ///          ...
-///          @ManagedRelationship(#posts)
+///          @Relationship(#posts)
 ///          User user;
 ///        }
 class ManagedSet<InstanceType extends ManagedObject> extends Object

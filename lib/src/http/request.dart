@@ -190,7 +190,7 @@ class Request implements RequestOrResponse {
   ///
   /// Usage:
   ///
-  ///         Future<RequestOrResponse> processRequest(Request request) async {
+  ///         Future<RequestOrResponse> handle(Request request) async {
   ///           request.addResponseModifier((r) {
   ///             r.headers["x-rate-limit-remaining"] = 200;
   ///           });

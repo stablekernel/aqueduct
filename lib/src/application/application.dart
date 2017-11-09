@@ -7,12 +7,12 @@ import 'package:logging/logging.dart';
 
 import '../http/http.dart';
 import 'service_registry.dart';
-import 'application_configuration.dart';
+import 'options.dart';
 import 'application_server.dart';
 import 'isolate_application_server.dart';
 import 'isolate_supervisor.dart';
 
-export 'application_configuration.dart';
+export 'options.dart';
 export 'application_server.dart';
 export 'service_registry.dart';
 
