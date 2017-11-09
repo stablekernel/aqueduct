@@ -41,7 +41,6 @@ void main() {
     });
 
     test("Document has appropriate content types at top-level", () {
-      expect(apiDocs["consumes"], contains("application/json; charset=utf-8"));
       expect(
           apiDocs["consumes"], contains("application/x-www-form-urlencoded"));
       expect(apiDocs["produces"], contains("application/json; charset=utf-8"));
@@ -96,7 +95,6 @@ void main() {
         "deprecated": false,
         "tags": [],
         "consumes": [
-          "application/json; charset=utf-8",
           "application/x-www-form-urlencoded"
         ],
         "produces": ["application/json; charset=utf-8"],
@@ -147,7 +145,6 @@ void main() {
         "deprecated": false,
         "tags": [],
         "consumes": [
-          "application/json; charset=utf-8",
           "application/x-www-form-urlencoded"
         ],
         "produces": ["application/json; charset=utf-8"],
@@ -249,7 +246,6 @@ void main() {
           "deprecated": false,
           "tags": [],
           "consumes": [
-            "application/json; charset=utf-8",
             "application/x-www-form-urlencoded"
           ],
           "produces": ["application/json; charset=utf-8"],
@@ -314,7 +310,6 @@ void main() {
           "deprecated": false,
           "tags": [],
           "consumes": [
-            "application/json; charset=utf-8",
             "application/x-www-form-urlencoded"
           ],
           "produces": ["application/json; charset=utf-8"],
@@ -385,7 +380,6 @@ void main() {
         "deprecated": false,
         "tags": [],
         "consumes": [
-          "application/json; charset=utf-8",
           "application/x-www-form-urlencoded"
         ],
         "produces": ["application/json; charset=utf-8"],
@@ -460,6 +454,9 @@ class TestChannel extends ApplicationChannel {
 /// Documentation
 ///
 class TController extends HTTPController {
+  TController() {
+    acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
+  }
   /// ABCD
   /// EFGH
   /// IJKL
