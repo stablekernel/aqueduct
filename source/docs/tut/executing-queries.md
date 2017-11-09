@@ -199,6 +199,101 @@ CREATE USER quiz_user WITH createdb;
 ALTER USER quiz_user WITH password 'password';
 GRANT all ON database quiz TO quiz_user;
 ```
+aqueduct db generate
+```
+
+This will create a new *migration file*. A migration file runs a series of SQL commands to alter a database's schema. It is created in a new directory in your project named `migrations/`. Review the contents of `migrations/00000001_Initial.migration.dart`; you'll notice that it creates a new table with columns for each property of our persistent type, `_Question`.
+
+Apply this migration file to our locally running `quiz` database with the following command in the project directory:
+
+```dart
+aqueduct db upgrade --connect postgres://quiz_user:password@localhost:5432/quiz
+```
+
+This command executes all of the migration files for a project, and in this case, that creates the `_Question` table. Now, we will add some question rows. Back in our `psql` terminal, run the following SQL commands:
+
+```sql
+\c quiz
+INSERT INTO _question (description) VALUES ('How much wood could a woodchuck chuck?');
+INSERT INTO _question (description) VALUES ('What is the tallest mountain in the world?');
+```
+
+Re-run your application with `aqueduct serve` and enter the following URLs into a browser:
+
+```
+http://localhost:8081/questions
+http://localhost:8081/questions/1
+http://localhost:8081/questions/9999
+```
+
+You should see the full list of questions, the first question, and then a 404 Not Found.
+
+(You can now close `psql`.)
+
+!!! note
+    Notice that `/questions/1` now returns the first question, where previously `/questions/0` did. This is because PostgreSQL automatically generates a value for the primary key column of an inserted row, and that generation starts at 1 instead of 0.
+
+## Inserting Data
+
+A `Query<T>` can also insert, delete or update rows. Let's create an operation to "create a new question". This operation will be `POST /questions` and it will need to send a JSON object that represents a question in the body.
+
+In `question_controller.dart`, add the following operation method:
+
+```dart
+@Bind.post()
+Future<Response> createQuestion(@HTTPBody() Question question) async {
+  final query = new Query<Question>()
+    ..values.description = question.description;
+
+  final insertedQuestion = await query.insert();
+
+  return new Response.ok(insertedQuestion);
+}
+```
+
+There's a bit going on here, so let's deconstruct it. First, we know this operation method is bound to `POST /questions` because:
+
+1. The `@Bind.post()` metadata indicates this method responds to `POST`.
+2. We've routed both `/questions` and `/questions/:index` to this controller.
+2. There are no path variable bindings, so it is expected that path variable `index` is null, i.e. `/questions`.
+
+
+An instance of `Question` will be passed to us as an argument. Its `description` will be set to the value of a `description` key in the JSON request body. So, if we made the following request:
+
+```
+POST /questions HTTP/1.1
+Content-Type: application/json; charset=utf-8
+
+{
+    "description": "What is 10+10?"
+}
+```
+
+The value of `question.description` in this method would be `What is 10+10?` (its `index` would be `null`). This value is set on the query `values`. Like `where`, `values` is an instance of the type being inserted. Any property set on it will be inserted into a new row. In our case, the `insert()` function executes the following SQL:
+
+```sql
+INSERT INTO _questions (description) VALUES ('What is 10+10?');
+```
+
+!!! tip "Query Construction"
+    Properties like `values` and `where` prevent errors by type and name checking columns with the analyzer. They're also great for speeding up writing code because your IDE will autocomplete property names. There is [specific behavior](../db/advanced_queries.md) a query uses to decide whether it should include a value from these two properties in the SQL it generates.
+
+
+
+Then, this method would add a new row to the `_Question` table; the value of its description column would be `What is 10+10?` and its index column would be the next auto-incremented integer.
+
+The body of this request will be available in the `question` argument because it is bound to the body of request. When an argument has `@HTTPBody()` binding - and it
+
+The `@HTTPBody()` binding will bind the body of the request to an instance of `Question`. We'll get passed that question as an argument to this method, where we assign its `description` to the `values.description` of the query.
+
+The `values` property of a `Query<T>` works similar to the `where` property in that it has the same properties of the type being queried; the difference is `values` are values to be stored in the database. When we execute the query's `insert()`, a new row gets created in the database with the values that have been assigned.
+
+The `insert()` method returns the `Question` from the database after it has been inserted, which we then return in the response body.
+
+
+
+
+
 
 This creates a database named `quiz` that a user named `quiz_user` has access to. Our `PostgreSQLPersistentStore` created in `QuizChannel` is already set up to connect to this database, so make sure the names for the database, username and password all match up. (Keep this terminal open for now.)
 
@@ -296,7 +391,7 @@ The more you know: Query Parameters and HTTP Headers
 
 So far, we have bound methods, bodies, and path variables to operation methods in `QuestionController`. You can also bind query parameters and headers, too.
 
-The operation method selected by an `HTTPController` subclass is determined by only the bound HTTP method and path variables. Other types of binding - body, query, and header - don't impact which operation method gets selected for an operation. If one of these three kinds of bindings is not available in a request, a 400 Bad Request response is sent and the method is not called. In practice, this means that you shouldn't have separate operation methods for different variations of body, query and header bindings. 
+The operation method selected by an `HTTPController` subclass is determined by only the bound HTTP method and path variables. Other types of binding - body, query, and header - don't impact which operation method gets selected for an operation. If one of these three kinds of bindings is not available in a request, a 400 Bad Request response is sent and the method is not called. In practice, this means that you shouldn't have separate operation methods for different variations of body, query and header bindings.
 
 
 We'll allow the `getAllQuestions` method to take a query parameter named `contains`. If this query parameter is part of the request, we'll filter the questions on whether or not that question contains some substring. In `question_controller.dart`, update this method by adding an optional parameter named `containsSubstring`:
