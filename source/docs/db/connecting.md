@@ -40,15 +40,15 @@ class MyConfigurationItem extends ConfigurationItem {
 class MyApplicationChannel extends ApplicationChannel {
   @override
   Future prepare() async {
-    var appConfig = new MyConfigurationItem(config.configurationFilePath);
+    var config = new MyConfigurationItem(options.configurationFilePath);
 
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
-        appConfig.database.username,
-        appConfig.database.password,
-        appConfig.database.host,
-        appConfig.database.port,
-        appConfig.database.databaseName);        
+        config.database.username,
+        config.database.password,
+        config.database.host,
+        config.database.port,
+        config.database.databaseName);        
 
     ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
   }

@@ -26,7 +26,7 @@ import 'package:aqueduct/aqueduct.dart';
 class AppApplicationChannel extends ApplicationChannel {
   @override
   Future prepare() async {
-    databaseContext = contextFrom(configuration);
+    databaseContext = contextFrom(options);
   }
 
   @override
@@ -156,8 +156,8 @@ numberOfDoodads: 3
 Subclass `ConfigurationItem` and declare a property for each key in the configuration file:
 
 ```dart
-class AppOptions extends ConfigurationItem {
-  AppOptions(String path) : super.fromFile(path);
+class AppConfig extends ConfigurationItem {
+  AppConfig(String path) : super.fromFile(path);
 
   DatabaseConnectionInfo database;
   String otherOption;
@@ -165,7 +165,7 @@ class AppOptions extends ConfigurationItem {
 }
 ```
 
-Read the configuration file identified by an `ApplicationConfiguration`:
+Read the configuration file identified by an `ApplicationOptions`:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
@@ -173,7 +173,7 @@ import 'package:aqueduct/aqueduct.dart';
 class AppApplicationChannel extends ApplicationChannel {
   @override
   Future prepare() async {
-    var options = new AppOptions(configuration.configurationFilePath);
+    var options = new AppConfig(options.configurationFilePath);
     ...
   }
 }

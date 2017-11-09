@@ -96,7 +96,7 @@ var team = await query.updateOne();
 class AppChannel extends ApplicationChannel {
   @override
   Future prepare() async {
-    context = contextWithConnectionInfo(configuration.configurationFilePath.database);
+    context = contextWithConnectionInfo(options.configurationFilePath.database);
   }
 
   ManagedContext context;

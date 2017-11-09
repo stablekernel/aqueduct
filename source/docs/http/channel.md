@@ -88,7 +88,7 @@ Besides service configuration, there may be other types of initialization an app
 
 All of this initialization is done in `prepare()`.
 
-Some of the information needed to configure an application will come from a configuration file or environment variables. This information is available through the `configuration` property of an application channel. For more information on using a configuration file and environment variables to guide initialization, see [this guide](configure.md).
+Some of the information needed to configure an application will come from a configuration file or environment variables. This information is available through the `options` property of an application channel. For more information on using a configuration file and environment variables to guide initialization, see [this guide](configure.md).
 
 ## Multi-threaded Aqueduct Applications
 
@@ -112,7 +112,7 @@ For one-time, application-wide initialization tasks, you may add the following *
 
 ```dart
 class AppChannel extends ApplicationChannel {
-  static Future initializeApplication(ApplicationConfiguration config) async {
+  static Future initializeApplication(ApplicationOptions config) async {
     ... do one time setup ...
   }
 
@@ -120,25 +120,25 @@ class AppChannel extends ApplicationChannel {
 }
 ```
 
-This method is invoked before any `ApplicationChannel` instances are created. Any changes made to `config` will be available in each `ApplicationChannel`'s `configuration` property.
+This method is invoked before any `ApplicationChannel` instances are created. Any changes made to `config` will be available in each `ApplicationChannel`'s `options` property.
 
 For example:
 
 ```dart
 class AppChannel extends ApplicationChannel {
 
-  static Future initializeApplication(ApplicationConfiguration config) async {        
-    config.options["special item"] = "xyz";
+  static Future initializeApplication(ApplicationOptions config) async {        
+    config.context["special item"] = "xyz";
   }  
 
   Future prepare() async {
-    var parsedConfigValues = configuration.options["special item"]; // == xyz
+    var parsedConfigValues = options.context["special item"]; // == xyz
     ...
   }
 }
 ```
 
-It is important to note the behavior of isolates as it relates to Aqueduct and the initialization process. Each isolate has its own heap. `initializeApplication` is executed in the main isolate, whereas each `ApplicationChannel` is instantiated in its own isolate. This means that any values stored in `ApplicationConfiguration` must be safe to pass across isolates - i.e., they can't contain references to closures.
+It is important to note the behavior of isolates as it relates to Aqueduct and the initialization process. Each isolate has its own heap. `initializeApplication` is executed in the main isolate, whereas each `ApplicationChannel` is instantiated in its own isolate. This means that any values stored in `ApplicationOptions` must be safe to pass across isolates - i.e., they can't contain references to closures.
 
 Additionally, any global variables or static properties that are set in the main isolate *will not be set* in other isolates. Configuration types like `HTTPCodecRepository` do not share values across isolates, because they use a static property to hold a reference to the repository of codecs. Therefore, they must be set up in `ApplicationChannel.prepare()`.
 
@@ -187,4 +187,4 @@ An `Application<T>` is the top-level object in an Aqueduct application; it sets 
 
 The application's `start` method will initialize at least one instance of the application's `ApplicationChannel`. If something goes wrong during this initialization process, the application will throw an exception and halt starting the server. For example, setting up an invalid route in a `ApplicationChannel` subclass would trigger this type of startup exception.
 
-An `Application<T>` has a number of options that determine how it will listen for HTTP requests, such as which port it is listening on or the SSL certificate it will use. These values are available in the channel's `configuration` property, an instance of `ApplicationConfiguration`.
+An `Application<T>` has a number of options that determine how it will listen for HTTP requests, such as which port it is listening on or the SSL certificate it will use. These values are available in the channel's `options` property, an instance of `ApplicationOptions`.

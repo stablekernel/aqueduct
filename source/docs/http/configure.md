@@ -6,13 +6,13 @@ This guide covers configuring an Aqueduct application.
 
 Aqueduct applications use YAML configuration files to provide environment-specific values like database connection information. Use separate configuration files for testing and different deployment environments.
 
-The path of a configuration file is available at runtime via `ApplicationConfiguration.configurationFilePath` and is read in a `ApplicationChannel` constructor (and sometimes `ApplicationChannel.initializeApplication`).
+The path of a configuration file is available to an `ApplicationChannel` through its `options` property.
 
 ```dart
 class TodoAppChannel extends ApplicationChannel {
   @override
   Future prepare() async {
-    var config = new TodoConfiguration(configuration.configurationFilePath);
+    var config = new TodoConfiguration(options.configurationFilePath);
     ...
   }
 }
@@ -160,9 +160,9 @@ aqueduct serve --ssl-key-path server.key.pem --ssl-certificate-path server.cert.
 
 Both the key and certificate file must be unencrypted PEM files, and both must be provided to this command. These files are typically issued by a "Certificate Authority", such as [letsencrypt.org](letsencrypt.org).
 
-When an application is started with these options, the `certificateFilePath` and `keyFilePath` are set on the `ApplicationConfiguration` your application is being run with. (If you are not using `aqueduct serve`, you can set these values directly when instantiating `ApplicationConfiguration`.)
+When an application is started with these options, the `certificateFilePath` and `keyFilePath` are set on the `ApplicationOptions` your application is being run with. (If you are not using `aqueduct serve`, you can set these values directly when instantiating `ApplicationOptions`.)
 
-For more granular control over setting up an HTTPS server, you may override `securityContext` in `ApplicationChannel`. By default, this property will create a `SecurityContext` from the `certificateFilePath` and `keyFilePath` in the channels's `configuration`. A `SecurityContext` allows for password-encrypted credential files, configuring client certificates and other less used HTTPS schemes.
+For more granular control over setting up an HTTPS server, you may override `securityContext` in `ApplicationChannel`. By default, this property will create a `SecurityContext` from the `certificateFilePath` and `keyFilePath` in the channels's `options`. A `SecurityContext` allows for password-encrypted credential files, configuring client certificates and other less used HTTPS schemes.
 
 ```dart
 class MyApplicationChannel extends ApplicationChannel {

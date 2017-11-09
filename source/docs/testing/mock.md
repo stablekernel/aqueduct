@@ -96,9 +96,9 @@ class AppConfigurationItem extends ConfigurationItem {
 class AppApplicationChannel extends ApplicationChannel {
   @override
   Future prepare() async {
-    var configValues = new AppConfigurationItem(configuration.configurationFilePath);
+    var config = new AppConfigurationItem(options.configurationFilePath);
 
-    githubService = new GitHubService(baseURL: configValues.github.baseURL);
+    githubService = new GitHubService(baseURL: config.github.baseURL);
   }
 }
 ```

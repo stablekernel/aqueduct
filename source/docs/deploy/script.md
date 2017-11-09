@@ -18,11 +18,11 @@ import 'package:my_application/my_application.dart';
 main() async {
   try {
     var app = new Application<MyApplicationChannel>();
-    var config = new ApplicationConfiguration()
+    var options = new ApplicationOptions()
       ..port = 8081
       ..configurationFilePath = "config.yaml";
 
-    app.configuration = config;
+    app.options = options;
 
     await app.start(numberOfInstances: 3);    
   } catch (e, st) {

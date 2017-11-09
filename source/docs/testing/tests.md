@@ -26,8 +26,8 @@ class TestApplication {
   Future start() async {
     Controller.letUncaughtExceptionsEscape = true;
     application = new Application<AppChannel>();
-    application.configuration.port = 0;
-    application.configuration.configurationFilePath = "config.src.yaml";
+    application.options.port = 0;
+    application.options.configurationFilePath = "config.src.yaml";
 
     await application.test();
 
@@ -250,8 +250,8 @@ The test harness' primary responsibility is to start and stop the application. R
 Future start() async {
   Controller.letUncaughtExceptionsEscape = true;
   application = new Application<AppChannel>();
-  application.configuration.port = 0;
-  application.configuration.configurationFilePath = "config.src.yaml";
+  application.options.port = 0;
+  application.options.configurationFilePath = "config.src.yaml";
 
   await application.test();
 
@@ -297,8 +297,8 @@ This method should be invoked within `TestApplication.start`, right after the ap
 Future start() async {
   Controller.letUncaughtExceptionsEscape = true;
   application = new Application<FoobarChannel>();
-  application.configuration.port = 0;
-  application.configuration.configurationFilePath = "config.src.yaml";
+  application.options.port = 0;
+  application.options.configurationFilePath = "config.src.yaml";
 
   await application.test();
 

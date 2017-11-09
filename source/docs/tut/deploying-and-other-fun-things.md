@@ -42,7 +42,7 @@ class QuizConfig extends ConfigurationItem {
 Update `QuizSink`'s constructor to create its persistent store from configuration values:
 
 ```dart
-QuizSink(ApplicationConfiguration appConfig) : super(appConfig) {
+QuizSink(ApplicationOptions appConfig) : super(appConfig) {
   logger.onRecord.listen((rec) =>
     print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
   var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
