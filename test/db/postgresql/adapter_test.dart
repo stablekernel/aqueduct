@@ -137,7 +137,7 @@ void main() {
       await store.execute("SELECT 1");
       expect(store.isConnected, true);
 
-      await ServiceRegistry.defaultInstance.close();
+      await ApplicationServiceRegistry.defaultInstance.close();
 
       expect(store.isConnected, false);
     });

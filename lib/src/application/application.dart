@@ -6,7 +6,7 @@ import 'dart:mirrors';
 import 'package:logging/logging.dart';
 
 import '../http/http.dart';
-import '../utilities/resource_registry.dart';
+import 'service_registry.dart';
 import 'application_configuration.dart';
 import 'application_server.dart';
 import 'isolate_application_server.dart';
@@ -14,6 +14,7 @@ import 'isolate_supervisor.dart';
 
 export 'application_configuration.dart';
 export 'application_server.dart';
+export 'service_registry.dart';
 
 /// A container for web server applications.
 ///
@@ -148,7 +149,7 @@ class Application<T extends ApplicationChannel> {
     await Future.wait(supervisors.map((s) => s.stop()));
     await server?.server?.close(force: true);
 
-    await ServiceRegistry.defaultInstance.close();
+    await ApplicationServiceRegistry.defaultInstance.close();
     await _interruptSubscription?.cancel();
 
     _interruptSubscription = null;

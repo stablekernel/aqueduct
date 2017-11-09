@@ -274,7 +274,7 @@ class Handler extends RequestController {
   }
 
   @override
-  Future<RequestOrResponse> processRequest(Request req) async {
+  Future<RequestOrResponse> handle(Request req) async {
     return new Response(202, null, "$counter");
   }
 }

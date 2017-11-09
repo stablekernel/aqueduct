@@ -6,7 +6,7 @@ import 'package:logging/logging.dart';
 
 import '../http/http.dart';
 import 'application.dart';
-import '../utilities/resource_registry.dart';
+import 'package:aqueduct/src/application/service_registry.dart';
 
 /// Subclasses of this type initialize an application's routes and services.
 ///
@@ -135,7 +135,7 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
 
   /// Closes this instance.
   ///
-  /// Tell the channel that no further requests will be added, and it may release any resources it is using. Prefer using [ServiceRegistry]
+  /// Tell the channel that no further requests will be added, and it may release any resources it is using. Prefer using [ApplicationServiceRegistry]
   /// to overriding this method.
   ///
   /// If you do override this method, you must call the super implementation. The default behavior of this method removes

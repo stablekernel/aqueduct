@@ -9,7 +9,7 @@ import '../db/db.dart';
 
 /// The unifying protocol for [Request] and [Response] classes.
 ///
-/// A [RequestController] must return an instance of this type from its [RequestController.processRequest] method.
+/// A [RequestController] must return an instance of this type from its [RequestController.handle] method.
 abstract class RequestOrResponse {}
 
 typedef FutureOr<RequestOrResponse> _RequestControllerListener(Request request);
@@ -20,7 +20,7 @@ typedef FutureOr<RequestOrResponse> _RequestControllerListener(Request request);
 /// is set at startup in [ApplicationChannel.entryPoint] via [pipe], [generate], or [listen].
 ///
 /// This class is intended to be subclassed. [ApplicationChannel], [Router], [HTTPController] are all examples of this type.
-/// Subclasses should implement [processRequest] to respond to, modify or forward requests.
+/// Subclasses should implement [handle] to respond to, modify or forward requests.
 class RequestController extends Object with APIDocumentable {
   /// Default constructor.
   RequestController();
@@ -65,7 +65,7 @@ class RequestController extends Object with APIDocumentable {
 
   /// Sets the [nextController] that will receive a request after this one.
   ///
-  /// If this instance returns a [Request] from [processRequest], that request is passed to [next]'s [receive] method.
+  /// If this instance returns a [Request] from [handle], that request is passed to [next]'s [receive] method.
   ///
   /// See [listen] for a variant of this method that takes a closure instead of an object.
   ///
@@ -84,7 +84,7 @@ class RequestController extends Object with APIDocumentable {
 
   /// Sets the [nextController] that will receive a request after this one.
   ///
-  /// If this instance returns a [Request] from [processRequest], that request is passed to the instance created by [instantiator]'s [receive] method.
+  /// If this instance returns a [Request] from [handle], that request is passed to the instance created by [instantiator]'s [receive] method.
   /// This method differs from [pipe] in that [instantiator] creates a new instance for each HTTP request, whereas [pipe] reuses
   /// the same controller for reach request.
   ///
@@ -98,8 +98,8 @@ class RequestController extends Object with APIDocumentable {
 
   /// Sets the [nextController] that will receive a request after this one.
   ///
-  /// If this instance returns a [Request] from [processRequest], that request is passed to [process].
-  /// [process] is invoked in the same try-catch block as [processRequest].
+  /// If this instance returns a [Request] from [handle], that request is passed to [process].
+  /// [process] is invoked in the same try-catch block as [handle].
   ///
   /// See [pipe] and [generate] for variants of this methods that objects instead of closures.
   RequestController listen(FutureOr<RequestOrResponse> process(Request request)) {
@@ -138,7 +138,7 @@ class RequestController extends Object with APIDocumentable {
   /// Delivers [req] to this instance to be processed.
   ///
   /// This method is the entry point of a [Request] into this [RequestController].
-  /// By default, it invokes this controller's [processRequest] method within a try-catch block
+  /// By default, it invokes this controller's [handle] method within a try-catch block
   /// that guarantees an HTTP response will be sent for [Request].
   Future receive(Request req) async {
     if (req.isPreflightRequest) {
@@ -147,7 +147,7 @@ class RequestController extends Object with APIDocumentable {
 
     var result;
     try {
-      result = await processRequest(req);
+      result = await handle(req);
       if (result is Response) {
         await _sendResponse(req, result, includeCORSHeaders: true);
         logger.info(req.toDebugString());
@@ -179,7 +179,7 @@ class RequestController extends Object with APIDocumentable {
   ///
   /// If this method returns null, [req] is not passed to any other controller and is not responded to. You must respond to [req]
   /// through [Request.raw].
-  FutureOr<RequestOrResponse> processRequest(Request req) {
+  FutureOr<RequestOrResponse> handle(Request req) {
     if (_listener != null) {
       return _listener(req);
     }
@@ -198,7 +198,7 @@ class RequestController extends Object with APIDocumentable {
   ///
   /// This method is automatically invoked by [receive] and should rarely be invoked otherwise.
   ///
-  /// This method is invoked when an value is thrown inside an instance's [processRequest]. [request] is the [Request] being processed,
+  /// This method is invoked when an value is thrown inside an instance's [handle]. [request] is the [Request] being processed,
   /// [caughtValue] is the value that is thrown and [trace] is a [StackTrace] at the point of the throw.
   ///
   /// For unknown exceptions and errors, this method sends a 500 response for the request being processed. This ensures that any errors

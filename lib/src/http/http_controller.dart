@@ -154,7 +154,7 @@ abstract class HTTPController extends RequestController {
   }
 
   @override
-  Future<RequestOrResponse> processRequest(Request req) async {
+  Future<RequestOrResponse> handle(Request req) async {
     try {
       request = req;
 

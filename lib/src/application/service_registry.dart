@@ -14,20 +14,20 @@ import '../db/persistent_store/persistent_store.dart';
 /// and is automatically invoked by [Application.stop].
 ///
 /// Built-in Aqueduct types that open a stream, like [PersistentStore], automatically register themselves
-/// when instantiated. If you are unsure whether an object has been registered for shutdown, you may add it -
-/// multiple additions have no effect on the registry, as they will only be shutdown once.
-class ServiceRegistry {
-  static final ServiceRegistry defaultInstance = new ServiceRegistry();
+/// when instantiated. If you are unsure whether an object has already been registered, you may re-register it -
+/// multiple registrations have no effect.
+class ApplicationServiceRegistry {
+  static final ApplicationServiceRegistry defaultInstance = new ApplicationServiceRegistry();
 
-  static List<_ServiceRegistration> _registrations = [];
+  List<_ServiceRegistration> _registrations = [];
 
-  /// Adds an object to the registry, registered objects are closed when [close] is invoked.
+  /// Registers [object] to be closed when the application is stopped.
   ///
   /// When [close] is invoked on this instance, [onClose] will be invoked with [object] and [object] will be removed.
   /// This method returns [object]. This allows for concise registration and allocation:
   ///
   /// Example:
-  ///       ServiceRegistry.defaultInstance.register(
+  ///       var controller = ServiceRegistry.defaultInstance.register(
   ///         new StreamController(), (c) => c.close());
   ///
   /// If [object] has already been registered, this method does nothing and [onClose] will only be invoked once.
@@ -47,22 +47,12 @@ class ServiceRegistry {
   /// Closes all registered resources.
   ///
   /// Invokes the closing method for each object that has been [register]ed.
+  ///
+  /// Clears all objects from the registry.
   Future close() async {
     await Future.wait(_registrations.map((r) => r.close()));
     _registrations = [];
   }
-}
-
-@Deprecated("3.0; renamed to ServiceRegistry")
-class ResourceRegistry {
-  static T add<T>(T object, FutureOr onClose(T object)) =>
-      ServiceRegistry.defaultInstance.register(object, onClose);
-
-  static void remove(dynamic object) =>
-      ServiceRegistry.defaultInstance.unregister(object);
-
-  static Future release() =>
-      ServiceRegistry.defaultInstance.close();
 }
 
 typedef FutureOr _CloseFunction<T>(T object);

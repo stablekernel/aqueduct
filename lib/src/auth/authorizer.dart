@@ -74,7 +74,7 @@ class Authorizer extends RequestController {
   AuthStrategy strategy;
 
   @override
-  FutureOr<RequestOrResponse> processRequest(Request req) {
+  FutureOr<RequestOrResponse> handle(Request req) {
     var header = req.raw.headers.value(HttpHeaders.AUTHORIZATION);
     if (header == null) {
       return new Response.unauthorized();

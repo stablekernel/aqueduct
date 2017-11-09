@@ -4,7 +4,7 @@ import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
 
-import '../utilities/resource_registry.dart';
+import 'package:aqueduct/src/application/service_registry.dart';
 import 'application.dart';
 import 'application_configuration.dart';
 import 'isolate_supervisor.dart';
@@ -59,7 +59,7 @@ class ApplicationIsolateServer extends ApplicationServer {
     logger.fine("ApplicationIsolateServer($identifier) closing server");
     await close();
     logger.fine("ApplicationIsolateServer($identifier) did close server");
-    await ServiceRegistry.defaultInstance.close();
+    await ApplicationServiceRegistry.defaultInstance.close();
     logger.clearListeners();
     logger.fine("ApplicationIsolateServer($identifier) sending stop acknowledgement");
     supervisingApplicationPort.send(ApplicationIsolateSupervisor.MessageStop);
