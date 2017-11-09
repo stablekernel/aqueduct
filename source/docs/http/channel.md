@@ -38,7 +38,7 @@ class AppChannel extends ApplicationChannel {
 This method creates four controllers, the first being a `Router` which is returned from this method and is therefore the first controller to receive requests. Each call to `route`, `pipe`, and `generate` creates a new controller and links it to the previous. The linked controllers in order are:
 
 1. `Router`
-2. `RouteController` (created internally by `route`)
+2. `RouteController` (created internally by `route`; this class is opaque)
 3. `Authorizer` (added with `pipe`)
 4. `UserController` (added with `generate`)
 

@@ -1,4 +1,4 @@
-# 3. Executing Queries
+# 2. Executing Queries
 
 We will continue to build on the last chapter's project, `quiz`, by fetching questions from a database instead of a constant list in code.
 
@@ -254,7 +254,7 @@ In `question_controller.dart`, add the following operation method:
 @Bind.post()
 Future<Response> createQuestion(@HTTPBody() Question question) async {
   final query = new Query<Question>()
-    ..values.description = question.description;
+    ..values = question;
 
   final insertedQuestion = await query.insert();
 
@@ -266,10 +266,9 @@ There's a bit going on here, so let's deconstruct it. First, we know this operat
 
 1. The `@Bind.post()` metadata indicates this method responds to `POST`.
 2. We've routed both `/questions` and `/questions/:index` to this controller.
-2. There are no path variable bindings, so it is expected that path variable `index` is null, i.e. `/questions`.
+2. There are no path variable bindings, so the path variable `index` must be null, i.e. `/questions`.
 
-
-An instance of `Question` will be passed to us as an argument. Its `description` will be set to the value of a `description` key in the JSON request body. So, if we made the following request:
+An instance of `Question` will be passed to us as an argument. Its properties will be set to values from the JSON request body because of the `@HTTPBody()` binding. So, if we made the following request, the value of `question.description` would be `What is 10+10?` (its `index` would be `null`):
 
 ```
 POST /questions HTTP/1.1
@@ -280,159 +279,25 @@ Content-Type: application/json; charset=utf-8
 }
 ```
 
-The value of `question.description` in this method would be `What is 10+10?` (its `index` would be `null`). This value is set on the query `values`. Like `where`, `values` is an instance of the type being inserted. Any property set on it will be inserted into a new row. In our case, the `insert()` function executes the following SQL:
+The `Question` from the request body is then set as the `values` of the `Query<T>`. Like `where`, `values` is an instance of the type being inserted. In our case, the `insert()` function executes the following SQL:
 
 ```sql
 INSERT INTO _questions (description) VALUES ('What is 10+10?');
 ```
 
 !!! tip "Query Construction"
-    Properties like `values` and `where` prevent errors by type and name checking columns with the analyzer. They're also great for speeding up writing code because your IDE will autocomplete property names. There is [specific behavior](../db/advanced_queries.md) a query uses to decide whether it should include a value from these two properties in the SQL it generates.
+    Properties like `values` and `where` prevent errors by type and name checking columns with the analyzer. They're also great for speeding up development because your IDE will autocomplete property names. There is [specific behavior](../db/advanced_queries.md) a query uses to decide whether it should include a value from these two properties in the SQL it generates.
 
 
-
-Then, this method would add a new row to the `_Question` table; the value of its description column would be `What is 10+10?` and its index column would be the next auto-incremented integer.
-
-The body of this request will be available in the `question` argument because it is bound to the body of request. When an argument has `@HTTPBody()` binding - and it
-
-The `@HTTPBody()` binding will bind the body of the request to an instance of `Question`. We'll get passed that question as an argument to this method, where we assign its `description` to the `values.description` of the query.
-
-The `values` property of a `Query<T>` works similar to the `where` property in that it has the same properties of the type being queried; the difference is `values` are values to be stored in the database. When we execute the query's `insert()`, a new row gets created in the database with the values that have been assigned.
-
-The `insert()` method returns the `Question` from the database after it has been inserted, which we then return in the response body.
-
-
-
-
-
-
-The user, password and database name match those provided when creating our `ManagedContext` in `QuizSink`. This database will be used during testing. Before the tests run, the test harness will create tables for all of your entities in this database. After the tests complete, the tables will be deleted from this database. Therefore, this database should only be used for running tests.
-
-We must update our test harness to create these tables. In `test/harness/app.dart`, add the following method to `TestApplication`:
-
-```dart
-static Future createDatabaseSchema(ManagedContext context) async {
-  var builder = new SchemaBuilder.toSchema(
-      context.persistentStore, new Schema.fromDataModel(context.dataModel),
-      isTemporary: true);
-
-  for (var cmd in builder.commands) {
-    await context.persistentStore.execute(cmd);
-  }
-}
-```
-
-Then, in `TestApplication.start`, add the line that calls this method after `await application.start()`:
-
-```dart
-Future start() async {
-  RequestController.letUncaughtExceptionsEscape = true;
-  application = new Application<QuizSink>();
-  application.configuration.port = 0;
-  application.configuration.configurationFilePath = "config.src.yaml";
-
-  await application.test();
-
-  /* Add this line */
-  await createDatabaseSchema(sink.context);
-
-  client = new TestClient(application);
-}
-```
-
-Now when our tests in `question_controller_test.dart` go through their setup process, the SQL command to create the question table will be executed. The last thing left to do is populate this test database with questions during the test setup process. At the top of `question_controller_test.dart`, import `question.dart`:
-
-```dart
-import 'package:quiz/model/question.dart';
-```
-
-And then update the `setUpAll` method:
-
-```dart
-setUpAll(() async {
-  await app.start();
-
-  var questions = [
-    new Question()
-      ..description = "How much wood can a woodchuck chuck?",
-    new Question()
-      ..description = "What's the tallest mountain in the world?",
-  ];
-
-  await Future.forEach(questions, (q) {
-    var query = new Query<Question>()
-        ..values = q;
-    return query.insert();
-  });
-});
-```
-
-This inserts the two original questions as instances of `Question` into the database during setup. If we were to run our tests now, they would fail and the output would look like this:
-
-```
-Expected: --- HTTP Response ---
-          - Status code must be 200
-          - Headers can be anything
-          - Body after decoding must be:
-
-            (an object with length of a value greater than <0> and every element(a string ending with '?'))
-          ---------------------
-Actual: TestResponse:<-----------
-        - Status code is 200
-        - Headers are the following:
-          - content-encoding: gzip
-          - content-length: 124
-          - x-frame-options: SAMEORIGIN
-          - content-type: application/json; charset=utf-8
-          - x-xss-protection: 1; mode=block
-          - x-content-type-options: nosniff
-          - server: aqueduct/1
-        -------------------------
-        >
- Which: the body differs for the following reasons:
-        has value
-        {'index': 1, 'description': 'How much wood can a woodchuck chuck?'}
-          which
-        {'index': 1, 'description': 'How much wood can a woodchuck chuck?'}
-          not a string at index 0
-```
-
-Our tests currently verify that the response body contains a list of JSON strings that all end in `?`. However, now that we are returning a list of JSON objects that represent a question, each question has the following form:
-
-```json
-{
-  "index": 1,
-  "description": "How much wood can a woodchuck chuck?"
-}
-```
-
-We'll need to update our tests so that we're verifying that the *description* of a question object ends with `?`. Wrap the `endsWith("?")` matchers in the two tests that use them with `containsPair`.
-
-```dart
-test("/questions returns list of questions", () async {
-  expectResponse(
-    await app.client.request("/questions").get(),
-    200,
-    body: allOf([
-      hasLength(greaterThan(0)),
-      everyElement(containsPair("description", endsWith("?")))
-    ]));
-});
-
-test("/questions/index returns a single question", () async {
-  expectResponse(
-    await app.client.request("/questions/1").get(),
-    200,
-    body: containsPair("description", endsWith("?")));
-});
-```
-
-Run the tests again by right-clicking on the `main` function and selecting `Run`. They should all pass.
+Once the query's `insert()` is executed, this SQL command is run and the newly created row is returned as `insertedQuestion`. This instance contains a value for the generated primary key `index`, and is written to the response body that is returned for this request.
 
 The more you know: Query Parameters and HTTP Headers
 ---
 
-So far, we have bound HTTP method and path parameters to operation methods in `QuestionController`. You can also bind query parameters, headers and request bodies, too.
+So far, we have bound methods, bodies, and path variables to operation methods in `QuestionController`. You can also bind query parameters and headers, too.
+
+The operation method selected by an `HTTPController` subclass is determined by only the bound HTTP method and path variables. Other types of binding - body, query, and header - don't impact which operation method gets selected for an operation. If one of these three kinds of bindings is not available in a request, a 400 Bad Request response is sent and the method is not called. In practice, this means that you shouldn't have separate operation methods for different variations of body, query and header bindings. 
+
 
 We'll allow the `getAllQuestions` method to take a query parameter named `contains`. If this query parameter is part of the request, we'll filter the questions on whether or not that question contains some substring. In `question_controller.dart`, update this method by adding an optional parameter named `containsSubstring`:
 

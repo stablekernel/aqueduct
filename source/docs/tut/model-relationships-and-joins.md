@@ -1,4 +1,4 @@
-# 4. Advanced Database Queries 
+# 3. Advanced Database Queries 
 
 Managed objects can also have relationships to other managed objects. There are two types of relationships: to-one and to-many. Let's add an answer for each `Question` in the form of a to-one relationship. First, create a new file `lib/model/answer.dart` and define a new managed object to represent an answer:
 

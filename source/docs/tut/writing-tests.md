@@ -1,4 +1,4 @@
-# 2. Writing Tests
+# 4. Writing Tests
 
 One of the core principles of Aqueduct is effective testing. While opening up your browser and typing in a URL can verify the code you just wrote succeeds, it's not a very reliable way of testing software. We'll also run into trouble when testing endpoints that use HTTP methods other than GET. Therefore, there are some helpful utilities for writing tests in Aqueduct.
 
@@ -156,4 +156,4 @@ The `Expected:` value tells what was expected, the `Actual:` value tells you wha
 
 Remove `This is a statement.` from the list of questions and your tests will pass again.
 
-## [Next Chapter: Deployment](deployment-and-other-fun-things.md)
+## [Next Chapter: Deployment](deploying-and-other-fun-things.md)
