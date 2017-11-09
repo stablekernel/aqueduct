@@ -23,7 +23,7 @@ class Router extends Controller {
     policy.allowCredentials = false;
   }
 
-  List<_RouteController> _routeControllers = [];gi
+  List<_RouteController> _routeControllers = [];
   RouteNode _rootRouteNode;
   List<String> _basePathSegments = [];
   Function _unhandledRequestController;
