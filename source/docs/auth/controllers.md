@@ -1,6 +1,6 @@
 # Issue Access Tokens with AuthController
 
-An application using Aqueduct's Auth framework must have endpoints to exchange credentials for access tokens. While a developer could implement these endpoints themselves and talk directly to an `AuthServer`, the OAuth 2.0 specification is where happiness goes to die. Therefore, there exist two `RequestController`s in Aqueduct that handle granting and refreshing authorization tokens - `AuthController` and `AuthCodeController`.
+An application using Aqueduct's Auth framework must have endpoints to exchange credentials for access tokens. While a developer could implement these endpoints themselves and talk directly to an `AuthServer`, the OAuth 2.0 specification is where happiness goes to die. Therefore, there exist two `Controller`s in Aqueduct that handle granting and refreshing authorization tokens - `AuthController` and `AuthCodeController`.
 
 ### Issue, Refresh and Exchange Tokens with AuthController
 
@@ -10,7 +10,7 @@ Using an `AuthController` in an application is straightforward - hook it up to a
 
 ```dart
 @override
-RequestController get entryPoint {
+Controller get entryPoint {
   final router = new Router();
 
   router
@@ -78,7 +78,7 @@ If an Aqueduct application is using scope, an additional `scope` parameter can c
 
 It is important that an `Authorizer` *must not* protect instances of `AuthController`. The Authorization header is parsed and verified by `AuthController`.
 
-Once granted, an access token can be used to pass `Authorizer.bearer()`s in the request controller channel.
+Once granted, an access token can be used to pass `Authorizer.bearer()`s in the application channel.
 
 ### Issue Authorization Codes with AuthCodeController
 
@@ -96,7 +96,7 @@ Setting up an `AuthCodeController` is nearly as simple as setting up an `AuthCon
 
 ```dart
 @override
-RequestController get entryPoint {
+Controller get entryPoint {
   final router = new Router();
 
   router

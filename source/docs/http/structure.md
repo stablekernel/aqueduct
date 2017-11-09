@@ -1,19 +1,19 @@
 # Aqueduct Application Architecture
 
-The building blocks of an Aqueduct application are instances of `RequestController`. A `RequestController` is the only thing that can respond to HTTP requests. The logic for an application is written in the methods of this type and its subclasses.
+The building blocks of an Aqueduct application are instances of `Controller`. A `Controller` is the only thing that can respond to HTTP requests. The logic for an application is written in the methods of this type and its subclasses.
 
-Request controllers are linked together to create an *application channel*. An application channel is a series of request controllers that a request flows through to be verified and fulfilled.
+Controllers are linked together to create an *application channel*. An application channel is a series of controllers that a request flows through to be verified and fulfilled.
 
 ![Structure](../img/structure.png)
 
-An application channel always starts at an instance of `ApplicationChannel` (a subclass of `RequestController`). When an application receives an HTTP request, it adds it to the `ApplicationChannel`. A `ApplicationChannel` has a `Router` (also a subclass of `RequestController`) that splits the channel based on the path of the request. For example, a request with the path `/users` will go down one part of the channel, while a `/things` request will go down another.
+An application channel always starts at an instance of `ApplicationChannel` (a subclass of `Controller`). When an application receives an HTTP request, it adds it to the `ApplicationChannel`. A `ApplicationChannel` has a `Router` (also a subclass of `Controller`) that splits the channel based on the path of the request. For example, a request with the path `/users` will go down one part of the channel, while a `/things` request will go down another.
 
 An application has exactly one `ApplicationChannel` subclass; it must implement the `entryPoint` method. For example, the diagram above looks like this in code:
 
 ```dart
 class AppChannel extends ApplicationChannel {
   @override
-  RequestController get entry {
+  Controller get entry {
     final router = new Router();
 
     router
@@ -35,9 +35,9 @@ class AppChannel extends ApplicationChannel {
 }
 ```
 
-In the above code, all of the objects created are instances of a `RequestController` subclass. Each of these controllers can either respond to the request, or send it to the next controller in the channel. For example, an `Authorizer` will respond with a 401 Unauthorized response if a request's authorization isn't valid - but if it is valid, the request is passed to the next controller in the channel.
+In the above code, all of the objects created are instances of a `Controller` subclass. Each of these controllers can either respond to the request, or send it to the next controller in the channel. For example, an `Authorizer` will respond with a 401 Unauthorized response if a request's authorization isn't valid - but if it is valid, the request is passed to the next controller in the channel.
 
-For more details on the object that handles requests, see [Request Controllers](request_controller.md).
+For more details on the object that handles requests, see [Controllers](controller.md).
 
 ## Aqueduct Project Structure and Organization
 
@@ -75,7 +75,7 @@ The required `pubspec.yaml` and `lib/application_name.dart` files are present al
 - `config.yaml`: A [configuration file](configure.md) for the running application.
 - `config.src.yaml`: A [template for config.yaml](configure.md).
 - `channel.dart`: A file solely for the `ApplicationChannel` of an application. This file should be *exported* from `application_name.dart`.
-- `controller/`: A directory for `RequestController` subclass files.
+- `controller/`: A directory for `Controller` subclass files.
 - `model/`: A directory for `ManagedObject<T>` subclass files.
 - `test/harness/app.dart`: A [test harness](../testing/tests.md)) for automated testing.
 
@@ -83,13 +83,13 @@ Feel free to create other subdirectories in `lib/` for organizing other types of
 
 ## Aqueduct and dart:io
 
-Aqueduct runs on top of `dart:io` and relies on its `HttpServer` implementation. When an Aqueduct application is started, one or more `HttpServer` instances are bound to the port specified by `aqueduct serve`. For each HTTP request, an instance of `Request` is created to wrap the `HttpRequest` from `dart:io`. The `Request` is added to a `ApplicationChannel`, sending it through the channel of `RequestController`s until it is responded to.
+Aqueduct runs on top of `dart:io` and relies on its `HttpServer` implementation. When an Aqueduct application is started, one or more `HttpServer` instances are bound to the port specified by `aqueduct serve`. For each HTTP request, an instance of `Request` is created to wrap the `HttpRequest` from `dart:io`. The `Request` is added to a `ApplicationChannel`, sending it through the channel of `Controller`s until it is responded to.
 
-In rare circumstances, you may choose to remove a `Request` from the application channel and manipulate the request with `dart:io` only. Once removed, it is your responsibility to respond to the request by setting properties on and closing the `HttpRequest.response`. To take a request out of the channel, simply return `null` from a `RequestController`:
+In rare circumstances, you may choose to remove a `Request` from the application channel and manipulate the request with `dart:io` only. Once removed, it is your responsibility to respond to the request by setting properties on and closing the `HttpRequest.response`. To take a request out of the channel, simply return `null` from a `Controller`:
 
 ```dart
 @override
-RequestController get entryPoint {
+Controller get entryPoint {
   final router = new Router();
 
   router
@@ -104,7 +104,5 @@ RequestController get entryPoint {
   return router;
 }
 ```
-
-(In Aqueduct 2.2.1 and below, a `RequestController` that removes a request from the channel in this way must be the last request controller in the channel.)
 
 This technique is valuable when Aqueduct can't do something you want it to do or when using [websockets](websockets.md).

@@ -24,7 +24,7 @@ class TestApplication {
   TestClient client;
 
   Future start() async {
-    RequestController.letUncaughtExceptionsEscape = true;
+    Controller.letUncaughtExceptionsEscape = true;
     application = new Application<AppChannel>();
     application.configuration.port = 0;
     application.configuration.configurationFilePath = "config.src.yaml";
@@ -222,7 +222,7 @@ See the [API Reference](https://www.dartdocs.org/documentation/aqueduct/latest/a
 
 Some requests will trigger changes that are not readily available in the response. For example, if a request uploads a file, the response doesn't necessarily tell you that uploading succeeded. For that reason, you may want to verify data stores and other services the application has after issuing a request.
 
-Recall from the test harness at the top of this guide, the method `Application.test` is invoked. This method starts the application, but turns off Aqueduct's multi-isolate behavior and runs the application on the same isolate running your tests. When running on the main isolate, the application's request channel and services are directly available to the test code. This allows you to verify any expected side-effects of a request. For example, by executing a query against a database:
+Recall from the test harness at the top of this guide, the method `Application.test` is invoked. This method starts the application, but turns off Aqueduct's multi-isolate behavior and runs the application on the same isolate running your tests. When running on the main isolate, the application's channel and services are directly available to the test code. This allows you to verify any expected side-effects of a request. For example, by executing a query against a database:
 
 ```dart
 test("Starting an upload creates a pending record in the database", () async {
@@ -248,7 +248,7 @@ The test harness' primary responsibility is to start and stop the application. R
 
 ```dart
 Future start() async {
-  RequestController.letUncaughtExceptionsEscape = true;
+  Controller.letUncaughtExceptionsEscape = true;
   application = new Application<AppChannel>();
   application.configuration.port = 0;
   application.configuration.configurationFilePath = "config.src.yaml";
@@ -259,7 +259,7 @@ Future start() async {
 }
 ```
 
-There are some interesting things to note here. First, the setting of `RequestController.letUncaughtExceptionsEscape`. This property defaults to false - if an unknown exception is thrown in request handling code, the `RequestController` catches it and send a 500 Server Error response to the client. This is an important behavior for a deployed Aqueduct application - the client gets back a response and your application continues running.
+There are some interesting things to note here. First, the setting of `Controller.letUncaughtExceptionsEscape`. This property defaults to false - if an unknown exception is thrown in request handling code, the `Controller` catches it and send a 500 Server Error response to the client. This is an important behavior for a deployed Aqueduct application - the client gets back a response and your application continues running.
 
 However, when this flag is set to true, an uncaught exception will halt the application and fail the tests. This is the behavior you want during testing - it tells you something is wrong and gives you a stack trace to hunt down the problem.
 
@@ -295,7 +295,7 @@ This method should be invoked within `TestApplication.start`, right after the ap
 
 ```dart
 Future start() async {
-  RequestController.letUncaughtExceptionsEscape = true;
+  Controller.letUncaughtExceptionsEscape = true;
   application = new Application<FoobarChannel>();
   application.configuration.port = 0;
   application.configuration.configurationFilePath = "config.src.yaml";

@@ -10,7 +10,7 @@ More generally, the "About" page URL has the three required components of a URL:
 
 An Aqueduct application receives requests when the scheme is `http` (or `https`) and the host refers to a machine where the application is running. Therefore, once the application gets the request, it only cares about the remaining component: the path.
 
-In Aqueduct, a `Router` routes `Request`s to a `RequestController` based on the request path. This process is known as *routing*. When an application starts up, routes are registered in a subclass of `ApplicationChannel`. Each registered route creates a new [channel](structure.md) of `RequestController`s that the request will be passed through.
+In Aqueduct, a `Router` routes `Request`s to a `Controller` based on the request path. This process is known as *routing*. When an application starts up, routes are registered in a subclass of `ApplicationChannel`. Each registered route creates a new [channel](structure.md) of `Controller`s that the request will be passed through.
 
 ## Route Specifications Match HTTP Request Paths
 
@@ -19,7 +19,7 @@ A route is registered by invoking `Router.route`. This method takes a *route spe
 ```dart
 class MyApplicationChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     router
@@ -56,7 +56,7 @@ route("/users/[:userID]")
 route("/users[/:userID]")
 ```
 
-Conceptually, a request with a path of `/users/1` identifies a single user, where `/users` identifies all users. Optional segments are used to create better code structure by forwarding requests that deal with a specific type of resource to the same request controller. Therefore, the code to handle one user or multiple users is written in the same place.
+Conceptually, a request with a path of `/users/1` identifies a single user, where `/users` identifies all users. Optional segments are used to create better code structure by forwarding requests that deal with a specific type of resource to the same controller. Therefore, the code to handle one user or multiple users is written in the same place.
 
 You may have any number of optional segments in a route specification. Each optional segment must be nested. The following route would match `/a`, `/a/b` and `/a/b/c`. It would not match `/a/c`.
 
@@ -115,10 +115,10 @@ var identifier = request.path.variables["id"];
 // identifier = "1"
 ```
 
-The values in `variables` are always `String`s, since a request path is a `String`. `RequestController`s may parse path variables into types like `int`.
+The values in `variables` are always `String`s, since a request path is a `String`. `Controller`s may parse path variables into types like `int`.
 
-[HTTPController](http_controller.md) uses path variables to select a operation method to handle a request.
+[RESTController](rest_controller.md) uses path variables to select a operation method to handle a request.
 
 ## Failed Matches Return 404
 
-A `Router` will return a `Response.notFound` - a response with status code 404 - if it receives a request that no route is registered for. The router will not send this request downstream to further listeners. This behavior may be overridden by providing a closure to `Router.unhandledRequestController` to provide a 404 HTML page if the request allows it.
+A `Router` will return a `Response.notFound` - a response with status code 404 - if it receives a request that no route is registered for. The router will not send this request downstream to further listeners. This behavior may be overridden by providing a closure to `Router.unhandledController` to provide a 404 HTML page if the request allows it.

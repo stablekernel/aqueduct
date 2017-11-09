@@ -5,7 +5,7 @@
 ```dart
 class AppApplicationChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router.route("/hello_world").listen((request) async {
       return new Response.ok("Hello, world!")
@@ -21,7 +21,7 @@ class AppApplicationChannel extends ApplicationChannel {
 ```dart
 class AppApplicationChannel extends ApplicationChannel {  
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router.route("/variable/[:variable]").listen((request) async {
       return new Response.ok({
@@ -39,7 +39,7 @@ class AppApplicationChannel extends ApplicationChannel {
 ```dart
 class AppApplicationChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router
       .route("/users/[:id]")
@@ -48,7 +48,7 @@ class AppApplicationChannel extends ApplicationChannel {
   }
 }
 
-class Controller extends HTTPController {
+class Controller extends RESTController {
   final List<String> things = const ["thing1", "thing2"];
 
   @Bind.get()
@@ -71,7 +71,7 @@ class Controller extends HTTPController {
 ```dart
 class AppApplicationChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router
       .route("/rate_limit")
@@ -83,7 +83,7 @@ class AppApplicationChannel extends ApplicationChannel {
   }
 }
 
-class RateLimiter extends RequestController {
+class RateLimiter extends Controller {
   @override
   Future<RequestOrResponse> handle(Request request) async {
     var apiKey = request.raw.headers.value("x-apikey");
@@ -113,7 +113,7 @@ class AppApplicationChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     router.route("/things").listen((request) async {
@@ -130,7 +130,7 @@ class AppApplicationChannel extends ApplicationChannel {
 ```dart
 class AppApplicationChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     final fileController = new HTTPFileController("web")
@@ -161,7 +161,7 @@ class AppChannel extends ApplicationChannel {
   final StreamController<String> controller = new StreamController<String>();  
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     router.route("/stream").listen((req) async {
@@ -190,7 +190,7 @@ class AppApplicationChannel extends ApplicationChannel {
   List<WebSocket> websockets = [];
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     // Allow websocket clients to connect to ws://host/connect
@@ -236,7 +236,7 @@ class AppApplicationChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     router.route("/csv").listen((req) async {
@@ -256,7 +256,7 @@ class AppApplicationChannel extends ApplicationChannel {
 ```dart
 class AppApplicationChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     router.route("/proxy/*").listen((req) async {

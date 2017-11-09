@@ -24,7 +24,7 @@ A useful feature to turn on during debugging is sending stack traces for 500 Ser
 class MyApplicationChannel extends ApplicationChannel {
   @override
   Future prepare() async {
-    RequestController.includeErrorDetailsInServerErrorResponses = true;
+    Controller.includeErrorDetailsInServerErrorResponses = true;
   }
   ...
 }

@@ -22,7 +22,7 @@ The only requirement of an Aqueduct application is that it has exactly one `Appl
 ```dart
 class AppChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     router
@@ -47,7 +47,7 @@ In this example, a router will let requests with the path `/users` go to a `Rout
 The first three controllers are middleware and `UserController` is an endpoint controller. If the request path were not `/users`, the router would respond with 404 Not Found. The request would never get sent to the `RouteController`, nor any of the other controllers after it. If the request were not authorized - but the path was `/users` - the `Authorizer` would respond with 401 Unauthorized and the `UserController` will never see it.
 
 !!! tip "route, pipe, generate and listen"
-    There are four channel construction methods. They all create and link controllers together, but they have slightly different behavior. This behavior is covered in [this guide](request_controller.md).
+    There are four channel construction methods. They all create and link controllers together, but they have slightly different behavior. This behavior is covered in [this guide](controller.md).
 
 ## Providing Services for Controllers
 
@@ -65,7 +65,7 @@ class AppChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     router

@@ -1,6 +1,6 @@
 # Request and Response Objects
 
-In Aqueduct, HTTP requests and responses are instances of `Request` and `Response`, respectively. For every HTTP request an application receives, an instance of `Request` is created. A `Response` must be created for each `Request`. Requests pass through a channel of [RequestControllers](request_controller.md) to be validated, modified and finally responded to.
+In Aqueduct, HTTP requests and responses are instances of `Request` and `Response`, respectively. For every HTTP request an application receives, an instance of `Request` is created. A `Response` must be created for each `Request`. Requests pass through a channel of [Controllers](controller.md) to be validated, modified and finally responded to.
 
 ## The Request Object
 
@@ -8,11 +8,11 @@ An instance of `Request` represents an HTTP request. They are automatically crea
 
 A `Request` has a `body` property. This property decodes the HTTP request body into Dart objects based on the request's content type. The mechanism to decode the body is determined by `HTTPCodecRepository`, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data. The size of a request body is limited to 10MB by default and can be changed by setting the value of `HTTPRequestBody.maxSize` during application initialization.
 
-A `Request` may go through many `RequestController`s before it is finally responded to. These `RequestController`s may validate or add more information to the request as it passes through. For example, an `Authorizer` - a subclass of `RequestController` - will validate the Authorization header of a request. Once validated, it will add authorization info to the request - like the user for an OAuth 2.0 bearer token - and pass it to the next `RequestController`. The next controller in the channel has access to the authorization info without having to fetch the information again.
+A `Request` may go through many `Controller`s before it is finally responded to. These `Controller`s may validate or add more information to the request as it passes through. For example, an `Authorizer` - a subclass of `Controller` - will validate the Authorization header of a request. Once validated, it will add authorization info to the request - like the user for an OAuth 2.0 bearer token - and pass it to the next `Controller`. The next controller in the channel has access to the authorization info without having to fetch the information again.
 
 These additional values are added to a `Request`'s `attachments` property. A `Request` also has two built-in attachments, `authorization` and `path`. `authorization` contains authorization information created by an `Authorizer` and `path` has request path information created by a `Router`.
 
-`Request`s are responded to by returning an instance of `Response` from a `RequestController` (see [RequestControllers](request_controller.md)). Controllers that don't create the eventual response can still modify that response by invoking `addResponseModifier`.
+`Request`s are responded to by returning an instance of `Response` from a `Controller` (see [Controllers](controller.md)). Controllers that don't create the eventual response can still modify that response by invoking `addResponseModifier`.
 
 ## Response Objects and HTTP Body Encoding
 
@@ -22,7 +22,7 @@ An instance of `Response` has a status code, HTTP headers and an HTTP body. Ther
 var response = new Response.ok({"key": "value"});
 ```
 
-When a `Response` is returned from a request controller, Aqueduct handles sending the HTTP response back to the client.
+When a `Response` is returned from a controller, Aqueduct handles sending the HTTP response back to the client.
 
 An HTTP response often contains a *body*. For example, the body in response to `GET /users/1` might be JSON object that represents a user. To ensure the client understands that the body is a JSON object, it includes the header `Content-Type: application/json; charset=utf-8`.
 

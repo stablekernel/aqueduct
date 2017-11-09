@@ -112,7 +112,7 @@ await connection.open();
 
 ## Configuring CORS Headers
 
-All request controllers have built-in behavior for handling CORS requests from a browser. When a preflight request is received from a browser (an OPTIONS request with Access-Control-Request-Method header and Origin headers), the response is created by evaluating the policy of the `RequestController` that will respond to the real request.
+All controllers have built-in behavior for handling CORS requests from a browser. When a preflight request is received from a browser (an OPTIONS request with Access-Control-Request-Method header and Origin headers), the response is created by evaluating the policy of the `Controller` that will respond to the real request.
 
 In practice, this means that the policy of the last controller in a channel is used. For example, the policy of `FooController` is generates the preflight response:
 
@@ -123,7 +123,7 @@ router
   .generate(() => new FooController());
 ```
 
-Every `RequestController` has a `policy` property (a `CORSPolicy` instance). The `policy` has properties for configuring CORS options for that particular endpoint. By having a `policy`, every `RequestController` automatically implements logic to respond to preflight requests without any additional code.
+Every `Controller` has a `policy` property (a `CORSPolicy` instance). The `policy` has properties for configuring CORS options for that particular endpoint. By having a `policy`, every `Controller` automatically implements logic to respond to preflight requests without any additional code.
 
 Policies can be set at the controller level or at the application level. The static property `CORSPolicy.defaultPolicy` can be modified at initialization time to set the CORS options for every controller.
 
@@ -141,8 +141,8 @@ The default policy is very permissive: POST, PUT, DELETE and GET are allowed met
 Each individual controller can override or replace the default policy by modifying its own `policy` in its constructor.
 
 ```dart
-class MyHTTPController extends HTTPController {
-  MyHTTPController() {
+class MyRESTController extends RESTController {
+  MyRESTController() {
     policy.allowedMethods = ["POST"];
   }
 }

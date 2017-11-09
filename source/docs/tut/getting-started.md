@@ -50,7 +50,7 @@ Create a new file in `lib/controller/question_controller.dart` and add the follo
 ```dart
 import '../quiz.dart';
 
-class QuestionController extends HTTPController {
+class QuestionController extends RESTController {
   final List<String> questions = [
     "How much wood can a woodchuck chuck?",
     "What's the tallest mountain in the world?"
@@ -69,7 +69,7 @@ A method with this behavior is called an *operation method*. An operation is the
 
 An operation method is invoked to handle a specific operation. For a method to be an operation method, it must meet the following criteria:
 
-- It's declared in an `HTTPController` subclass.
+- It's declared in an `RESTController` subclass.
 - It returns a `Future<Response>`.
 - It has an annotation that indicates the HTTP method it handles, e.g. `@Bind.get()`.
 
@@ -91,7 +91,7 @@ Open `channel.dart` and take a look at `QuizChannel.entryPoint`:
 
 ```dart
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     router
@@ -116,7 +116,7 @@ Then, modify `QuizChannel.entryPoint` by adding a new route that an instance of 
 
 ```dart
 @override
-RequestController get entryPoint {
+Controller get entryPoint {
   final router = new Router();
 
   router
@@ -165,7 +165,7 @@ When we make a request for `GET /questions`, the router is the first to receive 
 
 
 !!! tip "Why a new instance?"
-    `HTTPController`s have a lot of internal steps, so they need to temporarily store information about the request during those steps. This information gets stored in properties of the controller. Some of these internal steps are asynchronous; if a new request comes in while we're in the middle of handling another, the properties will be changes to the values for the new request. Generating prevents this by creating a new controller for each request. To re-use the same instance, `pipe` is used.  See [this guide](../http/request_controller.md) for more details on channel construction.
+    `RESTController`s have a lot of internal steps, so they need to temporarily store information about the request during those steps. This information gets stored in properties of the controller. Some of these internal steps are asynchronous; if a new request comes in while we're in the middle of handling another, the properties will be changes to the values for the new request. Generating prevents this by creating a new controller for each request. To re-use the same instance, `pipe` is used.  See [this guide](../http/controller.md) for more details on channel construction.
 
 !!! tip
     Constructing the channel should look familiar to to using higher-ordered functions like `map` and `where` on `List`s and `Stream`s.
@@ -185,7 +185,7 @@ Modify the route in `entryPoint` add an optional `index` route variable to `/que
 
 ```dart
 @override
-RequestController get entryPoint {
+Controller get entryPoint {
   final router = new Router();
 
   router
@@ -205,7 +205,7 @@ RequestController get entryPoint {
 Recall that `getAllQuestions()` is the operation method for "getting all the questions"; it runs when the operation is `GET /questions`. There is not an operation method for "get a single question at an index", that is, when the operation is `GET /questions/:index`. Therefore, we must create a new operation method in `QuestionController`:
 
 ```dart
-class QuestionController extends HTTPController {
+class QuestionController extends RESTController {
   final List<String> questions = [
     "How much wood can a woodchuck chuck?",
     "What's the tallest mountain in the world?"
@@ -238,22 +238,22 @@ Then, enter `http://localhost:8081/questions/0` and you'll get "How much wood ca
 
 ## Request Binding
 
-An `HTTPController` picks an operation method if both of the following are true:
+An `RESTController` picks an operation method if both of the following are true:
 
 1. The bound HTTP method matches the incoming request method (e.g., `@Bind.get()` and `GET`)
 2. The incoming request path has a value for each argument bound with `Bind.path`.
 
 When the request is `GET /questions/:index`, the `index` path variable has a value. Since `getQuestionAtIndex(index)` has an argument that is bound to this path variable, it will be called. When the request is `GET /questions`, the path variable `index` is missing. The method `getAllQuestions()` binds no path variables, so it will be called.
 
-This binding behavior is specific to `HTTPController`. In addition to path variables, you can bind headers, query parameters and bodies. Check out [HTTPControllers](../http/http_controller.md) for more details.
+This binding behavior is specific to `RESTController`. In addition to path variables, you can bind headers, query parameters and bodies. Check out [RESTControllers](../http/rest_controller.md) for more details.
 
 The More You Know: Multi-threading and Application State
 ---
 In this simple exercise, we used a constant list of question as the source of data for the questions endpoint. For a simple getting-your-feet-wet demo, this is fine.
 
-However, in a real application, it is important that we don't keep any mutable state in a `ApplicationChannel` or any `RequestController`s. This is for three reasons. First, it's just bad practice - web servers should be stateless. They are facilitators between a client and a repository of data, not a repository of data themselves. A repository of data is typically a database.
+However, in a real application, it is important that we don't keep any mutable state in a `ApplicationChannel` or any `Controller`s. This is for three reasons. First, it's just bad practice - web servers should be stateless. They are facilitators between a client and a repository of data, not a repository of data themselves. A repository of data is typically a database.
 
-Second, the way Aqueduct applications are structured makes it intentionally difficult to keep state. For example, `HTTPController` is instantiated each time a new request comes in. Any state they have is discarded after the request is finished processing. This is intentional - you won't run into an issue when scaling to multiple server instances in the future, because the code is already structured to be stateless.
+Second, the way Aqueduct applications are structured makes it intentionally difficult to keep state. For example, `RESTController` is instantiated each time a new request comes in. Any state they have is discarded after the request is finished processing. This is intentional - you won't run into an issue when scaling to multiple server instances in the future, because the code is already structured to be stateless.
 
 Finally, Aqueduct applications are set up to run on multiple isolates. An isolate is effectively a thread that shares no memory with other threads. If we were to keep track of state in some way, that state would not be reflected across all of the isolates running on this web server. So depending on which isolate grabbed a request, it may have different state than you might expect. Again, Aqueduct forces you into this model on purpose.
 

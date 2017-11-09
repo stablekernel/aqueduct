@@ -5,7 +5,7 @@ Aqueduct has types to manage authentication and authorization according to the [
 - Creating `AuthServer` instances to enable OAuth 2.0 in an Aqueduct application
 - Using `ManagedAuthStorage<T>` to manage storage of authorization objects, e.g. storing tokens in a database.
 - Using `AuthCodeController` and `AuthController` to expose endpoints for exchanging credentials for authorization tokens.
-- Adding `Authorizer`s to a request channel to allow only authorized requests.
+- Adding `Authorizer`s to a channel to allow only authorized requests.
 - Managing OAuth 2.0 Client identifiers, secrets and scopes with the `aqueduct auth` tool
 
 ![Authorization Objects](../img/authobjects.png)

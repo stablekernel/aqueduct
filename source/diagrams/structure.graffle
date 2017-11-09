@@ -404,7 +404,7 @@
 {\*\expandedcolortbl;;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs30 \cf1 HTTPController}</string>
+\f0\fs30 \cf1 RESTController}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -472,7 +472,7 @@
 {\*\expandedcolortbl;;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs30 \cf1 HTTPController}</string>
+\f0\fs30 \cf1 RESTController}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -676,7 +676,7 @@
 {\*\expandedcolortbl;;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs30 \cf1 HTTPController}</string>
+\f0\fs30 \cf1 RESTController}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>

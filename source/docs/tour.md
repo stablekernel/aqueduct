@@ -30,7 +30,7 @@ class AppApplicationChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router
       .route("/resource/[:id]")
@@ -46,7 +46,7 @@ A [router](http/routing.md) splits a channel into sub-channels based on the path
 
 ```dart
 @override
-RequestController get entryPoint {
+Controller get entryPoint {
   final router = new Router();
 
   router
@@ -67,14 +67,14 @@ RequestController get entryPoint {
 
 ### Controllers
 
-[HTTPController](http/http_controller.md) are the controller that most often fulfill a request. An `HTTPController` subclass handles all operations for resource, e.g. `POST /users`, `GET /users` and `GET /users/1`.
+[RESTController](http/rest_controller.md) are the controller that most often fulfill a request. An `RESTController` subclass handles all operations for resource, e.g. `POST /users`, `GET /users` and `GET /users/1`.
 
 Subclasses implement a *operation method* for each operation:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart'
 
-class ResourceController extends HTTPController {
+class ResourceController extends RESTController {
   @Bind.get()
   Future<Response> getAllResources() async {
     return new Response.ok(await fetchResources());
@@ -96,7 +96,7 @@ class ResourceController extends HTTPController {
 Properties of the request are bound to operation method arguments and controller properties:
 
 ```dart
-class ResourceController extends HTTPController {
+class ResourceController extends RESTController {
   @Bind.get()
   Future<Response> getAllResources(
       @Bind.header("x-request-id") String requestID,
@@ -112,7 +112,7 @@ class ResourceController extends HTTPController {
 }
 ```
 
-`ManagedObjectController<T>`s are `HTTPController`s that automatically map a REST interface to database queries:
+`ManagedObjectController<T>`s are `RESTController`s that automatically map a REST interface to database queries:
 
 ```dart
 router
@@ -120,10 +120,10 @@ router
   .generate(() => new ManagedObjectController<User>());
 ```
 
-`RequestController` is the base class for all controllers that form a channel. They only have a single method to handle the request, and must either return the request or a response. When a request controller returns a response, the request is taken out of the channel.
+`Controller` is the base class for all controllers that form a channel. They only have a single method to handle the request, and must either return the request or a response. When a controller returns a response, the request is taken out of the channel.
 
 ```dart
-class VerifyingController extends RequestController {
+class VerifyingController extends Controller {
   @override
   Future<RequestOrResponse> handle(Request request) async {
     if (request.raw.headers.value("x-secret-key") == "secret!") {
@@ -202,7 +202,7 @@ Database operations are built and executed with instances of `Query<T>`.
 ```dart
 import 'package:aqueduct/aqueduct.dart'
 
-class ResourceController extends HTTPController {
+class ResourceController extends RESTController {
   @Bind.get()
   Future<Response> getAllResources() async {
     var query = new Query<Resource>();
@@ -294,7 +294,7 @@ class _Initiative {
 `ManagedObject<T>`s are easily read from and written to JSON (or any other format):
 
 ```dart
-class UserController extends HTTPController {
+class UserController extends RESTController {
   @Bind.put()
   Future<Response> updateUser(@Bind.path("id") int id, @Bind.body() User user) async {
     var query = new Query<User>()
@@ -340,7 +340,7 @@ class AppApplicationChannel extends ApplicationChannel {
 Set up routes to exchange credentials for tokens using `AuthController` and `AuthCodeController`. Add `Authorizer`s between routes and their controller to restrict access to authorized resource owners only:
 
 ```dart
-RequestController get entryPoint {
+Controller get entryPoint {
   final router = new Router();
   router
     .route("/auth/token")

@@ -73,7 +73,7 @@ class QuizChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     ...
 ```
 
@@ -97,7 +97,7 @@ The analyzer should tell us we have an error in our `channel.dart` file; the con
 
 ```dart
 @override
-RequestController get entryPoint {
+Controller get entryPoint {
   final router = new Router();
 
   router
@@ -127,7 +127,7 @@ Let's start by replacing `getAllQuestions` in `question_controller.dart`. Make s
 import '../quiz.dart';
 import '../model/question.dart';
 
-class QuestionController extends HttpController {
+class QuestionController extends RESTController {
   QuestionController(this.context);
 
   ManagedContext context;
@@ -391,7 +391,7 @@ The more you know: Query Parameters and HTTP Headers
 
 So far, we have bound methods, bodies, and path variables to operation methods in `QuestionController`. You can also bind query parameters and headers, too.
 
-The operation method selected by an `HTTPController` subclass is determined by only the bound HTTP method and path variables. Other types of binding - body, query, and header - don't impact which operation method gets selected for an operation. If one of these three kinds of bindings is not available in a request, a 400 Bad Request response is sent and the method is not called. In practice, this means that you shouldn't have separate operation methods for different variations of body, query and header bindings.
+The operation method selected by an `RESTController` subclass is determined by only the bound HTTP method and path variables. Other types of binding - body, query, and header - don't impact which operation method gets selected for an operation. If one of these three kinds of bindings is not available in a request, a 400 Bad Request response is sent and the method is not called. In practice, this means that you shouldn't have separate operation methods for different variations of body, query and header bindings.
 
 
 We'll allow the `getAllQuestions` method to take a query parameter named `contains`. If this query parameter is part of the request, we'll filter the questions on whether or not that question contains some substring. In `question_controller.dart`, update this method by adding an optional parameter named `containsSubstring`:
@@ -410,8 +410,8 @@ Future<Response> getAllQuestions({@Bind.query("contains") String containsSubstri
 
 If an HTTP request has a `contains` query parameter, that value will be available in the `containsSubstring` variable when this method is invoked. Also, note that we first check `containsSubstring` to make sure it is not-null. If we simply assigned `null` to `description`, we'd be creating a matcher that checked to see if the `description` *contained* `null`.
 
-!!! tip "HTTPController Binding"
-    For more information on binding, see [this guide](../http/http_controller.md).
+!!! tip "RESTController Binding"
+    For more information on binding, see [this guide](../http/rest_controller.md).
 
 Then, add a new test in `question_controller_test.dart`:
 

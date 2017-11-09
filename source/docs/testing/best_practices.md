@@ -53,7 +53,7 @@ class AppChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     router
@@ -85,9 +85,9 @@ Use the convention of [config.src.yaml file](../http/configure.md) to prevent co
 
 See more in [Application Structure](../http/structure.md).
 
-### Use HTTPController Subclasses
+### Use RESTController Subclasses
 
-Subclassing [HTTPController](../http/http_controller.md) provides significant conveniences, safeties and behaviors used by the majority of an application's request handling logic. Prefer to use this class for non-middleware controllers.
+Subclassing [RESTController](../http/rest_controller.md) provides significant conveniences, safeties and behaviors used by the majority of an application's request handling logic. Prefer to use this class for non-middleware controllers.
 
 ### Keep ApplicationChannel Tidy
 

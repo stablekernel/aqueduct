@@ -102,7 +102,7 @@ class AppChannel extends ApplicationChannel {
   ManagedContext context;
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     ...
     return router;

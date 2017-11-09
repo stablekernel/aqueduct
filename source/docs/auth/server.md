@@ -34,7 +34,7 @@ class MyApplicationChannel extends ApplicationChannel {
 
 (Notice that `ManagedAuthStorage` has a type argument - this will be covered in the next section.)
 
-While `AuthServer` has methods for handling authorization tasks, it is rarely used directly. Instead, `AuthCodeController` and `AuthController` are hooked up to routes to grant authorization tokens via the API. Instances of `Authorizer` secure routes in request channels. All of these types invoke the appropriate methods on the `AuthServer`.
+While `AuthServer` has methods for handling authorization tasks, it is rarely used directly. Instead, `AuthCodeController` and `AuthController` are hooked up to routes to grant authorization tokens via the API. Instances of `Authorizer` secure routes in channels. All of these types invoke the appropriate methods on the `AuthServer`.
 
 Therefore, a full authorization implementation rarely extends past a `ApplicationChannel`. Here's an example `ApplicationChannel` subclass that sets up and uses authorization:
 
@@ -54,7 +54,7 @@ class MyApplicationChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     // Set up auth token route- this grants and refresh tokens

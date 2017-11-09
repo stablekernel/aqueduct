@@ -26,7 +26,7 @@ class AppChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router.route("/auth/token").generate(() => new AuthController(authServer));  
     return router;
@@ -70,7 +70,7 @@ class AppChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     router.route("/auth/token").generate(() => new AuthController(authServer));
 
     router
@@ -80,7 +80,7 @@ class AppChannel extends ApplicationChannel {
   }
 }
 
-class ProfileController extends HTTPController {
+class ProfileController extends RESTController {
   @Bind.get()
   Future<Response> getProfile() async {
     var id = request.authorization.resourceOwnerIdentifier;
@@ -103,7 +103,7 @@ class AppChannel extends ApplicationChannel {
   PasswordVerified passwordVerifier;
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router
       .route("/profile")
@@ -157,7 +157,7 @@ class AppChannel extends ApplicationChannel {
   }  
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router.route("/auth/token").generate(() => new AuthController(authServer));  
 

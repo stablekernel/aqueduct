@@ -9,7 +9,7 @@ Instances of `HTTPFileController` serve a directory from the filesystem through 
 
 ```dart
 @override
-RequestController get entryPoint {
+Controller get entryPoint {
   final router = new Router();
 
   router.route("/files/*").pipe(new HTTPFileController("public/"));
