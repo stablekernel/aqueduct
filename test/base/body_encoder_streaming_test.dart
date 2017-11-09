@@ -254,7 +254,7 @@ void main() {
       var initiateResponseCompleter = new Completer();
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
       server.map((req) => new Request(req)).listen((req) async {
-        var next = new RequestController();
+        var next = new Controller();
         next.listen((req) async {
           initiateResponseCompleter.complete();
           return response;
@@ -307,7 +307,7 @@ void main() {
     test("Entity with known content-type that is too large is rejected, chunked", () async {
       HTTPRequestBody.maxSize = 8193;
 
-      var controller = new RequestController()
+      var controller = new Controller()
         ..listen((req) async {
           var body = await req.body.decodeAsMap();
           return new Response.ok(body);
@@ -352,7 +352,7 @@ void main() {
     test("Entity with unknown content-type that is too large is rejected, chunked", () async {
       HTTPRequestBody.maxSize = 8193;
 
-      var controller = new RequestController()
+      var controller = new Controller()
         ..listen((req) async {
           var body = await req.body.decodedData;
           return new Response.ok(body)..contentType = new ContentType("application", "octet-stream");
@@ -403,7 +403,7 @@ Future serverHasNoMoreConnections(HttpServer server) async {
 Future<HttpServer> bindAndRespondWith(Response response) async {
   var server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
   server.map((req) => new Request(req)).listen((req) async {
-    var next = new RequestController();
+    var next = new Controller();
     next.listen((req) async {
       return response;
     });

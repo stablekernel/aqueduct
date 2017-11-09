@@ -310,7 +310,7 @@ void main() {
 
 class SomeChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final r = new Router();
     r.route("/").listen((r) async => new Response.ok(null));
     return r;

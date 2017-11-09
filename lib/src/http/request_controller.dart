@@ -9,7 +9,7 @@ import '../db/db.dart';
 
 /// The unifying protocol for [Request] and [Response] classes.
 ///
-/// A [RequestController] must return an instance of this type from its [RequestController.handle] method.
+/// A [Controller] must return an instance of this type from its [Controller.handle] method.
 abstract class RequestOrResponse {}
 
 typedef FutureOr<RequestOrResponse> _RequestControllerListener(Request request);
@@ -21,11 +21,11 @@ typedef FutureOr<RequestOrResponse> _RequestControllerListener(Request request);
 ///
 /// This class is intended to be subclassed. [ApplicationChannel], [Router], [HTTPController] are all examples of this type.
 /// Subclasses should implement [handle] to respond to, modify or forward requests.
-class RequestController extends Object with APIDocumentable {
+class Controller extends Object with APIDocumentable {
   /// Default constructor.
-  RequestController();
+  Controller();
 
-  RequestController._withListener(this._listener);
+  Controller._withListener(this._listener);
 
   /// Returns a stacktrace and additional details about how the request's processing in the HTTP response.
   ///
@@ -35,11 +35,11 @@ class RequestController extends Object with APIDocumentable {
 
   /// Whether or not to allow uncaught exceptions escape request controllers.
   ///
-  /// When this value is false - the default - all [RequestController] instances handle
+  /// When this value is false - the default - all [Controller] instances handle
   /// unexpected exceptions by catching and logging them, and then returning a 500 error.
   ///
   /// While running tests, it is useful to know where unexpected exceptions come from because
-  /// they are an error in your code. By setting this value to true, all [RequestController]s
+  /// they are an error in your code. By setting this value to true, all [Controller]s
   /// will rethrow unexpected exceptions in addition to the base behavior. This allows the stack
   /// trace of the unexpected exception to appear in test results and halt the tests with failure.
   ///
@@ -49,7 +49,7 @@ class RequestController extends Object with APIDocumentable {
   /// Receives requests that this controller does not respond to.
   ///
   /// Use [pipe], [generate] or [listen] to set this property.
-  RequestController get nextController => _nextController;
+  Controller get nextController => _nextController;
 
   /// An instance of the 'aqueduct' logger.
   Logger get logger => new Logger("aqueduct");
@@ -60,7 +60,7 @@ class RequestController extends Object with APIDocumentable {
   @override
   APIDocumentable get documentableChild => nextController;
 
-  RequestController _nextController;
+  Controller _nextController;
   _RequestControllerListener _listener;
 
   /// Sets the [nextController] that will receive a request after this one.
@@ -70,7 +70,7 @@ class RequestController extends Object with APIDocumentable {
   /// See [listen] for a variant of this method that takes a closure instead of an object.
   ///
   /// See [generate] for a variant of this method that creates a new instance for each request.
-  RequestController pipe(RequestController next) {
+  Controller pipe(Controller next) {
     var typeMirror = reflect(next).type;
     if (_requestControllerTypeRequiresInstantion(typeMirror)) {
       throw new RequestControllerException("'${typeMirror
@@ -91,7 +91,7 @@ class RequestController extends Object with APIDocumentable {
   /// See [listen] for a variant of this method that takes a closure instead of an object.
   ///
   /// See [pipe] for a variant of this method that reuses the same object for each HTTP request.
-  RequestController generate(RequestController instantiator()) {
+  Controller generate(Controller instantiator()) {
     _nextController = new _RequestControllerGenerator(instantiator);
     return _nextController;
   }
@@ -102,8 +102,8 @@ class RequestController extends Object with APIDocumentable {
   /// [process] is invoked in the same try-catch block as [handle].
   ///
   /// See [pipe] and [generate] for variants of this methods that objects instead of closures.
-  RequestController listen(FutureOr<RequestOrResponse> process(Request request)) {
-    _nextController = new RequestController._withListener(process);
+  Controller listen(FutureOr<RequestOrResponse> process(Request request)) {
+    _nextController = new Controller._withListener(process);
     return _nextController;
   }
 
@@ -129,7 +129,7 @@ class RequestController extends Object with APIDocumentable {
     if (mirror.metadata.firstWhere((im) => im.reflectee is _RequiresInstantiation, orElse: () => null) != null) {
       return true;
     }
-    if (mirror.isSubtypeOf(reflectType(RequestController))) {
+    if (mirror.isSubtypeOf(reflectType(Controller))) {
       return _requestControllerTypeRequiresInstantion(mirror.superclass);
     }
     return false;
@@ -137,7 +137,7 @@ class RequestController extends Object with APIDocumentable {
 
   /// Delivers [req] to this instance to be processed.
   ///
-  /// This method is the entry point of a [Request] into this [RequestController].
+  /// This method is the entry point of a [Request] into this [Controller].
   /// By default, it invokes this controller's [handle] method within a try-catch block
   /// that guarantees an HTTP response will be sent for [Request].
   Future receive(Request req) async {
@@ -274,7 +274,7 @@ class RequestController extends Object with APIDocumentable {
   }
 
   Future _handlePreflightRequest(Request req) async {
-    RequestController controllerToDictatePolicy;
+    Controller controllerToDictatePolicy;
     try {
       var lastControllerInChain = _lastRequestController();
       if (lastControllerInChain != this) {
@@ -313,7 +313,7 @@ class RequestController extends Object with APIDocumentable {
     return request.respond(response);
   }
 
-  RequestController _lastRequestController() {
+  Controller _lastRequestController() {
     var controller = this;
     while (controller.nextController != null) {
       controller = controller.nextController;
@@ -323,7 +323,7 @@ class RequestController extends Object with APIDocumentable {
 }
 
 
-/// Thrown when [RequestController] throws an exception.
+/// Thrown when [Controller] throws an exception.
 ///
 ///
 class RequestControllerException implements Exception {
@@ -336,15 +336,15 @@ class RequestControllerException implements Exception {
 }
 
 
-/// Metadata for a [RequestController] subclass that requires it must be instantiated for each request.
+/// Metadata for a [Controller] subclass that requires it must be instantiated for each request.
 ///
-/// Requires that the [RequestController] must be created through [RequestController.generate].
+/// Requires that the [Controller] must be created through [Controller.generate].
 ///
-/// [RequestController]s may carry some state throughout the course of their handling of a request. If
-/// that [RequestController] is reused for another request, some of that state may carry over. Therefore,
-/// it is a better solution to instantiate the [RequestController] for each incoming request. Marking
-/// a [RequestController] subclass with this flag will ensure that an exception is thrown if an instance
-/// of [RequestController] is chained in a [ApplicationChannel]. These instances must be generated with a closure:
+/// [Controller]s may carry some state throughout the course of their handling of a request. If
+/// that [Controller] is reused for another request, some of that state may carry over. Therefore,
+/// it is a better solution to instantiate the [Controller] for each incoming request. Marking
+/// a [Controller] subclass with this flag will ensure that an exception is thrown if an instance
+/// of [Controller] is chained in a [ApplicationChannel]. These instances must be generated with a closure:
 ///
 ///       router.route("/path").generate(() => new RequestControllerSubclass());
 const _RequiresInstantiation cannotBeReused = const _RequiresInstantiation();
@@ -353,19 +353,19 @@ class _RequiresInstantiation {
   const _RequiresInstantiation();
 }
 
-typedef RequestController RequestControllerGeneratorClosure();
+typedef Controller RequestControllerGeneratorClosure();
 
-class _RequestControllerGenerator extends RequestController {
+class _RequestControllerGenerator extends Controller {
   _RequestControllerGenerator(this.generator) {
     nextInstanceToReceive = instantiate();
   }
 
   RequestControllerGeneratorClosure generator;
   CORSPolicy policyOverride;
-  RequestController nextInstanceToReceive;
+  Controller nextInstanceToReceive;
 
-  RequestController instantiate() {
-    RequestController instance = generator();
+  Controller instantiate() {
+    Controller instance = generator();
     instance._nextController = this.nextController;
     if (policyOverride != null) {
       instance.policy = policyOverride;

@@ -32,7 +32,7 @@ void main() {
 Future<HttpServer> bindAndRespondWith(Response response) async {
   var server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
   server.map((req) => new Request(req)).listen((req) async {
-    var next = new RequestController();
+    var next = new Controller();
     next.listen((req) async {
       return response;
     });

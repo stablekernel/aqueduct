@@ -25,7 +25,7 @@ void main() {
 
 class TestChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router.route("/controller/[:id]").pipe(new FailingController());
     return router;

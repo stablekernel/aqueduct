@@ -70,7 +70,7 @@ import 'http_controller_internal/internal.dart';
 ///
 /// [Request.body] will always be decoded prior to invoking a operation method.
 @cannotBeReused
-abstract class HTTPController extends RequestController {
+abstract class HTTPController extends Controller {
   /// The request being processed by this [HTTPController].
   ///
   /// It is this [HTTPController]'s responsibility to return a [Response] object for this request. Operation methods
@@ -79,7 +79,7 @@ abstract class HTTPController extends RequestController {
 
   /// Parameters parsed from the URI of the request, if any exist.
   ///
-  /// These values are attached by a [Router] instance that precedes this [RequestController]. Is null
+  /// These values are attached by a [Router] instance that precedes this [Controller]. Is null
   /// if no [Router] preceded the controller and is the empty map if there are no values. The keys
   /// are the case-sensitive name of the path variables as defined by [Router.route].
   Map<String, String> get pathVariables => request.path?.variables;

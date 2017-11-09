@@ -7,7 +7,7 @@ import 'package:aqueduct/aqueduct.dart';
 void main() {
   group("Standard operations", () {
     var app = new Application<TestChannel>();
-    RequestController.letUncaughtExceptionsEscape = true;
+    Controller.letUncaughtExceptionsEscape = true;
     app.configuration.port = 8081;
     var client = new TestClient.onPort(app.configuration.port);
     List<TestModel> allObjects = [];
@@ -123,7 +123,7 @@ class TestChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router
         .route("/controller/[:id]")

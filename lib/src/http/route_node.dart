@@ -133,7 +133,7 @@ class RouteNode {
 
   bool matchingAnything = false;
   RegExp patternMatcher;
-  RequestController get controller => specification?.controller;
+  Controller get controller => specification?.controller;
   RouteSpecification specification;
   List<RouteNode> patternMatchChildren = [];
   Map<String, RouteNode> literalChildren = {};

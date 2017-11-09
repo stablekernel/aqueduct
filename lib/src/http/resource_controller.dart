@@ -4,10 +4,10 @@ import 'dart:io';
 import '../db/db.dart';
 import 'http.dart';
 
-/// A [RequestController] that implements basic CRUD operations for a [ManagedObject].
+/// A [Controller] that implements basic CRUD operations for a [ManagedObject].
 ///
 /// Instances of this class map a REST API call
-/// directly to a database [Query]. For example, this [RequestController] handles an HTTP PUT request by executing an update [Query]; the path variable in the request
+/// directly to a database [Query]. For example, this [Controller] handles an HTTP PUT request by executing an update [Query]; the path variable in the request
 /// indicates the value of the primary key for the updated row and the HTTP request body are the values updated.
 ///
 /// When routing to a [ManagedObjectController], you must provide the following route pattern, where <name> can be any string:

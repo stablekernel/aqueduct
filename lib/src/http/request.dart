@@ -9,9 +9,9 @@ typedef void _ResponseModifier(Response resp);
 
 /// A single HTTP request.
 ///
-/// Instances of this class travel through a [RequestController] chain to be responded to, sometimes acquiring new values
+/// Instances of this class travel through a [Controller] chain to be responded to, sometimes acquiring new values
 /// as they go through controllers. Each instance of this class has a standard library [HttpRequest]. You should not respond
-/// directly to the [HttpRequest], as [RequestController]s take that responsibility.
+/// directly to the [HttpRequest], as [Controller]s take that responsibility.
 class Request implements RequestOrResponse {
   /// Creates an instance of [Request], no need to do so manually.
   Request(this.raw) {
@@ -23,10 +23,10 @@ class Request implements RequestOrResponse {
   /// Use this property to access values from the HTTP request that aren't accessible through this instance.
   ///
   /// You should typically not manipulate this property's [HttpRequest.response]. By default, Aqueduct controls
-  /// the response through its [RequestController]s.
+  /// the response through its [Controller]s.
   ///
   /// If you wish to respond to a request manually - and prohibit Aqueduct from responding to the request - you must
-  /// remove this instance from the request channel. To remove a request from the channel, return null from a [RequestController]
+  /// remove this instance from the request channel. To remove a request from the channel, return null from a [Controller]
   /// handler method instead of a [Response] or [Request]. For example:
   ///
   ///         router.route("/raw").listen((req) async {
@@ -43,7 +43,7 @@ class Request implements RequestOrResponse {
 
   /// The response object of this [Request].
   ///
-  /// Do not write to this value manually. [RequestController]s are responsible for
+  /// Do not write to this value manually. [Controller]s are responsible for
   /// using a [Response] instance to fill out this property.
   HttpResponse get response => raw.response;
 
@@ -167,9 +167,9 @@ class Request implements RequestOrResponse {
         raw.headers.value("access-control-request-method") != null;
   }
 
-  /// Container for any data a [RequestController] wants to attach to this request for the purpose of being used by a later [RequestController].
+  /// Container for any data a [Controller] wants to attach to this request for the purpose of being used by a later [Controller].
   ///
-  /// Use this property to attach data to a [Request] for use by later [RequestController]s.
+  /// Use this property to attach data to a [Request] for use by later [Controller]s.
   Map<dynamic, dynamic> attachments = {};
 
   /// The timestamp for when this request was received.
@@ -180,10 +180,10 @@ class Request implements RequestOrResponse {
   /// Used for logging.
   DateTime respondDate;
 
-  /// Allows a [RequestController] to modify the response eventually created for this request, without creating that response itself.
+  /// Allows a [Controller] to modify the response eventually created for this request, without creating that response itself.
   ///
   /// Executes [modifier] prior to sending the HTTP response for this request. Modifiers are executed in the order they were added and may contain
-  /// modifiers from other [RequestController]s. Modifiers are executed prior to any data encoded or is written to the network socket.
+  /// modifiers from other [Controller]s. Modifiers are executed prior to any data encoded or is written to the network socket.
   ///
   /// This is valuable for middleware that wants to include some information in the response, but some other controller later in the channel
   /// will create the response. [modifier] will run prior to
@@ -223,7 +223,7 @@ class Request implements RequestOrResponse {
   ///
   /// Do not invoke this method directly.
   ///
-  /// [RequestController]s invoke this method to respond to this request.
+  /// [Controller]s invoke this method to respond to this request.
   ///
   /// Once this method has executed, the [Request] is no longer valid. All headers from [aqueductResponse] are
   /// added to the HTTP response. If [aqueductResponse] has a [Response.body], this request will attempt to encode the body data according to the

@@ -8,11 +8,11 @@ import 'dart:convert';
 void main() {
   group("Response modifiers", () {
     HttpServer server;
-    RequestController root;
+    Controller root;
 
     setUp(() async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4111);
-      root = new RequestController();
+      root = new Controller();
       server.map((r) => new Request(r)).listen((req) {
         root.receive(req);
       });
@@ -83,11 +83,11 @@ void main() {
 
   group("Can return null from request controller is valid", () {
     HttpServer server;
-    RequestController root;
+    Controller root;
 
     setUp(() async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4111);
-      root = new RequestController();
+      root = new Controller();
 
       server.map((r) => new Request(r)).listen((req) {
         root.receive(req);
@@ -200,7 +200,7 @@ void main() {
       };
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8000);
       server.map((req) => new Request(req)).listen((req) async {
-        var next = new RequestController();
+        var next = new Controller();
         next.listen(handler);
         await next.receive(req);
       });
@@ -217,7 +217,7 @@ void main() {
         () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
       server.map((req) => new Request(req)).listen((req) async {
-        var next = new RequestController();
+        var next = new Controller();
         next.listen((req) async {
           var obj = new SomeObject()..name = "Bob";
           return new Response.ok(obj);
@@ -235,7 +235,7 @@ void main() {
         () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
       server.map((req) => new Request(req)).listen((req) async {
-        var next = new RequestController();
+        var next = new Controller();
         next.listen((req) async {
           return new Response.ok({"a": "b"});
         });
@@ -252,7 +252,7 @@ void main() {
         () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
       server.map((req) => new Request(req)).listen((req) async {
-        var next = new RequestController();
+        var next = new Controller();
         next.listen((req) async {
           return new Response.ok(new DateTime.now());
         });
@@ -270,7 +270,7 @@ void main() {
         () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
       server.map((req) => new Request(req)).listen((req) async {
-        var next = new RequestController();
+        var next = new Controller();
         next.listen((req) async {
           return new Response.ok(null);
         });
@@ -288,7 +288,7 @@ void main() {
         () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
       server.map((req) => new Request(req)).listen((req) async {
-        var next = new RequestController();
+        var next = new Controller();
         next.generate(() => new Always200Controller());
         await next.receive(req);
       });
@@ -323,7 +323,7 @@ void main() {
         () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
       server.map((req) => new Request(req)).listen((req) async {
-        var next = new RequestController();
+        var next = new Controller();
         next.generate(() => new Always200Controller());
         await next.receive(req);
       });
@@ -352,7 +352,7 @@ void main() {
     test("Failure to decode request body as appropriate type is 400", () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
       server.map((req) => new Request(req)).listen((req) async {
-        var next = new RequestController();
+        var next = new Controller();
         next.listen((r) async {
           await r.body.decodeAsMap();
           return new Response.ok(null);
@@ -381,7 +381,7 @@ class SomeObject implements HTTPSerializable {
   }
 }
 
-class Always200Controller extends RequestController {
+class Always200Controller extends Controller {
   Always200Controller() {
     policy.allowedOrigins = ["http://somewhere.com"];
   }
@@ -411,7 +411,7 @@ class OutlierChannel extends ApplicationChannel {
   int count = 0;
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final r = new Router();
     r.route("/detach").listen((Request req) async {
       if (count == 0) {

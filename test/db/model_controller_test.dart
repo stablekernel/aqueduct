@@ -9,7 +9,7 @@ import '../helpers.dart';
 
 
 void main() {
-  RequestController.letUncaughtExceptionsEscape = true;
+  Controller.letUncaughtExceptionsEscape = true;
   ManagedContext context;
   HttpServer server;
 

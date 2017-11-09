@@ -580,7 +580,7 @@ void main() {
       // If body decoding fails, we need to return 500 but also ensure we have closed the request
       // body stream
       server.map((req) => new Request(req)).listen((req) async {
-        var next = new RequestController();
+        var next = new Controller();
         next.listen((req) async {
           // This'll crash
           var _ = await req.body.decodedData;
@@ -631,7 +631,7 @@ void main() {
     test("Entity with known content-type that is too large is rejected, specified length", () async {
       HTTPRequestBody.maxSize = 8193;
 
-      var controller = new RequestController()
+      var controller = new Controller()
         ..listen((req) async {
           var body = await req.body.decodeAsMap();
           return new Response.ok(body);
@@ -665,7 +665,7 @@ void main() {
     test("Entity with unknown content-type that is too large is rejected, specified length", () async {
       HTTPRequestBody.maxSize = 8193;
 
-      var controller = new RequestController()
+      var controller = new Controller()
         ..listen((req) async {
           var body = await req.body.decodedData;
           return new Response.ok(body)..contentType = new ContentType("application", "octet-stream");

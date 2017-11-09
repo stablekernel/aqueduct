@@ -577,7 +577,7 @@ void expectThatNoCORSProcessingOccurred(dynamic resp) {
 
 class CORSChannel extends ApplicationChannel implements AuthValidator {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router.route("/add").generate(() => new AdditiveController());
 

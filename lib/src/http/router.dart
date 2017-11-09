@@ -5,25 +5,25 @@ import 'http.dart';
 import 'route_specification.dart';
 import 'route_node.dart';
 
-/// Determines which [RequestController] should receive a [Request] based on its path.
+/// Determines which [Controller] should receive a [Request] based on its path.
 ///
-/// A router is a [RequestController] that evaluates the path of a [Request] and determines which controller should be the next to receive it.
+/// A router is a [Controller] that evaluates the path of a [Request] and determines which controller should be the next to receive it.
 /// Valid paths for a [Router] are called *routes* and are added to a [Router] via [route].
 ///
-/// Each [route] creates a new [RequestController] that will receive all requests whose path match the route pattern.
+/// Each [route] creates a new [Controller] that will receive all requests whose path match the route pattern.
 /// If a request path does not match one of the registered routes, [Router] responds with 404 Not Found and does not pass
 /// the request to another controller.
 ///
-/// Unlike most [RequestController]s, a [Router] may have multiple controllers it sends requests to. In most applications,
+/// Unlike most [Controller]s, a [Router] may have multiple controllers it sends requests to. In most applications,
 /// a [Router] is the [ApplicationChannel.entryPoint].
-class Router extends RequestController {
+class Router extends Controller {
   /// Creates a new [Router].
   Router() {
     unhandledRequestController = _handleUnhandledRequest;
     policy.allowCredentials = false;
   }
 
-  List<_RouteController> _routeControllers = [];
+  List<_RouteController> _routeControllers = [];gi
   RouteNode _rootRouteNode;
   List<String> _basePathSegments = [];
   Function _unhandledRequestController;
@@ -53,8 +53,8 @@ class Router extends RequestController {
 
   /// Adds a route to this instance.
   ///
-  /// Requests that match [pattern] will be sent to the [RequestController] returned by this method. Controllers that
-  /// should receive these requests should be attached to the returned [RequestController] (via [pipe], [generate], or [listen]).
+  /// Requests that match [pattern] will be sent to the [Controller] returned by this method. Controllers that
+  /// should receive these requests should be attached to the returned [Controller] (via [pipe], [generate], or [listen]).
   ///
   /// The [pattern] must follow the rules of route patterns (see also http://aqueduct.io/docs/http/routing/).
   ///
@@ -80,7 +80,7 @@ class Router extends RequestController {
   ///         /locations/:name([^0-9])
   ///         /files/*
   ///
-  RequestController route(String pattern) {
+  Controller route(String pattern) {
     var routeController = new _RouteController(
         RouteSpecification.specificationsForRoutePattern(pattern));
     _routeControllers.add(routeController);
@@ -99,20 +99,20 @@ class Router extends RequestController {
 
   /// Routers override this method to throw an exception. Use [route] instead.
   @override
-  RequestController pipe(RequestController n) {
+  Controller pipe(Controller n) {
     throw new RouterException("Routers may not use pipe, use route instead.");
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
   @override
-  RequestController generate(RequestController generatorFunction()) {
+  Controller generate(Controller generatorFunction()) {
     throw new RouterException(
         "Routers may not use generate, use route instead.");
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
   @override
-  RequestController listen(
+  Controller listen(
       FutureOr<RequestOrResponse> requestControllerFunction(
           Request request)) {
     throw new RouterException("Routers may not use listen, use route instead.");
@@ -120,7 +120,7 @@ class Router extends RequestController {
 
   @override
   Future receive(Request req) async {
-    RequestController next;
+    Controller next;
     try {
       var requestURISegmentIterator = req.raw.uri.pathSegments.iterator;
       if (_basePathSegments.length > 0) {
@@ -181,7 +181,7 @@ class Router extends RequestController {
 }
 
 
-class _RouteController extends RequestController {
+class _RouteController extends Controller {
   /// Do not create instances of this class manually.
   _RouteController(this.patterns) {
     patterns.forEach((p) {

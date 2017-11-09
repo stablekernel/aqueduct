@@ -8,7 +8,7 @@ import 'http.dart';
 ///
 /// See the constructor for usage.
 ///
-class HTTPFileController extends RequestController {
+class HTTPFileController extends Controller {
   static Map<String, ContentType> _defaultExtensionMap = {
     /* Web content */
     "html": new ContentType("text", "html", charset: "utf-8"),

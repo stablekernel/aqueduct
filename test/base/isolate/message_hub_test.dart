@@ -191,7 +191,7 @@ class HubChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router.route("/messages").listen((req) async {
       var msgs = new List.from(messages);

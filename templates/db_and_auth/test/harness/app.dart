@@ -38,7 +38,7 @@ class TestApplication {
   ///
   /// You must call [stop] on this instance when tearing down your tests.
   Future start() async {
-    RequestController.letUncaughtExceptionsEscape = true;
+    Controller.letUncaughtExceptionsEscape = true;
     application = new Application<WildfireChannel>();
     application.configuration.port = 0;
     application.configuration.configurationFilePath = "config.src.yaml";

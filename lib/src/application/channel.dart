@@ -13,7 +13,7 @@ import 'package:aqueduct/src/application/service_registry.dart';
 /// The behavior of an Aqueduct application is defined by subclassing this type and overriding its lifecycle callback methods. An
 /// Aqueduct application may have exactly one subclass of this type declared in its `lib/` directory.
 ///
-/// At minimum, a subclass must override [entryPoint] to return the first instance of [RequestController] that receives a new HTTP request.
+/// At minimum, a subclass must override [entryPoint] to return the first instance of [Controller] that receives a new HTTP request.
 /// This instance is typically a [Router]. An example minimum application follows:
 ///
 ///       class MyChannel extends ApplicationChannel {
@@ -27,7 +27,7 @@ import 'package:aqueduct/src/application/service_registry.dart';
 /// [entryPoint] is the root of the application channel. It receives an HTTP request that flows through the channel until it is responded to.
 ///
 /// Other forms of initialization, e.g. creating a service that interact with a database, should be initialized in [prepare]. This method is invoked
-/// prior to [entryPoint] so that any services it creates can be injected into the [RequestController]s in the channel.
+/// prior to [entryPoint] so that any services it creates can be injected into the [Controller]s in the channel.
 ///
 /// An instance of this type is created for each isolate the running application spawns. The number of isolates spawned is determined by an argument to [Application.start]
 /// (which often comes from the command-line tool `aqueduct serve`). Any initialization that occurs in subclasses of this type will be called for each instance.
@@ -110,22 +110,22 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   /// from configuration data. This property is set in the constructor.
   ApplicationConfiguration configuration;
 
-  /// The first [RequestController] to receive HTTP requests.
+  /// The first [Controller] to receive HTTP requests.
   ///
   /// Subclasses must override this getter to provide the first controller in the application channel to handle an HTTP request.
-  /// This property is most often a configured [Router], but could be any type of [RequestController].
+  /// This property is most often a configured [Router], but could be any type of [Controller].
   ///
   /// This method is invoked exactly once for each instance, and the result is stored throughout the remainder of the application's lifetime.
   /// This method must fully configure the entire application channel; no controllers may be added to the channel after this method completes.
   ///
   /// This method is always invoked after [prepare].
-  RequestController get entryPoint;
+  Controller get entryPoint;
 
   /// Initialization callback.
   ///
   /// This method allows this instance to perform any initialization (other than setting up the [entryPoint]). This method
-  /// is often used to set up services that [RequestController]s use to fulfill their duties. This method is invoked
-  /// prior to [entryPoint], so that the services it creates can be injected into [RequestController]s.
+  /// is often used to set up services that [Controller]s use to fulfill their duties. This method is invoked
+  /// prior to [entryPoint], so that the services it creates can be injected into [Controller]s.
   Future prepare() async {}
 
   /// Executed after the instance has been initialized, but right before it will start receiving requests.

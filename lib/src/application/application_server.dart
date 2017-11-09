@@ -35,7 +35,7 @@ class ApplicationServer {
   ApplicationChannel channel;
 
   /// The cached entrypoint of [channel].
-  RequestController entryPoint;
+  Controller entryPoint;
 
   /// Used during debugging to capture the stacktrace better for asynchronous calls.
   ///

@@ -421,7 +421,7 @@ class TestChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router
         .route("/auth/code")

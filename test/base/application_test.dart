@@ -130,7 +130,7 @@ class TestException implements Exception {
 
 class CrashingTestChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
@@ -155,7 +155,7 @@ class TestChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router.route("/t").generate(() => new TController());
     router.route("/r").generate(() => new RController());

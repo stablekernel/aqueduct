@@ -23,12 +23,12 @@ class WildfireChannel extends ApplicationChannel {
 
   /// Construct the request channel.
   ///
-  /// Return an instance of some [RequestController] that will be the initial receiver
+  /// Return an instance of some [Controller] that will be the initial receiver
   /// of all [Request]s.
   ///
   /// This method is invoked after [prepare].
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
 
     router

@@ -73,7 +73,7 @@ void main() {
 
 class TestChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router.route("/[:id]").generate(() => new UncaughtCrashController());
     return router;

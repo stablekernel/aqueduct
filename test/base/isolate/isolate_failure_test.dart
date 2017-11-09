@@ -104,7 +104,7 @@ class TimeoutChannel extends ApplicationChannel {
   Timer timer;
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     return new Router();
   }
 
@@ -147,7 +147,7 @@ class TestException implements Exception {
 
 class CrashChannel extends ApplicationChannel {
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     if (configuration.options["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
@@ -172,7 +172,7 @@ class TestChannel extends ApplicationChannel {
   }
 
   @override
-  RequestController get entryPoint {
+  Controller get entryPoint {
     final router = new Router();
     router.route("/t").listen((req) async => new Response.ok("t_ok"));
     router.route("/r").listen((req) async => new Response.ok("r_ok"));

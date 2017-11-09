@@ -266,7 +266,7 @@ Future<HttpServer> enableRouter(Router router) async {
   return server;
 }
 
-class Handler extends RequestController {
+class Handler extends Controller {
   static int counter = 0;
 
   Handler() {
