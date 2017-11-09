@@ -7,7 +7,7 @@ class User extends ManagedObject<_User> implements _User {
 }
 
 class _User {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
@@ -41,20 +41,20 @@ Persistent types define the mapping between your managed objects and a database 
 
 Properties that are one of these types are more referred to as the *attributes* of an entity. Properties that are references to other model objects - which we will see later - are called *relationships*. Collectively, attributes and relationships are called *properties*.
 
-In addition to a type and name, each property can also have `ManagedColumnAttributes` that adds some details to the associated column. `ManagedColumnAttributes` are added as metadata to a property. For example, the following change to the `_User` persistent type adds a `String` `email` property which must be unique across all users:
+In addition to a type and name, each property can also have `Column` that adds some details to the associated column. `Column` are added as metadata to a property. For example, the following change to the `_User` persistent type adds a `String` `email` property which must be unique across all users:
 
 ```dart
 class _User {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
 
-  @ManagedColumnAttributes(unique: true)
+  @Column(unique: true)
   String email;
 }
 ```
-There are eight configurable items available in the `ManagedColumnAttributes` class.
+There are eight configurable items available in the `Column` class.
 
 * `primaryKey` - Indicates that property is the primary key of the table represented by this persistent type. Must be one per persistent type.
 * `databaseType` - Uses a more specific type for the database column than can be derived from the Dart type of the property. For example, you may wish to specify that an integer property is stored in a database column that holds an 8-byte integer, instead of the default 4-byte integer.
@@ -65,19 +65,19 @@ There are eight configurable items available in the `ManagedColumnAttributes` cl
 * `omitByDefault` - Toggles whether or not this property should be fetched from the database by default. Useful for properties like hashed passwords, where you don't want to return that information when fetching an account unless you explicitly want to check the password.
 * `autoincrement` - Toggles whether or not the underlying database should generate a new value from a serial generator each time a new instance is inserted into the database.
 
-By not specifying `ManagedColumnAttributes`, the default values for each of these possible configurations is used and the database type is inferred from the type of the property. This also means that *all* properties declared in a persistent type represent a column in a database table - even without `ManagedColumnAttributes` metadata.
+By not specifying `Column`, the default values for each of these possible configurations is used and the database type is inferred from the type of the property. This also means that *all* properties declared in a persistent type represent a column in a database table - even without `Column` metadata.
 
-Every persistent type must have at least one property with `ManagedColumnAttributes` where `primaryKey` is true. There is a convenience instance of `ManagedColumnAttributes` for this purpose, `@managedPrimaryKey`, which is equivalent to the following:
+Every persistent type must have at least one property with `Column` where `primaryKey` is true. There is a convenience instance of `Column` for this purpose, `@primaryKey`, which is equivalent to the following:
 
 ```dart
-@ManagedColumnAttributes(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true)
+@Column(primaryKey: true, databaseType: PropertyType.bigInteger, autoincrement: true)
 ```
 
 Also in the persistent type - and only the persistent type - you may override the name of the table by implementing a static method named `tableName` that returns the name of the table in a persistent type:
 
 ```dart
 class _User {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
@@ -99,7 +99,7 @@ enum UserType {
 
 class User extends ManagedObject<_User> implements _User {}
 class _User {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
@@ -172,7 +172,7 @@ class Video extends ManagedObject<_Video> implements _Video {
 }
 
 class _Video {
-  @managedPrimaryKey int id;
+  @primaryKey int id;
   DateTime uploadDate;
 
   /* more properties */
@@ -226,45 +226,45 @@ The relationship properties in `_User` do not represent columns in a database - 
 ```dart
 class Job extends ManagedObject<_Job> implements _Job {}
 class _Job {
-  @managedPrimaryKey
+  @primaryKey
   int id;
   String title;
 
-  @ManagedRelationship(#job)
+  @Relationship(#job)
   User user;
 }
 ```
 
-`Job.user` is a relationship property because it is a `ManagedObject<T>` subclass. It is the *inverse* property of `User.job`. All relationship properties must have an inverse. In other words, if a user has a job, then a job has a user. The inverse is set up by adding `ManagedRelationship` data to one of the relationship properties. The argument to `ManagedRelationship` is the name of the property on the other type.
+`Job.user` is a relationship property because it is a `ManagedObject<T>` subclass. It is the *inverse* property of `User.job`. All relationship properties must have an inverse. In other words, if a user has a job, then a job has a user. The inverse is set up by adding `Relationship` data to one of the relationship properties. The argument to `Relationship` is the name of the property on the other type.
 
-Only one side of the relationship may have `ManagedRelationship` metadata. The side with this metadata is said to *belong to* the other side. Thus, a `Job` belongs to a `User` and a `User` has-one `Job`. The property with `ManagedRelationship` metadata is represented by a foreign key column in the database. The table `_Job`, then, has three columns: `id`, `title` and `user_id`. The name `user_id` is generated by joining the name of the relationship property with the name of the primary key on the other object.
+Only one side of the relationship may have `Relationship` metadata. The side with this metadata is said to *belong to* the other side. Thus, a `Job` belongs to a `User` and a `User` has-one `Job`. The property with `Relationship` metadata is represented by a foreign key column in the database. The table `_Job`, then, has three columns: `id`, `title` and `user_id`. The name `user_id` is generated by joining the name of the relationship property with the name of the primary key on the other object.
 
 Setting the inverse of a has-many relationship is done in the same way, so `Post` would be declared like so:
 
 ```dart
 class Post extends ManagedObject<_Post> implements _Post {}
 class _Post {
-  @managedPrimaryKey
+  @primaryKey
   int id;
   String text;
 
-  @ManagedRelationship(#posts)
+  @Relationship(#posts)
   User user;
 }
 ```
 
 The types of relationship properties must always be the instance type, not the persistent type. In other words, `User.job` is of type `Job`, not `_Job`.
 
-When an application starts up, relationships are checked for integrity. This check ensures that relationships are two-sided and only one property has the `ManagedRelationship` metadata. If they do not, an exception will be thrown.
+When an application starts up, relationships are checked for integrity. This check ensures that relationships are two-sided and only one property has the `Relationship` metadata. If they do not, an exception will be thrown.
 
-`ManagedRelationship` properties are always indexed; this may change in the future to be configurable, but it will always be the default. Additionally, the column backing `ManagedRelationship` properties are unique if the other side is a 'has-one' relationship. Because the `ManagedRelationship` property is actually a foreign key column, it may also define some extra configuration parameters: a delete rule and whether or not it is required.
+`Relationship` properties are always indexed; this may change in the future to be configurable, but it will always be the default. Additionally, the column backing `Relationship` properties are unique if the other side is a 'has-one' relationship. Because the `Relationship` property is actually a foreign key column, it may also define some extra configuration parameters: a delete rule and whether or not it is required.
 
 By making `Post.user` required, we will require that every `Post` must have a user in order to be inserted into the database. This means that a `Post` cannot exist without a user (i.e., the foreign key may not be null),
 
 ```dart
 class _Post {
   ...
-  @ManagedRelationship(#posts, required: true)
+  @Relationship(#posts, required: true)
   User user;
 }
 ```
@@ -274,12 +274,12 @@ By changing the `Job.user` delete rule to `RelationshipDeleteRule.cascade`, dele
 ```dart
 class _Job {
   ...
-  @ManagedRelationship(#job, onDelete: ManagedRelationshipDeleteRule.cascade)
+  @Relationship(#job, onDelete: DeleteRule.cascade)
   User user;
 }
 ```
 
-By default, the delete rule is `ManagedRelationshipDeleteRule.nullify` (it is the least destructive action) and required is `false`. If you try and set up a relationship where the `ManagedRelationship` is both `ManagedRelationshipDeleteRule.nullify` and `isRequired`, you will get an exception during startup: if the foreign key column can't be null and deleting the related object would nullify the foreign key column... well, that wouldn't work.
+By default, the delete rule is `DeleteRule.nullify` (it is the least destructive action) and required is `false`. If you try and set up a relationship where the `Relationship` is both `DeleteRule.nullify` and `isRequired`, you will get an exception during startup: if the foreign key column can't be null and deleting the related object would nullify the foreign key column... well, that wouldn't work.
 
 When fetching managed objects from a database, there are rules on which relationship properties are fetched. By default, any 'has-one' or 'has-many' relationships are *not* fetched from the database:
 
@@ -296,7 +296,7 @@ userMap == {
 
 In order to fetch these types of relationships, you must explicitly configure a `Query<T>` to include them, which executes a SQL join. This is covered in the [Executing Queries](executing_queries.md).
 
-The `ManagedRelationship` property, however, will be fetched by default. But, the entire object is not fetched - only its primary key value:
+The `Relationship` property, however, will be fetched by default. But, the entire object is not fetched - only its primary key value:
 
 ```dart
 var query = new Query<Job>();

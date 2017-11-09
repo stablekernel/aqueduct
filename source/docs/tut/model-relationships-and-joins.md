@@ -7,7 +7,7 @@ import '../quiz.dart';
 
 class Answer extends ManagedObject<_Answer> implements _Answer {}
 class _Answer {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String description;
@@ -21,7 +21,7 @@ Now that we have a managed object that represents both a question and answer, we
 import 'answer.dart';
 
 class _Question {
-  @managedPrimaryKey
+  @primaryKey
   int index;
 
   String description;
@@ -36,22 +36,22 @@ For all relationships, we also must specify the *inverse relationship*. The inve
 import 'question.dart';
 
 class _Answer {
-  @managedPrimaryKey
+  @primaryKey
   int id;
   String description;
 
-  @ManagedRelationship(#answer)
+  @Relationship(#answer)
   Question question;
 }
 ```
 
-Notice that we added `ManagedRelationship` metadata to the property `question`. Since relationships are two-sided, only one side needs to have this metadata (and in fact, only one side *can* have this metadata). The first argument is the name of the property on the other side of the relationship; this is what links the relationship together.
+Notice that we added `Relationship` metadata to the property `question`. Since relationships are two-sided, only one side needs to have this metadata (and in fact, only one side *can* have this metadata). The first argument is the name of the property on the other side of the relationship; this is what links the relationship together.
 
-The property with `ManagedRelationship` metadata maps to the foreign key column in the database table. The table `_Answer` has a foreign key column named `question_index`. (The name is derived by taking the name of the relationship property and name of the primary key property on the other side and joining it with a `_`.) The `_Answer` table now has three columns: `id`, `description` and `question_index`.
+The property with `Relationship` metadata maps to the foreign key column in the database table. The table `_Answer` has a foreign key column named `question_index`. (The name is derived by taking the name of the relationship property and name of the primary key property on the other side and joining it with a `_`.) The `_Answer` table now has three columns: `id`, `description` and `question_index`.
 
-The relationship property *without* `ManagedRelationship` metadata is *not* a column in a table. Instead, it represents an *entire row* in another table. Thus, the table `_Question` only has two columns: `index` and `description`.
+The relationship property *without* `Relationship` metadata is *not* a column in a table. Instead, it represents an *entire row* in another table. Thus, the table `_Question` only has two columns: `index` and `description`.
 
-`ManagedRelationship` also allows you to specify a delete rule and whether or not the property is required, i.e., not nullable. By default, the delete rule is `ManagedRelationshipDeleteRule.nullify` and not required - this is the least destructive action. But, in this case, we want every question to always have an answer and if we delete the question, the answer gets deleted along with it:
+`Relationship` also allows you to specify a delete rule and whether or not the property is required, i.e., not nullable. By default, the delete rule is `DeleteRule.nullify` and not required - this is the least destructive action. But, in this case, we want every question to always have an answer and if we delete the question, the answer gets deleted along with it:
 
 ```dart
 class _Answer {
@@ -59,8 +59,8 @@ class _Answer {
   int id;
   String description;
 
-  @ManagedRelationship(
-    #answer, onDelete: ManagedRelationshipDeleteRule.cascade, isRequired: true)
+  @Relationship(
+    #answer, onDelete: DeleteRule.cascade, isRequired: true)
   Question question;
 }
 ```
@@ -194,7 +194,7 @@ Notice that we accumulated all of the questions and answers into a list of quest
 
 Then, for each question, we inserted it and got a reference to the `insertedQuestion` back. The difference between each `Question` in `questions` and `insertedQuestion` is that the `insertedQuestion` will have its primary key value (`index`) set by the database. This allows the `Answer`s - which have to be inserted separately, because they are different tables - to specify which question they are the answer for.
 
-Recall that a property with `ManagedRelationship` - like `Answer.question` - is actually a foreign key column. When setting this property with a `ManagedObject<T>`, the primary key value of that instance is sent as the value for the foreign key column. In this case, the `insertedQuestion` has valid values for both `description` and `index`. Setting the query's `values.question` to this instance ignores the `description` - it's not going to store it anyway - and sets the `index` of the answer being inserted.
+Recall that a property with `Relationship` - like `Answer.question` - is actually a foreign key column. When setting this property with a `ManagedObject<T>`, the primary key value of that instance is sent as the value for the foreign key column. In this case, the `insertedQuestion` has valid values for both `description` and `index`. Setting the query's `values.question` to this instance ignores the `description` - it's not going to store it anyway - and sets the `index` of the answer being inserted.
 
 Note, also, that the query to insert a question has `values` that contain an answer. These answers will be ignored during that insertion, because only the question is being inserted. Inserting or updating values will only operate on one table at a table - this is intentional explicit to avoid unintended consequences.
 
@@ -207,7 +207,7 @@ Relationships can also be 'has-many'. For example, if you wanted many answers fo
 
 ```dart
 class _Question {
-  @managedPrimaryKey
+  @primaryKey
   int index;
 
   String description;

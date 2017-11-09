@@ -26,7 +26,7 @@ It's important to understand how `null` works when reading from or writing to a 
 ```dart
 class User extends ManagedObject<_User> implements _User {}
 class _User {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
@@ -109,11 +109,11 @@ It is helpful to think of a `ManagedObject<T>` as a proxy to a database row that
 
 ### Transient Properties and Serialization/Deserialization
 
-By default, transient properties and getters - those declared in the subclass of `ManagedObject<T>` - are *not* included in the `asMap()`. (Setters are obviously not included, as you can't get a value from them.) To include a transient property or getter in `asMap()`, you may mark it with `@managedTransientOutputAttribute` metadata. Properties marked with this metadata will be included in `asMap()` if and only if they are not null. A good reason to use this feature is when you want to provide a value to the consumer of the API that is derived from persistent properties:
+By default, transient properties and getters - those declared in the subclass of `ManagedObject<T>` - are *not* included in the `asMap()`. (Setters are obviously not included, as you can't get a value from them.) To include a transient property or getter in `asMap()`, you may mark it with `@Serialize()` metadata. Properties marked with this metadata will be included in `asMap()` if and only if they are not null. A good reason to use this feature is when you want to provide a value to the consumer of the API that is derived from persistent properties:
 
 ```dart
 class User extends ManagedObject<_User> implements _User {
-  @managedTransientOutputAttribute
+  @Serialize()
   String get fullName => "$firstName $lastName";
 }
 
@@ -137,11 +137,11 @@ map == {
 
 ```
 
-Transient properties may also be used as inputs when reading with `readFromMap()` by marking a property with `@managedTransientInputAttribute`. For example, consider how to handle user passwords. A password is not stored in plain-text in the database, but they are sent in requests. Thus, a password could read from a request body, but it needs to be salted, hashed and stored in two columns in the database. An instance type could then define a password property, which automatically set the salt and hash of the password in the underlying persistent type:
+Transient properties with this annotation may also be used as inputs when reading with `readFromMap()`. For example, consider how to handle user passwords. A password is not stored in plain-text in a database, but they are sent in requests. Thus, a password could read from a request body, but it needs to be salted, hashed and stored in two columns in the database. An instance type could then define a password property, which automatically set the salt and hash of the password in the underlying persistent type:
 
 ```dart
 class User extends ManagedObject<_User> implements _User {
-  @managedTransientInputAttribute
+  @Serialize()
   void set password(String pw) {
     salt = generateSalt();
     hashedPassword = hash(pw, salt);
@@ -163,25 +163,15 @@ var hashedPassword = user.hashedPassword; // 'somehashedstring'
 var password = user.password; // Analyzer error - user.password doesn't exist!
 ```
 
-On a related note, persistent properties are always included in `asMap()` by default, but can be omitted by adding `ManagedColumnAttributes` metadata with the `omitByDefault` option:
-
-```dart
-class _User {
-  @ManagedColumnAttributes(omitByDefault: true)
-  String salt;
-
-  @ManagedColumnAttributes(omitByDefault: true)
-  String hashedPassword;
-  ...
-}
-```
-
-A transient input attribute must be a setter or a property, just like an transient output attribute must be a getter or a property. For properties that are both inputs and outputs, you may use the metadata `@managedTransientAttribute`.
+A transient property can also be used only when reading or only when writing.
 
 ```dart
 class User extends ManagedObject<_User> implements _User {
-  @managedTransientAttribute
-  String nickname; // shows up in asMap() and can be read from readFromMap()
+  @Serialize(input: true, output: false)
+  String readable; // Can be readFromMap, but not emitted in asMap
+
+  @Serialize(input: false, output: true)
+  String writable; // Is emitted in asMap, but cannot be readFromMap.
 }
 ```
 
@@ -189,13 +179,26 @@ Also, a separate getter and setter may exist for the same name to allow both inp
 
 ```dart
 class User extends ManagedObject<_User> implements _User {
-  @managedTransientInputAttribute
+  @Serialize()
   void set transientValue(String s) {
     ...
   }
 
-  @managedTransientOutputAttribute
+  @Serialize()
   String get transientValue => ...;
+}
+```
+
+On a related note, persistent properties are always included in `asMap()` by default, but can be omitted by adding `Column` metadata with the `omitByDefault` option:
+
+```dart
+class _User {
+  @Column(omitByDefault: true)
+  String salt;
+
+  @Column(omitByDefault: true)
+  String hashedPassword;
+  ...
 }
 ```
 
@@ -225,7 +228,7 @@ userMap == {
 
 Notice that the names of the keys - including relationship properties and properties of the related object - all match the names of their declared properties.
 
-It's important to note that "belongs to" relationships - those with `ManagedRelationship` metadata - are always returned in `asMap()` when fetching an object from the database. However, the full object is not returned - only its primary key. Therefore, you will get the following result:
+It's important to note that "belongs to" relationships - those with `Relationship` metadata - are always returned in `asMap()` when fetching an object from the database. However, the full object is not returned - only its primary key. Therefore, you will get the following result:
 
 ```dart
 var jobQuery = new Query<Job>();

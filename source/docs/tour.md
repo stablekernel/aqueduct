@@ -261,10 +261,10 @@ class Employee extends ManagedObject<_Employee> implements _Employee {
   bool get wasRecentlyHired => hireDate.difference(new DateTime.now()).inDays < 30;
 }
 class _Employee  {
-  @managedPrimaryKey
+  @primaryKey
   int index;
 
-  @ManagedColumnAttributes(indexed: true)
+  @Column(indexed: true)
   String name;
 
   DateTime hireDate;
@@ -272,7 +272,7 @@ class _Employee  {
 }
 ```
 
-`ManagedObject<T>`s have relationship properties for has-one, has-many and many-to-many references to other `ManagedObject<T>`s. The property with `ManagedRelationship` metadata is a foreign key column.
+`ManagedObject<T>`s have relationship properties for has-one, has-many and many-to-many references to other `ManagedObject<T>`s. The property with `Relationship` metadata is a foreign key column.
 
 ```dart
 class Employee extends ManagedObject<_Employee> implements _Employee {}
@@ -286,7 +286,7 @@ class Initiative extends ManagedObject<_Initiative> implements _Initiative {}
 class _Initiative {
   ...
 
-  @ManagedRelationship(#initiatives)
+  @Relationship(#initiatives)
   Employee leader;
 }
 ```

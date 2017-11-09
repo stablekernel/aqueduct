@@ -7,7 +7,7 @@ The preferred way of setting a validation is to add `Validate` metadata to prope
 ```dart
 class Tweet extends ManagedObject<_Tweet> implements _Tweet {}
 class _Tweet {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.length(lessThan: 140)
@@ -21,7 +21,7 @@ There are a handful of built-in validations for common operations. For example, 
 
 ```dart
 class _Story {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.oneOf(const ["started", "accepted", "rejected", "delivered"])
@@ -45,7 +45,7 @@ There will be times where the built-in validators are not sufficient for your ap
 
 ```dart
 class _Person {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @ValidatePhoneNumber()
@@ -141,10 +141,10 @@ var query = new Query<Person>()
 await query.insert();
 ```
 
-Nullability is enforced by `ManagedColumnAttributes.isNullable` property. Consider the following declaration:
+Nullability is enforced by `Column.isNullable` property. Consider the following declaration:
 
 ```dart
-@ManagedColumnAttributes(nullable: false)
+@Column(nullable: false)
 @Validate.length(greaterThan: 10)
 String name;
 ```
@@ -225,7 +225,7 @@ class Person extends ManagedObject<_Person> implements _Person {
   }
 }
 class _Person {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;

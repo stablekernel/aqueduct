@@ -23,10 +23,10 @@ Let's assume this `User` type exists:
 ```dart
 class User extends ManagedObject<_User> implements _User {}
 class _User {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedColumnAttributes(indexed: true)
+  @Column(indexed: true)
   String email;
 
   String name;
@@ -54,7 +54,7 @@ Every `Query<T>` has a `values` property that is the type of managed object bein
 INSERT INTO _user (name, email) VALUES ('Bob', 'bob@stablekernel.com')
 ```
 
-Note there is no value provided for the `id` property in this query. Recall that `managedPrimaryKey` metadata is a convenience for `ManagedColumnAttributes` with autoincrementing behavior. Therefore, the database will assign a value for `id` during insertion. The object returned from `insert()` will be an instance of `User` that represents the inserted row and will include the auto-generated `id`.
+Note there is no value provided for the `id` property in this query. Recall that `primaryKey` metadata is a convenience for `Column` with autoincrementing behavior. Therefore, the database will assign a value for `id` during insertion. The object returned from `insert()` will be an instance of `User` that represents the inserted row and will include the auto-generated `id`.
 
 Properties that are not set in the `values` property will not be sent to the database.
 
@@ -72,7 +72,7 @@ The generated SQL for this query does not send `email` - because it isn't includ
 INSERT INTO _user (name) VALUES (NULL);
 ```
 
-If a property is not nullable (its `ManagedColumnAttributes` has `nullable: false`) and its value is not set in a query prior to inserting it, the query will fail and throw an exception.
+If a property is not nullable (its `Column` has `nullable: false`) and its value is not set in a query prior to inserting it, the query will fail and throw an exception.
 
 You may also set `Query.values` with an instance of a managed object. This is valuable when reading an object from a JSON HTTP request body:
 
@@ -182,7 +182,7 @@ When executing queries that return managed objects (i.e., `insert()`, `update()`
 
 ```dart
 class _User {
-  @ManagedColumnAttributes(omitByDefault: true)
+  @Column(omitByDefault: true)
   String hashedPassword;
 }
 ```

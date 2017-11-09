@@ -27,7 +27,7 @@ import '../quiz.dart';
 class Question extends ManagedObject<_Question> implements _Question {}
 
 class _Question {
-  @managedPrimaryKey
+  @primaryKey
   int index;
 
   String description;

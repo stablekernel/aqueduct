@@ -40,7 +40,7 @@ A `pageBy` query will return an empty list of objects when no more values are le
 You should index properties that will be paged by:
 
 ```dart
-@ManagedColumnAttributes(indexed: true)
+@Column(indexed: true)
 int pageableProperty;
 ```
 
@@ -125,7 +125,7 @@ By default, relationship properties are not fetched in a query and therefore are
 ```dart
 class User extends ManagedObject<_User> implements _User {}
 class _User {
-  @managedPrimaryKey int id;
+  @primaryKey int id;
 
   String name;
   ManagedSet<Task> tasks;  
@@ -133,9 +133,9 @@ class _User {
 
 class Task extends ManagedObject<_Task> implements _Task {}
 class _Task {
-  @managedPrimaryKey int id;
+  @primaryKey int id;
 
-  @ManagedColumnAttributes(#tasks)
+  @Column(#tasks)
   User user;
 
   String contents;
