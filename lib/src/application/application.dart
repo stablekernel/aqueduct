@@ -168,6 +168,7 @@ class Application<T extends ApplicationChannel> {
     await _globalStart(channelMirror, config);
 
     final server = new ApplicationServer(channelMirror, config, 1, captureStack: true);
+
     await server.channel.prepare();
 
     return server.channel.documentAPI(resolver);

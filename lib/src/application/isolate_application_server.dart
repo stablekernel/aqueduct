@@ -66,7 +66,6 @@ class ApplicationIsolateServer extends ApplicationServer {
   }
 }
 
-
 void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
   var channelSourceLibrary = currentMirrorSystem().libraries[params.streamLibraryURI];
   var channelType = channelSourceLibrary.declarations[new Symbol(params.streamTypeName)] as ClassMirror;

@@ -143,8 +143,6 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   Future close() async {
     logger.fine("ApplicationChannel(${server.identifier}).close: closing messageHub");
     await messageHub.close();
-    logger.fine("ApplicationChannel(${server.identifier}).close: clear logger listeners");
-    logger?.clearListeners();
   }
 
   @override
