@@ -7,6 +7,7 @@
 - Renames `Request.innerRequest` to `Request.raw`.
 - Removes `runOnMainIsolate` from `Application.start()` and introduces `Application.test()` as replacement.
 - Renames `RequestSink` to `ApplicationChannel` and improves its structure.
+- Replaces `AuthCodeController.renderFunction` with `AuthCodeControllerDelegate`.
 - Renames the following:
     - `ApplicationConfiguration` -> `ApplicationOptions`
     - `Application.configuration` -> `Application.options`
