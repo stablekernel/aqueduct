@@ -14,7 +14,7 @@
     - `ServiceRegistry` -> `ApplicationServiceRegistry`
     - `ManagedTableAttributes` -> `Table`
     - `ManagedRelationshipDeleteRule` -> `DeleteRule`
-    - `ManagedRelationship` -> `Relationship`
+    - `ManagedRelationship` -> `Relate`
     - `ManagedColumnAttributes` -> `Column`
     - `managedPrimaryKey` -> `primaryKey`
     - `ManagedTransientAttribute` -> `Serialize`
@@ -24,7 +24,7 @@
     - `HTTPController` -> `RESTController`
     - `Router.unhandledRequestController` -> `Router.unmatchedController`
     - `TestClient.fromConfig` -> `TestClient.fromOptions`        
-
+        
 ## 2.5.0
 
 - Adds `aqueduct db schema` to print an application's data model.
