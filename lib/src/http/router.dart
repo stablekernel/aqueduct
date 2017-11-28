@@ -136,7 +136,7 @@ class Router extends Controller {
         }
       }
 
-      req.path = new HTTPRequestPath(req.raw.uri.pathSegments);
+      req.path = new HTTPRequestPath(req.raw.uri.pathSegments, segmentOffset: _basePathSegments.length);
 
       var node = _rootRouteNode.nodeForPathSegments(requestURISegmentIterator, req.path);
       if (node?.specification == null) {

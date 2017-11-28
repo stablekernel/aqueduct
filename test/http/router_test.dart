@@ -1,3 +1,4 @@
+import 'dart:convert';
 import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
@@ -132,6 +133,22 @@ void main() {
       response = await http.get("http://localhost:4040/a/1/f");
       expect(response.statusCode, equals(201));
     });
+
+    test("Base API + Route Variables correctly identifies segment", () async {
+      final router = new Router()
+          ..basePath = "/api/"
+          ..route(("/a/[:id]")).listen((req) async => new Response.ok(req.path.variables));
+      server = await enableRouter(router);
+
+      var response = await http.get("http://localhost:4040/api/a/1");
+      expect(response.statusCode, 200);
+      expect(JSON.decode(response.body), {"id":"1"});
+
+      response = await http.get("http://localhost:4040/api/a");
+      expect(response.statusCode, 200);
+      expect(JSON.decode(response.body), {});
+    });
+
   });
 
   group("Router ordering", () {

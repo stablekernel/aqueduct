@@ -11,10 +11,14 @@ class HTTPRequestPath {
   /// Default constructor for [HTTPRequestPath].
   ///
   /// There is no need to invoke this constructor manually.
-  HTTPRequestPath(this.segments);
+  HTTPRequestPath(this.segments, {int segmentOffset: 0}) : _basePathSegments = segmentOffset;
 
   set specification(RouteSpecification spec) {
     var requestIterator = segments.iterator;
+    for (var i = 0; i < _basePathSegments; i ++) {
+      requestIterator.moveNext();
+    }
+
     for (var segment in spec.segments) {
       requestIterator.moveNext();
       var requestSegment = requestIterator.current;
@@ -69,4 +73,6 @@ class HTTPRequestPath {
   /// but the incoming request this [HTTPRequestPath] represents only has one variable, only that one variable
   /// will appear in this property.
   List<String> orderedVariableNames = [];
+
+  int _basePathSegments = 0;
 }
