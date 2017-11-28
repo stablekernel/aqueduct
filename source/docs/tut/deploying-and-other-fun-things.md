@@ -70,7 +70,7 @@ database:
  databaseName: quiz
 ```
 
-Run `aqueduct serve` and open a browser to `http://localhost:8081/questions` - you'll see the question in your database. For other ways of running an Aqueduct application (and tips for running them remotely), see [this guide](../deploy/overview.md).
+Run `aqueduct serve` and open a browser to `http://localhost:8888/questions` - you'll see the question in your database. For other ways of running an Aqueduct application (and tips for running them remotely), see [this guide](../deploy/overview.md).
 
 !!! tip "Test and Deployment Configuration"
     The `configurationFilePath` defaults to `config.yaml` when using `aqueduct serve`. In the test harness, the `configurationFilePath` is set to `config.src.yaml`. To continue running the tests, add the database connection configuration for `dart_test` database to the file `config.src.yaml`. For more details on configuration, see [this guide](../http/configure.md).

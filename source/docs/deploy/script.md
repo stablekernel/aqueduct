@@ -19,7 +19,7 @@ main() async {
   try {
     var app = new Application<MyApplicationChannel>();
     var options = new ApplicationOptions()
-      ..port = 8081
+      ..port = 8888
       ..configurationFilePath = "config.yaml";
 
     app.options = options;

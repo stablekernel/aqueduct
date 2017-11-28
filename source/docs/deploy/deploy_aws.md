@@ -233,10 +233,10 @@ Now, run the application in `--detached` mode:
 aqueduct serve --detached
 ```
 
-By default, an Aqueduct application will listen on port 8081. HTTP requests will come in on port 80. You can't bind to port 80 without using sudo. Instead, reroute HTTP requests on port 80 to port 8081 by entering the following on the EC2 instance:
+By default, an Aqueduct application will listen on port 8888. HTTP requests will come in on port 80. You can't bind to port 80 without using sudo. Instead, reroute HTTP requests on port 80 to port 8888 by entering the following on the EC2 instance:
 
 ```bash
-sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to 8081
+sudo iptables -t nat -A PREROUTING -p tcp --dport 80 -j REDIRECT --to 8888
 sudo iptables-save
 ```
 

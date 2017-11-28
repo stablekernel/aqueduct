@@ -139,13 +139,13 @@ Before we explain this, let's see it in action. In the project directory, run th
 aqueduct serve
 ```
 
-Then, in a browser, enter `http://localhost:8081/questions`. You'll see the following text:
+Then, in a browser, enter `http://localhost:8888/questions`. You'll see the following text:
 
 ```
 ["How much wood can a woodchuck chuck?","What's the tallest mountain in the world?"]
 ```
 
-Now, try entering a path that we didn't add to the `Router`, like `http://localhost:8081/foobar`. You'll get a 404 Not Found error.
+Now, try entering a path that we didn't add to the `Router`, like `http://localhost:8888/foobar`. You'll get a 404 Not Found error.
 
 ## The Application Channel
 
@@ -229,9 +229,9 @@ class QuestionController extends RESTController {
 
 Reload the application by hitting Ctrl-C in the terminal that ran `aqueduct serve` and then run `aqueduct serve` again.
 
-In your browser, enter `http://localhost:8081/questions` and you'll get the list of questions.
+In your browser, enter `http://localhost:8888/questions` and you'll get the list of questions.
 
-Then, enter `http://localhost:8081/questions/0` and you'll get "How much wood can a woodchuck chuck?". If the index not within the list of questions or it something other than an integer, you'll get an 404 Not Found response.
+Then, enter `http://localhost:8888/questions/0` and you'll get "How much wood can a woodchuck chuck?". If the index not within the list of questions or it something other than an integer, you'll get an 404 Not Found response.
 
 !!! warning "Closing the Application"
     Once you're done running an application, stop it with `^C`. Otherwise, the next time you try and start an application, it will fail because your previous application is already listening for requests on the same port.

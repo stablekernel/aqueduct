@@ -34,7 +34,7 @@ When a 500 error is encountered, the server will send the stack trace back to th
 
 ## Avoid Port Conflicts
 
-Aqueduct applications run through the `bin/main.dart` script default to port 8000. Applications run with `aqueduct serve` default to port 8081. You may use the `--port` command-line option to pick a different port:
+Applications run with `aqueduct serve` default to port 8888. You may use the `--port` command-line option to pick a different port:
 
 ```
 aqueduct serve --port 4000

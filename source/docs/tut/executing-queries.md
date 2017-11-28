@@ -221,9 +221,9 @@ INSERT INTO _question (description) VALUES ('What is the tallest mountain in the
 Re-run your application with `aqueduct serve` and enter the following URLs into a browser:
 
 ```
-http://localhost:8081/questions
-http://localhost:8081/questions/1
-http://localhost:8081/questions/9999
+http://localhost:8888/questions
+http://localhost:8888/questions/1
+http://localhost:8888/questions/9999
 ```
 
 You should see the full list of questions, the first question, and then a 404 Not Found.
@@ -327,9 +327,9 @@ INSERT INTO _question (description) VALUES ('What is the tallest mountain in the
 Re-run your application with `aqueduct serve` and enter the following URLs into a browser:
 
 ```
-http://localhost:8081/questions
-http://localhost:8081/questions/1
-http://localhost:8081/questions/9999
+http://localhost:8888/questions
+http://localhost:8888/questions/1
+http://localhost:8888/questions/9999
 ```
 
 You should see the full list of questions, the first question, and then a 404 Not Found.
