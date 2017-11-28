@@ -362,6 +362,6 @@ class _BelongsTo {
   @primaryKey
   int id;
 
-  @Relationship(#objects)
+  @Relate(#objects)
   HasMany hasMany;
 }

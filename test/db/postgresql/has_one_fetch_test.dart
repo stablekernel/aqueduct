@@ -441,7 +441,7 @@ class _Child {
   int cid;
   String name;
 
-  @Relationship(#child)
+  @Relate(#child)
   Parent parent;
 
   Toy toy;
@@ -457,7 +457,7 @@ class _Toy {
 
   String name;
 
-  @Relationship(#toy)
+  @Relate(#toy)
   Child child;
 }
 
@@ -468,7 +468,7 @@ class _Vaccine {
   int vid;
   String kind;
 
-  @Relationship(#vaccinations)
+  @Relate(#vaccinations)
   Child child;
 }
 

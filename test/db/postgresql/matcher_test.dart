@@ -456,6 +456,6 @@ class _InnerModel {
 
   String name;
 
-  @Relationship(#inner)
+  @Relate(#inner)
   TestModel owner;
 }

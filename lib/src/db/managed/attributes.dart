@@ -37,7 +37,7 @@ class Table {
   final List<Symbol> uniquePropertySet;
 }
 
-/// Possible values for a delete rule in a [Relationship].
+/// Possible values for a delete rule in a [Relate].
 enum DeleteRule {
   /// Prevents a delete operation if the would-be deleted [ManagedObject] still has references to this relationship.
   restrict,
@@ -58,15 +58,15 @@ enum DeleteRule {
 /// that has a foreign key reference to the related [ManagedObject]. Relationships are made up of two [ManagedObject]s, where each
 /// has a property that refers to the other. Only one of those properties may have this metadata. The property with this metadata
 /// resolves to a column in the database. The relationship property without this metadata resolves to a row or rows in the database.
-class Relationship {
+class Relate {
   static const Symbol _deferredSymbol = #mdrDeferred;
 
   /// Creates an instance of this type.
-  const Relationship(this.inversePropertyName,
+  const Relate(this.inversePropertyName,
       {this.onDelete: DeleteRule.nullify,
       this.isRequired: false});
 
-  const Relationship.deferred(DeleteRule onDelete,
+  const Relate.deferred(DeleteRule onDelete,
       {bool isRequired: false})
       : this(_deferredSymbol, onDelete: onDelete, isRequired: isRequired);
 
@@ -85,7 +85,7 @@ class Relationship {
 
   /// Whether or not this relationship is required.
   ///
-  /// By default, [Relationship] properties are not required to support the default value of [onDelete].
+  /// By default, [Relate] properties are not required to support the default value of [onDelete].
   /// By setting this value to true, an instance of this entity cannot be created without a valid value for the relationship property.
   final bool isRequired;
 

@@ -461,10 +461,10 @@ class _Game {
   int homeScore;
   int awayScore;
 
-  @Relationship(#homeGames)
+  @Relate(#homeGames)
   Team homeTeam;
 
-  @Relationship(#awayGames)
+  @Relate(#awayGames)
   Team awayTeam;
 }
 

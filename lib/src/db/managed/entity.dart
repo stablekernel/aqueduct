@@ -18,7 +18,7 @@ import 'relationship_type.dart';
 /// defined by the [instanceType].
 /// Attributes are represented by [ManagedAttributeDescription].
 ///
-/// The value of a relationship property is a reference to another [ManagedObject]. If a relationship property has [Relationship] metadata,
+/// The value of a relationship property is a reference to another [ManagedObject]. If a relationship property has [Relate] metadata,
 /// the property is backed be a foreign key column in the underlying database. Relationships are represented by [ManagedRelationshipDescription].
 class ManagedEntity {
   /// Creates an instance of this type..
@@ -76,7 +76,7 @@ class ManagedEntity {
   /// All relationship values of this entity.
   ///
   /// A relationship represents a value that is another [ManagedObject] or [ManagedSet] of [ManagedObject]s. Not all relationships
-  /// correspond to a column or field in a database, only those with [Relationship] metadata (see also [ManagedRelationshipType.belongsTo]). In
+  /// correspond to a column or field in a database, only those with [Relate] metadata (see also [ManagedRelationshipType.belongsTo]). In
   /// this case, the underlying database column is a foreign key reference. The underlying database does not have storage
   /// for [ManagedRelationshipType.hasMany] or [ManagedRelationshipType.hasOne] properties, as those values are derived by the foreign key reference
   /// on the inverse relationship property.

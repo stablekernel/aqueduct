@@ -145,12 +145,12 @@ class _ManagedAuthToken {
   ///
   /// [ManagedAuthenticatable] must be implemented by some [ManagedObject] subclass in an application.
   /// That subclass will be the 'owner' of tokens. See [ManagedAuthenticatable] for more details.
-  @Relationship.deferred(DeleteRule.cascade,
+  @Relate.deferred(DeleteRule.cascade,
       isRequired: true)
   ManagedAuthenticatable resourceOwner;
 
   /// The client this token was issued for.
-  @Relationship(#tokens,
+  @Relate(#tokens,
       onDelete: DeleteRule.cascade, isRequired: true)
   ManagedAuthClient client;
 

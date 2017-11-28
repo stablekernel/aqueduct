@@ -137,8 +137,8 @@ Serialize transientMetadataFromDeclaration(
 Column attributeMetadataFromDeclaration(
         DeclarationMirror dm) =>
     firstMetadataOfType(Column, dm);
-Relationship relationshipMetadataFromProperty(DeclarationMirror dm) =>
-    firstMetadataOfType(Relationship, dm);
+Relate relationshipMetadataFromProperty(DeclarationMirror dm) =>
+    firstMetadataOfType(Relate, dm);
 
 Iterable<ClassMirror> classHierarchyForClass(ClassMirror t) sync* {
   var persistentTypePtr = t;
