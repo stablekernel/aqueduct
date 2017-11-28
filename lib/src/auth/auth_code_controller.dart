@@ -4,10 +4,22 @@ import 'dart:io';
 import '../http/http.dart';
 import 'auth.dart';
 
-typedef Future<String> _RenderAuthorizationPageFunction(
-    AuthCodeController controller,
-    Uri requestURI,
-    Map<String, String> queryParameters);
+/// Interface for providing [AuthCodeController] with application-specific behavior.
+abstract class AuthCodeControllerDelegate {
+  /// Returns an HTML string for a login page.
+  ///
+  /// Invoked when [AuthCodeController.getAuthorizationPage] is called in response to a GET request.
+  /// Must provide HTML that will be returned to the browser for rendering. This page must execute
+  /// a POST request to the same endpoint, including the values of [responseType], [clientID], [state], [scope]
+  /// as well as user-entered username and password.
+  ///
+  /// All four of [responseType], [clientID], [state] and [scope] are provided in the query parameters of the request
+  /// that triggered this method. Only [scope] may be null; the other three are non-null.
+  ///
+  /// [requestUri] is the request [Uri] that triggered this page fetch.
+  Future<String> render(AuthCodeController forController, Uri requestUri, String responseType, String clientID,
+      String state, String scope);
+}
 
 /// [RESTController] for issuing OAuth 2.0 authorization codes.
 ///
@@ -25,23 +37,14 @@ typedef Future<String> _RenderAuthorizationPageFunction(
 class AuthCodeController extends RESTController {
   /// Creates a new instance of an [AuthCodeController].
   ///
-  /// An [AuthCodeController] requires an [AuthServer] to carry out tasks.
+  /// An [AuthCodeController] requires an [AuthServer].
   ///
-  /// By default, an [AuthCodeController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
+  /// By default, an [AuthCodeController] has only one [acceptedContentTypes]: 'application/x-www-form-urlencoded'.
   ///
-  /// In order to display a login page, [renderAuthorizationPageHTML] must be provided. This method must return a full HTML
-  /// document that will POST to this same endpoint when a 'Login' button is pressed. This method must provide
-  /// the username and password the user enters, as well as the queryParameters as part of the form data to this endpoint's POST.
-  /// The requestURI of this method is the full request URI of this endpoint. See the [ApplicationChannel] subclass in templates/default
-  /// or in a project generated with `aqueduct create` for an example.
-  AuthCodeController(this.authServer,
-      {Future<String> renderAuthorizationPageHTML(AuthCodeController controller,
-          Uri requestURI, Map<String, String> queryParameters)}) {
-    acceptedContentTypes = [
-      new ContentType("application", "x-www-form-urlencoded")
-    ];
-
-    _renderFunction = renderAuthorizationPageHTML;
+  /// A GET request to this controller will return an HTML login page. This page is provided through [delegate]'s callback methods.
+  /// This page should allow a user to submit their username and password via POST request to the same endpoint.  See [AuthCodeControllerDelegate.render] for more details.
+  AuthCodeController(this.authServer, {this.delegate}) {
+    acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
   /// A reference to the [AuthServer] this controller uses to grant authorization codes.
@@ -65,7 +68,7 @@ class AuthCodeController extends RESTController {
   @Bind.query("client_id")
   String clientID;
 
-  _RenderAuthorizationPageFunction _renderFunction;
+  AuthCodeControllerDelegate delegate;
 
   /// Returns an HTML login form.
   ///
@@ -78,24 +81,17 @@ class AuthCodeController extends RESTController {
   /// The 'client_id' must be a registered, valid client of this server. The client must also provide
   /// a [state] to this request and verify that the redirect contains the same value in its query string.
   @Bind.method("get")
-  Future<Response> getAuthorizationPage(
-      {@Bind.query("scope") String scope}) async {
-    if (_renderFunction == null) {
+  Future<Response> getAuthorizationPage({@Bind.query("scope") String scope}) async {
+    if (delegate == null) {
       return new Response(405, {}, null);
     }
 
-    var renderedPage = await _renderFunction(this, request.raw.uri, {
-      "response_type": responseType,
-      "client_id": clientID,
-      "state": state,
-      "scope": scope
-    });
+    var renderedPage = await delegate.render(this, request.raw.uri, responseType, clientID, state, scope);
     if (renderedPage == null) {
       return new Response.notFound();
     }
 
-    return new Response.ok(renderedPage)
-      ..contentType = ContentType.HTML;
+    return new Response.ok(renderedPage)..contentType = ContentType.HTML;
   }
 
   /// Creates a one-time use authorization code.
@@ -113,29 +109,23 @@ class AuthCodeController extends RESTController {
     var client = await authServer.clientForID(clientID);
 
     if (state == null) {
-      var exception =
-          new AuthServerException(AuthRequestError.invalidRequest, client);
+      var exception = new AuthServerException(AuthRequestError.invalidRequest, client);
       return _redirectResponse(null, null, error: exception);
     }
 
-    if (responseType != "code") {      
+    if (responseType != "code") {
       if (client?.redirectURI == null) {
         return new Response.badRequest();
       }
 
-      var exception =
-          new AuthServerException(AuthRequestError.invalidRequest, client);
+      var exception = new AuthServerException(AuthRequestError.invalidRequest, client);
       return _redirectResponse(null, state, error: exception);
     }
 
     try {
-      var scopes = scope
-        ?.split(" ")
-        ?.map((s) => new AuthScope(s))
-        ?.toList();
+      var scopes = scope?.split(" ")?.map((s) => new AuthScope(s))?.toList();
 
-      var authCode =
-          await authServer.authenticateForCode(username, password, clientID, requestedScopes: scopes);
+      var authCode = await authServer.authenticateForCode(username, password, clientID, requestedScopes: scopes);
       return _redirectResponse(client.redirectURI, state, code: authCode.code);
     } on FormatException {
       return _redirectResponse(null, state, error: new AuthServerException(AuthRequestError.invalidScope, client));
@@ -176,8 +166,7 @@ class AuthCodeController extends RESTController {
           ..description = "Successfully issued an authorization code.",
         new APIResponse()
           ..statusCode = HttpStatus.BAD_REQUEST
-          ..description =
-              "Missing one or more of: 'client_id', 'username', 'password'.",
+          ..description = "Missing one or more of: 'client_id', 'username', 'password'.",
         new APIResponse()
           ..statusCode = HttpStatus.UNAUTHORIZED
           ..description = "Not authorized",
@@ -205,8 +194,7 @@ class AuthCodeController extends RESTController {
     }
 
     var redirectURI = Uri.parse(uriString);
-    Map<String, String> queryParameters =
-        new Map.from(redirectURI.queryParameters);
+    Map<String, String> queryParameters = new Map.from(redirectURI.queryParameters);
 
     if (code != null) {
       queryParameters["code"] = code;

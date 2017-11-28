@@ -11,7 +11,7 @@ import 'utility/html_template.dart';
 ///
 /// Override methods in this class to set up routes and initialize services like
 /// database connections. See http://aqueduct.io/docs/http/channel/.
-class WildfireChannel extends ApplicationChannel {
+class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDelegate {
   HTMLRenderer htmlRenderer = new HTMLRenderer();
   AuthServer authServer;
 
@@ -46,8 +46,7 @@ class WildfireChannel extends ApplicationChannel {
     /* OAuth 2.0 Endpoints */
     router.route("/auth/token").generate(() => new AuthController(authServer));
 
-    router.route("/auth/code").generate(() => new AuthCodeController(authServer,
-        renderAuthorizationPageHTML: renderLoginPage));
+    router.route("/auth/code").generate(() => new AuthCodeController(authServer, delegate: this));
 
     /* Create an account */
     router
@@ -87,11 +86,19 @@ class WildfireChannel extends ApplicationChannel {
     return new ManagedContext(dataModel, psc);
   }
 
-  Future<String> renderLoginPage(AuthCodeController controller, Uri requestURI,
-      Map<String, String> queryParameters) async {
-    var path = requestURI.path;
-    var map = new Map<String, String>.from(queryParameters);
-    map["path"] = path;
+  @override
+  Future<String> render(AuthCodeController forController, Uri requestUri, String responseType, String clientID,
+      String state, String scope) async {
+    var map = {
+      "response_type": responseType,
+      "client_id": clientID,
+      "state": state
+    };
+
+    map["path"] = requestUri.path;
+    if (scope != null) {
+      map["scope"] = scope;
+    }
 
     return htmlRenderer.renderHTML("web/login.html", map);
   }
