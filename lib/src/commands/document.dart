@@ -19,7 +19,7 @@ abstract class CLIDocumentOptions implements CLICommand {
   String get licenseName => values["license-name"];
   String get configurationPath => values["config-path"];
   List<Uri> get hosts {
-    List<String> hostValues = values["host"] ?? ["http://localhost:8081"];
+    List<String> hostValues = values["host"] ?? ["http://localhost:8888"];
     return hostValues.map((str) {
       var uri = Uri.parse(str);
       if (uri == null) {

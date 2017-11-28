@@ -61,7 +61,7 @@ void main() {
             ..setContentTypeForExtension("silly", new ContentType("text", "html", charset: "utf-8")));
     router.prepare();
 
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
+    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
     server.map((r) => new Request(r)).listen((req) {
       router.receive(req);
     });
@@ -189,7 +189,7 @@ void main() {
   });
 
   test("Can add extension", () async {
-    var response = await http.get("http://localhost:8081/silly/file.silly");
+    var response = await http.get("http://localhost:8888/silly/file.silly");
     expect(response.statusCode, 200);
     expect(response.headers["content-type"], "text/html; charset=utf-8");
     expect(response.headers["content-encoding"], "gzip");
@@ -200,7 +200,7 @@ void main() {
   });
 
   test("Client connection closed before data is sent still shuts down stream", () async {
-    var socket = await Socket.connect("localhost", 8081);
+    var socket = await Socket.connect("localhost", 8888);
     var request = "GET /files/file.html HTTP/1.1\r\nConnection: keep-alive\r\nHost: localhost\r\n\r\n";
     socket.add(request.codeUnits);
     await socket.flush();
@@ -214,7 +214,7 @@ void main() {
   });
 
   test("Provide onFileNotFound provides another response", () async {
-    var response = await http.get("http://localhost:8081/redirect/jkasdjlkasjdksadj");
+    var response = await http.get("http://localhost:8888/redirect/jkasdjlkasjdksadj");
     expect(response.statusCode, 200);
     expect(JSON.decode(response.body), {"k":"v"});
   });
@@ -289,15 +289,15 @@ void main() {
 }
 
 Future<http.Response> getFile(String path, {Map<String, String> headers}) async {
-  return http.get("http://localhost:8081/files$path", headers: headers);
+  return http.get("http://localhost:8888/files$path", headers: headers);
 }
 
 Future<http.Response> getCacheableFile(String path, {DateTime ifModifiedSince}) async {
   if (ifModifiedSince == null) {
-    return http.get("http://localhost:8081/cache$path");
+    return http.get("http://localhost:8888/cache$path");
   }
 
-  return http.get("http://localhost:8081/cache$path", headers: {
+  return http.get("http://localhost:8888/cache$path", headers: {
     HttpHeaders.IF_MODIFIED_SINCE: HttpDate.format(ifModifiedSince)
   });
 }

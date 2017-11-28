@@ -8,7 +8,7 @@ void main() {
   group("Standard operations", () {
     var app = new Application<TestChannel>();
     Controller.letUncaughtExceptionsEscape = true;
-    app.options.port = 8081;
+    app.options.port = 8888;
     var client = new TestClient.onPort(app.options.port);
     List<TestModel> allObjects = [];
 

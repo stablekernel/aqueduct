@@ -32,8 +32,8 @@ class ApplicationOptions {
 
   /// The port to listen for HTTP requests on.
   ///
-  /// Defaults to 8081.
-  int port = 8081;
+  /// Defaults to 8888.
+  int port = 8888;
 
   /// Whether or not the application should only receive connections over IPv6.
   ///

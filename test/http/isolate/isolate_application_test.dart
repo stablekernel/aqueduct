@@ -31,13 +31,13 @@ void main() {
     });
 
     test("Application responds to request", () async {
-      var response = await http.get("http://localhost:8081/t");
+      var response = await http.get("http://localhost:8888/t");
       expect(response.statusCode, 200);
     });
 
     test("Application properly routes request", () async {
-      var tRequest = http.get("http://localhost:8081/t");
-      var rRequest = http.get("http://localhost:8081/r");
+      var tRequest = http.get("http://localhost:8888/t");
+      var rRequest = http.get("http://localhost:8888/r");
 
       var tResponse = await tRequest;
       var rResponse = await rRequest;
@@ -50,7 +50,7 @@ void main() {
       var reqs = <Future>[];
       var responses = [];
       for (int i = 0; i < 20; i++) {
-        var req = http.get("http://localhost:8081/t");
+        var req = http.get("http://localhost:8888/t");
         req.then((resp) {
           responses.add(resp);
         });
@@ -67,19 +67,19 @@ void main() {
       await app.stop();
 
       try {
-        await http.get("http://localhost:8081/t");
+        await http.get("http://localhost:8888/t");
       } on SocketException {}
 
       await app.start(numberOfInstances: 2, consoleLogging: true);
 
-      var resp = await http.get("http://localhost:8081/t");
+      var resp = await http.get("http://localhost:8888/t");
       expect(resp.statusCode, 200);
     });
 
     test("Application runs app startup function once, regardless of isolate count", () async {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
-        var result = await http.get("http://localhost:8081/startup");
+        var result = await http.get("http://localhost:8888/startup");
         sum += int.parse(JSON.decode(result.body));
       }
       expect(sum, 10);

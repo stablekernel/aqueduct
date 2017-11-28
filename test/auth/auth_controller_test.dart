@@ -8,7 +8,7 @@ import '../helpers.dart';
 
 void main() {
   HttpServer server;
-  TestClient client = new TestClient.onPort(8081)
+  TestClient client = new TestClient.onPort(8888)
     ..clientID = "com.stablekernel.app1"
     ..clientSecret = "kilimanjaro";
   AuthServer authenticationServer;
@@ -63,7 +63,7 @@ void main() {
     router.prepare();
 
     server =
-        await HttpServer.bind("localhost", 8081, v6Only: false, shared: false);
+        await HttpServer.bind("localhost", 8888, v6Only: false, shared: false);
     server.map((req) => new Request(req)).listen(router.receive);
   });
 

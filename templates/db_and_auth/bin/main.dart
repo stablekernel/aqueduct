@@ -3,7 +3,7 @@ import 'package:wildfire/wildfire.dart';
 Future main() async {
   var app = new Application<WildfireChannel>()
       ..options.configurationFilePath = "config.yaml"
-      ..options.port = 8000;
+      ..options.port = 8888;
 
   await app.start(numberOfInstances: 2);
 

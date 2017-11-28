@@ -2,6 +2,7 @@
 
 ## 3.0.0
 
+- Change default port for `aqueduct serve` to 8888.
 - Binding metadata - `HTTPMethod`, `HTTPPath`, `HTTPBody`, `HTTPQuery` and `HTTPHeader` - have been changed to `Bind.method`, `Bind.path`, `Bind.body`, `Bind.query` and `Bind.header`, respectively.
 - Deprecates `@httpGet` and similar constants for `Bind.get()` and similar constructors.
 - Renames `Request.innerRequest` to `Request.raw`.
@@ -104,7 +105,7 @@
 ## 2.0.2
 
 - Allow binding to system-assigned port so tests can be run in parallel
-- Change `aqueduct serve` default port to 8081 so can develop in parallel to Angular2 apps that default to 8080
+- Change `aqueduct serve` default port to 8888 so can develop in parallel to Angular2 apps that default to 8080
 - Remove `SecurityContext` reference from `ApplicationConfiguration`. SSL configured via new `aqueduct serve` arguments `ssl-key-path` and `ssl-certificate-path`, or overriding `securityContext` in `RequestSink`.
 
 ## 2.0.1
