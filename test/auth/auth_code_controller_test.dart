@@ -530,7 +530,7 @@ void main() {
   });
 }
 
-class TestChannel extends ApplicationChannel {
+class TestChannel extends ApplicationChannel implements AuthCodeControllerDelegate {
   AuthServer authServer;
 
   @override
@@ -543,16 +543,25 @@ class TestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/auth/code").generate(() => new AuthCodeController(authServer,
-            renderAuthorizationPageHTML: (AuthCodeController c, Uri uri,
-                Map<String, String> queryParams) async {
-          queryParams.addAll({"path": uri.path});
-          return JSON.encode(queryParams);
-        }));
+    router.route("/auth/code").generate(() => new AuthCodeController(authServer, delegate: this));
 
     router.route("/nopage").generate(() => new AuthCodeController(authServer));
     return router;
   }
+
+  @override
+  Future<String> render(AuthCodeController forController, Uri requestUri, String responseType, String clientID,
+      String state, String scope) async {
+    return JSON.encode({
+      "response_type": responseType,
+      "path": requestUri.path,
+      "client_id": clientID,
+      "state": state,
+      "scope": scope
+    });
+  }
+
+
 }
 
 void expectRedirect(TestResponse resp, Uri requestURI, {String state}) {
