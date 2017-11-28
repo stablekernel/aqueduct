@@ -228,7 +228,7 @@ userMap == {
 
 Notice that the names of the keys - including relationship properties and properties of the related object - all match the names of their declared properties.
 
-It's important to note that "belongs to" relationships - those with `Relationship` metadata - are always returned in `asMap()` when fetching an object from the database. However, the full object is not returned - only its primary key. Therefore, you will get the following result:
+It's important to note that "belongs to" relationships - those with `Relate` metadata - are always returned in `asMap()` when fetching an object from the database. However, the full object is not returned - only its primary key. Therefore, you will get the following result:
 
 ```dart
 var jobQuery = new Query<Job>();

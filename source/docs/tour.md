@@ -272,7 +272,7 @@ class _Employee  {
 }
 ```
 
-`ManagedObject<T>`s have relationship properties for has-one, has-many and many-to-many references to other `ManagedObject<T>`s. The property with `Relationship` metadata is a foreign key column.
+`ManagedObject<T>`s have relationship properties for has-one, has-many and many-to-many references to other `ManagedObject<T>`s. The property with `Relate` metadata is a foreign key column.
 
 ```dart
 class Employee extends ManagedObject<_Employee> implements _Employee {}
@@ -286,7 +286,7 @@ class Initiative extends ManagedObject<_Initiative> implements _Initiative {}
 class _Initiative {
   ...
 
-  @Relationship(#initiatives)
+  @Relate(#initiatives)
   Employee leader;
 }
 ```
