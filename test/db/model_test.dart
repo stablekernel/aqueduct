@@ -550,7 +550,7 @@ class _Post {
 
   String text;
 
-  @Relationship(#posts)
+  @Relate(#posts)
   User owner;
 }
 
@@ -770,6 +770,6 @@ class _TransientBelongsTo {
   @primaryKey
   int id;
 
-  @Relationship(#t)
+  @Relate(#t)
   TransientOwner owner;
 }

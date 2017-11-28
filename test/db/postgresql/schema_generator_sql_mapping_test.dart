@@ -422,7 +422,7 @@ class _GenPost {
 
   String text;
 
-  @Relationship(#posts, isRequired: false, onDelete: DeleteRule.restrict)
+  @Relate(#posts, isRequired: false, onDelete: DeleteRule.restrict)
   GenUser owner;
 }
 
@@ -452,7 +452,7 @@ class _GenAuth {
   @Column(primaryKey: true)
   int id;
 
-  @Relationship(#auth, isRequired: false, onDelete: DeleteRule.cascade)
+  @Relate(#auth, isRequired: false, onDelete: DeleteRule.cascade)
   GenOwner owner;
 }
 
@@ -480,10 +480,10 @@ class _GenJoin {
   @primaryKey
   int id;
 
-  @Relationship(#join)
+  @Relate(#join)
   GenLeft left;
 
-  @Relationship(#join)
+  @Relate(#join)
   GenRight right;
 }
 
@@ -502,7 +502,7 @@ class _GenNotNullable {
   @primaryKey
   int id;
 
-  @Relationship(#gen, onDelete: DeleteRule.nullify, isRequired: false)
+  @Relate(#gen, onDelete: DeleteRule.nullify, isRequired: false)
   GenObj ref;
 }
 
@@ -558,6 +558,6 @@ class _UniqueBelongsTo {
   int id;
 
   int a;
-  @Relationship(#contains)
+  @Relate(#contains)
   UniqueContainer container;
 }

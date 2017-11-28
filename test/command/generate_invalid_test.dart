@@ -62,7 +62,7 @@ void main() {
         class T extends ManagedObject<_T> {}
         class _T {
           @primaryKey int id;
-          @Relationship(#x)
+          @Relate(#x)
           U y;
         }
         """,
@@ -74,7 +74,7 @@ void main() {
         class T extends ManagedObject<_T> {}
         class _T {
           @primaryKey int id;
-          @Relationship(#x)
+          @Relate(#x)
           V y;
         }
         class V extends ManagedObject<_V> {}

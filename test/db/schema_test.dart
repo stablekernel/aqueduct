@@ -671,7 +671,7 @@ class _DefaultItem {
   @primaryKey
   int id;
 
-  @Relationship(#defaultItems)
+  @Relate(#defaultItems)
   Container container;
 }
 
@@ -684,7 +684,7 @@ class _LoadedItem {
   @Column(indexed: true)
   String someIndexedThing;
 
-  @Relationship(#loadedItems,
+  @Relate(#loadedItems,
       onDelete: DeleteRule.restrict, isRequired: false)
   Container container;
 
@@ -697,7 +697,7 @@ class _LoadedSingleItem {
   @primaryKey
   int id;
 
-  @Relationship(#loadedSingleItem,
+  @Relate(#loadedSingleItem,
       onDelete: DeleteRule.cascade, isRequired: true)
   LoadedItem loadedItem;
 }

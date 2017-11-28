@@ -616,7 +616,7 @@ class _Item {
   @Column(primaryKey: true)
   String name;
 
-  @Relationship(#items,
+  @Relate(#items,
       onDelete: DeleteRule.cascade, isRequired: true)
   User user;
 }
@@ -629,7 +629,7 @@ class _Manager {
 
   String name;
 
-  @Relationship(#manager)
+  @Relate(#manager)
   User worker;
 }
 
@@ -649,7 +649,7 @@ class _FailingChild {
   @primaryKey
   int id;
 
-  @Relationship(#gen,
+  @Relate(#gen,
       onDelete: DeleteRule.nullify, isRequired: true)
   Owner ref;
 }
@@ -785,7 +785,7 @@ class _PartialReferenceModel {
 
   String field;
 
-  @Relationship.deferred(DeleteRule.cascade,
+  @Relate.deferred(DeleteRule.cascade,
       isRequired: true)
   PartialModel foreignKeyColumn;
 }
@@ -798,13 +798,13 @@ class _DoubleRelationshipForeignKeyModel {
   @primaryKey
   int id;
 
-  @Relationship(#hasManyOf)
+  @Relate(#hasManyOf)
   DoubleRelationshipHasModel isManyOf;
 
-  @Relationship(#hasOneOf)
+  @Relate(#hasOneOf)
   DoubleRelationshipHasModel isOneOf;
 
-  @Relationship.deferred(DeleteRule.cascade)
+  @Relate.deferred(DeleteRule.cascade)
   SomeOtherPartialModel partial;
 }
 
@@ -856,10 +856,10 @@ class _JoinMany {
   @primaryKey
   int id;
 
-  @Relationship(#join)
+  @Relate(#join)
   LeftMany left;
 
-  @Relationship(#join)
+  @Relate(#join)
   RightMany right;
 }
 
@@ -868,7 +868,7 @@ class _InvalidCyclicLeft {
   @primaryKey
   int id;
 
-  @Relationship(#ref)
+  @Relate(#ref)
   InvalidCyclicRight ref;
 }
 
@@ -877,7 +877,7 @@ class _InvalidCyclicRight {
   @primaryKey
   int id;
 
-  @Relationship(#ref)
+  @Relate(#ref)
   InvalidCyclicLeft ref;
 }
 
@@ -886,7 +886,7 @@ class _CyclicLeft  {
   @primaryKey
   int id;
 
-  @Relationship(#from)
+  @Relate(#from)
   CyclicRight leftRef;
 
   CyclicRight from;
@@ -897,7 +897,7 @@ class _CyclicRight  {
   @primaryKey
   int id;
 
-  @Relationship(#from)
+  @Relate(#from)
   CyclicLeft rightRef;
 
   CyclicLeft from;
@@ -924,7 +924,7 @@ class _InvalidMetadata {
   @Column(primaryKey: true)
   int id;
 
-  @Relationship(#foo)
+  @Relate(#foo)
   @Column(indexed: true)
   InvalidMetadata1 bar;
 }
@@ -950,7 +950,7 @@ class _MissingInverseWrongSymbol {
   @primaryKey
   int id;
 
-  @Relationship(#foobar)
+  @Relate(#foobar)
   MissingInverse1 has;
 }
 
@@ -981,10 +981,10 @@ class _DupInverse {
   @primaryKey
   int id;
 
-  @Relationship(#inverse)
+  @Relate(#inverse)
   DupInverseHas foo;
 
-  @Relationship(#inverse)
+  @Relate(#inverse)
   DupInverseHas bar;
 }
 
@@ -1051,7 +1051,7 @@ class _MultiUniqueFailureRelationshipInverse {
   @primaryKey
   int id;
 
-  @Relationship(#a)
+  @Relate(#a)
   MultiUniqueFailureRelationship rel;
 }
 
@@ -1061,7 +1061,7 @@ class _MultiUniqueBelongsTo {
   @primaryKey
   int id;
 
-  @Relationship(#a)
+  @Relate(#a)
   MultiUniqueHasA rel;
 
   String b;

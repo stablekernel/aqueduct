@@ -60,10 +60,10 @@ class _ChildObject {
   ManagedSet<GrandChildObject> grandChildren;
   GrandChildObject grandChild;
 
-  @Relationship(#children)
+  @Relate(#children)
   RootObject parents;
 
-  @Relationship(#child)
+  @Relate(#child)
   RootObject parent;
 }
 
@@ -93,10 +93,10 @@ class _GrandChildObject {
   int value1;
   int value2;
 
-  @Relationship(#grandChildren)
+  @Relate(#grandChildren)
   ChildObject parents;
 
-  @Relationship(#grandChild)
+  @Relate(#grandChild)
   ChildObject parent;
 }
 
@@ -144,10 +144,10 @@ class _RootJoinObject {
   @primaryKey
   int id;
 
-  @Relationship(#join)
+  @Relate(#join)
   OtherRootObject other;
 
-  @Relationship(#join)
+  @Relate(#join)
   RootObject root;
 }
 

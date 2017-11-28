@@ -438,7 +438,7 @@ class _GenPost {
 
   String text;
 
-  @Relationship(#posts,
+  @Relate(#posts,
       onDelete: DeleteRule.cascade, isRequired: false)
   GenUser owner;
 }

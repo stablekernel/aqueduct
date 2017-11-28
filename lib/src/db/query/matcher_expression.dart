@@ -201,9 +201,9 @@ dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
   return new RangeMatcherExpression(lhs, rhs, false);
 }
 
-/// Matcher for matching [Relationship] property when using [Query.where].
+/// Matcher for matching [Relate] property when using [Query.where].
 ///
-/// This matcher can be assigned to a [Relationship] property. The underlying
+/// This matcher can be assigned to a [Relate] property. The underlying
 /// [PersistentStore] will determine the name of the foreign key column to build
 /// the query. See [Query.where].
 ///

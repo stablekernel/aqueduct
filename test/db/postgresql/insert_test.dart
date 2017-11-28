@@ -324,7 +324,7 @@ class _GenPost {
   int id;
   String text;
 
-  @Relationship(#posts)
+  @Relate(#posts)
   GenUser owner;
 }
 
