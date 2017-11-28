@@ -26,7 +26,7 @@ void main() {
         ..contentType = new ContentType("application", "octet-stream");
       server = await bindAndRespondWith(response);
 
-      var resultFuture = http.get("http://localhost:8081");
+      var resultFuture = http.get("http://localhost:8888");
 
       sc.add([1, 2, 3, 4]);
       sc.add([5, 6, 7, 8]);
@@ -43,7 +43,7 @@ void main() {
         ..contentType = new ContentType("application", "octet-stream");
       server = await bindAndRespondWith(response);
 
-      var resultFuture = http.get("http://localhost:8081");
+      var resultFuture = http.get("http://localhost:8888");
 
       sc.add([1, 2, 3, 4]);
       sc.add([5, 6, 7, 8]);
@@ -68,7 +68,7 @@ void main() {
         ..contentType = new ContentType("application", "silly");
       server = await bindAndRespondWith(response);
 
-      var resultFuture = http.get("http://localhost:8081");
+      var resultFuture = http.get("http://localhost:8888");
 
       sc.add([1, 2, 3, 4]);
       sc.add([5, 6, 7, 8]);
@@ -97,7 +97,7 @@ void main() {
         ..contentType = new ContentType("text", "plain", charset: "utf-8");
       server = await bindAndRespondWith(response);
 
-      var resultFuture = http.get("http://localhost:8081");
+      var resultFuture = http.get("http://localhost:8888");
 
       sc.add("abcd");
       sc.add("efgh");
@@ -116,7 +116,7 @@ void main() {
         ..contentType = new ContentType("application", "crash");
       server = await bindAndRespondWith(response);
 
-      var resultFuture = http.get("http://localhost:8081");
+      var resultFuture = http.get("http://localhost:8888");
 
       sc.add("abcd");
       sc.add("efgh");
@@ -150,7 +150,7 @@ void main() {
       var sc = new StreamController<String>();
       server = await bindAndRespondWith(new Response.ok(sc.stream)..contentType = ContentType.TEXT);
 
-      var req = await client.getUrl(Uri.parse("http://localhost:8081"));
+      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
 
       var respFuture = req.close();
@@ -175,7 +175,7 @@ void main() {
       var sc = new StreamController<String>();
       server = await bindAndRespondWith(new Response.ok(sc.stream)..contentType = ContentType.TEXT);
 
-      var req = await client.getUrl(Uri.parse("http://localhost:8081"));
+      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
       req.headers.add("accept-encoding", "deflate");
       var respFuture = req.close();
@@ -200,7 +200,7 @@ void main() {
       var sc = new StreamController<List<int>>();
       var ct = new ContentType("application", "1");
       server = await bindAndRespondWith(new Response.ok(sc.stream)..contentType = ct);
-      var req = await client.getUrl(Uri.parse("http://localhost:8081"));
+      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
       req.headers.add("accept-encoding", "gzip");
       var respFuture = req.close();
@@ -222,7 +222,7 @@ void main() {
       var ct = new ContentType("application", "3");
       HTTPCodecRepository.defaultInstance.add(ct, new Utf8Codec(), allowCompression: false);
       server = await bindAndRespondWith(new Response.ok(sc.stream)..contentType = ct);
-      var req = await client.getUrl(Uri.parse("http://localhost:8081"));
+      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
       req.headers.add("accept-encoding", "gzip");
       var respFuture = req.close();
@@ -252,7 +252,7 @@ void main() {
       var response = new Response.ok(sc.stream)
         ..contentType = new ContentType("application", "octet-stream");
       var initiateResponseCompleter = new Completer();
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
+      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.listen((req) async {
@@ -262,7 +262,7 @@ void main() {
         await next.receive(req);
       });
 
-      var socket = await Socket.connect("localhost", 8081);
+      var socket = await Socket.connect("localhost", 8888);
       var request = "GET /r HTTP/1.1\r\nConnection: keep-alive\r\nHost: localhost\r\n\r\n";
       socket.add(request.codeUnits);
 
@@ -401,7 +401,7 @@ Future serverHasNoMoreConnections(HttpServer server) async {
 }
 
 Future<HttpServer> bindAndRespondWith(Response response) async {
-  var server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
+  var server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
   server.map((req) => new Request(req)).listen((req) async {
     var next = new Controller();
     next.listen((req) async {

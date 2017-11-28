@@ -38,7 +38,7 @@ void main() {
 
           crashingApp.options.context = {"crashIn": "dontCrash"};
           await crashingApp.start(consoleLogging: true);
-          var response = await http.get("http://localhost:8081/t");
+          var response = await http.get("http://localhost:8888/t");
           expect(response.statusCode, 200);
           await crashingApp.stop();
         });
@@ -46,11 +46,11 @@ void main() {
     test(
         "Application that fails to open because port is bound fails gracefully",
             () async {
-          var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8081);
+          var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8888);
           server.listen((req) {});
 
           var conflictingApp = new Application<TestChannel>();
-          conflictingApp.options.port = 8081;
+          conflictingApp.options.port = 8888;
 
           try {
             await conflictingApp.start(consoleLogging: true);

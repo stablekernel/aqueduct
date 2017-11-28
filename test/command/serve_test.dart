@@ -34,7 +34,7 @@ void main() {
         await runAqueductProcess(["serve", "--detached"], temporaryDirectory);
     print("${res.exitCode} ${res.output}");
     expect(res.exitCode, 0);
-    expect(res.output, contains("port 8081"));
+    expect(res.output, contains("port 8888"));
     expect(res.output, contains("config.yaml"));
 
 
@@ -44,7 +44,7 @@ void main() {
     expect(res.output, contains("Aqueduct project version: $thisVersion"));
     
     
-    var result = await http.get("http://localhost:8081/endpoint");
+    var result = await http.get("http://localhost:8888/endpoint");
     expect(result.statusCode, 200);
   });
 
@@ -89,7 +89,7 @@ void main() {
     expect(res.exitCode, 0);
 
     var completer = new Completer();
-    var socket = await SecureSocket.connect("localhost", 8081, onBadCertificate: (_) => true);
+    var socket = await SecureSocket.connect("localhost", 8888, onBadCertificate: (_) => true);
     var request = "GET /endpoint HTTP/1.1\r\nConnection: close\r\nHost: localhost\r\n\r\n";
     socket.add(request.codeUnits);
 

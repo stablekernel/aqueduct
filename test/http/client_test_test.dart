@@ -7,9 +7,9 @@ import 'package:aqueduct/aqueduct.dart';
 
 void main() {
   test("Client can expect array of JSON", () async {
-    TestClient client = new TestClient.onPort(8081);
+    TestClient client = new TestClient.onPort(8888);
     HttpServer server =
-        await HttpServer.bind("localhost", 8081, v6Only: false, shared: false);
+        await HttpServer.bind("localhost", 8888, v6Only: false, shared: false);
     var router = new Router();
     router.route("/na").generate(() => new TestController());
     router.prepare();

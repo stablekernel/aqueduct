@@ -11,7 +11,7 @@ void main() {
   group("Standard operations", () {
     var app = new Application<TestChannel>();
     Controller.letUncaughtExceptionsEscape = true;
-    app.options.port = 8081;
+    app.options.port = 8888;
     var client = new TestClient.onPort(app.options.port);
     List<TestModel> allObjects = [];
 
@@ -88,8 +88,8 @@ void main() {
 
   group("Standard operation failure cases", () {
     var app = new Application<TestChannel>();
-    app.options.port = 8081;
-    var client = new TestClient.onPort(8081);
+    app.options.port = 8888;
+    var client = new TestClient.onPort(8888);
 
     setUpAll(() async {
       await app.test();
@@ -121,8 +121,8 @@ void main() {
 
   group("Objects that don't exist", () {
     var app = new Application<TestChannel>();
-    app.options.port = 8081;
-    var client = new TestClient.onPort(8081);
+    app.options.port = 8888;
+    var client = new TestClient.onPort(8888);
 
     setUpAll(() async {
       await app.test();
@@ -157,8 +157,8 @@ void main() {
 
   group("Extended GET requests", () {
     var app = new Application<TestChannel>();
-    app.options.port = 8081;
-    var client = new TestClient.onPort(8081);
+    app.options.port = 8888;
+    var client = new TestClient.onPort(8888);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
@@ -356,8 +356,8 @@ void main() {
 
   group("With dynamic entity", () {
     var app = new Application<TestChannel>();
-    app.options.port = 8081;
-    var client = new TestClient.onPort(8081);
+    app.options.port = 8888;
+    var client = new TestClient.onPort(8888);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {

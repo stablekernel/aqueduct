@@ -23,7 +23,7 @@ void main() {
       ..contentType = new ContentType("foo", "bar");
     server = await bindAndRespondWith(response);
 
-    var resp = await http.get("http://localhost:8081");
+    var resp = await http.get("http://localhost:8888");
 
     expect(resp.statusCode, 500);
     expect(response.headers["content-type"], isNull);
@@ -35,7 +35,7 @@ void main() {
       ..contentType = new ContentType("foo", "bar");
     server = await bindAndRespondWith(response);
 
-    var resp = await http.get("http://localhost:8081");
+    var resp = await http.get("http://localhost:8888");
     var contentType = ContentType.parse(resp.headers["content-type"]);
     expect(resp.statusCode, 200);
     expect(contentType.primaryType, "foo");
@@ -49,7 +49,7 @@ void main() {
       ..contentType = new ContentType("text", "bar");
     server = await bindAndRespondWith(response);
 
-    var resp = await http.get("http://localhost:8081");
+    var resp = await http.get("http://localhost:8888");
     var contentType = ContentType.parse(resp.headers["content-type"]);
     expect(resp.statusCode, 200);
     expect(contentType.primaryType, "text");
@@ -66,7 +66,7 @@ void main() {
       ..contentType = new ContentType("b", "bar");
     server = await bindAndRespondWith(serverResponse);
 
-    var resp = await http.get("http://localhost:8081");
+    var resp = await http.get("http://localhost:8888");
     expect(resp.statusCode, 200);
     expect(resp.headers["content-type"], "b/bar");
     expect(resp.body, "hello");
@@ -82,7 +82,7 @@ void main() {
       ..contentType = new ContentType("a", "specific", charset: "utf-8");
     server = await bindAndRespondWith(serverResponse);
 
-    var resp = await http.get("http://localhost:8081");
+    var resp = await http.get("http://localhost:8888");
     expect(resp.statusCode, 200);
     expect(resp.headers["content-type"], "a/specific; charset=utf-8");
     expect(JSON.decode(resp.body), {"key":"value"});
@@ -95,7 +95,7 @@ void main() {
       ..contentType = new ContentType("application", "crash");
     server = await bindAndRespondWith(serverResponse);
 
-    var resp = await http.get("http://localhost:8081");
+    var resp = await http.get("http://localhost:8888");
     expect(resp.statusCode, 500);
   });
 
@@ -104,7 +104,7 @@ void main() {
       ..contentType = new ContentType("text", "foo", charset: "abcd");
     server = await bindAndRespondWith(serverResponse);
 
-    var resp = await http.get("http://localhost:8081");
+    var resp = await http.get("http://localhost:8888");
     expect(resp.statusCode, 500);
   });
 
@@ -115,7 +115,7 @@ void main() {
       ..contentType = new ContentType("application", "baddata");
     server = await bindAndRespondWith(serverResponse);
 
-    var resp = await http.get("http://localhost:8081");
+    var resp = await http.get("http://localhost:8888");
     expect(resp.statusCode, 500);
   });
 
@@ -126,7 +126,7 @@ void main() {
 
       var acceptEncodingHeaders = ["gzip", "gzip, deflate", "deflate,gzip"];
       for (var acceptEncoding in acceptEncodingHeaders) {
-        var req = await client.getUrl(Uri.parse("http://localhost:8081"));
+        var req = await client.getUrl(Uri.parse("http://localhost:8888"));
         req.headers.clear();
         req.headers.add("accept-encoding", acceptEncoding);
         var resp = await req.close();
@@ -142,7 +142,7 @@ void main() {
     test("Content-Type that can be gzipped but request does not have Accept-Encoding not gzipped", () async {
       server = await bindAndRespondWith(new Response.ok({"a": "b"}));
 
-      var req = await client.getUrl(Uri.parse("http://localhost:8081"));
+      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
       var resp = await req.close();
 
@@ -157,7 +157,7 @@ void main() {
     test("Content-Type that can be gzipped and request has Accept-Encoding but not gzip", () async {
       server = await bindAndRespondWith(new Response.ok({"a": "b"}));
 
-      var req = await client.getUrl(Uri.parse("http://localhost:8081"));
+      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
       req.headers.add("accept-encoding", "deflate");
       var resp = await req.close();
@@ -172,7 +172,7 @@ void main() {
     test("Unregistered content-type of List<int> does not get gzipped", () async {
       var ct = new ContentType("application", "1");
       server = await bindAndRespondWith(new Response.ok([1, 2, 3, 4])..contentType = ct);
-      var req = await client.getUrl(Uri.parse("http://localhost:8081"));
+      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
       req.headers.add("accept-encoding", "gzip");
       var resp = await req.close();
@@ -188,7 +188,7 @@ void main() {
       var ct = new ContentType("application", "2");
       HTTPCodecRepository.defaultInstance.setAllowsCompression(ct, true);
       server = await bindAndRespondWith(new Response.ok([1, 2, 3, 4])..contentType = ct);
-      var req = await client.getUrl(Uri.parse("http://localhost:8081"));
+      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
       req.headers.add("accept-encoding", "gzip");
       var resp = await req.close();
@@ -204,7 +204,7 @@ void main() {
       var ct = new ContentType("application", "3", charset: "utf-8");
       HTTPCodecRepository.defaultInstance.add(ct, new JsonCodec(), allowCompression: false);
       server = await bindAndRespondWith(new Response.ok({"a": "b"})..contentType = ct);
-      var req = await client.getUrl(Uri.parse("http://localhost:8081"));
+      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
       req.headers.add("accept-encoding", "gzip");
       var resp = await req.close();
@@ -219,7 +219,7 @@ void main() {
 }
 
 Future<HttpServer> bindAndRespondWith(Response response) async {
-  var server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8081);
+  var server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
   server.map((req) => new Request(req)).listen((req) async {
     var next = new Controller();
     next.listen((req) async {
