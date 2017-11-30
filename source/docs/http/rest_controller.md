@@ -81,10 +81,25 @@ router
 
 By contrast, the route `/cities/[:name/[attractions/[:id]]]`, while valid, makes controller logic much more unwieldy.
 
+### Multiple Path Bindings
+
+In the route `/cities/:name/attractions/[:id]` above, each operation method *must* have a `name` path binding and could optionally have an `id` path binding:
+
+```dart
+class CityAttractionController extends RESTController {
+  @Bind.get()
+  Future<Response> getCityAttractions(@Bind.path("name") String name) async => ...;
+
+  @Bind.get()
+  Future<Response> getCityAttractionsByID(
+    @Bind.path("name") String name, @Bind.path("id") int id) async => ...;
+}
+```
+
 !!! note
     There are bindings for other HTTP methods, e.g. `Bind.post()`. Non-standard methods can be bound with `Bind.method("METHOD_NAME")`.
 
-## Other Types of Binding
+## REST Bindings
 
 The values of query parameters, headers and the request body may also be bound to arguments of an operation method. For example, the following operation method for `GET /cities` requires an `X-API-Key` header:
 

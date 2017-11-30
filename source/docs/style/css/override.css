@@ -42,7 +42,3 @@ a.md-nav__link--active {
 label[for="toc"] {
   display: none;
 }
-
-label[for="drawer"] {
-  display: none;
-}

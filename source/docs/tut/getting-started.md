@@ -1,9 +1,20 @@
 # 1. Getting Started
 
-The purpose of this tutorial series is to become familiar with how Aqueduct works by building an application. To get started, make sure you have the following software installed:
+### Purpose: Become familiar with how Aqueduct works by building an application.
+
+By the end of this tutorial, you will have created an Aqueduct application that serves fictional heroes from a PostgreSQL database. You will learn the following:
+
+- Run an Aqueduct application
+- Route HTTP requests to the appropriate handler
+- Store and retrieve database data
+- Write automated tests for each endpoint
+
+## Installation
+
+To get started, make sure you have the following software installed:
 
 1. Dart ([Install Instructions](https://www.dartlang.org/install))
-2. IntelliJ IDEA or any other Jetbrains IDE ([Install Instructions](https://www.jetbrains.com/idea/download/))
+2. IntelliJ IDEA or any other Jetbrains IDE, including the free Community Edition ([Install Instructions](https://www.jetbrains.com/idea/download/))
 3. The IntelliJ IDEA Dart Plugin ([Install Instructions](https://www.dartlang.org/tools/jetbrains-plugin))
 
 If at anytime you get stuck, hop on over to the [Aqueduct Slack channel](http://slackaqueductsignup.herokuapp.com).
@@ -22,72 +33,76 @@ pub global activate aqueduct
 Creating a Project
 ---
 
-Create a new project named `quiz`:
+Create a new project named `heroes`:
 
 ```
-aqueduct create quiz
+aqueduct create heroes
 ```
 
-This creates a `quiz` project directory.
+This creates a `heroes` project directory.
 
-Open this directory with IntelliJ IDEA by dragging the project folder onto IntellIJ IDEA's icon).
+Open this directory with IntelliJ IDEA by dragging the project folder onto IntellIJ IDEA's icon.
 
-In IntelliJ's project view, locate the `lib` directory; this is where your project's code will go. This barebones project has two source files - `quiz.dart` and `channel.dart`.
+In IntelliJ's project view, locate the `lib` directory; this is where your project's code will go. This barebones project has two source files - `heroes.dart` and `channel.dart`.
 
-The file `quiz.dart` should automatically be opened (if it is not, select it). Click on the `Enable Dart Support` button in the top right corner of the editor.
+Open the file `heroes.dart`. Click on the `Enable Dart Support` button in the top right corner of the editor.
 
 ## Handling HTTP Requests
 
-In this tutorial, we'll create a Quiz web server that can return questions and their answers. At the end of this tutorial, we'll be able to handle the following HTTP requests:
+In your browser, navigate to [http://aqueduct-tutorial.stablekernel.io](http://aqueduct-tutorial.stablekernel.io). This browser application will fetch heroes by making HTTP requests that your `heroes` application will respond to. At this end of this chapter, this browser application will be able to display a list of heroes and and the details of an individual hero. To do this, our `heroes` application needs to handle two requests:
 
-- `GET /questions` to get a JSON list of questions and their answers
-- `GET /questions/:index` to get an individual question and its answer
+1. `GET /heroes` to get a JSON list of heroes
+2. `GET /heroes/:id` to get an individual hero
 
-Let's start by writing the code that will send a 200 OK response for `GET /questions` requests.
+!!! warning "HTTP vs HTTPS"
+    The browser application is served over HTTP so that it can access your Aqueduct application when it runs locally on your machine.
 
-Create a new file in `lib/controller/question_controller.dart` and add the following code (you may need to create the subdirectory `lib/controller/`):
+These requests are called *operations*. An operation is the combination of an HTTP method and a path. So, `GET /heroes` is an operation that "gets all heroes" and `GET /heroes/:id` is an operation that "gets a single hero by id". You should be able to describe all operations in plain English phrase.
+
+Let's start by writing the code for the `GET /heroes` operation.
+
+Create a new file in `lib/controller/heroes_controller.dart` and add the following code (you may need to create the subdirectory `lib/controller/`):
 
 ```dart
-import '../quiz.dart';
+import 'package:aqueduct/aqueduct.dart';
+import 'package:heroes/heroes.dart';
 
-class QuestionController extends RESTController {
-  final List<String> questions = [
-    "How much wood can a woodchuck chuck?",
-    "What's the tallest mountain in the world?"
+class HeroesController extends RESTController {
+  final heroes = [
+    {'id': 11, 'name': 'Mr. Nice'},
+    {'id': 12, 'name': 'Narco'},
+    {'id': 13, 'name': 'Bombasto'},
+    {'id': 14, 'name': 'Celeritas'},
+    {'id': 15, 'name': 'Magneta'},    
   ];
 
   @Bind.get()
-  Future<Response> getAllQuestions() async {
-    return new Response.ok(questions);
+  Future<Response> getAllHeroes() async {
+    return new Response.ok(heroes);
   }
 }
 ```
 
-This creates a new class, `QuestionController`. Its `getAllQuestions()` method is special - it will automatically be called if a `QuestionController` is asked to handle a `GET` request. The `Response` it returns will be the response sent to the client - in this case, a 200 OK response with a body that contains its questions.
+This code declares a new class named `HeroesController`. Its `getAllHeroes()` method is called an *operation method*. An operation method handles an operation by creating an HTTP response. For a method to be an operation method, it must meet the following criteria:
 
-A method with this behavior is called an *operation method*. An operation is the combination of an HTTP method and request path - like `GET /questions` or `POST /teams/1/players`. You should be able to describe an operation in plain English phrase - like "get all the questions" or "add a player to a team".
-
-An operation method is invoked to handle a specific operation. For a method to be an operation method, it must meet the following criteria:
-
-- It's declared in an `RESTController` subclass.
+- It is an instance method declared in an `RESTController` subclass.
 - It returns a `Future<Response>`.
-- It has an annotation that indicates the HTTP method it handles, e.g. `@Bind.get()`.
+- It has an annotation that indicates the HTTP method it handles, e.g. `@Bind.get()`, `@Bind.post()`.
 
-!!! tip
-    The plain English phrase for an operation is a really good name for an operation method and a good name will be useful when you generate OpenAPI documentation from your code.
+Our `getAllHeroes()` method handles `GET` requests; this is determined by the `@Bind.get()` annotation. (If the annotation were, say, `@Bind.post()`, this method would handle `POST` requests.) It will return a 200 OK response with a JSON encoded list of heroes.
 
-So far, we've declared that a `QuestionController` can respond to `GET` requests, but we haven't written code anywhere that indicates this should happen when the path is `/questions`. To understand how to do this, we have to learn a bit about the general structure of an Aqueduct application.
+Therefore, we've declared that a `HeroesController` will respond to `GET` requests by calling `getAllHeroes()`, but we haven't written code that indicates this should happen when the path is `/heroes`. In other words, we've only defined half of our `GET /heroes` operation. To complete the operation, we have to learn a bit about the general structure of an Aqueduct application.
 
-In Aqueduct, objects called *controllers* can act on a request. For example, `QuestionController` acts by sending a 200 OK response if the request method is `GET`. Controllers can do more than just create a response; one might do something to verify the request is valid in some way, the other might add a header just before sending the response. Controllers are linked together to form a series of steps that a request goes through so that it can be responded to.
+### Aqueduct Controllers
+
+In Aqueduct, objects called *controllers* act on a request. For example, `HeroesController` acts by sending a 200 OK response if the request method is `GET`. Controllers can do more than just create a response; one might do something to verify the request is valid in some way, the other might add a header just before sending the response. Controllers are linked together to form a series of steps that a request goes through.
 
 Each controller can do one of two things:
 
 - Send a response for the request.
 - Pass the request to the next controller in the series of steps.
 
-We have a controller that will send a response for a `GET` request, but it needs to be passed any requests with the path `/questions`. A `Router` is a type of controller that passes requests to another controller if the path of the request matches a pre-determined *route*.
-
-Open `channel.dart` and take a look at `QuizChannel.entryPoint`:
+Open `channel.dart` and take a look at `HeroesChannel.entryPoint`:
 
 ```dart
   @override
@@ -104,15 +119,26 @@ Open `channel.dart` and take a look at `QuizChannel.entryPoint`:
   }
 ```
 
-This code creates a `Router` that is the first controller to receive every request. When the path of the request is `/example`, the `Router` send the request to the closure provided to `listen`. We need to have the `Router` send requests with the path `/questions` to our `QuestionController.`
+This code creates and links together three controllers. The first controller is a `Router` that we instantiate like we would any other object. This controller is returned from `entryPoint` and therefore it is the first controller to receive all HTTP requests in our application.
 
-Import the file that contains our definition of `QuestionController` at the top of `channel.dart`:
+The `route` method creates a 'route controller' that filters requests and links it to the `Router`. If the `Router` receives a request with the path `/example`, it will pass it to this route controller. A route controller will always pass its request on to its next controller - in this case, the controller created by `listen`. A controller created by `listen` invokes its closure argument for any request. Therefore, we have the following order of controllers:
+
+1. A `Router`
+2. A route controller that takes requests with the path `/example`
+3. A listen controller that invokes a closure that always responds with a 200 OK response.
+
+Note that `route` and `listen` return the controller they create, allowing us to link controllers together. In other words, `route` and `listen` are instance methods of `Controller` and classes like `Router` are subclasses of `Controller`. The `route` method is invoked on the `Router`, creating a new route controller, and `listen` is invoked on that newly created route controller.
+
+!!! note "Higher Ordered Functions"
+    Methods like `listen` and `route` should be familiar to programmers that use methods like `map` and `where` on collection types like `List` and `Stream`.
+
+For our `HeroesController` to receive requests, we need to create a route for the `/heroes` path and link a `HeroesController` to it. Import the file that contains our definition of `HeroesController` at the top of `channel.dart`:
 
 ```dart
-import 'controller/question_controller.dart';
+import 'controller/heroes_controller.dart';
 ```
 
-Then, modify `QuizChannel.entryPoint` by adding a new route that an instance of `QuestionController` will handle.
+Then, modify `HeroesChannel.entryPoint`:
 
 ```dart
 @override
@@ -120,8 +146,8 @@ Controller get entryPoint {
   final router = new Router();
 
   router
-    .route("/questions")
-    .generate(() => new QuestionController());
+    .route("/heroes")
+    .generate(() => new HeroesController());
 
   router
     .route("/example")
@@ -133,55 +159,56 @@ Controller get entryPoint {
 }
 ```
 
-Before we explain this, let's see it in action. In the project directory, run the following command:
+Like `listen`, `generate` creates and links a controller. The difference between the two is that `listen` takes a closure that handles the request, whereas `generate` takes a closure that *creates a controller object to handle the request*. For quick and dirty request handlers, a `listen` controller is okay, but as your application grows, it is a lot easier to organize your request handling logic into controller objects like `HeroesController`.
+
+With this route hooked up, a request with the path `/heroes` will get routed to a generating controller that creates a new instance of `HeroesController` to handle each request. We now have have fully-fledged operation for `GET /heroes` and we can run our application.
+
+In the project directory, run the following command from the command-line:
 
 ```
 aqueduct serve
 ```
 
-Then, in a browser, enter `http://localhost:8888/questions`. You'll see the following text:
+Reload the browser page `http://aqueduct-tutorial.stablekernel.io`. You'll see your heroes in your web browser:
 
-```
-["How much wood can a woodchuck chuck?","What's the tallest mountain in the world?"]
-```
+#### Screenshot of Heroes Application
 
-Now, try entering a path that we didn't add to the `Router`, like `http://localhost:8888/foobar`. You'll get a 404 Not Found error.
+![Aqueduct Heroes First Run](../img/run1.png)
 
 ## The Application Channel
 
-As we mentioned, an Aqueduct application is made up of controllers that a request flows through. This group of controllers is called the *application channel*. Every application must subclass `ApplicationChannel` and override `entryPoint` to provide this channel of controllers. The controller returned from this method is the first controller to receive a request - in our case, a `Router`.
-
-Controllers are added to the channel by invoking methods like `route`, `generate` and `listen`. Each has slightly different behavior:
-
-- `route` is only available for routers - it branches the channel. If the request's path matches the route, it flows to the next step in the branch. If there is no match, it returns a 404 Not Found.
-- `listen` adds a simple closure controller to the channel.
-- `generate` creates a new instance of a controller for each request.
+As we mentioned, an Aqueduct application is made up of controllers that a request flows through. This group of controllers is called the *application channel*. Every application must subclass `ApplicationChannel` and override `entryPoint` to provide this channel of controllers.
 
 If we were to draw our application in a a diagram, it would look like this:
 
 ![Channel Diagram](../img/ChannelDiagram.png)
 
-When we make a request for `GET /questions`, the router is the first to receive it. It recognizes the path `/questions`, so a new instance of `QuestionController` is created and is passed the request. The `QuestionController` then calls its `getAllQuestions()` operation method because the request is a `GET` request. This method returns a response that gets sent to the client.
+Recall that the controller returned from this method is the first controller to receive a request; this was our `Router`. Also recall that controllers are added to the channel by invoking methods like `route`, `generate` and `listen`. Each has slightly different behavior:
 
+- `route` is only available for routers - it branches the channel. If the request's path matches the route, it flows to the next step in the branch. If there is no match, it returns a 404 Not Found.
+- `listen` adds a simple closure controller to the channel.
+- `generate` creates a new instance of a controller for each request.
 
 !!! tip "Why a new instance?"
-    `RESTController`s have a lot of internal steps, so they need to temporarily store information about the request during those steps. This information gets stored in properties of the controller. Some of these internal steps are asynchronous; if a new request comes in while we're in the middle of handling another, the properties will be changes to the values for the new request. Generating prevents this by creating a new controller for each request. To re-use the same instance, `pipe` is used.  See [this guide](../http/controller.md) for more details on channel construction.
+    `RESTController`s have a lot of internal steps, so they need to temporarily store information about the request during those steps. This information gets stored in properties of the controller. Some of these internal steps are asynchronous; if a new request comes in while we're in the middle of handling another, the properties will be changes to the values for the new request. Generating prevents this by creating a new controller for each request. To re-use the same instance, use `pipe` instead of `generate`.  See [this guide](../http/controller.md) for more details on channel construction.
 
-!!! tip
-    Constructing the channel should look familiar to to using higher-ordered functions like `map` and `where` on `List`s and `Stream`s.
+An application channel is created when your application starts. Your application channel is also where you initialize the things your application will need; this might include configuring a database connection or reading a configuration file. (We'll see how this is done later in the tutorial.) Once your application channel has finished setting up, it doesn't do much itself; its controllers take over to handle requests as they come in.
 
-Adding Another Route
----
+### Routing
 
-So far, we've created an operation that returns a list of questions. Now, we are going to create an operation to "get a single question from that list". This operation's path will be `/questions/0` or `/questions/1`, where the number in the path tells us the index of the question array. This number is a *path variable*; the question returned in the response will depend on the value of this variable.
+So far, we've created an operation that returns a list of heroes. Now, we are going to create an operation to "gets a single hero by id". The `id` of the hero will be included in the operation's request path; something like `/heroes/2` or `/heroes/10`. The segment of the path that contains the hero's `id` is called a *path variable*; our application can use this value to determine which hero to return.
 
-A path variable captures a value from the request path so that it can be used in our code. A path variable is prefixed with a colon (`:`). The route `/questions/:index` has a variable for the path segment that comes after `/questions`. For example, the path `/questions/0` would match this route and the path variable `index` would be `0`.
+We can add path variables to a route by adding a path segment prefixed with a colon. Here's what that would look like:
 
-By default, a path variable is required - the path `/questions` doesn't match `/questions/:index`. This means that the path `/questions` won't match `/questions/:index`. That's why path segments can be marked as optional.
+```dart
+  router.route("/heroes/:id");
+```
 
-By wrapping `:index` in square brackets - `/questions/[:index]` - we say that it is optional and the path can be either `/questions` or `/questions/:index`. Both requests will match the route and be sent to a `QuestionController`.
+For a request to match this route, it must take the form of `/heroes/1`, `/heroes/2`, and so on. When we write code to handle this operation, we can use whatever the value of `id` is in our code.
 
-Modify the route in `entryPoint` add an optional `index` route variable to `/questions`:
+The route `/heroes/:id` *does not*, however, match the path `/heroes`. We'd like it to - it would mean that our `HeroesController` can handle the logic for both of our operations, `GET /heroes` and `GET /heroes/:id`. We can wrap segments in route in square brackets to mark them as optional.
+
+Modify the route in `entryPoint` add an optional `id` path variable to `/heroes`:
 
 ```dart
 @override
@@ -189,8 +216,8 @@ Controller get entryPoint {
   final router = new Router();
 
   router
-    .route("/questions/[:index]")
-    .generate(() => new QuestionController());
+    .route("/heroes/[:id]")
+    .generate(() => new HeroesController());
 
   router
     .route("/example")
@@ -202,61 +229,79 @@ Controller get entryPoint {
 }
 ```
 
-Recall that `getAllQuestions()` is the operation method for "getting all the questions"; it runs when the operation is `GET /questions`. There is not an operation method for "get a single question at an index", that is, when the operation is `GET /questions/:index`. Therefore, we must create a new operation method in `QuestionController`:
+With this change, a `HeroesController` can handle both of our hero-getting operations. In our `HeroesController`, we'll create another operation method for `GET /heroes/:id`. Add that method in `controller/heroes_controller.dart`.
 
 ```dart
-class QuestionController extends RESTController {
-  final List<String> questions = [
-    "How much wood can a woodchuck chuck?",
-    "What's the tallest mountain in the world?"
+class HeroesController extends RESTController {
+  final heroes = [
+    {'id': 11, 'name': 'Mr. Nice'},
+    {'id': 12, 'name': 'Narco'},
+    {'id': 13, 'name': 'Bombasto'},
+    {'id': 14, 'name': 'Celeritas'},
+    {'id': 15, 'name': 'Magneta'},  
   ];
 
   @Bind.get()
-  Future<Response> getAllQuestions() async {
-    return new Response.ok(questions);
+  Future<Response> getAllHeroes() async {
+    return new Response.ok(heroes);
   }
 
   @Bind.get()
-  Future<Response> getQuestionAtIndex(@Bind.path("index") int index) async {
-    if (index < 0 || index >= questions.length) {
-      return new Response.notFound();
-    }
+  Future<Response> getHeroByID(@Bind.path("id") int id) async {
+    final hero = heroes.firstWhere((hero) => hero['id'] == id,
+      orElse: () => throw new HTTPResponseException(404, "no hero"));
 
-    return new Response.ok(questions[index]);  
+    return new Response.ok(hero);
   }
 }
 ```
 
+!!! tip "Naming Operation Methods"
+    The plain English phrase for an operation is a really good name for an operation method and a good name will be useful when you generate OpenAPI documentation from your code.
+
+
 Reload the application by hitting Ctrl-C in the terminal that ran `aqueduct serve` and then run `aqueduct serve` again.
 
-In your browser, enter `http://localhost:8888/questions` and you'll get the list of questions.
+In your browser, reload the page `http://aqueduct-tutorial.stablekernel.io` and you'll see the same list of heroes. Now, click on a hero to take you to its details and trigger a HTTP request like `GET /heroes/15`. The detail page will look like this:
 
-Then, enter `http://localhost:8888/questions/0` and you'll get "How much wood can a woodchuck chuck?". If the index not within the list of questions or it something other than an integer, you'll get an 404 Not Found response.
+![Screenshot of Hero Detail Page](../img/run2.png)
+
+You can also verify this from the server's perspective. In the terminal that is running `aqueduct serve`, you'll see log statements for requests handled:
+
+```
+[INFO] aqueduct: GET /heroes 0ms 200   
+[INFO] aqueduct: GET /heroes/15 0ms 200  
+```
+
+This tells us that both of the requests - `GET /heroes` and `GET /heroes/15` - both yielded a 200 and that they took 0 milliseconds to complete.
 
 !!! warning "Closing the Application"
     Once you're done running an application, stop it with `^C`. Otherwise, the next time you try and start an application, it will fail because your previous application is already listening for requests on the same port.
 
-## Request Binding
+## REST Bindings
 
-An `RESTController` picks an operation method if both of the following are true:
+Our `HeroesController` has two operation methods, and both of them are *bound* to HTTP GET operations with their `@Bind.get()` annotation. The difference between the two is that `getHeroByID(id)` is also bound to a the path variable `id`. Its single argument looks like this:
 
-1. The bound HTTP method matches the incoming request method (e.g., `@Bind.get()` and `GET`)
-2. The incoming request path has a value for each argument bound with `Bind.path`.
+```dart
+@Bind.path("id") int id
+```
 
-When the request is `GET /questions/:index`, the `index` path variable has a value. Since `getQuestionAtIndex(index)` has an argument that is bound to this path variable, it will be called. When the request is `GET /questions`, the path variable `index` is missing. The method `getAllQuestions()` binds no path variables, so it will be called.
+An operation method with path variables will only be called if the request path contains the named path variable. Therefore, if the operation is `GET /heroes/1`, the path variable `id` is 1 and `getHeroByID(1)` is called. When the operation is `GET /heroes`, that path variable is not present. The method `getAllHeroes()` is called in this case, because it binds *no* path variables.
 
-This binding behavior is specific to `RESTController`. In addition to path variables, you can bind headers, query parameters and bodies. Check out [RESTControllers](../http/rest_controller.md) for more details.
+!!! note "More REST Bindings"
+    This binding behavior is specific to `RESTController`. In addition to path variables, you can bind headers, query parameters and request bodies. Check out [RESTControllers](../http/rest_controller.md) for more details.
 
 The More You Know: Multi-threading and Application State
 ---
-In this simple exercise, we used a constant list of question as the source of data for the questions endpoint. For a simple getting-your-feet-wet demo, this is fine.
 
-However, in a real application, it is important that we don't keep any mutable state in a `ApplicationChannel` or any `Controller`s. This is for three reasons. First, it's just bad practice - web servers should be stateless. They are facilitators between a client and a repository of data, not a repository of data themselves. A repository of data is typically a database.
+In this simple exercise, we used a constant list of heroes as our source of data. For a simple getting-your-feet-wet demo, this is fine. However, in a real application, you'd store this data in a database. That way you could add data to it and not risk losing it when the application was restarted.
 
-Second, the way Aqueduct applications are structured makes it intentionally difficult to keep state. For example, `RESTController` is instantiated each time a new request comes in. Any state they have is discarded after the request is finished processing. This is intentional - you won't run into an issue when scaling to multiple server instances in the future, because the code is already structured to be stateless.
+More generally, a web server should never hang on to data that can change. While previously just a best practice, stateless web servers are becoming a requirement with the prevalence of containerization and tools like Kubernetes. Aqueduct makes it a bit easier to detect violations of this rule with its multi-threading strategy.
 
-Finally, Aqueduct applications are set up to run on multiple isolates. An isolate is effectively a thread that shares no memory with other threads. If we were to keep track of state in some way, that state would not be reflected across all of the isolates running on this web server. So depending on which isolate grabbed a request, it may have different state than you might expect. Again, Aqueduct forces you into this model on purpose.
+When you run an Aqueduct application, it creates multiple threads. Each of these threads has its own isolated heap in memory; meaning data that exists on one thread can't be accessed from other threads. In Dart, these isolated threads are called *isolates*.
 
-Isolates will spread themselves out across CPUs on the host machine. Each isolate will have its own instance of your `ApplicationChannel` subclass. Having multiple isolates running the same stateless web server on one machine allows for faster request handling. Each isolate also maintains its own set of services, like database connections.
+An instance of your application channel is created for each isolate. Each HTTP request is given to just one of the isolates to be handled. In a sense, your one application behaves the same as running your application on multiple servers behind a load balancer. (It also makes your application substantially faster.)
+
+If you are storing any data in your application, you'll find out really quick. Why? A request that changes data will only change that data in one of your application's isolates. When you make a request to get that data again, its unlikely that you'll see the changes - another isolate with different data will probably handle that request.
 
 ## [Next Chapter: Executing Queries](executing-queries.md)
