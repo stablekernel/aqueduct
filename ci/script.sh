@@ -8,5 +8,5 @@ fi
 
 if [[ "$STAGE" == "coverage" && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == false ]]; then
   pub global activate -sgit https://github.com/stablekernel/aqueduct-coverage-tool.git
-  pub global run aqueduct_coverage_tool:aqueduct_coverage
+  pub global run aqueduct_coverage_tool:main
 fi
