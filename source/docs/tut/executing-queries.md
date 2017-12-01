@@ -271,6 +271,8 @@ In the browser application, the dashboard has a text field for searching heroes.
 GET /heroes?name=abc
 ```
 
+![Aqueduct Tutorial Run 4](../img/run4.png)
+
 Our Aqueduct application can use this value to filter the query for heroes. In `heroes_controller.dart`, modify `getAllHeroes()` to bind the 'name' query parameter:
 
 ```dart
