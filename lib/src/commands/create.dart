@@ -90,7 +90,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
       "vcs.xml",
     ];
 
-    var hiddenFilesToKeep = [".gitignore", ".travis.yml", ".analysis_options"];
+    var hiddenFilesToKeep = [".gitignore", ".travis.yml", "analysis_options.yaml"];
 
     var lastComponent = entity.uri.pathSegments.last;
     if (lastComponent.length == 0) {
