@@ -22,14 +22,10 @@ dependencies:
   password_hash: ^1.0.0
   matcher: ">=0.12.0+2 <0.13.0"
   pub_cache: ^0.1.0
+  test: ^0.12.28
 
 dev_dependencies:
-  test: any
   http: ">=0.11.3+7 <0.12.0"
-  coverage:
-    git:
-      url: https://github.com/joeconwaystk/coverage.git
-      ref: aq3
 
 executables:
   aqueduct: aqueduct
