@@ -46,10 +46,10 @@ Map<Symbol, dynamic> toSymbolMap(List<HTTPValueBinding> boundValues) {
 
 
 bool isOperation(DeclarationMirror m) {
-  return methodBindingFrom(m) != null;
+  return getMethodOperationMetadata(m) != null;
 }
 
-HTTPMethod methodBindingFrom(DeclarationMirror m) {
+Operation getMethodOperationMetadata(DeclarationMirror m) {
   if (m is! MethodMirror) {
     return null;
   }
@@ -59,15 +59,7 @@ HTTPMethod methodBindingFrom(DeclarationMirror m) {
     return null;
   }
 
-  Bind metadata = method.metadata.firstWhere((im) => im.reflectee is Bind, orElse: () => null)?.reflectee;
-  if (metadata == null) {
-    return null;
-  }
+  Operation metadata = method.metadata.firstWhere((im) => im.reflectee is Operation, orElse: () => null)?.reflectee;
 
-  var binding = metadata.binding;
-  if (binding is! HTTPMethod) {
-    return null;
-  }
-
-  return binding;
+  return metadata;
 }

@@ -6,7 +6,7 @@ class UserController extends QueryController<User> {
 
   AuthServer authServer;
 
-  @Bind.get()
+  @Operation.get("id")
   Future<Response> getUser(@Bind.path("id") int id) async {
     var u = await query.fetchOne();
     if (u == null) {
@@ -20,7 +20,7 @@ class UserController extends QueryController<User> {
     return new Response.ok(u);
   }
 
-  @Bind.put()
+  @Operation.put("id")
   Future<Response> updateUser(@Bind.path("id") int id) async {
     if (request.authorization.resourceOwnerIdentifier != id) {
       return new Response.unauthorized();
@@ -34,7 +34,7 @@ class UserController extends QueryController<User> {
     return new Response.ok(u);
   }
 
-  @Bind.delete()
+  @Operation.delete("id")
   Future<Response> deleteUser(@Bind.path("id") int id) async {
     if (request.authorization.resourceOwnerIdentifier != id) {
       return new Response.unauthorized();

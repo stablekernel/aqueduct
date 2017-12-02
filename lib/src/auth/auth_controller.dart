@@ -54,7 +54,7 @@ class AuthController extends RESTController {
   ///
   /// This endpoint requires client authentication. The Authorization header must
   /// include a valid Client ID and Secret in the Basic authorization scheme format.
-  @Bind.method("post")
+  @Operation.post()
   Future<Response> create(
       {@Bind.query("username") String username,
       @Bind.query("password") String password,

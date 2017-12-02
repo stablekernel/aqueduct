@@ -80,7 +80,7 @@ class AuthCodeController extends RESTController {
   ///
   /// The 'client_id' must be a registered, valid client of this server. The client must also provide
   /// a [state] to this request and verify that the redirect contains the same value in its query string.
-  @Bind.method("get")
+  @Operation.get()
   Future<Response> getAuthorizationPage({@Bind.query("scope") String scope}) async {
     if (delegate == null) {
       return new Response(405, {}, null);
@@ -101,7 +101,7 @@ class AuthCodeController extends RESTController {
   /// will contain an 'error' key instead of the authorization code.
   ///
   /// This method is typically invoked by the login form returned from the GET to this path.
-  @Bind.method("post")
+  @Operation.post()
   Future<Response> authorize(
       {@Bind.query("username") String username,
       @Bind.query("password") String password,

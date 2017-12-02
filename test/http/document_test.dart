@@ -460,19 +460,19 @@ class TController extends RESTController {
   /// ABCD
   /// EFGH
   /// IJKL
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAll({@Bind.query("param") String param}) async {
     return new Response.ok("");
   }
 
   /// ABCD
-  @Bind.put()
+  @Operation.put("id")
   Future<Response> putOne(@Bind.path("id") int id,
       {@Bind.query("p1") int p1, @Bind.header("X-P2") int p2}) async {
     return new Response.ok("");
   }
 
-  @Bind.get()
+  @Operation.get("id")
   Future<Response> getOne(@Bind.path("id") int id) async {
     return new Response.ok("");
   }
@@ -480,14 +480,14 @@ class TController extends RESTController {
   /// MNOP
   /// QRST
 
-  @Bind.get()
+  @Operation.get("id", "notID")
   Future<Response> getTwo(@Bind.path("id") int id, @Bind.path("notID") int notID) async {
     return new Response.ok("");
   }
 
   /// EFGH
   /// IJKL
-  @Bind.post()
+  @Operation.post()
   Future<Response> createOne(
       @Bind.header("X-Date") DateTime date, @Bind.query("foo") String foo) async {
     return new Response.ok("");

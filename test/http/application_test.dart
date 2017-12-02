@@ -168,14 +168,14 @@ class TestChannel extends ApplicationChannel {
 }
 
 class TController extends RESTController {
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAll() async {
     return new Response.ok("t_ok");
   }
 }
 
 class RController extends RESTController {
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAll() async {
     return new Response.ok("r_ok");
   }

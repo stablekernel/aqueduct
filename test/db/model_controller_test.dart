@@ -69,7 +69,7 @@ void main() {
 }
 
 class TestModelController extends QueryController<TestModel> {
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAll() async {
     int statusCode = 200;
 
@@ -84,7 +84,7 @@ class TestModelController extends QueryController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @Bind.get()
+  @Operation.get("id")
   Future<Response> getOne(@Bind.path("id") int id) async {
     int statusCode = 200;
 
@@ -105,7 +105,7 @@ class TestModelController extends QueryController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @Bind.put()
+  @Operation.put("id")
   Future<Response> putOne(@Bind.path("id") int id) async {
     int statusCode = 200;
 
@@ -136,7 +136,7 @@ class TestModelController extends QueryController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @Bind.post()
+  @Operation.post()
   Future<Response> create() async {
     int statusCode = 200;
     if (query.values == null) {
@@ -152,7 +152,7 @@ class TestModelController extends QueryController<TestModel> {
     return new Response(statusCode, {}, null);
   }
 
-  @Bind.post()
+  @Operation.post("id")
   Future<Response> crash(@Bind.path("id") int id) async {
     return new Response.ok("");
   }
@@ -169,7 +169,7 @@ class _TestModel {
 }
 
 class StringController extends QueryController<StringModel> {
-  @Bind.get()
+  @Operation.get("id")
   Future<Response> get(@Bind.path("id") String id) async {
     ComparisonMatcherExpression comparisonMatcher = query.where["foo"];
     return new Response.ok(comparisonMatcher.value);
