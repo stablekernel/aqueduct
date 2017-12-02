@@ -121,7 +121,7 @@ void main() {
   test("willUpdate runs prior to update", () async {
     var q = new Query<U>();
     var o = await q.insert();
-    q = new Query<U>()..where.id = o.id;
+    q = new Query<U>()..where.id = whereEqualTo(o.id);
     o = (await q.update()).first;
     expect(o.q, "willUpdate");
   });
@@ -138,7 +138,7 @@ void main() {
     var q = new Query<V>();
     var o = await q.insert();
 
-    q = new Query<V>()..where.id = o.id;
+    q = new Query<V>()..where.id = whereEqualTo(o.id);
     try {
       await q.update();
       expect(true, false);

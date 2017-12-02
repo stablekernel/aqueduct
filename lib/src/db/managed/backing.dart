@@ -84,17 +84,9 @@ class ManagedMatcherBacking extends ManagedBacking {
         valueMap[propertyName] = value;
       }
     } else {
-      // Setting simply a value, wrap it with an AssignmentMatcher if applicable.
-      if (entity.relationships.containsKey(propertyName)) {
-        throw new QueryException(QueryExceptionEvent.internalFailure,
-            message:
-                "Attempting to set a value for property '${entity.tableName}.$propertyName' "
-                "on, but that property is a relationship. Valid values for relationship "
-                "properties are whereRelatedByValue, whereNull, or whereNotNull.");
-      }
+      final typeName = MirrorSystem.getName(entity.instanceType.simpleName);
 
-      valueMap[propertyName] =
-          new ComparisonMatcherExpression(value, MatcherOperator.equalTo);
+      throw new ArgumentError("Tried assigning value to 'Query<$typeName>.where.$propertyName'. Wrap value in 'whereEqualTo()'.");
     }
   }
 }

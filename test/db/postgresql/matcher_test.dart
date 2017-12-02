@@ -78,7 +78,6 @@ void main() {
     });
   });
 
-
   test("Less than matcher", () async {
     var q = new Query<TestModel>()..where["id"] = whereLessThan(3);
     var results = await q.fetch();
@@ -178,7 +177,6 @@ void main() {
       expect(results.any((t) => t.id == 1), true);
     });
   });
-
 
   test("whereIn matcher", () async {
     var q = new Query<TestModel>()..where["id"] = whereIn([1, 2]);
@@ -432,6 +430,15 @@ void main() {
     });
   });
 
+  test("Assigning Query.where to non-matcher value throws desrictive exception", () async {
+    try {
+      final _ = new Query<TestModel>()..where.id = 6;
+      expect(true, false);
+    } on ArgumentError catch (e) {
+      expect(e.message,
+          contains("Tried assigning value to 'Query<TestModel>.where.id'. Wrap value"));
+    }
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}

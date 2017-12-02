@@ -338,15 +338,9 @@ void main() {
     context = await contextWithModels([PrivateField]);
 
     await (new Query<PrivateField>()).insert();
-    var q = new Query<PrivateField>()
-      ..where.public = "x";
-    var result = await q.fetchOne();
-    expect(result.public, "x");
-
-    q = new Query<PrivateField>()
-      ..where.public = "y";
-    result = await q.fetchOne();
-    expect(result, isNull);
+    var q = new Query<PrivateField>();
+    var result = await q.fetch();
+    expect(result.first.public, "x");
   });
 
   test("When fetching valid enum value from db, is available as enum value and in where", () async {
@@ -363,12 +357,12 @@ void main() {
     expect(result.asMap()["enumValues"], "abcd");
 
     q = new Query<EnumObject>()
-      ..where.enumValues = EnumValues.abcd;
+      ..where.enumValues = whereEqualTo(EnumValues.abcd);
     result = await q.fetchOne();
     expect(result, isNotNull);
 
     q = new Query<EnumObject>()
-      ..where.enumValues = EnumValues.efgh;
+      ..where.enumValues = whereEqualTo(EnumValues.efgh);
     result = await q.fetchOne();
     expect(result, isNull);
   });

@@ -270,14 +270,13 @@ void main() {
     expect(result.id, greaterThan(0));
   });
 
-  test("Can use public accessor to set private property in values", () async {
+  test("Can use insert private properties", () async {
     context = await contextWithModels([PrivateField]);
 
-    await (new Query<PrivateField>()..values.public = "x").insert();
-    var q = new Query<PrivateField>()
-      ..where.public = "x";
-    var result = await q.fetchOne();
-    expect(result.public, "x");
+    await (new Query<PrivateField>()..values.public = "abc").insert();
+    var q = new Query<PrivateField>();
+    var result = await q.fetch();
+    expect(result.first.public, "abc");
   });
 
   test("Can use enum to set property to be stored in db", () async {

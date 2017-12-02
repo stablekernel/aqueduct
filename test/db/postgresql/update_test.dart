@@ -124,7 +124,7 @@ void main() {
     await req.insert();
 
     var q = new Query<TestModel>()
-      ..where["name"] = "Bob"
+      ..where["name"] = whereEqualTo("Bob")
       ..values = (new TestModel()..emailAddress = "3@a.com");
 
     List<TestModel> results = await q.update();
@@ -149,7 +149,7 @@ void main() {
         .insert();
 
     var updateQuery = new Query<TestModel>()
-      ..where["emailAddress"] = "1@a.com"
+      ..where["emailAddress"] = whereEqualTo("1@a.com")
       ..values.emailAddress = "3@a.com";
     var updatedObject = (await updateQuery.update()).first;
 
@@ -284,7 +284,7 @@ void main() {
 
     try {
       var q = new Query<TestModel>()
-        ..where.emailAddress = "2@a.com"
+        ..where.emailAddress = whereEqualTo("2@a.com")
         ..values.emailAddress = "1@a.com";
       await q.updateOne();
       expect(true, false);

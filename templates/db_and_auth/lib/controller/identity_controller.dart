@@ -5,7 +5,7 @@ class IdentityController extends RESTController {
   @Bind.get()
   Future<Response> getIdentity() async {
     var q = new Query<User>()
-      ..where.id = request.authorization.resourceOwnerIdentifier;
+      ..where.id = whereEqualTo(request.authorization.resourceOwnerIdentifier);
 
     var u = await q.fetchOne();
     if (u == null) {
