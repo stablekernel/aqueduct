@@ -439,6 +439,15 @@ void main() {
           contains("Tried assigning value to 'Query<TestModel>.where.id'. Wrap value"));
     }
   });
+
+  test("Re-assignment to null removes matcher", () async {
+    final query = new Query<TestModel>()
+        ..where.id = whereEqualTo(6);
+    query.where.id = null;
+
+    final results = await query.fetch();
+    expect(results.length, 6);
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
