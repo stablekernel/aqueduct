@@ -7,7 +7,7 @@ Now that we can persist data between runs of our application, we can add operati
 In `heroes_controller.dart`, add the following operation method:
 
 ```dart
-@Bind.post()
+@Operation.post()
 Future<Response> createHero(@Bind.body() Hero hero) async {
   final query = new Query<Hero>()
     ..values.name = hero.name;
@@ -20,7 +20,7 @@ Future<Response> createHero(@Bind.body() Hero hero) async {
 
 There's a bit going on here, so let's deconstruct it. First, we know this operation method is bound to `POST /heroes` because:
 
-1. The `@Bind.post()` annotation indicates this method responds to `POST`.
+1. The `@Operation.post()` annotation indicates this method responds to `POST`.
 2. We've routed `/heroes` and `/heroes/:id` to this controller, but this operation method does not bind any path variables, so the only valid path is `/heroes`.
 
 We have bound the *body* of the HTTP request with this argument:

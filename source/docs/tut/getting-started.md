@@ -49,15 +49,15 @@ Open the file `heroes.dart`. Click on the `Enable Dart Support` button in the to
 
 ## Handling HTTP Requests
 
-In your browser, navigate to [http://aqueduct-tutorial.stablekernel.io](http://aqueduct-tutorial.stablekernel.io). This browser application will fetch heroes by making HTTP requests that your `heroes` application will respond to. At this end of this chapter, this browser application will be able to display a list of heroes and and the details of an individual hero. To do this, our `heroes` application needs to handle two requests:
+In your browser, navigate to [http://aqueduct-tutorial.stablekernel.io](http://aqueduct-tutorial.stablekernel.io). This browser application will fetch heroes by making HTTP requests that your `heroes` application will respond to. At this end of this chapter, our application will be able to handle two types of requests:
 
 1. `GET /heroes` to get a JSON list of heroes
-2. `GET /heroes/:id` to get an individual hero
+2. `GET /heroes/:id` to get an individual hero by its `id`
 
 !!! warning "HTTP vs HTTPS"
-    The browser application is served over HTTP so that it can access your Aqueduct application when it runs locally on your machine.
+    The browser application is served over HTTP so that it can access your Aqueduct application when it runs locally on your machine. Your browser may warn you about this.
 
-These requests are called *operations*. An operation is the combination of an HTTP method and a path. So, `GET /heroes` is an operation that "gets all heroes" and `GET /heroes/:id` is an operation that "gets a single hero by id". You should be able to describe all operations in plain English phrase.
+These requests are called *operations*. An operation is the combination of an HTTP method and path. So, `GET /heroes` is an operation that "gets all heroes" and `GET /heroes/:id` is an operation that "gets a single hero by id". You should be able to describe all operations in plain English phrase.
 
 Let's start by writing the code for the `GET /heroes` operation.
 
@@ -76,26 +76,22 @@ class HeroesController extends RESTController {
     {'id': 15, 'name': 'Magneta'},    
   ];
 
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAllHeroes() async {
     return new Response.ok(heroes);
   }
 }
 ```
 
-This code declares a new class named `HeroesController`. Its `getAllHeroes()` method is called an *operation method*. An operation method handles an operation by creating an HTTP response. For a method to be an operation method, it must meet the following criteria:
+This code declares a `RESTController` subclass named `HeroesController`. A `RESTController` can handle an incoming HTTP request and create a response. It does this by calling its *operation methods*. An operation method is an instance method of a `RESTController` that creates a `Response` object. A `RESTController` can have many operation methods and a different one will be called depending on the contents of the request.
 
-- It is an instance method declared in an `RESTController` subclass.
-- It returns a `Future<Response>`.
-- It has an annotation that indicates the HTTP method it handles, e.g. `@Bind.get()`, `@Bind.post()`.
+`HeroesController` has one operation method: `getAllHeroes()`. Like all operation methods, it has an `Operation` annotation and returns a `Future<Response>`. This operation method will only be called if the incoming request method is `GET`; the named constructor `Operation.get()` annotation tells us that. When this method is called, a 200 OK response with a JSON encoded list of heroes.
 
-Our `getAllHeroes()` method handles `GET` requests; this is determined by the `@Bind.get()` annotation. (If the annotation were, say, `@Bind.post()`, this method would handle `POST` requests.) It will return a 200 OK response with a JSON encoded list of heroes.
-
-Therefore, we've declared that a `HeroesController` will respond to `GET` requests by calling `getAllHeroes()`, but we haven't written code that indicates this should happen when the path is `/heroes`. In other words, we've only defined half of our `GET /heroes` operation. To complete the operation, we have to learn a bit about the general structure of an Aqueduct application.
+Our `HeroesController` won't do anything by itself; something has to send it a request. To do that, we need to understand a bit about the general structure of an Aqueduct application.
 
 ### Aqueduct Controllers
 
-In Aqueduct, objects called *controllers* act on a request. For example, `HeroesController` acts by sending a 200 OK response if the request method is `GET`. Controllers can do more than just create a response; one might do something to verify the request is valid in some way, the other might add a header just before sending the response. Controllers are linked together to form a series of steps that a request goes through.
+In Aqueduct, objects called *controllers* handle a request. For example, `HeroesController` handles a `GET` request by sending a 200 OK response. Controllers can do more than just send a response; one might make sure the request is valid and another might associate an authenticated user with the request. Controllers of all kinds are linked together to form a series of steps that a request goes through.
 
 Each controller can do one of two things:
 
@@ -119,20 +115,16 @@ Open `channel.dart` and take a look at `HeroesChannel.entryPoint`:
   }
 ```
 
-This code creates and links together three controllers. The first controller is a `Router` that we instantiate like we would any other object. This controller is returned from `entryPoint` and therefore it is the first controller to receive all HTTP requests in our application.
+This code creates and links together three controllers. The first controller is a `Router` that we instantiate like any other object. The `Router` is returned from `entryPoint`; it will be the first controller to handle a request. You register routes with a `Router`. If a request's path matches a registered route, the `Router` passes it to another controller. If the request path is unknown, the `Router` sends a 404 Not Found response.
 
-The `route` method creates a 'route controller' that filters requests and links it to the `Router`. If the `Router` receives a request with the path `/example`, it will pass it to this route controller. A route controller will always pass its request on to its next controller - in this case, the controller created by `listen`. A controller created by `listen` invokes its closure argument for any request. Therefore, we have the following order of controllers:
+Routes are registered by calling `route(route)` on the router. This method creates a new controller and links it to the `Router` for requests that match the route. This 'route controller' is just a dumb pipe - it automatically passes the request on to its next controller. That controller is the one created by calling `listen(handler)` on the 'route controller'. This controller invokes its closure - taking the request as input and returning a response as output.
 
-1. A `Router`
-2. A route controller that takes requests with the path `/example`
-3. A listen controller that invokes a closure that always responds with a 200 OK response.
-
-Note that `route` and `listen` return the controller they create, allowing us to link controllers together. In other words, `route` and `listen` are instance methods of `Controller` and classes like `Router` are subclasses of `Controller`. The `route` method is invoked on the `Router`, creating a new route controller, and `listen` is invoked on that newly created route controller.
+A `/example` request goes through these controllers in the same order they are created and linked together. Both `route(route)` and `listen(handler)` return the controller they create, allowing us to link controllers together. These are instance methods of a class named `Controller`. Like `Router`, a `RESTController` is also a subclass of `Controller`, so our `HeroesController` can be linked, too.
 
 !!! note "Higher Ordered Functions"
     Methods like `listen` and `route` should be familiar to programmers that use methods like `map` and `where` on collection types like `List` and `Stream`.
 
-For our `HeroesController` to receive requests, we need to create a route for the `/heroes` path and link a `HeroesController` to it. Import the file that contains our definition of `HeroesController` at the top of `channel.dart`:
+Let's create a new route for the path `/heroes` and link our `HeroesController` to it. Import the file that contains our definition of `HeroesController` at the top of `channel.dart`:
 
 ```dart
 import 'controller/heroes_controller.dart';
@@ -161,7 +153,7 @@ Controller get entryPoint {
 
 Like `listen`, `generate` creates and links a controller. The difference between the two is that `listen` takes a closure that handles the request, whereas `generate` takes a closure that *creates a controller object to handle the request*. For quick and dirty request handlers, a `listen` controller is okay, but as your application grows, it is a lot easier to organize your request handling logic into controller objects like `HeroesController`.
 
-With this route hooked up, a request with the path `/heroes` will get routed to a generating controller that creates a new instance of `HeroesController` to handle each request. We now have have fully-fledged operation for `GET /heroes` and we can run our application.
+With this route hooked up, a request with the path `/heroes` will get routed to a generating controller that creates a new instance of `HeroesController` to handle each request. We now have have fully defined operation for `GET /heroes` and we can run our application.
 
 In the project directory, run the following command from the command-line:
 
@@ -204,9 +196,7 @@ We can add path variables to a route by adding a path segment prefixed with a co
   router.route("/heroes/:id");
 ```
 
-For a request to match this route, it must take the form of `/heroes/1`, `/heroes/2`, and so on. When we write code to handle this operation, we can use whatever the value of `id` is in our code.
-
-The route `/heroes/:id` *does not*, however, match the path `/heroes`. We'd like it to - it would mean that our `HeroesController` can handle the logic for both of our operations, `GET /heroes` and `GET /heroes/:id`. We can wrap segments in route in square brackets to mark them as optional.
+For a request to match this route, it must take the form of `/heroes/1`, `/heroes/2`, and so on. When we write code to handle this operation, we can use the value of `id`. The route `/heroes/:id` *does not*, however, match the path `/heroes`. We'd like it to - it would mean that our `HeroesController` can handle the logic for both of our operations, `GET /heroes` and `GET /heroes/:id`. We can wrap a segment in route in square brackets to mark it as optional.
 
 Modify the route in `entryPoint` add an optional `id` path variable to `/heroes`:
 
@@ -241,28 +231,33 @@ class HeroesController extends RESTController {
     {'id': 15, 'name': 'Magneta'},  
   ];
 
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAllHeroes() async {
     return new Response.ok(heroes);
   }
 
-  @Bind.get()
-  Future<Response> getHeroByID(@Bind.path("id") int id) async {
-    final hero = heroes.firstWhere((hero) => hero['id'] == id,
-      orElse: () => throw new HTTPResponseException(404, "no hero"));
+  @Operation.get('id')
+  Future<Response> getHeroByID() async {
+    final id = int.parse(request.path.variables['id']);
+    final hero = heroes.firstWhere((hero) => hero['id'] == id, orElse: () => null);
+
+    if (hero == null) {
+      return new Response.notFound();
+    }
 
     return new Response.ok(hero);
   }
 }
 ```
 
-!!! tip "Naming Operation Methods"
-    The plain English phrase for an operation is a really good name for an operation method and a good name will be useful when you generate OpenAPI documentation from your code.
+Both operation methods handle `GET` requests, but the additional `'id'` parameter to `getHeroByID()`'s annotation says that it should be called if the path variable 'id' was found by the `Router`. The other method, `getAllHeroes()`, will only be called if there are no path variables in the request path. The value of 'id' is available in the `request` property - a property that all `RESTController`s have that has a reference to the request being handled.
 
+!!! tip "Naming Operation Methods"
+    The plain English phrase for an operation - like 'get hero by id' - is a really good name for an operation method and a good name will be useful when you generate OpenAPI documentation from your code.
 
 Reload the application by hitting Ctrl-C in the terminal that ran `aqueduct serve` and then run `aqueduct serve` again.
 
-In your browser, reload the page `http://aqueduct-tutorial.stablekernel.io` and you'll see the same list of heroes. Now, click on a hero to take you to its details and trigger a HTTP request like `GET /heroes/15`. The detail page will look like this:
+In your browser, click on a hero in the dashboard to take you to its details. This will trigger a HTTP request like `GET /heroes/15` that your Aqueduct application will now handle. The detail page will look like this:
 
 ![Screenshot of Hero Detail Page](../img/run2.png)
 
@@ -280,16 +275,24 @@ This tells us that both of the requests - `GET /heroes` and `GET /heroes/15` - b
 
 ## REST Bindings
 
-Our `HeroesController` has two operation methods, and both of them are *bound* to HTTP GET operations with their `@Bind.get()` annotation. The difference between the two is that `getHeroByID(id)` is also bound to a the path variable `id`. Its single argument looks like this:
+In our `getHeroByID()` method, we make a dangerous assumption that the path variable 'id' can be parsed into an integer. If 'id' were something else, like the string 'foo', `int.parse(s)` would throw an exception. When exceptions are thrown in operation methods, the controller catches it and sends a 500 Server Error response. 500s are bad, they don't tell the client what's wrong. A 404 Not Found is a better response here, but writing the code to catch that exception and create this response is cumbersome.
+
+Instead, we can rely on a feature of operation methods - *request binding*. An operation method can declare parameters and *bind* them to properties of the request. When our operation method gets called, it will be passed values from the request as arguments. Request bindings automatically parse values into the type of the parameter (and return a better error response if parsing fails). Change the method `getHeroByID()`:
 
 ```dart
-@Bind.path("id") int id
+@Operation.get('id')
+Future<Response> getHeroByID(@Bind.path('id') int id) async {
+  final hero = heroes.firstWhere((hero) => hero['id'] == id, orElse: () => null);
+
+  if (hero == null) {
+    return new Response.notFound();
+  }
+
+  return new Response.ok(hero);
+}
 ```
 
-An operation method with path variables will only be called if the request path contains the named path variable. Therefore, if the operation is `GET /heroes/1`, the path variable `id` is 1 and `getHeroByID(1)` is called. When the operation is `GET /heroes`, that path variable is not present. The method `getAllHeroes()` is called in this case, because it binds *no* path variables.
-
-!!! note "More REST Bindings"
-    This binding behavior is specific to `RESTController`. In addition to path variables, you can bind headers, query parameters and request bodies. Check out [RESTControllers](../http/rest_controller.md) for more details.
+The `@Bind` annotation on an operation method parameter tells Aqueduct the value from the request we want bound. You can bind path variables, headers, query parameters and bodies. When binding path variables, we have to specify which path variable with the argument to `@Bind.path(pathVariableName)`.
 
 The More You Know: Multi-threading and Application State
 ---

@@ -137,7 +137,7 @@ class HeroesController extends RESTController {
 
   final ManagedContext context;
 
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAllHeroes() async {
     final heroQuery = new Query<Hero>(context);
     final heroes = await heroQuery.fetch();
@@ -153,8 +153,8 @@ Here, we create an instance of `Query<Hero>` and then execute its `fetch()` meth
 Now, let's update `getHeroByID` to fetch a single hero from the database.
 
 ```dart
-@Bind.get()
-Future<Response> getHeroByID(@Bind.path("id") int id) async {
+@Operation.get('id')
+Future<Response> getHeroByID(@Bind.path('id') int id) async {
   final heroQuery = new Query<Hero>(context)
     ..where.id = whereEqualTo(id);    
 
@@ -244,7 +244,7 @@ In a moment, we'll execute this migration file. That will create a new table nam
 Future seed() async {
   final heroNames = ["Mr. Nice", "Narco", "Bombasto", "Celeritas", "Magneta"];
 
-  for (final heroName in heroNames) {
+  for (final heroName in heroNames) {    
     await database.store.execute("INSERT INTO _Hero (name) VALUES (@name)", substitutionValues: {
       "name": heroName
     });
@@ -263,8 +263,6 @@ Re-run your application with `aqueduct serve`. Then, reload [http://aqueduct-tut
 The more you know: Query Parameters and HTTP Headers
 ---
 
-So far, we have bound methods, bodies, and path variables to operation methods in `HeroesController`. You can bind query parameters and headers, too.
-
 In the browser application, the dashboard has a text field for searching heroes. When you enter text into it, it will send the search term to the server by appending a query parameter to `GET /heroes`. For example, if you entered the text `abc`, it'd make this request:
 
 ```
@@ -275,9 +273,15 @@ GET /heroes?name=abc
 
 Our Aqueduct application can use this value to filter the query for heroes. In `heroes_controller.dart`, modify `getAllHeroes()` to bind the 'name' query parameter:
 
+----
+----
+----
+----
+----
+
 ```dart
-@Bind.get()
-Future<Response> getAllHeroes({@Bind.query("name") String name}) async {
+@Operation.get()
+Future<Response> getAllHeroes(@Bind.query('name') String name) async {
   final heroQuery = new Query<Hero>(context);
   if (name != null) {
     heroQuery.where.name = whereContainsString(name, caseSensitive: false);
@@ -288,22 +292,30 @@ Future<Response> getAllHeroes({@Bind.query("name") String name}) async {
 }
 ```  
 
+The `@Bind.query('name')` annotation will bind the value of a query parameter named 'name' if it is included in the request URL. However,
+
+If it doesn't exist, `name` will be null. The parameter `name` is an optional parameter (the curly brackets tell us that). An optional parameter makes the
+
 The bound argument should make some sense given what we've done so far - if the query parameter 'name' is in the request URL, its value will be available in the `name`. If there is no 'name' in the query string, `name` will be null.
 
 Notice that `name` is an *optional argument* (it is surrounded in curly brackets). This means a request can include the query parameter or not, and this operation will still be called successfully. You may make query, body and header parameters optional. (You can't make path bindings optional.)
+
+```dart
+Future<Response> getAllHeroes({@Bind.query('name') String name}) async {
+```
 
 If we removed the curly brackets and made `name` a required argument, it would become required for that operation. The request `GET /heroes` would no longer work - it would yield a 400 Bad Request and let you know that 'name' is a required query parameter. You can also use additional bindings to declare more than one operation method for an operation. For example, you might want to split up 'getting all heroes' and 'searching heroes by name':
 
 
 ```dart
-@Bind.get()
+@Operation.get()
 Future<Response> getAllHeroes() async {
   final heroQuery = new Query<Hero>(context);  
 
   return new Response.ok(await heroQuery.fetch());
 }
 
-@Bind.get()
+@Operation.get('name')
 Future<Response> searchHeroesByName(@Bind.query("name") String name) async {
   final heroQuery = new Query<Hero>(context)
     ..where.name = whereContainsString(name, caseSensitive: false);

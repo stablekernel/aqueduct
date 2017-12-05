@@ -22,8 +22,8 @@ pages:
   - 'Testing': 'snippets/test.md'
 - Tutorial:
   - '1. Getting Started': 'tut/getting-started.md'
-  - '2. Executing Database Queries': 'tut/executing-queries.md'
-  - '3. Advanced Database Queries': 'tut/model-relationships-and-joins.md'
+  - '2. Reading from a Database': 'tut/executing-queries.md'
+  - '3. Storing Data in a Database': 'tut/storing-data.md'
   - '4. Writing Tests': 'tut/writing-tests.md'
   - '5. Deploying': 'tut/deploying-and-other-fun-things.md'
 - Guides:

@@ -109,7 +109,7 @@
             </div>
             <div class="col-sm-6">
                 <pre class="feature-box"><code class="language-dart">router
-  .route("/teams/[:id]")
+  .route('/teams/[:id]')
   .pipe(new Authorizer(validator))
   .generate(() => new TeamController(databaseContext));</code></pre>
             </div>
@@ -121,7 +121,7 @@
             </div>
             <div class="col-sm-6">
                 <pre class="feature-box"><code class="language-dart">var query = new Query&lt;Team&gt;()
-  ..where.skills = whereContainsString("aqueduct")
+  ..where.skills = whereContainsString('aqueduct')
   ..join(object: (t) => t.manager)
   ..join(set: (t) => t.developers);
 
@@ -138,11 +138,11 @@ var teams = await query.fetch();</code></pre>
 var auth = new AuthServer(storage);
 
 router
-  .route("/auth/token")
+  .route('/auth/token')
   .generate(() => new AuthController(auth));
 
 router
-  .route("/auth/code")
+  .route('/auth/code')
   .generate(() => new AuthCodeController(auth));</code></pre>
             </div>
         </div>
@@ -152,12 +152,12 @@ router
                 <p>Boilerplate-avoiding meta-programming increases productivity, avoids simple errors and makes sure your API handles errors correctly and consistently.</p>
             </div>
             <div class="col-sm-6">
-                <pre class="feature-box"><code class="language-dart">@Bind.post()
+                <pre class="feature-box"><code class="language-dart">@Operation.put('id')
 Future&lt;Response&gt; updateTeam(
-    @Bind.path("id") int teamID,
+    @Bind.path('id') int teamID,
     @Bind.body() Team team,
-    @Bind.header("x-required-header") String requiredHeader,
-    {@Bind.query("optional_timestamp") DateTime timestamp}) {
+    @Bind.header('x-required-header'"') String requiredHeader,
+    {@Bind.query('optional_timestamp') DateTime timestamp}) {
   return new Response.ok(team);
 }</code></pre>
             </div>
@@ -168,14 +168,14 @@ Future&lt;Response&gt; updateTeam(
                 <p>Aqueduct was built to be tested. Know that your code works from end-to-end without fragile mocking. Use continuous integration tools like <a href="https://travis-ci.org" target="_blank">TravisCI</a> with ease.</p>
             </div>
             <div class="col-sm-6">
-                <pre class="feature-box"><code class="language-dart">test("GET /teams returns 200 and list of teams", () async {
-  var request = app.client.request("/teams");
+                <pre class="feature-box"><code class="language-dart">test('GET /teams returns 200 and list of teams', () async {
+  var request = app.client.request('/teams');
   expectResponse(
     await request.get(),
     200,
     body: everyElement({
-      "id": greaterThan(0),
-      "name": isNotNull
+      'id': greaterThan(0),
+      'name': isNotNull
     }));
 });</code></pre>
             </div>

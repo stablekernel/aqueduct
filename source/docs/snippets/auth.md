@@ -81,7 +81,7 @@ class AppChannel extends ApplicationChannel {
 }
 
 class ProfileController extends RESTController {
-  @Bind.get()
+  @Operation.get()
   Future<Response> getProfile() async {
     var id = request.authorization.resourceOwnerIdentifier;
     return new Response.ok(await profileForUserID(id));

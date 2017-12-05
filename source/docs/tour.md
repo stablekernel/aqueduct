@@ -75,17 +75,17 @@ Subclasses implement a *operation method* for each operation:
 import 'package:aqueduct/aqueduct.dart'
 
 class ResourceController extends RESTController {
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAllResources() async {
     return new Response.ok(await fetchResources());
   }
 
-  @Bind.get()
+  @Operation.get('id')
   Future<Response> getResourceByID(@Bind.path("id") int id) async {
     return new Response.ok(await fetchResource(id));
   }
 
-  @Bind.post()
+  @Operation.post()
   Future<Response> createResource(@Bind.body() Resource resource) async {
     var inserted = await insertResource(resource);
     return new Response.ok(inserted);
@@ -97,14 +97,14 @@ Properties of the request are bound to operation method arguments and controller
 
 ```dart
 class ResourceController extends RESTController {
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAllResources(
       @Bind.header("x-request-id") String requestID,
       {@Bind.query("limit") int limit}) async {
     return new Response.ok(await fetchResources(limit ?? 0));
   }
 
-  @Bind.post()
+  @Operation.post()
   Future<Response> createResource(@Bind.body() Resource resource) async {
     var inserted = await insertResourceIntoDatabase(resource);
     return new Response.ok(inserted);
@@ -203,7 +203,7 @@ Database operations are built and executed with instances of `Query<T>`.
 import 'package:aqueduct/aqueduct.dart'
 
 class ResourceController extends RESTController {
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAllResources() async {
     var query = new Query<Resource>();
 
@@ -295,7 +295,7 @@ class _Initiative {
 
 ```dart
 class UserController extends RESTController {
-  @Bind.put()
+  @Operation.put('id')
   Future<Response> updateUser(@Bind.path("id") int id, @Bind.body() User user) async {
     var query = new Query<User>()
       ..where.id = id

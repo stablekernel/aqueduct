@@ -26,7 +26,7 @@ Notice how these scopes form a hierarchy. Each segment makes the scope more rest
 Scopes are validated by the method `Authorization.authorizedForScope()`. Once a `Request` passes through an `Authorizer`, it will have a valid `authorization` property. If the access token has scopes, this method can be used to ensure it has the appropriate scope for the resource or action. For example, the following will verify that a request has at least `user:email` access - either `user:email` *or* the `user` scope.
 
 ```dart
-@Bind.get()
+@Operation.get()
 Future<Response> getInbox() async {
   if (!request.authorization.authorizedForScope("user:email")) {
     return new Response.unauthorized();
@@ -178,7 +178,7 @@ This type of protection is often useful, but within a particular controller you 
 
 ```dart
 class EmailController extend RESTController {
-  @Bind.get()
+  @Operation.get()
   Future<Response> getEmail() async {
     if (!request.authorization.authorizedForScope("user:email.readonly")) {
       return new Response.unauthorized();
@@ -188,7 +188,7 @@ class EmailController extend RESTController {
     return new Response.ok(inbox);
   }
 
-  @Bind.post()
+  @Operation.post()
   Future<Response> sendEmail(@Bind.body() Email email) async {
     if (!request.authorization.authorizedForScope("user:email")) {
       return new Response.unauthorized();
@@ -203,8 +203,8 @@ class EmailController extend RESTController {
 Note that scopes are not the only way to secure resources, even if they are being used. For example, you may want to restrict the endpoint `/user/1/settings` to only allow the user with `id=1` to access it:
 
 ```dart
-@Bind.get()
-Future<Response> getUserSettings(@Bind.path("id") int id) async {
+@Operation.get('id')
+Future<Response> getUserSettings(@Bind.path('id') int id) async {
   if (request.authorization.resourceOwnerIdentifier != id) {
     return new Response.unauthorized();
   }

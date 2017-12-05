@@ -51,12 +51,12 @@ class AppApplicationChannel extends ApplicationChannel {
 class Controller extends RESTController {
   final List<String> things = const ["thing1", "thing2"];
 
-  @Bind.get()
+  @Operation.get()
   Future<Response> getThings() async {
     return new Response.ok(things);
   }
 
-  @Bind.get()
+  @Operation.get('id')
   Future<Response> getThing(@Bind.path("id") int id) async {
     if (id < 0 || id >= things.length) {
       return new Response.notFound();

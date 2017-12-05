@@ -1,61 +1,78 @@
 # RESTController
 
-An Aqueduct application defines the resources it manages by [adding routes to a Router](routing.md). An `RESTController` provides the implementation for all of the operations that can be taken on those resources. For example, an application might have a `users` resource and operations to create a user or get a list of users.
+A `RESTController` is a [controller](controller.md) that provide conveniences for organizing and streamlining request handling logic. A `RESTController` must be subclassed. A subclass handles every operation on a HTTP resource collection and each resource in that collection. For example, a subclassed named `UserController` might handle the following operations:
 
-An operation, then, is the combination of an HTTP method and a path. For example, the HTTP request `POST /users` is an operation to create a user and `GET /users/1` is an operation to return a single user. A subclass of `RESTController` implements an instance method for each supported operation for a resource. These instance methods are called *operation methods* and must have metadata to indicate the operation it takes.
+- creating a new user (`POST /users`)
+- getting all users (`GET /users`)
+- getting an individual user (`GET /users/:id`)
+- updating an individual user (`PUT /users/:id`)
+- deleting an individual user (`DELETE /users/:id`)
+
+A `RESTController` subclass implements an *operation method* for each operation that it supports.
 
 ## Operation Methods
 
-An operation method, at minimum, must *bind* the HTTP method that triggers it and return `Future<Response>`. Here's an example:
+An operation method is an instance method of a `RESTController` subclass that has an `@Operation` annotation. It must return an instance of `Future<Response>`. Here's an example:
 
 ```dart
 class CityController extends RESTController {
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAllCities() async {
     return new Response.ok(["Atlanta", "Madison", "Mountain View"]);
   }
 }
 ```
 
-This controller defines an operation method for `GET` requests. Adding an instance of this controller to the channel for the route `/cities` binds the operation `GET /cities` to `getAllCities`.
-
-```dart
-router
-  .route("/cities")
-  .generate(() => new CityController());
-```
-
-!!! tip
-    `RESTController`s are added to the channel with `generate`. This creates a new instance of `CityController` for each request, which gives us the ability to store values in the properties of the controller that are related to the request being handled.
-
-An `RESTController` can implement operations for a collection of resources and for individual resources in that collection. For example, it makes sense that a `CityController` implement operation methods for both `GET /cities` and `GET /cities/1` because these operations likely share logic and dependencies. Here's an example:
+The above operation method will be invoked when `CityController` handles `GET` requests without path variables. To handle operation methods with path variables, the name of the path variable is added to the `@Operation` annotation:
 
 ```dart
 class CityController extends RESTController {
-  final cities = ["Atlanta", "Madison", "Mountain View"];
-
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAllCities() async {
-    return new Response.ok(cities);
+    return new Response.ok(["Atlanta", "Madison", "Mountain View"]);
   }
 
-  @Bind.get()
-  Future<Response> getOneCity(@Bind.path("name") String cityName) async {
-    var city = cities.firstWhere((c) => c.name == cityName, orElse: () => null);
-    if (city == null) {
-      return new Response.notFound();
-    }
-    return new Response.ok(city);
+  @Operation.get('name')
+  Future<Response> getCityByName() async {
+    final id = request.path.variables['name'];
+    return new Response.ok(fetchCityWithName(name));
   }
 }
 ```
 
-In the above, there are two operation methods for `GET` requests but the arguments are different. The second method - `getOneCity` - binds its `cityName` argument with `Bind.path("name")`. This gives us the following behavior:
+!!! note "Path Variables"
+    Read more about path variables in [Routing](routing.md).
 
-- If the incoming request has a path variable named `name`, `getOneCity` will be invoked.
-- If the incoming request has no path variables, `getAllCities` will be invoked.
+The named constructor of `Operation` tells us which HTTP method the operation method handles. The following named constructors exist:
 
-Recall that path variables are created when setting up routes. The following channel construction would route requests that are both `/cities` and `/cities/:name` to an instance of `CityController`:
+- `Operation.post()`
+- `Operation.get()`
+- `Operation.put()`
+- `Operation.delete()`
+
+The canonical `Operation()` constructor takes the HTTP method as its first argument for non-standard operations, e.g.:
+
+```dart
+@Operation('PATCH', 'id')
+Future<Response> patchObjectWithID() async => ...;
+```
+
+All `Operation` constructors take a variable list of path variables. An operation method will only be invoked if it the path variables of a request exactly match the path variables identified in `Operation` constructor. Here's an example of an operation that requires two path variables:
+
+```dart
+@Operation.get('userID', 'itemID')
+Future<Response> getUserItem() async {
+  final userID = request.path.variables['userID'];
+  final itemID = request.path.variables['itemID'];
+  return new Response.ok(...);
+}
+```
+
+If no operation method exists for an operation, a 405 Method Not Allowed response is automatically sent and no operation method is invoked.
+
+## Routing to a RESTController
+
+A `RESTController` subclass must be preceded by a `Router` in the application channel. The `Router` will parse path variables so that the controller can use them to determine which operation method should be invoked. A typical route to a `RESTController` contains an optional identifying path variable:
 
 ```dart
 router
@@ -63,11 +80,9 @@ router
   .generate(() => new CityController());
 ```
 
-Take notice that the `name` path variable in the route above is *optional* - otherwise this route would not match `/cities`. Also take notice that the argument to `Bind.path` exactly matches the name of the path variable in the route - this is required. If an `RESTController` doesn't have an operation method for a given operation, a 405 Method Not Allowed response is sent and no operation method is invoked.
+This route would allow `CityController` to implement operation methods for all HTTP methods with both no path variables and the 'name' path variable.
 
-The type of an argument that is bound to a path variable may be a `String` or any type that implements a `parse` method (e.g., `int`, `double`, `DateTime`). If the path variable cannot be parsed into the bound variable's type, a 404 Not Found response is sent and no operation method is invoked.
-
-Any number of path variables can exist in a route and have operation methods in the corresponding `RESTController`. However, it is considered good practice to break sub-resources into their own controller. For example, the following is preferred:
+It is considered good practice to break sub-resources into their own controller. For example, the following is preferred:
 
 ```dart
 router
@@ -81,164 +96,227 @@ router
 
 By contrast, the route `/cities/[:name/[attractions/[:id]]]`, while valid, makes controller logic much more unwieldy.
 
-### Multiple Path Bindings
-
-In the route `/cities/:name/attractions/[:id]` above, each operation method *must* have a `name` path binding and could optionally have an `id` path binding:
-
-```dart
-class CityAttractionController extends RESTController {
-  @Bind.get()
-  Future<Response> getCityAttractions(@Bind.path("name") String name) async => ...;
-
-  @Bind.get()
-  Future<Response> getCityAttractionsByID(
-    @Bind.path("name") String name, @Bind.path("id") int id) async => ...;
-}
-```
-
-!!! note
-    There are bindings for other HTTP methods, e.g. `Bind.post()`. Non-standard methods can be bound with `Bind.method("METHOD_NAME")`.
+`RESTController`s *must* be added to the channel with `generate()` so that a new instance is created for each request. This is important because operation methods can access the request they are handling through the `request` property inherited from `RESTController`. Since operation methods are asynchronous, it is possible that more than one request can be handled by the same controller type at the same time.
 
 ## REST Bindings
 
-The values of query parameters, headers and the request body may also be bound to arguments of an operation method. For example, the following operation method for `GET /cities` requires an `X-API-Key` header:
+Operation methods may *bind* properties of an HTTP request to its parameters. When the operation method is invoked, the value of that property is passed as an argument to the operation method. For example, the following binds the path variable 'name' to the argument `cityName`:
+
+```dart
+@Operation.get('name')
+Future<Response> getCityByName(@Bind.path('name') String cityName) async {
+  return new Response.ok(fetchCityWithName(cityName));
+}
+```
+
+The following table shows the annotation and the property of the HTTP request that will be bound:
+
+Property | Binding
+---|---
+Path Variable | `@Bind.path(pathVariableName)`
+URL Query Parameter | `@Bind.query(queryParameterName)`
+Header | `@Bind.header(headerName)`
+Request Body | `@Bind.body()`
+
+You may bind any number of HTTP request properties to a single operation method.
+
+### Header Bindings
+
+The following operation method binds the header named `X-API-Key` to `apiKey`:
 
 ```dart
 class CityController extends RESTController {
-  @Bind.get()
-  Future<Response> getAllCities(@Bind.header("x-api-key") String apiKey) async {
+  @Operation.get()
+  Future<Response> getAllCities(@Bind.header('x-api-key') String apiKey) async {
     if (!isValid(apiKey)) {
       return new Response.unauthorized();
     }
 
-    return new Response.ok(["Atlanta", "Madison", "Mountain View"]);
+    return new Response.ok(['Atlanta', 'Madison', 'Mountain View']);
   }
 }
 ```
 
-If the header `X-API-Key` exists in the request, its value will be available in the variable `apiKey` when `getAllCities` is invoked. If this header did not exist in the request, a 400 Bad Request response would be sent and `getAllCities` would not be invoked.
+If an `X-API-Key` header is present in the request, its value will be available in `apiKey`. If it is not, `getAllCities(apiKey)` would not be called and a 400 Bad Request response will be sent.
 
-However, `apiKey` can be made optional. To make an binding variable optional, move it to the optional parameters of the method:
+Header bindings may be marked optional by making the bound parameter a Dart optional parameter by wrapping it in curly brackets:
 
 ```dart
-@Bind.get()
-Future<Response> getAllCities({@Bind.header("x-api-key") String apiKey}) async {
+Future<Response> getAllCities({@Bind.header('x-api-key') String apiKey})
+```
+
+If an optional header binding is not in the request, the operation method is still called and the bound parameter is null. Like all Dart optional parameters, you may specify a default value when the header is not present in the request:
+
+```dart
+Future<Response> getAllCities({@Bind.header('x-api-key') String apiKey: "defaultKey"})
+```
+
+Header names are case-insensitive per the HTTP specification. Therefore, the header name may be 'X-API-KEY', 'X-Api-Key' 'x-api-key', etc. and `apiKey` will be bound in all cases.
+
+### Query Parameter Bindings
+
+The following operation methods binds the query parameter named 'name' to the parameter `cityName`:
+
+class CityController extends RESTController {
+  @Operation.get()
+  Future<Response> getAllCities(@Bind.query('name') String cityName) async {
+    return new Response.ok(cities.where((c) => c.name == cityName).toList());
+  }
+}
+
+Like header bindings, query parameters can be required or optional. If required, a 400 Bad Request response is sent and no operation method is called if the query parameter is not present in the request URL. If optional, the bound variable is null or a default value.
+
+Query parameters are case-sensitive; this binding will only match the query parameter 'name', but not 'Name' or 'NAME'.
+
+Query parameters may also bound for query strings in the request body when the content-type is 'application/x-www-form-urlencoded'.
+
+### Path Variable Bindings
+
+The following operation method binds the path variable 'id' to the parameter `cityID`:
+
+```dart
+class CityController extends RESTController {
+  @Operation.get('id')
+  Future<Response> getCityByID(@Bind.query('id') String cityID) async {
+    return new Response.ok(cities.where((c) => c.id == cityID).toList());
+  }
+}
+```
+
+Path variables are made available when creating [routes](routing.md). A `Router` must have a route that includes a path variable and that path variable must be listed in the `Operation` annotation. Path variables are case-sensitive and may not be optional.
+
+If you attempt to bind a path variable that is not present in the `Operation`, you will get a runtime exception at startup. You do not have to bind path variables for an operation method to be invoked.
+
+### Optional Bindings
+
+Bindings can be made optional. If a binding is optional, the operation method will still be called even if the bound property isn't in a request. To make a binding optional, move it to the optional parameters of an operation method:
+
+```dart
+@Operation.get()
+Future<Response> getAllCities({@Bind.header('x-api-key') String apiKey}) async {
   if (apiKey == null) {
     // No X-API-Key in request
     ...
   }
-
   ...
 }
 ```
 
-When a request doesn't contain a bound element, its bound variable is null. In this example, `apiKey` will null for a request without the `X-API-Key` header. You may provide a default value for optional bindings using standard Dart syntax.
-
-!!! note "Optional Bindings"
-    Only header, query and body bindings can be optional. `Bind.path` properties are necessary for choosing which operation method to invoke and therefore must be required. Header, query and body bindings have no impact on which operation method is selected. Conceptually, you can view `RESTController` behavior as two steps: an operation method is selected by the method/path of the request, and then values are read from the request and passed as arguments into the method.
-
-The next sections go over the details of header, body and query bindings.
-
-### Query Parameter Binding
-
-Query string parameters may be bound with `Bind.query`. The variable bound to a query parameter must be a `String`, `bool`, a type that implements `parse` or a `List` of the aforementioned. For example, the following operation method will bind the query string parameters `limit` and `offset`:
+A bound parameter will be null if not in the request. Like any other Dart optional parameter, you can provide a default value:
 
 ```dart
-@Bind.get()
-Future<Response> getAllCities({
-  @Bind.query("limit") int numberOfCities: 100,
-  @Bind.query("offset") int offset: 0}) async {
-    final cities = ["Atlanta", "Madison", "Mountain View"];
-    return new Response.ok(cities.sublist(offset, offset + limit));
+@Operation.get()
+Future<Response> getAllCities({@Bind.header("x-api-key") String apiKey: "public"}) async {
+  ...
 }
 ```
 
-Thus, if the request URI were `/cities?limit=2&offset=1`, the values of `numberOfCities` and `offset` are 2 and 1, respectively. The argument to `Bind.query` is case-sensitive since URI query strings are case-sensitive.
+### Automatically Parsing Bindings
 
-Boolean values are used when the expected query parameter has no value. For example, if a binding were `@Bind.query("include_foreign") bool includeForeignCities`, the bound value would be true for the URI `/cities?include_foreign`.
-
-A query parameter can appear multiple times in a query string. If the bound value type is not a `List` and the query key appears more than once, a 400 Bad Request is sent. If it is a `List` and one or more query keys exist, each of their values is added available in the bound list.
-
-It is important to note that if a query string is in the body and `Content-Type` is `x-www-form-urlencoded`, you may still bind query parameters using `Bind.query`.
-
-### Header Binding
-
-Headers are bound in the same way as query parameters, using `Bind.header` metadata. Unlike `Bind.query`, `Bind.header`s are compared case-insensitively. Here's an example of a operation method that takes an optional `X-Timestamp` header:
+Query, header and path bindings can automatically be parsed into other types, such as `int` or `DateTime`. Simply declare the bound parameter's type to the desired type:
 
 ```dart
-@Bind.get()
-Future<Response> getThings(
-  {@Bind.header("x-timestamp") DateTime timestamp}) async {
-    ...
+Future<Response> getCityByID(@Bind.query('id') int cityID)
+```
+
+The type of a bound parameter may be `String` or any type that implements `parse` (e.g., `int`, `DateTime`). Query parameters may also be bound to `bool` parameters; a boolean query parameter will be true if the query parameter has no value (e.g. `/path?boolean`).
+
+If parsing fails for any reason, an error response is sent and the operation method is not called. For example, the above example binds `int cityID`; if the path variable 'id' can't be parsed into an `int`, a 404 Not Found response is sent. If a query parameter or header value cannot be parsed, a 400 Bad Request response is sent.
+
+You may also bind `List<T>` parameters to headers and query parameters, where `T` must meet the same criteria as above. Query parameters and headers may appear more than once in a request. For example, the value of `ids` is `[1, 2]` if the request URL ends with `/path?id=1&id=2` and the operation method looks like this:
+
+```dart
+Future<Response> getCitiesByIDs(@Bind.query('id') List<int> ids)
+```
+
+Note that if a parameter is *not* bound to a list and there are multiple occurrences of that property in the request, a 400 Bad Request response will be sent. If you want to allow multiple values, you must bind to a `List<T>`.
+
+### HTTP Request Body Bindings
+
+The body of an HTTP request can also be bound to a parameter:
+
+```dart
+class CityController extends RESTController {
+  @Operation.post()
+  Future<Response> addCity(@Bind.body() City city) async {
+    final query = new Query<City>()
+      ..values = city;
+    final insertedCity = await query.insert(city);
+
+    return new Response.ok(insertedCity);
+  }
 }
 ```
 
-### Binding HTTP Request Bodies
+Since there is only one request body, `Bind.body()` doesn't take any identifying arguments.
 
-You may also bind an HTTP request body to an object with `@Bind.body` metadata, as long as the bound method supports request bodies:
-
-```dart
-@Bind.post()
-Future<Response> createUser(@Bind.body() User user) async {
-  var query = new Query<User>()
-    ..values = user;
-  var insertedUser = await query.insert();
-  return new Response.ok(insertedUser);
-}
-```
-
-The type of the bound variable must implement `HTTPSerializable`. This interface requires that the methods `readFromMap()` and `asMap()` be implemented:
+The bound parameter type (`City` in this example) must implement `HTTPSerializable`. This interface requires two methods to be implemented: one to read data from a request body and another to write data to a response body. Here is an example:
 
 ```dart
-class Person implements HTTPSerializable {
+class City implements HTTPSerializable {
+  int id;
   String name;
-  String email;
 
   @override
-  void readFromMap(Map<String, dynamic> requestBody) {
-    name = requestBody["name"];
-    email = requestBody["email"];
+  void readFromMap(Map<String, dynamic> map) {
+    id = map['id'];
+    name = map['name'];
   }
 
   @override
   Map<String, dynamic> asMap() {
     return {
-      "name": name,
-      "email": email
-    };
-  }
-}
-
-class PersonController extends RESTController {
-  @Bind.post()
-  Future<Response> createPerson(@Bind.body() Person p) {
-    // p.name and p.email are read from body when body is
-    // {"name": "...", "email": "..."}
+      'id': id,
+      'name': name
+    }
   }
 }
 ```
 
-You may also bind a `List<HTTPSerializable>`:
+!!! tip "ManagedObject and HTTPSerializable"
+    `ManagedObject`s from Aqueduct's ORM automatically implement `HTTPSerializable` without having to implement these two methods.
+
+Aqueduct will automatically decode the request body from it's content-type, create a new instance of the bound parameter type, and invoke its `readFromMap(map)` method. In the above example, a valid request body would the following JSON:
+
+```json
+{
+  "id": 1,
+  "name": "Atlanta"
+}
+```
+
+!!! note "HTTP Body Decoding"
+    Request bodies are decoded according to their content-type prior to being deserialized. For more information on request body decoding, including decoding content-types other than JSON, see [this guide](request_and_response.md).
+
+If parsing fails or `readFromMap(map)` throws an exception, a 400 Bad Request response will be sent and the operation method won't be called.
+
+You may also bind `List<HTTPSerializable>` parameters to the request body. Consider the following JSON that contains a list of cities:
+
+```json
+[
+  {"id": 1, "name": "Atlanta"},
+  {"id": 2, "name": "Madison"}
+]
+```
+
+This body can be bound by declaring the bound parameter to be a `List` of the desired type:
 
 ```dart
-class PersonController extends RESTController {
-  @Bind.post()
-  Future<Response> createPerson(@Bind.body() List<Person> people) {
-    // When body is [{"name": "...", "email": "..."}]
-  }
-}
+Future<Response> addCity(@Bind.body() List<City> cities)
 ```
 
-The request body is decoded based on its content type prior to binding it to an `HTTPSerializable`.
+!!! tip 'List vs Object'
+    An endpoint should either take a single object or a list of objects, but not both. If the request body is a JSON list and the bound variable is not a list, a 400 Bad Request response will be sent (and vice versa). Declaring a body binding of the appropriate type validates the expected value and aids in automatically generating an OpenAPI specification for your application.
 
-Note that if the request's `Content-Type` is `x-www-form-urlencoded` and the query string is in the body, it must be bound with `Bind.query` and not `Bind.body`.
+
+Note that if the request's `Content-Type` is 'x-www-form-urlencoded' and the query string is in the body, its individual keys must be bound with `Bind.query` and not `Bind.body`.
 
 ### Property Binding
 
 The properties of an `RESTController`s may also have `Bind.query` and `Bind.header` metadata. This binds values from the request to the `RESTController` instance itself, making them accessible from *all* operation methods.
 
 ```dart
-class ThingController extends RESTController {
+class CityController extends RESTController {
   @requiredHTTPParameter
   @Bind.header("x-timestamp")
   DateTime timestamp;
@@ -246,20 +324,14 @@ class ThingController extends RESTController {
   @Bind.query("limit")
   int limit;
 
-  @Bind.get()
-  Future<Response> getThings() async {
-      // can use both limit and timestamp
-  }
-
-  @Bind.get()
-  Future<Response> getThing(@Bind.path("id") int id) async {
+  @Operation.get()
+  Future<Response> getCities() async {
       // can use both limit and timestamp
   }
 }
 ```
 
-In the above, both `timestamp` and `limit` are bound prior to `getThing` and `getThings` being invoked. By default, a bound property is optional but can have additional `requiredHTTPParameter` metadata. If required, any request without the required property fails with a 400 Bad Request status code and none of the operation methods are invoked.
-
+In the above, both `timestamp` and `limit` are bound prior to `getCities` being invoked. By default, a bound property is optional. Adding an `requiredHTTPParameter` annotation changes a property to required.. If required, any request without the required property fails with a 400 Bad Request status code and none of the operation methods are invoked.
 
 ## Other RESTController Behavior
 
@@ -267,7 +339,7 @@ Besides binding, `RESTController`s have some other behavior that is important to
 
 ### Request and Response Bodies
 
-An `RESTController` can limit the content type of HTTP request bodies it accepts. By default, an `RESTController` will accept both `application/json` and `application/x-www-form-urlencoded` request bodies for its `POST` and `PUT` methods. This can be modified by setting the `acceptedContentTypes` property in the constructor.
+An `RESTController` can limit the content type of HTTP request bodies it accepts. By default, an `RESTController` will accept only `application/json` request bodies for its `POST` and `PUT` methods. This can be modified by setting the `acceptedContentTypes` property in the constructor.
 
 ```dart
 class UserController extends RESTController {
@@ -284,7 +356,7 @@ The body of an HTTP request is decoded if the content type is accepted and there
 Second, methods on `HTTPRequestBody` have two flavors: those that return the contents as a `Future` or those that return the already decoded body. Operation methods can access the already decoded body without awaiting on the `Future`-flavored variants of `HTTPRequestBody`:
 
 ```dart
-@Bind.post()
+@Operation.post()
 Future<Response> createThing() async {
   // do this:
   var bodyMap = request.body.asMap();
@@ -296,7 +368,7 @@ Future<Response> createThing() async {
 }
 ```
 
-An `RESTController` can also have a default content type for its *response* bodies. By default, this is `application/json` - any response body returned as JSON. This default can be changed by changing `responseContentType` in the constructor:
+An `RESTController` can also have a default content type for its responses. By default, this is `application/json`. This default can be changed by changing `responseContentType` in the constructor:
 
 ```dart
 class UserController extends RESTController {
@@ -314,8 +386,8 @@ class UserController extends RESTController {
     responseContentType = ContentType.JSON;
   }
 
-  @Bind.get()
-  Future<Response> getUserByID(@Bind.path("id") int id) async {
+  @Operation.get('id')
+  Future<Response> getUserByID(@Bind.path('id') int id) async {
     var response = new Response.ok(...);
 
     if (request.headers.value(Bind.headers.ACCEPT).startsWith("application/xml")) {
@@ -329,13 +401,13 @@ class UserController extends RESTController {
 
 ### More Specialized RESTControllers
 
-Because many `RESTController` subclasses will execute [queries](../db/executing_queries.md), there are helpful `RESTController` subclasses for reducing boilerplate code.
+Many `RESTController` subclasses will execute [queries](../db/executing_queries.md). There are helpful `RESTController` subclasses for reducing boilerplate code.
 
 A `QueryController<T>` builds a `Query<T>` based on the incoming request. If the request has a body, this `Query<T>`'s `values` property is read from that body. If the request has a path variable, the `Query<T>` assigns a matcher to the primary key value of its `where`. For example, in a normal `RESTController` that responds to a PUT request, you might write the following:
 
 ```dart
-@Bind.put()
-Future<Response> updateUser(@Bind.path("id") int id, @Bind.body() User user) async {
+@Operation.put('id')
+Future<Response> updateUser(@Bind.path('id') int id, @Bind.body() User user) async {
   var query = new Query<User>()
     ..where.id = whereEqualTo(id)
     ..values = user;
@@ -348,7 +420,8 @@ A `QueryController<T>` builds this query before a operation method is invoked, s
 
 ```dart
 class UserController extends QueryController<User> {
-  Future<Response> updateUser(@Bind.path("id") int id) async {
+  @Operation.put('id')
+  Future<Response> updateUser(@Bind.path('id') int id) async {
     // query already exists and is identical to the snippet above
     var result = await query.updateOne();
     return new Response.ok(result);
@@ -399,10 +472,4 @@ class UserController extends ManagedObjectController<User> {
 }
 ```
 
-See also [validations](../db/validations.md), which are powerful when combined with `ManagedObjectController<T>`.
-
-### Accessing the Request
-
-Any value from the request itself can be accessed through the `request` property of a controller.
-
-This also means that an `RESTController` instance cannot be reused to handle multiple requests; if it awaited on an operation, a new request could be assigned to the `request` property. Therefore, all `RESTController`s must be added to a request processing pipeline with `generate`. If you add a controller with `pipe`, an exception will be thrown immediately at startup.
+See the chapter on [validations](../db/validations.md), which are powerful when combined with `ManagedObjectController<T>`.
