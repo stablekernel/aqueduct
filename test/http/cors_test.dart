@@ -636,24 +636,24 @@ class NoPolicyController extends RESTController {
     policy = null;
   }
 
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
-  @Bind.post()
+  @Operation.post()
   Future<Response> throwException() async {
     throw new HTTPResponseException(400, "Foobar");
   }
 }
 
 class DefaultPolicyController extends RESTController {
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
-  @Bind.post()
+  @Operation.post()
   Future<Response> throwException() async {
     throw new HTTPResponseException(400, "Foobar");
   }
@@ -666,12 +666,12 @@ class RestrictiveNoCredsOriginController extends RESTController {
     policy.exposedResponseHeaders = ["foobar"];
   }
 
-  @Bind.get()
+  @Operation.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
-  @Bind.post()
+  @Operation.post()
   Future<Response> makeThing() async {
     return new Response.ok("makeThing");
   }
@@ -682,12 +682,13 @@ class RestrictiveOriginController extends RESTController {
     policy.allowedOrigins = ["http://exclusive.com"];
     policy.exposedResponseHeaders = ["foobar", "x-foo"];
   }
-  @Bind.get()
+
+  @Operation.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
   }
 
-  @Bind.post()
+  @Operation.post()
   Future<Response> makeThing() async {
     return new Response.ok("makeThing");
   }
@@ -698,7 +699,7 @@ class OptionsController extends RESTController {
     policy = null;
   }
 
-  @Bind.method("options")
+  @Operation("OPTIONS")
   Future<Response> getThing() async {
     return new Response.ok("getThing");
   }
@@ -715,7 +716,7 @@ class AdditiveController extends RESTController {
     policy.exposedResponseHeaders.add("X-Header");
   }
 
-  @Bind.get()
+  @Operation.get()
   Future<Response> getThing() async {
     return new Response.ok(null);
   }

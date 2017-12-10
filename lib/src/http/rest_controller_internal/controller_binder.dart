@@ -34,33 +34,62 @@ class RESTControllerBinder {
     });
     propertyBinders.addAll(boundProperties);
 
-    reflectClass(controllerType)
+    methodBinders = reflectClass(controllerType)
         .instanceMembers
         .values
         .where(isOperation)
         .map((decl) => new RESTControllerMethodBinder(decl))
-        .forEach((RESTControllerMethodBinder method) {
-      methodBinders.addBinder(method);
-    });
+        .toList();
   }
 
   Type controllerType;
   List<RESTControllerParameterBinder> propertyBinders = [];
 
-  // [method][arity] = binder
-  MethodArityMap methodBinders = new MethodArityMap();
+  List<RESTControllerMethodBinder> methodBinders;
+
+  List<String> get unsatisfiableOperations {
+    return methodBinders
+        .where((binder) {
+          final argPathParameters = binder.positionalParameters.where((p) => p.binding is HTTPPath);
+          
+          return !argPathParameters.every((p) => binder.pathVariables.contains(p.name));
+        })
+        .map((binder) => MirrorSystem.getName(binder.methodSymbol))
+        .toList();
+  }
+
+  List<String> get conflictingOperations {
+    return methodBinders
+        .where((sourceBinder) {
+          final possibleConflicts = methodBinders.where((b) => b != sourceBinder);
+
+          return possibleConflicts.any((comparedBinder) {
+            if (comparedBinder.httpMethod != sourceBinder.httpMethod) {
+              return false;
+            }
+
+            if (comparedBinder.pathVariables.length != sourceBinder.pathVariables.length) {
+              return false;
+            }
+
+            return comparedBinder.pathVariables.every((p) => sourceBinder.pathVariables.contains(p));
+          });
+        })
+        .map((binder) => MirrorSystem.getName(binder.methodSymbol))
+        .toList();
+  }
 
   RESTControllerMethodBinder methodBinderForRequest(Request req) {
-    return methodBinders.getBinder(req.raw.method, req.path.orderedVariableNames.length);
+    return methodBinders.firstWhere(
+        (binder) => binder.isSuitableForRequest(req.raw.method, req.path.variables.keys.toList()),
+        orElse: () => null);
   }
 
   // Used to respond with 405 when there is no operation method for HTTP method
-  List<String> allowedMethodsForArity(int arity) {
-    return methodBinders.contents.keys
-        .where((key) {
-          return methodBinders.contents[key].containsKey(arity);
-        })
-        .map((key) => key.toUpperCase())
+  List<String> allowedMethodsForPathVariables(Iterable<String> pathVariables) {
+    return methodBinders
+        .where((binder) => binder.isSuitableForRequest(null, pathVariables.toList()))
+        .map((binder) => binder.httpMethod)
         .toList();
   }
 
@@ -96,7 +125,7 @@ class RESTControllerBinder {
     var methodBinder = controllerBinder.methodBinderForRequest(request);
     if (methodBinder == null) {
       var allowHeaders = {
-        "Allow": controllerBinder.allowedMethodsForArity(request.path.variables?.length ?? 0).join(", ")
+        "Allow": controllerBinder.allowedMethodsForPathVariables(request.path.variables.keys).join(", ")
       };
       throw new InternalControllerException("No operation found", 405, headers: allowHeaders);
     }
@@ -155,24 +184,5 @@ class RESTControllerBinder {
       ..positionalMethodArguments = positional.map((v) => v.value).toList()
       ..optionalMethodArguments = toSymbolMap(optional)
       ..properties = toSymbolMap(properties);
-  }
-}
-
-class MethodArityMap {
-  Map<String, Map<int, RESTControllerMethodBinder>> contents = {};
-
-  RESTControllerMethodBinder getBinder(String method, int pathArity) {
-    final methodMap = contents[method.toLowerCase()];
-    if (methodMap == null) {
-      return null;
-    }
-
-    return methodMap[pathArity];
-  }
-
-  void addBinder(RESTControllerMethodBinder binder) {
-    final methodMap =
-        contents.putIfAbsent(binder.httpMethod.externalName.toLowerCase(), () => <int, RESTControllerMethodBinder>{});
-    methodMap[binder.pathParameters.length] = binder;
   }
 }

@@ -124,8 +124,21 @@ abstract class RESTController extends Controller {
 
   @override
   void prepare() {
-    var type = reflect(this).type.reflectedType;
-    RESTControllerBinder.addBinder(new RESTControllerBinder(type));
+    final binder = new RESTControllerBinder(reflect(this).type.reflectedType);
+    final conflictingOperations = binder.conflictingOperations;
+    if (conflictingOperations.length > 0) {
+      final opNames = conflictingOperations.map((s) => "'$s'").join(", ");
+      throw new RESTControllerException("${runtimeType.toString()} has ambiguous operations: $opNames");
+    }
+
+    final unsatisfiableOperations = binder.unsatisfiableOperations;
+    if (unsatisfiableOperations.length > 0) {
+      final opNames = unsatisfiableOperations.map((s) => "'$s'").join(", ");
+      throw new RESTControllerException("${runtimeType
+          .toString()} has has operations where @Bind.path() is used on a path variable not in @Operation(): $opNames");
+    }
+
+    RESTControllerBinder.addBinder(binder);
     super.prepare();
   }
 
@@ -195,10 +208,10 @@ abstract class RESTController extends Controller {
       }
     });
 
-    return controllerCache.methodBinders.contents.values.expand((methods) => methods.values).map((cachedMethod) {
+    return controllerCache.methodBinders.map((cachedMethod) {
       var op = new APIOperation();
       op.id = APIOperation.idForMethod(this, cachedMethod.methodSymbol);
-      op.method = cachedMethod.httpMethod.externalName;
+      op.method = cachedMethod.httpMethod.toLowerCase();
       op.consumes = acceptedContentTypes;
       op.produces = [responseContentType];
       op.responses = documentResponsesForOperation(op);
@@ -222,11 +235,11 @@ abstract class RESTController extends Controller {
       bool usesFormEncodedData = op.method.toLowerCase() == "post" &&
           acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
 
-      op.parameters = [
+      op.parameters = <List<RESTControllerParameterBinder>>[
         cachedMethod.positionalParameters,
         cachedMethod.optionalParameters,
         controllerCache.propertyBinders
-      ].expand((i) => i.toList()).map((param) {
+      ].expand((i) => i).where((p) => p.binding is! HTTPPath).map((param) {
         var paramLocation = _parameterLocationFromHTTPParameter(param.binding);
         if (usesFormEncodedData && paramLocation == APIParameterLocation.query) {
           paramLocation = APIParameterLocation.formData;
@@ -238,6 +251,20 @@ abstract class RESTController extends Controller {
           ..parameterLocation = paramLocation
           ..schemaObject = (new APISchemaObject.fromTypeMirror(param.boundValueType));
       }).toList();
+
+      final pathParameters = cachedMethod.pathVariables.map((pathVar) {
+        final furtherQualifiedPathVar = cachedMethod.positionalParameters
+            .firstWhere((p) => p.binding is HTTPPath && p.binding.externalName == pathVar, orElse: () => null);
+        final varType = furtherQualifiedPathVar?.boundValueType ?? reflectType(String);
+
+        return new APIParameter()
+            ..name = pathVar
+            ..required = true
+            ..parameterLocation = APIParameterLocation.path
+            ..schemaObject = (new APISchemaObject.fromTypeMirror(varType));
+      });
+
+      op.parameters.addAll(pathParameters);
 
       return op;
     }).toList();
@@ -279,4 +306,13 @@ APIParameterLocation _parameterLocationFromHTTPParameter(HTTPBinding p) {
   }
 
   return null;
+}
+
+class RESTControllerException implements Exception {
+  RESTControllerException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => "RESTControllerException: $message";
 }

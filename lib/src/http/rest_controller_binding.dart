@@ -4,39 +4,56 @@ import 'request_path.dart';
 import 'serializable.dart';
 import '../db/managed/managed.dart';
 
+class Operation {
+  const Operation(this.method, [String pathVariable1, String pathVariable2, String pathVariable3, String pathVariable4])
+      : _pathVariable1 = pathVariable1,
+        _pathVariable2 = pathVariable2,
+        _pathVariable3 = pathVariable3,
+        _pathVariable4 = pathVariable4;
+
+  const Operation.get([String pathVariable1, String pathVariable2, String pathVariable3, String pathVariable4])
+      : this.method = "GET",
+        _pathVariable1 = pathVariable1,
+        _pathVariable2 = pathVariable2,
+        _pathVariable3 = pathVariable3,
+        _pathVariable4 = pathVariable4;
+
+  const Operation.put([String pathVariable1, String pathVariable2, String pathVariable3, String pathVariable4])
+      : this.method = "PUT",
+        _pathVariable1 = pathVariable1,
+        _pathVariable2 = pathVariable2,
+        _pathVariable3 = pathVariable3,
+        _pathVariable4 = pathVariable4;
+
+  const Operation.post([String pathVariable1, String pathVariable2, String pathVariable3, String pathVariable4])
+      : this.method = "POST",
+        _pathVariable1 = pathVariable1,
+        _pathVariable2 = pathVariable2,
+        _pathVariable3 = pathVariable3,
+        _pathVariable4 = pathVariable4;
+
+  const Operation.delete([String pathVariable1, String pathVariable2, String pathVariable3, String pathVariable4])
+      : this.method = "DELETE",
+        _pathVariable1 = pathVariable1,
+        _pathVariable2 = pathVariable2,
+        _pathVariable3 = pathVariable3,
+        _pathVariable4 = pathVariable4;
+
+  final String method;
+  final String _pathVariable1;
+  final String _pathVariable2;
+  final String _pathVariable3;
+  final String _pathVariable4;
+
+  List<String> get pathVariables {
+    return [_pathVariable1, _pathVariable2, _pathVariable3, _pathVariable4].where((s) => s != null).toList();
+  }
+}
 
 /// Binds elements of an HTTP request to a [RESTController]'s operation method arguments and properties.
 ///
 /// See individual constructors and [RESTController] for more details.
 class Bind {
-  /// Binds an [RESTController] operation method to GET requests.
-  ///
-  /// Equivalent to `Bind.method("get")`
-  ///
-  /// See [Bind.method].
-  const Bind.get() : name = "get", _type = _BindType.method;
-
-  /// Binds an [RESTController] operation method to PUT requests.
-  ///
-  /// Equivalent to `Bind.method("put")`
-  ///
-  /// See [Bind.method].
-  const Bind.put() : name = "put", _type = _BindType.method;
-
-  /// Binds an [RESTController] operation method to POST requests.
-  ///
-  /// Equivalent to `Bind.method("post")`
-  ///
-  /// See [Bind.method].
-  const Bind.post() : name = "post", _type = _BindType.method;
-
-  /// Binds an [RESTController] operation method to DELETE requests.
-  ///
-  /// Equivalent to `Bind.method("delete")`
-  ///
-  /// See [Bind.method].
-  const Bind.delete() : name = "delete", _type = _BindType.method;
-
   /// Binds an HTTP query parameter to an [RESTController] property or operation method argument.
   ///
   /// When the incoming request's [Uri]
@@ -64,27 +81,6 @@ class Bind {
   /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [RESTController].
   const Bind.query(this.name) : _type = _BindType.query;
 
-  /// Binds an HTTP method to a [RESTController] operation method.
-  ///
-  /// See also [Bind.get], [Bind.put], [Bind.post], and [Bind.delete].
-  ///
-  /// [RESTController] methods with this metadata will be invoked when [name] matches the HTTP method
-  /// of the incoming request. [name] is case-insensitively compared; e.g. "GET" and "get" are identical.
-  ///
-  /// Note that multiple operation methods can have the same [Bind.method] metadata as long as each method
-  /// has different [Bind.path] arguments. A operation method is invoked if both [Bind.method] and its [Bind.path] arguments
-  /// match the incoming request.
-  ///
-  /// Example:
-  ///
-  ///         class UserController extends RESTController {
-  ///           @Bind.method("get")
-  ///           Future<Response> getThings() => return new Response.ok(null);
-  ///         }
-  ///
-  /// This is the generic form of [Bind.get], [Bind.put], [Bind.delete] and [Bind.post].
-  const Bind.method(this.name) : _type  = _BindType.method;
-
   /// Binds an HTTP request header to an [RESTController] property or operation method argument.
   ///
   /// When the incoming request has a header with the name [name],
@@ -106,7 +102,7 @@ class Bind {
   ///
   /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [RESTController].
   /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [RESTController].
-  const Bind.header(this.name) : _type  = _BindType.header;
+  const Bind.header(this.name) : _type = _BindType.header;
 
   /// Binds an HTTP request body to an [RESTController] property or operation method argument.
   ///
@@ -139,7 +135,9 @@ class Bind {
   /// No operation method will be called in this case.
   ///
   /// If not required and not present in a request, the bound arguments and properties will be null when the operation method is invoked.
-  const Bind.body() : name = null, _type  = _BindType.body;
+  const Bind.body()
+      : name = null,
+        _type = _BindType.body;
 
   /// Binds a route variable from [HTTPRequestPath.variables] to an [RESTController] operation method argument.
   ///
@@ -160,7 +158,7 @@ class Bind {
   ///
   /// If the request path is /users/1, /users/2, etc., `getOneUser` is invoked because the path variable `id` is present and matches
   /// the [Bind.path] argument. If no path variables are present, `getUsers` is invoked.
-  const Bind.path(this.name) : _type  = _BindType.path;
+  const Bind.path(this.name) : _type = _BindType.path;
 
   final String name;
   final _BindType _type;
@@ -168,43 +166,21 @@ class Bind {
   /// Used internally
   HTTPBinding get binding {
     switch (_type) {
-      case _BindType.query: return new HTTPQuery(name);
-      case _BindType.method: return new HTTPMethod(name);
-      case _BindType.header: return new HTTPHeader(name);
-      case _BindType.body: return new HTTPBody();
-      case _BindType.path: return new HTTPPath(name);
-      default: return null;
+      case _BindType.query:
+        return new HTTPQuery(name);
+      case _BindType.header:
+        return new HTTPHeader(name);
+      case _BindType.body:
+        return new HTTPBody();
+      case _BindType.path:
+        return new HTTPPath(name);
+      default:
+        return null;
     }
   }
 }
 
-enum _BindType {
-  query, method, header, body, path
-}
-
-/// Binds an [RESTController] operation method to HTTP GET requests.
-///
-/// Equivalent to [Bind.method] with "GET" argument.
-@Deprecated("4.0; use Bind.get() instead")
-const Bind httpGet = const Bind.method("get");
-
-/// Binds an [RESTController] operation method to HTTP PUT requests.
-///
-/// Equivalent to [Bind.method] with "PUT" argument.
-@Deprecated("4.0; use Bind.put() instead")
-const Bind httpPut = const Bind.method("put");
-
-/// Binds an [RESTController] operation method to HTTP POST requests.
-///
-/// Equivalent to [Bind.method] with "POST" argument.
-@Deprecated("4.0; use Bind.post() instead")
-const Bind httpPost = const Bind.method("post");
-
-/// Binds an [RESTController] operation method to HTTP DELETE requests.
-///
-/// Equivalent to [Bind.method] with "DELETE" argument requests.
-@Deprecated("4.0; use Bind.delete() instead")
-const Bind httpDelete = const Bind.method("delete");
+enum _BindType { query, header, body, path }
 
 /// Marks an [RESTController] property binding as required.
 ///
@@ -229,11 +205,9 @@ const Bind httpDelete = const Bind.method("delete");
 ///           Future<Response> getAllUsers() async
 ///              => return Response.ok(await getUsers());
 ///         }
-const HTTPRequiredParameter requiredHTTPParameter =
-    const HTTPRequiredParameter();
+const HTTPRequiredParameter requiredHTTPParameter = const HTTPRequiredParameter();
 
 /// See [requiredHTTPParameter].
 class HTTPRequiredParameter {
   const HTTPRequiredParameter();
 }
-

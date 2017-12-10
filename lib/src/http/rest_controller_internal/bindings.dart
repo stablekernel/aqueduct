@@ -78,18 +78,6 @@ class HTTPValueBinding {
   String errorMessage;
 }
 
-class HTTPMethod extends HTTPBinding {
-  HTTPMethod(String method) : super(method.toLowerCase());
-
-  @override
-  String get type => "Method";
-
-  @override
-  dynamic parse(ClassMirror intoType, Request request) {
-    return request.raw.method.toLowerCase();
-  }
-}
-
 class HTTPPath extends HTTPBinding {
   HTTPPath(String segment) : super(segment);
 

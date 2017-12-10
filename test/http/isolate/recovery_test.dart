@@ -81,7 +81,7 @@ class TestChannel extends ApplicationChannel {
 }
 
 class UncaughtCrashController extends RESTController {
-  @Bind.get()
+  @Operation.get()
   Future<Response> crashUncaught() async {
     new Future(() {
       var x;
@@ -90,7 +90,7 @@ class UncaughtCrashController extends RESTController {
     return new Response.ok(null);
   }
 
-  @Bind.get()
+  @Operation.get("id")
   Future<Response> dontCrash(@Bind.path("id") int id) async {
     return new Response.ok(null);
   }

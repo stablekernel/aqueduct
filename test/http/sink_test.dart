@@ -33,7 +33,7 @@ class TestChannel extends ApplicationChannel {
 }
 
 class FailingController extends RESTController {
-  @Bind.get()
+  @Operation.get()
   Future<Response> get() async {
     return new Response.ok(null);
   }

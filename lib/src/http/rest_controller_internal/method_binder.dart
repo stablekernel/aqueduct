@@ -3,7 +3,9 @@ import 'internal.dart';
 
 class RESTControllerMethodBinder {
   RESTControllerMethodBinder(MethodMirror mirror) {
-    httpMethod = methodBindingFrom(mirror);
+    final operation = getMethodOperationMetadata(mirror);
+    httpMethod = operation.method.toUpperCase();
+    pathVariables = operation.pathVariables;
     methodSymbol = mirror.simpleName;
 
     positionalParameters = mirror.parameters
@@ -16,15 +18,25 @@ class RESTControllerMethodBinder {
         .toList();
   }
 
-  static String generateKey(String httpMethod, int pathArity) {
-    return "${httpMethod.toLowerCase()}/$pathArity";
-  }
-
   Symbol methodSymbol;
-  HTTPMethod httpMethod;
+  String httpMethod;
+  List<String> pathVariables;
   List<RESTControllerParameterBinder> positionalParameters = [];
   List<RESTControllerParameterBinder> optionalParameters = [];
 
-  List<RESTControllerParameterBinder> get pathParameters =>
-      positionalParameters.where((p) => p.binding is HTTPPath).toList();
+  /// Checks if a request's method and path variables will select this binder.
+  ///
+  /// Note that [requestMethod] may be null; if this is the case, only
+  /// path variables are compared.
+  bool isSuitableForRequest(String requestMethod, List<String> requestPathVariables) {
+    if (requestMethod != null && requestMethod.toUpperCase() != httpMethod) {
+      return false;
+    }
+
+    if (pathVariables.length != requestPathVariables.length) {
+      return false;
+    }
+
+    return requestPathVariables.every((varName) => pathVariables.contains(varName));
+  }
 }

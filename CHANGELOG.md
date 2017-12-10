@@ -3,8 +3,8 @@
 ## 3.0.0
 
 - Change default port for `aqueduct serve` to 8888.
-- Binding metadata - `HTTPMethod`, `HTTPPath`, `HTTPBody`, `HTTPQuery` and `HTTPHeader` - have been changed to `Bind.method`, `Bind.path`, `Bind.body`, `Bind.query` and `Bind.header`, respectively.
-- Deprecates `@httpGet` and similar constants for `Bind.get()` and similar constructors.
+- Binding metadata - `HTTPPath`, `HTTPBody`, `HTTPQuery` and `HTTPHeader` - have been changed to `Bind.path`, `Bind.body`, `Bind.query` and `Bind.header`, respectively.
+- Remove `@httpGet` (and other `HTTPMethod` annotations) constants. Behavior replaced by`@Operation`.
 - Renames `Request.innerRequest` to `Request.raw`.
 - Removes `runOnMainIsolate` from `Application.start()` and introduces `Application.test()` as replacement.
 - Renames `RequestSink` to `ApplicationChannel` and improves its structure.
