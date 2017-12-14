@@ -133,7 +133,7 @@ class Application<T extends ApplicationChannel> {
     } catch (e, st) {
       logger.severe("$e", this, st);
       await stop().timeout(new Duration(seconds: 5));
-      throw new ApplicationStartupException(e);
+      rethrow;
     }
 
     _interruptSubscription = ProcessSignal.SIGINT.watch().listen((evt) {
