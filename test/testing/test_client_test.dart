@@ -237,7 +237,7 @@ void main() {
 
       var msg = await server.next();
       expect(msg.path, "/foo");
-      expect(msg.queryParameters, {"a": "b/b"});
+      expect(msg.raw.uri.queryParameters, {"a": "b/b"});
       expect(msg.body, isNull);
     });
 
@@ -250,7 +250,7 @@ void main() {
 
       var msg = await server.next();
       expect(msg.path, "/foo");
-      expect(msg.queryParameters, {});
+      expect(msg.raw.uri.queryParameters, {});
       expect(msg.body, "a=b%2Fb");
     });
   });

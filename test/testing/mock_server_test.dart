@@ -27,8 +27,8 @@ void main() {
 
       final serverRequest = await server.next();
       expect(serverRequest.method, "GET");
-      expect(serverRequest.path, "/hello");
-      expect(serverRequest.queryParameters["foo"], "bar");
+      expect(serverRequest.path.string, "/hello");
+      expect(serverRequest.raw.uri.queryParameters["foo"], "bar");
       expect(serverRequest.headers["x"], "Y");
     });
 
@@ -39,7 +39,7 @@ void main() {
       final serverRequest = await server.next();
       expect(serverRequest.method, "PUT");
       expect(serverRequest.body, '{"a":"b"}');
-      expect(serverRequest.jsonBody["a"], "b");
+      expect(serverRequest.body.asMap()["a"], "b");
     });
 
     test("Wait for request that will happen in future", () async {
@@ -47,9 +47,9 @@ void main() {
       Isolate.spawn(spawnFunc, ["/bar", 2]);
 
       var serverRequest = await server.next();
-      expect(serverRequest.path, "/foo");
+      expect(serverRequest.path.string, "/foo");
       serverRequest = await server.next();
-      expect(serverRequest.path, "/bar");
+      expect(serverRequest.path.string, "/bar");
     });
 
     test("Clear and empty", () async {
