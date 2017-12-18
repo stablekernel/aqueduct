@@ -35,6 +35,11 @@ class Request implements RequestOrResponse {
   ///         });
   final HttpRequest raw;
 
+  /// HTTP method of this request.
+  ///
+  /// Always uppercase. e.g., GET, POST, PUT.
+  String get method => raw.method.toUpperCase();
+
   /// The path of the request URI.
   ///
   /// Provides convenient access to the request URI path. Also provides path variables and wildcard path values

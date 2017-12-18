@@ -60,7 +60,7 @@ class Bind {
   /// has a query key that matches [name], the argument or property value is set to the query parameter's value. For example,
   /// the request /users?foo=bar would bind the value `bar` to the variable `foo`:
   ///
-  ///         @Bind.method("get")
+  ///         @Operation.get()
   ///         Future<Response> getUsers(@Bind.query("foo") String foo) async => ...;
   ///
   /// [name] is compared case-sensitively, i.e. `Foo` and `foo` are different.
@@ -87,7 +87,7 @@ class Bind {
   /// the argument or property is set to the headers's value. For example,
   /// a request with the header `Authorization: Basic abcdef` would bind the value `Basic abcdef` to the `authHeader`  argument:
   ///
-  ///         @Bind.method("get")
+  ///         @Operation.get()
   ///         Future<Response> getUsers(@Bind.header("Authorization") String authHeader) async => ...;
   ///
   /// [name] is compared case-insensitively; both `Authorization` and `authorization` will match the same header.
@@ -118,7 +118,7 @@ class Bind {
   ///
   ///
   ///       class UserController extends RESTController {
-  ///         @Bind.method("post")
+  ///         @Operation.post()
   ///         Future<Response> createUser(@Bind.body() User user) async {
   ///           var query = new Query<User>()..values = user;
   ///
@@ -150,9 +150,9 @@ class Bind {
   /// consider the above route and a controller with the following operation methods:
   ///
   ///         class UserController extends RESTController {
-  ///           @Bind.get()
+  ///           @Operation.get()
   ///           Future<Response> getUsers() async => new Response.ok(getAllUsers());
-  ///           @Bind.get()
+  ///           @Operation.get('id')
   ///           Future<Response> getOneUser(@Bind.path("id") int id) async => new Response.ok(getUser(id));
   ///         }
   ///
@@ -197,11 +197,11 @@ enum _BindType { query, header, body, path }
 ///           @Bind.header("x-request-id")
 ///           String requestID;
 ///
-///           @Bind.method("get")
+///           @Operation.get('id')
 ///           Future<Response> getUser(@Bind.path("id") int id) async
 ///              => return Response.ok(await getUserByID(id));
 ///
-///           @Bind.method("get")
+///           @Operation.get()
 ///           Future<Response> getAllUsers() async
 ///              => return Response.ok(await getUsers());
 ///         }
