@@ -233,7 +233,7 @@ var query = new Query<Employee>()
 var bob = await query.insert();  
 
 var updateQuery = new Query<Employee>()
-  ..where.id = bob.id
+  ..where.id = whereEqualTo(bob.id)
   ..values.name = "Bobby";
 bob = await updateQuery.updateOne();  
 ```
@@ -242,7 +242,7 @@ bob = await updateQuery.updateOne();
 
 ```dart
 var query = new Query<Employee>()
-  ..where.name = "Sue Gallagher"
+  ..where.name = whereEqualTo("Sue Gallagher")
   ..join(object: (e) => e.manager)
   ..join(set: (e) => e.directReports);
 
@@ -298,7 +298,7 @@ class UserController extends RESTController {
   @Operation.put('id')
   Future<Response> updateUser(@Bind.path("id") int id, @Bind.body() User user) async {
     var query = new Query<User>()
-      ..where.id = id
+      ..where.id = whereEqualTo(id)
       ..values = user;
 
     var updatedUser = await query.updateOne();

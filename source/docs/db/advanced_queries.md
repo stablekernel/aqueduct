@@ -275,7 +275,7 @@ Any values configured in a `Query<T>` also impact the `reduce` function. For exa
 
 ```dart
 var query = new Query<User>()
-  ..where.name = "Bob";
+  ..where.name = whereEqualTo("Bob");
 var averageSalaryOfPeopleNamedBob = await query.reduce.sum((u) => u.salary);
 ```
 

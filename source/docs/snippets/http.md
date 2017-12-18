@@ -3,15 +3,17 @@
 ## Hello, World
 
 ```dart
-class AppApplicationChannel extends ApplicationChannel {
+class AppChannel extends ApplicationChannel {  
   @override
   Controller get entryPoint {
     final router = new Router();
+
     router.route("/hello_world").listen((request) async {
       return new Response.ok("Hello, world!")
         ..contentType = ContentType.TEXT;
     });
-    return routerl
+
+    return router;
   }
 }
 ```
@@ -19,16 +21,18 @@ class AppApplicationChannel extends ApplicationChannel {
 ## Route Variables
 
 ```dart
-class AppApplicationChannel extends ApplicationChannel {  
+class AppChannel extends ApplicationChannel {  
   @override
   Controller get entryPoint {
     final router = new Router();
+
     router.route("/variable/[:variable]").listen((request) async {
       return new Response.ok({
         "method": request.raw.method,
         "path": request.path.variables["variable"] ?? "not specified"
       });      
     });
+
     return router;
   }
 }
@@ -37,19 +41,21 @@ class AppApplicationChannel extends ApplicationChannel {
 ## Grouping Routes and Binding Path Variables
 
 ```dart
-class AppApplicationChannel extends ApplicationChannel {
+class AppChannel extends ApplicationChannel {  
   @override
   Controller get entryPoint {
     final router = new Router();
+
     router
       .route("/users/[:id]")
       .generate(() => new Controller());
+
     return router;
   }
 }
 
 class Controller extends RESTController {
-  final List<String> things = const ["thing1", "thing2"];
+  final List<String> things = const ['thing1', 'thing2'];
 
   @Operation.get()
   Future<Response> getThings() async {
@@ -57,7 +63,7 @@ class Controller extends RESTController {
   }
 
   @Operation.get('id')
-  Future<Response> getThing(@Bind.path("id") int id) async {
+  Future<Response> getThing(@Bind.path('id') int id) async {
     if (id < 0 || id >= things.length) {
       return new Response.notFound();
     }
@@ -69,21 +75,23 @@ class Controller extends RESTController {
 ## Custom Middleware
 
 ```dart
-class AppApplicationChannel extends ApplicationChannel {
+class AppChannel extends ApplicationChannel {  
   @override
   Controller get entryPoint {
     final router = new Router();
+
     router
       .route("/rate_limit")
       .pipe(new RateLimiter())
       .listen((req) async => new Response.ok({
         "requests_remaining": req.attachments["remaining"]
       }));
+
     return router;
   }
 }
 
-class RateLimiter extends Controller {
+class RateLimiter extends RequestController {
   @override
   Future<RequestOrResponse> handle(Request request) async {
     var apiKey = request.raw.headers.value("x-apikey");
@@ -105,7 +113,7 @@ class RateLimiter extends Controller {
 ## Application-Wide CORS Allowed Origins
 
 ```dart
-class AppApplicationChannel extends ApplicationChannel {
+class AppChannel extends ApplicationChannel {
   @override
   Future prepare() async {
     // All controllers will use this policy by default
@@ -128,17 +136,16 @@ class AppApplicationChannel extends ApplicationChannel {
 ## Serve Files and Set Cache-Control Headers
 
 ```dart
-class AppApplicationChannel extends ApplicationChannel {
+class AppChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
 
-    final fileController = new HTTPFileController("web")
-      ..addCachePolicy(
-        new HTTPCachePolicy(expirationFromNow: new Duration(days: 365)),
-          (path) => path.endsWith(".js") || path.endsWith(".css"));
-
-    router.route("/files/*").pipe(fileController);    
+    router.route("/files/*").pipe(
+      new HTTPFileController("web")
+        ..addCachePolicy(new HTTPCachePolicy(expirationFromNow: new Duration(days: 365)),
+          (path) => path.endsWith(".js") || path.endsWith(".css"))      
+    );
 
     return router;
   }
@@ -149,16 +156,16 @@ class AppApplicationChannel extends ApplicationChannel {
 
 ```dart
 class AppChannel extends ApplicationChannel {
+  final StreamController<String> controller = new StreamController<String>();  
+
   @override
-  Future prepare() async {  
+  Future prepare() async {
     var count = 0;
     new Timer.periodic(new Duration(seconds: 1), (_) {
       count ++;
       controller.add("This server has been up for $count seconds\n");
     });
   }
-
-  final StreamController<String> controller = new StreamController<String>();  
 
   @override
   Controller get entryPoint {
@@ -179,15 +186,15 @@ class AppChannel extends ApplicationChannel {
 ## A websocket server
 
 ```dart
-class AppApplicationChannel extends ApplicationChannel {
+class AppChannel extends ApplicationChannel {
+  List<WebSocket> websockets = [];
+
   @override
-  Future prepare() async {  
+  Future prepare() async {
     // When another isolate gets a websocket message, echo it to
     // websockets connected on this isolate.
     messageHub.listen(sendBytesToConnectedClients);
   }
-
-  List<WebSocket> websockets = [];
 
   @override
   Controller get entryPoint {
@@ -226,7 +233,7 @@ class AppApplicationChannel extends ApplicationChannel {
 ## Setting Content-Type and Encoding a Response Body
 
 ```dart
-class AppApplicationChannel extends ApplicationChannel {
+class AppChannel extends ApplicationChannel {
   final ContentType CSV = new ContentType("text", "csv", charset: "utf-8");
 
   @override
@@ -254,7 +261,7 @@ class AppApplicationChannel extends ApplicationChannel {
 ## Proxy a File From Another Server
 
 ```dart
-class AppApplicationChannel extends ApplicationChannel {
+class AppChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();

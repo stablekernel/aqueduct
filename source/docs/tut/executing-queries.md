@@ -80,6 +80,9 @@ class HeroesChannel extends ApplicationChannel {
 
 `ManagedDataModel.fromCurrentMirrorSystem()` will find all of our `ManagedObject<T>` subclasses and 'compile' them into a data model. A `PostgreSQLPersistentStore` takes database connection information that it will use to connect and send queries to a database. Together, these objects are packaged in a `ManagedContext`.
 
+!!! tip "Configuring a Database Connection"
+    This tutorial hardcodes the information needed to connect to a database. In a future chapter, we will move these values to a configuration file so that we can change them during tests and various deployment environments.
+
 The context will coordinate with these two objects to execute queries and translate objects to and from the database. Controllers that make database queries need a reference to the context. So, we'll want `HeroesController` to have access to the context.
 
 In `heroes_controller.dart`, add a property and create a new constructor:
@@ -260,6 +263,9 @@ aqueduct db upgrade --connect postgres://heroes_user:password@localhost:5432/her
 
 Re-run your application with `aqueduct serve`. Then, reload [http://aqueduct-tutorial.stablekernel.io](http://aqueduct-tutorial.stablekernel.io). Your dashboard of heroes and detail page for each will still show up - but this time, they are sourced from a database.
 
+!!! warning "ManagedObjects and Migration Scripts"
+    In our migration's `seed()` method, we executed SQL queries instead of using the Aqueduct ORM. *It is very important that you do not use* `Query<T>`, `ManagedObject<T>` or other elements of the Aqueduct ORM in migration files. Migration files represent an ordered series of historical steps that describe your database schema. If you replay those steps (which is what executing a migration file does), you will end up with the same database schema every time. However, a `ManagedObject<T>` subclass changes over time - the definition of a managed object is not historical, it only represents the current point in time. Since a `ManagedObject<T>` subclass can change, using one in our migration file would mean that our migration file could change.
+
 The more you know: Query Parameters and HTTP Headers
 ---
 
@@ -271,17 +277,11 @@ GET /heroes?name=abc
 
 ![Aqueduct Tutorial Run 4](../img/run4.png)
 
-Our Aqueduct application can use this value to filter the query for heroes. In `heroes_controller.dart`, modify `getAllHeroes()` to bind the 'name' query parameter:
-
-----
-----
-----
-----
-----
+Our Aqueduct application can use this value to return a list of heroes that contains the search string. In `heroes_controller.dart`, modify `getAllHeroes()` to bind the 'name' query parameter:
 
 ```dart
 @Operation.get()
-Future<Response> getAllHeroes(@Bind.query('name') String name) async {
+Future<Response> getAllHeroes({@Bind.query('name') String name}) async {
   final heroQuery = new Query<Hero>(context);
   if (name != null) {
     heroQuery.where.name = whereContainsString(name, caseSensitive: false);
@@ -292,43 +292,13 @@ Future<Response> getAllHeroes(@Bind.query('name') String name) async {
 }
 ```  
 
-The `@Bind.query('name')` annotation will bind the value of a query parameter named 'name' if it is included in the request URL. However,
+The `@Bind.query('name')` annotation will bind the value of the 'name' query parameter if it is included in the request URL. Otherwise, `name` will be null.
 
-If it doesn't exist, `name` will be null. The parameter `name` is an optional parameter (the curly brackets tell us that). An optional parameter makes the
-
-The bound argument should make some sense given what we've done so far - if the query parameter 'name' is in the request URL, its value will be available in the `name`. If there is no 'name' in the query string, `name` will be null.
-
-Notice that `name` is an *optional argument* (it is surrounded in curly brackets). This means a request can include the query parameter or not, and this operation will still be called successfully. You may make query, body and header parameters optional. (You can't make path bindings optional.)
-
-```dart
-Future<Response> getAllHeroes({@Bind.query('name') String name}) async {
-```
-
-If we removed the curly brackets and made `name` a required argument, it would become required for that operation. The request `GET /heroes` would no longer work - it would yield a 400 Bad Request and let you know that 'name' is a required query parameter. You can also use additional bindings to declare more than one operation method for an operation. For example, you might want to split up 'getting all heroes' and 'searching heroes by name':
-
-
-```dart
-@Operation.get()
-Future<Response> getAllHeroes() async {
-  final heroQuery = new Query<Hero>(context);  
-
-  return new Response.ok(await heroQuery.fetch());
-}
-
-@Operation.get('name')
-Future<Response> searchHeroesByName(@Bind.query("name") String name) async {
-  final heroQuery = new Query<Hero>(context)
-    ..where.name = whereContainsString(name, caseSensitive: false);
-
-  return new Response.ok(await heroQuery.fetch());
-}
-```  
-
-In the above, the request URL must have the query parameter `name` for `searchHeroesByName(name)` to be called. `getAllHeroes()` will be called otherwise, since its only requirement is that the request is a `GET`.
+Notice that `name` is an *optional parameter* (it is surrounded by curly brackets). An optional parameter in an operation method is also optional in the HTTP request. If we removed the curly brackets from this binding, the 'name' query parameter would become required and the request `GET /heroes` without `?name=x` would fail with a 400 Bad Request.
 
 !!! tip "RESTController Binding"
     There is even more to bindings than we've shown (like automatically parsing bound values into types like `int` and `DateTime`). For more information, see [RESTControllers](../http/rest_controller.md).
 
 Binding query and header parameters in a operation method is a good way to make your code more intentional and avoid boilerplate parsing code. Aqueduct is able to generate better documentation when using bindings.
 
-## [Next: Relationships and Joins](model-relationships-and-joins.md)
+## [Next: Storing Data](storing-data.md)

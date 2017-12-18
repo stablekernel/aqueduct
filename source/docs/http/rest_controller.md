@@ -221,7 +221,7 @@ Future<Response> getCityByID(@Bind.query('id') int cityID)
 
 The type of a bound parameter may be `String` or any type that implements `parse` (e.g., `int`, `DateTime`). Query parameters may also be bound to `bool` parameters; a boolean query parameter will be true if the query parameter has no value (e.g. `/path?boolean`).
 
-If parsing fails for any reason, an error response is sent and the operation method is not called. For example, the above example binds `int cityID`; if the path variable 'id' can't be parsed into an `int`, a 404 Not Found response is sent. If a query parameter or header value cannot be parsed, a 400 Bad Request response is sent.
+If parsing fails for any reason, an error response is sent and the operation method is not called. For example, the above example binds `int cityID` - if the path variable 'id' can't be parsed into an `int`, a 404 Not Found response is sent. If a query parameter or header value cannot be parsed, a 400 Bad Request response is sent.
 
 You may also bind `List<T>` parameters to headers and query parameters, where `T` must meet the same criteria as above. Query parameters and headers may appear more than once in a request. For example, the value of `ids` is `[1, 2]` if the request URL ends with `/path?id=1&id=2` and the operation method looks like this:
 
