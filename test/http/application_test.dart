@@ -99,16 +99,16 @@ void main() {
         crashingApp.options.context = {"crashIn": "addRoutes"};
         await crashingApp.test();
         expect(true, false);
-      } on ApplicationStartupException catch (e) {
-        expect(e.originalException.toString(), contains("addRoutes"));
+      } on Exception catch (e) {
+        expect(e.toString(), contains("addRoutes"));
       }
 
       try {
         crashingApp.options.context = {"crashIn": "prepare"};
         await crashingApp.test();
         expect(true, false);
-      } on ApplicationStartupException catch (e) {
-        expect(e.originalException.toString(), contains("prepare"));
+      } on Exception catch (e) {
+        expect(e.toString(), contains("prepare"));
       }
 
       crashingApp.options.context = {"crashIn": "dontCrash"};

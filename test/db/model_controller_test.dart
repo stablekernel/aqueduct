@@ -171,7 +171,7 @@ class _TestModel {
 class StringController extends QueryController<StringModel> {
   @Operation.get("id")
   Future<Response> get(@Bind.path("id") String id) async {
-    ComparisonMatcherExpression comparisonMatcher = query.where["foo"];
+    StringMatcherExpression comparisonMatcher = query.where["foo"];
     return new Response.ok(comparisonMatcher.value);
   }
 }
