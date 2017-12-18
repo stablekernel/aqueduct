@@ -29,7 +29,7 @@ void main() {
       expect(serverRequest.method, "GET");
       expect(serverRequest.path.string, "/hello");
       expect(serverRequest.raw.uri.queryParameters["foo"], "bar");
-      expect(serverRequest.headers["x"], "Y");
+      expect(serverRequest.raw.headers["x"], "Y");
     });
 
     test("Request body is captured", () async {
