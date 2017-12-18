@@ -1,21 +1,21 @@
 import 'http.dart';
 import 'route_specification.dart';
 
-/// The HTTP request path decomposed into variables and segments based on a [RouteSpecification].
+/// Stores path info for a [Request].
 ///
-/// After passing through a [Router], a [Request] will have an instance of [HTTPRequestPath] in [Request.path].
-/// Any variable path parameters will be available in [variables].
+/// Contains the raw path string, the path as segments and values created by routing a request.
 ///
-/// For each request passes through a router, a new instance of this type is created specific to that request.
+/// Note: The properties [variables], [orderedVariableNames] and [remainingPath] are not set until
+/// after the owning request has passed through a [Router].
 class HTTPRequestPath {
   /// Default constructor for [HTTPRequestPath].
   ///
   /// There is no need to invoke this constructor manually.
-  HTTPRequestPath(this.segments, {int segmentOffset: 0}) : _basePathSegments = segmentOffset;
+  HTTPRequestPath(this.segments);
 
-  set specification(RouteSpecification spec) {
+  void setSpecification(RouteSpecification spec, {int segmentOffset: 0}) {
     var requestIterator = segments.iterator;
-    for (var i = 0; i < _basePathSegments; i ++) {
+    for (var i = 0; i < segmentOffset; i ++) {
       requestIterator.moveNext();
     }
 
@@ -57,7 +57,7 @@ class HTTPRequestPath {
   /// This property will contain every segment of the matched path, including
   /// constant segments. It will not contain any part of the path caught by
   /// the asterisk 'match all' token (*), however. Those are in [remainingPath].
-  List<String> segments = new List<String>();
+  final List<String> segments;
 
   /// If a match specification uses the 'match all' token (*),
   /// the part of the path matched by that token will be stored in this property.
@@ -74,5 +74,8 @@ class HTTPRequestPath {
   /// will appear in this property.
   List<String> orderedVariableNames = [];
 
-  int _basePathSegments = 0;
+  /// The path of the requested URI.
+  ///
+  /// Always contains a leading '/', but never a trailing '/'.
+  String get string => "/" + segments.join("/");
 }

@@ -14,9 +14,8 @@ typedef void _ResponseModifier(Response resp);
 /// directly to the [HttpRequest], as [Controller]s take that responsibility.
 class Request implements RequestOrResponse {
   /// Creates an instance of [Request], no need to do so manually.
-  Request(this.raw) {
-    _body = new HTTPRequestBody(this.raw);
-  }
+  Request(this.raw) : path = new HTTPRequestPath(raw.uri.pathSegments),
+    body = new HTTPRequestBody(raw);
 
   /// The underlying [HttpRequest] of this instance.
   ///
@@ -36,6 +35,21 @@ class Request implements RequestOrResponse {
   ///         });
   final HttpRequest raw;
 
+  /// The path of the request URI.
+  ///
+  /// Provides convenient access to the request URI path. Also provides path variables and wildcard path values
+  /// after this instance is handled by a [Router].
+  final HTTPRequestPath path;
+
+  /// The request body object.
+  ///
+  /// This object contains the request body if one exists and behavior for decoding it according
+  /// to this instance's content-type. See [HTTPRequestBody] for details on decoding the body into
+  /// an object (or objects).
+  ///
+  /// This value is is always non-null. If there is no request body, [HTTPRequestBody.isEmpty] is true.
+  final HTTPRequestBody body;
+
   /// Information about the client connection.
   ///
   /// Note: accessing this property incurs a significant performance penalty.
@@ -47,13 +61,6 @@ class Request implements RequestOrResponse {
   /// using a [Response] instance to fill out this property.
   HttpResponse get response => raw.response;
 
-  /// The path and any extracted variable parameters from the URI of this request.
-  ///
-  /// Typically set by a [Router] instance when the request has been piped through one,
-  /// this property will contain a list of each path segment, a map of matched variables,
-  /// and any remaining wildcard path.
-  HTTPRequestPath path;
-
   /// Authorization information associated with this request.
   ///
   /// When this request goes through an [Authorizer], this value will be set with
@@ -61,16 +68,6 @@ class Request implements RequestOrResponse {
   /// or other properties of the authentication information in the request. This value will be
   /// null if no permission has been set.
   Authorization authorization;
-
-  /// The request body object.
-  ///
-  /// This object contains the request body if one exists and behavior for decoding it according
-  /// to this instance's content-type. See [HTTPRequestBody] for details on decoding the body into
-  /// an object (or objects).
-  ///
-  /// This value is is always non-null. If there is no request body, [HTTPRequestBody.isEmpty] is true.
-  HTTPRequestBody get body => _body;
-  HTTPRequestBody _body;
 
   List<_ResponseModifier> _responseModifiers;
 
