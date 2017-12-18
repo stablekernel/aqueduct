@@ -17,9 +17,12 @@ class TestApplication {
   static const String DefaultClientSecret = "kilimanjaro";
   static const String DefaultPublicClientID = "com.aqueduct.public";
 
-  Application<WildfireChannel> application;
-  WildfireChannel get channel => application.channel;
   TestClient client;
+  Application<WildfireChannel> application;
+
+  String get configurationFilePath => "config.src.yaml";
+
+  WildfireChannel get channel => application.channel;
 
   /// Starts running this test harness.
   ///
@@ -39,9 +42,9 @@ class TestApplication {
   /// You must call [stop] on this instance when tearing down your tests.
   Future start() async {
     Controller.letUncaughtExceptionsEscape = true;
-    application = new Application<WildfireChannel>();
-    application.options.port = 0;
-    application.options.configurationFilePath = "config.src.yaml";
+    application = new Application<WildfireChannel>()
+      ..options.port = 0
+      ..options.configurationFilePath = configurationFilePath;
 
     await application.test();
 
@@ -80,8 +83,7 @@ class TestApplication {
   /// every application harness inserts a default client record during [start]. See [start]
   /// for more details.
   static Future<ManagedAuthClient> addClientRecord(
-      {String clientID: DefaultClientID,
-      String clientSecret: DefaultClientSecret}) async {
+      {String clientID: DefaultClientID, String clientSecret: DefaultClientSecret}) async {
     var salt;
     var hashedPassword;
     if (clientSecret != null) {
@@ -99,10 +101,8 @@ class TestApplication {
   /// Adds database tables to the temporary test database based on the declared [ManagedObject]s in this application.
   ///
   /// This method is executed during [start], and you shouldn't have to invoke it yourself.
-  static Future createDatabaseSchema(
-      ManagedContext context, {Logger logger}) async {
-    var builder = new SchemaBuilder.toSchema(
-        context.persistentStore, new Schema.fromDataModel(context.dataModel),
+  static Future createDatabaseSchema(ManagedContext context, {Logger logger}) async {
+    var builder = new SchemaBuilder.toSchema(context.persistentStore, new Schema.fromDataModel(context.dataModel),
         isTemporary: true);
 
     for (var cmd in builder.commands) {

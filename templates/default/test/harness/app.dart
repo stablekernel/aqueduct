@@ -12,9 +12,12 @@ export 'package:aqueduct/aqueduct.dart';
 /// requests against the test server.  This instance will use configuration values
 /// from config.src.yaml.
 class TestApplication {
-  Application<WildfireChannel> application;
-  WildfireChannel get channel => application.channel;
   TestClient client;
+  Application<WildfireChannel> application;
+
+  WildfireChannel get channel => application.channel;
+
+  String get configurationFilePath => "config.src.yaml";
 
   /// Starts running this test harness.
   ///
@@ -24,9 +27,9 @@ class TestApplication {
   /// You must call [stop] on this instance when tearing down your tests.
   Future start() async {
     Controller.letUncaughtExceptionsEscape = true;
-    application = new Application<WildfireChannel>();
-    application.options.port = 0;
-    application.options.configurationFilePath = "config.src.yaml";
+    application = new Application<WildfireChannel>()
+      ..options.port = 0
+      ..options.configurationFilePath = configurationFilePath;
 
     await application.test();
 
