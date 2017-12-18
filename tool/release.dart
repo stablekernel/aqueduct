@@ -246,6 +246,12 @@ class Runner {
   }
 
   Future publish(Directory master) async {
+    print("Formatting code...");
+    final fmt = await Process.run("dartfmt", ["-w", "lib/", "bin/"]);
+    if (fmt.exitCode != 0) {
+      print("WARNING: Failed to run 'dartfmt -w lib/ bin/");
+    }
+
     print("Publishing to pub...");
     var args = ["publish"];
     if (isDryRun) {
