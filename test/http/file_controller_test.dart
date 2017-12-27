@@ -25,6 +25,7 @@ void main() {
   var subdirFile = new File.fromUri(subdir.uri.resolve("index.html"));
 
   HttpServer server;
+  Router router;
 
   setUpAll(() async {
     fileDirectory.createSync();
@@ -50,7 +51,7 @@ void main() {
               [".jpg", ".js", ".png", ".css", ".jpeg", ".ttf", ".eot", ".woff", ".otf"]
                   .any((suffix) => path.endsWith(suffix)));
 
-    var router = new Router()
+    router = new Router()
       ..route("/files/*").pipe(new HTTPFileController("temp_files"))
       ..route("/redirect/*").pipe(new HTTPFileController("temp_files", onFileNotFound: (c, r) async {
         return new Response.ok({"k": "v"});
@@ -284,6 +285,36 @@ void main() {
       expect(response.headers["cache-control"], "public, max-age=31536000");
       expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
       expect(response.body, cssContents);
+    });
+  });
+
+  group("Documentation Generation", () {
+    APIDocument doc = new APIDocument()
+      ..version = "3.0.0"
+      ..info = (new APIInfo()..version = "1.0"..title = "Whatever")
+      ..components = new APIComponents();
+
+    setUpAll(() async {
+      doc.paths = router.documentPaths(new APIComponentRegistry(doc.components));
+    });
+
+    test("Emit acceptable document", () {
+      expect(doc.asMap(), isNotNull);
+    });
+
+    test("Path variable is appropriate marked up", () {
+      final path = doc.paths["/files/{path}"];
+      expect(path, isNotNull);
+      expect(path.parameters.length, 1);
+      expect(path.parameters.first.location, APIParameterLocation.path);
+      expect(path.parameters.first.schema.type, APIType.string);
+      expect(path.parameters.first.description, contains("may be empty"));
+      expect(path.parameters.first.description, contains("may contain slashes '/'"));
+
+      expect(path.operations.length, 1);
+      final op = path.operations["get"];
+      expect(op.responses["200"].description, contains("Successful file fetch"));
+      expect(op.responses["404"].description, contains("No file exists at path"));
     });
   });
 }

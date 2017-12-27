@@ -73,7 +73,7 @@ class HTTPFileController extends Controller {
       : _servingDirectory = new Uri.directory(pathOfDirectoryToServe),
         _onFileNotFound = onFileNotFound;
 
-  Map<String, ContentType> _extensionMap =  new Map.from(_defaultExtensionMap);
+  Map<String, ContentType> _extensionMap = new Map.from(_defaultExtensionMap);
   List<_PolicyPair> _policyPairs = [];
   final Uri _servingDirectory;
   final Function _onFileNotFound;
@@ -188,6 +188,25 @@ class HTTPFileController extends Controller {
       ..cachePolicy = _policyForFile(file)
       ..encodeBody = false
       ..contentType = contentType;
+  }
+
+
+  @override
+  Map<String, APIOperation> documentOperations(APIComponentRegistry components, APIPath path) {
+    return {
+      "get" : new APIOperation()
+        ..description = "Content-Type is determined by the suffix of the file."
+        ..summary = "Returns the contents of a file on the server's filesystem."
+        ..responses = {
+          "200": new APIResponse()
+            ..description = "Successful file fetch."
+            ..content = {
+              "*/*": new APIMediaType(schema: new APISchemaObject.file())
+            },
+          "404": new APIResponse()
+            ..description = "No file exists at path."
+        }
+    };
   }
 
   HTTPCachePolicy _policyForFile(File file) => cachePolicyForPath(file.path);

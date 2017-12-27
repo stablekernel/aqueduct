@@ -204,7 +204,7 @@ class _RouteController extends Controller {
             } else if (rs.isVariable) {
               return "{${rs.variableName}}";
             } else if (rs.isRemainingMatcher) {
-              return "*";
+              return "{path}";
             }
           }).join("/");
 
@@ -213,8 +213,17 @@ class _RouteController extends Controller {
           return new APIParameter()
             ..location = APIParameterLocation.path
             ..name = pathVar
-            ..schema = (new APISchemaObject()..type = APIType.string);
+            ..schema = new APISchemaObject.string();
         }).toList();
+
+      if (spec.segments.any((seg) => seg.isRemainingMatcher)) {
+        path.parameters.add(new APIParameter()
+          ..location = APIParameterLocation.path
+          ..name = "path"
+          ..schema = new APISchemaObject.string()
+          ..description = "This path variable may contain slashes '/' and may be empty."
+        );
+      }
 
       path.operations = spec.controller.documentOperations(components, path);
 
