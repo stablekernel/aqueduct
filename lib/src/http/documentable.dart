@@ -39,7 +39,7 @@ abstract class APIDocumentable {
   Map<String, APIOperation> documentOperations(APIComponentRegistry components, APIPath path) =>
       documentableChild?.documentOperations(components, path);
 
-  void documentComponents(APIComponentRegistry registry) => documentableChild?.documentComponents(registry);
+  void documentComponents(APIComponentRegistry components) => documentableChild?.documentComponents(components);
 }
 
 class APIComponentRegistry {

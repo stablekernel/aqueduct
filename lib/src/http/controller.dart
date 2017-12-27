@@ -275,7 +275,11 @@ class Controller extends Object with APIDocumentable {
 
   @override
   Map<String, APIOperation> documentOperations(APIComponentRegistry components, APIPath path) {
-    return {};
+    if (_nextController == null && _listener != null) {
+      return {};
+    }
+
+    return super.documentOperations(components, path);
   }
 
   Future _handlePreflightRequest(Request req) async {

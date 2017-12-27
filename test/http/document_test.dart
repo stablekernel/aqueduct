@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
@@ -21,6 +23,10 @@ void main() {
       expect(doc.info.version, "1.2.3");
       expect(doc.info.title, "test-title");
       expect(doc.info.description, "test-description");
+    });
+
+    test("Has required properties", () {
+      expect(doc.asMap(), isNotNull);
     });
   });
 
@@ -47,27 +53,104 @@ void main() {
         expect(doc.paths.containsKey("/constant"), true);
         expect(doc.paths.containsKey("/dynamic"), true);
       });
+
+      test("Paths with path parameter are found in path-level parameters", () {
+        expect(doc.paths["/path"].parameters.length, 0);
+        expect(doc.paths["/constant"].parameters.length, 0);
+        expect(doc.paths["/dynamic"].parameters.length, 0);
+
+        expect(doc.paths["/path/{id}"].parameters.length, 1);
+        expect(doc.paths["/path/{id}"].parameters.first.location, APIParameterLocation.path);
+        expect(doc.paths["/path/{id}"].parameters.first.schema.type, APIType.string);
+        expect(doc.paths["/path/{id}"].parameters.first.name, "id");
+      });
+
+      test("Paths have all expected operations", () {
+        expect(doc.paths["/dynamic"].operations, {});
+
+        final getConstant = doc.paths["/constant"].operations["get"];
+        final postConstant = doc.paths["/constant"].operations["post"];
+        expect(getConstant.responses["200"].description, "get/0-200");
+        expect(postConstant.responses["200"].description, "post/0-200");
+
+        final getPath0 = doc.paths["/path"].operations["get"];
+        final postPath0 = doc.paths["/path"].operations["post"];
+        expect(getPath0.responses["200"].description, "get/0-200");
+        expect(postPath0.responses["200"].description, "post/0-200");
+
+        final getPath1 = doc.paths["/path/{id}"].operations["get"];
+        final putPath1 = doc.paths["/path/{id}"].operations["put"];
+        expect(getPath1.responses["200"].description, "get/1-200");
+        expect(getPath1.responses["400"].description, "get/1-400");
+        expect(getPath1.parameters.length, 2);
+        expect(putPath1.responses["200"].description, "put/1-200");
+      });
+
+      test("Middleware can provide additional parameters to operation", () {
+        final opsWithMiddleware = [
+          doc.paths["/path/{id}"].operations.values,
+          doc.paths["/path"].operations.values,
+          doc.paths["/constant"].operations.values,
+        ].expand((i) => i).toList();
+
+        opsWithMiddleware.forEach((op) {
+          final middlewareParam =
+              op.parameters.where((p) => p.referenceURI == "#/components/parameters/x-api-key").toList();
+          expect(middlewareParam.length, 1);
+
+          expect(doc.components.resolve(middlewareParam.first).schema.type, APIType.string);
+        });
+      });
     });
 
-    group("Components", () {});
+    group("Components", () {
+      test("Component created by a controller is automatically emitted", () {
+        expect(doc.components.parameters["x-api-key"], isNotNull);
+      });
+
+      test("Componentable property in channel automatically emit components", () {
+        expect(doc.components.schemas["someObject"], isNotNull);
+        expect(doc.components.schemas["named-component"], isNotNull);
+        expect(doc.components.schemas["ref-component"], isNotNull);
+      });
+
+      test("Componentable getter in channel does not automatically emit components", () {
+        expect(doc.components.schemas["won't-show-up"], isNull);
+      });
+
+      test("Regular instance method in channel does not automatically emit component", () {
+        expect(doc.components.schemas["won't-show-up"], isNull);
+      });
+
+      test("Can resolve component by type", () {
+        final ref = doc.components.schemas["someObject"].properties["refByType"];
+        expect(ref.referenceURI, "#/components/schemas/ref-component");
+
+        final resolved = doc.components.resolve(ref);
+        expect(resolved.type, APIType.object);
+        expect(resolved.properties["key"].type, APIType.string);
+      });
+    });
   });
 }
 
 class DefaultChannel extends ApplicationChannel {
   ComponentA a;
 
-  ComponentB get b => _b;
-  ComponentB _b;
+  ComponentB b = new ComponentB();
+
+  UnaccountedForControllerWithComponents get documentableButNotAutomaticGetter =>
+      new UnaccountedForControllerWithComponents();
+
   String notDocumentable;
 
-  Controller documentableButNotAutomaticComponent() {
-    return new Controller();
+  Controller documentableButNotAutomaticMethod() {
+    return new UnaccountedForControllerWithComponents();
   }
 
   @override
   Future prepare() async {
     a = new ComponentA();
-    _b = new ComponentB();
   }
 
   @override
@@ -92,6 +175,7 @@ class Middleware extends Controller {
   void documentComponents(APIComponentRegistry components) {
     components.parameters
         .register("x-api-key", new APIParameter.header("x-api-key", schema: new APISchemaObject.string()));
+    documentableChild?.documentComponents(components);
   }
 
   @override
@@ -99,7 +183,8 @@ class Middleware extends Controller {
     final ops = super.documentOperations(components, path);
 
     ops.values.forEach((op) {
-      op.parameters.add(new APIParameter.header("x-api-key", schema: new APISchemaObject.string()));
+      op.parameters ??= [];
+      op.parameters.add(components.parameters["x-api-key"]);
     });
 
     return ops;
@@ -112,6 +197,7 @@ class Endpoint extends Controller {
     if (path.parameters.length >= 1) {
       return {
         "get": new APIOperation()
+          ..parameters = [new APIParameter.header("x-op", schema: new APISchemaObject.integer())]
           ..responses = {
             "200": new APIResponse()..description = "get/1-200",
             "400": new APIResponse()..description = "get/1-400",
@@ -121,9 +207,7 @@ class Endpoint extends Controller {
     }
 
     return {
-      "get": new APIOperation()
-        ..parameters = [registry.parameters["x-api-key"]]
-        ..responses = {"200": new APIResponse()..description = "get/0-200"},
+      "get": new APIOperation()..responses = {"200": new APIResponse()..description = "get/0-200"},
       "post": new APIOperation()
         ..requestBody = (new APIRequestBody()
           ..content = {"application/json": new APIMediaType(schema: registry.schema["someObject"])})
@@ -155,3 +239,10 @@ class ComponentB extends APIDocumentable {
 }
 
 class ReferencableSchemaObject {}
+
+class UnaccountedForControllerWithComponents extends Controller {
+  @override
+  void documentComponents(APIComponentRegistry components) {
+    components.schema.register("won't-show-up", new APISchemaObject.object({"key": new APISchemaObject.string()}));
+  }
+}

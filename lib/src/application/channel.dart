@@ -149,7 +149,8 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
 
   @override
   APIDocument documentAPI(Map<String, dynamic> projectSpec) {
-    final doc = new APIDocument();
+    final doc = new APIDocument()
+      ..components = new APIComponents();
     final root = entryPoint;
     root.prepare();
 
@@ -158,7 +159,7 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
 
     doc.paths = root.documentPaths(registry);
 
-    doc.info
+    doc.info = new APIInfo()
       ..title = projectSpec["name"]
       ..version = projectSpec["version"]
       ..description = projectSpec["description"];
@@ -168,11 +169,13 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
 
   @override
   void documentComponents(APIComponentRegistry registry) {
+    entryPoint.documentComponents(registry);
+
     final type = reflect(this).type;
     final documentableType = reflectType(APIDocumentable);
-    type.instanceMembers.forEach((_, member) {
-      if (member.isGetter || member is VariableMirror) {
-        if (member.returnType.isAssignableTo(documentableType)) {
+    type.declarations.forEach((_, member) {
+      if (member is VariableMirror && !member.isStatic) {
+        if (member.type.isAssignableTo(documentableType)) {
           APIDocumentable documentable = reflect(this).getField(member.simpleName).reflectee;
           documentable?.documentComponents(registry);
         }

@@ -159,6 +159,13 @@ class Router extends Controller {
   }
 
   @override
+  void documentComponents(APIComponentRegistry components) {
+    _routeControllers.forEach((controller) {
+      controller.documentComponents(components);
+    });
+  }
+
+  @override
   String toString() {
     return _rootRouteNode.toString();
   }
@@ -202,12 +209,12 @@ class _RouteController extends Controller {
           }).join("/");
 
       final path = new APIPath()
-        ..parameters.addAll(spec.variableNames.map((pathVar) {
+        ..parameters = spec.variableNames.map((pathVar) {
           return new APIParameter()
             ..location = APIParameterLocation.path
             ..name = pathVar
             ..schema = (new APISchemaObject()..type = APIType.string);
-        }));
+        }).toList();
 
       path.operations = spec.controller.documentOperations(components, path);
 
