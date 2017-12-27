@@ -32,73 +32,9 @@ class RouteSpecification extends Object with APIDocumentable {
   Controller controller;
 
   @override
-  List<APIPath> documentPaths(PackagePathResolver resolver) {
-    var p = new APIPath();
-    p.path = "/" +
-        segments.map((rs) {
-          if (rs.isLiteralMatcher) {
-            return rs.literal;
-          } else if (rs.isVariable) {
-            return "{${rs.variableName}}";
-          } else if (rs.isRemainingMatcher) {
-            return "*";
-          }
-        }).join("/");
-
-    p.parameters = segments.where((seg) => seg.isVariable).map((seg) {
-      var param = new APIParameter()
-        ..name = seg.variableName
-        ..parameterLocation = APIParameterLocation.path;
-
-      return param;
-    }).toList();
-
-    List<APIOperation> allOperations = controller.documentOperations(resolver) ?? [];
-    p.operations = allOperations.where((op) {
-      var opPathParamNames = op.parameters
-          .where((p) => p.parameterLocation == APIParameterLocation.path)
-          .map((p) => p.name)
-          .toList();
-      var pathParamNames = p.parameters
-          .where((p) => p.parameterLocation == APIParameterLocation.path)
-          .toList();
-
-      if (pathParamNames.length != opPathParamNames.length) {
-        return false;
-      }
-
-      return pathParamNames.every((p) => opPathParamNames.contains(p.name));
-    }).toList();
-
-    // Strip operation parameters that are already in the path, but move their type into
-    // the path's path parameters
-    p.operations.forEach((op) {
-      var typedPathParameters = op.parameters
-          .where((pi) => pi.parameterLocation == APIParameterLocation.path)
-          .toList();
-      p.parameters.forEach((p) {
-        var matchingTypedPathParam = typedPathParameters.firstWhere(
-                (typedParam) => typedParam.name == p.name,
-            orElse: () => null);
-        p.schemaObject ??= matchingTypedPathParam?.schemaObject;
-      });
-
-      op.parameters = op.parameters
-          .where((p) => p.parameterLocation != APIParameterLocation.path)
-          .toList();
-    });
-
-    return [p];
-  }
-
-  @override
   String toString() => segments.join("/");
 }
 
-/// Utility method to take Route syntax into one or more full paths.
-///
-/// This method strips away optionals in the route syntax, yielding an individual path for every combination of the route syntax.
-/// The returned [String]s no longer contain optional syntax.
 List<String> _pathsFromRoutePattern(String routePattern) {
   var endingOptionalCloseCount = 0;
   while (routePattern.endsWith("]")) {

@@ -188,10 +188,38 @@ abstract class RESTController extends Controller {
     }
   }
 
+  List<APIParameter> documentOperationParameters(APIPath path, String method) {
+    final binder = _binderForOperation(path, method);
+
+    bool usesFormEncodedData = method == "POST" &&
+        acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
+
+    final params = [binder.optionalParameters, binder.positionalParameters]
+        .expand((p) => p)
+        .map((param) => param.asDocumentedParameter());
+    if (usesFormEncodedData) {
+      return params.where((p) => p.location != APIParameterLocation.query).toList();
+    }
+
+    return params.toList();
+  }
+
+  String documentOperationSummary(APIPath path, String method) {}
+
+  String documentOperationDescription(APIPath path, String method) {}
+
+//  List<APISecurityRequirement> documentOperationSecurityRequirements(APIPath path, String method) {
+//    return null;
+//  }
+
+  APIRequestBody documentOperationRequestBody(APIPath path, String method) {}
+
+  Map<String, APIResponse> documentOperationResponses(APIPath path, String method) {}
+
   @override
-  List<APIOperation> documentOperations(PackagePathResolver resolver) {
-    var controllerCache = RESTControllerBinder.binderForType(runtimeType);
+  Map<String, APIOperation> documentOperations(APIPath path) {
     var reflectedType = reflect(this).type;
+    var controllerCache = RESTControllerBinder.binderForType(runtimeType);
     var uri = reflectedType.location.sourceUri;
     var fileUnit = parseDartFile(resolver.resolve(uri));
     var classUnit = fileUnit.declarations
@@ -208,14 +236,32 @@ abstract class RESTController extends Controller {
       }
     });
 
-    return controllerCache.methodBinders.map((cachedMethod) {
-      var op = new APIOperation();
-      op.id = APIOperation.idForMethod(this, cachedMethod.methodSymbol);
-      op.method = cachedMethod.httpMethod.toLowerCase();
-      op.consumes = acceptedContentTypes;
-      op.produces = [responseContentType];
-      op.responses = documentResponsesForOperation(op);
-      op.requestBody = documentRequestBodyForOperation(op);
+    final pathVariableNames =
+        path.parameters.where((p) => p.location == APIParameterLocation.path).map((p) => p.name).toList();
+
+    return controllerCache.methodBinders.where((method) {
+      if (pathVariableNames.length != method.pathVariables.length) {
+        return false;
+      }
+
+      if (!pathVariableNames.every((p) => method.pathVariables.contains(p))) {
+        return false;
+      }
+
+      return true;
+    }).fold(<String, APIOperation>{}, (opMap, method) {
+      final op = new APIOperation()
+        ..id = MirrorSystem.getName(method.methodSymbol)
+        ..summary = documentOperationSummary(path, method.httpMethod)
+        ..description = documentOperationDescription(path, method.httpMethod)
+        ..parameters = documentOperationParameters(path, method.httpMethod)
+        //..security = documentOperationSecurityRequirements(path, method.httpMethod)
+        ..requestBody = documentOperationRequestBody(path, method.httpMethod)
+        ..responses = documentOperationResponses(path, method.httpMethod);
+
+      opMap[method.httpMethod.toLowerCase()] = op;
+
+      // summary, description, parameters, securirty, requestBofy, responses, callbacks
 
       // Add documentation comments
       var methodDeclaration = methodMap[cachedMethod.methodSymbol];
@@ -231,40 +277,6 @@ abstract class RESTController extends Controller {
           op.description = lines.sublist(1, lines.length).join("\n");
         }
       }
-
-      bool usesFormEncodedData = op.method.toLowerCase() == "post" &&
-          acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
-
-      op.parameters = <List<RESTControllerParameterBinder>>[
-        cachedMethod.positionalParameters,
-        cachedMethod.optionalParameters,
-        controllerCache.propertyBinders
-      ].expand((i) => i).where((p) => p.binding is! HTTPPath).map((param) {
-        var paramLocation = _parameterLocationFromHTTPParameter(param.binding);
-        if (usesFormEncodedData && paramLocation == APIParameterLocation.query) {
-          paramLocation = APIParameterLocation.formData;
-        }
-
-        return new APIParameter()
-          ..name = param.name
-          ..required = param.isRequired
-          ..parameterLocation = paramLocation
-          ..schemaObject = (new APISchemaObject.fromTypeMirror(param.boundValueType));
-      }).toList();
-
-      final pathParameters = cachedMethod.pathVariables.map((pathVar) {
-        final furtherQualifiedPathVar = cachedMethod.positionalParameters
-            .firstWhere((p) => p.binding is HTTPPath && p.binding.externalName == pathVar, orElse: () => null);
-        final varType = furtherQualifiedPathVar?.boundValueType ?? reflectType(String);
-
-        return new APIParameter()
-            ..name = pathVar
-            ..required = true
-            ..parameterLocation = APIParameterLocation.path
-            ..schemaObject = (new APISchemaObject.fromTypeMirror(varType));
-      });
-
-      op.parameters.addAll(pathParameters);
 
       return op;
     }).toList();
@@ -294,18 +306,26 @@ abstract class RESTController extends Controller {
 
     return responses;
   }
-}
 
-APIParameterLocation _parameterLocationFromHTTPParameter(HTTPBinding p) {
-  if (p is HTTPPath) {
-    return APIParameterLocation.path;
-  } else if (p is HTTPQuery) {
-    return APIParameterLocation.query;
-  } else if (p is HTTPHeader) {
-    return APIParameterLocation.header;
+  RESTControllerMethodBinder _binderForOperation(APIPath path, String method) {
+    return RESTControllerBinder.binderForType(runtimeType).methodBinders.firstWhere((m) {
+      if (m.httpMethod != method) {
+        return false;
+      }
+
+      final pathVariableNames = path.parameters.where((p) => p.location == APIParameterLocation.path);
+
+      if (m.pathVariables.length == pathVariableNames.length) {
+        return false;
+      }
+
+      if (!pathVariableNames.every((p) => m.pathVariables.contains(p))) {
+        return false;
+      }
+
+      return true;
+    });
   }
-
-  return null;
 }
 
 class RESTControllerException implements Exception {

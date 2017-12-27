@@ -136,12 +136,12 @@ class Authorizer extends Controller {
   }
 
   @override
-  List<APIOperation> documentOperations(PackagePathResolver resolver) {
-    List<APIOperation> operations = nextController.documentOperations(resolver);
+  Map<String, APIOperation> documentOperations(APIPath path) {
+    final operations = nextController.documentOperations(path);
     var requirements = validator.requirementsForStrategy(strategy);
 
-    operations.forEach((i) {
-      i.security = requirements;
+    operations.forEach((method, op) {
+      op.security = requirements;
     });
 
     return operations;

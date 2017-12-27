@@ -37,6 +37,7 @@ class Router extends Controller {
   ///
   /// Trailing and leading slashes have no impact on this value.
   String get basePath => "/${_basePathSegments.join("/")}";
+
   set basePath(String bp) {
     _basePathSegments = bp.split("/").where((str) => str.isNotEmpty).toList();
   }
@@ -49,7 +50,6 @@ class Router extends Controller {
   set unmatchedController(Future listener(Request req)) {
     _unmatchedController = listener;
   }
-
 
   /// Adds a route to this instance.
   ///
@@ -81,16 +81,14 @@ class Router extends Controller {
   ///         /files/*
   ///
   Controller route(String pattern) {
-    var routeController = new _RouteController(
-        RouteSpecification.specificationsForRoutePattern(pattern));
+    var routeController = new _RouteController(RouteSpecification.specificationsForRoutePattern(pattern));
     _routeControllers.add(routeController);
     return routeController;
   }
 
   @override
   void prepare() {
-    _rootRouteNode =
-        new RouteNode(_routeControllers.expand((rh) => rh.patterns).toList());
+    _rootRouteNode = new RouteNode(_routeControllers.expand((rh) => rh.specifications).toList());
 
     for (var c in _routeControllers) {
       c.prepare();
@@ -106,15 +104,12 @@ class Router extends Controller {
   /// Routers override this method to throw an exception. Use [route] instead.
   @override
   Controller generate(Controller generatorFunction()) {
-    throw new RouterException(
-        "Routers may not use generate, use route instead.");
+    throw new RouterException("Routers may not use generate, use route instead.");
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
   @override
-  Controller listen(
-      FutureOr<RequestOrResponse> handler(
-          Request request)) {
+  Controller listen(FutureOr<RequestOrResponse> handler(Request request)) {
     throw new RouterException("Routers may not use listen, use route instead.");
   }
 
@@ -150,16 +145,17 @@ class Router extends Controller {
       return handleError(req, any, stack);
     }
 
+    // This line is intentionally outside of the try block
+    // so that this object doesn't handle exceptions for 'next'.
     return next?.receive(req);
   }
 
   @override
-  List<APIPath> documentPaths(PackagePathResolver resolver) {
-    return _routeControllers
-        .expand((rh) => rh.patterns)
-        .map((RouteSpecification routeSpec) =>
-            routeSpec.documentPaths(resolver).first)
-        .toList();
+  Map<String, APIPath> documentPaths(APIComponentRegistry components) {
+    return _routeControllers.fold(<String, APIPath>{}, (map, routeController) {
+      map.addAll(routeController.documentPaths(components));
+      return map;
+    });
   }
 
   @override
@@ -171,8 +167,8 @@ class Router extends Controller {
     var response = new Response.notFound();
     if (req.acceptsContentType(ContentType.HTML)) {
       response
-          ..body = "<html><h3>404 Not Found</h3></html>"
-          ..contentType = ContentType.HTML;
+        ..body = "<html><h3>404 Not Found</h3></html>"
+        ..contentType = ContentType.HTML;
     }
 
     applyCORSHeadersIfNecessary(req, response);
@@ -181,17 +177,45 @@ class Router extends Controller {
   }
 }
 
-
 class _RouteController extends Controller {
-  /// Do not create instances of this class manually.
-  _RouteController(this.patterns) {
-    patterns.forEach((p) {
+  _RouteController(this.specifications) {
+    specifications.forEach((p) {
       p.controller = this;
     });
   }
 
   /// Route specifications for this controller.
-  final List<RouteSpecification> patterns;
+  final List<RouteSpecification> specifications;
+
+  @override
+  Map<String, APIPath> documentPaths(APIComponentRegistry components) {
+    return specifications.fold(<String, APIPath>{}, (map, spec) {
+      final pathKey = "/" +
+          spec.segments.map((rs) {
+            if (rs.isLiteralMatcher) {
+              return rs.literal;
+            } else if (rs.isVariable) {
+              return "{${rs.variableName}}";
+            } else if (rs.isRemainingMatcher) {
+              return "*";
+            }
+          }).join("/");
+
+      final path = new APIPath()
+        ..parameters.addAll(spec.variableNames.map((pathVar) {
+          return new APIParameter()
+            ..location = APIParameterLocation.path
+            ..name = pathVar
+            ..schema = (new APISchemaObject()..type = APIType.string);
+        }));
+
+      path.operations = spec.controller.documentOperations(components, path);
+
+      map[pathKey] = path;
+
+      return map;
+    });
+  }
 }
 
 /// Thrown when a [Router] encounters an exception.

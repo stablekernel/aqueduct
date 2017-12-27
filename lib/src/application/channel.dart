@@ -73,11 +73,13 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   ///
   /// Reference back to the owning server that adds requests into this channel.
   ApplicationServer get server => _server;
+
   set server(ApplicationServer server) {
     _server = server;
     messageHub._outboundController.stream.listen(server.sendApplicationEvent);
     server.hubSink = messageHub._inboundController.sink;
   }
+
   ApplicationServer _server;
 
   /// Sends and receives messages to other isolates running a [ApplicationChannel].
@@ -146,52 +148,36 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   }
 
   @override
-  APIDocument documentAPI(PackagePathResolver resolver) {
-    var doc = new APIDocument();
+  APIDocument documentAPI(Map<String, dynamic> projectSpec) {
+    final doc = new APIDocument();
     final root = entryPoint;
     root.prepare();
 
-    doc.paths = root.documentPaths(resolver);
-    doc.securitySchemes = documentSecuritySchemes(resolver);
+    final registry = new APIComponentRegistry(doc.components);
+    documentComponents(registry);
 
-    var host = new Uri(scheme: "http", host: "localhost");
-    if (doc.hosts.length > 0) {
-      host = doc.hosts.first.uri;
-    }
+    doc.paths = root.documentPaths(registry);
 
-    doc.securitySchemes?.values?.forEach((scheme) {
-      if (scheme.isOAuth2) {
-        var authCodePath = _authorizationPath(doc.paths);
-        if (authCodePath != null) {
-          scheme.authorizationURL = host.resolve(authCodePath).toString();
-        }
+    doc.info
+      ..title = projectSpec["name"]
+      ..version = projectSpec["version"]
+      ..description = projectSpec["description"];
 
-        var tokenPath = _authorizationTokenPath(doc.paths);
-        if (tokenPath != null) {
-          scheme.tokenURL = host.resolve(tokenPath).toString();
+    return doc;
+  }
+
+  @override
+  void documentComponents(APIComponentRegistry registry) {
+    final type = reflect(this).type;
+    final documentableType = reflectType(APIDocumentable);
+    type.instanceMembers.forEach((_, member) {
+      if (member.isGetter || member is VariableMirror) {
+        if (member.returnType.isAssignableTo(documentableType)) {
+          APIDocumentable documentable = reflect(this).getField(member.simpleName).reflectee;
+          documentable?.documentComponents(registry);
         }
       }
     });
-
-    var distinct = (Iterable<ContentType> items) {
-      var retain = <ContentType>[];
-
-      return items.where((ct) {
-        if (!retain.any((retained) =>
-            ct.primaryType == retained.primaryType &&
-            ct.subType == retained.subType &&
-            ct.charset == retained.charset)) {
-          retain.add(ct);
-          return true;
-        }
-
-        return false;
-      }).toList();
-    };
-    doc.consumes = distinct(doc.paths.expand((p) => p.operations.expand((op) => op.consumes)));
-    doc.produces = distinct(doc.paths.expand((p) => p.operations.expand((op) => op.produces)));
-
-    return doc;
   }
 
   /// Returns the subclass of [ApplicationChannel] found in an application library.
@@ -202,7 +188,8 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
         .values
         .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
         .expand((lib) => lib.declarations.values)
-        .where((decl) => decl is ClassMirror && decl.isSubclassOf(channelType) && decl.reflectedType != ApplicationChannel)
+        .where(
+            (decl) => decl is ClassMirror && decl.isSubclassOf(channelType) && decl.reflectedType != ApplicationChannel)
         .map((decl) => decl as ClassMirror)
         .toList();
 
@@ -211,42 +198,6 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
     }
 
     return classes.first.reflectedType;
-  }
-
-  String _authorizationPath(List<APIPath> paths) {
-    var op = paths.expand((p) => p.operations).firstWhere((op) {
-      return op.method.toLowerCase() == "post" &&
-          op.responses.any((resp) {
-            return resp.statusCode == HttpStatus.MOVED_TEMPORARILY &&
-                ["client_id", "username", "password", "state"].every((qp) {
-                  return op.parameters.map((apiParam) => apiParam.name).contains(qp);
-                });
-          });
-    }, orElse: () => null);
-
-    if (op == null) {
-      return null;
-    }
-
-    var path = paths.firstWhere((p) => p.operations.contains(op));
-    return path.path;
-  }
-
-  String _authorizationTokenPath(List<APIPath> paths) {
-    var op = paths.expand((p) => p.operations).firstWhere((op) {
-      return op.method.toLowerCase() == "post" &&
-          op.responses.any((resp) {
-            return ["access_token", "token_type", "expires_in", "refresh_token"]
-                .every((property) => resp.schema?.properties?.containsKey(property) ?? false);
-          });
-    }, orElse: () => null);
-
-    if (op == null) {
-      return null;
-    }
-
-    var path = paths.firstWhere((p) => p.operations.contains(op));
-    return path.path;
   }
 }
 

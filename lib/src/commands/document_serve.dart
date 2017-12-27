@@ -71,7 +71,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
 
   Future _build() async {
     _hostedDirectory.createSync();
-    var documentJSON = JSON.encode(await documentProject(projectDirectory.uri, libraryName));
+    var documentJSON = JSON.encode(await documentProject(projectDirectory.uri, libraryName, projectSpecification));
 
     var jsonSpecFile = new File.fromUri(_hostedDirectory.uri.resolve("swagger.json"));
     jsonSpecFile.writeAsStringSync(documentJSON);

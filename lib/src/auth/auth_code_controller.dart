@@ -135,7 +135,7 @@ class AuthCodeController extends RESTController {
   }
 
   @override
-  List<APIOperation> documentOperations(PackagePathResolver resolver) {
+  List<APIOperation> documentOperations() {
     var ops = super.documentOperations(resolver);
     ops.forEach((op) {
       op.parameters.forEach((param) {

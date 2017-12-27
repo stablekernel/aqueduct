@@ -271,23 +271,26 @@ abstract class CLICommand implements CLIResultHandler {
 }
 
 abstract class CLIProject implements CLIResultHandler, CLICommand {
-  String _packageName;
+  Map<String, dynamic> _pubspec;
+
+  Map<String, dynamic> get projectSpecification {
+    if (_pubspec == null) {
+      var file = new File.fromUri(projectDirectory.uri.resolve("pubspec.yaml"));
+      if (!file.existsSync()) {
+        throw new CLIException("Failed to locate pubspec.yaml in project directory '${projectDirectory.path}'");
+      }
+      var yamlContents = file.readAsStringSync();
+      _pubspec = loadYaml(yamlContents);
+    }
+
+    return _pubspec;
+  }
 
   Directory get projectDirectory => new Directory(values["directory"]).absolute;
 
   String get libraryName => packageName;
 
-  String get packageName {
-    if (_packageName == null) {
-      var file = new File.fromUri(projectDirectory.uri.resolve("pubspec.yaml"));
-      var yamlContents = file.readAsStringSync();
-      var pubspec = loadYaml(yamlContents);
-
-      _packageName = pubspec["name"];
-    }
-
-    return _packageName;
-  }
+  String get packageName => projectSpecification["name"];
 
   Version _projectVersion;
 

@@ -273,6 +273,11 @@ class Controller extends Object with APIDocumentable {
     }
   }
 
+  @override
+  Map<String, APIOperation> documentOperations(APIComponentRegistry components, APIPath path) {
+    return {};
+  }
+
   Future _handlePreflightRequest(Request req) async {
     Controller controllerToDictatePolicy;
     try {
@@ -366,7 +371,7 @@ class _ControllerGenerator extends Controller {
 
   Controller instantiate() {
     Controller instance = generator();
-    instance._nextController = this.nextController;
+    instance._nextController = nextController;
     if (policyOverride != null) {
       instance.policy = policyOverride;
     }
@@ -398,16 +403,5 @@ class _ControllerGenerator extends Controller {
   }
 
   @override
-  APIDocument documentAPI(PackagePathResolver resolver) => nextInstanceToReceive.documentAPI(resolver);
-
-  @override
-  List<APIPath> documentPaths(PackagePathResolver resolver) => nextInstanceToReceive.documentPaths(resolver);
-
-  @override
-  List<APIOperation> documentOperations(PackagePathResolver resolver) =>
-      nextInstanceToReceive.documentOperations(resolver);
-
-  @override
-  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) =>
-      nextInstanceToReceive.documentSecuritySchemes(resolver);
+  APIDocumentable get documentableChild => nextInstanceToReceive;
 }

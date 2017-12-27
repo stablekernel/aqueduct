@@ -160,18 +160,20 @@ class Application<T extends ApplicationChannel> {
   }
 
   /// Creates an [APIDocument] for this application.
-  static Future<APIDocument> document(
-      Type channelType, ApplicationOptions config, PackagePathResolver resolver) async {
+  static Future<APIDocument> document(Type channelType, ApplicationOptions config, Map<String, dynamic> projectSpec) async {
     var channelMirror = reflectClass(channelType);
 
-    config.isDocumenting = true;
     await _globalStart(channelMirror, config);
 
     final server = new ApplicationServer(channelMirror, config, 1, captureStack: true);
 
     await server.channel.prepare();
 
-    return server.channel.documentAPI(resolver);
+    final doc = server.channel.documentAPI(projectSpec);
+
+    await server.channel.close();
+
+    return doc;
   }
 
   static Future _globalStart(ClassMirror channelType, ApplicationOptions config) {

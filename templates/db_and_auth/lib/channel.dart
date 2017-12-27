@@ -6,7 +6,6 @@ import 'controller/user_controller.dart';
 import 'model/user.dart';
 import 'utility/html_template.dart';
 
-
 /// This type initializes an application.
 ///
 /// Override methods in this class to set up routes and initialize services like
@@ -108,10 +107,16 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
    */
 
   @override
-  Map<String, APISecurityScheme> documentSecuritySchemes(
-      PackagePathResolver resolver) {
-    return authServer.documentSecuritySchemes(resolver);
+  APIDocument documentAPI() {
+    final doc = super.documentAPI();
+
+    asdsa
+    authServer.addComponents(doc.components);
+
+    return doc;
   }
+
+
 }
 
 /// An instance of this class represents values from a configuration
