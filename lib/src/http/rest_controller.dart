@@ -7,56 +7,44 @@ import 'package:analyzer/analyzer.dart';
 import 'http.dart';
 import 'rest_controller_internal/internal.dart';
 
-/// Base class for implementing REST endpoints.
+
+/// Controller for operating on an HTTP Resource.
 ///
-/// This class must be subclassed. A new instance must be created for each request and that request must have passed through a [Router] earlier in the channel, e.g.:
+/// [RESTController]s provide a means to organize the logic for all operations on an HTTP resource. They also provide conveniences for handling these operations.
 ///
-///         router.route("/path").generate(() => new RESTControllerSubclass());
+/// This class must be subclassed. Its instance methods handle operations on an HTTP resource. For example, the following
+/// are operations: 'GET /users', 'GET /users/:id' and 'POST /users'. An instance method is assigned to handle one of these operations.
 ///
-/// Subclasses implement instance methods that will be invoked when a [Request] meets certain criteria. These criteria are established by
-/// *binding* elements of the HTTP request to instance methods and their parameters. For example, an instance method
-/// that is bound to the HTTP `POST` method will be invoked when this controller handles a `POST` request.
+/// Instance methods must have [Operation] annotation to respond to a request (see also [Operation.get], [Operation.post], [Operation.put] and [Operation.delete]). These
+/// methods are called *operation methods*. Operation methods also take a variable list of path variables. An operation method is called if the incoming request's method and
+/// present path variables match the operation annotation.
 ///
-///         class EmployeeController extends RESTController {
-///            @Bind.method("post")
-///            Future<Response> createEmployee(...) async => new Response.ok(null);
-///         }
-///
-/// Instance methods must have [Bind.method] metadata to respond to a request (see also [Bind.get], [Bind.post], [Bind.put] and [Bind.delete]). These
-/// methods are called *operation methods*. Parameters of a operation method may bind other elements of an HTTP request, such as query
-/// variables, headers, the message body and path variables.
-///
-/// There may be multiple operation methods for a given HTTP method. If more than one operation method matches in this way, the arguments of the method
-/// with [Bind.path] metadata are evaluated to 'break the tie'. For example, the route `/employees/[:id]` contains an optional route variable named `id`.
+/// For example, the route `/employees/[:id]` contains an optional route variable named `id`.
 /// A subclass can implement two operation methods, one for when `id` was present and the other for when it was not:
 ///
 ///         class EmployeeController extends RESTController {
 ///            // This method gets invoked when the path is '/employees'
-///            @Bind.method("get")
+///            @Operation.get()
 ///            Future<Response> getEmployees() async {
 ///             return new Response.ok(employees);
 ///            }
 ///
 ///            // This method gets invoked when the path is '/employees/id'
-///            @Bind.method("get")
+///            @Operation.get('id')
 ///            Future<Response> getEmployees(@Bind.path("id") int id) async {
 ///             return new Response.ok(employees[id]);
 ///            }
 ///         }
 ///
-/// If no operation method is found that meets both the HTTP method and route variable criteria, an appropriate error response is returned to the client
-/// and no operation methods are called. In other words, the selection of a operation method is determined by the HTTP method and path of the request.
+/// If there isn't an operation method for a request, an 405 Method Not Allowed error response is sent to the client and no operation methods are called.
 ///
-/// For the other types of binding - [Bind.query], [Bind.header], and [Bind.body] - a operation method is selected prior to evaluating whether the request
-/// fulfill these bindings. If a operation method is selected, but the request does not have values that fulfill query, header and body criteria, a 400 Bad Request
-/// response is sent and no operation method is invoked.
+/// For operation methods to correctly function, a request must have previously been handled by a [Router] to parse path variables.
 ///
-/// Query, header and body bindings may be optional if they are in the optional arguments portion of the operation method signature. When optional and the
-/// corresponding value doesn't exist in the incoming request, the operation method is successfully invoked and the associated variable is null. For example,
-/// this method is called whether the query parameter `name` is present or not:
+/// Values from a request may be bound to operation method parameters. Parameters must be annotated with [Bind.path], [Bind.query], [Bind.header], or [Bind.body].
+/// For example, the following binds an optional query string parameter 'name' to the 'name' argument:
 ///
 ///         class EmployeeController extends RESTController {
-///           @Bind.method("get")
+///           @Operation.get()
 ///           Future<Response> getEmployees({@Bind.query("name") String name}) async {
 ///             if (name == null) {
 ///               return new Response.ok(employees);
@@ -66,9 +54,9 @@ import 'rest_controller_internal/internal.dart';
 ///           }
 ///         }
 ///
-/// See [Bind] for all possible bindings and https://aqueduct.io/docs/http/http_controller/ for more details.
+/// Bindings will automatically parse values into other types and validate that requests have the desired values. See [Bind] for all possible bindings and https://aqueduct.io/docs/http/rest_controller/ for more details.
 ///
-/// [Request.body] will always be decoded prior to invoking a operation method.
+/// To access the request directly, use [request]. Note that the [Request.body] of [request] will be decoded prior to invoking an operation method.
 @cannotBeReused
 abstract class RESTController extends Controller {
   /// The request being processed by this [RESTController].
