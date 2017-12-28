@@ -390,13 +390,8 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   // APIDocumentable overrides
   //////
 
-  static const String _SecuritySchemeClientAuth = "basic.clientAuth";
-  static const String _SecuritySchemePassword = "oauth2.password";
-  static const String _SecuritySchemeAuthorizationCode = "oauth2.accessCode";
-
   @override
-  Map<String, APISecurityScheme> documentSecuritySchemes(
-      PackagePathResolver resolver) {
+  void documentComponents(APIComponentRegistry components) {
     var secPassword =
         new APISecurityScheme.oauth2(APISecuritySchemeFlow.password)
           ..description = "OAuth 2.0 Resource Owner Flow";
@@ -451,7 +446,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   }
 
   @override
-  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) {
+  List<APISecurityRequirement> documentSecurityRequirements(AuthStrategy strategy, {List<String> scopes}) {
     if (strategy == AuthStrategy.basic) {
       return [new APISecurityRequirement()..name = _SecuritySchemeClientAuth];
     } else if (strategy == AuthStrategy.bearer) {

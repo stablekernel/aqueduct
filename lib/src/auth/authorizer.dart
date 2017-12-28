@@ -17,8 +17,7 @@ enum AuthStrategy {
   bearer
 }
 
-/// A [Controller] that will authorize further passage in a [Controller] chain when a request has valid
-/// credentials.
+/// A [Controller] that validates the Authorization header of a request.
 ///
 /// An instance of [Authorizer] will validate a [Request] given a [strategy] and a [validator]. [validator] is typically the instance
 /// of [AuthServer] in an application.
@@ -135,12 +134,14 @@ class Authorizer extends Controller {
     }    
   }
 
-  @override
-  Map<String, APIOperation> documentOperations(APIPath path) {
-    final operations = nextController.documentOperations(path);
-    var requirements = validator.requirementsForStrategy(strategy);
 
-    operations.forEach((method, op) {
+
+  @override
+  Map<String, APIOperation> documentOperations(APIComponentRegistry components, APIPath path) {
+    final operations = nextController.documentOperations(components, path);
+    var requirements = validator.documentSecurityRequirements(strategy, scopes: scopes);
+
+    operations.forEach((_, op) {
       op.security = requirements;
     });
 
@@ -180,5 +181,5 @@ abstract class AuthValidator {
   FutureOr<Authorization> fromBearerToken(
       String bearerToken, {List<AuthScope> scopesRequired});
 
-  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) => [];
+  List<APISecurityRequirement> documentSecurityRequirements(AuthStrategy strategy, {List<String> scopes}) => [];
 }
