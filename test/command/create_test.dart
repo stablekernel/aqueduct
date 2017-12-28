@@ -121,8 +121,8 @@ void main() {
         var res = Process.runSync("pub", ["run", "test", "-j", "1"],
             runInShell: true, workingDirectory: temporaryDirectory.path);
 
-        expect(res.exitCode, 0);
         expect(res.stdout, contains("All tests passed"));
+        expect(res.exitCode, 0);
       });
     }
   });

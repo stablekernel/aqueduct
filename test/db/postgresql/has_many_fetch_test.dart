@@ -30,7 +30,7 @@ void main() {
         () async {
       var q = new Query<Parent>()
         ..join(set: (p) => p.children)
-        ..where.name = "D";
+        ..where.name = whereEqualTo("D");
 
       var verifier = (Parent p) {
         expect(p.name, "D");
@@ -44,7 +44,7 @@ void main() {
     test(
         "Fetch has-many relationship that is empty returns empty, and deeper nested relationships are ignored even when included",
         () async {
-      var q = new Query<Parent>()..where.name = "D";
+      var q = new Query<Parent>()..where.name = whereEqualTo("D");
 
       q.join(set: (p) => p.children)
         ..join(object: (c) => c.toy)
@@ -64,7 +64,7 @@ void main() {
         () async {
       var q = new Query<Parent>()
         ..join(set: (p) => p.children)
-        ..where.name = "C";
+        ..where.name = whereEqualTo("C");
 
       var verifier = (Parent p) {
         expect(p.name, "C");
@@ -81,7 +81,7 @@ void main() {
     test(
         "Fetch has-many relationship, include has-one and has-many in that has-many, where bottom of graph has valid object for hasmany but not for hasone",
         () async {
-      var q = new Query<Parent>()..where.name = "B";
+      var q = new Query<Parent>()..where.name = whereEqualTo("B");
 
       q.join(set: (p) => p.children)
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
@@ -113,7 +113,7 @@ void main() {
     test(
         "Fetch has-many relationship, include has-one and has-many in that has-many, where bottom of graph has valid object for hasone but not for hasmany",
         () async {
-      var q = new Query<Parent>()..where.name = "A";
+      var q = new Query<Parent>()..where.name = whereEqualTo("A");
 
       q.join(set: (p) => p.children)
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
@@ -234,7 +234,7 @@ void main() {
 
     test("Predicate impacts top-level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>()..where.name = "A";
+      var q = new Query<Parent>()..where.name = whereEqualTo("A");
 
       q.join(set: (p) => p.children)
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
@@ -263,7 +263,7 @@ void main() {
       var q = new Query<Parent>();
 
       q.join(set: (p) => p.children)
-        ..where.name = "C1"
+        ..where.name = whereEqualTo("C1")
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
         ..join(set: (c) => c.vaccinations)
             .sortBy((v) => v.vid, QuerySortOrder.ascending)
@@ -290,7 +290,7 @@ void main() {
       var q = new Query<Parent>();
 
       var childJoin = q.join(set: (p) => p.children)..join(object: (c) => c.toy);
-      childJoin.join(set: (c) => c.vaccinations)..where.kind = "V1";
+      childJoin.join(set: (c) => c.vaccinations)..where.kind = whereEqualTo("V1");
 
       var results = await q.fetch();
 
@@ -325,10 +325,10 @@ void main() {
     test(
         "Predicate that omits top-level objects but would include lower level object return no results",
         () async {
-      var q = new Query<Parent>()..where.pid = 5;
+      var q = new Query<Parent>()..where.pid = whereEqualTo(5);
 
       var childJoin = q.join(set: (p) => p.children)..join(object: (c) => c.toy);
-      childJoin.join(set: (c) => c.vaccinations)..where.kind = "V1";
+      childJoin.join(set: (c) => c.vaccinations)..where.kind = whereEqualTo("V1");
 
       var results = await q.fetch();
       expect(results.length, 0);
@@ -403,7 +403,7 @@ void main() {
 
     test("Objects returned in join are not the same instance", () async {
       var q = new Query<Parent>()
-        ..where.pid = 1
+        ..where.pid = whereEqualTo(1)
         ..join(set: (p) => p.children);
 
       var o = await q.fetchOne();
