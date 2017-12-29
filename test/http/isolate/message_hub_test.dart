@@ -21,19 +21,25 @@ void main() {
       await app.start(numberOfInstances: numberOfIsolates);
 
       var resp = await postMessage("msg1");
-      var receivingID = isolateIdentifierFromResponse(resp);
-      var messages = await getMessagesFromIsolates();
-
+      var postingIsolateID = isolateIdentifierFromResponse(resp);
       var id1 = 1;
       var id2 = 2;
-      if (receivingID == 1) {
+      if (postingIsolateID == 1) {
         id1 = 3;
-      } else if (receivingID == 2) {
+      } else if (postingIsolateID == 2) {
         id2 = 3;
       }
-      expect(messages[receivingID], []);
-      expect(messages[id1], [{"isolateID": receivingID, "message": "msg1"}]);
-      expect(messages[id2], [{"isolateID": receivingID, "message": "msg1"}]);
+
+      expect(
+          waitForMessages({
+            id1: [
+              {"isolateID": postingIsolateID, "message": "msg1"}
+            ],
+            id2: [
+              {"isolateID": postingIsolateID, "message": "msg1"}
+            ],
+          }, butNeverReceiveIn: postingIsolateID),
+          completes);
     });
 
     test("A message sent in prepare is received by all channels eventually", () async {
@@ -42,19 +48,22 @@ void main() {
         ..options.context = {"sendIn": "prepare"};
       await app.start(numberOfInstances: numberOfIsolates);
 
-      var messages = await getMessagesFromIsolates();
-
-      expect(messages[1].length, 2);
-      expect(messages[1].any((i) => i["isolateID"] == 2 && i["message"] == "init"), true);
-      expect(messages[1].any((i) => i["isolateID"] == 3 && i["message"] == "init"), true);
-
-      expect(messages[2].length, 2);
-      expect(messages[2].any((i) => i["isolateID"] == 1 && i["message"] == "init"), true);
-      expect(messages[2].any((i) => i["isolateID"] == 3 && i["message"] == "init"), true);
-
-      expect(messages[3].length, 2);
-      expect(messages[3].any((i) => i["isolateID"] == 1 && i["message"] == "init"), true);
-      expect(messages[3].any((i) => i["isolateID"] == 2 && i["message"] == "init"), true);
+      expect(
+          waitForMessages({
+            1: [
+              {"isolateID": 2, "message": "init"},
+              {"isolateID": 3, "message": "init"}
+            ],
+            2: [
+              {"isolateID": 1, "message": "init"},
+              {"isolateID": 3, "message": "init"}
+            ],
+            3: [
+              {"isolateID": 2, "message": "init"},
+              {"isolateID": 1, "message": "init"}
+            ],
+          }),
+          completes);
     });
   });
 
@@ -72,21 +81,29 @@ void main() {
       await app.start(numberOfInstances: numberOfIsolates);
 
       var resp = await postMessage("msg1");
-      var receivingID = isolateIdentifierFromResponse(resp);
-      var messages = await getMessagesFromIsolates();
+      var postingIsolateID = isolateIdentifierFromResponse(resp);
 
       var id1 = 1;
       var id2 = 2;
-      if (receivingID == 1) {
+      if (postingIsolateID == 1) {
         id1 = 3;
-      } else if (receivingID == 2) {
+      } else if (postingIsolateID == 2) {
         id2 = 3;
       }
-      expect(messages[receivingID], []);
-      expect(messages[id1], [{"isolateID": receivingID, "message": "msg1"}, {"isolateID": receivingID, "message": "msg1"}]);
-      expect(messages[id2], [{"isolateID": receivingID, "message": "msg1"}, {"isolateID": receivingID, "message": "msg1"}]);
-    });
 
+      expect(
+          waitForMessages({
+            id1: [
+              {"isolateID": postingIsolateID, "message": "msg1"},
+              {"isolateID": postingIsolateID, "message": "msg1"}
+            ],
+            id2: [
+              {"isolateID": postingIsolateID, "message": "msg1"},
+              {"isolateID": postingIsolateID, "message": "msg1"}
+            ],
+          }, butNeverReceiveIn: postingIsolateID),
+          completes);
+    });
   });
 
   group("Failure cases", () {
@@ -97,8 +114,7 @@ void main() {
     });
 
     test("Send invalid x-isolate data returns error in error stream", () async {
-      app = new Application<HubChannel>()
-        ..options.port = 8000;
+      app = new Application<HubChannel>()..options.port = 8000;
       await app.start(numberOfInstances: numberOfIsolates);
 
       var resp = await postMessage("garbage");
@@ -114,22 +130,50 @@ void main() {
         resendID = isolateIdentifierFromResponse(resp);
       }
 
-      var messages = await getMessagesFromIsolates();
-      messages.forEach((isolateID, messages) {
-        if (isolateID != serverID) {
-          expect(messages.any((m) => m["isolateID"] == serverID && m["message"] == "ok"), true);
-        }
-      });
+      int expectedReceiverID = resendID == 1 ? 2 : 1;
+      expect(waitForMessages({
+        expectedReceiverID: [{"isolateID": serverID, "message": "ok"}]
+      }), completes);
     });
   });
 }
 
 Future<http.Response> postMessage(String message) async {
   return http.post("http://localhost:8000/send",
-      headers: {HttpHeaders.CONTENT_TYPE: ContentType.TEXT.toString()},
-      body: message);
+      headers: {HttpHeaders.CONTENT_TYPE: ContentType.TEXT.toString()}, body: message);
 }
 
+Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages, {int butNeverReceiveIn}) async {
+  final response = await http.get("http://localhost:8000/messages");
+  final respondingIsolateID = isolateIdentifierFromResponse(response);
+  final List<Map<String, dynamic>> messages = JSON.decode(response.body);
+
+  if (expectedMessages.containsKey(respondingIsolateID)) {
+    final remainingMessagesExpectedForIsolateID = expectedMessages[respondingIsolateID];
+    for (var message in messages) {
+      final firstMatchedMessage = remainingMessagesExpectedForIsolateID.firstWhere((msg) {
+        return msg["isolateID"] == message["isolateID"] && msg["message"] == message["message"];
+      }, orElse: () => null);
+
+      if (firstMatchedMessage != null) {
+        remainingMessagesExpectedForIsolateID.remove(firstMatchedMessage);
+        if (remainingMessagesExpectedForIsolateID.length == 0) {
+          expectedMessages.remove(respondingIsolateID);
+        }
+      }
+    }
+  }
+
+  if (butNeverReceiveIn != null && messages.length > 0 && respondingIsolateID == butNeverReceiveIn) {
+    throw new Exception("Received unexpected message from butNeverReceivedIn");
+  }
+
+  if (expectedMessages.isNotEmpty) {
+    return waitForMessages(expectedMessages, butNeverReceiveIn: butNeverReceiveIn);
+  }
+
+  return null;
+}
 
 Future<Map<int, List<Map<String, dynamic>>>> getMessagesFromIsolates() async {
   var msgs = {};
