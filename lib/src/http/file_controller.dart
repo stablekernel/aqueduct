@@ -142,7 +142,7 @@ class HTTPFileController extends Controller {
 
   @override
   Future<RequestOrResponse> handle(Request request) async {
-    if (request.raw.method.toLowerCase() != "get") {
+    if (request.method != "GET") {
       return new Response(HttpStatus.METHOD_NOT_ALLOWED, null, null);
     }
 

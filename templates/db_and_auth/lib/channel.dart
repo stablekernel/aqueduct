@@ -28,7 +28,7 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
 
     ManagedContext.defaultContext = contextWithConnectionInfo(config.database);
 
-    var authStorage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
+    var authStorage = new ManagedAuthDelegate<User>(ManagedContext.defaultContext);
     authServer = new AuthServer(authStorage);
   }
 

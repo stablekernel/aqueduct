@@ -131,14 +131,12 @@ class Router extends Controller {
         }
       }
 
-      req.path = new HTTPRequestPath(req.raw.uri.pathSegments, segmentOffset: _basePathSegments.length);
-
       var node = _rootRouteNode.nodeForPathSegments(requestURISegmentIterator, req.path);
       if (node?.specification == null) {
         await _unmatchedController(req);
         return null;
       }
-      req.path.specification = node.specification;
+      req.path.setSpecification(node.specification, segmentOffset: _basePathSegments.length);
 
       next = node.controller;
     } catch (any, stack) {

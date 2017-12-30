@@ -31,7 +31,7 @@ abstract class Authenticatable {
 ///
 /// An [AuthServer] does not dictate how information is stored and therefore can't dictate how information is disposed of.
 /// It is up to implementors of this class to discard of any information it no longer wants to keep.
-abstract class AuthStorage {
+abstract class AuthServerDelegate {
   /// This method must revoke all [AuthToken] and [AuthCode]s for an [Authenticatable].
   ///
   /// [server] is the requesting [AuthServer]. [identifier] is the [Authenticatable.id].

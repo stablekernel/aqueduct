@@ -11,7 +11,7 @@ import '../context_helpers.dart';
 // These tests mostly duplicate authenticate_test.dart, but also add a few more
 // to manage long-term storage/cleanup of tokens and related items.
 void main() {
-  ManagedAuthStorage<User> storage;
+  ManagedAuthDelegate<User> storage;
   ManagedContext context;
 
   setUp(() async {
@@ -47,7 +47,7 @@ void main() {
       return q.insert();
     }));
 
-    storage = new ManagedAuthStorage<User>(context);
+    storage = new ManagedAuthDelegate<User>(context);
   });
 
   tearDown(() async {
@@ -756,7 +756,8 @@ void main() {
     AuthServer auth;
 
     setUp(() async {
-      auth = new AuthServer(storage);
+      var limitedStorage = new ManagedAuthDelegate<User>(context, tokenLimit: 3);
+      auth = new AuthServer(limitedStorage);
       createdUsers = await createUsers(3);
     });
 
@@ -783,8 +784,6 @@ void main() {
     test(
         "Oldest codes gets pruned after reaching limit, but only for that user",
         () async {
-      (auth.storage as ManagedAuthStorage).tokenLimit = 3;
-
       // Insert a code manually to simulate a race condition, but insert it after the others have been
       // so they don't strip it when inserted.
       var manualCode = new ManagedAuthToken()
@@ -850,15 +849,14 @@ void main() {
     AuthServer auth;
 
     setUp(() async {
-      auth = new AuthServer(storage);
+      var limitedStorage = new ManagedAuthDelegate<User>(context, tokenLimit: 3);
+      auth = new AuthServer(limitedStorage);
       createdUsers = await createUsers(10);
     });
 
     test(
         "Oldest tokens gets pruned after reaching tokenLimit, but only for that user",
         () async {
-      (auth.storage as ManagedAuthStorage).tokenLimit = 3;
-
       // Insert a token manually to simulate a race condition, but insert it after the others have been
       // so they don't strip it when inserted.
       var manualToken = new ManagedAuthToken()

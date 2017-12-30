@@ -3,13 +3,19 @@
 ## 3.0.0
 
 - Change default port for `aqueduct serve` to 8888.
+- Adds `MockHTTPServer.queueHandler` and `MockHTTPServer.queueOutage`.
 - Binding metadata - `HTTPPath`, `HTTPBody`, `HTTPQuery` and `HTTPHeader` - have been changed to `Bind.path`, `Bind.body`, `Bind.query` and `Bind.header`, respectively.
 - Remove `@httpGet` (and other `HTTPMethod` annotations) constants. Behavior replaced by`@Operation`.
 - Renames `Request.innerRequest` to `Request.raw`.
 - Removes `runOnMainIsolate` from `Application.start()` and introduces `Application.test()` as replacement.
 - Renames `RequestSink` to `ApplicationChannel` and improves its structure.
 - Replaces `AuthCodeController.renderFunction` with `AuthCodeControllerDelegate`.
+- Removes `AuthStrategy` in place of `AuthorizationParser<T>`.
+    - Adds concrete implementations of `AuthorizationParser<T>`, `AuthorizationBearerParser` and `AuthorizationBasicParser`.
+- Removes `AuthValidator.fromBearerToken` and `AuthValidator.fromBasicCredentials` and replaces with `AuthValidator.validate<T>`.    
 - Renames the following:
+    - `AuthStorage` -> `AuthServerDelegate`
+    - `AuthServer.storage` -> `AuthServer.delegate`
     - `ApplicationConfiguration` -> `ApplicationOptions`
     - `Application.configuration` -> `Application.options`
     - `ServiceRegistry` -> `ApplicationServiceRegistry`

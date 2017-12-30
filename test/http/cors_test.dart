@@ -612,22 +612,16 @@ class CORSChannel extends ApplicationChannel implements AuthValidator {
   }
 
   @override
-  Future<Authorization> fromBasicCredentials(
-      AuthBasicCredentials credentials) async {
-    return new Authorization("a", 1, this);
-  }
-
-  @override
-  Future<Authorization> fromBearerToken(
-      String bearerToken, {List<AuthScope> scopesRequired}) async {
-    if (bearerToken == "noauth") {
+  FutureOr<Authorization> validate<T>(AuthorizationParser<T> parser, T authorizationData,
+      {List<AuthScope> requiredScope}) {
+    if (authorizationData == "noauth") {
       return null;
     }
     return new Authorization("a", 1, this);
   }
 
   @override
-  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) =>
+  List<APISecurityRequirement> requirementsForStrategy(AuthorizationParser strategy) =>
       null;
 }
 

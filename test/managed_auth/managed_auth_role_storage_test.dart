@@ -291,7 +291,7 @@ Future<List<User>> createUsers(int count) async {
   return list;
 }
 
-class RoleBasedAuthStorage extends ManagedAuthStorage<User> {
+class RoleBasedAuthStorage extends ManagedAuthDelegate<User> {
   RoleBasedAuthStorage(ManagedContext context, {int tokenLimit: 40}) :
         super(context, tokenLimit: tokenLimit);
 

@@ -112,13 +112,13 @@ void main() {
       expect((await defaultTestClient.request("/foo").get()) is TestResponse,
           true);
       var msg = await server.next();
-      expect(msg.path, "/foo");
+      expect(msg.path.string, "/foo");
       expect(msg.method, "GET");
 
       expect((await defaultTestClient.request("/foo").delete()) is TestResponse,
           true);
       msg = await server.next();
-      expect(msg.path, "/foo");
+      expect(msg.path.string, "/foo");
       expect(msg.method, "DELETE");
 
       expect(
@@ -126,27 +126,27 @@ void main() {
               .post()) is TestResponse,
           true);
       msg = await server.next();
-      expect(msg.path, "/foo");
+      expect(msg.path.string, "/foo");
       expect(msg.method, "POST");
-      expect(msg.body, '{"foo":"bar"}');
+      expect(msg.body.asMap(), {"foo":"bar"});
 
       expect(
           (await (defaultTestClient.request("/foo")..json = {"foo": "bar"})
               .method("PATCH")) is TestResponse,
           true);
       msg = await server.next();
-      expect(msg.path, "/foo");
+      expect(msg.path.string, "/foo");
       expect(msg.method, "PATCH");
-      expect(msg.body, '{"foo":"bar"}');
+      expect(msg.body.asMap(), {"foo":"bar"});
 
       expect(
           (await (defaultTestClient.request("/foo")..json = {"foo": "bar"})
               .put()) is TestResponse,
           true);
       msg = await server.next();
-      expect(msg.path, "/foo");
+      expect(msg.path.string, "/foo");
       expect(msg.method, "PUT");
-      expect(msg.body, '{"foo":"bar"}');
+      expect(msg.body.asMap(), {"foo":"bar"});
     });
 
     test("Client authenticated requests add credentials", () async {
@@ -158,11 +158,11 @@ void main() {
               is TestResponse,
           true);
       var msg = await server.next();
-      expect(msg.path, "/foo");
+      expect(msg.path.string, "/foo");
       expect(msg.method, "GET");
 
       var auth = new Base64Encoder().convert("a:b".codeUnits);
-      expect(msg.headers["authorization"], "Basic $auth");
+      expect(msg.raw.headers.value("authorization"), "Basic $auth");
     });
 
     test("Default public client authenticated requests add credentials", () async {
@@ -173,11 +173,11 @@ void main() {
           is TestResponse,
           true);
       var msg = await server.next();
-      expect(msg.path, "/foo");
+      expect(msg.path.string, "/foo");
       expect(msg.method, "GET");
 
       var auth = new Base64Encoder().convert("a:".codeUnits);
-      expect(msg.headers["authorization"], "Basic $auth");
+      expect(msg.raw.headers.value("authorization"), "Basic $auth");
     });
 
     test("Public client authenticated requests add credentials", () async {
@@ -187,11 +187,11 @@ void main() {
           is TestResponse,
           true);
       var msg = await server.next();
-      expect(msg.path, "/foo");
+      expect(msg.path.string, "/foo");
       expect(msg.method, "GET");
 
       var auth = new Base64Encoder().convert("a:".codeUnits);
-      expect(msg.headers["authorization"], "Basic $auth");
+      expect(msg.raw.headers.value("authorization"), "Basic $auth");
     });
 
     test("Bearer requests add credentials", () async {
@@ -202,9 +202,9 @@ void main() {
               is TestResponse,
           true);
       var msg = await server.next();
-      expect(msg.path, "/foo");
+      expect(msg.path.string, "/foo");
       expect(msg.method, "GET");
-      expect(msg.headers["authorization"], "Bearer abc");
+      expect(msg.raw.headers.value("authorization"), "Bearer abc");
     });
 
     test("Headers are added correctly", () async {
@@ -214,8 +214,8 @@ void main() {
           .get();
 
       var msg = await server.next();
-      expect(msg.path, "/foo");
-      expect(msg.headers["x-content"], "1");
+      expect(msg.path.string, "/foo");
+      expect(msg.raw.headers.value("x-content"), "1");
 
       await (defaultTestClient.request("/foo")
             ..headers = {
@@ -224,8 +224,8 @@ void main() {
           .get();
 
       msg = await server.next();
-      expect(msg.path, "/foo");
-      expect(msg.headers["x-content"], "1, 2");
+      expect(msg.path.string, "/foo");
+      expect(msg.raw.headers.value("x-content"), "1, 2");
     });
 
     test("Form data is in query string if GET", () async {
@@ -236,9 +236,9 @@ void main() {
       await (defaultTestClient.request("/foo")..formData = data).get();
 
       var msg = await server.next();
-      expect(msg.path, "/foo");
-      expect(msg.queryParameters, {"a": "b/b"});
-      expect(msg.body, isNull);
+      expect(msg.path.string, "/foo");
+      expect(msg.raw.uri.queryParameters, {"a": "b/b"});
+      expect(msg.body.isEmpty, true);
     });
 
     test("Form data is in body if POST", () async {
@@ -249,9 +249,11 @@ void main() {
       await (defaultTestClient.request("/foo")..formData = data).post();
 
       var msg = await server.next();
-      expect(msg.path, "/foo");
-      expect(msg.queryParameters, {});
-      expect(msg.body, "a=b%2Fb");
+      expect(msg.path.string, "/foo");
+      expect(msg.raw.uri.queryParameters, {});
+      expect(msg.body.asMap(), {
+        "a": ["b/b"]
+      });
     });
   });
 

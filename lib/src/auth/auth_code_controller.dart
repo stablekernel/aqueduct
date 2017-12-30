@@ -4,53 +4,53 @@ import 'dart:io';
 import '../http/http.dart';
 import 'auth.dart';
 
-/// Interface for providing [AuthCodeController] with application-specific behavior.
+/// Provides [AuthCodeController] with application-specific behavior.
 abstract class AuthCodeControllerDelegate {
-  /// Returns an HTML string for a login page.
+  /// Returns an HTML representation of a login form.
   ///
   /// Invoked when [AuthCodeController.getAuthorizationPage] is called in response to a GET request.
-  /// Must provide HTML that will be returned to the browser for rendering. This page must execute
-  /// a POST request to the same endpoint, including the values of [responseType], [clientID], [state], [scope]
-  /// as well as user-entered username and password.
+  /// Must provide HTML that will be returned to the browser for rendering. This form submission of this page
+  /// should be a POST to [requestUri].
   ///
-  /// All four of [responseType], [clientID], [state] and [scope] are provided in the query parameters of the request
-  /// that triggered this method. Only [scope] may be null; the other three are non-null.
+  /// The form submission should include the values of [responseType], [clientID], [state], [scope]
+  /// as well as user-entered username and password in `x-www-form-urlencoded` data, e.g.
   ///
-  /// [requestUri] is the request [Uri] that triggered this page fetch.
+  ///         POST https://example.com/auth/code
+  ///         Content-Type: application/x-www-form-urlencoded
+  ///
+  ///         response_type=code&client_id=com.aqueduct.app&state=o9u3jla&username=bob&password=password
+  ///
+  ///
+  /// If not null, [scope] should also be included as an additional form parameter.
   Future<String> render(AuthCodeController forController, Uri requestUri, String responseType, String clientID,
       String state, String scope);
 }
 
-/// [RESTController] for issuing OAuth 2.0 authorization codes.
+/// [Controller] for issuing OAuth 2.0 authorization codes.
 ///
-/// This controller provides the necessary methods for issuing OAuth 2.0 authorization codes: returning
-/// a HTML login form and issuing a request for an authorization code. The login form's submit
-/// button should initiate the request for the authorization code.
+/// This controller provides an endpoint for the creating an OAuth 2.0 authorization code. This authorization code
+/// can be exchanged for an access token with an [AuthController]. This is known as the OAuth 2.0 'Authorization Code Grant' flow.
 ///
-/// This controller should be routed to by a pattern like `/auth/code`. It will respond to POST and GET HTTP methods.
-/// Do not put an [Authorizer] in front of instances of this type. Example:
+/// See operation methods [getAuthorizationPage] and [authorize] for more details.
 ///
-///       router.route("/auth/token").generate(() => new AuthCodeController(authServer));
+/// Usage:
 ///
+///       router
+///         .route("/auth/code")
+///         .generate(() => new AuthCodeController(authServer));
 ///
-/// See [getAuthorizationPage] (GET) and [authorize] (POST) for more details.
 class AuthCodeController extends RESTController {
   /// Creates a new instance of an [AuthCodeController].
   ///
-  /// An [AuthCodeController] requires an [AuthServer].
-  ///
-  /// By default, an [AuthCodeController] has only one [acceptedContentTypes]: 'application/x-www-form-urlencoded'.
-  ///
-  /// A GET request to this controller will return an HTML login page. This page is provided through [delegate]'s callback methods.
-  /// This page should allow a user to submit their username and password via POST request to the same endpoint.  See [AuthCodeControllerDelegate.render] for more details.
+  /// [authServer] is the required authorization server. If [delegate] is provided, this controller will return a login page for all GET requests.
   AuthCodeController(this.authServer, {this.delegate}) {
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
-  /// A reference to the [AuthServer] this controller uses to grant authorization codes.
-  AuthServer authServer;
+  /// A reference to the [AuthServer] used to grant authorization codes.
+  final AuthServer authServer;
 
-  /// The state parameter a client uses to verify the origin of a redirect when receiving an authorization redirect.
+  /// A randomly generated value the client can use to verify the origin of the redirect.
   ///
   /// Clients must include this query parameter and verify that any redirects from this
   /// server have the same value for 'state' as passed in. This value is usually a randomly generated
@@ -58,7 +58,7 @@ class AuthCodeController extends RESTController {
   @Bind.query("state")
   String state;
 
-  /// The desired response type; must be 'code'.
+  /// Must be 'code'.
   @Bind.query("response_type")
   String responseType;
 
@@ -68,15 +68,14 @@ class AuthCodeController extends RESTController {
   @Bind.query("client_id")
   String clientID;
 
-  AuthCodeControllerDelegate delegate;
+  /// Renders an HTML login form.
+  final AuthCodeControllerDelegate delegate;
 
   /// Returns an HTML login form.
   ///
   /// A client that wishes to authenticate with this server should direct the user
-  /// to this page. The user will enter their username and password, and upon successful
-  /// authentication, the returned page will redirect the user back to the initial application.
-  /// The redirect URL will contain a 'code' query parameter that the application can intercept
-  /// and send to the route that exchanges authorization codes for tokens.
+  /// to this page. The user will enter their username and password that is sent as a POST
+  /// request to this same controller.
   ///
   /// The 'client_id' must be a registered, valid client of this server. The client must also provide
   /// a [state] to this request and verify that the redirect contains the same value in its query string.
@@ -100,7 +99,7 @@ class AuthCodeController extends RESTController {
   /// and the passed in 'state'. If this request fails, the redirect URL
   /// will contain an 'error' key instead of the authorization code.
   ///
-  /// This method is typically invoked by the login form returned from the GET to this path.
+  /// This method is typically invoked by the login form returned from the GET to this controller.
   @Operation.post()
   Future<Response> authorize(
       {@Bind.query("username") String username,
@@ -132,28 +131,6 @@ class AuthCodeController extends RESTController {
     } on AuthServerException catch (e) {
       return _redirectResponse(null, state, error: e);
     }
-  }
-
-  @override
-  List<APIOperation> documentOperations() {
-    var ops = super.documentOperations(resolver);
-    ops.forEach((op) {
-      op.parameters.forEach((param) {
-        if (param.name == "username" ||
-            param.name == "password" ||
-            param.name == "client_id" ||
-            param.name == "response_type" ||
-            param.name == "state") {
-          param.required = true;
-        } else {
-          param.required = false;
-        }
-      });
-    });
-
-    ops.firstWhere((op) => op.method == "get").produces = [ContentType.HTML];
-
-    return ops;
   }
 
   @override
