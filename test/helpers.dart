@@ -98,7 +98,7 @@ class TestToken implements AuthToken, AuthCode {
   }
 }
 
-class InMemoryAuthStorage extends AuthStorage {
+class InMemoryAuthStorage extends AuthServerDelegate {
   static const String DefaultPassword = "foobaraxegrind21%";
 
   InMemoryAuthStorage() {

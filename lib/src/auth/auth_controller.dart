@@ -4,24 +4,23 @@ import 'dart:io';
 import '../http/http.dart';
 import 'auth.dart';
 
-/// [RESTController] for issuing and refreshing OAuth 2.0 access tokens.
+/// [Controller] for issuing and refreshing OAuth 2.0 access tokens.
 ///
-/// Instances of this class allow for the issuing and refreshing of access tokens and exchanging
-/// authorization codes (from a [AuthCodeController]) for access tokens.
+/// This controller issues and refreshes access tokens. Access tokens are issued for valid username and password (resource owner password grant)
+/// or for an authorization code (authorization code grant) from a [AuthCodeController].
 ///
-/// Do not put an [Authorizer] in front of instances of this type. Instances of this type will validate authorization headers on its own.
+/// See operation method [grant] for more details.
 ///
-/// This controller is typically hooked up to a route named `/auth/token`. It only accepts POST requests.
-/// Example:
+/// Usage:
 ///
-///       router.route("/auth/token").generate(() => new AuthController(authServer));
+///       router
+///         .route("/auth/token")
+///         .generate(() => new AuthController(authServer));
 ///
-/// See [create] for more details.
 class AuthController extends RESTController {
   /// Creates a new instance of an [AuthController].
   ///
-  /// An [AuthController] requires an [AuthServer] to carry out tasks.
-  /// By default, an [AuthController] has only one [acceptedContentTypes] - 'application/x-www-form-urlencoded'.
+  /// [authServer] is the required authorization server that grants tokens.
   AuthController(this.authServer) {
     acceptedContentTypes = [
       new ContentType("application", "x-www-form-urlencoded")
@@ -29,9 +28,9 @@ class AuthController extends RESTController {
   }
 
   /// A reference to the [AuthServer] this controller uses to grant tokens.
-  AuthServer authServer;
+  final AuthServer authServer;
 
-  /// Required basic authorization header containing client ID and secret for the authenticating client.
+  /// Required basic authentication Authorization header containing client ID and secret for the authenticating client.
   ///
   /// Requests must contain the client ID and client secret in the authorization header,
   /// using the basic authentication scheme. If the client is a public client - i.e., no client secret -
@@ -46,16 +45,18 @@ class AuthController extends RESTController {
   @Bind.header(HttpHeaders.AUTHORIZATION)
   String authHeader;
 
+  final AuthorizationBasicParser _parser = new AuthorizationBasicParser();
+
   /// Creates or refreshes an authentication token.
   ///
   /// When grant_type is 'password', there must be username and password values.
   /// When grant_type is 'refresh_token', there must be a refresh_token value.
   /// When grant_type is 'authorization_code', there must be a authorization_code value.
   ///
-  /// This endpoint requires client authentication. The Authorization header must
+  /// This endpoint requires client_id authentication. The Authorization header must
   /// include a valid Client ID and Secret in the Basic authorization scheme format.
   @Operation.post()
-  Future<Response> create(
+  Future<Response> grant(
       {@Bind.query("username") String username,
       @Bind.query("password") String password,
       @Bind.query("refresh_token") String refreshToken,
@@ -64,7 +65,7 @@ class AuthController extends RESTController {
       @Bind.query("scope") String scope}) async {
     AuthBasicCredentials basicRecord;
     try {
-      basicRecord = AuthorizationBasicParser.parse(authHeader);
+      basicRecord = _parser.parse(authHeader);
     } on AuthorizationParserException catch (_) {
       return _responseForError(AuthRequestError.invalidClient);
     }
@@ -134,7 +135,7 @@ class AuthController extends RESTController {
   List<APIOperation> documentOperations(PackagePathResolver resolver) {
     var ops = super.documentOperations(resolver);
     ops.forEach((op) {
-      op.security = authServer.requirementsForStrategy(AuthStrategy.basic);
+      op.security = authServer.requirementsForStrategy(_parser);
     });
     return ops;
   }

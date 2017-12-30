@@ -783,7 +783,7 @@ void main() {
     test(
         "Oldest codes gets pruned after reaching limit, but only for that user",
         () async {
-      (auth.storage as ManagedAuthStorage).tokenLimit = 3;
+      (auth.delegate as ManagedAuthStorage).tokenLimit = 3;
 
       // Insert a code manually to simulate a race condition, but insert it after the others have been
       // so they don't strip it when inserted.
@@ -857,7 +857,7 @@ void main() {
     test(
         "Oldest tokens gets pruned after reaching tokenLimit, but only for that user",
         () async {
-      (auth.storage as ManagedAuthStorage).tokenLimit = 3;
+      (auth.delegate as ManagedAuthStorage).tokenLimit = 3;
 
       // Insert a token manually to simulate a race condition, but insert it after the others have been
       // so they don't strip it when inserted.
