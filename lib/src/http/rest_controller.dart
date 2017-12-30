@@ -13,7 +13,12 @@ import 'rest_controller_internal/internal.dart';
 /// [RESTController]s provide a means to organize the logic for all operations on an HTTP resource. They also provide conveniences for handling these operations.
 ///
 /// This class must be subclassed. Its instance methods handle operations on an HTTP resource. For example, the following
-/// are operations: 'GET /users', 'GET /users/:id' and 'POST /users'. An instance method is assigned to handle one of these operations.
+/// are operations: 'GET /employees', 'GET /employees/:id' and 'POST /employees'. An instance method is assigned to handle one of these operations. For example:
+///
+///         class EmployeeController extends RESTController {
+///            @Operation.post()
+///            Future<Response> createEmployee(...) async => new Response.ok(null);
+///         }
 ///
 /// Instance methods must have [Operation] annotation to respond to a request (see also [Operation.get], [Operation.post], [Operation.put] and [Operation.delete]). These
 /// methods are called *operation methods*. Operation methods also take a variable list of path variables. An operation method is called if the incoming request's method and

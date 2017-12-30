@@ -8,15 +8,15 @@ import 'package:aqueduct/aqueduct.dart';
 
 void main() {
   group("Mock HTTP Tests", () {
-    MockHTTPServer server = new MockHTTPServer(4000);
+    MockHTTPServer server;
     var testClient = new TestClient.onPort(4000);
 
-    test("Server opens", () async {
-      final openFuture = server.open();
-      expect(openFuture, completes);
+    setUp(() async {
+      server = new MockHTTPServer(4000);
+      await server.open();
     });
 
-    tearDownAll(() async {
+    tearDown(() async {
       await server.close();
     });
 
@@ -27,9 +27,9 @@ void main() {
 
       final serverRequest = await server.next();
       expect(serverRequest.method, "GET");
-      expect(serverRequest.path, "/hello");
-      expect(serverRequest.queryParameters["foo"], "bar");
-      expect(serverRequest.headers["x"], "Y");
+      expect(serverRequest.path.string, "/hello");
+      expect(serverRequest.raw.uri.queryParameters["foo"], "bar");
+      expect(serverRequest.raw.headers.value("x"), "Y");
     });
 
     test("Request body is captured", () async {
@@ -38,8 +38,7 @@ void main() {
 
       final serverRequest = await server.next();
       expect(serverRequest.method, "PUT");
-      expect(serverRequest.body, '{"a":"b"}');
-      expect(serverRequest.jsonBody["a"], "b");
+      expect(serverRequest.body.asMap()["a"], "b");
     });
 
     test("Wait for request that will happen in future", () async {
@@ -47,9 +46,9 @@ void main() {
       Isolate.spawn(spawnFunc, ["/bar", 2]);
 
       var serverRequest = await server.next();
-      expect(serverRequest.path, "/foo");
+      expect(serverRequest.path.string, "/foo");
       serverRequest = await server.next();
-      expect(serverRequest.path, "/bar");
+      expect(serverRequest.path.string, "/bar");
     });
 
     test("Clear and empty", () async {
@@ -99,8 +98,8 @@ void main() {
     });
 
     test("Mock server uses default delay for requests without an explicit delay", () async {
-      server.queueResponse(new Response.ok(null));
       server.defaultDelay = new Duration(milliseconds: 1000);
+      server.queueResponse(new Response.ok(null));
 
       var responseReturned = false;
       var responseFuture = testClient.request("/hello").get();
@@ -135,6 +134,42 @@ void main() {
       await new Future.delayed(new Duration(milliseconds: 1500));
       expect(responseReturned, true);
     });
+
+    test("Can provide a single outage", () async {
+      server.queueOutage();
+      server.queueResponse(new Response.ok(null));
+      final outageResponseFuture = testClient.request("/outage").get();
+      final successResponse = await testClient.request("/success").get();
+
+      expect(successResponse.statusCode, 200);
+
+      expect(outageResponseFuture.timeout(new Duration(milliseconds: 100), onTimeout: () {}), completes);
+    });
+
+    test("Can provide multiple outages", () async {
+      server.queueOutage(count: 2);
+      server.queueOutage();
+      server.queueResponse(new Response.ok(null));
+      final outageResponseFuture1 = testClient.request("/outage").get();
+      final outageResponseFuture2 = testClient.request("/outage").get();
+      final outageResponseFuture3 = testClient.request("/outage").get();
+      final successResponse = await testClient.request("/success").get();
+
+      expect(successResponse.statusCode, 200);
+
+      expect(outageResponseFuture1, doesNotComplete);
+      expect(outageResponseFuture2, doesNotComplete);
+      expect(outageResponseFuture3, doesNotComplete);
+    });
+
+    test("Can queue handler", () async {
+      server.queueHandler((req) => new Response.ok({"k": req.raw.uri.queryParameters["k"]}));
+      final response = await testClient.request("/ok?k=1").get();
+      expect(response.bodyDecoder.asMap()["k"], "1");
+
+      expect((await testClient.request("/ok").get()).statusCode, server.defaultResponse.statusCode);
+    });
+
   });
 }
 

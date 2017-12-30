@@ -3,6 +3,7 @@
 ## 3.0.0
 
 - Change default port for `aqueduct serve` to 8888.
+- Adds `MockHTTPServer.queueHandler` and `MockHTTPServer.queueOutage`.
 - Binding metadata - `HTTPPath`, `HTTPBody`, `HTTPQuery` and `HTTPHeader` - have been changed to `Bind.path`, `Bind.body`, `Bind.query` and `Bind.header`, respectively.
 - Remove `@httpGet` (and other `HTTPMethod` annotations) constants. Behavior replaced by`@Operation`.
 - Renames `Request.innerRequest` to `Request.raw`.

@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
-
 import '../http/request.dart';
 import '../http/response.dart';
 
@@ -54,79 +52,36 @@ abstract class MockServer<T> {
   }
 }
 
-/// The 'event' type for [MockHTTPServer].
+/// This class is used as a 'mock' implementation of another HTTP server.
 ///
-/// Instances of this type will represent HTTP requests that have been sent to an [MockHTTPServer].
-class MockHTTPRequest {
-  /// The method of the HTTP request.
-  String method;
-
-  /// The path of the HTTP request.
-  String path;
-
-  /// The undecoded body of the HTTP request.
-  String body;
-
-  /// The query parameters of the HTTP request.
-  Map<String, dynamic> queryParameters;
-
-  /// The headers of the HTTP request.
-  Map<String, dynamic> headers;
-
-  /// The body of the HTTP request decoded as JSON.
-  dynamic get jsonBody {
-    return JSON.decode(body);
-  }
-}
-
-/// This class is used as a utility for testing.
+/// Create instances of these types during testing to simulate responses for HTTP requests your application makes to another server.
+/// All requests your application makes to another server will be sent to this object. Your tests can then verify the
+/// correct request was sent and your application's behavior can be validated against the possible responses from the other server.
 ///
-/// Concrete implementations - like [MockHTTPServer] - are used to validate messages send to remote servers during testing. This allows
-/// your tests to verify any messages sent as a side-effect of an endpoint. For example, an application that has an endpoint
-/// that allows its user to associate their Nest account would use this class during testing. Instances of this class listen
-/// on localhost. You should be sure to close instances of this class during tearDown functions.
+/// An instance of this type listens on 'localhost' on [port]. Your application should use configuration values to provide the base URL and port
+/// of another server. During testing, your application should use the base URL 'http://localhost:<port>' and instantiate an mock HTTP
+/// server with that port.
 ///
-/// By default, any request made to an instance of this type will be responded to with a 200 and no HTTP body.
-/// You may add responses to instances of this class with [queueResponse]. They will be returned in the order
-/// they were provided in.
+/// By default, an instance of this type returns a 503 error response, indicating that the service can't be reached. Different
+/// responses can be returned via [defaultResponse], [queueResponse], [queueHandler], and [queueOutage].
 ///
 /// Example usages:
-///         test("Associate Nest account", () async {
-///           var nestMockServer = new MockHTTPServer(nestPort);
+///         test("POST /nest/pair associates account with Nest service", () async {
+///           var nestMockServer = new MockHTTPServer(7777);
 ///           await nestMockServer.open();
 ///
 ///           // Expect that POST /nest/pair sends an HTTP request to Nest server.
-///           var response = await client.authenticatedRequest("/nest/pair", ...).post();
+///           var response = await client.request("/nest/pair", ...).post();
 ///           expect(response, ...);
 ///
 ///           // Verify the path of the HTTP request sent to Nest server.
 ///           var requestSentToNest = await nestMockServer.next();
-///           expect(requestSentToNest .path, contains("${response["id"]}));
+///           expect(requestSentToNest.path.segments[1, response["id"]);
 ///
 ///           await nestMockServer.close();
 ///         });
 ///
-///         test("Associate Nest account returns 503 when Nest is unreachable", () async {
-///           var nestMockServer = new MockHTTPServer(nestPort);
-///
-///           await nestMockServer.open();
-///           nestMockServer.queueResponse(MockHTTPServer.mockConnectionFailureResponse);
-///           var response = await client.authenticatedRequest("/nest/pair", ...).post();
-///           expect(response, hasStatus(503));
-///
-///           await nestMockServer.close();
-///         });
-class MockHTTPServer extends MockServer<MockHTTPRequest> {
-  static const int _mockConnectionFailureStatusCode = -1;
-
-  /// Used to simulate a failed request.
-  ///
-  /// Pass this value to [queueResponse] to simulate a 'no response' failure on the next request made to this instance.
-  /// The next request made to this instance will simply not be responded to.
-  /// This is useful in debugging for determining how your code responds to not being able to reach a third party server.
-  static Response mockConnectionFailureResponse =
-      new Response(_mockConnectionFailureStatusCode, {}, null);
-
+class MockHTTPServer extends MockServer<Request> {
   MockHTTPServer(this.port) : super();
 
   /// The port to listen on.
@@ -142,73 +97,58 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
 
   /// The delay to be used for responses where a delay is not set
   ///
-  /// The default delay is null which is no delay
+  /// The default delay is null which is no delay. If set, all subsequent
+  /// queued responses delayed by this amount, unless they have their own delay.
+  /// Changes to this value do not affect responses already in the queue.
   Duration defaultDelay;
 
   /// The number of currently queued responses
   int get queuedResponseCount => _responseQueue.length;
 
-  /// The queue of responses that will be returned when HTTP requests are made against this instance.
-  ///
-  /// See [queueResponse].
   List<_MockServerResponse> _responseQueue = [];
 
-  /// Adds an HTTP response to the list of responses to be returned.
+  /// Enqueues a response for the next request.
   ///
-  /// A queued response will be returned for the next HTTP request made to this instance and will then be removed.
-  /// You may queue up as many responses as you like and they will be returned in order.
-  /// If a delay is set in this method it will take precedence over [defaultDelay]. If delay isn't set or is explicitly set to null, [defaultDelay] will be used.
+  /// Adds a static response to the response queue. Each request removes the earliest enqueued
+  /// response before sending it. Optionally includes a [delay] before sending
+  /// the response to simulate long-running tasks or network issues.
   void queueResponse(Response resp, {Duration delay}) {
-    _responseQueue.add(new _MockServerResponse(resp, delay));
+    _responseQueue.add(new _MockServerResponse(object: resp, delay: delay ?? defaultDelay));
+  }
+
+  /// Enqueues a function that creates a response for the next request.
+  ///
+  /// Adds a dynamic response handler to the response queue. Each request removes the earliest enqueued
+  /// response before sending it. When [handler] is encountered in the queue, it is called and the response
+  /// it returns is sent back to the client.
+  ///
+  /// Optionally includes a [delay] before sending the response to simulate long-running tasks or network issues.
+  void queueHandler(Response handler(Request request), {Duration delay}) {
+    _responseQueue.add(new _MockServerResponse(handler: handler, delay: delay ?? defaultDelay));
+  }
+
+  /// Enqueues an outage; the next request will not receive a response.
+  ///
+  /// Adds an outage event to the response queue. Each request removes the earliest enqueued response
+  /// before sending it. When an outage is encountered, no response is sent. Specify number of outage events
+  /// with [count].
+  void queueOutage({int count: 1}) {
+    _responseQueue.add(new _MockServerResponse(outageCount: count));
   }
 
   /// Begins listening for HTTP requests on [port].
   @override
   Future open() async {
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port);
-    server.listen((HttpRequest req) async {
-      final mockReq = new MockHTTPRequest()
-        ..method = req.method
-        ..path = req.uri.path
-        ..queryParameters = req.uri.queryParameters;
+    server.map((req) => new Request(req)).listen((req) async {
+      add(req);
 
-      mockReq.headers = {};
-      req.headers.forEach((name, values) {
-        mockReq.headers[name] = values.join(",");
-      });
+      await req.body.decodedData;
 
-      if (req.contentLength > 0) {
-        mockReq.body = new String.fromCharCodes(await req.first);
+      final response = await _dequeue(req);
+      if (response != null) {
+        await req.respond(response);
       }
-
-      add(mockReq);
-
-      Response response;
-      Duration delay = defaultDelay;
-
-      if (_responseQueue.length > 0) {
-        final mockResp = _responseQueue.removeAt(0);
-
-        if (mockResp.response.statusCode == _mockConnectionFailureStatusCode) {
-          // We let this one die by not responding.
-          return null;
-        }
-
-        if (mockResp.delay != null) {
-          delay = mockResp.delay;
-        }
-
-        response = mockResp.response;
-      } else {
-        response = defaultResponse;
-      }
-
-      if (delay != null) {
-        await new Future.delayed(delay);
-      }
-
-      final wrappedReq = new Request(req);
-      wrappedReq.respond(response);
     });
   }
 
@@ -217,11 +157,56 @@ class MockHTTPServer extends MockServer<MockHTTPRequest> {
   Future close() {
     return server?.close();
   }
+
+  Future<Response> _dequeue(Request incoming) async {
+    if (_responseQueue.length == 0) {
+      if (defaultDelay != null) {
+        await new Future.delayed(defaultDelay);
+      }
+      return defaultResponse;
+    }
+
+    final resp = _responseQueue.first;
+    if (resp.outageCount > 0) {
+      resp.outageCount --;
+      if (resp.outageCount == 0) {
+        _responseQueue.removeAt(0);
+      }
+
+      if (defaultDelay != null) {
+        await new Future.delayed(defaultDelay);
+      }
+
+      return null;
+    }
+
+    _responseQueue.removeAt(0);
+    return resp.respond(incoming);
+  }
 }
 
-class _MockServerResponse {
-  _MockServerResponse(this.response, this.delay);
+typedef Response _MockRequestHandler(Request request);
 
-  final Response response;
+class _MockServerResponse {
+  _MockServerResponse({this.object, this.handler, this.delay, this.outageCount: 0});
+
   final Duration delay;
+
+  final Response object;
+  final _MockRequestHandler handler;
+  int outageCount;
+
+  Future<Response> respond(Request req) async {
+    if (delay != null) {
+      await new Future.delayed(delay);
+    }
+
+    if (handler != null) {
+      return handler(req);
+    } else if (object != null) {
+      return object;
+    }
+
+    return null;
+  }
 }
