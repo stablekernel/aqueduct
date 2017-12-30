@@ -9,7 +9,12 @@
 - Removes `runOnMainIsolate` from `Application.start()` and introduces `Application.test()` as replacement.
 - Renames `RequestSink` to `ApplicationChannel` and improves its structure.
 - Replaces `AuthCodeController.renderFunction` with `AuthCodeControllerDelegate`.
+- Removes `AuthStrategy` in place of `AuthorizationParser<T>`.
+    - Adds concrete implementations of `AuthorizationParser<T>`, `AuthorizationBearerParser` and `AuthorizationBasicParser`.
+- Removes `AuthValidator.fromBearerToken` and `AuthValidator.fromBasicCredentials` and replaces with `AuthValidator.validate<T>`.    
 - Renames the following:
+    - `AuthStorage` -> `AuthServerDelegate`
+    - `AuthServer.storage` -> `AuthServer.delegate`
     - `ApplicationConfiguration` -> `ApplicationOptions`
     - `Application.configuration` -> `Application.options`
     - `ServiceRegistry` -> `ApplicationServiceRegistry`
