@@ -2,7 +2,7 @@
 ///
 /// This library contains [ManagedObject] subclasses to represent OAuth 2.0 artifacts
 /// and implements [AuthServerDelegate] for use by an [AuthServer]. Usage of this library involves two tasks.
-/// First, an instance of [ManagedAuthStorage] is provided to an [AuthServer] at startup:
+/// First, an instance of [ManagedAuthDelegate] is provided to an [AuthServer] at startup:
 ///
 ///         var context = new ManagedContext(dataModel, store);
 ///         var storage = new ManagedAuthStorage<User>(context)
@@ -29,7 +29,7 @@ import 'package:aqueduct/aqueduct.dart';
 
 /// Represent an OAuth 2.0 authorization token and authorization code.
 ///
-/// Instances of this type are created by [ManagedAuthStorage] to store
+/// Instances of this type are created by [ManagedAuthDelegate] to store
 /// authorization tokens and codes on behalf of an [AuthServer]. There is no
 /// need to use this class directly.
 class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
@@ -287,13 +287,13 @@ abstract class ManagedAuthResourceOwner
 ///         var storage = new ManagedAuthStorage<User>(context)
 ///         var authServer = new AuthServer(storage);
 ///
-class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
+class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
     extends AuthServerDelegate {
 
   /// Creates an instance of this type.
   ///
   /// [context]'s [ManagedDataModel] must contain [T], [ManagedAuthToken] and [ManagedAuthClient].
-  ManagedAuthStorage(this.context, {this.tokenLimit: 40});
+  ManagedAuthDelegate(this.context, {this.tokenLimit: 40});
 
   /// The [ManagedContext] this instance uses to store and retrieve values.
   final ManagedContext context;
