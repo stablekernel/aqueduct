@@ -143,7 +143,7 @@ class AuthController extends RESTController {
   @override
   List<APIResponse> documentResponsesForOperation(APIOperation operation) {
     var responses = super.documentResponsesForOperation(operation);
-    if (operation.id == APIOperation.idForMethod(this, #create)) {
+    if (operation.id == APIOperation.idForMethod(this, #grant)) {
       responses.addAll([
         new APIResponse()
           ..statusCode = HttpStatus.OK
