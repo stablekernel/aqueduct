@@ -97,7 +97,7 @@ class AuthClient {
 
 /// Represents an OAuth 2.0 token.
 ///
-/// [AuthStorage] and [AuthServer] will exchange OAuth 2.0
+/// [AuthServerDelegate] and [AuthServer] will exchange OAuth 2.0
 /// tokens through instances of this type.
 ///
 /// See the `package:aqueduct/managed_auth` library for a concrete implementation of this type.
@@ -158,7 +158,7 @@ class AuthToken {
 
 /// Represents an OAuth 2.0 authorization code.
 ///
-/// [AuthStorage] and [AuthServer] will exchange OAuth 2.0
+/// [AuthServerDelegate] and [AuthServer] will exchange OAuth 2.0
 /// authorization codes through instances of this type.
 ///
 /// See the aqueduct/managed_auth library for a concrete implementation of this type.
@@ -298,9 +298,9 @@ class AuthScope {
 
   const AuthScope._(this.scopeString, this._segments, this._lastModifier);
 
-  /// Signifies 'any' scope in [AuthStorage.allowedScopesForAuthenticatable].
+  /// Signifies 'any' scope in [AuthServerDelegate.allowedScopesForAuthenticatable].
   ///
-  /// See [AuthStorage.allowedScopesForAuthenticatable] for more details.
+  /// See [AuthServerDelegate.allowedScopesForAuthenticatable] for more details.
   static const List<AuthScope> Any = const [
     const AuthScope._("_scope:_constant:_marker", const [], null)
   ];

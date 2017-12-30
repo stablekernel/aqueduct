@@ -1,14 +1,23 @@
 import 'dart:convert';
 
+abstract class AuthorizationParser<T> {
+  const AuthorizationParser();
+
+  T parse (String authorizationHeader);
+}
+
 /// Parses a Bearer token from an Authorization header.
-class AuthorizationBearerParser {
+class AuthorizationBearerParser extends AuthorizationParser<String> {
+  const AuthorizationBearerParser();
+
   /// Parses a Bearer token from [authorizationHeader]. If the header is malformed or doesn't exist,
   /// throws an [AuthorizationParserException]. Otherwise, returns the [String] representation of the bearer token.
   ///
   /// For example, if the input to this method is "Bearer token" it would return 'token'.
   ///
   /// If [authorizationHeader] is malformed or null, throws an [AuthorizationParserException].
-  static String parse(String authorizationHeader) {
+  @override
+  String parse(String authorizationHeader) {
     if (authorizationHeader == null) {
       throw new AuthorizationParserException(
           AuthorizationParserExceptionReason.missing);
@@ -39,14 +48,17 @@ class AuthBasicCredentials {
 }
 
 /// Parses a Basic Authorization header.
-class AuthorizationBasicParser {
+class AuthorizationBasicParser extends AuthorizationParser <AuthBasicCredentials> {
+  const AuthorizationBasicParser();
+
   /// Returns a [AuthBasicCredentials] containing the username and password
   /// base64 encoded in [authorizationHeader]. For example, if the input to this method
   /// was 'Basic base64String' it would decode the base64String
   /// and return the username and password by splitting that decoded string around the character ':'.
   ///
   /// If [authorizationHeader] is malformed or null, throws an [AuthorizationParserException].
-  static AuthBasicCredentials parse(String authorizationHeader) {
+  @override
+  AuthBasicCredentials parse(String authorizationHeader) {
     if (authorizationHeader == null) {
       throw new AuthorizationParserException(
           AuthorizationParserExceptionReason.missing);

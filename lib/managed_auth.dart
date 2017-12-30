@@ -1,8 +1,8 @@
 /// Library for implementing OAuth 2.0 storage using [ManagedObject]s.
 ///
 /// This library contains [ManagedObject] subclasses to represent OAuth 2.0 artifacts
-/// and implements [AuthStorage] for use by an [AuthServer]. Usage of this library involves two tasks.
-/// First, an instance of [ManagedAuthStorage] is provided to an [AuthServer] at startup:
+/// and implements [AuthServerDelegate] for use by an [AuthServer]. Usage of this library involves two tasks.
+/// First, an instance of [ManagedAuthDelegate] is provided to an [AuthServer] at startup:
 ///
 ///         var context = new ManagedContext(dataModel, store);
 ///         var storage = new ManagedAuthStorage<User>(context)
@@ -29,7 +29,7 @@ import 'package:aqueduct/aqueduct.dart';
 
 /// Represent an OAuth 2.0 authorization token and authorization code.
 ///
-/// Instances of this type are created by [ManagedAuthStorage] to store
+/// Instances of this type are created by [ManagedAuthDelegate] to store
 /// authorization tokens and codes on behalf of an [AuthServer]. There is no
 /// need to use this class directly.
 class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
@@ -273,7 +273,7 @@ class ManagedAuthenticatable implements Authenticatable {
 abstract class ManagedAuthResourceOwner
     implements ManagedAuthenticatable, ManagedObject {}
 
-/// [AuthStorage] implementation for an [AuthServer] using [ManagedObject]s.
+/// [AuthServerDelegate] implementation for an [AuthServer] using [ManagedObject]s.
 ///
 /// An instance of this class manages storage and retrieval of OAuth 2.0 tokens, clients and resource owners
 /// using the [ManagedObject]s declared in this library.
@@ -287,21 +287,21 @@ abstract class ManagedAuthResourceOwner
 ///         var storage = new ManagedAuthStorage<User>(context)
 ///         var authServer = new AuthServer(storage);
 ///
-class ManagedAuthStorage<T extends ManagedAuthResourceOwner>
-    extends AuthStorage {
+class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
+    extends AuthServerDelegate {
 
   /// Creates an instance of this type.
   ///
   /// [context]'s [ManagedDataModel] must contain [T], [ManagedAuthToken] and [ManagedAuthClient].
-  ManagedAuthStorage(this.context, {this.tokenLimit: 40});
+  ManagedAuthDelegate(this.context, {this.tokenLimit: 40});
 
   /// The [ManagedContext] this instance uses to store and retrieve values.
-  ManagedContext context;
+  final ManagedContext context;
 
   /// The number of tokens and authorization codes a user can have at a time.
   ///
   /// Once this limit is passed, older tokens and authorization codes are revoked automatically.
-  int tokenLimit;
+  final int tokenLimit;
 
   @override
   Future revokeAuthenticatableWithIdentifier(
