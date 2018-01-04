@@ -21,7 +21,7 @@ typedef FutureOr<RequestOrResponse> _Handler(Request request);
 ///
 /// This class is intended to be subclassed. [ApplicationChannel], [Router], [RESTController] are all examples of this type.
 /// Subclasses should implement [handle] to respond to, modify or forward requests.
-class Controller extends Object with APIDocumentable {
+class Controller extends Object with APIOperationDocumenter implements APIComponentDocumenter {
   /// Default constructor.
   Controller();
 
@@ -57,9 +57,6 @@ class Controller extends Object with APIDocumentable {
   /// The CORS policy of this controller.
   CORSPolicy policy = new CORSPolicy();
 
-  @override
-  APIDocumentable get documentableChild => nextController;
-
   Controller _nextController;
   _Handler _listener;
 
@@ -74,8 +71,8 @@ class Controller extends Object with APIDocumentable {
     var typeMirror = reflect(next).type;
     if (_controllerRequiresGeneration(typeMirror)) {
       throw new ControllerException("'${typeMirror
-              .reflectedType}' instances cannot be reused between requests. Rewrite as .generate(() => new ${typeMirror
-              .reflectedType}())");
+          .reflectedType}' instances cannot be reused between requests. Rewrite as .generate(() => new ${typeMirror
+          .reflectedType}())");
     }
     _nextController = next;
 
@@ -274,12 +271,28 @@ class Controller extends Object with APIDocumentable {
   }
 
   @override
-  Map<String, APIOperation> documentOperations(APIComponentRegistry components, APIPath path) {
-    if (_nextController == null && _listener != null) {
+  Map<String, APIPath> documentPaths(APIDocumentContext context) => nextController?.documentPaths(context);
+
+  @override
+  Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
+    if (nextController == null) {
+      if (_listener == null) {
+        throw new APIException("Invalid documenter '${runtimeType}'. Reached end of controller chain and found no operations. Path has summary '${path.summary}'.");
+      }
       return {};
     }
 
-    return super.documentOperations(components, path);
+    return nextController?.documentOperations(context, path);
+  }
+
+  @override
+  List<APISecurityRequirement> documentOperationSecurity(
+          APIDocumentContext context, APIPath path, String method, APIOperation operation) =>
+      nextController?.documentOperationSecurity(context, path, method, operation);
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    nextController?.documentComponents(context);
   }
 
   Future _handlePreflightRequest(Request req) async {
@@ -331,7 +344,6 @@ class Controller extends Object with APIDocumentable {
   }
 }
 
-
 /// Thrown when [Controller] throws an exception.
 ///
 ///
@@ -343,7 +355,6 @@ class ControllerException implements Exception {
   @override
   String toString() => "ControllerException: $message";
 }
-
 
 /// Metadata for a [Controller] subclass that requires it must be instantiated for each request.
 ///
@@ -407,5 +418,19 @@ class _ControllerGenerator extends Controller {
   }
 
   @override
-  APIDocumentable get documentableChild => nextInstanceToReceive;
+  void documentComponents(APIDocumentContext components) {
+    nextInstanceToReceive.documentComponents(components);
+  }
+
+  @override
+  Map<String, APIPath> documentPaths(APIDocumentContext components) => nextInstanceToReceive.documentPaths(components);
+
+  @override
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) =>
+      nextInstanceToReceive.documentOperations(components, path);
+
+  @override
+  List<APISecurityRequirement> documentOperationSecurity(
+          APIDocumentContext components, APIPath path, String method, APIOperation operation) =>
+      nextInstanceToReceive.documentOperationSecurity(components, path, method, operation);
 }

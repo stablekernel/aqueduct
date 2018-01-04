@@ -7,7 +7,6 @@ import 'package:analyzer/analyzer.dart';
 import 'http.dart';
 import 'rest_controller_internal/internal.dart';
 
-
 /// Controller for operating on an HTTP Resource.
 ///
 /// [RESTController]s provide a means to organize the logic for all operations on an HTTP resource. They also provide conveniences for handling these operations.
@@ -135,30 +134,6 @@ abstract class RESTController extends Controller {
     super.prepare();
   }
 
-  bool _requestContentTypeIsSupported(Request req) {
-    var incomingContentType = request.raw.headers.contentType;
-    return acceptedContentTypes.firstWhere((ct) {
-          return ct.primaryType == incomingContentType.primaryType && ct.subType == incomingContentType.subType;
-        }, orElse: () => null) !=
-        null;
-  }
-
-  Future<Response> _process() async {
-    if (!request.body.isEmpty) {
-      if (!_requestContentTypeIsSupported(request)) {
-        return new Response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, null);
-      }
-    }
-
-    var binding = await RESTControllerBinder.bindRequest(this, request);
-    var response = await binding.invoke(reflect(this));
-    if (!response.hasExplicitlySetContentType) {
-      response.contentType = responseContentType;
-    }
-
-    return response;
-  }
-
   @override
   Future<RequestOrResponse> handle(Request req) async {
     try {
@@ -210,39 +185,29 @@ abstract class RESTController extends Controller {
   Map<String, APIResponse> documentOperationResponses(APIPath path, String method) {}
 
   @override
-  Map<String, APIOperation> documentOperations(APIPath path) {
-    var reflectedType = reflect(this).type;
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
+//    var reflectedType = reflect(this).type;
+//    var uri = reflectedType.location.sourceUri;
+//    var fileUnit = parseDartFile(resolver.resolve(uri));
+//    var classUnit = fileUnit.declarations
+//        .where((u) => u is ClassDeclaration)
+//        .map((cu) => cu as ClassDeclaration)
+//        .firstWhere((ClassDeclaration classDecl) {
+//      return classDecl.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName);
+//    });
+//
+//    Map<Symbol, MethodDeclaration> methodMap = {};
+//    classUnit.childEntities.forEach((child) {
+//      if (child is MethodDeclaration) {
+//        methodMap[new Symbol(child.name.token.lexeme)] = child;
+//      }
+//    });
+
     var controllerCache = RESTControllerBinder.binderForType(runtimeType);
-    var uri = reflectedType.location.sourceUri;
-    var fileUnit = parseDartFile(resolver.resolve(uri));
-    var classUnit = fileUnit.declarations
-        .where((u) => u is ClassDeclaration)
-        .map((cu) => cu as ClassDeclaration)
-        .firstWhere((ClassDeclaration classDecl) {
-      return classDecl.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName);
-    });
 
-    Map<Symbol, MethodDeclaration> methodMap = {};
-    classUnit.childEntities.forEach((child) {
-      if (child is MethodDeclaration) {
-        methodMap[new Symbol(child.name.token.lexeme)] = child;
-      }
-    });
-
-    final pathVariableNames =
-        path.parameters.where((p) => p.location == APIParameterLocation.path).map((p) => p.name).toList();
-
-    return controllerCache.methodBinders.where((method) {
-      if (pathVariableNames.length != method.pathVariables.length) {
-        return false;
-      }
-
-      if (!pathVariableNames.every((p) => method.pathVariables.contains(p))) {
-        return false;
-      }
-
-      return true;
-    }).fold(<String, APIOperation>{}, (opMap, method) {
+    return controllerCache.methodBinders
+        .where((method) => path.containsPathParameters(method.pathVariables))
+        .fold(<String, APIOperation>{}, (opMap, method) {
       final op = new APIOperation()
         ..id = MirrorSystem.getName(method.methodSymbol)
         ..summary = documentOperationSummary(path, method.httpMethod)
@@ -257,22 +222,22 @@ abstract class RESTController extends Controller {
       // summary, description, parameters, securirty, requestBofy, responses, callbacks
 
       // Add documentation comments
-      var methodDeclaration = methodMap[cachedMethod.methodSymbol];
-      if (methodDeclaration != null) {
-        var comment = methodDeclaration.documentationComment;
-        var tokens = comment?.tokens ?? [];
-        var lines = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).toList();
-        if (lines.length > 0) {
-          op.summary = lines.first;
-        }
+//      var methodDeclaration = methodMap[cachedMethod.methodSymbol];
+//      if (methodDeclaration != null) {
+//        var comment = methodDeclaration.documentationComment;
+//        var tokens = comment?.tokens ?? [];
+//        var lines = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).toList();
+//        if (lines.length > 0) {
+//          op.summary = lines.first;
+//        }
+//
+//        if (lines.length > 1) {
+//          op.description = lines.sublist(1, lines.length).join("\n");
+//        }
+//      }
 
-        if (lines.length > 1) {
-          op.description = lines.sublist(1, lines.length).join("\n");
-        }
-      }
-
-      return op;
-    }).toList();
+      return opMap;
+    });
   }
 
   @override
@@ -318,6 +283,30 @@ abstract class RESTController extends Controller {
 
       return true;
     });
+  }
+
+  bool _requestContentTypeIsSupported(Request req) {
+    var incomingContentType = request.raw.headers.contentType;
+    return acceptedContentTypes.firstWhere((ct) {
+          return ct.primaryType == incomingContentType.primaryType && ct.subType == incomingContentType.subType;
+        }, orElse: () => null) !=
+        null;
+  }
+
+  Future<Response> _process() async {
+    if (!request.body.isEmpty) {
+      if (!_requestContentTypeIsSupported(request)) {
+        return new Response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, null);
+      }
+    }
+
+    var binding = await RESTControllerBinder.bindRequest(this, request);
+    var response = await binding.invoke(reflect(this));
+    if (!response.hasExplicitlySetContentType) {
+      response.contentType = responseContentType;
+    }
+
+    return response;
   }
 }
 

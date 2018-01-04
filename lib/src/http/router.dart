@@ -149,7 +149,7 @@ class Router extends Controller {
   }
 
   @override
-  Map<String, APIPath> documentPaths(APIComponentRegistry components) {
+  Map<String, APIPath> documentPaths(APIDocumentContext components) {
     return _routeControllers.fold(<String, APIPath>{}, (map, routeController) {
       map.addAll(routeController.documentPaths(components));
       return map;
@@ -157,7 +157,7 @@ class Router extends Controller {
   }
 
   @override
-  void documentComponents(APIComponentRegistry components) {
+  void documentComponents(APIDocumentContext components) {
     _routeControllers.forEach((controller) {
       controller.documentComponents(components);
     });
@@ -193,7 +193,7 @@ class _RouteController extends Controller {
   final List<RouteSpecification> specifications;
 
   @override
-  Map<String, APIPath> documentPaths(APIComponentRegistry components) {
+  Map<String, APIPath> documentPaths(APIDocumentContext components) {
     return specifications.fold(<String, APIPath>{}, (map, spec) {
       final pathKey = "/" +
           spec.segments.map((rs) {

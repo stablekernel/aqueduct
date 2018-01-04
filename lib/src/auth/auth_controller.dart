@@ -132,12 +132,16 @@ class AuthController extends RESTController {
   }
 
   @override
-  List<APIOperation> documentOperations(PackagePathResolver resolver) {
-    var ops = super.documentOperations(resolver);
-    ops.forEach((op) {
-      op.security = authServer.requirementsForStrategy(_parser);
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
+    final operations = super.documentOperations(components, path);
+
+    operations.forEach((_, op) {
+      op.security = [new APISecurityRequirement()..requirements = {
+        "oauth2-client-authentication": []
+      }];
     });
-    return ops;
+
+    return operations;
   }
 
   @override

@@ -192,7 +192,7 @@ class HTTPFileController extends Controller {
 
 
   @override
-  Map<String, APIOperation> documentOperations(APIComponentRegistry components, APIPath path) {
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
     return {
       "get" : new APIOperation()
         ..description = "Content-Type is determined by the suffix of the file."

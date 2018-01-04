@@ -295,7 +295,7 @@ void main() {
       ..components = new APIComponents();
 
     setUpAll(() async {
-      doc.paths = router.documentPaths(new APIComponentRegistry(doc.components));
+      doc.paths = router.documentPaths(new APIDocumentContext(doc.components));
     });
 
     test("Emit acceptable document", () {

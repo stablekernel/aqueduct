@@ -47,7 +47,7 @@ import 'package:aqueduct/src/application/service_registry.dart';
 /// of [ApplicationChannel].
 ///
 /// [ApplicationChannel] instances may pass values to each other through [messageHub].
-abstract class ApplicationChannel extends Object with APIDocumentable {
+abstract class ApplicationChannel implements APIComponentDocumenter {
   /// One-time setup method for an application.
   ///
   /// This method is invoked as the first step during application startup. It is only invoked once per application, whereas other initialization
@@ -147,37 +147,37 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
     await messageHub.close();
   }
 
-  @override
   APIDocument documentAPI(Map<String, dynamic> projectSpec) {
-    final doc = new APIDocument()
-      ..components = new APIComponents();
+    final doc = new APIDocument()..components = new APIComponents();
     final root = entryPoint;
     root.prepare();
 
-    final registry = new APIComponentRegistry(doc.components);
-    documentComponents(registry);
+    final context = new APIDocumentContext(doc.components);
+    documentComponents(context);
 
-    doc.paths = root.documentPaths(registry);
+    doc.paths = root.documentPaths(context);
 
     doc.info = new APIInfo()
       ..title = projectSpec["name"]
       ..version = projectSpec["version"]
       ..description = projectSpec["description"];
 
+    context.finalize();
+
     return doc;
   }
 
   @override
-  void documentComponents(APIComponentRegistry registry) {
+  void documentComponents(APIDocumentContext registry) {
     entryPoint.documentComponents(registry);
 
     final type = reflect(this).type;
-    final documentableType = reflectType(APIDocumentable);
+    final documenter = reflectType(APIComponentDocumenter);
     type.declarations.forEach((_, member) {
       if (member is VariableMirror && !member.isStatic) {
-        if (member.type.isAssignableTo(documentableType)) {
-          APIDocumentable documentable = reflect(this).getField(member.simpleName).reflectee;
-          documentable?.documentComponents(registry);
+        if (member.type.isAssignableTo(documenter)) {
+          APIComponentDocumenter object = reflect(this).getField(member.simpleName).reflectee;
+          object?.documentComponents(registry);
         }
       }
     });

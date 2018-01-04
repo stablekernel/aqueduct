@@ -170,14 +170,14 @@ class UndocumentedMiddleware extends Controller {}
 
 class Middleware extends Controller {
   @override
-  void documentComponents(APIComponentRegistry components) {
+  void documentComponents(APIDocumentContext components) {
     components.parameters
         .register("x-api-key", new APIParameter.header("x-api-key", schema: new APISchemaObject.string()));
-    documentableChild?.documentComponents(components);
+    nextRecorder?.documentComponents(components);
   }
 
   @override
-  Map<String, APIOperation> documentOperations(APIComponentRegistry components, APIPath path) {
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
     final ops = super.documentOperations(components, path);
 
     ops.values.forEach((op) {
@@ -191,7 +191,7 @@ class Middleware extends Controller {
 
 class Endpoint extends Controller {
   @override
-  Map<String, APIOperation> documentOperations(APIComponentRegistry registry, APIPath path) {
+  Map<String, APIOperation> documentOperations(APIDocumentContext registry, APIPath path) {
     if (path.parameters.length >= 1) {
       return {
         "get": new APIOperation()
@@ -214,9 +214,9 @@ class Endpoint extends Controller {
   }
 }
 
-class ComponentA extends Object with APIDocumentable {
+class ComponentA extends Object with APIDocumentRecorder {
   @override
-  void documentComponents(APIComponentRegistry components) {
+  void documentComponents(APIDocumentContext components) {
     final schemaObject = new APISchemaObject.object({
       "name": new APISchemaObject.string(),
       "refByType": components.schema.getObjectWithType(ReferencableSchemaObject),
@@ -228,9 +228,9 @@ class ComponentA extends Object with APIDocumentable {
   }
 }
 
-class ComponentB extends APIDocumentable {
+class ComponentB extends APIDocumentRecorder {
   @override
-  void documentComponents(APIComponentRegistry components) {
+  void documentComponents(APIDocumentContext components) {
     components.schema.register("ref-component", new APISchemaObject.object({"key": new APISchemaObject.string()}),
         representation: ReferencableSchemaObject);
   }
@@ -240,7 +240,7 @@ class ReferencableSchemaObject {}
 
 class UnaccountedForControllerWithComponents extends Controller {
   @override
-  void documentComponents(APIComponentRegistry components) {
+  void documentComponents(APIDocumentContext components) {
     components.schema.register("won't-show-up", new APISchemaObject.object({"key": new APISchemaObject.string()}));
   }
 }

@@ -149,7 +149,7 @@ class AuthToken {
     }
 
     if (scopes != null) {
-      map["scope"] = scopes.map((s) => s.scopeString).join(" ");
+      map["scope"] = scopes.map((s) => s.toString()).join(" ");
     }
 
     return map;
@@ -232,7 +232,7 @@ class Authorization {
   ///
   /// If the access token used to create this instance has scope,
   /// those scopes will be available here. Otherwise, null.
-  List<String> get scopes => _scopes?.map((s) => s.scopeString)?.toList();
+  List<String> get scopes => _scopes?.map((s) => s.toString())?.toList();
   List<AuthScope> _scopes;
 
   /// Whether or not this instance has access to a specific scope.
@@ -255,8 +255,6 @@ class Authorization {
 /// An [AuthClient] has a list of valid scopes (see `aqueduct auth` tool). An access token issued for an [AuthClient] may ask for
 /// any of the scopes the client provides. Scopes are then granted to the access token. An [Authorizer] may specify
 /// a one or more required scopes that a token must have to pass to the next controller.
-///
-/// The format of [scopeString] is meant to be flexible; see constructor for details.
 class AuthScope {
   /// Creates an instance of this type from [scopeString].
   ///
@@ -296,7 +294,7 @@ class AuthScope {
     return scope;
   }
 
-  const AuthScope._(this.scopeString, this._segments, this._lastModifier);
+  const AuthScope._(this._scopeString, this._segments, this._lastModifier);
 
   /// Signifies 'any' scope in [AuthServerDelegate.allowedScopesForAuthenticatable].
   ///
@@ -327,8 +325,7 @@ class AuthScope {
     return new AuthScope._(scopeString, segments, lastModifier);
   }
 
-  /// This instance as a string.
-  final String scopeString;
+  final String _scopeString;
 
   /// Individual segments, separated by `:` character, of this instance.
   ///
@@ -470,7 +467,7 @@ class AuthScope {
   }
 
   @override
-  String toString() => scopeString;
+  String toString() => _scopeString;
 }
 
 class _AuthScopeSegment {

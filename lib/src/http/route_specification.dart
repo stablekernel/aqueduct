@@ -4,7 +4,7 @@ import 'route_node.dart';
 /// Specifies a matchable route path.
 ///
 /// Contains [RouteSegment]s for each path segment. This class is used internally by [Router].
-class RouteSpecification extends Object with APIDocumentable {
+class RouteSpecification extends Object with APIDocumentRecorder {
   /// Creates a new [RouteSpecification] from a [String].
   ///
   /// The [patternString] must be stripped of any optionals.

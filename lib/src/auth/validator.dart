@@ -25,6 +25,6 @@ abstract class AuthValidator {
   FutureOr<Authorization> validate<T>(AuthorizationParser<T> parser, T authorizationData,
       {List<AuthScope> requiredScope});
 
-  // todo (joeconwaystk): temporary until openapi integration
-  List<APISecurityRequirement> requirementsForStrategy(AuthorizationParser<dynamic> strategy) => [];
+
+  List<APISecurityRequirement> documentRequirementsForAuthorizer(Authorizer authorizer, {List<AuthScope> scopes}) => [];
 }

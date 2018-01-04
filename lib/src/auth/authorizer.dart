@@ -4,19 +4,6 @@ import 'dart:io';
 import '../http/http.dart';
 import 'auth.dart';
 
-/// The type of authorization strategy to use for an [Authorizer].
-enum AuthStrategy {
-  /// This strategy will parse the Authorization header using the Basic Authorization scheme.
-  ///
-  /// The resulting [AuthBasicCredentials] will be passed to [AuthValidator.fromBasicCredentials].
-  basic,
-
-  /// This strategy will parse the Authorization header using the Bearer Authorization scheme.
-  ///
-  /// The resulting bearer token will be passed to [AuthValidator.fromBearerToken].
-  bearer
-}
-
 /// A [Controller] that validates the Authorization header of a request.
 ///
 /// An instance of this type will validate that the authorization information in an Authorization header is sufficient to access
@@ -126,13 +113,11 @@ class Authorizer extends Controller {
     }
   }
 
-
-
   @override
-  Map<String, APIOperation> documentOperations(APIComponentRegistry components, APIPath path) {
-    final operations = nextController.documentOperations(components, path);
-    var requirements = validator.documentSecurityRequirements(strategy, scopes: scopes);
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
+    final operations = super.documentOperations(components, path);
 
+    final requirements = validator.documentRequirementsForAuthorizer(this, scopes: scopes);
     operations.forEach((_, op) {
       op.security = requirements;
     });

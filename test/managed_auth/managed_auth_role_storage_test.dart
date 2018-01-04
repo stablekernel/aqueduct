@@ -34,7 +34,7 @@ void main() {
         .map((ac) => new ManagedAuthClient()
       ..id = ac.id
       ..salt = ac.salt
-      ..allowedScope = ac.allowedScopes.map((a) => a.scopeString).join(" ")
+      ..allowedScope = ac.allowedScopes.map((a) => a.toString()).join(" ")
       ..hashedSecret = ac.hashedSecret
       ..redirectURI = ac.redirectURI)
         .map((mc) {
