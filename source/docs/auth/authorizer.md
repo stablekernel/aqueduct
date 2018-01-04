@@ -108,8 +108,7 @@ You may use `Authorizer` without using `AuthServer`. For example, an application
 ```dart
 class BasicValidator implements AuthValidator {
   @override
-  Future<Authorization> fromBasicCredentials(
-      AuthBasicCredentials usernameAndPassword) {    
+  FutureOr<Authorization> validate<T>(AuthorizationParser<T> parser, T authorizationData, {List<AuthScope> requiredScope}) {}
     var user = await userForName(usernameAndPassword.username);
     if (user.password == hash(usernameAndPassword.password, user.salt)) {
       return new Authorization(...);
@@ -118,16 +117,7 @@ class BasicValidator implements AuthValidator {
     // Will end up creating a 401 Not Authorized Response
     return null;
   }
-
-  @override
-  Future<Authorization> fromBearerToken(
-      String bearerToken, {List<AuthScope> scopesRequired}) {
-    throw new HTTPResponseException(
-      400, "Invalid Authorization. Bearer tokens not supported.");
-  }
-
-  // Used by `aqueduct document`.
-  @override
-  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) => [];
 }
 ```
+
+The `validate` method must return an `Authorization` if the credentials are valid, or null if they are not. The `parser` lets the validator know the format of the Authorization header (e.g., 'Basic' or 'Bearer') and `authorizationData` is the meaningful information in that header. There are two concrete types of `AuthorizationParser<T>`: `AuthorizationBasicParser` and `AuthorizationBearerParser`. The authorization data for a basic parser is an instance of `AuthBasicCredentials` that contain the username and password, while the bearer parser's authorization data is the bearer token string. 

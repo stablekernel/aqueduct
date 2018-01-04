@@ -101,7 +101,7 @@ Prefer to use the Aqueduct ORM. It sends appropriate HTTP responses for differen
 
 Aqueduct is an object oriented framework - behaviors are implemented by instances of some type. The types of objects, their properties and their behaviors all follow similar naming conventions to make the API more discoverable.
 
-Most types in Aqueduct have a prefix in common with related types. For example, types like `AuthServer`, `AuthStorage` and `AuthCode` are all related because they deal with authentication and authorization. Methods are named consistently across classes (e.g, `asMap` is a common method name).
+Most types in Aqueduct have a prefix in common with related types. For example, types like `AuthServer`, `AuthDelegate` and `AuthCode` are all related because they deal with authentication and authorization. Methods are named consistently across classes (e.g, `asMap` is a common method name).
 
 When looking for a solution, look at the API reference for the objects you have access to. These objects may already have the behavior you wish to implement or have a reference to an object with that behavior.
 

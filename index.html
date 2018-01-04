@@ -134,8 +134,8 @@ var teams = await query.fetch();</code></pre>
                 <p>A rigorously tested OAuth 2.0 server in just a few lines of code. A layered implementation allows you to store tokens and client identifiers anywhere without rewriting the logic.</p>
             </div>
             <div class="col-sm-6">
-                <pre class="feature-box"><code class="language-dart">var storage = new ManagedAuthStorage&lt;User&gt;(dbCtx);
-var auth = new AuthServer(storage);
+                <pre class="feature-box"><code class="language-dart">var delegate = new ManagedAuthDelegate&lt;User&gt;(dbCtx);
+var auth = new AuthServer(delegate);
 
 router
   .route('/auth/token')

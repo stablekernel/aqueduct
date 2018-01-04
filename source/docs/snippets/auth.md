@@ -21,8 +21,8 @@ class AppChannel extends ApplicationChannel {
 
     ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
 
-    var authStorage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
-    authServer = new AuthServer(authStorage);
+    var AuthDelegate = new ManagedAuthDelegate<User>(ManagedContext.defaultContext);
+    authServer = new AuthServer(AuthDelegate);
   }
 
   @override
@@ -65,8 +65,8 @@ class AppChannel extends ApplicationChannel {
 
     ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
 
-    var authStorage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
-    authServer = new AuthServer(authStorage);
+    var AuthDelegate = new ManagedAuthDelegate<User>(ManagedContext.defaultContext);
+    authServer = new AuthServer(AuthDelegate);
   }
 
   @override
@@ -96,18 +96,11 @@ import 'package:aqueduct/aqueduct.dart';
 
 class AppChannel extends ApplicationChannel {
   @override
-  Future prepare() async {
-    passwordVerifier = new PasswordVerifier();
-  }
-
-  PasswordVerified passwordVerifier;
-
-  @override
   Controller get entryPoint {
     final router = new Router();
     router
       .route("/profile")
-      .pipe(new Authorizer.basic(passwordVerifier))
+      .pipe(new Authorizer.basic(new PasswordVerifier()))
       .listen((req) async => new Response.ok(null));
 
     return router;
@@ -116,17 +109,12 @@ class AppChannel extends ApplicationChannel {
 
 class PasswordVerifier extends AuthValidator {
   @override
-  Future<Authorization> fromBasicCredentials(AuthBasicCredentials usernameAndPassword) async {
-    if (!isPasswordCorrect(usernameAndPassword)) {
+  FutureOr<Authorization> validate<T>(AuthorizationParser<T> parser, T authorizationData, {List<AuthScope> requiredScope}) {}
+    if (!isPasswordCorrect(authorizationData)) {
       return null;
     }
 
-    return new Authorization(null, usernameAndPassword.username, this);
-  }
-
-  @override
-  Future<Authorization> fromBearerToken(String bearerToken, {List<AuthScope> scopesRequired}) {
-    throw new HTTPResponseException(400, "Use basic authorization");
+    return new Authorization(null, authorizationData.username, this);
   }
 }
 ```
@@ -152,8 +140,8 @@ class AppChannel extends ApplicationChannel {
 
     ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
 
-    var authStorage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
-    authServer = new AuthServer(authStorage);
+    var AuthDelegate = new ManagedAuthDelegate<User>(ManagedContext.defaultContext);
+    authServer = new AuthServer(AuthDelegate);
   }  
 
   @override

@@ -344,7 +344,7 @@ void main() {
 
 ### Configuring OAuth 2.0 for Tests
 
-An application that uses types like `AuthServer` and `Authorizer` must have valid client IDs for testing. These are best set up in a test harness. Here's a method to add to a test harness to create client identifiers when using `ManagedAuthStorage`:
+An application that uses types like `AuthServer` and `Authorizer` must have valid client IDs for testing. These are best set up in a test harness. Here's a method to add to a test harness to create client identifiers when using `ManagedAuthDelegate`:
 
 ```dart
 static Future<ManagedAuthClient> addClientRecord(

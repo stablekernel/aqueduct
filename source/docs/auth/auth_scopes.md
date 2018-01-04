@@ -100,13 +100,13 @@ It is important to ensure that an application that uses scope has protections on
 
 Adding scopes to client identifiers is a requirement for any application that wishes to use scoping. An application may optionally add restrictions to scope depending on some attribute(s) of the user. When authenticating, the server first filters the list of requested scopes by what is allowed for the client, and then filters the resulting list by what is allowed for the user.
 
-This user-level filtering is done by overriding `allowedScopesForAuthenticatable` in `AuthStorage`. By default, this method returns `AuthScope.Any` - which means there are no restrictions. If the client application allows the scope, then any user that logs in with that application can request that scope.
+This user-level filtering is done by overriding `allowedScopesForAuthenticatable` in `AuthDelegate`. By default, this method returns `AuthScope.Any` - which means there are no restrictions. If the client application allows the scope, then any user that logs in with that application can request that scope.
 
-This method may return a list of `AuthScope`s that are valid for the authenticating user. The following example shows a `ManagedAuthStorage<T>` subclass that allows any scope for `@stablekernel.com` usernames, no scopes for `@hotmail.com` addresses and some limited scope for everyone else:
+This method may return a list of `AuthScope`s that are valid for the authenticating user. The following example shows a `ManagedAuthDelegate<T>` subclass that allows any scope for `@stablekernel.com` usernames, no scopes for `@hotmail.com` addresses and some limited scope for everyone else:
 
 ```dart
-class DomainBasedAuthStorage extends ManagedAuthStorage<User> {
-  DomainBasedAuthStorage(ManagedContext context, {int tokenLimit: 40}) :
+class DomainBasedAuthDelegate extends ManagedAuthDelegate<User> {
+  DomainBasedAuthDelegate(ManagedContext context, {int tokenLimit: 40}) :
         super(context, tokenLimit: tokenLimit);
 
   @override
@@ -122,7 +122,7 @@ class DomainBasedAuthStorage extends ManagedAuthStorage<User> {
 }
 ```
 
-The `user` passed to `allowedScopesForAuthenticatable` is the user being authenticated. It will have previously been fetched by the `AuthServer`. The `AuthServer` fetches this object by invoking `AuthStorage.fetchAuthenticatableByUsername()`. The default implementation of this method for `ManagedAuthStorage<T>` only fetches the `id`, `username`, `salt` and `hashedPassword` of the user. This is for two reasons:
+The `user` passed to `allowedScopesForAuthenticatable` is the user being authenticated. It will have previously been fetched by the `AuthServer`. The `AuthServer` fetches this object by invoking `AuthDelegate.fetchAuthenticatableByUsername()`. The default implementation of this method for `ManagedAuthDelegate<T>` only fetches the `id`, `username`, `salt` and `hashedPassword` of the user. This is for two reasons:
 
 - These properties are needed to verify and grant an access token.
 - The `AuthServer` can only guarantee that the `User` implements `Authenticatable`, and those are the only properties it has.
@@ -130,8 +130,8 @@ The `user` passed to `allowedScopesForAuthenticatable` is the user being authent
 When using some other attribute of an application's user object to restrict allowed scopes, you must also override `fetchAuthenticatableByUsername` to fetch these attributes. For example, if your application's user has a `role` attribute, you must fetch it and the other four required properties. Here's an example implementation:
 
 ```dart
-class RoleBasedAuthStorage extends ManagedAuthStorage<User> {
-  RoleBasedAuthStorage(ManagedContext context, {int tokenLimit: 40}) :
+class RoleBasedAuthDelegate extends ManagedAuthDelegate<User> {
+  RoleBasedAuthDelegate(ManagedContext context, {int tokenLimit: 40}) :
         super(context, tokenLimit: tokenLimit);
 
   @override

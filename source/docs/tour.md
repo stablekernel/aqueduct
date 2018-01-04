@@ -320,7 +320,7 @@ aqueduct db upgrade --connect postgres@://...
 
 ### OAuth 2.0
 
-Authentication and authorization are enabled at application startup by creating an `AuthServer` with `ManagedAuthStorage`:
+Authentication and authorization are enabled at application startup by creating an `AuthServer` with `ManagedAuthDelegate`:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
@@ -331,8 +331,8 @@ class AppApplicationChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    var storage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
-    authServer = new AuthServer(storage);
+    final delegate = new ManagedAuthDelegate<User>(ManagedContext.defaultContext);
+    authServer = new AuthServer(delegate);
   }  
 }
 ```

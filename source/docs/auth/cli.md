@@ -1,6 +1,6 @@
 # Manage OAuth 2.0 Clients
 
-The `aqueduct auth` command line tool creates OAuth 2.0 client application identifiers and inserts them into an application's database. To use this tool, you must use `ManagedAuthStorage<T>` and
+The `aqueduct auth` command line tool creates OAuth 2.0 client application identifiers and inserts them into an application's database. To use this tool, you must use `ManagedAuthDelegate<T>` and
 your database must be contain the tables to support it (see [this guide](server.md) for more details).
 
 Exchanging a username and password for an authorization token requires a registered client identifier. A token belongs to both the authenticating user and the client application. Clients are represented by instances of `ManagedAuthClient` from `aqueduct/managed_auth`. Authenticating clients must provide their client ID (and client secret, if applicable) in the Authorization header when requesting access tokens.
