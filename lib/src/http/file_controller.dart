@@ -7,7 +7,6 @@ import 'http.dart';
 /// Serves files from a directory on the filesystem.
 ///
 /// See the constructor for usage.
-///
 class HTTPFileController extends Controller {
   static Map<String, ContentType> _defaultExtensionMap = {
     /* Web content */
@@ -41,7 +40,7 @@ class HTTPFileController extends Controller {
     "otf": new ContentType("font", "otf"),
   };
 
-  /// Constructor for a controller that serves files from [pathOfDirectoryToServe].
+  /// Creates a controller that serves files from [pathOfDirectoryToServe].
   ///
   /// File controllers append the path of an HTTP request to [pathOfDirectoryToServe] and attempt to read the file at that location.
   ///

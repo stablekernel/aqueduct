@@ -311,24 +311,6 @@ class ControllerException implements Exception {
   String toString() => "ControllerException: $message";
 }
 
-
-/// Metadata for a [Controller] subclass that requires it must be instantiated for each request.
-///
-/// Requires that the [Controller] must be created through [Controller.link].
-///
-/// [Controller]s may carry some state throughout the course of their handling of a request. If
-/// that [Controller] is reused for another request, some of that state may carry over. Therefore,
-/// it is a better solution to instantiate the [Controller] for each incoming request. Marking
-/// a [Controller] subclass with this flag will ensure that an exception is thrown if an instance
-/// of [Controller] is chained in a [ApplicationChannel]. These instances must be generated with a closure:
-///
-///       router.route("/path").link(() => new Controller());
-const _RequiresInstantiation cannotBeReused = const _RequiresInstantiation();
-
-class _RequiresInstantiation {
-  const _RequiresInstantiation();
-}
-
 typedef Controller _ControllerGeneratorClosure();
 
 class _ControllerGenerator extends Controller {
@@ -362,19 +344,19 @@ class _ControllerGenerator extends Controller {
   @override
   Controller link(Controller instantiator()) {
     final c = super.link(instantiator);
-    nextInstanceToReceive?._nextController = c;
+    nextInstanceToReceive._nextController = c;
     return c;
   }
 
   Controller linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
     final c = super.linkFunction(handle);
-    nextInstanceToReceive?._nextController = c;
+    nextInstanceToReceive._nextController = c;
     return c;
   }
 
   @override
   Future receive(Request req) {
-    var next = nextInstanceToReceive;
+    final next = nextInstanceToReceive;
     nextInstanceToReceive = instantiate();
     return next.receive(req);
   }
