@@ -135,7 +135,7 @@ class CrashingTestChannel extends ApplicationChannel {
     if (options.context["crashIn"] == "addRoutes") {
       throw new TestException("addRoutes");
     }
-    router.route("/t").generate(() => new TController());
+    router.route("/t").link(() => new TController());
     return router;
   }
 
@@ -157,9 +157,9 @@ class TestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/t").generate(() => new TController());
-    router.route("/r").generate(() => new RController());
-    router.route("startup").listen((r) async {
+    router.route("/t").link(() => new TController());
+    router.route("/r").link(() => new RController());
+    router.route("startup").linkFunction((r) async {
       var total = options.context["startup"].fold(0, (a, b) => a + b);
       return new Response.ok("$total");
     });

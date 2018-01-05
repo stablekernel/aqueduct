@@ -44,27 +44,27 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
     final router = new Router();
 
     /* OAuth 2.0 Endpoints */
-    router.route("/auth/token").generate(() => new AuthController(authServer));
+    router.route("/auth/token").link(() => new AuthController(authServer));
 
-    router.route("/auth/code").generate(() => new AuthCodeController(authServer, delegate: this));
+    router.route("/auth/code").link(() => new AuthCodeController(authServer, delegate: this));
 
     /* Create an account */
     router
         .route("/register")
-        .pipe(new Authorizer.basic(authServer))
-        .generate(() => new RegisterController(authServer));
+        .link(() =>new Authorizer.basic(authServer))
+        .link(() => new RegisterController(authServer));
 
     /* Gets profile for user with bearer token */
     router
         .route("/me")
-        .pipe(new Authorizer.bearer(authServer))
-        .generate(() => new IdentityController());
+        .link(() =>new Authorizer.bearer(authServer))
+        .link(() => new IdentityController());
 
     /* Gets all users or one specific user by id */
     router
         .route("/users/[:id]")
-        .pipe(new Authorizer.bearer(authServer))
-        .generate(() => new UserController(authServer));
+        .link(() =>new Authorizer.bearer(authServer))
+        .link(() => new UserController(authServer));
 
     return router;
   }

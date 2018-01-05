@@ -17,7 +17,7 @@ void main() {
     test("Router Handles Requests", () async {
       Router router = new Router();
 
-      router.route("/player").listen((req) async {
+      router.route("/player").linkFunction((req) async {
         return new Response.ok("");
       });
 
@@ -30,7 +30,7 @@ void main() {
     test("Router 404s on no match", () async {
       Router router = new Router();
 
-      router.route("/player").listen((req) async {
+      router.route("/player").linkFunction((req) async {
         return new Response.ok("");
       });
 
@@ -45,7 +45,7 @@ void main() {
     test("Router 404 but does not accept html, no body", () async {
       Router router = new Router();
 
-      router.route("/player").listen((req) async {
+      router.route("/player").linkFunction((req) async {
         return new Response.ok("");
       });
 
@@ -60,7 +60,7 @@ void main() {
     test("Router delivers path values", () async {
       Router router = new Router();
 
-      router.route("/player/:id").listen((req) async {
+      router.route("/player/:id").linkFunction((req) async {
         return new Response.ok("${req.path.variables["id"]}");
       });
 
@@ -74,7 +74,7 @@ void main() {
     test("Base API adds to path", () async {
       var router = new Router();
       router.basePath = "/api";
-      router.route("/player/").pipe(new Handler());
+      router.route("/player/").link(() => new Handler());
 
       server = await enableRouter(router);
 
@@ -89,36 +89,19 @@ void main() {
 
     test("Change Base API Path after adding routes still succeeds", () async {
       var router = new Router();
-      router.route("/a").pipe(new Handler());
+      router.route("/a").link(() => new Handler());
       router.basePath = "/api";
       server = await enableRouter(router);
       var response = await http.get("http://localhost:4040/api/a");
       expect(response.statusCode, equals(202));
     });
 
-    test("Router passes on to next request controller", () async {
-      Handler.counter = 0;
-
-      var router = new Router();
-      router.route("/a").pipe(new Handler());
-
-      server = await enableRouter(router);
-
-      var response = await http.get("http://localhost:4040/a");
-      expect(response.statusCode, equals(202));
-      expect(response.body, '"1"');
-
-      response = await http.get("http://localhost:4040/a");
-      expect(response.statusCode, equals(202));
-      expect(response.body, '"1"');
-    });
-
     test("Router matches right route when many are similar", () async {
       var router = new Router();
-      router.route("/a/[:id]").listen((req) async {
+      router.route("/a/[:id]").linkFunction((req) async {
         req.respond(new Response(200, null, null));
       });
-      router.route("/a/:id/f").listen((req) async {
+      router.route("/a/:id/f").linkFunction((req) async {
         req.respond(new Response(201, null, null));
       });
 
@@ -137,7 +120,7 @@ void main() {
     test("Base API + Route Variables correctly identifies segment", () async {
       final router = new Router()
           ..basePath = "/api/"
-          ..route(("/a/[:id]")).listen((req) async => new Response.ok(req.path.variables));
+          ..route(("/a/[:id]")).linkFunction((req) async => new Response.ok(req.path.variables));
       server = await enableRouter(router);
 
       var response = await http.get("http://localhost:4040/api/a/1");
@@ -155,30 +138,30 @@ void main() {
     HttpServer server;
     var router = new Router();
     setUpAll(() async {
-      router.route("/").listen((req) async {
+      router.route("/").linkFunction((req) async {
         req.respond(new Response(200, null, "/"));
       });
-      router.route("/users/[:id]").listen((req) async {
+      router.route("/users/[:id]").linkFunction((req) async {
         req.respond(
             new Response(200, null, "/users/${req.path.variables["id"]}"));
       });
-      router.route("/locations[/:id]").listen((req) async {
+      router.route("/locations[/:id]").linkFunction((req) async {
         req.respond(
             new Response(200, null, "/locations/${req.path.variables["id"]}"));
       });
-      router.route("/locations/:id/vacation").listen((req) async {
+      router.route("/locations/:id/vacation").linkFunction((req) async {
         req.respond(new Response(
             200, null, "/locations/${req.path.variables["id"]}/vacation"));
       });
-      router.route("/locations/:id/alarms[/*]").listen((req) async {
+      router.route("/locations/:id/alarms[/*]").linkFunction((req) async {
         req.respond(new Response(200, null,
             "/locations/${req.path.variables["id"]}/alarms/${req.path.remainingPath}"));
       });
-      router.route("/equipment/[:id[/:property]]").listen((req) async {
+      router.route("/equipment/[:id[/:property]]").linkFunction((req) async {
         req.respond(new Response(200, null,
             "/equipment/${req.path.variables["id"]}/${req.path.variables["property"]}"));
       });
-      router.route("/file/*").listen((req) async {
+      router.route("/file/*").linkFunction((req) async {
         req.respond(new Response(200, null, "/file/${req.path.remainingPath}"));
       });
       server = await enableRouter(router);
@@ -249,8 +232,8 @@ void main() {
     HttpServer server;
     var router = new Router();
     setUpAll(() async {
-      router.route("/*").listen((req) async => new Response.ok("*${req.path.remainingPath}"));
-      router.route("/a").listen((req) async => new Response.ok("a"));
+      router.route("/*").linkFunction((req) async => new Response.ok("*${req.path.remainingPath}"));
+      router.route("/a").linkFunction((req) async => new Response.ok("a"));
 
       server = await enableRouter(router);
     });
@@ -272,7 +255,6 @@ void main() {
       expect(r4.statusCode, 404);
       expect(r5.body, "\"*\"");
     });
-
   });
 }
 
@@ -284,14 +266,8 @@ Future<HttpServer> enableRouter(Router router) async {
 }
 
 class Handler extends Controller {
-  static int counter = 0;
-
-  Handler() {
-    counter++;
-  }
-
   @override
   Future<RequestOrResponse> handle(Request req) async {
-    return new Response(202, null, "$counter");
+    return new Response(202, null, "ok");
   }
 }

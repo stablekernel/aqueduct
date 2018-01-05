@@ -75,7 +75,7 @@ class TestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/[:id]").generate(() => new UncaughtCrashController());
+    router.route("/[:id]").link(() => new UncaughtCrashController());
     return router;
   }
 }

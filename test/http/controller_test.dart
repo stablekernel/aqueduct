@@ -23,9 +23,9 @@ void main() {
     });
 
     test("Can add change status code", () async {
-      root.listen((r) async {
+      root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.statusCode = 201);
-      }).listen((r) async {
+      }).linkFunction((r) async {
         return new Response.ok(null);
       });
 
@@ -34,9 +34,9 @@ void main() {
     });
 
     test("Can remove header", () async {
-      root.listen((r) async {
+      root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.headers.remove("x-foo"));
-      }).listen((r) async {
+      }).linkFunction((r) async {
         return new Response.ok(null, headers: {"x-foo": "foo"});
       });
 
@@ -45,9 +45,9 @@ void main() {
     });
 
     test("Can add header", () async {
-      root.listen((r) async {
+      root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.headers["x-foo"] = "bar");
-      }).listen((r) async {
+      }).linkFunction((r) async {
         return new Response.ok(null);
       });
 
@@ -56,9 +56,9 @@ void main() {
     });
 
     test("Can change header value", () async {
-      root.listen((r) async {
+      root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.headers["x-foo"] = "bar");
-      }).listen((r) async {
+      }).linkFunction((r) async {
         return new Response.ok(null, headers: {"x-foo": "foo"});
       });
 
@@ -67,9 +67,9 @@ void main() {
     });
 
     test("Can modify body prior to encoding", () async {
-      root.listen((r) async {
+      root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.body["foo"] = "y");
-      }).listen((r) async {
+      }).linkFunction((r) async {
         return new Response.ok({"x": "a"});
       });
 
@@ -101,13 +101,13 @@ void main() {
     test("Return null", () async {
       var set = false;
       root
-        .listen((req) {
+        .linkFunction((req) {
           req.raw.response.statusCode = 200;
           req.raw.response.close();
 
           return null;
         })
-        .listen((req) {
+        .linkFunction((req) {
           set = true;
         });
 
@@ -201,7 +201,7 @@ void main() {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8000);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen(handler);
+        next.linkFunction(handler);
         await next.receive(req);
       });
 
@@ -218,7 +218,7 @@ void main() {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen((req) async {
+        next.linkFunction((req) async {
           var obj = new SomeObject()..name = "Bob";
           return new Response.ok(obj);
         });
@@ -236,7 +236,7 @@ void main() {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen((req) async {
+        next.linkFunction((req) async {
           return new Response.ok({"a": "b"});
         });
         await next.receive(req);
@@ -253,7 +253,7 @@ void main() {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen((req) async {
+        next.linkFunction((req) async {
           return new Response.ok(new DateTime.now());
         });
         await next.receive(req);
@@ -271,7 +271,7 @@ void main() {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen((req) async {
+        next.linkFunction((req) async {
           return new Response.ok(null);
         });
         await next.receive(req);
@@ -289,7 +289,7 @@ void main() {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.generate(() => new Always200Controller());
+        next.link(() => new Always200Controller());
         await next.receive(req);
       });
 
@@ -324,7 +324,7 @@ void main() {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.generate(() => new Always200Controller());
+        next.link(() => new Always200Controller());
         await next.receive(req);
       });
 
@@ -353,7 +353,7 @@ void main() {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen((r) async {
+        next.linkFunction((r) async {
           await r.body.decodeAsMap();
           return new Response.ok(null);
         });
@@ -413,7 +413,7 @@ class OutlierChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final r = new Router();
-    r.route("/detach").listen((Request req) async {
+    r.route("/detach").linkFunction((Request req) async {
       if (count == 0) {
         var socket = await req.raw.response.detachSocket();
         socket.destroy();
@@ -433,7 +433,7 @@ class OutlierChannel extends ApplicationChannel {
       return new Response.ok(null);
     });
 
-    r.route("/closed").listen((Request req) async {
+    r.route("/closed").linkFunction((Request req) async {
       if (count == 0) {
         req.raw.response.statusCode = 200;
         await req.response.close();
@@ -444,7 +444,7 @@ class OutlierChannel extends ApplicationChannel {
       return new Response.ok(null);
     });
 
-    r.route("/closed_exception").listen((Request req) async {
+    r.route("/closed_exception").linkFunction((Request req) async {
       await req.response.close();
 
       // To stop the analyzer from complaining, since it see through the bullshit of 'if (true)' and the return type would be dead code.

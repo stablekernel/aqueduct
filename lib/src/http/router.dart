@@ -37,6 +37,7 @@ class Router extends Controller {
   ///
   /// Trailing and leading slashes have no impact on this value.
   String get basePath => "/${_basePathSegments.join("/")}";
+
   set basePath(String bp) {
     _basePathSegments = bp.split("/").where((str) => str.isNotEmpty).toList();
   }
@@ -50,11 +51,10 @@ class Router extends Controller {
     _unmatchedController = listener;
   }
 
-
-  /// Adds a route to this instance.
+  /// Adds a route that [Controller]s can be linked to.
   ///
-  /// Requests that match [pattern] will be sent to the [Controller] returned by this method. Controllers that
-  /// should receive these requests should be attached to the returned [Controller] (via [pipe], [generate], or [listen]).
+  /// Routers allow for multiple linked controllers. A request that matches [pattern]
+  /// will be sent to the controller linked to this method's return value.
   ///
   /// The [pattern] must follow the rules of route patterns (see also http://aqueduct.io/docs/http/routing/).
   ///
@@ -81,16 +81,14 @@ class Router extends Controller {
   ///         /files/*
   ///
   Controller route(String pattern) {
-    var routeController = new _RouteController(
-        RouteSpecification.specificationsForRoutePattern(pattern));
+    var routeController = new _RouteController(RouteSpecification.specificationsForRoutePattern(pattern));
     _routeControllers.add(routeController);
     return routeController;
   }
 
   @override
   void prepare() {
-    _rootRouteNode =
-        new RouteNode(_routeControllers.expand((rh) => rh.patterns).toList());
+    _rootRouteNode = new RouteNode(_routeControllers.expand((rh) => rh.patterns).toList());
 
     for (var c in _routeControllers) {
       c.prepare();
@@ -99,23 +97,13 @@ class Router extends Controller {
 
   /// Routers override this method to throw an exception. Use [route] instead.
   @override
-  Controller pipe(Controller n) {
-    throw new RouterException("Routers may not use pipe, use route instead.");
+  Controller link(Controller generatorFunction()) {
+    throw new StateError("Routers may not use generate, use route instead.");
   }
 
-  /// Routers override this method to throw an exception. Use [route] instead.
   @override
-  Controller generate(Controller generatorFunction()) {
-    throw new RouterException(
-        "Routers may not use generate, use route instead.");
-  }
-
-  /// Routers override this method to throw an exception. Use [route] instead.
-  @override
-  Controller listen(
-      FutureOr<RequestOrResponse> handler(
-          Request request)) {
-    throw new RouterException("Routers may not use listen, use route instead.");
+  Controller linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
+    throw new StateError("Routers may not use generate, use route instead.");
   }
 
   @override
@@ -155,8 +143,7 @@ class Router extends Controller {
   List<APIPath> documentPaths(PackagePathResolver resolver) {
     return _routeControllers
         .expand((rh) => rh.patterns)
-        .map((RouteSpecification routeSpec) =>
-            routeSpec.documentPaths(resolver).first)
+        .map((RouteSpecification routeSpec) => routeSpec.documentPaths(resolver).first)
         .toList();
   }
 
@@ -169,8 +156,8 @@ class Router extends Controller {
     var response = new Response.notFound();
     if (req.acceptsContentType(ContentType.HTML)) {
       response
-          ..body = "<html><h3>404 Not Found</h3></html>"
-          ..contentType = ContentType.HTML;
+        ..body = "<html><h3>404 Not Found</h3></html>"
+        ..contentType = ContentType.HTML;
     }
 
     applyCORSHeadersIfNecessary(req, response);
@@ -178,7 +165,6 @@ class Router extends Controller {
     logger.info("${req.toDebugString()}");
   }
 }
-
 
 class _RouteController extends Controller {
   /// Do not create instances of this class manually.

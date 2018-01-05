@@ -255,7 +255,7 @@ void main() {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen((req) async {
+        next.linkFunction((req) async {
           initiateResponseCompleter.complete();
           return response;
         });
@@ -308,7 +308,7 @@ void main() {
       HTTPRequestBody.maxSize = 8193;
 
       var controller = new Controller()
-        ..listen((req) async {
+        ..linkFunction((req) async {
           var body = await req.body.decodeAsMap();
           return new Response.ok(body);
         });
@@ -353,7 +353,7 @@ void main() {
       HTTPRequestBody.maxSize = 8193;
 
       var controller = new Controller()
-        ..listen((req) async {
+        ..linkFunction((req) async {
           var body = await req.body.decodedData;
           return new Response.ok(body)..contentType = new ContentType("application", "octet-stream");
         });
@@ -404,7 +404,7 @@ Future<HttpServer> bindAndRespondWith(Response response) async {
   var server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
   server.map((req) => new Request(req)).listen((req) async {
     var next = new Controller();
-    next.listen((req) async {
+    next.linkFunction((req) async {
       return response;
     });
     await next.receive(req);

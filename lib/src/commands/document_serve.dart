@@ -59,7 +59,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
         print("${rec.message} ${rec.stackTrace ?? ""}");
       });
 
-    _router.route("/*").pipe(fileController);
+    _router.route("/*").link(() => fileController);
     _router.prepare();
 
     server.map((req) => new Request(req)).listen((req) {

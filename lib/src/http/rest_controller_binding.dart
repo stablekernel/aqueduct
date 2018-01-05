@@ -174,9 +174,9 @@ class Bind {
         return new HTTPBody();
       case _BindType.path:
         return new HTTPPath(name);
-      default:
-        return null;
     }
+
+    throw new StateError("Invalid binding '$_type' on '$name'.");
   }
 }
 
