@@ -4,20 +4,20 @@ Learn how an application is initialized so it can serve requests.
 
 ## Overview
 
-Applications receive and fulfill HTTP requests using controllers. A *controller* is an object that can process a request in some way. In general, there are two types of processing and therefore two types of controllers:
+Applications fulfill HTTP requests using *controllers*. A controller is an object that can process a request in some way. In general, there are two types of controllers:
 
-- Middleware controllers ensure the request meets some criteria.
-- Endpoint controllers fulfill a request.
+- Endpoint controllers fulfill a request (e.g., insert a row into a database and send a 200 OK response).
+- Middleware controllers verify something about a request (e.g., verifying the Authorization header has valid credentials) or modify the response created by an endpoint controller (e.g., add a response header).
 
-Controllers are linked together - starting with middleware and ending with an endpoint controller - to form a series of steps a request will go through. These linked controllers are called the *application channel*. There is one application channel in an application.
+Controllers are linked together - starting with middleware and ending with an endpoint controller - to form a series of steps a request will go through. Every controller can either pass the request on to its linked controller, or respond to the request itself (in which case, the linked controller never sees the request). For example, an authorizer middleware will let a request pass if it has valid credentials, but will respond with a 401 Unauthorized response if the credentials are invalid. Some controllers, like `Router`, can have multiple controllers linked to it.
 
-A channel has an entry point - the first controller that will receive HTTP requests. If the request meets some criteria, the entry point will send the request to one of its linked controllers. This process continues until the request reaches a endpoint controller. When a request doesn't meet the conditions of a controller, the controller will remove it from the application channel and send a response. Removing a request from a channel will prevent any other controller from processing the request.
+These linked controllers are called the *application channel*. An application channel has a single entry point - the controller that will receive HTTP requests first. In a typical application, the entry point is a `Router`. Additional controllers are linked to the `Router` at startup to form a processing pipeline for your application.
 
-You subclass `ApplicationChannel` to define the channel for your application. Instances of your subclass are automatically created when an application starts.
+The application channel is defined by subclassing `ApplicationChannel`. There is one `ApplicationChannel` subclass per application.
 
 ### Building the ApplicationChannel
 
-The only requirement of an Aqueduct application is that it has exactly one `ApplicationChannel` subclass. This subclass must provide an implementation for `entryPoint`. This method creates and links together the controllers that are your application channel. The controller returned from this method will be the first to receive requests. Here's an example:
+An `ApplicationChannel` must override its `entryPoint` method to return the first controller in the channel. In the implementation of this method, every controller that will be used in the application is linked to either the entry point in some way. Here's an example:
 
 ```dart
 class AppChannel extends ApplicationChannel {
@@ -27,31 +27,24 @@ class AppChannel extends ApplicationChannel {
 
     router
       .route("/users")
-      .pipe(new Authorizer())
-      .generate(() => new UserController());
+      .link(() => new Authorizer())
+      .link(() => new UserController());
 
     return router;
   }
 }
 ```
 
-This method creates four controllers, the first being a `Router` which is returned from this method and is therefore the first controller to receive requests. Each call to `route`, `pipe`, and `generate` creates a new controller and links it to the previous. The linked controllers in order are:
+This method links together a `Router`, `Authorizer` and `UserController` in that order. A request is first handled by the `Router`, and if its path matches '/users', it will be sent to the `Authorizer`. If the `Authorizer` verifies the request, the request is passed to the `UserController` for fulfillment.
 
-1. `Router`
-2. `RouteController` (created internally by `route`; this class is opaque)
-3. `Authorizer` (added with `pipe`)
-4. `UserController` (added with `generate`)
+By contrast, if the request's path doesn't match '/users', the `Router` sends a 404 Not Found response and doesn't pass it to the `Authorizer`. Likewise, if the request isn't authorized, the `Authorizer` will send a 401 Unauthorized response and prevent it from being passed to the `UserController`. In other words, a request 'falls out' of the channel once a controller responds to it, so that no further controllers will receive it.
 
-In this example, a router will let requests with the path `/users` go to a `RouteController` created by `route`. This controller is very simple - it always forwards it to its next controller, here, an `Authorizer`. If the request is authorized, the `Authorizer` will let it pass to a `UserController`. The fictional `UserController` will fulfill the request.
-
-The first three controllers are middleware and `UserController` is an endpoint controller. If the request path were not `/users`, the router would respond with 404 Not Found. The request would never get sent to the `RouteController`, nor any of the other controllers after it. If the request were not authorized - but the path was `/users` - the `Authorizer` would respond with 401 Unauthorized and the `UserController` will never see it.
-
-!!! tip "route, pipe, generate and listen"
-    There are four channel construction methods. They all create and link controllers together, but they have slightly different behavior. This behavior is covered in [this guide](controller.md).
+!!! note "Linking"
+    The `link()` method takes a closure that creates a new controller. Each time a request passes a controller, the closure is invoked to create a new instance to handle the request. See [the chapter on controllers](controller.md) for more information.
 
 ## Providing Services for Controllers
 
-Controllers often need to get (or create) information from outside the application. The most common example if information stored outside an application is a database, but it could be anything: another REST API, a connected device, etc. A *service object* encapsulates the information and behavior needed to work with an external system. Controllers use service objects to carry out their task. This separation of concerns between controllers and service objects allows for better structured and more testable code.
+Controllers often need to get (or create) information from outside the application. The most common example is database access, but it could be anything: another REST API, a connected device, etc. A *service object* encapsulates the information and behavior needed to work with an external system. This separation of concerns between controllers and service objects allows for better structured and more testable code.
 
 Service objects are passed to controllers through their constructor. A controller that needs a database connection, for example, would take a database connection object in its constructor and store it in a property. Services are created by overriding `prepare()` in an `ApplicationChannel`. Here's an example:
 
@@ -70,8 +63,8 @@ class AppChannel extends ApplicationChannel {
 
     router
       .route("/users")
-      .pipe(new Authorizer())
-      .generate(() => new UserController(database));
+      .link(() => new Authorizer())
+      .link(() => new UserController(database));
 
     return router;
   }
@@ -80,7 +73,7 @@ class AppChannel extends ApplicationChannel {
 
 Notice that `database` is created in `prepare()`, stored in a property and passed to each new instance of `UserController`. The `prepare()` method is always executed before `entryPoint` is called.
 
-## Channel Initialization
+## Application Channel Configuration
 
 A benefit to using service objects is that they can be altered depending on the environment the application is running in without requiring changes to our controller code. For example, the database an application will connect to will be different when running in production than when running tests.
 
@@ -92,7 +85,7 @@ Some of the information needed to configure an application will come from a conf
 
 ## Multi-threaded Aqueduct Applications
 
-Aqueduct applications can - and should - be spread across a number of threads. This allows an application to take advantage of multiple CPUs and serve requests faster. In Dart, threads are called *isolates*. An instance of your `ApplicationChannel` is created for each isolate. When your application receives an HTTP request, one of these instances receives the request and processes it. Since each application channel is an instance of the same type, these instances are replicas of one another and it doesn't matter which instance processes the request. This isolate-channel architecture is very similar to running multiple servers that run the same application.
+Aqueduct applications can - and should - be spread across a number of threads. This allows an application to take advantage of multiple CPUs and serve requests faster. In Dart, threads are called *isolates*. An instance of your `ApplicationChannel` is created for each isolate. When your application receives an HTTP request, one of these instances receives the request and processes it. These instances are replicas of one another and it doesn't matter which instance processes the request. This isolate-channel architecture is very similar to running multiple servers that run the same application.
 
 The number of isolates an application will use is configurable at startup when using the [aqueduct serve](../cli/running.md) command.
 
@@ -106,13 +99,9 @@ Both `prepare()` and `entryPoint` are part of the initialization process of an a
 
 These three initialization callbacks are called once per isolate to initialize the channel running on that isolate. For initialization that should only occur *once per application start* (regardless of how many isolates are running), an `ApplicationChannel` subclass can implement a static method named `initializeApplication()`.
 
-### initializeApplication
-
-For one-time, application-wide initialization tasks, you may add the following *static* method to your application channel subclass:
-
 ```dart
 class AppChannel extends ApplicationChannel {
-  static Future initializeApplication(ApplicationOptions config) async {
+  static Future initializeApplication(ApplicationOptions options) async {
     ... do one time setup ...
   }
 
@@ -120,15 +109,15 @@ class AppChannel extends ApplicationChannel {
 }
 ```
 
-This method is invoked before any `ApplicationChannel` instances are created. Any changes made to `config` will be available in each `ApplicationChannel`'s `options` property.
+This method is invoked before any `ApplicationChannel` instances are created. Any changes made to `options` will be available in each `ApplicationChannel`'s `options` property.
 
 For example:
 
 ```dart
 class AppChannel extends ApplicationChannel {
 
-  static Future initializeApplication(ApplicationOptions config) async {        
-    config.context["special item"] = "xyz";
+  static Future initializeApplication(ApplicationOptions options) async {        
+    options.context["special item"] = "xyz";
   }  
 
   Future prepare() async {

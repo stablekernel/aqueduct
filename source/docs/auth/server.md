@@ -58,16 +58,16 @@ class MyApplicationChannel extends ApplicationChannel {
     final router = new Router();
 
     // Set up auth token route- this grants and refresh tokens
-    router.route("/auth/token").generate(() => new AuthController(authServer));
+    router.route("/auth/token").link(() => new AuthController(authServer));
 
     // Set up auth code route- this grants temporary access codes that can be exchanged for token
-    router.route("/auth/code").generate(() => new AuthCodeController(authServer));
+    router.route("/auth/code").link(() => new AuthCodeController(authServer));
 
     // Set up protected route
     router
       .route("/protected")
-      .pipe(new Authorizer.bearer(authServer))
-      .generate(() => new ProtectedController());
+      .link(() => new Authorizer.bearer(authServer))
+      .link(() => new ProtectedController());
 
     return router;
   }

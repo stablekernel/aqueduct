@@ -77,7 +77,7 @@ A `RESTController` subclass must be preceded by a `Router` in the application ch
 ```dart
 router
   .route("/cities/[:name]")
-  .generate(() => new CityController());
+  .link(() => new CityController());
 ```
 
 This route would allow `CityController` to implement operation methods for all HTTP methods with both no path variables and the 'name' path variable.
@@ -87,16 +87,14 @@ It is considered good practice to break sub-resources into their own controller.
 ```dart
 router
   .route("/cities/[:name]")
-  .generate(() => new CityController());
+  .link(() => new CityController());
 
 router  
   .route("/cities/:name/attractions/[:id]")
-  .generate(() => new CityAttractionController());
+  .link(() => new CityAttractionController());
 ```
 
 By contrast, the route `/cities/[:name/[attractions/[:id]]]`, while valid, makes controller logic much more unwieldy.
-
-`RESTController`s *must* be added to the channel with `generate()` so that a new instance is created for each request. This is important because operation methods can access the request they are handling through the `request` property inherited from `RESTController`. Since operation methods are asynchronous, it is possible that more than one request can be handled by the same controller type at the same time.
 
 ## REST Bindings
 
@@ -434,7 +432,7 @@ A `ManagedObjectController<T>` is significantly more powerful; you don't even ne
 ```dart
 router
   .route("/users/[:id]")
-  .generate(() => new ManagedObjectController<User>());
+  .link(() => new ManagedObjectController<User>());
 ```
 
 This controller has the following behavior:

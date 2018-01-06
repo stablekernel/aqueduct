@@ -12,7 +12,7 @@ Instances of `HTTPFileController` serve a directory from the filesystem through 
 Controller get entryPoint {
   final router = new Router();
 
-  router.route("/files/*").pipe(new HTTPFileController("public/"));
+  router.route("/files/*").link(() => new HTTPFileController("public/"));
 
   return router;
 }

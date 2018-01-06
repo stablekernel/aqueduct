@@ -114,13 +114,13 @@ await connection.open();
 
 All controllers have built-in behavior for handling CORS requests from a browser. When a preflight request is received from a browser (an OPTIONS request with Access-Control-Request-Method header and Origin headers), the response is created by evaluating the policy of the `Controller` that will respond to the real request.
 
-In practice, this means that the policy of the last controller in a channel is used. For example, the policy of `FooController` is generates the preflight response:
+In practice, this means that the policy of the last controller in a channel is used. For example, the policy of `FooController` generates the preflight response:
 
 ```dart
 router
   .route("/foo")
-  .pipe(new Authorizer(...))
-  .generate(() => new FooController());
+  .link(() => new Authorizer(...))
+  .link(() => new FooController());
 ```
 
 Every `Controller` has a `policy` property (a `CORSPolicy` instance). The `policy` has properties for configuring CORS options for that particular endpoint. By having a `policy`, every `Controller` automatically implements logic to respond to preflight requests without any additional code.

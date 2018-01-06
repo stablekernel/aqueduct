@@ -18,17 +18,17 @@ class AppChannel extends ApplicationChannel {
 
     router
       .route("/a")
-      .generate(() => new AController());
+      .link(() => new AController());
 
     router
       .route("/b")
-      .pipe(new Authorizer(...))
-      .generate(() => new BController());
+      .link(() => new Authorizer(...))
+      .link(() => new BController());
 
     router
       .route("/c")
-      .pipe(new Authorizer(...))
-      .generate(() => new CController());   
+      .link(() => new Authorizer(...))
+      .link(() => new CController());   
 
     return router;
   }
@@ -94,7 +94,7 @@ Controller get entryPoint {
 
   router
     .route("/bypass_aqueduct")
-    .listen((req) async {
+    .linkFunction((req) async {
       req.response.statusCode = 200;
       req.response.close();
 

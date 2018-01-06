@@ -15,7 +15,7 @@ Controller get entryPoint {
 
   router
     .route("/auth/token")
-    .generate(() => new AuthController(authServer));
+    .link(() => new AuthController(authServer));
 
   return router;
 }
@@ -101,7 +101,7 @@ Controller get entryPoint {
 
   router
     .route("/auth/code")
-    .generate(() => new AuthCodeController(
+    .link(() => new AuthCodeController(
       authServer, renderAuthorizationPageHTML: renderLogin));
 
   return router;

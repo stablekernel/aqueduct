@@ -106,11 +106,11 @@ Controller get entryPoint {
 
   router
     .route("/heroes/[:id]")
-    .generate(() => new HeroesController(context));
+    .link(() => new HeroesController(context));
 
   router
     .route("/example")
-    .listen((request) async {
+    .linkFunction((request) async {
       return new Response.ok({"key": "value"});
   });
 

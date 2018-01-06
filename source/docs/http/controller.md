@@ -1,14 +1,24 @@
 # Handling Requests: Fundamentals
 
-This guide provides a deeper understanding of how a request object moves through an Aqueduct application to get responded to. For more use-case based guidance on handling requests, see [RESTController](rest_controller.md).
+Learn how `Controller` objects are linked together to handle HTTP requests.
 
-An Aqueduct application is a [channel of Controller](structure.md) instances that HTTP requests go through to get responded to.
+## Overview
 
-![Aqueduct Structure](../img/callout_structure.png)
+A controller is the basic building block of an Aqueduct application. A controller does something with an HTTP request. For example, a controller could return a 200 OK response with a JSON-encoded list of city names. A controller could also check a request to make sure it had the right username and password.
 
-The above diagram shows a request entering a channel at a `ApplicationChannel` and then being passed to a `Router`. The `Router` splits the channel. If a request's path matches a registered route, the request is passed down the split channel. If it doesn't, the `Router` stops the request from continuing down the channel and responds to it with a 404 Not Found response. Likewise, `Authorizer` might reject a request if it doesn't have valid authorization credentials or let it pass to the next controller in the channel. At the end of the channel, some controller must respond to the request.
+These controllers can be linked together to get more complex behavior: if the request has the right username and password, the response with city names is sent. Aqueduct applications are many linked together controllers that form an application's behavior. Some of these controllers are created specifically for an application, and some can be reused across multiple applications.
 
-Channels always begin with a `ApplicationChannel` and a `Router`. This channel is built upon by invoking `route` on the `Router`, which splits the channel into subchannels. These subchannels are added to with the methods `pipe`, `generate`, and `listen`. Each of these `Controller` methods attaches another `Controller` to form a channel. Here's an example:
+This ordered organization of controllers is called an *application channel*, and is created when the application starts. One controller is designated as the first controller in the channel. It is the channel's *entry point* and it the first to receive a new request. It can either send a response, or send it to its linked controller. The linked controller can do the same, and so on.
+
+![Aqueduct Structure](../img/simple_controller_diagram.png)
+
+Some controllers can choose from multiple controllers, depending on something about the request. In most applications, the entry point is a `Router` controller that chooses the next controller based on the path of the request.
+
+![Aqueduct Structure](../img/simple_controller_diagram.png)
+
+## Linking Controllers
+
+Controllers are linked together by overriding the `entryPoint` getter of an `ApplicationChannel` subclass. Here's an example:
 
 ```dart
 @override
@@ -16,154 +26,113 @@ Controller get entryPoint {
   final router = new Router();
 
   router
-    .route("/path")
-    .listen((Request request) async {
-      logger.info("$request");
-      return request;
-    })
-    .pipe(new FilteringController())
-    .generate(() => new CRUDController());
+    .route("/path")    
+    .link(() => new Authorizer())
+    .link(() => new NoteController());
 
   return router;
 }
 ```
 
-First, notice that these methods can be chained together in this way because they always return the controller being added to the channel. For example, `router.route` creates a new "route controller" and returns it. The route controller then has `listen` invoked on it, which creates a new `Controller` from a closure and returns it, for which `pipe` is invoked... you get the drift.
+The `Router` controller returned from this getter is the entry point of the channel. It handles every request; if that request is '/path', a new `Authorizer` is created to handle the request next. The `Authorizer` makes sure the request is authorized before it reaches a `NoteController`. The `NoteController` fulfills the request - probably by sending a response with a list of notes or by adding a note from the request body to the database.
 
-The `listen` method is the easiest to understand: it takes an async closure that takes a `Request` and may either return a `Response` or that same `Request`. If it returns the `Request`, the request is passed to the next controller in the channel. If it returns a `Response`, a response is sent to the HTTP client and no more controllers get the request.
+Linking controllers and creating an `ApplicationChannel` is covered more in depth in [this guide](channel.md).
 
-Concrete implementations of `Controller` - like the mythical `FilteringController` and `CRUDController` above - override a method with the same signature as the `listen` closure. This method is named `handle` and it looks like this:
+## Creating Request Handling Behavior by Subclassing Controller
+
+Controllers like `Router` and `Authorizer` are part of Aqueduct can be used in any application. Controllers that are specific to your application are defined by subclassing `Controller`. A controller's behavior is defined by overriding its `handle` method:
 
 ```dart
-class FilteringController {
+class NoteController extends Controller {
   @override
   Future<RequestOrResponse> handle(Request request) async {
-    if (isThereSomethingWrongWith(request)) {
-      return new Response.badRequest();
+    final notes = await fetchNotesFromDatabase();
+
+    return new Response.ok(notes);
+  }
+}
+```
+
+This `handle` method always creates and returns a `Response` object. The response returned from a controller is sent to the client. A controller that always returns a response is called an *endpoint controller*. When linking a series of controllers, an endpoint controller is always the last link.
+
+Controllers that handle the request before it reaches an endpoint controller are called *middleware controllers*. A typical middleware controller is `Authorizer` - it lets a request pass through if it has valid credentials in its Authorization header. An `Authorizer` sends an error response if the credentials aren't valid, preventing the endpoint from being reached. The pseudo-code for an `Authorizer` looks like this:
+
+```dart
+class Authorizer extends Controller {
+  @override
+  Future<RequestOrResponse> handle(Request request) async {
+    if (isValid(request)) {
+      return request;
     }
 
-    return request;
+    return new Response.unauthorized();
   }
 }
 ```
 
-(In fact, the `listen` closure is simply wrapped by an instance of `Controller`. The default behavior of `handle` is to invoke its closure.)
+Controllers let a request pass to their linked controller by returning the request from `handle`. (Whereas returning a `Response` sends the response, and the linked controller never sees the request.)
 
-The difference between `pipe` and `generate` is important. A `Controller` like `FilteringController` doesn't have any properties that change when processing a request. But let's pretend `CRUDController` is defined like the following, where it reads the body into a property and then accesses that property later:
+!!! tip "Endpoint Controllers"
+    In most cases, endpoint controllers are created by subclassing [RESTController](rest_controller.md). This controller allows you to declare more than one handler method in a controller to better organize logic. For example, one method might handle POST requests, while another handles GET requests.
+
+## Linking Functions
+
+For simple behavior, functions with the same signature as `handle` can be linked to controllers:
 
 ```dart
-class CRUDController {
-  Map<String, dynamic> body;
-
-  @override
-  Future<RequestOrResponse> handle(Request request) async {
-    body = await request.body.asMap();
-
-    if (request.raw.method == "POST") {
-      return handlePost();
-    } else if (request.raw.method == "PUT") {
-      return handlePut();
-    } ...
-  }
-
-  Future<RequestOrResponse> handlePost() async {
-    ... do something with body ...
-  }
-}
+  router
+    .route("/path")
+    .linkFunction((req) async => req);
+    .linkFunction((req) async => new Response.ok(null));
 ```
 
-In the above, the `body` property will be updated when `CRUDController` receives a request. It is possible that `CRUDController` is working on creating a response when it gets a new request, changing its `body` property. This would change the `body` for all requests that `CRUDController` is currently processing!
-
-Therefore, when a controller has state that changes for every request, a new instance should be created for each request. The `generate` method takes a closure that creates a new instance of a controller. The `pipe` method on the other hand reuses the same controller for every request because the request passes right through it without changing any of its state.
-
-The most common controller in an Aqueduct is an `RESTController`. This controller handles all requests for an HTTP resource. For example, a controller of this type might handle `POST /users`, `PUT /users/1`, `GET /users`, `GET /users/1` and `DELETE /users/1`. It has conveniences for organizing code such that each of these operations is bound to its own instance method. These conveniences require that the controller store parsed values from the request in it properties. Therefore, all `RESTController`s must be added to a channel with `generate`.
-
-`RESTController` - and any other controller that requires a new instance for each request - is marked with `@cannotBeReused` metadata. If you try and `pipe` to a controller with this metadata, you'll get an error at startup with a helpful error message.
+Linking a function has all of the same behavior: it can return a request or response, automatically handles exceptions, and can have controllers (and functions) linked to it. 
 
 ## Exception Handling
 
 `Controller`s wrap `handle` in a try-catch block. If an exception is thrown during the processing of a request, it is caught and the controller will send a response on your behalf. The request is then removed from the channel and no more controllers will receive it.
 
-There are two types of exceptions that a `Controller` will interpret to return a meaningful status code: `HTTPResponseException` and `QueryException`. Any other uncaught exceptions will result in a 500 status code error.
-
-`QueryException`s are generated by the Aqueduct ORM. A controller interprets these types of exceptions to return a suitable status code. The following reasons for the exception generate the following status codes:
-
-|Reason|Status Code|
-|---|---|
-|A programmer error (bad query syntax)|500|
-|Unique constraint violated|409|
-|Invalid input|400|
-|Database can't be reached|503|
-
-An `HTTPResponseException` can be thrown at anytime to escape early from processing and return a response. Exceptions of these type allow you to specify the status code and a message. The message is encoded in a JSON object for the key "error". Some classes in Aqueduct will throw an exception of this kind if some precondition isn't met.
-
-If you have code that can throw for legitimate reasons, you may catch those exceptions to return a response with an appropriate status code:
+By default, an uncaught exception will send a 500 Server Error response to the client. The error will be [logged](configure.md). For more control over the error response, an `HTTPResponseException`s can be thrown.
 
 ```dart
-class Controller extends Controller {
+class SomeController extends Controller {
   Future<RequestOrResponse> handle(Request request) async {
-    try {
-      await someFailableOperation();
-    } on OperationException catch (e) {
-      return new Response(503, null, {"error": e.errorMessage});
+    if (somethingBadHappened) {
+      throw new HTTPResponseException(400, "Something bad happened.");
     }
 
-    ...
+    return new Response.ok(null);
   }
 }
 ```
 
-You may also catch `Query` or `HTTPResponseException`s to reinterpret them, but the default behavior is pretty reasonable.
+The message of an `HTTPResponseException` is encoded as JSON in the response body:
 
-Other than `HTTPResponseException`s, exceptions are written to the `Logger` along with some details of the request that generated the exception. `HTTPResponseException`s are not logged, as they are used for control flow and are considered "normal" operation.
+```json
+{
+  "error": "Something bad happened."
+}
+```
 
-## Subclassing Controller
+There are built-in subclasses of `HTTPResponseException` for features like the ORM, and you can create your own. `HTTPResponseException`s are not logged, because they are considered normal control flow for an application.
 
-Using existing subclasses of `Controller` like `Router`, `Authorizer` and `RESTController` cover the majority of Aqueduct use cases. There are times where creating your own `Controller` subclass may make sense.
+## Modifying a Response with Middleware
 
-To pass a request on to the next controller in the channel, a controller must return the same instance of `Request` it receives. It may, however, attach additional information by adding key-value pairs to the request's `attachments`.
-
-For example, an `Authorizer`'s pseudo code looks like this:
+A middleware controller can modify the response created by an endpoint controller:
 
 ```dart
-Future<RequestOrResponse> handle(Request request) async {
-    if (!isAuthorized(request)) {
-      return new Response.unauthorized();
-    }
+class Versioner extends Controller {
+  Future<RequestOrResponse> handle(Request request) async {
+    request.addResponseModifier((response) {
+      response.headers["x-api-version"] = "2.1";
+    });
 
-    request.attachments["authInfo"] = authInfoFromRequest(request);
     return request;
+  }
 }
 ```
 
-The next controller in the channel can look up the value of `authInfo`:
-
-```dart
-Future<RequestOrResponse> handle(Request request) async {
-    var authInfo = request.attachments["authInfo"];
-
-
-    return new Response.ok("You are user: ${authInfo.username}");
-}
-```
-
-## Middleware Modifying a Response
-
-A `Controller` that doesn't respond to a request can still modify the eventual response. This is valuable for "middleware" `Controller`s that have some information to return back to the client, but aren't responsible for generating the response. For example, the following shows a channel where `UserController` will create the response, but middleware will add a header to the response:
-
-```dart
-router
-  .route("/path")
-  .listen((req) async {
-    return req
-      ..addResponseModifier((response) {
-        response.headers["x-api-version"] = "2.1";
-      });
-  })
-  .generate(() => new UserController());
-```
-
-Modifiers are run in the order they are added to a request and are run before any body data is encoded or any values are written to the network socket.
+While this controller does not create a response for the request, another controller will. That response will have an 'x-api-version' header added to it before it is sent. More than one controller can add a response modifier, and each modifier is run in the order it are added to a request. The modifiers are run before any response body data is encoded.
 
 ## CORS Headers and Preflight Requests
 

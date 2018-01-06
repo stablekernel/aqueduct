@@ -139,7 +139,7 @@ Controller get entryPoint {
 
   router
     .route("/heroes")
-    .generate(() => new HeroesController());
+    .link(() => new HeroesController());
 
   router
     .route("/example")
@@ -207,7 +207,7 @@ Controller get entryPoint {
 
   router
     .route("/heroes/[:id]")
-    .generate(() => new HeroesController());
+    .link(() => new HeroesController());
 
   router
     .route("/example")

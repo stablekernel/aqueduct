@@ -34,7 +34,7 @@ class AppApplicationChannel extends ApplicationChannel {
     final router = new Router();
     router
       .route("/resource/[:id]")
-      .generate(() => new ResourceController(databaseContext));
+      .link(() => new ResourceController(databaseContext));
     return router;
   }
 }
@@ -51,15 +51,15 @@ Controller get entryPoint {
 
   router
     .route("/users/[:id]")
-    .generate(() => new UserController());
+    .link(() => new UserController());
 
   router
     .route("/file/*")
-    .generate(() => new HTTPFileController());
+    .link(() => new HTTPFileController());
 
   router
     .route("/health")
-    .listen((req) async => new Response.ok(null));
+    .linkFunction((req) async => new Response.ok(null));
 
   return router;
 }    
@@ -117,7 +117,7 @@ class ResourceController extends RESTController {
 ```dart
 router
   .route("/users/[:id]")
-  .generate(() => new ManagedObjectController<User>());
+  .link(() => new ManagedObjectController<User>());
 ```
 
 `Controller` is the base class for all controllers that form a channel. They only have a single method to handle the request, and must either return the request or a response. When a controller returns a response, the request is taken out of the channel.
@@ -344,16 +344,16 @@ Controller get entryPoint {
   final router = new Router();
   router
     .route("/auth/token")
-    .generate(() => new AuthController(authServer));
+    .link(() => new AuthController(authServer));
 
   router
     .route("/auth/code")
-    .generate(() => new AuthCodeController(authServer));
+    .link(() => new AuthCodeController(authServer));
 
   router
     .route("/protected")
-    .pipe(new Authorizer.bearer(authServer))
-    .generate(() => new ProtectedController());
+    .link(() => new Authorizer.bearer(authServer))
+    .link(() => new ProtectedController());
 
   return router;
 }

@@ -8,7 +8,7 @@ class AppChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    router.route("/hello_world").listen((request) async {
+    router.route("/hello_world").linkFunction((request) async {
       return new Response.ok("Hello, world!")
         ..contentType = ContentType.TEXT;
     });
@@ -26,7 +26,7 @@ class AppChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    router.route("/variable/[:variable]").listen((request) async {
+    router.route("/variable/[:variable]").linkFunction((request) async {
       return new Response.ok({
         "method": request.raw.method,
         "path": request.path.variables["variable"] ?? "not specified"
@@ -48,7 +48,7 @@ class AppChannel extends ApplicationChannel {
 
     router
       .route("/users/[:id]")
-      .generate(() => new Controller());
+      .link(() => new Controller());
 
     return router;
   }
@@ -82,8 +82,8 @@ class AppChannel extends ApplicationChannel {
 
     router
       .route("/rate_limit")
-      .pipe(new RateLimiter())
-      .listen((req) async => new Response.ok({
+      .link(() => new RateLimiter())
+      .linkFunction((req) async => new Response.ok({
         "requests_remaining": req.attachments["remaining"]
       }));
 
@@ -124,7 +124,7 @@ class AppChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    router.route("/things").listen((request) async {
+    router.route("/things").linkFunction((request) async {
       return new Response.ok(["Widget", "Doodad", "Transformer"]);
     });
 
@@ -141,7 +141,7 @@ class AppChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    router.route("/files/*").pipe(
+    router.route("/files/*").link(() =>
       new HTTPFileController("web")
         ..addCachePolicy(new HTTPCachePolicy(expirationFromNow: new Duration(days: 365)),
           (path) => path.endsWith(".js") || path.endsWith(".css"))      
@@ -171,7 +171,7 @@ class AppChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    router.route("/stream").listen((req) async {
+    router.route("/stream").linkFunction((req) async {
       return new Response.ok(controller.stream)
           ..bufferOutput = false
           ..contentType = new ContentType(
@@ -201,7 +201,7 @@ class AppChannel extends ApplicationChannel {
     final router = new Router();
 
     // Allow websocket clients to connect to ws://host/connect
-    router.route("/connect").listen((request) async {
+    router.route("/connect").linkFunction((request) async {
       var websocket = await WebSocketTransformer.upgrade(request.raw);
       websocket.listen(echo, onDone: () {
         websockets.remove(websocket);
@@ -246,7 +246,7 @@ class AppChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    router.route("/csv").listen((req) async {
+    router.route("/csv").linkFunction((req) async {
       // These values will get converted by CsvCodec into a comma-separated string
       return new Response.ok([[1, 2, 3], ["a", "b", "c"]])
         ..contentType = CSV;
@@ -266,7 +266,7 @@ class AppChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    router.route("/proxy/*").listen((req) async {
+    router.route("/proxy/*").linkFunction((req) async {
       var fileURL = "https://otherserver/${req.path.remainingPath}";
       var fileRequest = await client.getUrl(url);
       var fileResponse = await req.close();

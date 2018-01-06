@@ -168,8 +168,8 @@ An `Authorizer.bearer()` can require an access token to have certain scopes befo
 ```dart
 router
   .route("/email_attachments")
-  .pipe(new Authorizer.bearer(authServer, scopes: ["user:email", "user:documents"]))
-  .generate(() => new SecureStuffController());
+  .link(() => new Authorizer.bearer(authServer, scopes: ["user:email", "user:documents"]))
+  .link(() => new SecureStuffController());
 ```
 
 A request's token must have all of the scopes declared by the `Authorizer` - in this case, *both* "user:email" and "user:documents" (or "user", of course).

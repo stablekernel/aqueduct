@@ -24,14 +24,14 @@ class MyApplicationChannel extends ApplicationChannel {
 
     router
       .route("/users")
-      .listen((req) async => new Response.ok(await getAllUsers());
+      .linkFunction((req) async => new Response.ok(await getAllUsers());
 
     return router;
   }
 }
 ```
 
-The argument to `route` is the route specification string. This particular route matches the path `/users`. That is, a request for the URL `http://myserver.com/users` will be sent to the `listen` closure. (Leading and trailing slashes are stripped out when routes are compiled, so including them has no effect, but it is good style to show a leading slash.)
+The argument to `route` is the route specification string. This particular route matches the path `/users`. That is, a request for the URL `http://myserver.com/users` will be handled by the `linkFunction` closure. (Leading and trailing slashes are stripped out when routes are compiled, so including them has no effect, but it is good style to show a leading slash.)
 
 A path can have multiple segments (the characters between slashes). For example, the path `/users/foo` has two path segments: `users` and `foo`. A route specification matches each segment of a path against each of its segments. The path and the route must also have the same number of segments. Thus, the route specification `/users/foo` would match the path `/users/foo`, but it would not match the paths `/users`, `/users/7` or `/users/foo/1`.
 
@@ -121,4 +121,4 @@ The values in `variables` are always `String`s, since a request path is a `Strin
 
 ## Failed Matches Return 404
 
-A `Router` will return a `Response.notFound` - a response with status code 404 - if it receives a request that no route is registered for. The router will not send this request downstream to further listeners. This behavior may be overridden by providing a closure to `Router.unhandledController` to provide a 404 HTML page if the request allows it.
+A `Router` will return a `Response.notFound` - a response with status code 404 - if it receives a request that no route is registered for. The router will not send this request to linked controllers. This behavior may be overridden by providing a closure to `Router.unhandledController` to provide a 404 HTML page if the request allows it.

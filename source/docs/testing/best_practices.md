@@ -58,11 +58,11 @@ class AppChannel extends ApplicationChannel {
 
     router
       .route("/data")
-      .generate(() => new DBController(databaseConnection));
+      .link(() => new DBController(databaseConnection));
 
     router
       .route("/github")
-      .generate(() => new GitHubController(githubService));
+      .link(() => new GitHubController(githubService));
 
     return router;
   }

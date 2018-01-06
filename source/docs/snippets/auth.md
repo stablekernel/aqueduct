@@ -28,7 +28,7 @@ class AppChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/auth/token").generate(() => new AuthController(authServer));  
+    router.route("/auth/token").link(() => new AuthController(authServer));  
     return router;
   }
 }
@@ -71,12 +71,12 @@ class AppChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    router.route("/auth/token").generate(() => new AuthController(authServer));
+    router.route("/auth/token").link(() => new AuthController(authServer));
 
     router
       .route("/profile")
-      .pipe(new Authorizer.bearer(authServer, scopes: ["profile.readonly"]))
-      .generate(() => new ProfileController());
+      .link(() => new Authorizer.bearer(authServer, scopes: ["profile.readonly"]))
+      .link(() => new ProfileController());
   }
 }
 
@@ -100,8 +100,8 @@ class AppChannel extends ApplicationChannel {
     final router = new Router();
     router
       .route("/profile")
-      .pipe(new Authorizer.basic(new PasswordVerifier()))
-      .listen((req) async => new Response.ok(null));
+      .link(() => new Authorizer.basic(new PasswordVerifier()))
+      .linkFunction((req) async => new Response.ok(null));
 
     return router;
   }
@@ -147,9 +147,9 @@ class AppChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/auth/token").generate(() => new AuthController(authServer));  
+    router.route("/auth/token").link(() => new AuthController(authServer));  
 
-    router.route("/auth/code").generate(() => new AuthCodeController(authServer,
+    router.route("/auth/code").link(() => new AuthCodeController(authServer,
         renderAuthorizationPageHTML: renderLoginPage));
     return router;
   }

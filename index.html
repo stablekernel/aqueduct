@@ -110,8 +110,8 @@
             <div class="col-sm-6">
                 <pre class="feature-box"><code class="language-dart">router
   .route('/teams/[:id]')
-  .pipe(new Authorizer(validator))
-  .generate(() => new TeamController(databaseContext));</code></pre>
+  .link(() => new Authorizer(validator))
+  .link(() => new TeamController(databaseContext));</code></pre>
             </div>
         </div>
         <div class="row feature-row">
@@ -139,11 +139,11 @@ var auth = new AuthServer(delegate);
 
 router
   .route('/auth/token')
-  .generate(() => new AuthController(auth));
+  .link(() => new AuthController(auth));
 
 router
   .route('/auth/code')
-  .generate(() => new AuthCodeController(auth));</code></pre>
+  .link(() => new AuthCodeController(auth));</code></pre>
             </div>
         </div>
         <div class="row feature-row">
