@@ -256,6 +256,46 @@ void main() {
       expect(r5.body, "\"*\"");
     });
   });
+
+  group("Controller linking", () {
+    HttpServer server;
+
+    tearDown(() async {
+      await server?.close();
+    });
+
+    test("Router can be linked to", () async {
+      final root = new Controller((req) async => req);
+      final router = new Router()
+        ..route("/1").link(() => new NumberEmitter(1))
+        ..route("/2").link(() => new NumberEmitter(2));
+
+      root.link(() => router);
+
+      root.prepare();
+      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
+      server.map((httpReq) => new Request(httpReq)).listen(root.receive);
+
+      expect((await http.get("http://localhost:4040/1")).body, "1");
+      expect((await http.get("http://localhost:4040/2")).body, "2");
+    });
+
+    test("Router delivers prepare to all controllers", () async {
+      Completer c1 = new Completer();
+      Completer c2 = new Completer();
+      final root = new Controller((req) async => new Response.ok(null));
+      final router = new Router()
+        ..route("/a").link(() => new PrepareTailController(c1))
+        ..route("/b").link(() => new PrepareTailController(c2));
+
+      root.link(() => router);
+
+      root.prepare();
+      expect(c1.future, completes);
+      expect(c2.future, completes);
+
+    });
+  });
 }
 
 Future<HttpServer> enableRouter(Router router) async {
@@ -271,3 +311,26 @@ class Handler extends Controller {
     return new Response(202, null, "ok");
   }
 }
+
+class NumberEmitter extends Controller {
+  NumberEmitter(this.number);
+
+  final int number;
+
+  @override
+  Future<RequestOrResponse> handle(Request req) async {
+    return new Response(200, null, "$number")..contentType = ContentType.TEXT;
+  }
+}
+
+class PrepareTailController extends Controller {
+  PrepareTailController(this.completer);
+
+  Completer completer;
+
+  @override
+  void prepare() {
+    completer.complete();
+  }
+}
+
