@@ -2,6 +2,8 @@
 
 ## 3.0.0
 
+- Controller linking is simplified. `generate` renamed to `link`. Removed `pipe`; all controllers must be instantiated per request.
+- `Controller.listen` renamed `Controller.linkFunction`.
 - Change default port for `aqueduct serve` to 8888.
 - Adds `MockHTTPServer.queueHandler` and `MockHTTPServer.queueOutage`.
 - Binding metadata - `HTTPPath`, `HTTPBody`, `HTTPQuery` and `HTTPHeader` - have been changed to `Bind.path`, `Bind.body`, `Bind.query` and `Bind.header`, respectively.

@@ -51,13 +51,13 @@ void main() {
               [".jpg", ".js", ".png", ".css", ".jpeg", ".ttf", ".eot", ".woff", ".otf"]
                   .any((suffix) => path.endsWith(suffix)));
 
-    router = new Router()
-      ..route("/files/*").pipe(new HTTPFileController("temp_files"))
-      ..route("/redirect/*").pipe(new HTTPFileController("temp_files", onFileNotFound: (c, r) async {
+    var router = new Router()
+      ..route("/files/*").link(() => new HTTPFileController("temp_files"))
+      ..route("/redirect/*").link(() => new HTTPFileController("temp_files", onFileNotFound: (c, r) async {
         return new Response.ok({"k": "v"});
       }))
-      ..route("/cache/*").pipe(cachingController)
-      ..route("/silly/*").pipe(
+      ..route("/cache/*").link(() =>cachingController)
+      ..route("/silly/*").link(() =>
           new HTTPFileController("temp_files")
             ..setContentTypeForExtension("silly", new ContentType("text", "html", charset: "utf-8")));
     router.prepare();

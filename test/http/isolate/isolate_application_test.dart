@@ -118,9 +118,9 @@ class TestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/t").listen((req) async => new Response.ok("t_ok"));
-    router.route("/r").listen((req) async => new Response.ok("r_ok"));
-    router.route("startup").listen((r) async {
+    router.route("/t").linkFunction((req) async => new Response.ok("t_ok"));
+    router.route("/r").linkFunction((req) async => new Response.ok("r_ok"));
+    router.route("startup").linkFunction((r) async {
       var total = options.context["startup"].fold(0, (a, b) => a + b);
       return new Response.ok("$total");
     });

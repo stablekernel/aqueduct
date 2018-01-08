@@ -154,11 +154,12 @@ class DefaultChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/path/[:id]").pipe(new Middleware()).generate(() => new Endpoint());
 
-    router.route("/constant").pipe(new UndocumentedMiddleware()).pipe(new Middleware()).generate(() => new Endpoint());
+    router.route("/path/[:id]").link(() => new Middleware()).link(() => new Endpoint());
 
-    router.route("/dynamic").listen((Request req) async {
+    router.route("/constant").link(() => new UndocumentedMiddleware()).link(() => new Middleware()).link(() => new Endpoint());
+
+    router.route("/dynamic").linkFunction((Request req) async {
       return new Response.ok("");
     });
 
@@ -173,7 +174,7 @@ class Middleware extends Controller {
   void documentComponents(APIDocumentContext components) {
     components.parameters
         .register("x-api-key", new APIParameter.header("x-api-key", schema: new APISchemaObject.string()));
-    nextRecorder?.documentComponents(components);
+    nextController?.documentComponents(components);
   }
 
   @override
@@ -214,7 +215,7 @@ class Endpoint extends Controller {
   }
 }
 
-class ComponentA extends Object with APIDocumentRecorder {
+class ComponentA extends Object with APIComponentDocumenter {
   @override
   void documentComponents(APIDocumentContext components) {
     final schemaObject = new APISchemaObject.object({
@@ -228,7 +229,7 @@ class ComponentA extends Object with APIDocumentRecorder {
   }
 }
 
-class ComponentB extends APIDocumentRecorder {
+class ComponentB extends APIComponentDocumenter {
   @override
   void documentComponents(APIDocumentContext components) {
     components.schema.register("ref-component", new APISchemaObject.object({"key": new APISchemaObject.string()}),

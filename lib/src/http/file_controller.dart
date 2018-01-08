@@ -7,7 +7,6 @@ import 'http.dart';
 /// Serves files from a directory on the filesystem.
 ///
 /// See the constructor for usage.
-///
 class HTTPFileController extends Controller {
   static Map<String, ContentType> _defaultExtensionMap = {
     /* Web content */
@@ -41,25 +40,25 @@ class HTTPFileController extends Controller {
     "otf": new ContentType("font", "otf"),
   };
 
-  /// Creates an instance of this type that serves files from [pathOfDirectoryToServe].
+  /// Creates a controller that serves files from [pathOfDirectoryToServe].
   ///
-  /// An instance of this type serves files by appending all or part of an HTTP request path to [pathOfDirectoryToServe] and streaming the bytes
-  /// of that file as a response.
+  /// File controllers append the path of an HTTP request to [pathOfDirectoryToServe] and attempt to read the file at that location.
   ///
-  /// Instances of this type are [pipe]d from a route that MUST contain the match-all route pattern (`*`). For example, consider the following:
+  /// If the file exists, its contents are sent in the HTTP Response body. If the file does not exist, a 404 Not Found error is returned by default.
+  ///
+  /// A route to this controller must contain the match-all segment (`*`). For example:
   ///
   ///       router
   ///        .route("/site/*")
-  ///        .pipe(new HTTPFileController("build/web"));
+  ///        .link(() => new HTTPFileController("build/web"));
   ///
-  /// In the above, `GET /site/index.html` would respond with the contents of the file `build/web/index.html`, relative to the project directory.
+  /// In the above, `GET /site/index.html` would return the file `build/web/index.html`.
   ///
   /// If [pathOfDirectoryToServe] contains a leading slash, it is an absolute path. Otherwise, it is relative to the current working directory
   /// of the running application.
   ///
   /// If no file is found, the default behavior is to return a 404 Not Found. (If the [Request] accepts 'text/html', a simple 404 page is returned.) You may
-  /// override this behavior by providing [onFileNotFound]. The first argument to [onFileNotFound  is the instance of this type that could not find the file and
-  /// may be accessed to use any settings like cache policies or content type mappings. The second argument is the request.
+  /// override this behavior by providing [onFileNotFound].
   ///
   /// The content type of the response is determined by the file extension of the served file. There are many built-in extension-to-content-type mappings and you may
   /// add more with [setContentTypeForExtension]. Unknown file extension will result in `application/octet-stream` content-type responses.

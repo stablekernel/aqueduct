@@ -37,7 +37,7 @@ class TestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/r").listen((r) async => new Response.ok(null));
+    router.route("/r").linkFunction((r) async => new Response.ok(null));
     return router;
   }
 }

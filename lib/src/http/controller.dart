@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:mirrors';
 import 'dart:io';
 
 import 'package:logging/logging.dart';
@@ -14,18 +13,21 @@ abstract class RequestOrResponse {}
 
 typedef FutureOr<RequestOrResponse> _Handler(Request request);
 
-/// Base type that processes [Request]s.
+/// Controllers handle requests by either responding, or taking some action and passing the request to another controller.
 ///
-/// Instances of this type process requests by creating a [Response] or passing the [Request] to [nextController]. The [nextController]
-/// is set at startup in [ApplicationChannel.entryPoint] via [pipe], [generate], or [listen].
+/// A controller is a discrete processing unit for requests. These units are composed
+/// together to form a series of steps that fully handle a request. This composability allows for reuse
+/// of common tasks (like verifying an Authorization header) that can be inserted as a step for many different requests.
 ///
 /// This class is intended to be subclassed. [ApplicationChannel], [Router], [RESTController] are all examples of this type.
 /// Subclasses should implement [handle] to respond to, modify or forward requests.
 class Controller extends Object with APIOperationDocumenter implements APIComponentDocumenter {
   /// Default constructor.
-  Controller();
-
-  Controller._withListener(this._listener);
+  ///
+  /// For subclasses, override [handle] and do not provide [handler].
+  ///
+  /// For controllers that are simple, provide a [handler] or use [linkFunction].
+  Controller([FutureOr<RequestOrResponse> handler(Request request)]) : _handler = handler;
 
   /// Returns a stacktrace and additional details about how the request's processing in the HTTP response.
   ///
@@ -48,7 +50,7 @@ class Controller extends Object with APIOperationDocumenter implements APICompon
 
   /// Receives requests that this controller does not respond to.
   ///
-  /// Use [pipe], [generate] or [listen] to set this property.
+  /// This value is set by [link] or [linkFunction].
   Controller get nextController => _nextController;
 
   /// An instance of the 'aqueduct' logger.
@@ -58,49 +60,25 @@ class Controller extends Object with APIOperationDocumenter implements APICompon
   CORSPolicy policy = new CORSPolicy();
 
   Controller _nextController;
-  _Handler _listener;
+  final _Handler _handler;
 
-  /// Sets the [nextController] that will receive a request after this one.
+  /// Links a controller to the receiver.
   ///
-  /// If this instance returns a [Request] from [handle], that request is passed to [next]'s [receive] method.
+  /// If the receiver does not respond to a request, the controller created by [instantiator] receives the request next.
   ///
-  /// See [listen] for a variant of this method that takes a closure instead of an object.
-  ///
-  /// See [generate] for a variant of this method that creates a new instance for each request.
-  Controller pipe(Controller next) {
-    var typeMirror = reflect(next).type;
-    if (_controllerRequiresGeneration(typeMirror)) {
-      throw new ControllerException("'${typeMirror
-          .reflectedType}' instances cannot be reused between requests. Rewrite as .generate(() => new ${typeMirror
-          .reflectedType}())");
-    }
-    _nextController = next;
-
-    return _nextController;
-  }
-
-  /// Sets the [nextController] that will receive a request after this one.
-  ///
-  /// If this instance returns a [Request] from [handle], that request is passed to the instance created by [instantiator]'s [receive] method.
-  /// This method differs from [pipe] in that [instantiator] creates a new instance for each HTTP request, whereas [pipe] reuses
-  /// the same controller for reach request.
-  ///
-  /// See [listen] for a variant of this method that takes a closure instead of an object.
-  ///
-  /// See [pipe] for a variant of this method that reuses the same object for each HTTP request.
-  Controller generate(Controller instantiator()) {
+  /// See [linkFunction] for a variant of this method that takes a closure instead of an object.
+  Controller link(Controller instantiator()) {
     _nextController = new _ControllerGenerator(instantiator);
     return _nextController;
   }
 
-  /// Sets the [nextController] that will receive a request after this one.
+  /// Links a function controller to the receiver.
   ///
-  /// If this instance returns a [Request] from [handle], that request is passed to [process].
-  /// [process] is invoked in the same try-catch block as [handle].
+  /// If the receiver does not respond to a request, [handle] receives the request next.
   ///
-  /// See [pipe] and [generate] for variants of this methods that objects instead of closures.
-  Controller listen(FutureOr<RequestOrResponse> process(Request request)) {
-    _nextController = new Controller._withListener(process);
+  /// See [link] for a variant of this method that takes an object instead of a closure.
+  Controller linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
+    _nextController = new Controller(handle);
     return _nextController;
   }
 
@@ -113,23 +91,13 @@ class Controller extends Object with APIOperationDocumenter implements APICompon
   /// This method is invoked immediately after [ApplicationChannel.entryPoint] is completes, for each
   /// instance in the channel created by [ApplicationChannel.entryPoint]. This method will only be called once per instance.
   ///
-  /// Controllers added to the channel via [generate] may use this method, but any values this method stores
+  /// Controllers added to the channel via [link] may use this method, but any values this method stores
   /// must be stored in a static structure, not the instance itself, since that instance will only be used to handle one request
   /// before it is garbage collected.
   ///
   /// If you override this method, you must call the superclass' implementation.
   void prepare() {
     _nextController?.prepare();
-  }
-
-  bool _controllerRequiresGeneration(ClassMirror mirror) {
-    if (mirror.metadata.firstWhere((im) => im.reflectee is _RequiresInstantiation, orElse: () => null) != null) {
-      return true;
-    }
-    if (mirror.isSubtypeOf(reflectType(Controller))) {
-      return _controllerRequiresGeneration(mirror.superclass);
-    }
-    return false;
   }
 
   /// Delivers [req] to this instance to be processed.
@@ -177,8 +145,8 @@ class Controller extends Object with APIOperationDocumenter implements APICompon
   /// If this method returns null, [req] is not passed to any other controller and is not responded to. You must respond to [req]
   /// through [Request.raw].
   FutureOr<RequestOrResponse> handle(Request req) {
-    if (_listener != null) {
-      return _listener(req);
+    if (_handler != null) {
+      return _handler(req);
     }
 
     return req;
@@ -276,7 +244,7 @@ class Controller extends Object with APIOperationDocumenter implements APICompon
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
     if (nextController == null) {
-      if (_listener == null) {
+      if (_handler == null) {
         throw new APIException("Invalid documenter '${runtimeType}'. Reached end of controller chain and found no operations. Path has summary '${path.summary}'.");
       }
       return {};
@@ -356,23 +324,6 @@ class ControllerException implements Exception {
   String toString() => "ControllerException: $message";
 }
 
-/// Metadata for a [Controller] subclass that requires it must be instantiated for each request.
-///
-/// Requires that the [Controller] must be created through [Controller.generate].
-///
-/// [Controller]s may carry some state throughout the course of their handling of a request. If
-/// that [Controller] is reused for another request, some of that state may carry over. Therefore,
-/// it is a better solution to instantiate the [Controller] for each incoming request. Marking
-/// a [Controller] subclass with this flag will ensure that an exception is thrown if an instance
-/// of [Controller] is chained in a [ApplicationChannel]. These instances must be generated with a closure:
-///
-///       router.route("/path").generate(() => new Controller());
-const _RequiresInstantiation cannotBeReused = const _RequiresInstantiation();
-
-class _RequiresInstantiation {
-  const _RequiresInstantiation();
-}
-
 typedef Controller _ControllerGeneratorClosure();
 
 class _ControllerGenerator extends Controller {
@@ -404,8 +355,22 @@ class _ControllerGenerator extends Controller {
   }
 
   @override
+  Controller link(Controller instantiator()) {
+    final c = super.link(instantiator);
+    nextInstanceToReceive._nextController = c;
+    return c;
+  }
+
+  @override
+  Controller linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
+    final c = super.linkFunction(handle);
+    nextInstanceToReceive._nextController = c;
+    return c;
+  }
+
+  @override
   Future receive(Request req) {
-    var next = nextInstanceToReceive;
+    final next = nextInstanceToReceive;
     nextInstanceToReceive = instantiate();
     return next.receive(req);
   }

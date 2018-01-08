@@ -19,8 +19,8 @@ void main() {
 
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
     var router = new Router();
-    router.route("/users/[:id]").generate(() => new TestModelController());
-    router.route("/string/:id").generate(() => new StringController());
+    router.route("/users/[:id]").link(() => new TestModelController());
+    router.route("/string/:id").link(() => new StringController());
     router.prepare();
 
     server.listen((req) async {

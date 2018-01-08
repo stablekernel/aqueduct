@@ -127,7 +127,7 @@ class TestChannel extends ApplicationChannel {
     final router = new Router();
     router
         .route("/controller/[:id]")
-        .generate(() => new Subclass());
+        .link(() => new Subclass());
     return router;
   }
 }

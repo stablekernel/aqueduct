@@ -21,8 +21,8 @@ import 'auth.dart';
 ///
 ///         router
 ///           .route("/protected-route")
-///           .pipe(new Authorizer.bearer(authServer))
-///           .generate(() => new ProtectedResourceController());
+///           .link(() =>new Authorizer.bearer(authServer))
+///           .link(() => new ProtectedResourceController());
 class Authorizer extends Controller {
   /// Creates an instance of [Authorizer].
   ///

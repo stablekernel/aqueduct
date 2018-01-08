@@ -37,7 +37,7 @@ abstract class AuthCodeControllerDelegate {
 ///
 ///       router
 ///         .route("/auth/code")
-///         .generate(() => new AuthCodeController(authServer));
+///         .link(() => new AuthCodeController(authServer));
 ///
 class AuthCodeController extends RESTController {
   /// Creates a new instance of an [AuthCodeController].

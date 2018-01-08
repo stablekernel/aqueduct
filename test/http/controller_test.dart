@@ -6,6 +6,52 @@ import 'dart:io';
 import 'dart:convert';
 
 void main() {
+  group("Linking", () {
+    HttpServer server;
+
+    tearDown(() async {
+      await server?.close();
+    });
+
+    test("Prepare flows through controllers", () async {
+      final completer = new Completer();
+      final root = new Controller();
+      root.linkFunction((req) async => req).link(() => new Always200Controller()).link(() => new PrepareTailController(completer));
+      root.prepare();
+      expect(completer.future, completes);
+    });
+
+    test("Controllers are generated for each request", () async {
+      final root = new Controller();
+      root.linkFunction((req) async => req).link(() => new NotingMiddleware()).link(() => new NotingEndpoint());
+      root.prepare();
+      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4111);
+      server.map((r) => new Request(r)).listen((req) => root.receive(req));
+
+      // These requests return pairs of [request memory address, controller memory address].
+      // A middleware places its pair in a header, the endpoint in the body.
+      // These values are returned so that the tests can check which instances
+      // were created to handle the request.
+      // We are expecting that the request remains the same between the middleware and the endpoint,
+      // and that new controller instances are created for each request.
+
+      final r1 = await http.get("http://localhost:4111");
+      final r2 = await http.get("http://localhost:4111");
+
+      List<int> r1m = JSON.decode(r1.headers["x-middleware"]);
+      List<int> r2m = JSON.decode(r2.headers["x-middleware"]);
+      List<int> r1e = JSON.decode(r1.body);
+      List<int> r2e = JSON.decode(r2.body);
+
+      expect(r1m.first, r1e.first);
+      expect(r2m.first, r2e.first);
+
+      expect(r1m.last, isNot(r2m.last));
+      expect(r1e.last, isNot(r2e.last));
+    });
+
+  });
+
   group("Response modifiers", () {
     HttpServer server;
     Controller root;
@@ -23,9 +69,9 @@ void main() {
     });
 
     test("Can add change status code", () async {
-      root.listen((r) async {
+      root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.statusCode = 201);
-      }).listen((r) async {
+      }).linkFunction((r) async {
         return new Response.ok(null);
       });
 
@@ -34,9 +80,9 @@ void main() {
     });
 
     test("Can remove header", () async {
-      root.listen((r) async {
+      root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.headers.remove("x-foo"));
-      }).listen((r) async {
+      }).linkFunction((r) async {
         return new Response.ok(null, headers: {"x-foo": "foo"});
       });
 
@@ -45,9 +91,9 @@ void main() {
     });
 
     test("Can add header", () async {
-      root.listen((r) async {
+      root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.headers["x-foo"] = "bar");
-      }).listen((r) async {
+      }).linkFunction((r) async {
         return new Response.ok(null);
       });
 
@@ -56,9 +102,9 @@ void main() {
     });
 
     test("Can change header value", () async {
-      root.listen((r) async {
+      root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.headers["x-foo"] = "bar");
-      }).listen((r) async {
+      }).linkFunction((r) async {
         return new Response.ok(null, headers: {"x-foo": "foo"});
       });
 
@@ -67,17 +113,14 @@ void main() {
     });
 
     test("Can modify body prior to encoding", () async {
-      root.listen((r) async {
+      root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.body["foo"] = "y");
-      }).listen((r) async {
+      }).linkFunction((r) async {
         return new Response.ok({"x": "a"});
       });
 
       var resp = await http.get("http://localhost:4111/");
-      expect(JSON.decode(resp.body), {
-        "foo": "y",
-        "x": "a"
-      });
+      expect(JSON.decode(resp.body), {"foo": "y", "x": "a"});
     });
   });
 
@@ -100,16 +143,14 @@ void main() {
 
     test("Return null", () async {
       var set = false;
-      root
-        .listen((req) {
-          req.raw.response.statusCode = 200;
-          req.raw.response.close();
+      root.linkFunction((req) {
+        req.raw.response.statusCode = 200;
+        req.raw.response.close();
 
-          return null;
-        })
-        .listen((req) {
-          set = true;
-        });
+        return null;
+      }).linkFunction((req) {
+        set = true;
+      });
 
       var response = await http.get("http://localhost:4111");
       expect(response.statusCode, 200);
@@ -121,8 +162,7 @@ void main() {
     Application app;
 
     setUp(() async {
-      app = new Application<OutlierChannel>()
-        ..options.port = 8000;
+      app = new Application<OutlierChannel>()..options.port = 8000;
       await app.start(numberOfInstances: 1);
     });
 
@@ -147,9 +187,7 @@ void main() {
       expect(completer.future, completes);
     });
 
-    test(
-        "Request on bad state: header already sent is captured in Controller",
-            () async {
+    test("Request on bad state: header already sent is captured in Controller", () async {
       var completer = new Completer();
       app.logger.onRecord.listen((p) {
         if (p.message.contains("Uncaught exception in isolate")) {
@@ -163,7 +201,7 @@ void main() {
 
     test(
         "Request controller throwing HttpResponseException that dies on bad state: header already sent is captured in Controller",
-            () async {
+        () async {
       var completer = new Completer();
       app.logger.onRecord.listen((p) {
         if (p.message.contains("Uncaught exception in isolate")) {
@@ -201,24 +239,21 @@ void main() {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8000);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen(handler);
+        next.linkFunction(handler);
         await next.receive(req);
       });
 
-      var statusCodes = (await Future.wait(
-              [0, 1, 2, 3].map((p) => http.get("http://localhost:8000/?p=$p"))))
+      var statusCodes = (await Future.wait([0, 1, 2, 3].map((p) => http.get("http://localhost:8000/?p=$p"))))
           .map((resp) => resp.statusCode)
           .toList();
       expect(statusCodes, [500, 400, 409, 503]);
     });
 
-    test(
-        "Request controller's can serialize and encode Serializable objects as JSON by default",
-        () async {
+    test("Request controller's can serialize and encode Serializable objects as JSON by default", () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen((req) async {
+        next.linkFunction((req) async {
           var obj = new SomeObject()..name = "Bob";
           return new Response.ok(obj);
         });
@@ -230,13 +265,11 @@ void main() {
       expect(JSON.decode(resp.body), {"name": "Bob"});
     });
 
-    test(
-        "Responding to request with no content-type, but does have a body, defaults to application/json",
-        () async {
+    test("Responding to request with no content-type, but does have a body, defaults to application/json", () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen((req) async {
+        next.linkFunction((req) async {
           return new Response.ok({"a": "b"});
         });
         await next.receive(req);
@@ -253,7 +286,7 @@ void main() {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen((req) async {
+        next.linkFunction((req) async {
           return new Response.ok(new DateTime.now());
         });
         await next.receive(req);
@@ -265,13 +298,11 @@ void main() {
       expect(resp.body.isEmpty, true);
     });
 
-    test(
-        "Responding to request with no explicit content-type, does not have a body, has no content-type",
-        () async {
+    test("Responding to request with no explicit content-type, does not have a body, has no content-type", () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen((req) async {
+        next.linkFunction((req) async {
           return new Response.ok(null);
         });
         await next.receive(req);
@@ -283,13 +314,11 @@ void main() {
       expect(resp.body.isEmpty, true);
     });
 
-    test(
-        "willSendResponse is always called prior to Response being sent for preflight requests",
-        () async {
+    test("willSendResponse is always called prior to Response being sent for preflight requests", () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.generate(() => new Always200Controller());
+        next.link(() => new Always200Controller());
         await next.receive(req);
       });
 
@@ -301,8 +330,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 200);
-      expect(JSON.decode((new String.fromCharCodes(await resp.first))),
-          {"statusCode": 403});
+      expect(JSON.decode((new String.fromCharCodes(await resp.first))), {"statusCode": 403});
 
       // valid preflight
       req = await (new HttpClient().open("OPTIONS", "localhost", 8888, ""));
@@ -312,19 +340,15 @@ void main() {
       resp = await req.close();
 
       expect(resp.statusCode, 200);
-      expect(resp.headers.value("access-control-allow-methods"),
-          "POST, PUT, DELETE, GET");
-      expect(JSON.decode((new String.fromCharCodes(await resp.first))),
-          {"statusCode": 200});
+      expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
+      expect(JSON.decode((new String.fromCharCodes(await resp.first))), {"statusCode": 200});
     });
 
-    test(
-        "willSendResponse is always called prior to Response being sent for normal requests",
-        () async {
+    test("willSendResponse is always called prior to Response being sent for normal requests", () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.generate(() => new Always200Controller());
+        next.link(() => new Always200Controller());
         await next.receive(req);
       });
 
@@ -353,16 +377,15 @@ void main() {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen((r) async {
+        next.linkFunction((r) async {
           await r.body.decodeAsMap();
           return new Response.ok(null);
         });
         await next.receive(req);
       });
 
-      var resp = await http.post("http://localhost:8888", headers: {
-        "content-type": "application/json"
-      }, body: JSON.encode(["a"]));
+      var resp = await http.post("http://localhost:8888",
+          headers: {"content-type": "application/json"}, body: JSON.encode(["a"]));
 
       expect(resp.statusCode, 400);
     });
@@ -385,6 +408,7 @@ class Always200Controller extends Controller {
   Always200Controller() {
     policy.allowedOrigins = ["http://somewhere.com"];
   }
+
   @override
   Future<RequestOrResponse> handle(Request req) async {
     var q = req.raw.uri.queryParameters["q"];
@@ -413,7 +437,7 @@ class OutlierChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final r = new Router();
-    r.route("/detach").listen((Request req) async {
+    r.route("/detach").linkFunction((Request req) async {
       if (count == 0) {
         var socket = await req.raw.response.detachSocket();
         socket.destroy();
@@ -428,23 +452,23 @@ class OutlierChannel extends ApplicationChannel {
             includeStatusCode: true);
       }
 
-      count ++;
+      count++;
 
       return new Response.ok(null);
     });
 
-    r.route("/closed").listen((Request req) async {
+    r.route("/closed").linkFunction((Request req) async {
       if (count == 0) {
         req.raw.response.statusCode = 200;
         await req.response.close();
       }
 
-      count ++;
+      count++;
 
       return new Response.ok(null);
     });
 
-    r.route("/closed_exception").listen((Request req) async {
+    r.route("/closed_exception").linkFunction((Request req) async {
       await req.response.close();
 
       // To stop the analyzer from complaining, since it see through the bullshit of 'if (true)' and the return type would be dead code.
@@ -454,5 +478,33 @@ class OutlierChannel extends ApplicationChannel {
       return new Response.ok(null);
     });
     return r;
+  }
+}
+
+class PrepareTailController extends Controller {
+  PrepareTailController(this.completer);
+
+  Completer completer;
+
+  @override
+  void prepare() {
+    completer.complete();
+  }
+}
+
+class NotingMiddleware extends Controller {
+  @override
+  FutureOr<RequestOrResponse> handle(Request req) {
+    req.addResponseModifier((resp) {
+      resp.headers["x-middleware"] = JSON.encode([req.hashCode, hashCode]);
+    });
+    return req;
+  }
+}
+
+class NotingEndpoint extends Controller {
+  @override
+  FutureOr<RequestOrResponse> handle(Request req) {
+    return new Response.ok([req.hashCode, hashCode]);
   }
 }

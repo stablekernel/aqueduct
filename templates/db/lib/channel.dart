@@ -33,7 +33,7 @@ class WildfireChannel extends ApplicationChannel {
 
     router
         .route("/model/[:id]")
-        .generate(() => new ManagedObjectController<Model>());
+        .link(() => new ManagedObjectController<Model>());
 
     return router;
   }

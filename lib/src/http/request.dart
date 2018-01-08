@@ -28,7 +28,7 @@ class Request implements RequestOrResponse {
   /// remove this instance from the request channel. To remove a request from the channel, return null from a [Controller]
   /// handler method instead of a [Response] or [Request]. For example:
   ///
-  ///         router.route("/raw").listen((req) async {
+  ///         router.route("/raw").linkFunction((req) async {
   ///           req.response.statusCode = 200;
   ///           await req.response.close(); // Respond manually to request
   ///           return null; // Take request out of channel; no subsequent controllers will see this request.

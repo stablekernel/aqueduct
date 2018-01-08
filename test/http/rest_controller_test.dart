@@ -772,7 +772,7 @@ class UnboundController extends RESTController {
 
 Future<HttpServer> enableController(String pattern, Type controller) async {
   var router = new Router();
-  router.route(pattern).generate(
+  router.route(pattern).link(
       () => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
   router.prepare();
 

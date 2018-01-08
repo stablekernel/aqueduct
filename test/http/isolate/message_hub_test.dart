@@ -237,19 +237,19 @@ class HubChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/messages").listen((req) async {
+    router.route("/messages").linkFunction((req) async {
       var msgs = new List.from(messages);
       messages = [];
       return new Response.ok(msgs);
     });
 
-    router.route("/errors").listen((req) async {
+    router.route("/errors").linkFunction((req) async {
       var msgs = new List.from(errors);
       errors = [];
       return new Response.ok(msgs);
     });
 
-    router.route("/send").listen((req) async {
+    router.route("/send").linkFunction((req) async {
       var msg = await req.body.decodeAsString();
       if (msg == "garbage") {
         messageHub.add((x) => x);
