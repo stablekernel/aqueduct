@@ -19,7 +19,7 @@ import 'package:aqueduct/src/application/service_registry.dart';
 ///       class MyChannel extends ApplicationChannel {
 ///         Controller get entryPoint {
 ///           final router = new Router();
-///           router.route("/endpoint").listen((req) => new Response.ok('Hello, world!'));
+///           router.route("/endpoint").linkFunction((req) => new Response.ok('Hello, world!'));
 ///           return router;
 ///         }
 ///       }
@@ -262,7 +262,7 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
 /// is only known to the isolate it established a connection on. This data must be sent to each isolate so that each websocket
 /// connected to that isolate can send the data:
 ///
-///         router.route("/broadcast").listen((req) async {
+///         router.route("/broadcast").linkFunction((req) async {
 ///           var message = await req.body.decodeAsString();
 ///           websocketsOnThisIsolate.forEach((s) => s.add(message);
 ///           messageHub.add({"event": "broadcastMessage", "data": message});

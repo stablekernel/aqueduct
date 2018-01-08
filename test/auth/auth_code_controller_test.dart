@@ -543,9 +543,9 @@ class TestChannel extends ApplicationChannel implements AuthCodeControllerDelega
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/auth/code").generate(() => new AuthCodeController(authServer, delegate: this));
+    router.route("/auth/code").link(() => new AuthCodeController(authServer, delegate: this));
 
-    router.route("/nopage").generate(() => new AuthCodeController(authServer));
+    router.route("/nopage").link(() => new AuthCodeController(authServer));
     return router;
   }
 

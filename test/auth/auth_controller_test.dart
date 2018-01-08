@@ -59,7 +59,7 @@ void main() {
     router = new Router();
     router
         .route("/auth/token")
-        .generate(() => new AuthController(authenticationServer));
+        .link(() => new AuthController(authenticationServer));
     router.prepare();
 
     server =

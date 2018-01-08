@@ -7,7 +7,10 @@ class RESTControllerParameterBinder {
   RESTControllerParameterBinder(VariableMirror mirror, {this.isRequired: false}) {
     symbol = mirror.simpleName;
 
-    Bind b = mirror.metadata.firstWhere((im) => im.reflectee is Bind).reflectee;
+    Bind b = mirror.metadata.firstWhere((im) => im.reflectee is Bind, orElse: () => null)?.reflectee;
+    if (b == null) {
+      throw new StateError("Invalid operation method parameter '${MirrorSystem.getName(symbol)}' for controller '${MirrorSystem.getName(mirror.owner.simpleName)}'. Must have @Bind annotation.");
+    }
     binding = b?.binding;
     boundValueType = mirror.type;
   }

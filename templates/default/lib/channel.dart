@@ -26,11 +26,11 @@ class WildfireChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    // Prefer to use `pipe` and `generate` instead of `listen`.
+    // Prefer to use `link` instead of `linkFunction`.
     // See: https://aqueduct.io/docs/http/request_controller/
     router
       .route("/example")
-      .listen((request) async {
+      .linkFunction((request) async {
         return new Response.ok({"key": "value"});
       });
 

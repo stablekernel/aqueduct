@@ -11,7 +11,7 @@ void main() {
     HttpServer server =
         await HttpServer.bind("localhost", 8888, v6Only: false, shared: false);
     var router = new Router();
-    router.route("/na").generate(() => new TestController());
+    router.route("/na").link(() => new TestController());
     router.prepare();
     server.map((req) => new Request(req)).listen(router.receive);
 

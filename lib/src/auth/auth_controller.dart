@@ -15,7 +15,7 @@ import 'auth.dart';
 ///
 ///       router
 ///         .route("/auth/token")
-///         .generate(() => new AuthController(authServer));
+///         .link(() => new AuthController(authServer));
 ///
 class AuthController extends RESTController {
   /// Creates a new instance of an [AuthController].

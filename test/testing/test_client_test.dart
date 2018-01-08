@@ -314,7 +314,7 @@ class SomeChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final r = new Router();
-    r.route("/").listen((r) async => new Response.ok(null));
+    r.route("/").linkFunction((r) async => new Response.ok(null));
     return r;
   }
 }

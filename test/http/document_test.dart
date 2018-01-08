@@ -425,17 +425,17 @@ class TestChannel extends ApplicationChannel {
     final router = new Router();
     router
         .route("/auth/code")
-        .pipe(new Authorizer.basic(authServer))
-        .generate(() => new AuthCodeController(authServer));
+        .link(() => new Authorizer.basic(authServer))
+        .link(() => new AuthCodeController(authServer));
     router
         .route("/auth/token")
-        .pipe(new Authorizer.basic(authServer))
-        .generate(() => new AuthController(authServer));
+        .link(() => new Authorizer.basic(authServer))
+        .link(() => new AuthController(authServer));
     router
         .route("/t[/:id[/:notID]]")
-        .pipe(new Authorizer.bearer(authServer))
-        .generate(() => new TController());
-    router.route("/h[/:var]").listen((Request req) async {
+        .link(() => new Authorizer.bearer(authServer))
+        .link(() => new TController());
+    router.route("/h[/:var]").linkFunction((Request req) async {
       return new Response.ok("");
     });
     return router;

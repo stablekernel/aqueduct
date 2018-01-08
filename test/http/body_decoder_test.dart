@@ -581,7 +581,7 @@ void main() {
       // body stream
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
-        next.listen((req) async {
+        next.linkFunction((req) async {
           // This'll crash
           var _ = await req.body.decodedData;
 
@@ -632,7 +632,7 @@ void main() {
       HTTPRequestBody.maxSize = 8193;
 
       var controller = new Controller()
-        ..listen((req) async {
+        ..linkFunction((req) async {
           var body = await req.body.decodeAsMap();
           return new Response.ok(body);
         });
@@ -666,7 +666,7 @@ void main() {
       HTTPRequestBody.maxSize = 8193;
 
       var controller = new Controller()
-        ..listen((req) async {
+        ..linkFunction((req) async {
           var body = await req.body.decodedData;
           return new Response.ok(body)..contentType = new ContentType("application", "octet-stream");
         });

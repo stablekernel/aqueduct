@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:crypto/crypto.dart';
 
 import '../http/documentable.dart';
-import 'package:aqueduct/src/application/channel.dart';
 import '../utilities/token_generator.dart';
 import 'auth.dart';
 
@@ -46,12 +45,12 @@ import 'auth.dart';
 ///             final router = new Router();
 ///             router
 ///               .route("/protected")
-///               .pipe(new Authorizer(authServer))
-///               .generate(() => new ProtectedResourceController());
+///               .link(() =>new Authorizer(authServer))
+///               .link(() => new ProtectedResourceController());
 ///
 ///             router
 ///               .route("/auth/token")
-///               .generate(() => new AuthController(authServer));
+///               .link(() => new AuthController(authServer));
 ///
 ///             return router;
 ///           }

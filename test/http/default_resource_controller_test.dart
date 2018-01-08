@@ -420,11 +420,11 @@ class TestChannel extends ApplicationChannel {
     final router = new Router();
     router
         .route("/controller/[:id]")
-        .generate(() => new ManagedObjectController<TestModel>());
+        .link(() => new ManagedObjectController<TestModel>());
 
     router
       .route("/dynamic/[:id]")
-      .generate(() => new ManagedObjectController.forEntity(context.dataModel.entityForType(TestModel)));
+      .link(() => new ManagedObjectController.forEntity(context.dataModel.entityForType(TestModel)));
     return router;
   }
 }
