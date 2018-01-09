@@ -12,9 +12,15 @@ class RESTControllerParameterBinder {
 
     Bind b = mirror.metadata.firstWhere((im) => im.reflectee is Bind, orElse: () => null)?.reflectee;
     if (b == null) {
-      throw new StateError("Invalid operation method parameter '${MirrorSystem.getName(symbol)}' for controller '${MirrorSystem.getName(mirror.owner.simpleName)}'. Must have @Bind annotation.");
+      throw new StateError("Invalid operation method parameter '${MirrorSystem.getName(symbol)}' on '${_methodErrorName(mirror)}': Must have @Bind annotation.");
     }
-    binding = b?.binding;
+
+    if (!b.binding.validateType(mirror.type)) {
+      throw new StateError("Invalid binding '${MirrorSystem.getName(symbol)}' on '${_methodErrorName(mirror)}': "
+          "'${MirrorSystem.getName(mirror.type.simpleName)}' may not be bound to ${b.binding.type}.");
+    }
+    
+    binding = b.binding;
     boundValueType = mirror.type;
   }
 
@@ -59,4 +65,7 @@ class RESTControllerParameterBinder {
     return new APISchemaObject()..type = APIType.string;
   }
 
+  String _methodErrorName(VariableMirror mirror) {
+    return "${MirrorSystem.getName(mirror.owner.owner.simpleName)}.${MirrorSystem.getName(mirror.owner.simpleName)}";
+  }
 }

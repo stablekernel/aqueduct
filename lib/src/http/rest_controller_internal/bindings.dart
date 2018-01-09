@@ -20,6 +20,27 @@ abstract class HTTPBinding {
   
   APIParameterLocation get location;
 
+  bool validateType(TypeMirror type) {
+    if (type.reflectedType == dynamic) {
+      return false;
+    }
+
+    if (type.isAssignableTo(reflectType(String))) {
+      return true;
+    } else if (type is ClassMirror && type.staticMembers.containsKey(#parse)) {
+      final parseMethod = type.staticMembers[#parse];
+      final params = parseMethod.parameters.where((p) => !p.isOptional).toList();
+      if (params.length == 1 && params.first.type.isAssignableTo(reflectType(String))) {
+        return true;
+      }
+      return false;
+    } else if (type.isAssignableTo(reflectType(List))) {
+      return validateType(type.typeArguments.first);
+    }
+
+    return false;
+  }
+
   dynamic parse(ClassMirror intoType, Request request);
 
   dynamic convertParameterListWithMirror(List<String> parameterValues, TypeMirror typeMirror) {
@@ -87,7 +108,7 @@ class HTTPPath extends HTTPBinding {
   HTTPPath(String segment) : super(segment);
 
   @override
-  String get type => null;
+  String get type => "Path";
 
   @override
   APIParameterLocation get location => APIParameterLocation.path;
@@ -123,6 +144,14 @@ class HTTPQuery extends HTTPBinding {
   @override
   APIParameterLocation get location => APIParameterLocation.query;
 
+  bool validateType(TypeMirror type) {
+    if (super.validateType(type)) {
+      return true;
+    }
+
+    return type.isAssignableTo(reflectType(bool));
+  }
+
   @override
   dynamic parse(ClassMirror intoType, Request request) {
     var queryParameters = request.raw.uri.queryParametersAll;
@@ -145,7 +174,16 @@ class HTTPBody extends HTTPBinding {
 
   @override
   APIParameterLocation get location => null;
-  
+
+  @override
+  bool validateType(TypeMirror type) {
+    if (type.isAssignableTo(reflectType(List))) {
+      return validateType(type.typeArguments.first);
+    }
+
+    return type.isAssignableTo(reflectType(HTTPSerializable));
+  }
+
   @override
   dynamic parse(ClassMirror intoType, Request request) {
     if (request.body.isEmpty) {

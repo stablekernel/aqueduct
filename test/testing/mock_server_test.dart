@@ -139,6 +139,9 @@ void main() {
       server.queueOutage();
       server.queueResponse(new Response.ok(null));
       final outageResponseFuture = testClient.request("/outage").get();
+
+      // Introduce a delay to ensure that the /outage request gets there before /success
+      await new Future.delayed(new Duration(seconds: 1));
       final successResponse = await testClient.request("/success").get();
 
       expect(successResponse.statusCode, 200);
@@ -153,6 +156,9 @@ void main() {
       final outageResponseFuture1 = testClient.request("/outage").get();
       final outageResponseFuture2 = testClient.request("/outage").get();
       final outageResponseFuture3 = testClient.request("/outage").get();
+
+      // Introduce a delay to ensure that the /outage request gets there before /success
+      await new Future.delayed(new Duration(seconds: 1));
       final successResponse = await testClient.request("/success").get();
 
       expect(successResponse.statusCode, 200);
