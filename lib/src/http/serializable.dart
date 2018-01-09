@@ -4,6 +4,8 @@ import 'http.dart';
 ///
 /// Implementers of this interface may be a [Response.body] and bound with an [Bind.body] in [RESTController].
 abstract class HTTPSerializable {
+  HTTPSerializable();
+
   /// Reads values from [requestBody] into an object.
   ///
   /// This method is invoked when an [RESTController] property or operation method argument is bound with [Bind.body]. [requestBody] is the
@@ -18,5 +20,5 @@ abstract class HTTPSerializable {
   /// each element in the list.
   Map<String, dynamic> asMap();
 
-
+  APISchemaObject asSchemaObject() => null;
 }

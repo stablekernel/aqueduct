@@ -40,31 +40,34 @@ class RESTControllerParameterBinder {
       ..location = binding.location
       ..name = name
       ..isRequired = isRequired
-      ..schema = _schema;
+      ..schema = _schemaFromBoundType(boundValueType);
 
-    if (binding.location == APIParameterLocation.query && p.schema.type == APIType.boolean) {
+    if (p.schema.type == APIType.boolean) {
       p.allowEmptyValue = true;
     }
 
     return p;
   }
-
-  APISchemaObject get _schema {
-    if (boundValueType.isAssignableTo(reflectType(int))) {
-      return new APISchemaObject()..type = APIType.integer;
-    } else if (boundValueType.isAssignableTo(reflectType(double))) {
-      return new APISchemaObject()..type = APIType.number;
-    } else if (boundValueType.isAssignableTo(reflectType(String))) {
-      return new APISchemaObject()..type = APIType.string;
-    } else if (boundValueType.isAssignableTo(reflectType(bool))) {
-      return new APISchemaObject()..type = APIType.boolean;
-    } else if (boundValueType.isAssignableTo(reflectType(DateTime))) {
-      return new APISchemaObject()..type = APIType.string..format = "date-time";
+  
+  static APISchemaObject _schemaFromBoundType(ClassMirror type) {
+    if (type.isAssignableTo(reflectType(int))) {
+      return new APISchemaObject.integer();
+    } else if (type.isAssignableTo(reflectType(double))) {
+      return new APISchemaObject.number();
+    } else if (type.isAssignableTo(reflectType(String))) {
+      return new APISchemaObject.string();
+    } else if (type.isAssignableTo(reflectType(bool))) {
+      return new APISchemaObject.boolean();
+    } else if (type.isAssignableTo(reflectType(DateTime))) {
+      return new APISchemaObject.string(format: "date-time");
+    } else if (type.isAssignableTo(reflectType(List))) {
+      return new APISchemaObject.array(ofSchema: _schemaFromBoundType(type.typeArguments.first));
     }
 
-    return new APISchemaObject()..type = APIType.string;
+    return new APISchemaObject.string();
   }
 
+  
   String _methodErrorName(VariableMirror mirror) {
     return "${MirrorSystem.getName(mirror.owner.owner.simpleName)}.${MirrorSystem.getName(mirror.owner.simpleName)}";
   }
