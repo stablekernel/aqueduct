@@ -3,8 +3,6 @@ import 'dart:mirrors';
 
 import 'package:open_api/v3.dart';
 
-import '../auth/auth.dart';
-import '../db/managed/managed.dart';
 import 'http.dart';
 
 export 'package:open_api/v3.dart';

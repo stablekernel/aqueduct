@@ -5,16 +5,12 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import '../helpers.dart';
 
-
 void main() {
   group("Standard tests", () {
     APIDocument doc;
 
     setUpAll(() async {
-      doc = await Application.document(TestChannel, new ApplicationOptions(), {
-        "name": "Test",
-        "version": "1.0"
-      });
+      doc = await Application.document(TestChannel, new ApplicationOptions(), {"name": "Test", "version": "1.0"});
       print("${JSON.encode(doc.asMap())}");
     });
 
@@ -54,15 +50,17 @@ void main() {
       final noVarPath = doc.paths["/bearer-scope"];
       expect(noVarPath.operations.length, 2);
       expect(noVarPath.operations["get"].security.length, 1);
-      expect(noVarPath.operations["get"].security.first.requirements, {"oauth2": ["scope"]});
+      expect(noVarPath.operations["get"].security.first.requirements, {
+        "oauth2": ["scope"]
+      });
       expect(noVarPath.operations["post"].security.length, 1);
-      expect(noVarPath.operations["post"].security.first.requirements, {"oauth2": ["scope"]});
+      expect(noVarPath.operations["post"].security.first.requirements, {
+        "oauth2": ["scope"]
+      });
     });
   });
 
-  group("Controller Registration", () {
-
-  });
+  group("Controller Registration", () {});
 }
 
 class TestChannel extends ApplicationChannel {
@@ -76,12 +74,15 @@ class TestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/basic/[:id]").pipe(new Authorizer.basic(authServer)).pipe(new DocumentedController());
-    router.route("/bearer-no-scope").pipe(new Authorizer.bearer(authServer)).pipe(new DocumentedController());
+    router.route("/basic/[:id]").link(() => new Authorizer.basic(authServer)).link(() => new DocumentedController());
+    router
+        .route("/bearer-no-scope")
+        .link(() => new Authorizer.bearer(authServer))
+        .link(() => new DocumentedController());
     router
         .route("/bearer-scope")
-        .pipe(new Authorizer.bearer(authServer, scopes: ["scope"]))
-        .pipe(new DocumentedController());
+        .link(() => new Authorizer.bearer(authServer, scopes: ["scope"]))
+        .link(() => new DocumentedController());
     return router;
   }
 }

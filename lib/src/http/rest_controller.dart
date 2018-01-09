@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:mirrors';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 import 'http.dart';
 import 'rest_controller_internal/internal.dart';
@@ -155,10 +156,10 @@ abstract class RESTController extends Controller {
     }
   }
 
-  List<APIParameter> documentOperationParameters(APIPath path, String method) {
-    final binder = _binderForOperation(path, method);
+  List<APIParameter> documentOperationParameters(Operation operation) {
+    final binder = _binderForOperation(operation);
 
-    bool usesFormEncodedData = method == "POST" &&
+    bool usesFormEncodedData = operation.method == "POST" &&
         acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
 
     final params = [binder.optionalParameters, binder.positionalParameters]
@@ -171,20 +172,30 @@ abstract class RESTController extends Controller {
     return params.toList();
   }
 
-  String documentOperationSummary(APIPath path, String method) {}
+  String documentOperationSummary(Operation operation) {}
 
-  String documentOperationDescription(APIPath path, String method) {}
+  String documentOperationDescription(Operation operation) {}
 
-//  List<APISecurityRequirement> documentOperationSecurityRequirements(APIPath path, String method) {
-//    return null;
-//  }
+  APIRequestBody documentOperationRequestBody(Operation operation) {
+    final binder = _binderForOperation(operation);
+    final bool usesFormEncodedData = operation.method == "POST" &&
+        acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
+    final boundBody =
+        binder.positionalParameters.firstWhere((p) => p.binding is HTTPBody, orElse: () => null);
 
-  APIRequestBody documentOperationRequestBody(APIPath path, String method) {}
+    if (boundBody != null) {
 
-  Map<String, APIResponse> documentOperationResponses(APIPath path, String method) {}
+    } else if (usesFormEncodedData) {}
+
+    return null;
+  }
+
+  Map<String, APIResponse> documentOperationResponses(Operation operation) {
+    return {};
+  }
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
+  Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
 //    var reflectedType = reflect(this).type;
 //    var uri = reflectedType.location.sourceUri;
 //    var fileUnit = parseDartFile(resolver.resolve(uri));
@@ -202,19 +213,19 @@ abstract class RESTController extends Controller {
 //      }
 //    });
 
-    var controllerCache = RESTControllerBinder.binderForType(runtimeType);
-
-    return controllerCache.methodBinders
+    return RESTControllerBinder
+        .binderForType(runtimeType)
+        .methodBinders
         .where((method) => path.containsPathParameters(method.pathVariables))
         .fold(<String, APIOperation>{}, (opMap, method) {
+      final annotation = firstMetadataOfType(Operation, reflect(this).type);
       final op = new APIOperation()
         ..id = MirrorSystem.getName(method.methodSymbol)
-        ..summary = documentOperationSummary(path, method.httpMethod)
-        ..description = documentOperationDescription(path, method.httpMethod)
-        ..parameters = documentOperationParameters(path, method.httpMethod)
-        //..security = documentOperationSecurityRequirements(path, method.httpMethod)
-        ..requestBody = documentOperationRequestBody(path, method.httpMethod)
-        ..responses = documentOperationResponses(path, method.httpMethod);
+        ..summary = documentOperationSummary(annotation)
+        ..description = documentOperationDescription(annotation)
+        ..parameters = documentOperationParameters(annotation)
+        ..requestBody = documentOperationRequestBody(annotation)
+        ..responses = documentOperationResponses(annotation);
 
       opMap[method.httpMethod.toLowerCase()] = op;
 
@@ -264,19 +275,17 @@ abstract class RESTController extends Controller {
     return responses;
   }
 
-  RESTControllerMethodBinder _binderForOperation(APIPath path, String method) {
+  RESTControllerMethodBinder _binderForOperation(Operation operation) {
     return RESTControllerBinder.binderForType(runtimeType).methodBinders.firstWhere((m) {
-      if (m.httpMethod != method) {
+      if (m.httpMethod != operation.method) {
         return false;
       }
 
-      final pathVariableNames = path.parameters.where((p) => p.location == APIParameterLocation.path);
-
-      if (m.pathVariables.length == pathVariableNames.length) {
+      if (m.pathVariables.length == operation.pathVariables.length) {
         return false;
       }
 
-      if (!pathVariableNames.every((p) => m.pathVariables.contains(p))) {
+      if (!operation.pathVariables.every((p) => m.pathVariables.contains(p))) {
         return false;
       }
 

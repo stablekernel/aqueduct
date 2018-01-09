@@ -17,4 +17,6 @@ abstract class HTTPSerializable {
   /// performed by the [Response].  A [Response.body] may also be a [List<HTTPSerializable>], for which this method is invoked on
   /// each element in the list.
   Map<String, dynamic> asMap();
+
+
 }

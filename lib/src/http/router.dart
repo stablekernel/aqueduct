@@ -88,7 +88,6 @@ class Router extends Controller {
 
   @override
   void prepare() {
-
     _rootRouteNode = new RouteNode(_routeControllers.expand((rh) => rh.specifications).toList());
 
     for (var c in _routeControllers) {
