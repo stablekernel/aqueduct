@@ -55,10 +55,10 @@ class TestRequest {
   /// Prefer to use [addHeader] over directly setting this value. Additionally,
   /// there are setters for setting specific and common headers. See [setBasicAuthorization] and [accept] as examples.
   Map<String, dynamic> get headers => _headers;
+
   set headers(Map<String, dynamic> h) {
     if (_headers.isNotEmpty) {
-      print(
-          "WARNING: Setting TestRequest headers, but headers already have values.");
+      print("WARNING: Setting TestRequest headers, but headers already have values.");
     }
     _headers = h;
   }
@@ -98,8 +98,7 @@ class TestRequest {
   ///
   ///         Authorization: Basic Base64(username:password)
   void setBasicAuthorization(String username, String password) {
-    addHeader(HttpHeaders.AUTHORIZATION,
-        "Basic ${new Base64Encoder().convert("$username:$password".codeUnits)}");
+    addHeader(HttpHeaders.AUTHORIZATION, "Basic ${new Base64Encoder().convert("$username:$password".codeUnits)}");
   }
 
   /// Sets the Authorization header of this request.
@@ -113,8 +112,7 @@ class TestRequest {
 
   /// Sets the Accept header of this request.
   set accept(List<ContentType> contentTypes) {
-    addHeader(
-        HttpHeaders.ACCEPT, contentTypes.map((ct) => ct.toString()).join(","));
+    addHeader(HttpHeaders.ACCEPT, contentTypes.map((ct) => ct.toString()).join(","));
   }
 
   /// Sets the [body] and [contentType].
@@ -195,7 +193,8 @@ class TestRequest {
       if (lowercasedMethod == "get" || lowercasedMethod == "delete" || lowercasedMethod == "head") {
         if (contentType.subType == "x-www-form-urlencoded") {
           if (body is! Map) {
-            throw new TestClientException("Cannot encode body of type '${body.runtimeType}' into URI query string, must be a Map.");
+            throw new TestClientException(
+                "Cannot encode body of type '${body.runtimeType}' into URI query string, must be a Map.");
           }
 
           var queryParams = queryParameters;
@@ -247,7 +246,8 @@ class TestRequest {
 
     if (codec == null) {
       if (body is! List<int>) {
-        throw new HTTPCodecException("Invalid body '${body.runtimeType}' for Content-Type '${contentType}'");
+        throw new ArgumentError(
+            "Invalid request body. Body of type '${body.runtimeType}' not encodable as content-type '$contentType'.");
       }
 
       return body;

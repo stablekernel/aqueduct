@@ -399,7 +399,7 @@ class TestChannel extends ApplicationChannel {
   @override
   Future prepare() async {
     var dataModel = new ManagedDataModel([TestModel]);
-    var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(
+    var persistentStore = new PostgreSQLPersistentStore(
         "dart", "dart", "localhost", 5432, "dart_test");
     context = new ManagedContext(dataModel, persistentStore);
     ManagedContext.defaultContext = context;

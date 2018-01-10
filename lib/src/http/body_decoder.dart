@@ -39,10 +39,10 @@ abstract class HTTPBodyDecoder {
 
   /// The type of data [bytes] was decoded into.
   ///
-  /// Will throw an exception if [bytes] have not been decoded yet.
+  /// Will throw an error if [bytes] have not been decoded yet.
   Type get decodedType {
     if (!hasBeenDecoded) {
-      throw new HTTPBodyDecoderException("decodedType invoked prior to decoding data");
+      throw new StateError("Invalid body decoding. Must decode data prior to calling 'decodedType'.");
     }
 
     return _decodedData.first.runtimeType;
@@ -92,15 +92,9 @@ abstract class HTTPBodyDecoder {
               stream = new Stream.fromIterable([_bytes]);
             }
 
-            var bodyStream = codec.decoder.bind(stream).handleError((err) {
-              if (err is HTTPBodyDecoderException) {
-                throw err;
-              }
-
-              throw new HTTPBodyDecoderException("Failed to decode request body.",
-                  underlyingException: err);
-            });
-            _decodedData = await bodyStream.toList();
+            _decodedData = await codec.decoder.bind(stream).handleError((err) {
+              throw new Response.badRequest(body: {"error": "request entity could not be decoded"});
+            }).toList();
           } else {
             _decodedData = await _readBytes(bytes);
           }
@@ -120,7 +114,7 @@ abstract class HTTPBodyDecoder {
   /// If there is no body data, this method returns null.
   ///
   /// If [decodedData] does not produce a [List] that contains a single [Map<String, dynamic>] this method throws an
-  /// [HTTPBodyDecoderException].
+  /// error [Response].
   ///
   /// For a non-[Future] variant, see [asMap].
   Future<Map<String, dynamic>> decodeAsMap() async {
@@ -138,7 +132,7 @@ abstract class HTTPBodyDecoder {
   /// If there is no body data, this method returns null.
   ///
   /// If [decodedData] does not produce a [List] that contains a single [List] object, this method
-  /// throws an [HTTPBodyDecoderException].
+  /// throws an error [Response].
   ///
   /// For a non-[Future] variant, see [asList].
   Future<List<Map<String, dynamic>>> decodeAsList() async {
@@ -155,7 +149,7 @@ abstract class HTTPBodyDecoder {
   /// If there is no body data, this method returns null.
   ///
   /// If [decodedData] does not produce a [List<String>], this method
-  /// throws an [HTTPBodyDecoderException].
+  /// throws an error [Response].
   ///
   /// For a non-[Future] variant, see [asString].
   Future<String> decodeAsString() async {
@@ -188,12 +182,12 @@ abstract class HTTPBodyDecoder {
 
   /// Returns decoded data as [Map] if decoding has already occurred.
   ///
-  /// If decoding has not yet occurred, this method throws an [HTTPBodyDecoderException].
+  /// If decoding has not yet occurred, this method throws an error.
   ///
   /// If decoding as occurred, behavior is the same as [decodeAsMap], but the result is not wrapped in [Future].
   Map<String, dynamic> asMap() {
     if (!hasBeenDecoded) {
-      throw new HTTPBodyDecoderException("asMap() invoked, but has not been decoded yet.");
+      throw new StateError("Invalid body decoding. Body must be decoded before 'asMap' is invoked. Use 'decodeAsMap'.");
     }
 
     if (_decodedData == null) {
@@ -202,12 +196,13 @@ abstract class HTTPBodyDecoder {
 
     var d = _decodedData as List<Map<String, dynamic>>;
     if (d.length != 1) {
-      throw new HTTPBodyDecoderException("asMap() failed: more than one object in 'decodedData'.");
+
+      throw new Response(422, null, {"error": "unexpected request entity data type"});
     }
 
     var firstObject = d.first;
     if (firstObject is! Map<String, dynamic>) {
-      throw new HTTPBodyDecoderException("asMap() invoked on non-Map<String, dynamic> data.");
+      throw new Response(422, null, {"error": "unexpected request entity data type"});
     }
 
     return firstObject;
@@ -215,12 +210,12 @@ abstract class HTTPBodyDecoder {
 
   /// Returns decoded data as [List] if decoding has already occurred.
   ///
-  /// If decoding has not yet occurred, this method throws an [HTTPBodyDecoderException].
+  /// If decoding has not yet occurred, this method throws an error.
   ///
   /// If decoding as occurred, behavior is the same as [decodeAsList], but the result is not wrapped in [Future].
   List<dynamic> asList() {
     if (!hasBeenDecoded) {
-      throw new HTTPBodyDecoderException("asList() invoked, but has not been decoded yet.");
+      throw new StateError("Invalid body decoding. Body must be decoded before 'asList' is invoked. Use 'decodeAsList'.");
     }
 
     if (_decodedData == null) {
@@ -228,12 +223,12 @@ abstract class HTTPBodyDecoder {
     }
 
     if (_decodedData.length != 1) {
-      throw new HTTPBodyDecoderException("decodeAsList() failed: more than one object in 'decodedData'.");
+      throw new Response(422, null, {"error": "unexpected request entity data type"});
     }
 
     var firstObject = _decodedData.first;
     if (firstObject is! List) {
-      throw new HTTPBodyDecoderException("asList() invoked on non-List data.");
+      throw new Response(422, null, {"error": "unexpected request entity data type"});
     }
 
     return firstObject;
@@ -241,12 +236,12 @@ abstract class HTTPBodyDecoder {
 
   /// Returns decoded data as [String] if decoding as already occurred.
   ///
-  /// If decoding has not yet occurred, this method throws an [HTTPBodyDecoderException].
+  /// If decoding has not yet occurred, this method throws an error.
   ///
   /// If decoding as occurred, behavior is the same as [decodeAsString], but the result is not wrapped in [Future].
   String asString() {
     if (!hasBeenDecoded) {
-      throw new HTTPBodyDecoderException("asString() invoked, but has not been decoded yet.");
+      throw new StateError("Invalid body decoding. Body must be decoded before 'asString' is invoked. Use 'decodeAsString'.");
     }
 
     if (_decodedData == null) {
@@ -256,7 +251,7 @@ abstract class HTTPBodyDecoder {
     var d = _decodedData as List<String>;
     return d.fold(new StringBuffer(), (StringBuffer buf, value) {
       if (value is! String) {
-        throw new HTTPBodyDecoderException("asString() failed: non-String data emitted from codec");
+        throw new Response(422, null, {"error": "unexpected request entity data type"});
       }
 
       buf.write(value);
@@ -266,12 +261,12 @@ abstract class HTTPBodyDecoder {
 
   /// Returns decoded data as a [List] of bytes if decoding has already been attempted.
   ///
-  /// If decoding has not yet occurred, this method throws an [HTTPBodyDecoderException].
+  /// If decoding has not yet occurred, this method throws an error.
   ///
   /// If decoding as occurred, behavior is the same as [decodeAsBytes], but the result is not wrapped in [Future].
   List<int> asBytes() {
     if (!hasBeenDecoded) {
-      throw new HTTPBodyDecoderException("asBytes() invoked, but has not been decoded yet.");
+      throw new StateError("Invalid body decoding. Body must be decoded before 'asBytes' is invoked. Use 'decodeAsBytes'.");
     }
 
     if (_bytes != null) {
@@ -283,7 +278,7 @@ abstract class HTTPBodyDecoder {
     }
 
     if (_decodedData.first is! int) {
-      throw new HTTPBodyDecoderException("asBytes() expected list of bytes, instead got List<${_decodedData.first.runtimeType}>");
+      throw new Response(422, null, {"error": "unexpected request entity data type"});
     }
 
     return _decodedData as List<int>;
@@ -295,17 +290,3 @@ abstract class HTTPBodyDecoder {
   }
 }
 
-/// Thrown when [HTTPRequestBody] encounters an exception.
-class HTTPBodyDecoderException extends HTTPResponseException {
-  HTTPBodyDecoderException(
-      String message,
-      {this.underlyingException, int statusCode: 400})
-        : super(statusCode, message);
-
-  final dynamic underlyingException;
-
-  @override
-  String toString() {
-    return "HTTPBodyDecoderException: $message ${underlyingException == null ? "" : underlyingException}";
-  }
-}

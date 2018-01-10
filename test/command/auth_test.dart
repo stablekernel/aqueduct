@@ -13,7 +13,7 @@ void main() {
   PersistentStore store;
 
   setUp(() async {
-    store = new PostgreSQLPersistentStore.fromConnectionInfo(
+    store = new PostgreSQLPersistentStore(
         "dart", "dart", "localhost", 5432, "dart_test");
 
     for (var t in schema.dependencyOrderedTables) {

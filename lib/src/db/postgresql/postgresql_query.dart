@@ -11,6 +11,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     with QueryMixin<InstanceType>
     implements Query<InstanceType> {
   PostgresQuery(this.context);
+
   PostgresQuery.withEntity(this.context, ManagedEntity entity) {
     _entity = entity;
   }
@@ -19,8 +20,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   ManagedContext context;
 
   @override
-  ManagedEntity get entity =>
-      _entity ?? context.dataModel.entityForType(InstanceType);
+  ManagedEntity get entity => _entity ?? context.dataModel.entityForType(InstanceType);
 
   ManagedEntity _entity;
 
@@ -34,8 +34,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     finalizeAndValidateValues(ValidateOperation.insert);
 
     var builder = new PostgresQueryBuilder(entity,
-        returningProperties: propertiesToFetch,
-        values: valueMap ?? values?.backingMap);
+        returningProperties: propertiesToFetch, values: valueMap ?? values?.backingMap);
 
     var buffer = new StringBuffer();
     buffer.write("INSERT INTO ${builder.primaryTableDefinition} ");
@@ -51,8 +50,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
-    var results = await context.persistentStore.executeQuery(
-        buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
+    var results =
+        await context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
 
     return builder.instancesForRows(results).first;
   }
@@ -81,8 +80,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
-    var results = await context.persistentStore.executeQuery(
-        buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
+    var results =
+        await context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
 
     return builder.instancesForRows(results);
   }
@@ -97,14 +96,14 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     }
 
     throw new QueryException(QueryExceptionEvent.internalFailure,
-        message:
-            "updateOne modified more than one row, this is a serious error.");
+        message: "'Query.updateOne' modified more than one row (in '${entity.tableName}'). "
+            "This was likely unintended and may be indicativate of a more serious error. Query "
+            "should add 'where' constraints on a unique column.");
   }
 
   @override
   Future<int> delete() async {
-    var builder = new PostgresQueryBuilder(entity,
-        predicate: predicate, whereBuilder: hasWhereBuilder ? where : null);
+    var builder = new PostgresQueryBuilder(entity, predicate: predicate, whereBuilder: hasWhereBuilder ? where : null);
 
     var buffer = new StringBuffer();
     buffer.write("DELETE FROM ${builder.primaryTableDefinition} ");
@@ -115,8 +114,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw canModifyAllInstancesError;
     }
 
-    return context.persistentStore.executeQuery(
-        buffer.toString(), builder.substitutionValueMap, timeoutInSeconds,
+    return context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds,
         returnType: PersistentStoreQueryReturnType.rowCount);
   }
 
@@ -133,8 +131,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       return results.first;
     } else if (results.length > 1) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-              "Query expected to fetch one instance, but ${results.length} instances were returned.");
+          message: "Query expected to fetch one instance, but ${results.length} instances were returned.");
     }
 
     return null;
@@ -163,21 +160,17 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   }
 
   PostgresQueryBuilder createFetchMapper() {
-    var allSortDescriptors =
-        new List<QuerySortDescriptor>.from(sortDescriptors ?? []);
+    var allSortDescriptors = new List<QuerySortDescriptor>.from(sortDescriptors ?? []);
     if (pageDescriptor != null) {
       validatePageDescriptor();
-      var pageSortDescriptor = new QuerySortDescriptor(
-          pageDescriptor.propertyName, pageDescriptor.order);
+      var pageSortDescriptor = new QuerySortDescriptor(pageDescriptor.propertyName, pageDescriptor.order);
       allSortDescriptors.insert(0, pageSortDescriptor);
 
       if (pageDescriptor.boundingValue != null) {
         if (pageDescriptor.order == QuerySortOrder.ascending) {
-          where[pageDescriptor.propertyName] =
-              whereGreaterThan(pageDescriptor.boundingValue);
+          where[pageDescriptor.propertyName] = whereGreaterThan(pageDescriptor.boundingValue);
         } else {
-          where[pageDescriptor.propertyName] =
-              whereLessThan(pageDescriptor.boundingValue);
+          where[pageDescriptor.propertyName] = whereLessThan(pageDescriptor.boundingValue);
         }
       }
     }
@@ -192,8 +185,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     if (builder.containsJoins && pageDescriptor != null) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-              "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
+          message: "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
     }
 
     return builder;
@@ -222,8 +214,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("OFFSET $offset ");
     }
 
-    var results = await context.persistentStore.executeQuery(
-        buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
+    var results =
+        await context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
 
     return builder.instancesForRows(results);
   }
@@ -236,19 +228,17 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
               "Property '${pageDescriptor.propertyName}' in pageDescriptor does not exist on '${entity.tableName}'.");
     }
 
-    if (pageDescriptor.boundingValue != null &&
-        !prop.isAssignableWith(pageDescriptor.boundingValue)) {
+    if (pageDescriptor.boundingValue != null && !prop.isAssignableWith(pageDescriptor.boundingValue)) {
       throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-              "Property '${pageDescriptor.propertyName}' in pageDescriptor has invalid type (Expected: '${prop.type}' Got: ${pageDescriptor.boundingValue.runtimeType}').");
+          message: "Property '${pageDescriptor.propertyName}' in pageDescriptor has invalid type (Expected: '${prop
+              .type}' Got: ${pageDescriptor.boundingValue.runtimeType}').");
     }
   }
 
   List<RowMapper> get rowMappersFromSubqueries {
     return subQueries?.keys?.map((relationshipDesc) {
           var subQuery = subQueries[relationshipDesc] as PostgresQuery;
-          var joinElement = new RowMapper(PersistentJoinType.leftOuter,
-              relationshipDesc, subQuery.propertiesToFetch,
+          var joinElement = new RowMapper(PersistentJoinType.leftOuter, relationshipDesc, subQuery.propertiesToFetch,
               predicate: subQuery.predicate,
               sortDescriptors: subQuery.sortDescriptors,
               whereBuilder: subQuery.hasWhereBuilder ? subQuery.where : null);
@@ -259,9 +249,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
         [];
   }
 
-  static QueryException canModifyAllInstancesError =
-      new QueryException(QueryExceptionEvent.internalFailure,
-          message: "Query would "
-              "impact all records. This could be a destructive error. Set "
-              "canModifyAllInstances on the Query to execute anyway.");
+  //todo: error
+  static final ArgumentError canModifyAllInstancesError = new ArgumentError(
+      "Invalid Query<T>. Query is either update or delete query with no WHERE clause. To confirm this query is correct, set 'canModifyAllInstances' to true.");
 }

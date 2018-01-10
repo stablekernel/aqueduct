@@ -293,6 +293,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       value = value.toDouble();
     } else if (isEnumeratedValue) {
       if (!enumerationValueMap.containsKey(value)) {
+        //todo: error
         throw new QueryException(QueryExceptionEvent.requestFailure,
             message: "The value '$value' is not valid for '${MirrorSystem.getName(entity.instanceType.simpleName)}.$name'");
       }
@@ -348,8 +349,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
 
     if (type.isSubtypeOf(reflectType(List))) {
       if (relationshipType != ManagedRelationshipType.hasMany) {
-        throw new ManagedDataModelException(
-            "Trying to assign List to relationship that isn't hasMany for ${MirrorSystem.getName(entity.persistentType.simpleName)} $name");
+        return false;
       }
 
       type = type.typeArguments.first;
@@ -380,7 +380,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     } else if (value == null) {
       return null;
     }
-
+//todo: error
     throw new QueryException(QueryExceptionEvent.requestFailure,
         message: "Invalid value '$value' for property '$entity.$name', "
             "expected '${MirrorSystem.getName(destinationEntity.instanceType.simpleName)}'");
@@ -395,6 +395,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     if (relationshipType == ManagedRelationshipType.belongsTo ||
         relationshipType == ManagedRelationshipType.hasOne) {
       if (value is! Map<String, dynamic>) {
+        //todo: error
         throw new QueryException(QueryExceptionEvent.requestFailure,
             message:
             "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the '$name' field, got '$value' instead.");
@@ -410,12 +411,14 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     /* else if (relationshipType == ManagedRelationshipType.hasMany) { */
 
     if (value is! List<Map<String, dynamic>>) {
+      //todo: error
       throw new QueryException(QueryExceptionEvent.requestFailure,
           message:
           "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the '$name' field, got '$value' instead.");
     }
 
     if (value.length > 0 && value.first is! Map) {
+      //todo: error
       throw new QueryException(QueryExceptionEvent.requestFailure,
           message:
           "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the '$name' field, got '$value' instead.");

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
 
@@ -12,6 +13,7 @@ import '../db/db.dart';
 abstract class RequestOrResponse {}
 
 typedef FutureOr<RequestOrResponse> _Handler(Request request);
+typedef RequestOrResponse _ExceptionHandler<T extends Object>(Request request, Object exception, {StackTrace trace});
 
 /// Controllers handle requests by either responding, or taking some action and passing the request to another controller.
 ///
@@ -70,8 +72,13 @@ class Controller extends Object with APIDocumentable {
   @override
   APIDocumentable get documentableChild => nextController;
 
+  static final Map<Type, _ExceptionHandler> exceptionHandlers = {};
   Controller _nextController;
   final _Handler _handler;
+
+  static void addExceptionHandler<T>(Type type, RequestOrResponse exceptionHandler(Request request, T exception, {StackTrace trace})) {
+    exceptionHandlers[type] = exceptionHandler;
+  }
 
   /// Links a controller to the receiver.
   ///
@@ -123,15 +130,34 @@ class Controller extends Object with APIDocumentable {
 
     var result;
     try {
-      result = await handle(req);
-      if (result is Response) {
-        await _sendResponse(req, result, includeCORSHeaders: true);
+      try {
+        result = await handle(req);
+        if (result is Response) {
+          await _sendResponse(req, result, includeCORSHeaders: true);
+          logger.info(req.toDebugString());
+          return null;
+        }
+      } on Response catch (response) {
+        await _sendResponse(req, response, includeCORSHeaders: true);
         logger.info(req.toDebugString());
         return null;
+      } catch (any, stacktrace) {
+        final handler = exceptionHandlers[any.runtimeType];
+        if (handler == null) {
+          rethrow;
+        }
+
+        result = handler(req, any, trace: stacktrace);
+        if (result is Response) {
+          await _sendResponse(req, result, includeCORSHeaders: true);
+          logger.info(req.toDebugString());
+          return null;
+        }
       }
     } catch (any, stacktrace) {
-      var shouldRethrow = await handleError(req, any, stacktrace);
-      if (letUncaughtExceptionsEscape && shouldRethrow) {
+      handleError(req, any, stacktrace);
+
+      if (letUncaughtExceptionsEscape) {
         rethrow;
       }
 
@@ -172,69 +198,36 @@ class Controller extends Object with APIDocumentable {
 
   /// Sends an HTTP response for a request that yields an exception or error.
   ///
-  /// This method is automatically invoked by [receive] and should rarely be invoked otherwise.
+  /// When this controller encounters an exception or error while handling [request], this method is called to send the response.
+  /// By default, it attempts to send a 500 Server Error response and logs the error and stack trace to [logger].
   ///
-  /// This method is invoked when an value is thrown inside an instance's [handle]. [request] is the [Request] being processed,
-  /// [caughtValue] is the value that is thrown and [trace] is a [StackTrace] at the point of the throw.
+  /// If [caughtValue]'s type has been registered with [addExceptionHandler], this method is not called and instead the
+  /// registered exception handler is called.
   ///
-  /// For unknown exceptions and errors, this method sends a 500 response for the request being processed. This ensures that any errors
-  /// still yield a response to the HTTP client. If [includeErrorDetailsInServerErrorResponses] is true, the body of this
-  /// method will contain the error and stacktrace as JSON data.
-  ///
-  /// If [caughtValue] is an [HTTPResponseException] or [QueryException], this method translates [caughtValue] and sends an appropriate
-  /// HTTP response.
-  ///
-  /// For [HTTPResponseException]s, the response is created by [HTTPResponseException.response].
-  ///
-  /// For [QueryException]s, the response is one of the following:
-  ///
-  /// * 400: When the query is valid SQL but fails for any reason, except a unique constraint violation.
-  /// * 409: When the query fails because of a unique constraint violation.
-  /// * 500: When the query is invalid SQL.
-  /// * 503: When the database cannot be reached.
-  ///
-  /// This method is invoked by [receive] and should not be invoked elsewhere. If a subclass overrides [receive], such as [Router],
-  /// this method should be called to handle any errors.
-  ///
-  /// Note: [includeErrorDetailsInServerErrorResponses] is not evaluated when [caughtValue] is an [HTTPResponseException] or [QueryException], as
-  /// these are normal control flows. There is one exception - if [QueryException.event] is [QueryExceptionEvent.internalFailure], this method
-  /// will include the error and stacktrace. [QueryExceptionEvent.internalFailure] occurs when the [Query] is malformed.
-  ///
-  /// This method returns true if the error is unexpected, allowing [letUncaughtExceptionsEscape] to rethrow the exception during debugging.
-  Future<bool> handleError(Request request, dynamic caughtValue, StackTrace trace) async {
+  /// Consider throwing a [Response] instead; throwing a [Response] within a controller will send that response.
+  Future handleError(Request request, dynamic caughtValue, StackTrace trace) async {
     if (caughtValue is HTTPStreamingException) {
       logger.severe(
           "${request.toDebugString(includeHeaders: true)}", caughtValue.underlyingException, caughtValue.trace);
 
-      await request.response.close();
+      request.response.close().catchError((_) => null);
 
-      return true;
+      return;
     }
 
-    Response response;
-    if (caughtValue is HTTPResponseException) {
-      response = caughtValue.response;
+    try {
+      final body = includeErrorDetailsInServerErrorResponses
+          ? {"error": "${this.runtimeType}: $caughtValue.", "stacktrace": trace?.toString()}
+          : null;
 
-      logger.info("${request.toDebugString(includeHeaders: true)}");
+      final response = new Response.serverError(body: body)..contentType = ContentType.JSON;
 
-      if (caughtValue.isControlFlowException) {
-        await _sendResponse(request, response, includeCORSHeaders: true);
-        return false;
-      }
+      await _sendResponse(request, response, includeCORSHeaders: true);
+
+      logger.severe("${request.toDebugString(includeHeaders: true)}", caughtValue, trace);
+    } catch (_) {
+      request.raw.drain().catchError((_) => null);
     }
-
-    var body;
-    if (includeErrorDetailsInServerErrorResponses) {
-      body = {"error": "${this.runtimeType}: $caughtValue.", "stacktrace": trace.toString()};
-    }
-
-    response ??= new Response.serverError(body: body)..contentType = ContentType.JSON;
-
-    await _sendResponse(request, response, includeCORSHeaders: true);
-
-    logger.severe("${request.toDebugString(includeHeaders: true)}", caughtValue, trace);
-
-    return true;
   }
 
   void applyCORSHeadersIfNecessary(Request req, Response resp) {
@@ -297,7 +290,6 @@ class Controller extends Object with APIDocumentable {
     return controller;
   }
 }
-
 
 /// Thrown when [Controller] throws an exception.
 ///

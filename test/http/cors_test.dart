@@ -525,7 +525,7 @@ class NoPolicyController extends RESTController {
 
   @Operation.post()
   Future<Response> throwException() async {
-    throw new HTTPResponseException(400, "Foobar");
+    throw new Response.badRequest(body: {"error": "Foobar"});
   }
 }
 
@@ -537,7 +537,7 @@ class DefaultPolicyController extends RESTController {
 
   @Operation.post()
   Future<Response> throwException() async {
-    throw new HTTPResponseException(400, "Foobar");
+    throw new Response.badRequest(body: {"error": "Foobar"});
   }
 }
 

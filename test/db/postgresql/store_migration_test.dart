@@ -4,7 +4,7 @@ import 'package:postgres/postgres.dart';
 
 void main() {
   group("Metadata", () {
-    var store = new PostgreSQLPersistentStore.fromConnectionInfo(
+    var store = new PostgreSQLPersistentStore(
         "dart", "dart", "localhost", 5432, "dart_test");
 
     setUp(() async {});

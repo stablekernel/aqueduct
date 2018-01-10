@@ -2,6 +2,7 @@ import 'managed.dart';
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
 import 'package:aqueduct/src/application/channel.dart';
+import 'package:aqueduct/src/http/http.dart';
 
 /// The target for database queries and coordinator of [Query]s.
 ///
@@ -45,6 +46,10 @@ class ManagedContext {
   /// to create a context without setting it as the default context.
   ManagedContext(this.dataModel, this.persistentStore) {
     defaultContext = this;
+
+    Controller.addExceptionHandler<QueryException>(QueryException, (request, QueryException exception, {StackTrace trace}) {
+      return exception.response;
+    });
   }
 
   /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].

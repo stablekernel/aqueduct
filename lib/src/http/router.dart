@@ -98,12 +98,12 @@ class Router extends Controller {
   /// Routers override this method to throw an exception. Use [route] instead.
   @override
   Controller link(Controller generatorFunction()) {
-    throw new StateError("Routers may not use generate, use route instead.");
+    throw new ArgumentError("Invalid link. 'Router' cannot directly link to controllers. Use 'route'.");
   }
 
   @override
   Controller linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
-    throw new StateError("Routers may not use generate, use route instead.");
+    throw new ArgumentError("Invalid link. 'Router' cannot directly link to functions. Use 'route'.");
   }
 
   @override

@@ -8,12 +8,7 @@ void main() {
     PostgreSQLPersistentStore persistentStore;
 
     setUp(() async {
-      persistentStore = new PostgreSQLPersistentStore(() async {
-        var connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
-          username: "dart", password: "dart");
-        await connection.open();
-        return connection;
-      });
+      persistentStore = new PostgreSQLPersistentStore("dart", "dart", "localhost", 5432, "dart_test");
     });
 
     tearDown(() async {
@@ -59,17 +54,7 @@ void main() {
 
     test("Make multiple requests at once, all fail because db connect fails",
         () async {
-      persistentStore = new PostgreSQLPersistentStore(() async {
-        var connection = new PostgreSQLConnection(
-            "localhost", 5432, "xyzxyznotadb",
-            username: "dart", password: "dart");
-        try {
-          await connection.open();
-        } catch (e) {
-          await connection.close();
-        }
-        return connection;
-      });
+      persistentStore = new PostgreSQLPersistentStore("dart", "dart", "localhost", 5432, "xyzxyznotadb");
       var expectedValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
       var values = await Future.wait(expectedValues
           .map((i) => persistentStore.execute("select $i").catchError((e) => e)));
@@ -80,7 +65,9 @@ void main() {
         "Make multiple requests at once, first few fails because db connect fails (but eventually succeeds)",
         () async {
       var counter = 0;
-      persistentStore = new PostgreSQLPersistentStore(() async {
+      persistentStore = new PostgreSQLPersistentStore("dart", "dart", "localhost", 5432, "xyzxyznotadb");
+
+      new PostgreSQLPersistentStore(() async {
         var connection = (counter == 0
             ? new PostgreSQLConnection("localhost", 5432, "xyzxyznotadb",
                 username: "dart", password: "dart")
@@ -113,7 +100,7 @@ void main() {
     });
 
     test("Connect to bad db fails gracefully, can then be used again", () async {
-      persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo("dart", "dart", "localhost", 5433, "dart_test");
+      persistentStore = new PostgreSQLPersistentStore("dart", "dart", "localhost", 5433, "dart_test");
       try {
         await persistentStore.executeQuery("SELECT 1", null, 20);
         expect(true, false);
@@ -127,12 +114,7 @@ void main() {
 
   group("Registration", () {
     test("Create with default constructor registers and handles shutdown", () async {
-      var store = new PostgreSQLPersistentStore(() async {
-        var connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
-            username: "dart", password: "dart");
-        await connection.open();
-        return connection;
-      });
+      var store = new PostgreSQLPersistentStore("dart", "dart", "localhost", 5432, "dart_test");
 
       await store.execute("SELECT 1");
       expect(store.isConnected, true);

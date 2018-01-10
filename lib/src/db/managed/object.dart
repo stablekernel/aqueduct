@@ -215,6 +215,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
       var property = entity.properties[k];
 
       if (property == null) {
+        //todo: error
         throw new QueryException(QueryExceptionEvent.requestFailure,
             message:
                 "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}");
@@ -225,6 +226,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
           backing.setValueForProperty(entity, k, property.convertFromPrimitiveValue(v));
         } else {
           if (!property.transientStatus.isAvailableAsInput) {
+            //todo: error
             throw new QueryException(QueryExceptionEvent.requestFailure,
                 message:
                     "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}");
@@ -234,6 +236,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
           if (!property.isAssignableWith(decodedValue)) {
             var valueTypeName =
                 MirrorSystem.getName(reflect(decodedValue).type.simpleName);
+            //todo: error
             throw new QueryException(QueryExceptionEvent.requestFailure,
                 message:
                     "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");

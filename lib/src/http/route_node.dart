@@ -78,7 +78,7 @@ class RouteNode {
 
     var terminatedAtThisDepth = specs.where((spec) => spec.segments.length == depth).toList();
     if (terminatedAtThisDepth.length > 1) {
-      throw new RouterException("Cannot disambiguate from the following routes: $terminatedAtThisDepth");
+      throw new ArgumentError("Router compilation failed. Cannot disambiguate from the following routes: $terminatedAtThisDepth.");
     } else if (terminatedAtThisDepth.length == 1) {
       specification = terminatedAtThisDepth.first;
     }
@@ -113,8 +113,9 @@ class RouteNode {
 
       if (childrenWithThisPattern.any((spec) => spec.segments[depth].matcher == null) &&
           childrenWithThisPattern.any((spec) => spec.segments[depth].matcher != null)) {
-        throw new RouterException(
-            "Cannot disambiguate from the following routes, as one of them will match anything: $childrenWithThisPattern");
+        //todo: error
+        throw new ArgumentError(
+            "Router compilation failed. Cannot disambiguate from the following routes, as one of them will match anything: $childrenWithThisPattern.");
       }
 
       return new RouteNode(childrenWithThisPattern, depth: depth + 1, matcher: childrenWithThisPattern.first.segments[depth].matcher);

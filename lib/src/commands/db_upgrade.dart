@@ -117,7 +117,7 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
 
       PersistentStore store;
       if (dbInfo != null && dbInfo["flavor"] == "postgres") {
-        store = new PostgreSQLPersistentStore.fromConnectionInfo(
+        store = new PostgreSQLPersistentStore(
             dbInfo["username"],
             dbInfo["password"],
             dbInfo["host"],

@@ -4,8 +4,7 @@ import 'page.dart';
 import 'query.dart';
 import 'sort_descriptor.dart';
 
-abstract class QueryMixin<InstanceType extends ManagedObject>
-    implements Query<InstanceType> {
+abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<InstanceType> {
   @override
   int offset = 0;
 
@@ -35,8 +34,8 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   bool get hasWhereBuilder => _whereBuilder?.backingMap?.isNotEmpty ?? false;
 
   List<String> _propertiesToFetch;
-  List<String> get propertiesToFetch =>
-      _propertiesToFetch ?? entity.defaultProperties;
+
+  List<String> get propertiesToFetch => _propertiesToFetch ?? entity.defaultProperties;
 
   @override
   InstanceType get values {
@@ -61,8 +60,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   }
 
   @override
-  Query<T> join<T extends ManagedObject>(
-      {T object(InstanceType x), ManagedSet<T> set(InstanceType x)}) {
+  Query<T> join<T extends ManagedObject>({T object(InstanceType x), ManagedSet<T> set(InstanceType x)}) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
     var matchingKey;
@@ -74,9 +72,8 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
 
     var attr = entity.relationships[matchingKey];
     if (attr == null) {
-      throw new QueryException(QueryExceptionEvent.internalFailure,
-          message:
-          "Invalid join. Property '$matchingKey' is not a relationship or does not exist for ${entity.tableName}.");
+      throw new ArgumentError("Invalid join query. Relationship named '$matchingKey' on table '${entity
+          .tableName}' is not a relationship.");
     }
 
     return _createSubquery(attr);
@@ -102,14 +99,13 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
             .map((r) => "'${r.name}'")
             .join(", ");
 
-        throw new QueryException(QueryExceptionEvent.internalFailure,
-            message:
-                "Invalid cyclic 'Query'. This query joins '${fromRelationship.entity.tableName}' "
-                "with '${fromRelationship.inverse.entity.tableName}' on property '${fromRelationship.name}'. "
-                "However, '${fromRelationship.inverse.entity.tableName}' "
-                "has also joined '${fromRelationship.entity.tableName}' on this property's inverse "
-                "'${fromRelationship.inverse.name}' earlier in the 'Query'. "
-                "Perhaps you meant to join on another property, such as: $validJoins?");
+        //todo: error
+        throw new ArgumentError("Invalid query. This query joins '${fromRelationship.entity.tableName}' "
+            "with '${fromRelationship.inverse.entity.tableName}' on property '${fromRelationship.name}'. "
+            "However, '${fromRelationship.inverse.entity.tableName}' "
+            "has also joined '${fromRelationship.entity.tableName}' on this property's inverse "
+            "'${fromRelationship.inverse.name}' earlier in the 'Query'. "
+            "Perhaps you meant to join on another property, such as: $validJoins?");
       }
 
       parent = parent._parentQuery;
@@ -125,8 +121,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   }
 
   @override
-  void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order,
-      {T boundingValue}) {
+  void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order, {T boundingValue}) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
     var propertyName = propertyIdentifier(obj as InstanceType) as String;
@@ -134,20 +129,16 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     var attribute = entity.attributes[propertyName];
     if (attribute == null) {
       if (entity.relationships[propertyName] != null) {
-        throw new QueryException(QueryExceptionEvent.internalFailure,
-            message:
-                "Property '$propertyName' cannot be paged on for ${entity.tableName}. "
-                "Reason: relationship properties cannot be paged on.");
+        throw new ArgumentError(
+            "Invalid query pageBy. Column '$propertyName' does not exist on table '${entity.tableName}'. "
+            "'$propertyName' recognized as ORM relationship and is therefore are not pageable.");
       } else {
-        throw new QueryException(QueryExceptionEvent.internalFailure,
-            message:
-                "Property '$propertyName' cannot be paged on for ${entity.tableName}. "
-                "Reason: property does not exist for entity.");
+        throw new ArgumentError(
+            "Invalid query pageBy. Column '$propertyName' does not exist on table '${entity.tableName}'.");
       }
     }
 
-    pageDescriptor =
-        new QueryPage(order, propertyName, boundingValue: boundingValue);
+    pageDescriptor = new QueryPage(order, propertyName, boundingValue: boundingValue);
   }
 
   @override
@@ -159,15 +150,12 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     var attribute = entity.attributes[propertyName];
     if (attribute == null) {
       if (entity.relationships[propertyName] != null) {
-        throw new QueryException(QueryExceptionEvent.internalFailure,
-            message:
-                "Property '$propertyName' cannot be sorted by for ${entity.tableName}. "
-                "Reason: results cannot be sorted by relationship properties.");
+        throw new ArgumentError(
+            "Invalid query sortBy. Column '$propertyName' does not exist on table '${entity.tableName}'. "
+            "'$propertyName' recognized as ORM relationship and is therefore are not pageable.");
       } else {
-        throw new QueryException(QueryExceptionEvent.internalFailure,
-            message:
-                "Property '$propertyName' cannot be sorted by for ${entity.tableName}. "
-                "Reason: property does not exist for entity.");
+        throw new ArgumentError(
+            "Invalid query sortBy. Column '$propertyName' does not exist on table '${entity.tableName}'.");
       }
     }
 
@@ -179,8 +167,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x)) {
     var tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance()..backing = tracker;
-    var propertyNames =
-        propertyIdentifiers(obj as InstanceType) as List<String>;
+    var propertyNames = propertyIdentifiers(obj as InstanceType) as List<String>;
 
     _propertiesToFetch = propertyNames;
   }

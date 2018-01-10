@@ -11,7 +11,7 @@ void main() {
     PersistentStore store;
 
     setUp(() {
-      store = new PostgreSQLPersistentStore.fromConnectionInfo(
+      store = new PostgreSQLPersistentStore(
           "dart", "dart", "localhost", 5432, "dart_test");
     });
 

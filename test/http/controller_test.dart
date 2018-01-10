@@ -413,7 +413,7 @@ class Always200Controller extends Controller {
   Future<RequestOrResponse> handle(Request req) async {
     var q = req.raw.uri.queryParameters["q"];
     if (q == "http_response_exception") {
-      throw new HTTPResponseException(400, "ok");
+      throw new Response.badRequest(body: {"error": "ok"});
     } else if (q == "query_exception") {
       throw new QueryException(QueryExceptionEvent.connectionFailure);
     } else if (q == "server_error") {
@@ -473,7 +473,7 @@ class OutlierChannel extends ApplicationChannel {
 
       // To stop the analyzer from complaining, since it see through the bullshit of 'if (true)' and the return type would be dead code.
       if ([1].any((i) => true)) {
-        throw new HTTPResponseException(400, "whocares");
+        throw new Response.badRequest(body: {"error": "whocares"});
       }
       return new Response.ok(null);
     });

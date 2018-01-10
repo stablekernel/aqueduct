@@ -106,7 +106,7 @@ class TestChannel extends ApplicationChannel {
   @override
   Future prepare() async {
     var dataModel = new ManagedDataModel([TestModel]);
-    var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(
+    var persistentStore = new PostgreSQLPersistentStore(
         "dart", "dart", "localhost", 5432, "dart_test");
     context = new ManagedContext(dataModel, persistentStore);
     ManagedContext.defaultContext = context;
@@ -176,7 +176,7 @@ class Subclass extends ManagedObjectController<TestModel> {
   Future<Query<TestModel>> willDeleteObjectWithQuery(
       Query<TestModel> query) async {
     if (request.path.variables["id"] == "3") {
-      throw new HTTPResponseException(301, "invalid");
+      throw new Response(301, null, {"error": "invalid"});
     }
     return query;
   }

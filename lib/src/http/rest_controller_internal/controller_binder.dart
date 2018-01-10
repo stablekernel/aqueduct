@@ -51,7 +51,7 @@ class RESTControllerBinder {
     return methodBinders
         .where((binder) {
           final argPathParameters = binder.positionalParameters.where((p) => p.binding is HTTPPath);
-          
+
           return !argPathParameters.every((p) => binder.pathVariables.contains(p.name));
         })
         .map((binder) => MirrorSystem.getName(binder.methodSymbol))
@@ -124,10 +124,8 @@ class RESTControllerBinder {
     var controllerBinder = binderForType(controller.runtimeType);
     var methodBinder = controllerBinder.methodBinderForRequest(request);
     if (methodBinder == null) {
-      var allowHeaders = {
-        "Allow": controllerBinder.allowedMethodsForPathVariables(request.path.variables.keys).join(", ")
-      };
-      throw new InternalControllerException("No operation found", 405, headers: allowHeaders);
+      throw new Response(405,
+          {"Allow": controllerBinder.allowedMethodsForPathVariables(request.path.variables.keys).join(", ")}, null);
     }
 
     var parseWith = (RESTControllerParameterBinder binder) {
@@ -155,7 +153,7 @@ class RESTControllerBinder {
     var errorMessage = flattened.where((v) => v.errorMessage != null).map((v) => v.errorMessage).join(", ");
 
     if (errorMessage.isNotEmpty) {
-      throw new InternalControllerException("Missing required values", 400, errorMessage: errorMessage);
+      throw new Response.badRequest(body: {"error": errorMessage});
     }
 
     if (!request.body.isEmpty) {
@@ -176,7 +174,7 @@ class RESTControllerBinder {
     errorMessage = flattened.where((v) => v.errorMessage != null).map((v) => v.errorMessage).join(", ");
 
     if (errorMessage.isNotEmpty) {
-      throw new InternalControllerException("Missing required values", 400, errorMessage: errorMessage);
+      throw new Response.badRequest(body: {"error": errorMessage});
     }
 
     return new HTTPRequestBinding()

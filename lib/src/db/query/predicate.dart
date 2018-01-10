@@ -54,8 +54,8 @@ class QueryPredicate {
     predicateList.forEach((p) {
       p.parameters?.forEach((k, v) {
         if (valueMap.containsKey(k)) {
-          throw new QueryPredicateException(
-              "Duplicate keys in and predicate, $k appears in multiple predicates. Make keys more specific.");
+          throw new ArgumentError("Invalid query predicate when creating 'andPredicate'. "
+              "Substitution key '$k' appears in multiple predicates and cannot be disambiguated.");
         }
         valueMap[k] = v;
       });

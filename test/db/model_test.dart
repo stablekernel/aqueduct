@@ -69,7 +69,7 @@ void main() {
     try {
       reflect(user).getField(#foo);
       expect(true, false);
-    } on ManagedDataModelException catch (e) {
+    } on ManagedDataModelError catch (e) {
       expect(e.toString(), contains("'User' has no property named 'foo'"));
     }
 

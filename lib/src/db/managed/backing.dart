@@ -11,8 +11,8 @@ class ManagedValueBacking extends ManagedBacking {
   @override
   dynamic valueForProperty(ManagedEntity entity, String propertyName) {
     if (entity.properties[propertyName] == null) {
-      throw new ManagedDataModelException(
-          "'${MirrorSystem.getName(entity.instanceType.simpleName)}' has no property named '$propertyName'.");
+      throw new ArgumentError("Invalid property access for 'ManagedObject'. "
+          "Property '$propertyName' does not exist on '${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
     }
 
     return valueMap[propertyName];
@@ -23,8 +23,8 @@ class ManagedValueBacking extends ManagedBacking {
       ManagedEntity entity, String propertyName, dynamic value) {
     var property = entity.properties[propertyName];
     if (property == null) {
-      throw new QueryException(QueryExceptionEvent.requestFailure, message:
-          "'${MirrorSystem.getName(entity.instanceType.simpleName)}' has no property named '$propertyName'.");
+      throw new ArgumentError("Invalid property access for 'ManagedObject'. "
+          "Property '$propertyName' does not exist on '${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
     }
 
     if (value != null) {

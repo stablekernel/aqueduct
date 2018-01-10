@@ -435,7 +435,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       return verify(authorizationData as String, scopesRequired: requiredScope);
     }
 
-    throw new AuthServerError("Invalid 'parser' for 'AuthServer.validate'. Use 'AuthorizationBasicParser' or 'AuthorizationBearerHeader'.");
+    throw new ArgumentError("Invalid 'parser' for 'AuthServer.validate'. Use 'AuthorizationBasicParser' or 'AuthorizationBearerHeader'.");
   }
 
   Future<Authorization> _validateClientCredentials(
@@ -542,15 +542,4 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       ..requestedScopes = scopes
       ..expirationDate = now.add(new Duration(seconds: expirationInSeconds));
   }
-}
-
-class AuthServerError extends Error {
-  AuthServerError(this.message);
-  String message;
-
-  @override
-  String toString() {
-    return "AuthServerError: $message";
-  }
-
 }
