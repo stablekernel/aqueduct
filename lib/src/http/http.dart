@@ -7,7 +7,7 @@ export 'file_controller.dart';
 export 'http_codec_repository.dart';
 export 'rest_controller.dart';
 export 'rest_controller_binding.dart';
-export 'errors.dart';
+export 'handler_exception.dart';
 export 'query_controller.dart';
 export 'request.dart';
 export 'controller.dart';

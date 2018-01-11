@@ -8,12 +8,16 @@ abstract class RowInstantiator {
   EntityTableMapper get rootTableMapper;
 
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
-    return rows
-        .map((row) =>
-            instanceFromRow(row.iterator, returningOrderedMappers.iterator))
-        .where((wrapper) => wrapper.isNew)
-        .map((wrapper) => wrapper.instance)
-        .toList();
+    try {
+      return rows
+          .map((row) =>
+              instanceFromRow(row.iterator, returningOrderedMappers.iterator))
+          .where((wrapper) => wrapper.isNew)
+          .map((wrapper) => wrapper.instance)
+          .toList();
+    } on ValidationException catch (e) {
+      throw new StateError("Database error when retrieving value. ${e.toString()}");
+    }
   }
 
   InstanceWrapper instanceFromRow(

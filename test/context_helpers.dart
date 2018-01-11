@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:postgres/postgres.dart';
 
 Future<ManagedContext> contextWithModels(List<Type> instanceTypes) async {
   var persistentStore = new PostgreSQLPersistentStore("dart", "dart", "localhost", 5432, "dart_test");

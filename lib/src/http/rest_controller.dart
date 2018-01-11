@@ -120,14 +120,14 @@ abstract class RESTController extends Controller {
     final conflictingOperations = binder.conflictingOperations;
     if (conflictingOperations.length > 0) {
       final opNames = conflictingOperations.map((s) => "'$s'").join(", ");
-      throw new StateError("Invalid controller. Controller '${runtimeType.toString()}' has ambiguous operations: $opNames.");
+      throw new StateError("Invalid controller. Controller '${runtimeType.toString()}' has ambiguous operations. Offending operating methods: $opNames.");
     }
 
     final unsatisfiableOperations = binder.unsatisfiableOperations;
     if (unsatisfiableOperations.length > 0) {
       final opNames = unsatisfiableOperations.map((s) => "'$s'").join(", ");
-      throw new StateError("Invalid controller. Controller '${runtimeType.toString()}' has has operations where "
-          "parameter is bound with @Bind.path(), but path variable is not declared in @Operation(): $opNames");
+      throw new StateError("Invalid controller. Controller '${runtimeType.toString()}' has operations where "
+          "parameter is bound with @Bind.path(), but path variable is not declared in @Operation(). Offending operation methods: $opNames");
     }
 
     RESTControllerBinder.addBinder(binder);
@@ -293,13 +293,4 @@ APIParameterLocation _parameterLocationFromHTTPParameter(HTTPBinding p) {
   }
 
   return null;
-}
-
-class RESTControllerException implements Exception {
-  RESTControllerException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => "RESTControllerException: $message";
 }

@@ -216,7 +216,7 @@ void expectRouterException(void f(), {String exceptionMessage}) {
   try {
     f();
     fail("Expected RouterException");
-  } on RouterException catch (e) {
+  } on ArgumentError catch (e) {
     if (exceptionMessage != null) {
       expect(e.message, exceptionMessage);
     }

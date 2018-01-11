@@ -1,8 +1,6 @@
-import 'dart:io';
 import 'dart:mirrors';
 
 import '../serializable.dart';
-import '../errors.dart';
 import '../request.dart';
 import '../response.dart';
 import 'internal.dart';

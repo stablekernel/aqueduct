@@ -200,7 +200,7 @@ void main() {
       expect(
           await client.request("/controller?sortBy=foobar,asc").get(),
           hasResponse(400,
-              {"error": "sortBy key foobar does not exist for _TestModel"}));
+              {"error": "cannot sort by '[foobar,asc]'"}));
     });
 
     test("Getting all objects with a unknown sort descriptor order fails",
@@ -208,13 +208,13 @@ void main() {
       expect(
           await client.request("/controller?sortBy=name,name").get(),
           hasResponse(400,
-              {"error": "sortBy order must be either asc or desc, not name"}));
+              {"error": "invalid 'sortBy' format. syntax: 'name,asc' or 'name,desc'."}));
     });
 
     test("Getting all objects with bad syntax fails", () async {
       var resp = await client.request("/controller?sortBy=name,asc,bar").get();
       expect(resp, hasResponse(400,
-              {"error": contains("sortBy keys must be string pairs delimited by a comma")}));
+              {"error": "invalid 'sortyBy' format. syntax: 'name,asc' or 'name,desc'."}));
     });
 
     test("Paging after", () async {
@@ -255,7 +255,7 @@ void main() {
           await client.request("controller?pageBy=createdAt").get(),
           hasResponse(400, {
             "error":
-                "If defining pageBy, either pageAfter or pagePrior must be defined. 'null' is a valid value"
+                "missing required paramater 'pageAfter' or 'pagePrior' when 'pageBy' is given"
           }));
     });
 
@@ -263,7 +263,7 @@ void main() {
       expect(
           await client.request("/controller?pageBy=foobar&pagePrior=10").get(),
           hasResponse(400,
-              {"error": "pageBy key foobar does not exist for _TestModel"}));
+              {"error": "cannot page by 'foobar'"}));
     });
   });
 

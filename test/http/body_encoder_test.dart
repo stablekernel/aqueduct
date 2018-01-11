@@ -99,13 +99,13 @@ void main() {
     expect(resp.statusCode, 500);
   });
 
-  test("Invalid charset throws 500 safely", () async {
+  test("Invalid charset sends 415", () async {
     var serverResponse = new Response.ok("abcd")
-      ..contentType = new ContentType("text", "foo", charset: "abcd");
+      ..contentType = new ContentType("text", "plain", charset: "abcd");
     server = await bindAndRespondWith(serverResponse);
 
     var resp = await http.get("http://localhost:8888");
-    expect(resp.statusCode, 500);
+    expect(resp.statusCode, 415);
   });
 
   test("Encoder that doesn't net out with List<int> safely fails", () async {

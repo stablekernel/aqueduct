@@ -278,7 +278,7 @@ abstract class HTTPBodyDecoder {
     }
 
     if (_decodedData.first is! int) {
-      throw new Response(422, null, {"error": "unexpected request entity data type"});
+      throw new StateError("Invalid body decoding. Body was decoded into another type. Set 'retainOriginalBytes' to true. to retain original bytes.");
     }
 
     return _decodedData as List<int>;

@@ -177,15 +177,3 @@ class _RouteController extends Controller {
   /// Route specifications for this controller.
   final List<RouteSpecification> patterns;
 }
-
-/// Thrown when a [Router] encounters an exception.
-class RouterException implements Exception {
-  RouterException(this.message);
-
-  final String message;
-
-  @override
-  String toString() {
-    return "RouterException: $message";
-  }
-}

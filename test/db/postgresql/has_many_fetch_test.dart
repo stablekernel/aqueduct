@@ -431,40 +431,28 @@ void main() {
         ..returningProperties((p) => [p.pid, p.children]);
       try {
         await q.fetchOne();
-      } on QueryException catch (e) {
+      } on ArgumentError catch (e) {
         expect(
             e.toString(),
             contains(
-                "Property 'children' is a hasMany or hasOne relationship and is invalid as a result property of '_Parent'"));
+                "Column 'children' does not exist for table '_Parent'. 'children' recognized as ORM relationship, use 'Query.join' instead"));
       }
     });
 
-    test("Trying to fetch hasMany relationship through resultProperties fails",
+    test("Trying to fetch nested hasMany relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()
-        ..returningProperties((p) => [p.pid, p.children]);
-      try {
-        await q.fetchOne();
-        expect(true, false);
-      } on QueryException catch (e) {
-        expect(
-            e.toString(),
-            contains(
-                "Property 'children' is a hasMany or hasOne relationship and is invalid as a result property of '_Parent'"));
-      }
-
-      q = new Query<Parent>();
+      final q = new Query<Parent>();
       q.join(set: (p) => p.children)
         ..returningProperties((p) => [p.cid, p.vaccinations]);
 
       try {
         await q.fetchOne();
         expect(true, false);
-      } on QueryException catch (e) {
+      } on ArgumentError catch (e) {
         expect(
             e.toString(),
             contains(
-                "Property 'vaccinations' is a hasMany or hasOne relationship and is invalid as a result property of '_Child'"));
+                "Column 'vaccinations' does not exist for table '_Child'. 'vaccinations' recognized as ORM relationship, use 'Query.join' instead"));
       }
     });
   });

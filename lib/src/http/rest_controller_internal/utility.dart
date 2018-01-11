@@ -2,7 +2,6 @@ import 'dart:mirrors';
 
 import '../rest_controller_binding.dart';
 import '../request.dart';
-import '../response.dart';
 import 'bindings.dart';
 
 bool requestHasFormData(Request request) {

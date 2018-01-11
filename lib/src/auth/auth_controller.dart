@@ -22,9 +22,7 @@ class AuthController extends RESTController {
   ///
   /// [authServer] is the required authorization server that grants tokens.
   AuthController(this.authServer) {
-    acceptedContentTypes = [
-      new ContentType("application", "x-www-form-urlencoded")
-    ];
+    acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
 
   /// A reference to the [AuthServer] this controller uses to grant tokens.
@@ -71,19 +69,16 @@ class AuthController extends RESTController {
     }
 
     try {
-      var scopes = scope
-        ?.split(" ")
-        ?.map((s) => new AuthScope(s))
-        ?.toList();
+      var scopes = scope?.split(" ")?.map((s) => new AuthScope(s))?.toList();
 
       if (grantType == "password") {
-        var token = await authServer.authenticate(
-            username, password, basicRecord.username, basicRecord.password, requestedScopes: scopes);
+        var token = await authServer.authenticate(username, password, basicRecord.username, basicRecord.password,
+            requestedScopes: scopes);
 
         return AuthController.tokenResponse(token);
       } else if (grantType == "refresh_token") {
-        var token = await authServer.refresh(
-            refreshToken, basicRecord.username, basicRecord.password, requestedScopes: scopes);
+        var token =
+            await authServer.refresh(refreshToken, basicRecord.username, basicRecord.password, requestedScopes: scopes);
 
         return AuthController.tokenResponse(token);
       } else if (grantType == "authorization_code") {
@@ -91,8 +86,7 @@ class AuthController extends RESTController {
           return _responseForError(AuthRequestError.invalidRequest);
         }
 
-        var token = await authServer.exchange(
-            authCode, basicRecord.username, basicRecord.password);
+        var token = await authServer.exchange(authCode, basicRecord.username, basicRecord.password);
 
         return AuthController.tokenResponse(token);
       } else if (grantType == null) {
@@ -110,23 +104,21 @@ class AuthController extends RESTController {
   /// Transforms a [AuthToken] into a [Response] object with an RFC6749 compliant JSON token
   /// as the HTTP response body.
   static Response tokenResponse(AuthToken token) {
-    return new Response(HttpStatus.OK,
-        {"Cache-Control": "no-store", "Pragma": "no-cache"}, token.asMap());
+    return new Response(HttpStatus.OK, {"Cache-Control": "no-store", "Pragma": "no-cache"}, token.asMap());
   }
 
   @override
   void willSendResponse(Response response) {
     if (response.statusCode == 400) {
-      if (response.body != null &&
-          response.body["error"] ==
-              "Duplicate parameter for non-List parameter type") {
-        // This post-processes the response in the case that duplicate parameters
-        // were in the request, which violates oauth2 spec. It just adjusts the error message.
-        // This could be hardened some.
-        response.body = {
-          "error":
-              AuthServerException.errorString(AuthRequestError.invalidRequest)
-        };
+      // This post-processes the response in the case that duplicate parameters
+      // were in the request, which violates oauth2 spec. It just adjusts the error message.
+      // This could be hardened some.
+      final body = response.body;
+      if (body != null && body["error"] is String) {
+        final errorMessage = body["error"] as String;
+        if (errorMessage.startsWith("multiple values")) {
+          response.body = {"error": AuthServerException.errorString(AuthRequestError.invalidRequest)};
+        }
       }
     }
   }
@@ -156,10 +148,8 @@ class AuthController extends RESTController {
           }),
         new APIResponse()
           ..statusCode = HttpStatus.BAD_REQUEST
-          ..description =
-              "Missing one or more of: 'client_id', 'username', 'password'."
-          ..schema = new APISchemaObject(
-              properties: {"error": new APISchemaObject.string()}),
+          ..description = "Missing one or more of: 'client_id', 'username', 'password'."
+          ..schema = new APISchemaObject(properties: {"error": new APISchemaObject.string()}),
       ]);
     }
 

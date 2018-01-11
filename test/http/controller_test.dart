@@ -172,45 +172,24 @@ void main() {
     });
 
     test("Logging after socket is closed throws uncaught exception, still works correctly after", () async {
-      var completer = new Completer();
-      app.logger.onRecord.listen((p) {
-        if (p.message.contains("Uncaught exception in isolate")) {
-          completer.complete();
-        }
-      });
       try {
         await http.get("http://localhost:8000/detach");
         expect(true, false);
       } on http.ClientException {}
 
       expect((await http.get("http://localhost:8000/detach")).statusCode, 200);
-      expect(completer.future, completes);
     });
 
     test("Request on bad state: header already sent is captured in Controller", () async {
-      var completer = new Completer();
-      app.logger.onRecord.listen((p) {
-        if (p.message.contains("Uncaught exception in isolate")) {
-          completer.complete();
-        }
-      });
       expect((await http.get("http://localhost:8000/closed")).statusCode, 200);
       expect((await http.get("http://localhost:8000/closed")).statusCode, 200);
-      expect(completer.future, completes);
     });
 
     test(
         "Request controller throwing HttpResponseException that dies on bad state: header already sent is captured in Controller",
         () async {
-      var completer = new Completer();
-      app.logger.onRecord.listen((p) {
-        if (p.message.contains("Uncaught exception in isolate")) {
-          completer.complete();
-        }
-      });
       expect((await http.get("http://localhost:8000/closed_exception")).statusCode, 200);
       expect((await http.get("http://localhost:8000/closed_exception")).statusCode, 200);
-      expect(completer.future, completes);
     });
   });
 
@@ -220,34 +199,6 @@ void main() {
       await server.close();
     });
 
-    test("Request controller maps QueryExceptions appropriately", () async {
-      var handler = (Request req) async {
-        var v = int.parse(req.raw.uri.queryParameters["p"]);
-        switch (v) {
-          case 0:
-            throw new QueryException(QueryExceptionEvent.internalFailure);
-          case 1:
-            throw new QueryException(QueryExceptionEvent.requestFailure);
-          case 2:
-            throw new QueryException(QueryExceptionEvent.conflict);
-          case 3:
-            throw new QueryException(QueryExceptionEvent.connectionFailure);
-        }
-
-        return new Response.ok(null);
-      };
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8000);
-      server.map((req) => new Request(req)).listen((req) async {
-        var next = new Controller();
-        next.linkFunction(handler);
-        await next.receive(req);
-      });
-
-      var statusCodes = (await Future.wait([0, 1, 2, 3].map((p) => http.get("http://localhost:8000/?p=$p"))))
-          .map((resp) => resp.statusCode)
-          .toList();
-      expect(statusCodes, [500, 400, 409, 503]);
-    });
 
     test("Request controller's can serialize and encode Serializable objects as JSON by default", () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
@@ -373,7 +324,7 @@ void main() {
       expect(JSON.decode(resp.body), {"statusCode": 500});
     });
 
-    test("Failure to decode request body as appropriate type is 400", () async {
+    test("Failure to decode request body as appropriate type is 422", () async {
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
@@ -387,7 +338,7 @@ void main() {
       var resp = await http.post("http://localhost:8888",
           headers: {"content-type": "application/json"}, body: JSON.encode(["a"]));
 
-      expect(resp.statusCode, 400);
+      expect(resp.statusCode, 422);
     });
   });
 }
@@ -415,7 +366,7 @@ class Always200Controller extends Controller {
     if (q == "http_response_exception") {
       throw new Response.badRequest(body: {"error": "ok"});
     } else if (q == "query_exception") {
-      throw new QueryException(QueryExceptionEvent.connectionFailure);
+      throw new QueryException(QueryExceptionEvent.transport);
     } else if (q == "server_error") {
       throw new FormatException("whocares");
     }

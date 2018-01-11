@@ -89,37 +89,6 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     return join(set: m);
   }
 
-  Query _createSubquery(ManagedRelationshipDescription fromRelationship) {
-    // Ensure we don't cyclically join
-    var parent = _parentQuery;
-    while (parent != null) {
-      if (parent.subQueries.containsKey(fromRelationship.inverse)) {
-        var validJoins = fromRelationship.entity.relationships.values
-            .where((r) => !identical(r, fromRelationship))
-            .map((r) => "'${r.name}'")
-            .join(", ");
-
-        //todo: error
-        throw new ArgumentError("Invalid query. This query joins '${fromRelationship.entity.tableName}' "
-            "with '${fromRelationship.inverse.entity.tableName}' on property '${fromRelationship.name}'. "
-            "However, '${fromRelationship.inverse.entity.tableName}' "
-            "has also joined '${fromRelationship.entity.tableName}' on this property's inverse "
-            "'${fromRelationship.inverse.name}' earlier in the 'Query'. "
-            "Perhaps you meant to join on another property, such as: $validJoins?");
-      }
-
-      parent = parent._parentQuery;
-    }
-
-    subQueries ??= {};
-
-    var subquery = new Query.forEntity(fromRelationship.destinationEntity, context);
-    (subquery as QueryMixin)._parentQuery = this;
-    subQueries[fromRelationship] = subquery;
-
-    return subquery;
-  }
-
   @override
   void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order, {T boundingValue}) {
     var tracker = new ManagedAccessTrackingBacking();
@@ -170,5 +139,50 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     var propertyNames = propertyIdentifiers(obj as InstanceType) as List<String>;
 
     _propertiesToFetch = propertyNames;
+  }
+
+  void validateInput(ValidateOperation op) {
+    if (valueMap == null) {
+      if (op == ValidateOperation.insert) {
+        values.willInsert();
+      } else if (op == ValidateOperation.update) {
+        values.willUpdate();
+      }
+
+      var errors = <String>[];
+      if (!values.validate(forOperation: op, collectErrorsIn: errors)) {
+        throw new ValidationException(errors);
+      }
+    }
+  }
+
+  Query _createSubquery(ManagedRelationshipDescription fromRelationship) {
+    // Ensure we don't cyclically join
+    var parent = _parentQuery;
+    while (parent != null) {
+      if (parent.subQueries.containsKey(fromRelationship.inverse)) {
+        var validJoins = fromRelationship.entity.relationships.values
+            .where((r) => !identical(r, fromRelationship))
+            .map((r) => "'${r.name}'")
+            .join(", ");
+
+        throw new StateError("Invalid query construction. This query joins '${fromRelationship.entity.tableName}' "
+            "with '${fromRelationship.inverse.entity.tableName}' on property '${fromRelationship.name}'. "
+            "However, '${fromRelationship.inverse.entity.tableName}' "
+            "has also joined '${fromRelationship.entity.tableName}' on this property's inverse "
+            "'${fromRelationship.inverse.name}' earlier in the 'Query'. "
+            "Perhaps you meant to join on another property, such as: $validJoins?");
+      }
+
+      parent = parent._parentQuery;
+    }
+
+    subQueries ??= {};
+
+    var subquery = new Query.forEntity(fromRelationship.destinationEntity, context);
+    (subquery as QueryMixin)._parentQuery = this;
+    subQueries[fromRelationship] = subquery;
+
+    return subquery;
   }
 }

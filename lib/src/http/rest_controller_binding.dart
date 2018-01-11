@@ -175,7 +175,6 @@ class Bind {
       case _BindType.path:
         return new HTTPPath(name);
     }
-//todo: error
     throw new StateError("Invalid controller. Operation parameter binding '$_type' on '$name' is unknown.");
   }
 }

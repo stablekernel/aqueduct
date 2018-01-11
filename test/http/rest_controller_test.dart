@@ -18,6 +18,7 @@ void main() {
 
   tearDown(() async {
     await server?.close(force: true);
+
     server = null;
   });
 
@@ -86,9 +87,10 @@ void main() {
     try {
       server = await enableController("/foo/", UnboundController);
       expect(true, false);
-    } on RESTControllerException catch (e) {
-      expect(e.toString(), contains("getOne"));
-      expect(e.toString(), contains("path variable not in"));
+    } on StateError catch (e) {
+      expect(e.toString(), contains("Invalid controller"));
+      expect(e.toString(), contains("'UnboundController'"));
+      expect(e.toString(), contains("'getOne'"));
     }
   });
 
@@ -322,10 +324,10 @@ void main() {
     try {
       server = await enableController("/foo/:id", AmbiguousController);
       expect(true, false);
-    } on RESTControllerException catch (e) {
-      expect(e.toString(), contains("get1"));
-      expect(e.toString(), contains("get2"));
-      expect(e.toString(), contains("ambiguous"));
+    } on StateError catch (e) {
+      expect(e.toString(), contains("'get1'"));
+      expect(e.toString(), contains("'get2'"));
+      expect(e.toString(), contains("'AmbiguousController'"));
     }
   });
 
@@ -482,7 +484,7 @@ void main() {
       expect(resp.statusCode, 400);
 
       expect(JSON.decode(resp.body)["error"],
-          "Duplicate parameter for non-List parameter type");
+          "multiple values for 'single' not expected");
     });
 
     test("Can be more than one query parameters for arg type that is List<T>",

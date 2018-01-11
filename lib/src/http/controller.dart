@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors';
 
 import 'package:logging/logging.dart';
 
 import 'http.dart';
-import '../db/db.dart';
 
 /// The unifying protocol for [Request] and [Response] classes.
 ///
@@ -13,7 +11,6 @@ import '../db/db.dart';
 abstract class RequestOrResponse {}
 
 typedef FutureOr<RequestOrResponse> _Handler(Request request);
-typedef RequestOrResponse _ExceptionHandler<T extends Object>(Request request, Object exception, {StackTrace trace});
 
 /// Controllers handle requests by either responding, or taking some action and passing the request to another controller.
 ///
@@ -72,13 +69,8 @@ class Controller extends Object with APIDocumentable {
   @override
   APIDocumentable get documentableChild => nextController;
 
-  static final Map<Type, _ExceptionHandler> exceptionHandlers = {};
   Controller _nextController;
   final _Handler _handler;
-
-  static void addExceptionHandler<T>(Type type, RequestOrResponse exceptionHandler(Request request, T exception, {StackTrace trace})) {
-    exceptionHandlers[type] = exceptionHandler;
-  }
 
   /// Links a controller to the receiver.
   ///
@@ -141,13 +133,8 @@ class Controller extends Object with APIDocumentable {
         await _sendResponse(req, response, includeCORSHeaders: true);
         logger.info(req.toDebugString());
         return null;
-      } catch (any, stacktrace) {
-        final handler = exceptionHandlers[any.runtimeType];
-        if (handler == null) {
-          rethrow;
-        }
-
-        result = handler(req, any, trace: stacktrace);
+      } on HandlerException catch (e) {
+        result = e.requestOrResponse;
         if (result is Response) {
           await _sendResponse(req, result, includeCORSHeaders: true);
           logger.info(req.toDebugString());
@@ -201,10 +188,9 @@ class Controller extends Object with APIDocumentable {
   /// When this controller encounters an exception or error while handling [request], this method is called to send the response.
   /// By default, it attempts to send a 500 Server Error response and logs the error and stack trace to [logger].
   ///
-  /// If [caughtValue]'s type has been registered with [addExceptionHandler], this method is not called and instead the
-  /// registered exception handler is called.
+  /// Note: If [caughtValue]'s implements [HandlerException], this method is not called.
   ///
-  /// Consider throwing a [Response] instead; throwing a [Response] within a controller will send that response.
+  /// If you override this method, it must not throw.
   Future handleError(Request request, dynamic caughtValue, StackTrace trace) async {
     if (caughtValue is HTTPStreamingException) {
       logger.severe(
@@ -216,8 +202,9 @@ class Controller extends Object with APIDocumentable {
     }
 
     try {
+      logger.info("Sending error");
       final body = includeErrorDetailsInServerErrorResponses
-          ? {"error": "${this.runtimeType}: $caughtValue.", "stacktrace": trace?.toString()}
+          ? {"controller": "$runtimeType", "error": "$caughtValue.", "stacktrace": trace?.toString()}
           : null;
 
       final response = new Response.serverError(body: body)..contentType = ContentType.JSON;
@@ -225,7 +212,8 @@ class Controller extends Object with APIDocumentable {
       await _sendResponse(request, response, includeCORSHeaders: true);
 
       logger.severe("${request.toDebugString(includeHeaders: true)}", caughtValue, trace);
-    } catch (_) {
+    } catch (e) {
+      logger.severe("Failed to send response, draining request. Reason: $e");
       request.raw.drain().catchError((_) => null);
     }
   }
@@ -340,6 +328,7 @@ class _ControllerGenerator extends Controller {
     return c;
   }
 
+  @override
   Controller linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
     final c = super.linkFunction(handle);
     nextInstanceToReceive._nextController = c;

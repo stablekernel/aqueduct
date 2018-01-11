@@ -46,10 +46,6 @@ class ManagedContext {
   /// to create a context without setting it as the default context.
   ManagedContext(this.dataModel, this.persistentStore) {
     defaultContext = this;
-
-    Controller.addExceptionHandler<QueryException>(QueryException, (request, QueryException exception, {StackTrace trace}) {
-      return exception.response;
-    });
   }
 
   /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].

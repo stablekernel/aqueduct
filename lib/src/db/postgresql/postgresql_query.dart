@@ -31,7 +31,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<InstanceType> insert() async {
-    finalizeAndValidateValues(ValidateOperation.insert);
+    validateInput(ValidateOperation.insert);
 
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch, values: valueMap ?? values?.backingMap);
@@ -58,7 +58,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<List<InstanceType>> update() async {
-    finalizeAndValidateValues(ValidateOperation.update);
+    validateInput(ValidateOperation.update);
 
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
@@ -95,8 +95,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       return null;
     }
 
-    throw new QueryException(QueryExceptionEvent.internalFailure,
-        message: "'Query.updateOne' modified more than one row (in '${entity.tableName}'). "
+    throw new StateError("Query error. 'updateOne' modified more than one row in '${entity.tableName}'. "
             "This was likely unintended and may be indicativate of a more serious error. Query "
             "should add 'where' constraints on a unique column.");
   }
@@ -130,8 +129,9 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     if (results.length == 1) {
       return results.first;
     } else if (results.length > 1) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message: "Query expected to fetch one instance, but ${results.length} instances were returned.");
+      throw new StateError("Query error. 'fetchOne' returned more than one row from '${entity.tableName}'. "
+          "This was likely unintended and may be indicativate of a more serious error. Query "
+          "should add 'where' constraints on a unique column.");
     }
 
     return null;
@@ -143,21 +143,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   }
 
   //////
-
-  void finalizeAndValidateValues(ValidateOperation op) {
-    if (valueMap == null) {
-      if (op == ValidateOperation.insert) {
-        values.willInsert();
-      } else if (op == ValidateOperation.update) {
-        values.willUpdate();
-      }
-
-      var errors = <String>[];
-      if (!values.validate(forOperation: op, collectErrorsIn: errors)) {
-        throw new QueryException(QueryExceptionEvent.requestFailure, message: errors.join(", "));
-      }
-    }
-  }
 
   PostgresQueryBuilder createFetchMapper() {
     var allSortDescriptors = new List<QuerySortDescriptor>.from(sortDescriptors ?? []);
@@ -184,8 +169,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
         aliasTables: true);
 
     if (builder.containsJoins && pageDescriptor != null) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message: "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
+      throw new StateError("Invalid query. Cannot set both 'pageDescription' and use 'join' in query.");
     }
 
     return builder;
@@ -223,15 +207,11 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   void validatePageDescriptor() {
     var prop = entity.attributes[pageDescriptor.propertyName];
     if (prop == null) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-              "Property '${pageDescriptor.propertyName}' in pageDescriptor does not exist on '${entity.tableName}'.");
+      throw new StateError("Invalid query page descriptor. Column '${pageDescriptor.propertyName}' does not exist for table '${entity.tableName}'");
     }
 
     if (pageDescriptor.boundingValue != null && !prop.isAssignableWith(pageDescriptor.boundingValue)) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message: "Property '${pageDescriptor.propertyName}' in pageDescriptor has invalid type (Expected: '${prop
-              .type}' Got: ${pageDescriptor.boundingValue.runtimeType}').");
+      throw new StateError("Invalid query page descriptor. Bounding value for column '${pageDescriptor.propertyName}' has invalid type.");
     }
   }
 
@@ -249,7 +229,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
         [];
   }
 
-  //todo: error
-  static final ArgumentError canModifyAllInstancesError = new ArgumentError(
+  static final StateError canModifyAllInstancesError = new StateError(
       "Invalid Query<T>. Query is either update or delete query with no WHERE clause. To confirm this query is correct, set 'canModifyAllInstances' to true.");
 }

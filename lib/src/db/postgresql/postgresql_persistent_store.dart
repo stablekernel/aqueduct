@@ -92,9 +92,8 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
           _pendingConnectionCompleter.complete(_databaseConnection);
           _pendingConnectionCompleter = null;
         }).catchError((e) {
-          // todo: error
           _pendingConnectionCompleter
-              .completeError(new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e));
+              .completeError(new QueryException.transport("unable to connect to database", underlyingException: e));
           _pendingConnectionCompleter = null;
         });
       }
@@ -124,7 +123,12 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
           .inMilliseconds)}ms) $sql -> $mappedRows");
       return mappedRows;
     } on PostgreSQLException catch (e) {
-      throw _interpretException(e);
+      final interpreted = _interpretException(e);
+      if (interpreted != null) {
+        throw interpreted;
+      }
+
+      rethrow;
     }
   }
 
@@ -145,18 +149,12 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
       }
 
       return values.last.first;
-    } on QueryException catch (e) {
-      var underlying = e.underlyingException;
-      if (underlying is PostgreSQLException) {
-        if (underlying.code != PostgreSQLErrorCode.undefinedTable) {
-          throw _interpretException(e.underlyingException);
-        }
-      } else {
-        throw underlying;
+    } on PostgreSQLException catch (e) {
+      if (e.code == PostgreSQLErrorCode.undefinedTable) {
+        return 0;
       }
+      rethrow;
     }
-
-    return 0;
   }
 
   @override
@@ -187,7 +185,12 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
                 .toIso8601String()}')");
       });
     } on PostgreSQLException catch (e) {
-      throw _interpretException(e);
+      final interpreted = _interpretException(e);
+      if (interpreted != null) {
+        throw interpreted;
+      }
+
+      rethrow;
     }
   }
 
@@ -216,31 +219,32 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
 
       return results;
     } on TimeoutException catch (e) {
-      //todo: error
-      throw new QueryException(QueryExceptionEvent.connectionFailure, underlyingException: e);
+      throw new QueryException.transport("timed out connection to database", underlyingException: e);
     } on PostgreSQLException catch (e) {
       logger.fine(() => "Query (${(new DateTime.now()
           .toUtc()
           .difference(now)
           .inMilliseconds)}ms) $formatString $values");
-      throw _interpretException(e);
+      final interpreted = _interpretException(e);
+      if (interpreted != null) {
+        throw interpreted;
+      }
+
+      rethrow;
     }
   }
 
-  //todo: error, or move this to postgresql_query?
-  QueryException _interpretException(PostgreSQLException exception) {
+  QueryException<PostgreSQLException> _interpretException(PostgreSQLException exception) {
     switch (exception.code) {
-      case PostgreSQLErrorCode.undefinedColumn:
-        return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
       case PostgreSQLErrorCode.uniqueViolation:
-        return new QueryException(QueryExceptionEvent.conflict, underlyingException: exception);
+        return new QueryException.conflict("entity_already_exists", ["${exception.tableName}.${exception.columnName}"], underlyingException: exception);
       case PostgreSQLErrorCode.notNullViolation:
-        return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
+        return new QueryException.input("non_null_violation", ["${exception.tableName}.${exception.columnName}"], underlyingException: exception);
       case PostgreSQLErrorCode.foreignKeyViolation:
-        return new QueryException(QueryExceptionEvent.requestFailure, underlyingException: exception);
+        return new QueryException.input("foreign_key_violation", ["${exception.tableName}.${exception.columnName}"],underlyingException: exception);
     }
 
-    return new QueryException(QueryExceptionEvent.internalFailure, underlyingException: exception);
+    return null;
   }
 
   Future _createVersionTableIfNecessary(bool temporary) async {

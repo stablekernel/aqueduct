@@ -37,8 +37,8 @@ void main() {
     try {
       new Query.forEntity(context.dataModel.entityForType(TestModel), someOtherContext);
       expect(true, false);
-    } on QueryException catch (e) {
-      expect(e.toString(), contains("Cannot instantiate"));
+    } on StateError catch (e) {
+      expect(e.toString(), allOf([contains("'simple'"), contains("is from different context")]));
     }
   });
 
@@ -120,8 +120,12 @@ void main() {
       new Query<TestModel>()
         ..sortBy((u) => u["nonexisting"], QuerySortOrder.ascending);
       expect(true, false);
-    } on QueryException catch (e) {
-      expect(e.toString(), contains("property does not exist"));
+    } on ArgumentError catch (e) {
+      expect(e.toString(), allOf([
+        contains("does not exist on table"),
+        contains("'nonexisting'"),
+        contains("'simple'"),
+      ]));
     }
   });
 
@@ -131,8 +135,13 @@ void main() {
       new Query<GenUser>()
           ..sortBy((u) => u.posts, QuerySortOrder.ascending);
       expect(true, false);
-    } on QueryException catch (e) {
-      expect(e.toString(), contains("results cannot be sorted by relationship properties"));
+    } on ArgumentError catch (e) {
+      expect(e.toString(), allOf([
+        contains("'posts'"),
+        contains("'GenUser'"),
+        contains("does not exist"),
+        contains("recognized as ORM relationship")
+      ]));
     }
   });
 
@@ -196,15 +205,12 @@ void main() {
     req = new Query<TestModel>()
       ..returningProperties((t) => [t.id, t["badkey"]]);
 
-    var successful = false;
     try {
       await req.fetch();
-      successful = true;
-    } on QueryException catch (e) {
-      expect(e.toString(), "Property badkey does not exist on simple");
-      expect(e.event, QueryExceptionEvent.internalFailure);
+      expect(true, false);
+    } on ArgumentError catch (e) {
+      expect(e.toString(), contains("Column 'badkey' does not exist for table 'simple'"));
     }
-    expect(successful, false);
   });
 
   test("Value for foreign key in predicate", () async {
@@ -298,11 +304,10 @@ void main() {
       await q.fetchOne();
 
       expect(true, false);
-    } on QueryException catch (e) {
+    } on StateError catch (e) {
       expect(
           e.toString(),
-          contains(
-              "Query expected to fetch one instance, but 2 instances were returned."));
+          contains("'fetchOne' returned more than one row from 'GenUser'"));
     }
   });
 
@@ -328,9 +333,9 @@ void main() {
     try {
       await q.fetchOne();
       expect(true, false);
-    } on QueryException catch (e) {
+    } on ArgumentError catch (e) {
       expect(e.toString(),
-          contains("Property owner_id does not exist on _GenPost"));
+          contains("Column 'owner_id' does not exist for table '_GenPost'"));
     }
   });
 
@@ -367,7 +372,7 @@ void main() {
     expect(result, isNull);
   });
 
-  test("When fetching invalid enum value from db, throws exception", () async {
+  test("When fetching invalid enum value from db, throws error", () async {
     context = await contextWithModels([EnumObject]);
 
     await context.persistentStore.execute("INSERT INTO _enumobject (enumValues) VALUES ('foobar')");
@@ -376,9 +381,9 @@ void main() {
       var q = new Query<EnumObject>();
       await q.fetch();
       expect(true, false);
-    } on QueryException catch (e) {
-      expect(e.toString(), contains("'foobar'"));
-      expect(e.toString(), contains("'EnumObject.enumValues'"));
+    } on StateError catch (e) {
+      expect(e.toString(), contains("Database error when retrieving value"));
+      expect(e.toString(), contains("invalid option for key 'enumValues'"));
     }
   });
 }

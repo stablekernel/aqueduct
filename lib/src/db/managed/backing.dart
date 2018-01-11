@@ -1,8 +1,8 @@
 import 'dart:mirrors';
-import '../query/query.dart';
 import 'managed.dart';
 import '../query/matcher_internal.dart';
 import 'relationship_type.dart';
+import 'exception.dart';
 
 class ManagedValueBacking extends ManagedBacking {
   @override
@@ -29,10 +29,7 @@ class ManagedValueBacking extends ManagedBacking {
 
     if (value != null) {
       if (!property.isAssignableWith(value)) {
-        var valueTypeName =
-            MirrorSystem.getName(reflect(value).type.simpleName);
-        throw new QueryException(QueryExceptionEvent.requestFailure, message:
-            "Invalid type '$valueTypeName' for '$propertyName' on '${MirrorSystem.getName(entity.instanceType.simpleName)}', expected ${property.type}.");
+        throw new ValidationException(["invalid input value for '${propertyName}'"]);
       }
     }
 

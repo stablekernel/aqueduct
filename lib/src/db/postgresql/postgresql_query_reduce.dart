@@ -63,8 +63,7 @@ class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<
           .timeout(new Duration(seconds: query.timeoutInSeconds));
       return result.first.first;
     } on TimeoutException catch (e) {
-      throw new QueryException(QueryExceptionEvent.connectionFailure,
-          underlyingException: e);
+      throw new QueryException.transport("timed out connecting to database", underlyingException: e);
     }
   }
 }

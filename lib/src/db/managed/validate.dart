@@ -1,5 +1,4 @@
-import '../db.dart';
-import '../managed/managed.dart';
+import 'package:aqueduct/aqueduct.dart';
 
 /// Types of operations [ManagedValidator]s will be triggered for.
 enum ValidateOperation { update, insert }

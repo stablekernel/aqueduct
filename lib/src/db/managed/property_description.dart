@@ -3,6 +3,7 @@ import 'managed.dart';
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
 import 'relationship_type.dart';
+import 'exception.dart';
 
 /// Possible data types for [ManagedEntity] attributes.
 enum ManagedPropertyType {
@@ -171,42 +172,37 @@ abstract class ManagedPropertyDescription {
 /// Each scalar property [ManagedObject] object persists is described by an instance of [ManagedAttributeDescription]. This class
 /// adds two properties to [ManagedPropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class ManagedAttributeDescription extends ManagedPropertyDescription {
-  ManagedAttributeDescription(
-      ManagedEntity entity, String name, ManagedPropertyType type,
+  ManagedAttributeDescription(ManagedEntity entity, String name, ManagedPropertyType type,
       {Serialize transientStatus,
-        bool primaryKey: false,
-        String defaultValue,
-        bool unique: false,
-        bool indexed: false,
-        bool nullable: false,
-        bool includedInDefaultResultSet: true,
-        bool autoincrement: false,
-        List<Validate> validators: const [],
-        Map<String, dynamic> enumerationValueMap})
+      bool primaryKey: false,
+      String defaultValue,
+      bool unique: false,
+      bool indexed: false,
+      bool nullable: false,
+      bool includedInDefaultResultSet: true,
+      bool autoincrement: false,
+      List<Validate> validators: const [],
+      Map<String, dynamic> enumerationValueMap})
       : this.isPrimaryKey = primaryKey,
         this.defaultValue = defaultValue,
         this.transientStatus = transientStatus,
         this.enumerationValueMap = enumerationValueMap,
         this._validators = validators,
         super(entity, name, type,
-          unique: unique,
-          indexed: indexed,
-          nullable: nullable,
-          includedInDefaultResultSet: includedInDefaultResultSet,
-          autoincrement: autoincrement);
+            unique: unique,
+            indexed: indexed,
+            nullable: nullable,
+            includedInDefaultResultSet: includedInDefaultResultSet,
+            autoincrement: autoincrement);
 
-  ManagedAttributeDescription.transient(ManagedEntity entity, String name,
-      ManagedPropertyType type, this.transientStatus)
+  ManagedAttributeDescription.transient(
+      ManagedEntity entity, String name, ManagedPropertyType type, this.transientStatus)
       : this.isPrimaryKey = false,
         this.enumerationValueMap = null,
         this.defaultValue = null,
         this._validators = [],
         super(entity, name, type,
-            unique: false,
-            indexed: false,
-            nullable: false,
-            includedInDefaultResultSet: false,
-            autoincrement: false);
+            unique: false, indexed: false, nullable: false, includedInDefaultResultSet: false, autoincrement: false);
 
   /// Whether or not this attribute is the primary key for its [ManagedEntity].
   ///
@@ -288,14 +284,11 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   dynamic convertFromPrimitiveValue(dynamic value) {
     if (type == ManagedPropertyType.datetime && value is String) {
       value = DateTime.parse(value);
-    } else if (type == ManagedPropertyType.doublePrecision &&
-        value is num) {
+    } else if (type == ManagedPropertyType.doublePrecision && value is num) {
       value = value.toDouble();
     } else if (isEnumeratedValue) {
       if (!enumerationValueMap.containsKey(value)) {
-        //todo: error
-        throw new QueryException(QueryExceptionEvent.requestFailure,
-            message: "The value '$value' is not valid for '${MirrorSystem.getName(entity.instanceType.simpleName)}.$name'");
+        throw new ValidationException(["invalid option for key '$name'"]);
       }
       return enumerationValueMap[value];
     }
@@ -308,18 +301,9 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
 /// Contains information for a relationship property of a [ManagedObject].
 class ManagedRelationshipDescription extends ManagedPropertyDescription {
-  ManagedRelationshipDescription(
-      ManagedEntity entity,
-      String name,
-      ManagedPropertyType type,
-      this.destinationEntity,
-      this.deleteRule,
-      this.relationshipType,
-      this.inverseKey,
-      {bool unique: false,
-      bool indexed: false,
-      bool nullable: false,
-      bool includedInDefaultResultSet: true})
+  ManagedRelationshipDescription(ManagedEntity entity, String name, ManagedPropertyType type, this.destinationEntity,
+      this.deleteRule, this.relationshipType, this.inverseKey,
+      {bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true})
       : super(entity, name, type,
             unique: unique,
             indexed: indexed,
@@ -339,8 +323,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   final Symbol inverseKey;
 
   /// The [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
-  ManagedRelationshipDescription get inverse =>
-      destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
+  ManagedRelationshipDescription get inverse => destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
 
   /// Whether or not a the argument can be assigned to this property.
   @override
@@ -365,14 +348,12 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   @override
   dynamic convertToPrimitiveValue(dynamic value) {
     if (value is ManagedSet) {
-      return value
-          .map((ManagedObject innerValue) => innerValue.asMap())
-          .toList();
+      return value.map((ManagedObject innerValue) => innerValue.asMap()).toList();
     } else if (value is ManagedObject) {
       // If we're only fetching the foreign key, don't do a full asMap
-      if (relationshipType == ManagedRelationshipType.belongsTo
-      && value.backingMap.length == 1
-      && value.backingMap.containsKey(destinationEntity.primaryKey)) {
+      if (relationshipType == ManagedRelationshipType.belongsTo &&
+          value.backingMap.length == 1 &&
+          value.backingMap.containsKey(destinationEntity.primaryKey)) {
         return {destinationEntity.primaryKey: value[destinationEntity.primaryKey]};
       }
 
@@ -380,10 +361,9 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     } else if (value == null) {
       return null;
     }
-//todo: error
-    throw new QueryException(QueryExceptionEvent.requestFailure,
-        message: "Invalid value '$value' for property '$entity.$name', "
-            "expected '${MirrorSystem.getName(destinationEntity.instanceType.simpleName)}'");
+
+    throw new StateError(
+        "Invalid relationship assigment. Relationship '$entity.$name' is not a 'ManagedSet' or 'ManagedObject'.");
   }
 
   @override
@@ -392,17 +372,12 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       return null;
     }
 
-    if (relationshipType == ManagedRelationshipType.belongsTo ||
-        relationshipType == ManagedRelationshipType.hasOne) {
+    if (relationshipType == ManagedRelationshipType.belongsTo || relationshipType == ManagedRelationshipType.hasOne) {
       if (value is! Map<String, dynamic>) {
-        //todo: error
-        throw new QueryException(QueryExceptionEvent.requestFailure,
-            message:
-            "Expecting a Map for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the '$name' field, got '$value' instead.");
+        throw new ValidationException(["invalid input type for '$name'"]);
       }
 
-      ManagedObject instance = destinationEntity.instanceType
-          .newInstance(new Symbol(""), []).reflectee;
+      ManagedObject instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
       instance.readFromMap(value as Map<String, dynamic>);
 
       return instance;
@@ -411,30 +386,23 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     /* else if (relationshipType == ManagedRelationshipType.hasMany) { */
 
     if (value is! List<Map<String, dynamic>>) {
-      //todo: error
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-          "Expecting a List for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the '$name' field, got '$value' instead.");
+      throw new ValidationException(["invalid input type for '$name'"]);
     }
 
     if (value.length > 0 && value.first is! Map) {
-      //todo: error
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-          "Expecting a List<Map> for ${MirrorSystem.getName(destinationEntity.instanceType.simpleName)} in the '$name' field, got '$value' instead.");
+      throw new ValidationException(["invalid input type for '$name'"]);
     }
 
-    return new ManagedSet.from(
-        (value as List<Map<String, dynamic>>).map((v) {
-          ManagedObject instance = destinationEntity.instanceType
-              .newInstance(new Symbol(""), []).reflectee;
-          instance.readFromMap(v);
-          return instance;
-        }));
+    return new ManagedSet.from((value as List<Map<String, dynamic>>).map((v) {
+      ManagedObject instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
+      instance.readFromMap(v);
+      return instance;
+    }));
   }
 
   @override
   String toString() {
-    return "[Relationship] ${entity.tableName}.$name $relationshipType ${destinationEntity.tableName}.${MirrorSystem.getName(inverseKey)}";
+    return "[Relationship] ${entity.tableName}.$name $relationshipType ${destinationEntity.tableName}.${MirrorSystem
+        .getName(inverseKey)}";
   }
 }

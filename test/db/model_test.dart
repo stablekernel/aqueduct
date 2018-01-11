@@ -43,18 +43,14 @@ void main() {
       reflect(user).setField(#name, 1);
 
       expect(true, false);
-    } on QueryException catch (e) {
-      expect(e.toString(), contains("'User'"));
-      expect(e.toString(), contains("string"));
-      expect(e.toString(), contains("'_Smi'"));
+    } on ValidationException catch (e) {
+      expectError(e, contains("invalid input value for 'name'"));
     }
 
     try {
       reflect(user).setField(#id, "foo");
-    } on QueryException catch (e) {
-      expect(e.toString(), contains("'User'"));
-      expect(e.toString(), contains("integer"));
-      expect(e.toString(), contains("String"));
+    } on ValidationException catch (e) {
+      expectError(e, contains("invalid input value for 'id'"));
     }
   });
 
@@ -69,15 +65,15 @@ void main() {
     try {
       reflect(user).getField(#foo);
       expect(true, false);
-    } on ManagedDataModelError catch (e) {
-      expect(e.toString(), contains("'User' has no property named 'foo'"));
+    } on ArgumentError catch (e) {
+      expect(e.toString(), contains("Property 'foo' does not exist on 'User'"));
     }
 
     try {
       reflect(user).setField(#foo, "hey");
       expect(true, false);
-    } on QueryException catch (e) {
-      expect(e.toString(), "'User' has no property named 'foo'.");
+    } on ArgumentError catch (e) {
+      expect(e.toString(), contains("Property 'foo' does not exist on 'User'"));
     }
   });
 
@@ -163,24 +159,20 @@ void main() {
     var map = {"id": 1, "name": "Bob", "bad_key": "value"};
 
     var user = new User();
-    var successful = false;
     try {
       user.readFromMap(map);
-      successful = true;
-    } on QueryException catch (e) {
-      expect(e.toString(), "Key bad_key does not exist for User");
+      expect(true, false);
+    } on ValidationException catch (e) {
+      expectError(e, contains("invalid input key 'bad_key'"));
     }
-    expect(successful, false);
   });
 
   test("Reading from map with non-assignable type fails", () {
     try {
       new User()..readFromMap({"id": "foo"});
       expect(true, false);
-    } on QueryException catch (e) {
-      expect(e.toString(), contains("integer"));
-      expect(e.toString(), contains("'User'"));
-      expect(e.toString(), contains("'id'"));
+    } on ValidationException catch (e) {
+      expectError(e, contains("invalid input value for 'id'"));
     }
   });
 
@@ -201,10 +193,8 @@ void main() {
     try {
       user.readFromMap(map);
       expect(true, false);
-    } on QueryException catch (e) {
-      expect(e.toString(), contains("datetime"));
-      expect(e.toString(), contains("'dateCreated'"));
-      expect(e.toString(), contains("'User'"));
+    } on ValidationException catch (e) {
+      expectError(e, contains("invalid input value for 'dateCreated'"));
     }
   });
 
@@ -239,9 +229,8 @@ void main() {
     try {
       post.readFromMap(postMap);
       successful = true;
-    } on QueryException catch (e) {
-      expect(e.toString(),
-          "Expecting a Map for User in the 'owner' field, got '12' instead.");
+    } on ValidationException catch (e) {
+      expectError(e, contains("invalid input type for 'owner'"));
     }
     expect(successful, false);
   });
@@ -322,40 +311,40 @@ void main() {
       new TransientTest()..readFromMap({"id": 1, "defaultedText": 2});
 
       throw 'Unreachable';
-    } on QueryException {}
+    } on ValidationException {}
 
     try {
       new TransientTest()..readFromMap({"id": 1, "inputInt": "foo"});
 
       throw 'Unreachable';
-    } on QueryException {}
+    } on ValidationException {}
   });
 
   test("Properties that aren't mappableInput are not read in readMap", () {
     try {
       new TransientTest()..readFromMap({"outputOnly": "foo"});
       throw 'Unreachable';
-    } on QueryException {}
+    } on ValidationException {}
 
     try {
       new TransientTest()..readFromMap({"invalidOutput": "foo"});
       throw 'Unreachable';
-    } on QueryException {}
+    } on ValidationException {}
 
     try {
       new TransientTest()..readFromMap({"invalidInput": "foo"});
       throw 'Unreachable';
-    } on QueryException {}
+    } on ValidationException {}
 
     try {
       new TransientTest()..readFromMap({"bothButOnlyOnOne": "foo"});
       throw 'Unreachable';
-    } on QueryException {}
+    } on ValidationException {}
 
     try {
       new TransientTest()..readFromMap({"outputInt": "foo"});
       throw 'Unreachable';
-    } on QueryException {}
+    } on ValidationException {}
   });
 
   test("mappableOutput properties that are null are not emitted in asMap", () {
@@ -438,7 +427,7 @@ void main() {
     try {
       t.readFromMap({"notAnAttribute": true});
       expect(true, false);
-    } on QueryException {}
+    } on ValidationException {}
 
     t.notAnAttribute = "foo";
     expect(t.asMap().containsKey("notAnAttribute"), false);
@@ -473,17 +462,15 @@ void main() {
       try {
         e.readFromMap({"enumValues": "foobar"});
         expect(true, false);
-      } on QueryException catch (e) {
-        expect(e.toString(), contains("The value 'foobar' is not valid for"));
+      } on ValidationException catch (e) {
+        expectError(e, contains("invalid option for key 'enumValues'"));
       }
 
       try {
         e.backing.setValueForProperty(e.entity, "enumValues", "foobar");
         expect(true, false);
-      } on QueryException catch (e) {
-        expect(e.toString(), contains("string"));
-        expect(e.toString(), contains("'EnumObject'"));
-        expect(e.toString(), contains("'enumValues'"));
+      } on ValidationException catch (e) {
+        expectError(e, contains("invalid input value for 'enumValues'"));
       }
     });
   });
@@ -772,4 +759,8 @@ class _TransientBelongsTo {
 
   @Relate(#t)
   TransientOwner owner;
+}
+
+void expectError(ValidationException exception, Matcher matcher) {
+  expect((exception.requestOrResponse as Response).body["error"], matcher);
 }

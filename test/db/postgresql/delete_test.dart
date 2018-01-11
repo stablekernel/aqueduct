@@ -112,8 +112,8 @@ void main() {
     try {
       req = new Query<TestModel>();
       await req.delete();
-    } on QueryException catch (e) {
-      expect(e.event, QueryExceptionEvent.internalFailure);
+    } on StateError catch (e) {
+      expect(e.toString(), contains("'canModifyAllInstances'"));
     }
 
     req = new Query<TestModel>();
@@ -159,7 +159,7 @@ void main() {
       await griReq.delete();
       successful = true;
     } on QueryException catch (e) {
-      expect(e.event, QueryExceptionEvent.requestFailure);
+      expect(e.event, QueryExceptionEvent.input);
       expect((e.underlyingException as PostgreSQLException).code, "23503");
     }
     expect(successful, false);

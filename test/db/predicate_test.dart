@@ -8,8 +8,8 @@ void main() {
     try {
       QueryPredicate.andPredicates([p1, p2]);
       fail("should fail");
-    } on QueryPredicateException catch (e) {
-      expect(e.message, contains("Duplicate keys"));
+    } on ArgumentError catch (e) {
+      expect(e.message, contains("Substitution key 'p' appears in multiple predicates and cannot be disambiguated."));
     }
   });
 }
