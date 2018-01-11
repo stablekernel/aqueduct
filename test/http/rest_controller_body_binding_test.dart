@@ -87,18 +87,6 @@ void main() {
   });
 
   group("Programmer error cases", () {
-    test("Argument does not implement HTTPSerializable returns 500", () async {
-      server = await enableController("/", NotSerializableController);
-      var response = await postJSON({"k":"v"});
-      expect(response.statusCode, 500);
-    });
-
-    test("List parameterized type does not implement HTTPSerializable returns 500", () async {
-      server = await enableController("/", ListNotSerializableController);
-      var response = await postJSON([{"k":"v"}]);
-      expect(response.statusCode, 500);
-    });
-
     test("fromMap throws uncaught error should return a 500", () async {
       server = await enableController("/", CrashController);
       var m = {
