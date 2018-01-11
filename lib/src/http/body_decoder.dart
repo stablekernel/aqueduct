@@ -93,6 +93,9 @@ abstract class HTTPBodyDecoder {
             }
 
             _decodedData = await codec.decoder.bind(stream).handleError((err) {
+              if (err is Response) {
+                throw err;
+              }
               throw new Response.badRequest(body: {"error": "request entity could not be decoded"});
             }).toList();
           } else {
