@@ -2,6 +2,9 @@
 
 ## 3.0.0
 
+- Removes `HTTPResponseException`. Responses can now be thrown instead.
+- `QueryException`s are no longer thrown for every ORM exception. If a store chooses to interpret an exception, it will still throw a `QueryException`. Otherwise, the underlying driver exception will be thrown.
+- Default constructor for `PostgreSQLPersistentStore` now takes connection info instead of closure. 
 - Controller linking is simplified. `generate` renamed to `link`. Removed `pipe`; all controllers must be instantiated per request.
 - `Controller.listen` renamed `Controller.linkFunction`.
 - Change default port for `aqueduct serve` to 8888.
