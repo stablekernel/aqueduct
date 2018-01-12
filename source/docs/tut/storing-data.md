@@ -1,8 +1,35 @@
 # 3. Storing Data in a Database
 
-In the previous exercise, we loaded some heroes into the database our application reads from. Now, we will allow our application to store, delete and modify heroes in the database.
+In the previous exercise, we loaded some heroes into the database our application reads from. Now, we will allow our application to store, delete and modify heroes in the database. Before we embark on this part of the journey, it's important that we understand how an HTTP API is intended to work.
 
-We'll add a method to our `HeroesController` to handle the `POST /heroes` operation. It will add a new row to the heroes table in our database. It will then return that hero in the response body. In `heroes_controller.dart`, add the following operation method:
+## HTTP Resources and Methods
+
+The [HTTP specification](https://tools.ietf.org/html/rfc7231) defines the concept of a *resource*. A resource can be anything - a hero, a bank account, a light switch in your home, a temperature sensor in Antarctica, etc. Some of these things are physical objects (the light switch), and some are digital; they are all still resources. An HTTP server application is an interface to these resources; a client requests that something be done with a resource, and the server finds a way to get it done.
+
+Resources are identified with a URI. A URI *universally identifies* a resource: it has the address of a server to connect to, and a path that identifies the resource on that server. When writing Aqueduct applications, we don't care much about the server part of a URL - the internet figures out that part. What we do care about is the path of the URL - like `/heroes`.
+
+An application use the URL path to determine which resource the request wants to work with. Right now, our application works with hero resources. A request with the path `/heroes/1` wants to do something with an individual hero (that is identified by the number `1`). A request with the path `/heroes` will act on the entire collection of heroes.
+
+These actions are primarily described by the request method (like GET, POST, OR DELETE). Each of these methods has a general meaning that describes an action that can be applied to a resource. For example, a `GET /heroes` means "get me all of the hero resources". The meaning for each of these methods are as follows:
+
+- GET: returns a collection of some resource or an individual resource
+- POST: inserts or appends a resource to a collection of some resource; a representation of the resource is in the request body
+- PUT: replaces a resource with the contents of the request body (or in some cases, replaces the entire collection of some resource)
+- DELETE: deletes a resource (or in some cases, deletes the entire collection of some resource)
+
+It turns out, we can create a lot of incredible behavior by just combining these methods and a request path. More importantly, by following these specifications, client applications can use generic libraries to access any HTTP API with very little effort. This allows us to create complex systems that are easily made available to a browser, mobile phone or any other internet-connected device.
+
+## Inserting Data
+
+We'll start by adding behavior that allows for new heroes to be inserted into the database. Following our previous discussion, the HTTP request must take the form `POST /heroes` - we are appending a new hero to the collection of heroes. This request will contain the JSON representation of a hero in its body, for example:
+
+```json
+{
+  "name": "Master of Aqueducts"
+}
+```
+
+Our `HeroesController` will handle this operation. In general, a single endpoint controller should handle every operation on a resource collection and its individual resources. In `heroes_controller.dart`, add the following operation method:
 
 ```dart
 @Operation.post()
@@ -11,41 +38,76 @@ Future<Response> createHero() async {
   final query = new Query<Hero>(context)
     ..values.name = body['name'];
 
-  final insertedHero = await query.insert(context);
+  final insertedHero = await query.insert();
 
   return new Response.ok(insertedHero);
 }
 ```
 
-From this code, we expect that the request body is:
+This operation method grabs the hero from the request's body, constructs a query that inserts that hero, and then returns it in the response.
 
-```json
-{
-  "name": "Super Duper Programmer"
-}
-```
-
-The use of a `Query<Hero>` is very similar to the previous chapter, except that we populate its `values` property and invoke the `insert()` execution method. Like `where`, the `values` property of a query is an instance of its generic type (`Hero`). Any property of set on `values` will be sent to the database in the insert command. The generated SQL for the above would be something like:
+Using a `Query<Hero>` to insert a row isn't very different than using one to fetch rows. When inserting a row, we execute `query.insert()` instead of `query.fetch()`. Instead of applying matchers to `query.where`, we set the properties of `query.value`. Like `where`, `values` is also an instance of  `Hero`. Each property we set on `values` is sent in an `INSERT` command to the database. The generated SQL for the above would be something like:
 
 ```sql
 INSERT INTO _Hero (name) VALUES ('Hero Name');
 ```
 
-We get the values for the query from the body of the request. (Recall that `request` is a property of all `RESTController` subclasses and it contains the request object currently being handled.) By invoking `asMap()` on `request.body`, we both obtain the request body as a `Map` and also ensure that the body is in fact a `Map` (otherwise, an exception would be thrown and an error response would be sent.)
+The database automatically generates a value for the `id` property of a `Hero`. This is because `id` has a `primaryKey` annotation that marks it as "auto-incrementing". (See [the API reference for Column](https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Column-class.html) for details and options.) When the row has been successfully inserted, a new `Hero` object is returned - containing any values that were generated by the database.
 
-!!! note "Autoincrementing Primary Keys"
-    Notice that we don't include an `id` in the query - it will automatically be generated by the database. This is the default behavior when a `ManagedObject<T>` property is annotated with `@primaryKey`. See [modeling data](../db/modeling_data.md) for other options.
+Re-run your application. In the browser application, click on `Heroes` near the top of the page. Then, enter a name into the `Hero name:` field and click `Add`. The new hero will appear. You can re-run the application and that hero will still be available, because it has been stored in the database on your machine.
 
-By default, `insert()` returns the inserted `Hero` object. This is valuable when using auto-incremented primary keys (or any auto-incremented value), because the returned `Hero` now has values for that property provided by the database. Our operation method returns this newly created `Hero` with its `id` in the response body.
+![Insert Hero](../img/run3.png)
 
-## Request Bodies and Body Bindings
+!!! tip "Sub-resources"
+    We mentioned that a single controller should handle every operation for a resource collection and its individual resources. Some resources are complex enough that they can have sub-resources. For example, an organization of heroes (like the X-Men or Fantastic Four) contains heroes, but it might also contain buildings and equipment owned by the organization. The heroes, buildings and equipment are sub-resources of an organization.  Each sub-resource should have its own route and controller instead of trying to shove everything into a single route and controller. See the following code snippet for an example.
 
------
------
------
+```dart
+@override
+Controller get entryPoint {
+  return new Router()
+    ..route("/organizations/[:orgName]")
+      .link(() => new OrganizationController());
+    ..route("/organizations/:orgName/heroes/[:heroID]")
+      .link(() => new OrgHeroesController());
+    ..route("/organizations/:orgName/buildings/[:buildingID]")
+      .link(() => new OrgBuildingController());
+}
+```    
 
-!!! note "Other Content-Types"
-    Aqueduct can decode JSON and form data by default. For other content types, see the [API reference for HTTPCodecRepository](https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/HTTPCodecRepository-class.html).
+## Request and Response Bodies
+
+So far, we've largely glossed over how request and response bodies are handled, and now is a good time to dig in to this topic.
+
+When we create a response, we specify its status code and optionally its headers and body. For example, the following creates a response with a status code of 200 OK with an empty list body:
+
+```dart
+new Response.ok([])
+```
+
+The first argument to `Response.ok` is a *body object*. When the response is sent to a client, the body object is encoded according to the `contentType` of the response. By default, the content type of a response is `application/json` - so by default, all of our response body objects have been JSON-encoded into the response body.
+
+!!! note "Other Response Constructors"
+    The default constructor for a `Response` takes a status code, map of headers and a body object - e.g., `Response(200, {}, "body")`. There are many named constructors for `Response`, like `Response.ok` or `Response.notFound`. These constructors set the status code and expose parameters that are intended for that type of response. For example, a 200 OK response should have a body, so `Response.ok` has a required body object argument. See [the API reference for Response](https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html) for possible constructors and properties of a response.
+
+As long as an object can be JSON encoded, it can be the body object of a response with JSON content-type. In general, this includes objects that are strings, integers, doubles, and maps and lists that contain those types (you can verify if your object is encodable by invoking `JSON.encode` from `dart:convert`).
+
+To change how a body object is encoded, you set the `contentType` of the response. For example,
+
+```dart
+new Response.ok([])
+  ..contentType = new ContentType("application", "xml");
+```
+
+The default supported content types are JSON, `application/x-www-form-urlencoded` and all `text/*` types. To encode other content-types, you must register a `Codec` with `HTTPCodecRepository.`
+
+These codecs are are also responsible for decoding request bodies. The body of a request is accessible through the `Request.body` property.
+
+----
+----
+----
+
+It also includes types that implement `HTTPSerializable`, which `ManagedObject<T>` does.
+
 
 
 

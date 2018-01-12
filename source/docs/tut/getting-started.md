@@ -1,7 +1,5 @@
 # 1. Getting Started
 
-### Purpose: Become familiar with how Aqueduct works by building an application.
-
 By the end of this tutorial, you will have created an Aqueduct application that serves fictional heroes from a PostgreSQL database. You will learn the following:
 
 - Run an Aqueduct application
@@ -46,8 +44,8 @@ In IntelliJ's project view, locate the `lib` directory; this is where your proje
 
 In your browser, navigate to [http://aqueduct-tutorial.stablekernel.io](http://aqueduct-tutorial.stablekernel.io). This browser application is a 'Hero Manager' - it allows a user to view, create, delete and update heroes. (It is a slightly modified version of the [AngularDart Tour of Heroes Tutorial](https://webdev.dartlang.org/angular/tutorial).) It will make HTTP requests to `http://localhost:8888` to fetch and manipulate hero data. The application you will build in this tutorial respond to those requests.
 
-!!! warning "HTTP vs HTTPS"
-    The browser application is served over HTTP so that it can access your Aqueduct application when it runs locally on your machine. Your browser may warn you about navigating to an insecure webpage, because it is in fact insecure. You can view the code for this browser application [here](https://github.com/stablekernel/tour-of-heroes-dart). You can run the browser application yourself if you are concerned about that.
+!!! warning "Running the Browser Application Locally"
+    The browser application is served over HTTP so that it can access your Aqueduct application when it runs locally on your machine. Your browser may warn you about navigating to an insecure webpage, because it is in fact insecure. You can view the code for this browser application [here](https://github.com/stablekernel/tour-of-heroes-dart) so that you can run the browser application from your local machine if you prefer.
 
 In this first chapter, you will write code to handle two requests: one to get a list of heroes, and the other to get a single hero by its identifier. These two requests take the following form:
 
@@ -62,7 +60,7 @@ Controllers are linked together in an *application channel*. An application chan
 
 ![ApplicationChannel entryPoint](../img/entrypoint.png)
 
-Application channels are defined by creating a subclass of `ApplicationChannel`. This subclass is declared in `lib/channel.dart`. Navigate to that file and notice the implementation of `entryPoint`:
+Application channels are defined by creating a subclass of `ApplicationChannel`. This subclass is declared in `lib/channel.dart`. Navigate to that file and note the current implementation of `ApplicationChannel.entryPoint`:
 
 ```dart
   @override
@@ -79,7 +77,7 @@ Application channels are defined by creating a subclass of `ApplicationChannel`.
   }
 ```
 
-The `entryPoint` of a channel is the first controller to receive every request in an application. In our case, the entry point is a `Router` (because we return it from this method). Controllers are linked to the router. The template has one linked function controller that is called when a request's path is `/example`. We need to link a yet-to-be-created `HeroesController` to the router when the path is `/heroes`.
+The `entryPoint` of a channel is the first controller to receive every request in an application. In our case, the entry point is a `Router` (because we return it from this method). Controllers are linked to the router; the template has one linked function controller that is called when a request's path is `/example`. We need to link a yet-to-be-created `HeroesController` to the router when the path is `/heroes`.
 
 First, we need to define `HeroesController` and how it handles requests. Create a new file in `lib/controller/heroes_controller.dart` and add the following code (you may need to create the subdirectory `lib/controller/`):
 
@@ -225,7 +223,7 @@ Future<RequestOrResponse> handle(Request request) async {
       return new Response.notFound();
     }
 
-    return new Response.ok(heroes[index]);
+    return new Response.ok(hero);
   }
 
   return new Response.ok(heroes);

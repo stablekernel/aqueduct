@@ -6,7 +6,7 @@ We will continue to build on the last chapter's project, `heroes`, by storing ou
 
 A relational database management system (like PostgreSQL or MySQL) stores its data in the form of tables. A table represents some sort of entity - like a person or a bank account. Each table has columns that describe the attributes of that entity - like a name or a balance. Every row in a table is an instance of that entity - like a single person named Bob or a bank account.
 
-In an object-oriented framework like Aqueduct, we have representations for tables, columns and rows. A class represents a table, its instances are rows, and properties are column value for a row. An ORM translates rows in a database to and from objects in an application.
+In an object-oriented framework like Aqueduct, we have representations for tables, columns and rows. A class represents a table, its instances are rows, and instance properties are column values. An ORM translates rows in a database to and from objects in an application.
 
 | Aqueduct | Database | Example #1 | Example #2 |
 |-|-|-|-|
@@ -19,7 +19,7 @@ In Aqueduct, each database table-class pairing is called an *entity*. Collective
 Building a Data Model
 ---
 
-In our `heroes` application, we have one type of entity - a "hero". To create a new entity, we subclass `ManagedObject<T>`. Create a new directory `lib/model/` and then add a new file to this directory named `hero.dart`. Add the following code:
+In our `heroes` application, we will have one type of entity - a "hero". To create a new entity, we subclass `ManagedObject<T>`. Create a new directory `lib/model/` and then add a new file to this directory named `hero.dart`. Add the following code:
 
 ```dart
 import 'package:heroes/heroes.dart';
@@ -88,7 +88,7 @@ The context will coordinate with these two objects to execute queries and transl
 In `heroes_controller.dart`, add a property and create a new constructor:
 
 ```dart
-class HeroesController {
+class HeroesController extends RESTController {
   HeroesController(this.context);
 
   final ManagedContext context;
@@ -129,7 +129,7 @@ Executing Queries
 
 Our operation methods in `HeroesController` currently return heroes from an in-memory list. To fetch data from a database instead of this list, we create and execute instances of `Query<T>` in our `ManagedContext`.
 
-Let's start by replacing `getAllHeroes` in `heroes_controller.dart`. Make sure to import your `heroes.dart` file at the top:
+Let's start by replacing `getAllHeroes` in `heroes_controller.dart`. Make sure to import your `model/hero.dart` file at the top:
 
 ```dart
 import 'package:heroes/heroes.dart';
@@ -266,8 +266,7 @@ Re-run your application with `aqueduct serve`. Then, reload [http://aqueduct-tut
 !!! warning "ManagedObjects and Migration Scripts"
     In our migration's `seed()` method, we executed SQL queries instead of using the Aqueduct ORM. *It is very important that you do not use* `Query<T>`, `ManagedObject<T>` or other elements of the Aqueduct ORM in migration files. Migration files represent an ordered series of historical steps that describe your database schema. If you replay those steps (which is what executing a migration file does), you will end up with the same database schema every time. However, a `ManagedObject<T>` subclass changes over time - the definition of a managed object is not historical, it only represents the current point in time. Since a `ManagedObject<T>` subclass can change, using one in our migration file would mean that our migration file could change.
 
-The more you know: Query Parameters and HTTP Headers
----
+## Query Parameters and HTTP Headers
 
 In the browser application, the dashboard has a text field for searching heroes. When you enter text into it, it will send the search term to the server by appending a query parameter to `GET /heroes`. For example, if you entered the text `abc`, it'd make this request:
 
