@@ -83,7 +83,7 @@ class ManagedMatcherBacking extends ManagedBacking {
     } else {
       final typeName = MirrorSystem.getName(entity.instanceType.simpleName);
 
-      throw new ArgumentError("Tried assigning value to 'Query<$typeName>.where.$propertyName'. Wrap value in 'whereEqualTo()'.");
+      throw new ArgumentError("Invalid query matcher assignment. Tried assigning value to 'Query<$typeName>.where.$propertyName'. Wrap value in 'whereEqualTo()'.");
     }
   }
 }

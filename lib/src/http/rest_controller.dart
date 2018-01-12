@@ -163,16 +163,13 @@ abstract class RESTController extends Controller {
     request = req;
 
     var preprocessedResult = await willProcessRequest(req);
-    Response response;
     if (preprocessedResult is Request) {
-      response = await _process();
+      return _process();
     } else if (preprocessedResult is Response) {
-      response = preprocessedResult;
-    } else {
-      response = new Response.serverError(body: {"error": "Preprocessing request did not yield result"});
+      return preprocessedResult;
     }
 
-    return response;
+    throw new StateError("'$runtimeType' returned invalid object from 'willProcessRequest'. Must return 'Request' or 'Response'.");
   }
 
   @override

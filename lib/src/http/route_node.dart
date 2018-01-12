@@ -113,7 +113,6 @@ class RouteNode {
 
       if (childrenWithThisPattern.any((spec) => spec.segments[depth].matcher == null) &&
           childrenWithThisPattern.any((spec) => spec.segments[depth].matcher != null)) {
-        //todo: error
         throw new ArgumentError(
             "Router compilation failed. Cannot disambiguate from the following routes, as one of them will match anything: $childrenWithThisPattern.");
       }

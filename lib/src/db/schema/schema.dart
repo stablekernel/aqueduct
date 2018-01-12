@@ -261,5 +261,5 @@ class SchemaException implements Exception {
   String message;
 
   @override
-  String toString() => "SchemaException: $message";
+  String toString() => "Invalid schema. $message";
 }

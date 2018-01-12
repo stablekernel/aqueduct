@@ -23,7 +23,6 @@ class DataModelBuilder {
 
       entity.attributes = attributesForEntity(entity);
       if (entity.primaryKey == null) {
-        //todo: error
         throw new ManagedDataModelError.noPrimaryKey(entity);
       }
 
