@@ -762,5 +762,5 @@ class _TransientBelongsTo {
 }
 
 void expectError(ValidationException exception, Matcher matcher) {
-  expect((exception.requestOrResponse as Response).body["error"], matcher);
+  expect(exception.response.body["error"], matcher);
 }

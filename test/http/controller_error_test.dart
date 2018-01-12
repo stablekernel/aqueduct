@@ -32,19 +32,8 @@ void main() {
 
   test("HandlerException thrown in handle returns its response", () async {
     server = await enableController(new Controller((req) {
-      throw new TestHandlerException(new Response.ok(null));
+      throw new HandlerException(new Response.ok(null));
     }));
-
-    final r = await http.get("http://localhost:4040");
-    expect(r.statusCode, 200);
-  });
-
-  test("HandlerException thrown in handle, returns request, allows next controller to run", () async {
-    final root = new Controller((req) {
-      throw new TestHandlerException(req);
-    })..linkFunction((req) => new Response.ok(null));
-
-    server = await enableController(root);
 
     final r = await http.get("http://localhost:4040");
     expect(r.statusCode, 200);
@@ -79,14 +68,7 @@ Future<HttpServer> enableController(Controller controller) async {
   return server;
 }
 
-class TestHandlerException extends HandlerException {
-  TestHandlerException(this.requestOrResponse);
-
+class CrashingTestHandlerException implements HandlerException {
   @override
-  RequestOrResponse requestOrResponse;
-}
-
-class CrashingTestHandlerException extends HandlerException {
-  @override
-  RequestOrResponse get requestOrResponse => throw new StateError("");
+  Response get response => throw new StateError("");
 }

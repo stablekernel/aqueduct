@@ -23,7 +23,7 @@ class QueryException<T> implements HandlerException {
   final List<String> offendingItems;
 
   @override
-  RequestOrResponse get requestOrResponse {
+  Response get response {
     return new Response(_getStatus(event), null, {"error": message ?? "query failed"});
   }
 

@@ -6,12 +6,12 @@ class ValidationException implements HandlerException {
   final List<String> errors;
 
   @override
-  RequestOrResponse get requestOrResponse {
+  Response get response {
     return new Response.badRequest(body: {"error": errors.join(",")});
   }
 
   @override
   String toString() {
-    return (requestOrResponse as Response).body["error"];
+    return response.body["error"];
   }
 }

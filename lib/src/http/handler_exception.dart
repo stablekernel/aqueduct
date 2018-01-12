@@ -1,5 +1,9 @@
 import 'package:aqueduct/src/http/http.dart';
 
-abstract class HandlerException implements Exception {
-  RequestOrResponse get requestOrResponse;
+class HandlerException implements Exception {
+  HandlerException(this._response);
+
+  Response get response => _response;
+
+  final Response _response;
 }
