@@ -202,7 +202,6 @@ class Controller extends Object with APIDocumentable {
     }
 
     try {
-      logger.info("Sending error");
       final body = includeErrorDetailsInServerErrorResponses
           ? {"controller": "$runtimeType", "error": "$caughtValue.", "stacktrace": trace?.toString()}
           : null;
