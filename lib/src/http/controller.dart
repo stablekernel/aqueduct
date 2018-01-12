@@ -134,7 +134,7 @@ class Controller extends Object with APIDocumentable {
         logger.info(req.toDebugString());
         return null;
       } on HandlerException catch (e) {
-        await _sendResponse(req, result, includeCORSHeaders: true);
+        await _sendResponse(req, e.response, includeCORSHeaders: true);
         logger.info(req.toDebugString());
         return null;
       }
