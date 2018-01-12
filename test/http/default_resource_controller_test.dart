@@ -255,7 +255,7 @@ void main() {
           await client.request("controller?pageBy=createdAt").get(),
           hasResponse(400, {
             "error":
-                "missing required paramater 'pageAfter' or 'pagePrior' when 'pageBy' is given"
+                "missing required parameter 'pageAfter' or 'pagePrior' when 'pageBy' is given"
           }));
     });
 

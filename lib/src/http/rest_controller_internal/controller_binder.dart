@@ -131,7 +131,7 @@ class RESTControllerBinder {
     var parseWith = (RESTControllerParameterBinder binder) {
       var value = binder.parse(request);
       if (value == null && binder.isRequired) {
-        return new HTTPValueBinding.error("missing required input type ${binder.binding.type} '${binder.name ?? ""}'");
+        return new HTTPValueBinding.error("missing required ${binder.binding.type} '${binder.name ?? ""}'");
       }
 
       return new HTTPValueBinding(value, symbol: binder.symbol);

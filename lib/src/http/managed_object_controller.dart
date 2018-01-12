@@ -262,7 +262,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
         pageValue = pagePrior;
       } else {
         return new Response.badRequest(body: {
-          "error": "missing required paramater 'pageAfter' or 'pagePrior' when 'pageBy' is given"
+          "error": "missing required parameter 'pageAfter' or 'pagePrior' when 'pageBy' is given"
         });
       }
 
