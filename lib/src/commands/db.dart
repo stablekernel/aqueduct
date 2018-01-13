@@ -137,7 +137,7 @@ abstract class CLIDatabaseConnectingCommand extends CLICommand with CLIDatabaseM
         }
       }
 
-      _persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(connectedDatabase.username,
+      _persistentStore = new PostgreSQLPersistentStore(connectedDatabase.username,
           connectedDatabase.password, connectedDatabase.host, connectedDatabase.port, connectedDatabase.databaseName,
           useSSL: useSSL);
       return _persistentStore;

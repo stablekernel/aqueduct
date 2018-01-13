@@ -210,9 +210,9 @@ void main() {
     try {
       var _ = await req.updateOne();
       expect(true, false);
-    } on QueryException catch (e) {
+    } on StateError catch (e) {
       expect(e.toString(),
-          "updateOne modified more than one row, this is a serious error.");
+          contains("'updateOne' modified more than one row in '_TestModel'"));
     }
   });
 
@@ -236,8 +236,8 @@ void main() {
     try {
       var _ = await req.update();
       expect(true, false);
-    } on QueryException catch (e) {
-      expect(e.event, QueryExceptionEvent.internalFailure);
+    } on StateError catch (e) {
+      expect(e.message, contains("Query is either update or delete query with no WHERE clause"));
     }
   });
 

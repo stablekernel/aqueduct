@@ -152,7 +152,7 @@ class HTTPCodecRepository {
   Codec _codecForCharset(String charset) {
     var encoding = Encoding.getByName(charset);
     if (encoding == null) {
-      throw new HTTPCodecException("Invalid charset '$charset'");
+      throw new Response(415, null, {"error": "invalid charset '$charset'"});
     }
 
     return encoding;
@@ -171,16 +171,6 @@ class HTTPCodecRepository {
 
     return Encoding.getByName(encodingName);
   }
-}
-
-/// Thrown when [HTTPCodecRepository] encounters an exception.
-class HTTPCodecException implements Exception {
-  HTTPCodecException(this.message);
-
-  String message;
-
-  @override
-  String toString() => "HTTPCodecException: $message";
 }
 
 class _FormCodec extends Codec {

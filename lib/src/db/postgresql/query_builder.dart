@@ -168,9 +168,7 @@ class PostgresQueryBuilder extends Object
       Map<String, dynamic> valueMap, String key) {
     var property = entity.properties[key];
     if (property == null) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-              "Property $key in values does not exist on ${entity.tableName}");
+      throw new ArgumentError("Invalid query. Column '$key' does not exist for table '${entity.tableName}'");
     }
 
     if (property is ManagedRelationshipDescription) {
@@ -185,10 +183,9 @@ class PostgresQueryBuilder extends Object
               this, property, value[property.destinationEntity.primaryKey]);
         }
 
-        throw new QueryException(QueryExceptionEvent.internalFailure,
-            message:
-                "Property $key on ${entity.tableName} in 'Query.values' must be a 'Map' or ${MirrorSystem.getName(
-                property.destinationEntity.instanceType.simpleName)} ");
+        throw new ArgumentError("Invalid query. Column '$key' in '${entity.tableName}' does not exist. "
+            "'$key' recognized as ORM relationship. Provided value must be 'Map' "
+            "or ${MirrorSystem.getName(property.destinationEntity.instanceType.simpleName)}.");
       }
     }
 

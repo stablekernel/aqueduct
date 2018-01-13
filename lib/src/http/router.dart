@@ -97,12 +97,12 @@ class Router extends Controller {
 
   /// Routers override this method to throw an exception. Use [route] instead.
   Controller link(Controller generatorFunction()) {
-    throw new StateError("Routers may not use generate, use route instead.");
+    throw new ArgumentError("Invalid link. 'Router' cannot directly link to controllers. Use 'route'.");
   }
 
   @override
   Controller linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
-    throw new StateError("Routers may not use generate, use route instead.");
+    throw new ArgumentError("Invalid link. 'Router' cannot directly link to functions. Use 'route'.");
   }
 
   @override
@@ -221,17 +221,5 @@ class _RouteController extends Controller {
 
       return map;
     });
-  }
-}
-
-/// Thrown when a [Router] encounters an exception.
-class RouterException implements Exception {
-  RouterException(this.message);
-
-  final String message;
-
-  @override
-  String toString() {
-    return "RouterException: $message";
   }
 }

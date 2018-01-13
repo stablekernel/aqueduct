@@ -30,17 +30,13 @@ class PropertyToColumnMapper extends PropertyMapper {
     var property = entity.properties[propertyName];
 
     if (property == null) {
-      throw new QueryException(QueryExceptionEvent.internalFailure,
-          message:
-              "Property $propertyName does not exist on ${entity.tableName}");
+      throw new ArgumentError("Could not construct query. Column '$propertyName' does not exist for table '${entity.tableName}'.");
     }
 
     if (property is ManagedRelationshipDescription &&
         property.relationshipType != ManagedRelationshipType.belongsTo) {
-      throw new QueryException(QueryExceptionEvent.internalFailure,
-          message:
-              "Property '$propertyName' is a hasMany or hasOne relationship and is invalid as a result property of "
-              "'${entity.tableName}', use one of the join methods in 'Query<T>' instead.");
+      throw new ArgumentError("Could not construct query. Column '$propertyName' does not exist for table '${entity.tableName}'. "
+          "'$propertyName' recognized as ORM relationship, use 'Query.join' instead.");
     }
 
     return property;

@@ -18,7 +18,7 @@ void main() {
     PostgreSQLPersistentStore store;
 
     setUp(() async {
-      store = new PostgreSQLPersistentStore.fromConnectionInfo(
+      store = new PostgreSQLPersistentStore(
           connectInfo.username,
           connectInfo.password,
           connectInfo.host,

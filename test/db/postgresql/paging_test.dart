@@ -300,9 +300,9 @@ void main() {
       try {
         var _ = await req.fetch();
         expect(true, false);
-      } on QueryException catch (e) {
+      } on StateError catch (e) {
         expect(e.toString(),
-            contains("Property 'value' in pageDescriptor has invalid type"));
+            contains("Bounding value for column 'value' has invalid type"));
       }
     });
 
@@ -313,8 +313,8 @@ void main() {
               boundingValue: "0");
 
         expect(true, false);
-      } on QueryException catch (e) {
-        expect(e.toString(), contains("Property 'foobar'"));
+      } on ArgumentError catch (e) {
+        expect(e.toString(), contains("Column 'foobar' does not exist on table '_PageableTestModel'"));
       }
     });
 
@@ -332,8 +332,8 @@ void main() {
         new Query<HasMany>()
           ..pageBy((p) => p.objects, QuerySortOrder.ascending);
         expect(true, false);
-      } on QueryException catch (e) {
-        expect(e.toString(), contains("relationship properties cannot be paged on"));
+      } on ArgumentError catch (e) {
+        expect(e.toString(), contains("Column 'objects' does not exist on table '_HasMany'"));
       }
     });
   });

@@ -1,5 +1,4 @@
-import '../db.dart';
-import '../managed/managed.dart';
+import 'package:aqueduct/aqueduct.dart';
 
 /// Types of operations [ManagedValidator]s will be triggered for.
 enum ValidateOperation { update, insert }
@@ -89,7 +88,7 @@ class ManagedValidator {
   void _build() {
     if (definition._builtinValidate == _BuiltinValidate.regex) {
       if (attribute.type != ManagedPropertyType.string) {
-        throw new ManagedDataModelException.invalidValidator(
+        throw new ManagedDataModelError.invalidValidator(
             attribute.entity, attribute.name, "Property type for Validate.matches must be String");
       }
       _regex = new RegExp(definition._value);
@@ -99,18 +98,18 @@ class ManagedValidator {
       _validationMethod = _validateExpressions;
     } else if (definition._builtinValidate == _BuiltinValidate.length) {
       if (attribute.type != ManagedPropertyType.string) {
-        throw new ManagedDataModelException.invalidValidator(
+        throw new ManagedDataModelError.invalidValidator(
             attribute.entity, attribute.name, "Property type for Validate.length must be String");
       }
       _buildLengthExpressions();
       _validationMethod = _validateExpressions;
     } else if (definition._builtinValidate == _BuiltinValidate.oneOf) {
       if (definition._values.isEmpty) {
-        throw new ManagedDataModelException.invalidValidator(
+        throw new ManagedDataModelError.invalidValidator(
             attribute.entity, attribute.name, "Validate.oneOf must have at least one element");
       }
       if (definition._values.any((v) => !attribute.isAssignableWith(v))) {
-        throw new ManagedDataModelException.invalidValidator(
+        throw new ManagedDataModelError.invalidValidator(
             attribute.entity, attribute.name, "All elements of Validate.oneOf must be assignable to '${attribute.type}'");
       }
       _options = definition._values;
@@ -226,7 +225,7 @@ class ManagedValidator {
       try {
         return DateTime.parse(inputValue);
       } on FormatException {
-        throw new ManagedDataModelException.invalidValidator(
+        throw new ManagedDataModelError.invalidValidator(
             attribute.entity, attribute.name,
             "'$inputValue' cannot be parsed as DateTime");
       }

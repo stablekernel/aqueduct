@@ -333,8 +333,8 @@ void main() {
 
         q.join(set: (t) => t.homeGames)..join(object: (g) => g.homeTeam);
         expect(true, false);
-      } on QueryException catch (e) {
-        expect(e.toString(), contains("Invalid cyclic"));
+      } on StateError catch (e) {
+        expect(e.toString(), contains("Invalid query construction"));
       }
     });
   });
@@ -415,8 +415,8 @@ void main() {
         await q.fetch();
 
         expect(true, false);
-      } on QueryException catch (e) {
-        expect(e.toString(), contains("Invalid cyclic"));
+      } on ArgumentError catch (e) {
+        expect(e.toString(), contains("query would join on the same table and foreign key twice"));
       }
     });
   });

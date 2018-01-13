@@ -245,7 +245,7 @@ void main() {
       try {
         new ManagedDataModel([FailingDateTime]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("19x34"));
         expect(e.toString(), contains("cannot be parsed as DateTime"));
         expect(e.toString(), contains("'d'"));
@@ -257,7 +257,7 @@ void main() {
       try {
         new ManagedDataModel([FailingRegex]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("must be String"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FRX"));
@@ -268,7 +268,7 @@ void main() {
       try {
         new ManagedDataModel([FailingLength]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("must be String"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FLEN"));
@@ -279,7 +279,7 @@ void main() {
       try {
         new ManagedDataModel([FailingOneOf]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("must be assignable"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FOO"));
@@ -290,7 +290,7 @@ void main() {
       try {
         new ManagedDataModel([FailingEmptyOneOf]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("must have at least one element"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FEO"));
@@ -301,7 +301,7 @@ void main() {
       try {
         new ManagedDataModel([FailingHeterogenous]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("must be assignable"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FH"));

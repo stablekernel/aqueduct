@@ -1,8 +1,8 @@
 import 'dart:mirrors';
-import '../query/query.dart';
 import 'managed.dart';
 import '../query/matcher_internal.dart';
 import 'relationship_type.dart';
+import 'exception.dart';
 
 class ManagedValueBacking extends ManagedBacking {
   @override
@@ -11,8 +11,8 @@ class ManagedValueBacking extends ManagedBacking {
   @override
   dynamic valueForProperty(ManagedEntity entity, String propertyName) {
     if (entity.properties[propertyName] == null) {
-      throw new ManagedDataModelException(
-          "'${MirrorSystem.getName(entity.instanceType.simpleName)}' has no property named '$propertyName'.");
+      throw new ArgumentError("Invalid property access for 'ManagedObject'. "
+          "Property '$propertyName' does not exist on '${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
     }
 
     return valueMap[propertyName];
@@ -23,16 +23,13 @@ class ManagedValueBacking extends ManagedBacking {
       ManagedEntity entity, String propertyName, dynamic value) {
     var property = entity.properties[propertyName];
     if (property == null) {
-      throw new QueryException(QueryExceptionEvent.requestFailure, message:
-          "'${MirrorSystem.getName(entity.instanceType.simpleName)}' has no property named '$propertyName'.");
+      throw new ArgumentError("Invalid property access for 'ManagedObject'. "
+          "Property '$propertyName' does not exist on '${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
     }
 
     if (value != null) {
       if (!property.isAssignableWith(value)) {
-        var valueTypeName =
-            MirrorSystem.getName(reflect(value).type.simpleName);
-        throw new QueryException(QueryExceptionEvent.requestFailure, message:
-            "Invalid type '$valueTypeName' for '$propertyName' on '${MirrorSystem.getName(entity.instanceType.simpleName)}', expected ${property.type}.");
+        throw new ValidationException(["invalid input value for '${propertyName}'"]);
       }
     }
 
@@ -86,7 +83,7 @@ class ManagedMatcherBacking extends ManagedBacking {
     } else {
       final typeName = MirrorSystem.getName(entity.instanceType.simpleName);
 
-      throw new ArgumentError("Tried assigning value to 'Query<$typeName>.where.$propertyName'. Wrap value in 'whereEqualTo()'.");
+      throw new ArgumentError("Invalid query matcher assignment. Tried assigning value to 'Query<$typeName>.where.$propertyName'. Wrap value in 'whereEqualTo()'.");
     }
   }
 }

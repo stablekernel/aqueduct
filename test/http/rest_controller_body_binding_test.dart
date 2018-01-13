@@ -87,18 +87,6 @@ void main() {
   });
 
   group("Programmer error cases", () {
-    test("Argument does not implement HTTPSerializable returns 500", () async {
-      server = await enableController("/", NotSerializableController);
-      var response = await postJSON({"k":"v"});
-      expect(response.statusCode, 500);
-    });
-
-    test("List parameterized type does not implement HTTPSerializable returns 500", () async {
-      server = await enableController("/", ListNotSerializableController);
-      var response = await postJSON([{"k":"v"}]);
-      expect(response.statusCode, 500);
-    });
-
     test("fromMap throws uncaught error should return a 500", () async {
       server = await enableController("/", CrashController);
       var m = {
@@ -142,9 +130,8 @@ void main() {
         "name": "Bob"
       }];
       var response = await postJSON(m);
-      expect(response.statusCode, 400);
-      expect(JSON.decode(response.body)["error"], contains("Expected Map"));
-      expect(JSON.decode(response.body)["error"], contains("got List"));
+      expect(response.statusCode, 422);
+      expect(JSON.decode(response.body)["error"], contains("unexpected request entity data type"));
     });
 
     test("Is Map when expecting List returns 400", () async {
@@ -154,24 +141,23 @@ void main() {
         "name": "Bob"
       };
       var response = await postJSON(m);
-      expect(response.statusCode, 400);
-      expect(JSON.decode(response.body)["error"], contains("Expected List"));
-      expect(JSON.decode(response.body)["error"], contains("got _InternalLinkedHashMap"));
+      expect(response.statusCode, 422);
+      expect(JSON.decode(response.body)["error"], contains("unexpected request entity data type"));
     });
 
     test("If required body and no body included, return 400", () async {
       server = await enableController("/", TestController);
       var response = await postJSON(null);
       expect(response.statusCode, 400);
-      expect(JSON.decode(response.body)["error"], contains("Missing Body"));
+      expect(JSON.decode(response.body)["error"], contains("missing required Body"));
     });
 
     test("Expect list of objects, got list of strings", () async {
       server = await enableController("/", ListTestController);
       var response = await postJSON(["a", "b"]);
-      expect(response.statusCode, 400);
-      expect(JSON.decode(response.body)["error"], contains("Expected List<Map>"));
-      expect(JSON.decode(response.body)["error"], contains("got List<String>"));
+      expect(response.statusCode, 422);
+      expect(JSON.decode(response.body)["error"], contains("unexpected request entity data type"));
+
     });
   });
 }

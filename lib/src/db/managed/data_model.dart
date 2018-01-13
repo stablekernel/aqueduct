@@ -74,11 +74,11 @@ class ManagedDataModel {
 }
 
 /// Thrown when a [ManagedDataModel] encounters an error.
-class ManagedDataModelException implements Exception {
-  ManagedDataModelException(this.message);
+class ManagedDataModelError extends Error {
+  ManagedDataModelError(this.message);
 
-  factory ManagedDataModelException.noPrimaryKey(ManagedEntity entity) {
-    return new ManagedDataModelException(
+  factory ManagedDataModelError.noPrimaryKey(ManagedEntity entity) {
+    return new ManagedDataModelError(
         "Class '${_getPersistentClassName(entity)}'"
         " doesn't declare a primary key property. All 'ManagedObject' subclasses "
         "must have a primary key. Usually, this means you want to add '@primaryKey int id;' "
@@ -88,9 +88,9 @@ class ManagedDataModelException implements Exception {
         "add '@Column(primaryKey: true)' above it.");
   }
 
-  factory ManagedDataModelException.invalidType(
+  factory ManagedDataModelError.invalidType(
       ManagedEntity entity, Symbol property) {
-    return new ManagedDataModelException("Property '${_getName(property)}' on "
+    return new ManagedDataModelError("Property '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}'"
         " has an unsupported type. Must be "
         "${ManagedPropertyDescription.supportedDartTypes.join(", ")}"
@@ -101,9 +101,9 @@ class ManagedDataModelException implements Exception {
         "supported.");
   }
 
-  factory ManagedDataModelException.invalidMetadata(
+  factory ManagedDataModelError.invalidMetadata(
       ManagedEntity entity, Symbol property, ManagedEntity destinationEntity) {
-    return new ManagedDataModelException(
+    return new ManagedDataModelError(
         "Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' "
         "cannot both have 'Column' and 'Relationship' metadata. "
@@ -111,7 +111,7 @@ class ManagedDataModelException implements Exception {
         "for 'Relationship'.");
   }
 
-  factory ManagedDataModelException.missingInverse(
+  factory ManagedDataModelError.missingInverse(
       ManagedEntity entity,
       Symbol property,
       ManagedEntity destinationEntity,
@@ -120,7 +120,7 @@ class ManagedDataModelException implements Exception {
     if (expectedProperty != null) {
       expectedString = "'${_getName(expectedProperty)}'";
     }
-    return new ManagedDataModelException(
+    return new ManagedDataModelError(
         "Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' has "
         "no inverse property. Every relationship must have an inverse. "
@@ -131,9 +131,9 @@ class ManagedDataModelException implements Exception {
         "'ManagedSet<${_getInstanceClassName(entity)} >'.");
   }
 
-  factory ManagedDataModelException.incompatibleDeleteRule(
+  factory ManagedDataModelError.incompatibleDeleteRule(
       ManagedEntity entity, Symbol property) {
-    return new ManagedDataModelException(
+    return new ManagedDataModelError(
         "Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' "
         "has both 'RelationshipDeleteRule.nullify' and 'isRequired' equal to true, which "
@@ -141,12 +141,12 @@ class ManagedDataModelException implements Exception {
         "can't be null and 'nullify' means the column has to be null.");
   }
 
-  factory ManagedDataModelException.dualMetadata(
+  factory ManagedDataModelError.dualMetadata(
       ManagedEntity entity,
       Symbol property,
       ManagedEntity destinationEntity,
       Symbol inverseProperty) {
-    return new ManagedDataModelException("Relationship '${_getName(property)}' "
+    return new ManagedDataModelError("Relationship '${_getName(property)}' "
         "on '${_getPersistentClassName(entity)}' "
         "and '${_getName(inverseProperty)}' "
         "on '${_getPersistentClassName(destinationEntity)}' "
@@ -163,12 +163,12 @@ class ManagedDataModelException implements Exception {
         "otherwise, delete that metadata.");
   }
 
-  factory ManagedDataModelException.duplicateInverse(
+  factory ManagedDataModelError.duplicateInverse(
       ManagedEntity entity,
       Symbol property,
       ManagedEntity destinationEntity,
       List<Symbol> inversePropertyCandidates) {
-    return new ManagedDataModelException("Relationship '${_getName(property)}' "
+    return new ManagedDataModelError("Relationship '${_getName(property)}' "
         "on '${_getPersistentClassName(entity)}' "
         "has more than one inverse property declared in "
         "${_getPersistentClassName(destinationEntity)}, but can only"
@@ -176,10 +176,10 @@ class ManagedDataModelException implements Exception {
         "are ${inversePropertyCandidates.map((s) => _getName(s)).join(",")}.");
   }
 
-  factory ManagedDataModelException.noDestinationEntity(
+  factory ManagedDataModelError.noDestinationEntity(
       ManagedEntity entity, Symbol property) {
     var typeMirror = entity.persistentType.instanceMembers[property].returnType;
-    return new ManagedDataModelException(
+    return new ManagedDataModelError(
         "Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' expects that there is a subclass "
         "of 'ManagedObject' named '${_getName(typeMirror.simpleName)}', "
@@ -187,13 +187,13 @@ class ManagedDataModelException implements Exception {
         "hard for typos - make sure the file it is declared in is imported appropriately.");
   }
 
-  factory ManagedDataModelException.multipleDestinationEntities(
+  factory ManagedDataModelError.multipleDestinationEntities(
       ManagedEntity entity,
       Symbol property,
       List<ManagedEntity> possibleEntities) {
     var destType =
         entity.persistentType.instanceMembers[property].returnType.simpleName;
-    return new ManagedDataModelException(
+    return new ManagedDataModelError(
         "Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' expects that just one "
         "'ManagedObject' subclass uses a persistent type that extends "
@@ -202,9 +202,9 @@ class ManagedDataModelException implements Exception {
         "how it is for now.");
   }
 
-  factory ManagedDataModelException.invalidTransient(
+  factory ManagedDataModelError.invalidTransient(
       ManagedEntity entity, Symbol property) {
-    return new ManagedDataModelException(
+    return new ManagedDataModelError(
         "Transient property '${_getName(property)}' on "
         "'${_getInstanceClassName(entity)}' declares that"
         "it is transient, but it it has a mismatch. A transient "
@@ -212,21 +212,21 @@ class ManagedDataModelException implements Exception {
         "setter method must have 'isAvailableAsInput'.");
   }
 
-  factory ManagedDataModelException.duplicateTables(
+  factory ManagedDataModelError.duplicateTables(
       ManagedEntity entity1, ManagedEntity entity2) {
-    return new ManagedDataModelException(
+    return new ManagedDataModelError(
         "Entities '${_getInstanceClassName(entity1)}' and '${_getInstanceClassName(entity2)}' "
             "have the same table name: '${entity1.tableName}'. Rename these "
             "tables by changing the value in their 'tableName' method or removing "
             "the 'tableName' method altogether.");
   }
 
-  factory ManagedDataModelException.cyclicReference(
+  factory ManagedDataModelError.cyclicReference(
       ManagedEntity entity,
       Symbol property,
       ManagedEntity destinationEntity,
       Symbol inverseProperty) {
-    return new ManagedDataModelException(
+    return new ManagedDataModelError(
         "Managed objects '${_getPersistentClassName(entity)}' "
         "and '${_getPersistentClassName(destinationEntity)}' "
         "have cyclic relationship properties. This would yield two tables "
@@ -235,37 +235,37 @@ class ManagedDataModelException implements Exception {
         "The offending properties are: '${_getName(property)}' and '${_getName(inverseProperty)}'");
   }
 
-  factory ManagedDataModelException.invalidValidator(
+  factory ManagedDataModelError.invalidValidator(
       ManagedEntity entity, String property, String reason) {
-    return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
+    return new ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
         "has invalid validator for property '$property'. Reason: $reason");
   }
 
-  factory ManagedDataModelException.emptyEntityUniqueProperties(
+  factory ManagedDataModelError.emptyEntityUniqueProperties(
       ManagedEntity entity) {
-    return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
+    return new ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
         "has empty set for unique 'Table'. Must contain two or "
         "more attributes (or belongs-to relationship properties).");
   }
 
-  factory ManagedDataModelException.singleEntityUniqueProperty(
+  factory ManagedDataModelError.singleEntityUniqueProperty(
       ManagedEntity entity, Symbol property) {
-    return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
+    return new ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
         "has only one attribute for unique 'Table'. Must contain two or "
         "more attributes (or belongs-to relationship properties). To make this property unique, "
         "add 'Column(unique: true)' to declaration of '${_getName(property)}'.");
   }
 
-  factory ManagedDataModelException.invalidEntityUniqueProperty(
+  factory ManagedDataModelError.invalidEntityUniqueProperty(
       ManagedEntity entity, Symbol property) {
-    return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
+    return new ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
         "declares '${MirrorSystem.getName(property)}' as unique in 'Table', "
         "but '${MirrorSystem.getName(property)}' is not a property of this type.");
   }
 
-  factory ManagedDataModelException.relationshipEntityUniqueProperty(
+  factory ManagedDataModelError.relationshipEntityUniqueProperty(
       ManagedEntity entity, Symbol property) {
-    return new ManagedDataModelException("Type '${_getPersistentClassName(entity)}' "
+    return new ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
         "declares '${_getName(property)}' as unique in 'Table'. This property cannot "
         "be used to make an instance unique; only attributes or belongs-to relationships may used "
         "in this way.");
@@ -284,6 +284,6 @@ class ManagedDataModelException implements Exception {
 
   @override
   String toString() {
-    return "DataModelException: $message";
+    return "Data Model Error: $message";
   }
 }

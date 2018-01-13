@@ -1,12 +1,10 @@
-
-import 'dart:io';
 import 'dart:mirrors';
 
 import 'package:open_api/v3.dart';
 
 import '../serializable.dart';
-import '../http_response_exception.dart';
 import '../request.dart';
+import '../response.dart';
 import 'internal.dart';
 
 /// Parent class for annotations used for optional parameters in controller methods
@@ -52,8 +50,7 @@ abstract class HTTPBinding {
       return parameterValues.map((str) => convertParameterWithMirror(str, typeMirror.typeArguments.first)).toList();
     } else {
       if (parameterValues.length > 1) {
-        throw new InternalControllerException("Duplicate value for parameter", HttpStatus.BAD_REQUEST,
-            errorMessage: "Duplicate parameter for non-List parameter type");
+        throw new Response.badRequest(body: {"error": "multiple values for '$externalName' not expected"});
       }
       return convertParameterWithMirror(parameterValues.first, typeMirror);
     }
@@ -72,22 +69,17 @@ abstract class HTTPBinding {
       return parameterValue;
     }
 
-    if (typeMirror is ClassMirror) {
-      var parseDecl = typeMirror.declarations[#parse];
-      if (parseDecl != null) {
-        try {
-          return typeMirror.invoke(parseDecl.simpleName, [parameterValue]).reflectee;
-        } catch (e) {
-          throw new InternalControllerException("Invalid value for parameter type", HttpStatus.BAD_REQUEST,
-              errorMessage: "URI parameter is wrong type");
-        }
-      }
+    final classMirror = typeMirror as ClassMirror;
+    var parseDecl = classMirror.declarations[#parse];
+    if (parseDecl == null) {
+      throw new StateError("Invalid binding. Type '${MirrorSystem.getName(classMirror.simpleName)}' does not implement 'parse'.");
     }
 
-    // If we get here, then it wasn't a string and couldn't be parsed, and we should throw?
-    throw new InternalControllerException(
-        "Invalid path parameter type, types must be String or implement parse", HttpStatus.INTERNAL_SERVER_ERROR,
-        errorMessage: "URI parameter is wrong type");
+    try {
+      return classMirror.invoke(parseDecl.simpleName, [parameterValue]).reflectee;
+    } catch (_) {
+      throw new Response.badRequest(body: {"error": "invalid value for '$externalName'"});
+    }
   }
 }
 
@@ -144,6 +136,7 @@ class HTTPQuery extends HTTPBinding {
   @override
   APIParameterLocation get location => APIParameterLocation.query;
 
+  @override
   bool validateType(TypeMirror type) {
     if (super.validateType(type)) {
       return true;
@@ -192,7 +185,7 @@ class HTTPBody extends HTTPBinding {
 
     if (intoType.isAssignableTo(reflectType(HTTPSerializable))) {
       if (!reflectType(request.body.decodedType).isSubtypeOf(reflectType(Map))) {
-        throw new HTTPResponseException(400, "Expected Map, got ${request.body.decodedType}");
+        throw new Response(422, null, {"error": "unexpected request entity data type"});
       }
 
       var value = intoType.newInstance(new Symbol(""), []).reflectee as HTTPSerializable;
@@ -201,7 +194,7 @@ class HTTPBody extends HTTPBinding {
       return value;
     } else if (intoType.isSubtypeOf(reflectType(List))) {
       if (!reflectType(request.body.decodedType).isSubtypeOf(reflectType(List))) {
-        throw new HTTPResponseException(400, "Expected List, got ${request.body.decodedType}");
+        throw new Response(422, null, {"error": "unexpected request entity data type"});
       }
 
       var bodyList = request.body.asList();
@@ -212,7 +205,7 @@ class HTTPBody extends HTTPBinding {
       var typeArg = intoType.typeArguments.first as ClassMirror;
       return bodyList.map((object) {
         if (!reflectType(object.runtimeType).isSubtypeOf(reflectType(Map))) {
-          throw new HTTPResponseException(400, "Expected List<Map>, got List<${object.runtimeType}>");
+          throw new Response(422, null, {"error": "unexpected request entity data type"});
         }
 
         var value = typeArg.newInstance(new Symbol(""), []).reflectee as HTTPSerializable;
@@ -222,8 +215,7 @@ class HTTPBody extends HTTPBinding {
       }).toList();
     }
 
-    throw new HTTPBodyBindingException(
-        "Failed to bind HTTPBody: ${intoType.reflectedType} is not HTTPSerializable or List<HTTPSerializable>");
+    throw new Response(422, null, {"error": "unexpected request entity data type"});
   }
 }
 

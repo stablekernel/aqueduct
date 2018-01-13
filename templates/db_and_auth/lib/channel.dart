@@ -50,19 +50,16 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
     /* Create an account */
     router
         .route("/register")
-        .link(() =>new Authorizer.basic(authServer))
+        .link(() => new Authorizer.basic(authServer))
         .link(() => new RegisterController(authServer));
 
     /* Gets profile for user with bearer token */
-    router
-        .route("/me")
-        .link(() =>new Authorizer.bearer(authServer))
-        .link(() => new IdentityController());
+    router.route("/me").link(() => new Authorizer.bearer(authServer)).link(() => new IdentityController());
 
     /* Gets all users or one specific user by id */
     router
         .route("/users/[:id]")
-        .link(() =>new Authorizer.bearer(authServer))
+        .link(() => new Authorizer.bearer(authServer))
         .link(() => new UserController(authServer));
 
     return router;
@@ -72,15 +69,10 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
    * Helper methods
    */
 
-  ManagedContext contextWithConnectionInfo(
-      DatabaseConnectionConfiguration connectionInfo) {
+  ManagedContext contextWithConnectionInfo(DatabaseConnectionConfiguration connectionInfo) {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
-        connectionInfo.username,
-        connectionInfo.password,
-        connectionInfo.host,
-        connectionInfo.port,
-        connectionInfo.databaseName);
+    var psc = new PostgreSQLPersistentStore(connectionInfo.username, connectionInfo.password, connectionInfo.host,
+        connectionInfo.port, connectionInfo.databaseName);
 
     return new ManagedContext(dataModel, psc);
   }
@@ -88,11 +80,7 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
   @override
   Future<String> render(AuthCodeController forController, Uri requestUri, String responseType, String clientID,
       String state, String scope) async {
-    var map = {
-      "response_type": responseType,
-      "client_id": clientID,
-      "state": state
-    };
+    var map = {"response_type": responseType, "client_id": clientID, "state": state};
 
     map["path"] = requestUri.path;
     if (scope != null) {

@@ -6,14 +6,14 @@ import 'dart:mirrors';
 import 'package:logging/logging.dart';
 
 import '../http/http.dart';
-import 'service_registry.dart';
-import 'options.dart';
 import 'application_server.dart';
 import 'isolate_application_server.dart';
 import 'isolate_supervisor.dart';
+import 'options.dart';
+import 'service_registry.dart';
 
-export 'options.dart';
 export 'application_server.dart';
+export 'options.dart';
 export 'service_registry.dart';
 
 /// A container for web server applications.
@@ -79,7 +79,7 @@ class Application<T extends ApplicationChannel> {
   /// See also [test] for starting an application when running automated tests.
   Future start({int numberOfInstances: 1, bool consoleLogging: false}) async {
     if (server != null || supervisors.length > 0) {
-      throw new ApplicationStartupException("Application already started.");
+      throw new StateError("Application error. Cannot invoke 'start' on already running Aqueduct application.");
     }
 
     if (options.address == null) {
@@ -118,7 +118,7 @@ class Application<T extends ApplicationChannel> {
   /// to start the application when running tests with the `aqueduct/aqueduct_test` library.
   Future test() async {
     if (server != null || supervisors.length > 0) {
-      throw new ApplicationStartupException("Application already started.");
+      throw new StateError("Application error. Cannot invoke 'test' on already running Aqueduct application.");
     }
 
     options.address = InternetAddress.LOOPBACK_IP_V4;

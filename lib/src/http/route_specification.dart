@@ -55,8 +55,8 @@ List<String> _pathsFromRoutePattern(String routePattern) {
 
     if (code == openExpression) {
       if (insideExpression) {
-        throw new RouterException(
-            "Invalid route $routePattern, cannot use expression that contains '(' or ')'");
+        throw new ArgumentError(
+            "Router compilation failed. Route pattern '$routePattern' cannot use expression that contains '(' or ')'");
       } else {
         buffer.writeCharCode(code);
         insideExpression = true;
@@ -66,8 +66,8 @@ List<String> _pathsFromRoutePattern(String routePattern) {
         buffer.writeCharCode(code);
         insideExpression = false;
       } else {
-        throw new RouterException(
-            "Invalid route $routePattern, cannot use expression that contains '(' or ')'");
+        throw new ArgumentError(
+            "Router compilation failed. Route pattern '$routePattern' cannot use expression that contains '(' or ')'");
       }
     } else if (code == openOptional) {
       if (insideExpression) {
@@ -81,13 +81,13 @@ List<String> _pathsFromRoutePattern(String routePattern) {
   }
 
   if (insideExpression) {
-    throw new RouterException(
-        "Invalid route $routePattern, unterminated regular expression");
+    throw new ArgumentError(
+        "Router compilation failed. Route pattern '$routePattern' has unterminated regular expression.");
   }
 
   if (endingOptionalCloseCount != patterns.length) {
-    throw new RouterException(
-        "Invalid pattern specifiation, $routePattern, does not close all optionals");
+    throw new ArgumentError(
+        "Router compilation failed. Route pattern '$routePattern' does not close all optionals.");
   }
 
   // Add the final pattern - if no optionals, this is the only pattern.
@@ -138,8 +138,8 @@ List<RouteSegment> _splitPathSegments(String path) {
   }
 
   if (segments.any((seg) => seg == "")) {
-    throw new RouterException(
-        "Invalid route path $path, contains an empty path segment");
+    throw new ArgumentError(
+        "Router compilation failed. Route pattern '$path' contains an empty path segment.");
   }
 
   // Add final

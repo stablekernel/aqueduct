@@ -221,7 +221,7 @@ void main() {
       try {
         var _ = new ManagedDataModel([SameNameOne, SameNameTwo]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.message, contains("SameNameOne"));
         expect(e.message, contains("SameNameTwo"));
         expect(e.message, contains("'fo'"));
@@ -315,7 +315,7 @@ void main() {
     try {
       new ManagedDataModel([Owner, FailingChild]);
       expect(true, false);
-    } on ManagedDataModelException catch (e) {
+    } on ManagedDataModelError catch (e) {
       expect(e.message,
           contains("Relationship 'ref' on '_FailingChild' has both"));
     }
@@ -325,7 +325,7 @@ void main() {
     try {
       new ManagedDataModel([NoPrimaryKey]);
       expect(true, false);
-    } on ManagedDataModelException catch (e) {
+    } on ManagedDataModelError catch (e) {
       expect(
           e.message,
           contains(
@@ -355,7 +355,7 @@ void main() {
     try {
       new ManagedDataModel([InvalidModel]);
       expect(true, false);
-    } on ManagedDataModelException catch (e) {
+    } on ManagedDataModelError catch (e) {
       expect(
           e.message,
           contains(
@@ -368,7 +368,7 @@ void main() {
     try {
       new ManagedDataModel([InvalidTransientModel]);
       expect(true, false);
-    } on ManagedDataModelException catch (e) {
+    } on ManagedDataModelError catch (e) {
       expect(
           e.message,
           startsWith(
@@ -443,7 +443,7 @@ void main() {
       try {
         var _ = new ManagedDataModel([InvalidCyclicLeft, InvalidCyclicRight]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.message, contains("InvalidCyclicLeft"));
         expect(e.message, contains("InvalidCyclicRight"));
         expect(e.message, contains("but only one side"));
@@ -454,7 +454,7 @@ void main() {
       try {
         var _ = new ManagedDataModel([CyclicLeft, CyclicRight]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.message, contains("CyclicLeft"));
         expect(e.message, contains("CyclicRight"));
         expect(e.message, contains("have cyclic relationship properties"));
@@ -467,7 +467,7 @@ void main() {
       try {
         new ManagedDataModel([InvalidMetadata, InvalidMetadata1]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.message, contains("cannot both have"));
         expect(e.message, contains("InvalidMetadata"));
         expect(e.message, contains("'bar'"));
@@ -479,7 +479,7 @@ void main() {
       try {
         new ManagedDataModel([MissingInverse1, MissingInverseWrongSymbol]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.message, contains("has no inverse property"));
         expect(e.message, contains("'inverse'"));
         expect(e.message, contains("'has'"));
@@ -488,7 +488,7 @@ void main() {
       try {
         new ManagedDataModel([MissingInverse2, MissingInverseAbsent]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.message, contains("has no inverse property"));
         expect(e.message, contains("'inverseMany'"));
       }
@@ -498,7 +498,7 @@ void main() {
       try {
         new ManagedDataModel([DupInverse, DupInverseHas]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.message, contains("has more than one inverse property"));
         expect(e.message, contains("foo,bar"));
       }
@@ -551,7 +551,7 @@ void main() {
       try {
         new ManagedDataModel([MultiUniqueFailureSingleElement]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.message, contains("add 'Column(unique: true)' to declaration of 'a'"));
       }
     });
@@ -560,7 +560,7 @@ void main() {
       try {
         new ManagedDataModel([MultiUniqueFailureNoElement]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.message, contains("Must contain two or more attributes"));
       }
     });
@@ -569,7 +569,7 @@ void main() {
       try {
         new ManagedDataModel([MultiUniqueFailureUnknown]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.message, contains("'a' is not a property of this type"));
       }
     });
@@ -578,7 +578,7 @@ void main() {
       try {
         new ManagedDataModel([MultiUniqueFailureRelationship, MultiUniqueFailureRelationshipInverse]);
         expect(true, false);
-      } on ManagedDataModelException catch (e) {
+      } on ManagedDataModelError catch (e) {
         expect(e.message, contains("declares 'a' as unique"));
       }
     });

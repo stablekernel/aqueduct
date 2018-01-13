@@ -31,9 +31,7 @@ class WildfireChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    router
-        .route("/model/[:id]")
-        .link(() => new ManagedObjectController<Model>());
+    router.route("/model/[:id]").link(() => new ManagedObjectController<Model>());
 
     return router;
   }
@@ -42,15 +40,10 @@ class WildfireChannel extends ApplicationChannel {
    * Helper methods
    */
 
-  ManagedContext contextWithConnectionInfo(
-      DatabaseConnectionConfiguration connectionInfo) {
+  ManagedContext contextWithConnectionInfo(DatabaseConnectionConfiguration connectionInfo) {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
-        connectionInfo.username,
-        connectionInfo.password,
-        connectionInfo.host,
-        connectionInfo.port,
-        connectionInfo.databaseName);
+    var psc = new PostgreSQLPersistentStore(connectionInfo.username, connectionInfo.password, connectionInfo.host,
+        connectionInfo.port, connectionInfo.databaseName);
 
     return new ManagedContext(dataModel, psc);
   }

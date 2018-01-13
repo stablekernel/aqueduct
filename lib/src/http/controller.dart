@@ -4,7 +4,6 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 
 import 'http.dart';
-import '../db/db.dart';
 
 /// The unifying protocol for [Request] and [Response] classes.
 ///
@@ -112,15 +111,26 @@ class Controller extends Object with APIOperationDocumenter implements APICompon
 
     var result;
     try {
-      result = await handle(req);
-      if (result is Response) {
-        await _sendResponse(req, result, includeCORSHeaders: true);
+      try {
+        result = await handle(req);
+        if (result is Response) {
+          await _sendResponse(req, result, includeCORSHeaders: true);
+          logger.info(req.toDebugString());
+          return null;
+        }
+      } on Response catch (response) {
+        await _sendResponse(req, response, includeCORSHeaders: true);
+        logger.info(req.toDebugString());
+        return null;
+      } on HandlerException catch (e) {
+        await _sendResponse(req, e.response, includeCORSHeaders: true);
         logger.info(req.toDebugString());
         return null;
       }
     } catch (any, stacktrace) {
-      var shouldRethrow = await handleError(req, any, stacktrace);
-      if (letUncaughtExceptionsEscape && shouldRethrow) {
+      handleError(req, any, stacktrace);
+
+      if (letUncaughtExceptionsEscape) {
         rethrow;
       }
 
@@ -161,69 +171,36 @@ class Controller extends Object with APIOperationDocumenter implements APICompon
 
   /// Sends an HTTP response for a request that yields an exception or error.
   ///
-  /// This method is automatically invoked by [receive] and should rarely be invoked otherwise.
+  /// When this controller encounters an exception or error while handling [request], this method is called to send the response.
+  /// By default, it attempts to send a 500 Server Error response and logs the error and stack trace to [logger].
   ///
-  /// This method is invoked when an value is thrown inside an instance's [handle]. [request] is the [Request] being processed,
-  /// [caughtValue] is the value that is thrown and [trace] is a [StackTrace] at the point of the throw.
+  /// Note: If [caughtValue]'s implements [HandlerException], this method is not called.
   ///
-  /// For unknown exceptions and errors, this method sends a 500 response for the request being processed. This ensures that any errors
-  /// still yield a response to the HTTP client. If [includeErrorDetailsInServerErrorResponses] is true, the body of this
-  /// method will contain the error and stacktrace as JSON data.
-  ///
-  /// If [caughtValue] is an [HTTPResponseException] or [QueryException], this method translates [caughtValue] and sends an appropriate
-  /// HTTP response.
-  ///
-  /// For [HTTPResponseException]s, the response is created by [HTTPResponseException.response].
-  ///
-  /// For [QueryException]s, the response is one of the following:
-  ///
-  /// * 400: When the query is valid SQL but fails for any reason, except a unique constraint violation.
-  /// * 409: When the query fails because of a unique constraint violation.
-  /// * 500: When the query is invalid SQL.
-  /// * 503: When the database cannot be reached.
-  ///
-  /// This method is invoked by [receive] and should not be invoked elsewhere. If a subclass overrides [receive], such as [Router],
-  /// this method should be called to handle any errors.
-  ///
-  /// Note: [includeErrorDetailsInServerErrorResponses] is not evaluated when [caughtValue] is an [HTTPResponseException] or [QueryException], as
-  /// these are normal control flows. There is one exception - if [QueryException.event] is [QueryExceptionEvent.internalFailure], this method
-  /// will include the error and stacktrace. [QueryExceptionEvent.internalFailure] occurs when the [Query] is malformed.
-  ///
-  /// This method returns true if the error is unexpected, allowing [letUncaughtExceptionsEscape] to rethrow the exception during debugging.
-  Future<bool> handleError(Request request, dynamic caughtValue, StackTrace trace) async {
+  /// If you override this method, it must not throw.
+  Future handleError(Request request, dynamic caughtValue, StackTrace trace) async {
     if (caughtValue is HTTPStreamingException) {
       logger.severe(
           "${request.toDebugString(includeHeaders: true)}", caughtValue.underlyingException, caughtValue.trace);
 
-      await request.response.close();
+      request.response.close().catchError((_) => null);
 
-      return true;
+      return;
     }
 
-    Response response;
-    if (caughtValue is HTTPResponseException) {
-      response = caughtValue.response;
+    try {
+      final body = includeErrorDetailsInServerErrorResponses
+          ? {"controller": "$runtimeType", "error": "$caughtValue.", "stacktrace": trace?.toString()}
+          : null;
 
-      logger.info("${request.toDebugString(includeHeaders: true)}");
+      final response = new Response.serverError(body: body)..contentType = ContentType.JSON;
 
-      if (caughtValue.isControlFlowException) {
-        await _sendResponse(request, response, includeCORSHeaders: true);
-        return false;
-      }
+      await _sendResponse(request, response, includeCORSHeaders: true);
+
+      logger.severe("${request.toDebugString(includeHeaders: true)}", caughtValue, trace);
+    } catch (e) {
+      logger.severe("Failed to send response, draining request. Reason: $e");
+      request.raw.drain().catchError((_) => null);
     }
-
-    var body;
-    if (includeErrorDetailsInServerErrorResponses) {
-      body = {"error": "${this.runtimeType}: $caughtValue.", "stacktrace": trace.toString()};
-    }
-
-    response ??= new Response.serverError(body: body)..contentType = ContentType.JSON;
-
-    await _sendResponse(request, response, includeCORSHeaders: true);
-
-    logger.severe("${request.toDebugString(includeHeaders: true)}", caughtValue, trace);
-
-    return true;
   }
 
   void applyCORSHeadersIfNecessary(Request req, Response resp) {

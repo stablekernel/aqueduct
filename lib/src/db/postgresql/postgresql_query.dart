@@ -11,6 +11,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     with QueryMixin<InstanceType>
     implements Query<InstanceType> {
   PostgresQuery(this.context);
+
   PostgresQuery.withEntity(this.context, ManagedEntity entity) {
     _entity = entity;
   }
@@ -19,8 +20,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   ManagedContext context;
 
   @override
-  ManagedEntity get entity =>
-      _entity ?? context.dataModel.entityForType(InstanceType);
+  ManagedEntity get entity => _entity ?? context.dataModel.entityForType(InstanceType);
 
   ManagedEntity _entity;
 
@@ -31,11 +31,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<InstanceType> insert() async {
-    finalizeAndValidateValues(ValidateOperation.insert);
+    validateInput(ValidateOperation.insert);
 
     var builder = new PostgresQueryBuilder(entity,
-        returningProperties: propertiesToFetch,
-        values: valueMap ?? values?.backingMap);
+        returningProperties: propertiesToFetch, values: valueMap ?? values?.backingMap);
 
     var buffer = new StringBuffer();
     buffer.write("INSERT INTO ${builder.primaryTableDefinition} ");
@@ -51,15 +50,15 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
-    var results = await context.persistentStore.executeQuery(
-        buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
+    var results =
+        await context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
 
     return builder.instancesForRows(results).first;
   }
 
   @override
   Future<List<InstanceType>> update() async {
-    finalizeAndValidateValues(ValidateOperation.update);
+    validateInput(ValidateOperation.update);
 
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
@@ -81,8 +80,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
-    var results = await context.persistentStore.executeQuery(
-        buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
+    var results =
+        await context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
 
     return builder.instancesForRows(results);
   }
@@ -96,15 +95,14 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       return null;
     }
 
-    throw new QueryException(QueryExceptionEvent.internalFailure,
-        message:
-            "updateOne modified more than one row, this is a serious error.");
+    throw new StateError("Query error. 'updateOne' modified more than one row in '${entity.tableName}'. "
+            "This was likely unintended and may be indicativate of a more serious error. Query "
+            "should add 'where' constraints on a unique column.");
   }
 
   @override
   Future<int> delete() async {
-    var builder = new PostgresQueryBuilder(entity,
-        predicate: predicate, whereBuilder: hasWhereBuilder ? where : null);
+    var builder = new PostgresQueryBuilder(entity, predicate: predicate, whereBuilder: hasWhereBuilder ? where : null);
 
     var buffer = new StringBuffer();
     buffer.write("DELETE FROM ${builder.primaryTableDefinition} ");
@@ -115,8 +113,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw canModifyAllInstancesError;
     }
 
-    return context.persistentStore.executeQuery(
-        buffer.toString(), builder.substitutionValueMap, timeoutInSeconds,
+    return context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds,
         returnType: PersistentStoreQueryReturnType.rowCount);
   }
 
@@ -132,9 +129,9 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     if (results.length == 1) {
       return results.first;
     } else if (results.length > 1) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-              "Query expected to fetch one instance, but ${results.length} instances were returned.");
+      throw new StateError("Query error. 'fetchOne' returned more than one row from '${entity.tableName}'. "
+          "This was likely unintended and may be indicativate of a more serious error. Query "
+          "should add 'where' constraints on a unique column.");
     }
 
     return null;
@@ -147,37 +144,18 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   //////
 
-  void finalizeAndValidateValues(ValidateOperation op) {
-    if (valueMap == null) {
-      if (op == ValidateOperation.insert) {
-        values.willInsert();
-      } else if (op == ValidateOperation.update) {
-        values.willUpdate();
-      }
-
-      var errors = <String>[];
-      if (!values.validate(forOperation: op, collectErrorsIn: errors)) {
-        throw new QueryException(QueryExceptionEvent.requestFailure, message: errors.join(", "));
-      }
-    }
-  }
-
   PostgresQueryBuilder createFetchMapper() {
-    var allSortDescriptors =
-        new List<QuerySortDescriptor>.from(sortDescriptors ?? []);
+    var allSortDescriptors = new List<QuerySortDescriptor>.from(sortDescriptors ?? []);
     if (pageDescriptor != null) {
       validatePageDescriptor();
-      var pageSortDescriptor = new QuerySortDescriptor(
-          pageDescriptor.propertyName, pageDescriptor.order);
+      var pageSortDescriptor = new QuerySortDescriptor(pageDescriptor.propertyName, pageDescriptor.order);
       allSortDescriptors.insert(0, pageSortDescriptor);
 
       if (pageDescriptor.boundingValue != null) {
         if (pageDescriptor.order == QuerySortOrder.ascending) {
-          where[pageDescriptor.propertyName] =
-              whereGreaterThan(pageDescriptor.boundingValue);
+          where[pageDescriptor.propertyName] = whereGreaterThan(pageDescriptor.boundingValue);
         } else {
-          where[pageDescriptor.propertyName] =
-              whereLessThan(pageDescriptor.boundingValue);
+          where[pageDescriptor.propertyName] = whereLessThan(pageDescriptor.boundingValue);
         }
       }
     }
@@ -191,9 +169,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
         aliasTables: true);
 
     if (builder.containsJoins && pageDescriptor != null) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-              "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently.");
+      throw new StateError("Invalid query. Cannot set both 'pageDescription' and use 'join' in query.");
     }
 
     return builder;
@@ -222,8 +198,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("OFFSET $offset ");
     }
 
-    var results = await context.persistentStore.executeQuery(
-        buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
+    var results =
+        await context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
 
     return builder.instancesForRows(results);
   }
@@ -231,24 +207,18 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   void validatePageDescriptor() {
     var prop = entity.attributes[pageDescriptor.propertyName];
     if (prop == null) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-              "Property '${pageDescriptor.propertyName}' in pageDescriptor does not exist on '${entity.tableName}'.");
+      throw new StateError("Invalid query page descriptor. Column '${pageDescriptor.propertyName}' does not exist for table '${entity.tableName}'");
     }
 
-    if (pageDescriptor.boundingValue != null &&
-        !prop.isAssignableWith(pageDescriptor.boundingValue)) {
-      throw new QueryException(QueryExceptionEvent.requestFailure,
-          message:
-              "Property '${pageDescriptor.propertyName}' in pageDescriptor has invalid type (Expected: '${prop.type}' Got: ${pageDescriptor.boundingValue.runtimeType}').");
+    if (pageDescriptor.boundingValue != null && !prop.isAssignableWith(pageDescriptor.boundingValue)) {
+      throw new StateError("Invalid query page descriptor. Bounding value for column '${pageDescriptor.propertyName}' has invalid type.");
     }
   }
 
   List<RowMapper> get rowMappersFromSubqueries {
     return subQueries?.keys?.map((relationshipDesc) {
           var subQuery = subQueries[relationshipDesc] as PostgresQuery;
-          var joinElement = new RowMapper(PersistentJoinType.leftOuter,
-              relationshipDesc, subQuery.propertiesToFetch,
+          var joinElement = new RowMapper(PersistentJoinType.leftOuter, relationshipDesc, subQuery.propertiesToFetch,
               predicate: subQuery.predicate,
               sortDescriptors: subQuery.sortDescriptors,
               whereBuilder: subQuery.hasWhereBuilder ? subQuery.where : null);
@@ -259,9 +229,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
         [];
   }
 
-  static QueryException canModifyAllInstancesError =
-      new QueryException(QueryExceptionEvent.internalFailure,
-          message: "Query would "
-              "impact all records. This could be a destructive error. Set "
-              "canModifyAllInstances on the Query to execute anyway.");
+  static final StateError canModifyAllInstancesError = new StateError(
+      "Invalid Query<T>. Query is either update or delete query with no WHERE clause. To confirm this query is correct, set 'canModifyAllInstances' to true.");
 }

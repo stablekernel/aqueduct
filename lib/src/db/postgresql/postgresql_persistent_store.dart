@@ -17,60 +17,46 @@ typedef Future<PostgreSQLConnection> PostgreSQLConnectionFunction();
 ///
 /// To interact with a PostgreSQL database, a [ManagedContext] must have an instance of this class.
 /// Instances of this class are configured to connect to a particular PostgreSQL database.
-class PostgreSQLPersistentStore extends PersistentStore
-    with PostgreSQLSchemaGenerator {
-  /// Creates an instance of this type from a manual function.
-  PostgreSQLPersistentStore(this.connectFunction) : super() {
+class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGenerator {
+  /// Creates an instance of this type from connection info.
+  PostgreSQLPersistentStore(this.username, this.password, this.host, this.port, this.databaseName,
+      {this.timeZone: "UTC", bool useSSL: false})
+      : isSSLConnection = useSSL {
     ApplicationServiceRegistry.defaultInstance.register<PostgreSQLPersistentStore>(this, (store) => store.close());
   }
 
-  /// Creates an instance of this type from connection info.
-  PostgreSQLPersistentStore.fromConnectionInfo(
-      this.username, this.password, this.host, this.port, this.databaseName,
-      {this.timeZone: "UTC", bool useSSL: false}) {
+  /// Same constructor as default constructor.
+  ///
+  /// Kept for backwards compatability.
+  PostgreSQLPersistentStore.fromConnectionInfo(this.username, this.password, this.host, this.port, this.databaseName,
+      {this.timeZone: "UTC", bool useSSL: false})
+      : isSSLConnection = useSSL {
     ApplicationServiceRegistry.defaultInstance.register<PostgreSQLPersistentStore>(this, (store) => store.close());
-
-    this.connectFunction = () async {
-      logger
-          .info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
-      var connection = new PostgreSQLConnection(host, port, databaseName,
-          username: username,
-          password: password,
-          timeZone: timeZone,
-          useSSL: useSSL);
-      try {
-        await connection.open();
-      } catch (e) {
-        await connection?.close();
-        rethrow;
-      }
-      return connection;
-    };
   }
 
   /// The logger used by instances of this class.
   static Logger logger = new Logger("aqueduct");
 
-  /// The function that will generate a [PostgreSQLConnection] when this instance does not have a valid one.
-  PostgreSQLConnectionFunction connectFunction;
-
   /// The username of the database user for the database this instance connects to.
-  String username;
+  final String username;
 
   /// The password of the database user for the database this instance connects to.
-  String password;
+  final String password;
 
   /// The host of the database this instance connects to.
-  String host;
+  final String host;
 
   /// The port of the database this instance connects to.
-  int port;
+  final int port;
 
   /// The name of the database this instance connects to.
-  String databaseName;
+  final String databaseName;
 
   /// The time zone of the connection to the database this instance connects to.
-  String timeZone = "UTC";
+  final String timeZone;
+
+  /// Whether this connection is established over SSL.
+  final bool isSSLConnection;
 
   /// Whether or not the underlying database connection is open.
   ///
@@ -87,7 +73,7 @@ class PostgreSQLPersistentStore extends PersistentStore
   /// Amount of time to wait before connection fails to open.
   ///
   /// Defaults to 30 seconds.
-  Duration connectTimeout = new Duration(seconds: 30);
+  final Duration connectTimeout = new Duration(seconds: 30);
 
   PostgreSQLConnection _databaseConnection;
   Completer<PostgreSQLConnection> _pendingConnectionCompleter;
@@ -98,22 +84,16 @@ class PostgreSQLPersistentStore extends PersistentStore
   /// You should rarely need to access this connection directly.
   Future<PostgreSQLConnection> getDatabaseConnection() async {
     if (_databaseConnection == null || _databaseConnection.isClosed) {
-      if (connectFunction == null) {
-        throw new QueryException(QueryExceptionEvent.internalFailure,
-            message: "Could not connect to database, no connect function.");
-      }
-
       if (_pendingConnectionCompleter == null) {
         _pendingConnectionCompleter = new Completer<PostgreSQLConnection>();
 
-        connectFunction().timeout(connectTimeout).then((conn) {
+        _connect().timeout(connectTimeout).then((conn) {
           _databaseConnection = conn;
           _pendingConnectionCompleter.complete(_databaseConnection);
           _pendingConnectionCompleter = null;
         }).catchError((e) {
-          _pendingConnectionCompleter.completeError(new QueryException(
-              QueryExceptionEvent.connectionFailure,
-              underlyingException: e));
+          _pendingConnectionCompleter
+              .completeError(new QueryException.transport("unable to connect to database", underlyingException: e));
           _pendingConnectionCompleter = null;
         });
       }
@@ -130,20 +110,25 @@ class PostgreSQLPersistentStore extends PersistentStore
   }
 
   @override
-  Future<dynamic> execute(String sql,
-      {Map<String, dynamic> substitutionValues}) async {
+  Future<dynamic> execute(String sql, {Map<String, dynamic> substitutionValues}) async {
     var now = new DateTime.now().toUtc();
     var dbConnection = await getDatabaseConnection();
     try {
-      var rows =
-          await dbConnection.query(sql, substitutionValues: substitutionValues);
+      var rows = await dbConnection.query(sql, substitutionValues: substitutionValues);
 
       var mappedRows = rows.map((row) => row.toList()).toList();
-      logger.finest(() =>
-          "Query:execute (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $sql -> $mappedRows");
+      logger.finest(() => "Query:execute (${(new DateTime.now()
+          .toUtc()
+          .difference(now)
+          .inMilliseconds)}ms) $sql -> $mappedRows");
       return mappedRows;
     } on PostgreSQLException catch (e) {
-      throw _interpretException(e);
+      final interpreted = _interpretException(e);
+      if (interpreted != null) {
+        throw interpreted;
+      }
+
+      rethrow;
     }
   }
 
@@ -156,31 +141,24 @@ class PostgreSQLPersistentStore extends PersistentStore
   @override
   Future<int> get schemaVersion async {
     try {
-      var values = await execute(
-              "SELECT versionNumber, dateOfUpgrade FROM $versionTableName ORDER BY dateOfUpgrade ASC")
-          as List<List<dynamic>>;
+      var values =
+          await execute("SELECT versionNumber, dateOfUpgrade FROM $versionTableName ORDER BY dateOfUpgrade ASC")
+              as List<List<dynamic>>;
       if (values.length == 0) {
         return 0;
       }
 
       return values.last.first;
-    } on QueryException catch (e) {
-      var underlying = e.underlyingException;
-      if (underlying is PostgreSQLException) {
-        if (underlying.code != PostgreSQLErrorCode.undefinedTable) {
-          throw _interpretException(e.underlyingException);
-        }
-      } else {
-        throw underlying;
+    } on PostgreSQLException catch (e) {
+      if (e.code == PostgreSQLErrorCode.undefinedTable) {
+        return 0;
       }
+      rethrow;
     }
-
-    return 0;
   }
 
   @override
-  Future upgrade(int versionNumber, List<String> commands,
-      {bool temporary: false}) async {
+  Future upgrade(int versionNumber, List<String> commands, {bool temporary: false}) async {
     await _createVersionTableIfNecessary(temporary);
 
     var connection = await getDatabaseConnection();
@@ -202,18 +180,23 @@ class PostgreSQLPersistentStore extends PersistentStore
         }
 
         await ctx.execute(
-            "INSERT INTO $versionTableName (versionNumber, dateOfUpgrade) VALUES ($versionNumber, '${new DateTime.now().toUtc().toIso8601String()}')");
+            "INSERT INTO $versionTableName (versionNumber, dateOfUpgrade) VALUES ($versionNumber, '${new DateTime.now()
+                .toUtc()
+                .toIso8601String()}')");
       });
     } on PostgreSQLException catch (e) {
-      throw _interpretException(e);
+      final interpreted = _interpretException(e);
+      if (interpreted != null) {
+        throw interpreted;
+      }
+
+      rethrow;
     }
   }
 
   @override
-  Future<dynamic> executeQuery(
-      String formatString, Map<String, dynamic> values, int timeoutInSeconds,
-      {PersistentStoreQueryReturnType returnType:
-          PersistentStoreQueryReturnType.rows}) async {
+  Future<dynamic> executeQuery(String formatString, Map<String, dynamic> values, int timeoutInSeconds,
+      {PersistentStoreQueryReturnType returnType: PersistentStoreQueryReturnType.rows}) async {
     var now = new DateTime.now().toUtc();
     try {
       var dbConnection = await getDatabaseConnection();
@@ -229,38 +212,39 @@ class PostgreSQLPersistentStore extends PersistentStore
             .timeout(new Duration(seconds: timeoutInSeconds));
       }
 
-      logger.fine(() =>
-          "Query (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString Substitutes: ${values ?? "{}"} -> $results");
+      logger.fine(() => "Query (${(new DateTime.now()
+          .toUtc()
+          .difference(now)
+          .inMilliseconds)}ms) $formatString Substitutes: ${values ?? "{}"} -> $results");
 
       return results;
     } on TimeoutException catch (e) {
-      throw new QueryException(QueryExceptionEvent.connectionFailure,
-          underlyingException: e);
+      throw new QueryException.transport("timed out connection to database", underlyingException: e);
     } on PostgreSQLException catch (e) {
-      logger.fine(() =>
-          "Query (${(new DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString $values");
-      throw _interpretException(e);
+      logger.fine(() => "Query (${(new DateTime.now()
+          .toUtc()
+          .difference(now)
+          .inMilliseconds)}ms) $formatString $values");
+      final interpreted = _interpretException(e);
+      if (interpreted != null) {
+        throw interpreted;
+      }
+
+      rethrow;
     }
   }
 
-  QueryException _interpretException(PostgreSQLException exception) {
+  QueryException<PostgreSQLException> _interpretException(PostgreSQLException exception) {
     switch (exception.code) {
-      case PostgreSQLErrorCode.undefinedColumn:
-        return new QueryException(QueryExceptionEvent.requestFailure,
-            underlyingException: exception);
       case PostgreSQLErrorCode.uniqueViolation:
-        return new QueryException(QueryExceptionEvent.conflict,
-            underlyingException: exception);
+        return new QueryException.conflict("entity_already_exists", ["${exception.tableName}.${exception.columnName}"], underlyingException: exception);
       case PostgreSQLErrorCode.notNullViolation:
-        return new QueryException(QueryExceptionEvent.requestFailure,
-            underlyingException: exception);
+        return new QueryException.input("non_null_violation", ["${exception.tableName}.${exception.columnName}"], underlyingException: exception);
       case PostgreSQLErrorCode.foreignKeyViolation:
-        return new QueryException(QueryExceptionEvent.requestFailure,
-            underlyingException: exception);
+        return new QueryException.input("foreign_key_violation", ["${exception.tableName}.${exception.columnName}"],underlyingException: exception);
     }
 
-    return new QueryException(QueryExceptionEvent.internalFailure,
-        underlyingException: exception);
+    return null;
   }
 
   Future _createVersionTableIfNecessary(bool temporary) async {
@@ -277,6 +261,20 @@ class PostgreSQLPersistentStore extends PersistentStore
         rethrow;
       }
     }
+  }
+
+  Future<PostgreSQLConnection> _connect() async {
+    logger.info("PostgreSQL connecting, $username@$host:$port/$databaseName.");
+    final connection = new PostgreSQLConnection(host, port, databaseName,
+        username: username, password: password, timeZone: timeZone, useSSL: isSSLConnection);
+    try {
+      await connection.open();
+    } catch (e) {
+      await connection.close();
+      rethrow;
+    }
+
+    return connection;
   }
 }
 

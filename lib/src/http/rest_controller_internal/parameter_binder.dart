@@ -67,7 +67,6 @@ class RESTControllerParameterBinder {
     return new APISchemaObject.string();
   }
 
-  
   String _methodErrorName(VariableMirror mirror) {
     return "${MirrorSystem.getName(mirror.owner.owner.simpleName)}.${MirrorSystem.getName(mirror.owner.simpleName)}";
   }

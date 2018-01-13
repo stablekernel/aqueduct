@@ -385,11 +385,11 @@ void main() {
       try {
         await q.fetchOne();
         expect(true, false);
-      } on QueryException catch (e) {
+      } on ArgumentError catch (e) {
         expect(
             e.toString(),
             contains(
-                "Property 'child' is a hasMany or hasOne relationship and is invalid as a result property of '_Parent'"));
+                "Column 'child' does not exist for table '_Parent'. 'child' recognized as ORM relationship, use 'Query.join' instead"));
       }
 
       q = new Query<Parent>();
@@ -398,11 +398,11 @@ void main() {
       try {
         await q.fetchOne();
         expect(true, false);
-      } on QueryException catch (e) {
+      } on ArgumentError catch (e) {
         expect(
             e.toString(),
             contains(
-                "Property 'toy' is a hasMany or hasOne relationship and is invalid as a result property of '_Child'"));
+                "Column \'toy\' does not exist for table \'_Child\'. \'toy\' recognized as ORM relationship, use \'Query.join\' instead."));
       }
     });
 
@@ -414,11 +414,11 @@ void main() {
       try {
         await q.fetchOne();
         expect(true, false);
-      } on QueryException catch (e) {
+      } on StateError catch (e) {
         expect(
             e.toString(),
             contains(
-                "Cannot use 'Query<T>' with both 'pageDescriptor' and joins currently"));
+                "Cannot set both 'pageDescription' and use 'join' in query"));
       }
     });
   });

@@ -33,16 +33,13 @@ void main() {
         "bad_key": "doesntmatter"
       };
 
-    var successful = false;
     try {
       await insertReq.insert();
-      successful = true;
-    } on QueryException catch (e) {
+      expect(true, false);
+    } on ArgumentError catch (e) {
       expect(
-          e.toString(), "Property bad_key in values does not exist on simple");
-      expect(e.event, QueryExceptionEvent.requestFailure);
+          e.toString(), contains("Column 'bad_key' does not exist for table 'simple'"));
     }
-    expect(successful, false);
   });
 
   test("Inserting an object that violated a unique constraint fails", () async {
@@ -149,7 +146,7 @@ void main() {
       await insertReq.insert();
       successful = true;
     } on QueryException catch (e) {
-      expect(e.event, QueryExceptionEvent.requestFailure);
+      expect(e.event, QueryExceptionEvent.input);
       expect((e.underlyingException as PostgreSQLException).code, "23502");
     }
     expect(successful, false);

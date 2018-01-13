@@ -1,5 +1,4 @@
 import "package:test/test.dart";
-import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/http/route_specification.dart';
 
 import '../../lib/src/http/route_node.dart';
@@ -216,7 +215,7 @@ void expectRouterException(void f(), {String exceptionMessage}) {
   try {
     f();
     fail("Expected RouterException");
-  } on RouterException catch (e) {
+  } on ArgumentError catch (e) {
     if (exceptionMessage != null) {
       expect(e.message, exceptionMessage);
     }

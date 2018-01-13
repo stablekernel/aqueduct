@@ -33,6 +33,8 @@ void main() {
       AuthUtility.generateAPICredentialPair("a", null,
           redirectURI: "http://a.com");
       expect(true, false);
-    } on AuthUtilityException {}
+    } on ArgumentError catch (e) {
+      expect(e.message, contains("Invalid input"));
+    }
   });
 }

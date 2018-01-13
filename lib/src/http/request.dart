@@ -118,7 +118,7 @@ class Request implements RequestOrResponse {
 
         _cachedAcceptableTypes = contentTypes;
       } catch (_) {
-        throw new HTTPResponseException(400, "Accept header is malformed");
+        throw new Response.badRequest(body: {"error": "accept header is malformed"});
       }
     }
     return _cachedAcceptableTypes;
@@ -309,7 +309,7 @@ class Request implements RequestOrResponse {
 
     if (codec == null) {
       if (resp.body is! List<int>) {
-        throw new HTTPCodecException("Invalid body '${resp.body.runtimeType}' for Content-Type '${resp.contentType}'");
+        throw new StateError("Invalid response body. Body of type '${resp.body.runtimeType}' cannot be encoded as content-type '${resp.contentType}'.");
       }
 
       if (canGzip) {

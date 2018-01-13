@@ -4,6 +4,7 @@ import '../../http/serializable.dart';
 import 'managed.dart';
 import 'backing.dart';
 import '../query/query.dart';
+import 'exception.dart';
 
 /// Instances of this class provide storage for [ManagedObject]s.
 ///
@@ -215,9 +216,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
       var property = entity.properties[k];
 
       if (property == null) {
-        throw new QueryException(QueryExceptionEvent.requestFailure,
-            message:
-                "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}");
+        throw new ValidationException(["invalid input key '$k'"]);
       }
 
       if (property is ManagedAttributeDescription) {
@@ -225,18 +224,12 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
           backing.setValueForProperty(entity, k, property.convertFromPrimitiveValue(v));
         } else {
           if (!property.transientStatus.isAvailableAsInput) {
-            throw new QueryException(QueryExceptionEvent.requestFailure,
-                message:
-                    "Key $k does not exist for ${MirrorSystem.getName(mirror.type.simpleName)}");
+            throw new ValidationException(["invalid input key '$k'"]);
           }
 
           var decodedValue = property.convertFromPrimitiveValue(v);
           if (!property.isAssignableWith(decodedValue)) {
-            var valueTypeName =
-                MirrorSystem.getName(reflect(decodedValue).type.simpleName);
-            throw new QueryException(QueryExceptionEvent.requestFailure,
-                message:
-                    "Type mismatch for property ${property.name} on ${MirrorSystem.getName(entity.persistentType.simpleName)}, expected assignable type matching ${property.type} but got $valueTypeName.");
+            throw new ValidationException(["invalid input type for key '$k'"]);
           }
 
           mirror.setField(new Symbol(k), decodedValue);

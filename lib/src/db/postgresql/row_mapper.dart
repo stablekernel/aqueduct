@@ -167,11 +167,10 @@ class RowMapper extends PostgresMapper
       }, orElse: () => null);
 
       if (inverseMapper != null) {
-        throw new QueryException(QueryExceptionEvent.internalFailure,
-            message:
-                "Invalid cyclic 'Query'. This query would join on the same table and foreign key twice. "
-                "The offending query has a 'where' matcher on '${rowMapper.entity.tableName}.${rowMapper.joiningProperty.name}'"
-                ", but this matcher should be on a parent 'Query' Move the matcher earlier in the 'Query'.");
+        throw new ArgumentError(
+                "Invalid query. This query would join on the same table and foreign key twice. "
+                "The offending query has a 'where' matcher on '${rowMapper.entity.tableName}.${rowMapper.joiningProperty.name}',"
+                "but this matcher should be on a parent 'Query'.");
       }
 
       if (parentTable is RowMapper) {
