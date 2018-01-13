@@ -120,14 +120,14 @@ abstract class RESTController extends Controller {
     final conflictingOperations = binder.conflictingOperations;
     if (conflictingOperations.length > 0) {
       final opNames = conflictingOperations.map((s) => "'$s'").join(", ");
-      throw new RESTControllerException("${runtimeType.toString()} has ambiguous operations: $opNames");
+      throw new StateError("Invalid controller. Controller '${runtimeType.toString()}' has ambiguous operations. Offending operating methods: $opNames.");
     }
 
     final unsatisfiableOperations = binder.unsatisfiableOperations;
     if (unsatisfiableOperations.length > 0) {
       final opNames = unsatisfiableOperations.map((s) => "'$s'").join(", ");
-      throw new RESTControllerException("${runtimeType
-          .toString()} has has operations where @Bind.path() is used on a path variable not in @Operation(): $opNames");
+      throw new StateError("Invalid controller. Controller '${runtimeType.toString()}' has operations where "
+          "parameter is bound with @Bind.path(), but path variable is not declared in @Operation(). Offending operation methods: $opNames");
     }
 
     RESTControllerBinder.addBinder(binder);
@@ -160,24 +160,16 @@ abstract class RESTController extends Controller {
 
   @override
   Future<RequestOrResponse> handle(Request req) async {
-    try {
-      request = req;
+    request = req;
 
-      var preprocessedResult = await willProcessRequest(req);
-      Response response;
-      if (preprocessedResult is Request) {
-        response = await _process();
-      } else if (preprocessedResult is Response) {
-        response = preprocessedResult;
-      } else {
-        response = new Response.serverError(body: {"error": "Preprocessing request did not yield result"});
-      }
-
-      return response;
-    } on InternalControllerException catch (e) {
-      var response = e.response;
-      return response;
+    var preprocessedResult = await willProcessRequest(req);
+    if (preprocessedResult is Request) {
+      return _process();
+    } else if (preprocessedResult is Response) {
+      return preprocessedResult;
     }
+
+    throw new StateError("'$runtimeType' returned invalid object from 'willProcessRequest'. Must return 'Request' or 'Response'.");
   }
 
   @override
@@ -298,13 +290,4 @@ APIParameterLocation _parameterLocationFromHTTPParameter(HTTPBinding p) {
   }
 
   return null;
-}
-
-class RESTControllerException implements Exception {
-  RESTControllerException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => "RESTControllerException: $message";
 }

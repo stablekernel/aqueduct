@@ -2,6 +2,7 @@ import 'managed.dart';
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
 import 'package:aqueduct/src/application/channel.dart';
+import 'package:aqueduct/src/http/http.dart';
 
 /// The target for database queries and coordinator of [Query]s.
 ///

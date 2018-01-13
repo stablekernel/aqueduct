@@ -444,11 +444,11 @@ class CrashingStorage extends InMemoryAuthStorage {
   @override
   Future<AuthToken> fetchTokenByAccessToken(
       AuthServer server, String accessToken) async {
-    throw new HTTPResponseException(504, "ok");
+    throw new Response(504, null, "ok");
   }
 
   @override
   Future<AuthClient> fetchClientByID(AuthServer server, String id) async {
-    throw new HTTPResponseException(504, "ok");
+    throw new Response(504, null, "ok");
   }
 }

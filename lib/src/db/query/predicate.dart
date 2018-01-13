@@ -54,24 +54,13 @@ class QueryPredicate {
     predicateList.forEach((p) {
       p.parameters?.forEach((k, v) {
         if (valueMap.containsKey(k)) {
-          throw new QueryPredicateException(
-              "Duplicate keys in and predicate, $k appears in multiple predicates. Make keys more specific.");
+          throw new ArgumentError("Invalid query predicate when creating 'andPredicate'. "
+              "Substitution key '$k' appears in multiple predicates and cannot be disambiguated.");
         }
         valueMap[k] = v;
       });
     });
 
     return new QueryPredicate(predicateFormat, valueMap);
-  }
-}
-
-/// Thrown when a [QueryPredicate] is malformed.
-class QueryPredicateException implements Exception {
-  final String message;
-  QueryPredicateException(this.message);
-
-  @override
-  String toString() {
-    return "PredicateException: $message";
   }
 }

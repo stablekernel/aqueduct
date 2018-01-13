@@ -48,8 +48,8 @@ class AuthUtility {
       {String redirectURI, int hashLength: 32, int hashRounds: 1000, Hash hashFunction}) {
     if (secret == null) {
       if (redirectURI != null) {
-        throw new AuthUtilityException(
-            "Public API Clients cannot have a redirect URL");
+        throw new ArgumentError("Invalid input to generateAPICredentialPair. Only confidential clients may have 'redirectURI'. "
+            "Clients are confidential when 'secret' is not null.");
       }
       return new AuthClient.withRedirectURI(clientID, null, null, redirectURI);
     }

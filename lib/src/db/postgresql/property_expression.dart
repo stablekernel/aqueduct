@@ -4,15 +4,14 @@ import 'entity_table.dart';
 import 'property_mapper.dart';
 
 class PropertyExpression extends PropertyMapper {
-  PropertyExpression(EntityTableMapper table,
-      ManagedPropertyDescription property, this.expression,
+  PropertyExpression(EntityTableMapper table, ManagedPropertyDescription property, this.expression,
       {this.additionalVariablePrefix: ""})
       : super(table, property);
 
   String additionalVariablePrefix;
   MatcherExpression expression;
-  String get defaultVariablePrefix =>
-      "$additionalVariablePrefix${table.tableReference}_";
+
+  String get defaultVariablePrefix => "$additionalVariablePrefix${table.tableReference}_";
 
   QueryPredicate get predicate {
     var expr = expression;
@@ -28,16 +27,15 @@ class PropertyExpression extends PropertyMapper {
       return stringPredicate(expr.operator, expr.value, expr.caseSensitive, expr.invertOperator);
     }
 
-    throw new QueryPredicateException(
-        "Unknown MatcherExpression ${expr.runtimeType}");
+    throw new UnsupportedError(
+        "Unknown expression applied to 'Query'. '${expr.runtimeType}' is not supported by 'PostgreSQL'.");
   }
 
   QueryPredicate comparisonPredicate(MatcherOperator operator, dynamic value) {
     var name = columnName(withTableNamespace: true);
     var variableName = columnName(withPrefix: defaultVariablePrefix);
 
-    return new QueryPredicate(
-        "$name ${PropertyMapper.symbolTable[operator]} @$variableName$typeSuffix",
+    return new QueryPredicate("$name ${PropertyMapper.symbolTable[operator]} @$variableName$typeSuffix",
         {variableName: convertValueForStorage(value)});
   }
 
@@ -66,15 +64,13 @@ class PropertyExpression extends PropertyMapper {
     return new QueryPredicate("$name ${isNull ? "ISNULL" : "NOTNULL"}", {});
   }
 
-  QueryPredicate rangePredicate(
-      dynamic lhsValue, dynamic rhsValue, bool insideRange) {
+  QueryPredicate rangePredicate(dynamic lhsValue, dynamic rhsValue, bool insideRange) {
     var name = columnName(withTableNamespace: true);
     var lhsName = columnName(withPrefix: "${defaultVariablePrefix}lhs_");
     var rhsName = columnName(withPrefix: "${defaultVariablePrefix}rhs_");
     var operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
 
-    return new QueryPredicate(
-        "$name $operation @$lhsName$typeSuffix AND @$rhsName$typeSuffix",
+    return new QueryPredicate("$name $operation @$lhsName$typeSuffix AND @$rhsName$typeSuffix",
         {lhsName: convertValueForStorage(lhsValue), rhsName: convertValueForStorage(rhsValue)});
   }
 
@@ -98,17 +94,16 @@ class PropertyExpression extends PropertyMapper {
       case StringMatcherOperator.contains:
         matchValue = "%$value%";
         break;
-      default: break;
+      default:
+        break;
     }
 
-    return new QueryPredicate(
-        "$n $operation @$variableName$typeSuffix", {variableName: matchValue});
+    return new QueryPredicate("$n $operation @$variableName$typeSuffix", {variableName: matchValue});
   }
 }
 
 class PropertySortMapper extends PropertyMapper {
-  PropertySortMapper(EntityTableMapper table,
-      ManagedPropertyDescription property, QuerySortOrder order)
+  PropertySortMapper(EntityTableMapper table, ManagedPropertyDescription property, QuerySortOrder order)
       : super(table, property) {
     this.order = (order == QuerySortOrder.ascending ? "ASC" : "DESC");
   }

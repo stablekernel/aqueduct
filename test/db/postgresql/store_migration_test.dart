@@ -4,7 +4,7 @@ import 'package:postgres/postgres.dart';
 
 void main() {
   group("Metadata", () {
-    var store = new PostgreSQLPersistentStore.fromConnectionInfo(
+    var store = new PostgreSQLPersistentStore(
         "dart", "dart", "localhost", 5432, "dart_test");
 
     setUp(() async {});
@@ -58,8 +58,8 @@ void main() {
         await store.upgrade(2, ["CREATE TABLE t (id int)", "invalid command"],
             temporary: true);
         expect(true, false);
-      } on QueryException catch (e) {
-        expect((e.underlyingException as PostgreSQLException).code, "42601");
+      } on PostgreSQLException catch (e) {
+        expect(e.code, "42601");
       }
 
       expect(await store.schemaVersion, 1);
@@ -67,8 +67,8 @@ void main() {
       try {
         await store.execute("SELECT id FROM t");
         expect(true, false);
-      } on QueryException catch (e) {
-        expect((e.underlyingException as PostgreSQLException).code, PostgreSQLErrorCode.undefinedTable);
+      } on PostgreSQLException catch (e) {
+        expect(e.code, PostgreSQLErrorCode.undefinedTable);
       }
     });
 

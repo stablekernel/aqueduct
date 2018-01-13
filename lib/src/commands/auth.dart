@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:crypto/crypto.dart';
 import 'package:aqueduct/managed_auth.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:postgres/postgres.dart';
 
 import 'base.dart';
 
@@ -99,7 +98,7 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
       displayProgress("Client with ID '$clientID' has been updated.");
       displayProgress("Updated scope: ${result.allowedScope}");
       return 0;
-    } on QueryException catch (e) {
+    } catch (e) {
       displayError("Updating Client Scope Failed");
 
       displayProgress("$e");
@@ -215,31 +214,13 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     } on QueryException catch (e) {
       displayError("Adding Client Failed");
       if (e.event == QueryExceptionEvent.conflict) {
-        PostgreSQLException underlying = e.underlyingException;
-        if (underlying.constraintName == "_authclient_redirecturi_key") {
-          displayProgress(
-              "Redirect URI '$redirectUri' already exists for another client.");
-        } else {
-          displayProgress("Client ID '$clientID' already exists.");
-        }
+        displayProgress("Client already exists, conflict on ${e.offendingItems.map((c) => "'$c'").join(",")}");
 
         return 1;
       }
 
-      var underlying = e.underlyingException;
-      if (underlying is PostgreSQLException) {
-        if (underlying.code == PostgreSQLErrorCode.undefinedTable) {
-          displayProgress(
-              "No table to store OAuth 2.0 client exists. Have you run 'aqueduct db upgrade'?");
-        } else {
-          displayProgress("$e");
-        }
-      } else {
-        displayProgress("$e");
-      }
+      rethrow;
     }
-
-    return 1;
   }
 
   @override

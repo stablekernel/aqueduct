@@ -47,7 +47,7 @@ ManagedPropertyType propertyTypeFromDeclaration(DeclarationMirror declaration) {
             .propertyTypeForDartType(declaration.type.reflectedType);
   }
 
-  throw new ManagedDataModelException(
+  throw new ManagedDataModelError(
       "Tried getting property type description from non-property. This is an internal error, "
       "as this method shouldn't be invoked on non-property or non-accessors.");
 }
@@ -64,7 +64,7 @@ String propertyNameFromDeclaration(DeclarationMirror declaration) {
     return MirrorSystem.getName(declaration.simpleName);
   }
 
-  throw new ManagedDataModelException(
+  throw new ManagedDataModelError(
       "Tried getting property type description from non-property. This is an internal error, "
       "as this method shouldn't be invoked on non-property or non-accessors.");
 }

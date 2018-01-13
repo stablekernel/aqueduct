@@ -43,9 +43,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   factory Query.forEntity(ManagedEntity entity, [ManagedContext context]) {
     var ctx = context ?? ManagedContext.defaultContext;
     if (!ctx.dataModel.entities.any((e) => identical(entity, e))) {
-      throw new QueryException(
-          QueryExceptionEvent.internalFailure,
-          message: "Cannot instantiate Query.withEntity, entity/context mismatch");
+      throw new StateError("Invalid query construction. Entity for '${entity.tableName}' is from different context than specified for query.");
     }
 
     return ctx.persistentStore.newQuery<InstanceType>(ctx, entity);

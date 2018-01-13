@@ -2,31 +2,7 @@ import 'dart:mirrors';
 
 import '../rest_controller_binding.dart';
 import '../request.dart';
-import '../response.dart';
 import 'bindings.dart';
-
-class InternalControllerException implements Exception {
-  final String message;
-  final int statusCode;
-  final Map<String, String> additionalHeaders;
-  final String errorMessage;
-
-  InternalControllerException(this.message, this.statusCode, {Map<String, String> headers, String errorMessage})
-      : this.additionalHeaders = headers,
-        this.errorMessage = errorMessage;
-
-  Response get response {
-    var bodyMap;
-    if (errorMessage != null) {
-      bodyMap = {"error": errorMessage};
-    }
-    return new Response(statusCode, additionalHeaders, bodyMap);
-  }
-
-  @override
-  String toString() => "InternalControllerException: $message";
-}
-
 
 bool requestHasFormData(Request request) {
   var contentType = request.raw.headers.contentType;

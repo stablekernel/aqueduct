@@ -18,6 +18,7 @@ void main() {
 
   tearDown(() async {
     await server?.close(force: true);
+
     server = null;
   });
 
@@ -86,9 +87,10 @@ void main() {
     try {
       server = await enableController("/foo/", UnboundController);
       expect(true, false);
-    } on RESTControllerException catch (e) {
-      expect(e.toString(), contains("getOne"));
-      expect(e.toString(), contains("path variable not in"));
+    } on StateError catch (e) {
+      expect(e.toString(), contains("Invalid controller"));
+      expect(e.toString(), contains("'UnboundController'"));
+      expect(e.toString(), contains("'getOne'"));
     }
   });
 
@@ -322,10 +324,10 @@ void main() {
     try {
       server = await enableController("/foo/:id", AmbiguousController);
       expect(true, false);
-    } on RESTControllerException catch (e) {
-      expect(e.toString(), contains("get1"));
-      expect(e.toString(), contains("get2"));
-      expect(e.toString(), contains("ambiguous"));
+    } on StateError catch (e) {
+      expect(e.toString(), contains("'get1'"));
+      expect(e.toString(), contains("'get2'"));
+      expect(e.toString(), contains("'AmbiguousController'"));
     }
   });
 
@@ -384,7 +386,7 @@ void main() {
 
       expect(resp.statusCode, 400);
       expect(JSON.decode(resp.body),
-          {"error": "Missing Header 'X-Request-id'"});
+          {"error": "missing required Header 'X-Request-id'"});
     });
 
     test("missing required controller query param fails", () async {
@@ -396,7 +398,7 @@ void main() {
 
       expect(resp.statusCode, 400);
       expect(JSON.decode(resp.body),
-          {"error": "Missing Query Parameter 'Shaqs'"});
+          {"error": "missing required Query Parameter 'Shaqs'"});
     });
 
     test("missing required method header param fails", () async {
@@ -407,7 +409,7 @@ void main() {
       });
 
       expect(resp.statusCode, 400);
-      expect(JSON.decode(resp.body), {"error": "Missing Header 'Cookie'"});
+      expect(JSON.decode(resp.body), {"error": "missing required Header 'Cookie'"});
     });
 
     test("missing require method query param fails", () async {
@@ -419,7 +421,7 @@ void main() {
 
       expect(resp.statusCode, 400);
       expect(JSON.decode(resp.body),
-          {"error": "Missing Query Parameter 'Table'"});
+          {"error": "missing required Query Parameter 'Table'"});
     });
 
     test("reports all missing required parameters", () async {
@@ -468,7 +470,7 @@ void main() {
 
       expect(resp.statusCode, 400);
 
-      expect(JSON.decode(resp.body)["error"], contains("Missing Query Parameter"));
+      expect(JSON.decode(resp.body)["error"], contains("missing required Query Parameter"));
       expect(JSON.decode(resp.body)["error"], contains("Table"));
       expect(JSON.decode(resp.body)["error"], contains("Shaqs"));
     });
@@ -482,7 +484,7 @@ void main() {
       expect(resp.statusCode, 400);
 
       expect(JSON.decode(resp.body)["error"],
-          "Duplicate parameter for non-List parameter type");
+          "multiple values for 'single' not expected");
     });
 
     test("Can be more than one query parameters for arg type that is List<T>",

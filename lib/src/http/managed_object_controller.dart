@@ -262,15 +262,13 @@ class ManagedObjectController<InstanceType extends ManagedObject>
         pageValue = pagePrior;
       } else {
         return new Response.badRequest(body: {
-          "error":
-              "If defining pageBy, either pageAfter or pagePrior must be defined. 'null' is a valid value"
+          "error": "missing required parameter 'pageAfter' or 'pagePrior' when 'pageBy' is given"
         });
       }
 
       var pageByProperty = _query.entity.properties[pageBy];
       if (pageByProperty == null) {
-        throw new HTTPResponseException(400,
-            "pageBy key $pageBy does not exist for ${_query.entity.tableName}");
+        throw new Response.badRequest(body: {"error": "cannot page by '$pageBy'"});
       }
 
       pageValue = _parseValueForProperty(pageValue, pageByProperty);
@@ -282,16 +280,13 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       sortBy.forEach((sort) {
         var split = sort.split(",").map((str) => str.trim()).toList();
         if (split.length != 2) {
-          throw new HTTPResponseException(400,
-              "sortBy keys must be string pairs delimited by a comma: key,asc or key,desc");
+          throw new Response.badRequest(body: {"error": "invalid 'sortyBy' format. syntax: 'name,asc' or 'name,desc'."});
         }
         if (_query.entity.properties[split.first] == null) {
-          throw new HTTPResponseException(400,
-              "sortBy key ${split.first} does not exist for ${_query.entity.tableName}");
+          throw new Response.badRequest(body: {"error": "cannot sort by '$sortBy'"});
         }
         if (split.last != "asc" && split.last != "desc") {
-          throw new HTTPResponseException(400,
-              "sortBy order must be either asc or desc, not ${split.last}");
+          throw new Response.badRequest(body: {"error": "invalid 'sortBy' format. syntax: 'name,asc' or 'name,desc'."});
         }
         var sortOrder = split.last == "asc"
             ? QuerySortOrder.ascending
@@ -426,7 +421,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
           return null;
       }
     } on FormatException {
-      throw new HTTPResponseException(404, "Unknown primary key");
+      throw new Response.notFound();
     }
 
     return null;

@@ -6,7 +6,7 @@ void main() {
   group("Table generation command mapping", () {
     PostgreSQLPersistentStore psc;
     setUp(() {
-      psc = new PostgreSQLPersistentStore(() => null);
+      psc = new PostgreSQLPersistentStore(null, null, null, null, null);
     });
 
     test("Property tables generate appropriate postgresql commands", () {
@@ -156,7 +156,7 @@ void main() {
   group("Non-create table generator mappings", () {
     PostgreSQLPersistentStore psc;
     setUp(() {
-      psc = new PostgreSQLPersistentStore(() => null);
+      psc = new PostgreSQLPersistentStore(null, null, null, null, null);
     });
 
     test("Delete table", () {
@@ -324,7 +324,7 @@ void main() {
   group("Unique column set", () {
     PostgreSQLPersistentStore psc;
     setUp(() {
-      psc = new PostgreSQLPersistentStore(() => null);
+      psc = new PostgreSQLPersistentStore(null, null, null, null, null);
     });
 
     test("Can add unique", () {

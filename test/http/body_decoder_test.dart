@@ -169,8 +169,8 @@ void main() {
       try {
         await request.body.decodedData;
         expect(true, false);
-      } on HTTPBodyDecoderException catch (e) {
-        expect(e.underlyingException is FormatException, true);
+      } on Response catch (e) {
+        expect(e.statusCode, 400);
       }
     });
   });
@@ -277,24 +277,26 @@ void main() {
       expect(body.asMap(), {"a": "val"});
     });
 
-    test("Call asMap prior to decode throws exception", () async {
+    test("Call asMap prior to decode throws error", () async {
       postJSON({"a" : "val"});
       var body = new HTTPRequestBody(await server.first);
 
       try {
         body.asMap();
         expect(true, false);
-      } on HTTPBodyDecoderException {}
+      } on StateError {}
     });
 
-    test("decodeAsMap with non-map returns HTTPBodyException", () async {
+    test("decodeAsMap with non-map returns 422", () async {
       postJSON("a");
       var body = new HTTPRequestBody(await server.first);
 
       try {
         await body.decodeAsMap();
         expect(true, false);
-      } on HTTPBodyDecoderException {}
+      } on Response catch (e) {
+        expect(e.statusCode, 422);
+      }
     });
 
     test("decodeAsMap with no data returns null", () async {
@@ -351,7 +353,7 @@ void main() {
       try {
         body.asList();
         expect(true, false);
-      } on HTTPBodyDecoderException {}
+      } on StateError {}
     });
 
     test("decodeAsList with non-list returns HTTPBodyException", () async {
@@ -361,7 +363,9 @@ void main() {
       try {
         await body.decodeAsList();
         expect(true, false);
-      } on HTTPBodyDecoderException {}
+      } on Response catch (response) {
+        expect(response.statusCode, 422);
+      }
     });
 
     test("decodeAsList with no data returns null", () async {
@@ -427,7 +431,7 @@ void main() {
       try {
         body.asString();
         expect(true, false);
-      } on HTTPBodyDecoderException {}
+      } on StateError {}
     });
 
     test("Call asString with non-string data throws exception", () async {
@@ -437,7 +441,9 @@ void main() {
       try {
         await body.decodeAsString();
         expect(true, false);
-      } on HTTPBodyDecoderException {}
+      } on Response catch (response) {
+        expect(response.statusCode, 422);
+      }
     });
 
     test("decodeAsString with no data returns null", () async {
@@ -487,14 +493,14 @@ void main() {
       expect(body.asBytes(), [1, 2, 3, 4]);
     });
 
-    test("Call asBytes prior to decode throws exception", () async {
+    test("Call asBytes prior to decode throws error", () async {
       postBytes([1, 2, 3, 4]);
 
       var body = new HTTPRequestBody(await server.first);
       try {
         body.asBytes();
         expect(true, false);
-      } on HTTPBodyDecoderException {}
+      } on StateError {}
     });
 
     test("decodeAsBytes with no data returns null", () async {
@@ -525,9 +531,7 @@ void main() {
       try {
         await body.decodeAsBytes();
         expect(true, false);
-      } on HTTPBodyDecoderException catch (e) {
-        expect(e.message, contains("expected list of bytes"));
-      }
+      } on StateError {}
     });
 
     test("Retain bytes when codec is used", () async {
@@ -576,7 +580,6 @@ void main() {
     });
 
     test("Failed decoding yields 500 from Controller", () async {
-      HTTPCodecRepository.defaultInstance.add(new ContentType("application", "crasher"), new CrashingCodec());
       // If body decoding fails, we need to return 500 but also ensure we have closed the request
       // body stream
       server.map((req) => new Request(req)).listen((req) async {
@@ -592,16 +595,16 @@ void main() {
 
       var result = await http
           .post("http://localhost:8123",
-          headers: {"Content-Type": "application/crasher"},
-          body: JSON.encode({"key": "value"}));
-      expect(result.statusCode, 500);
+          headers: {"Content-Type": "application/json"},
+          body: UTF8.encode('{"key":'));
+      expect(result.statusCode, 400);
 
       // Send it again just to make sure things have recovered.
       result = await http
           .post("http://localhost:8123",
-          headers: {"Content-Type": "application/crasher"},
-          body: JSON.encode({"key": "value"}));
-      expect(result.statusCode, 500);
+          headers: {"Content-Type": "application/json"},
+          body: UTF8.encode('{"key":'));
+      expect(result.statusCode, 400);
     });
   });
 
@@ -714,17 +717,4 @@ Future postBytes(List<int> bytes) {
       headers: {"Content-Type": "application/octet-stream"},
       body: bytes)
       .catchError((err) => null);
-}
-
-class CrashingCodec extends Codec {
-  @override
-  Converter get encoder => const CrashingEncoder();
-  @override
-  Converter get decoder => null;
-}
-
-class CrashingEncoder extends Converter<String, List<int>> {
-  const CrashingEncoder();
-  @override
-  List<int> convert(String object) => throw new Exception("uhoh");
 }

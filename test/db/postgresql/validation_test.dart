@@ -31,8 +31,8 @@ void main() {
     try {
       await q.update();
       expect(true, false);
-    } on QueryException catch (e) {
-      expect(e.toString(), contains("Must be one of"));
+    } on ValidationException catch (e) {
+      expect(e.toString(), contains("Must be one of: 'a','b'"));
     }
 
     q = new Query<T>()
@@ -42,8 +42,8 @@ void main() {
     try {
       await q.update();
       expect(true, false);
-    } on QueryException catch (e) {
-      expect(e.toString(), contains("Must be equal to"));
+    } on ValidationException catch (e) {
+      expect(e.toString(), contains("Must be equal to '2'"));
     }
 
     q = new Query<T>()
@@ -64,7 +64,7 @@ void main() {
     try {
       await q.updateOne();
       expect(true, false);
-    } on QueryException catch (e) {
+    } on ValidationException catch (e) {
       expect(e.toString(), contains("Must be equal to"));
     }
   });
@@ -83,7 +83,7 @@ void main() {
     try {
       await q.insert();
       expect(true, false);
-    } on QueryException catch (e) {
+    } on ValidationException catch (e) {
       expect(e.toString(), contains("Must be one of"));
     }
 
@@ -93,7 +93,7 @@ void main() {
     try {
       await q.insert();
       expect(true, false);
-    } on QueryException catch (e) {
+    } on ValidationException catch (e) {
       expect(e.toString(), contains("Must be equal to"));
     }
 
@@ -142,7 +142,7 @@ void main() {
     try {
       await q.update();
       expect(true, false);
-    } on QueryException catch (e) {
+    } on ValidationException catch (e) {
       expect(e.toString(), contains("'f'"));
       expect(e.toString(), contains("Must be one of"));
     }
@@ -153,7 +153,7 @@ void main() {
     try {
       await q.insert();
       expect(true, false);
-    } on QueryException catch (e) {
+    } on ValidationException catch (e) {
       expect(e.toString(), contains("'f'"));
       expect(e.toString(), contains("Must be one of"));
     }
