@@ -96,6 +96,7 @@ class Router extends Controller {
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
+  @override
   Controller link(Controller generatorFunction()) {
     throw new ArgumentError("Invalid link. 'Router' cannot directly link to controllers. Use 'route'.");
   }
@@ -142,15 +143,15 @@ class Router extends Controller {
 
   @override
   Map<String, APIPath> documentPaths(APIDocumentContext components) {
-    return _routeControllers.fold(<String, APIPath>{}, (map, routeController) {
-      map.addAll(routeController.documentPaths(components));
-      return map;
+    return _routeControllers.fold(<String, APIPath>{}, (prev, elem) {
+      prev.addAll(elem.documentPaths(components));
+      return prev;
     });
   }
 
   @override
   void documentComponents(APIDocumentContext components) {
-    _routeControllers.forEach((controller) {
+    _routeControllers.forEach((_RouteController controller) {
       controller.documentComponents(components);
     });
   }
@@ -186,7 +187,7 @@ class _RouteController extends Controller {
 
   @override
   Map<String, APIPath> documentPaths(APIDocumentContext components) {
-    return specifications.fold(<String, APIPath>{}, (map, spec) {
+    return specifications.fold(<String, APIPath>{}, (pathMap, spec) {
       final pathKey = "/" +
           spec.segments.map((rs) {
             if (rs.isLiteralMatcher) {
@@ -199,27 +200,18 @@ class _RouteController extends Controller {
           }).join("/");
 
       final path = new APIPath()
-        ..parameters = spec.variableNames.map((pathVar) {
-          return new APIParameter()
-            ..location = APIParameterLocation.path
-            ..name = pathVar
-            ..schema = new APISchemaObject.string();
-        }).toList();
+        ..parameters = spec.variableNames.map((pathVar) => new APIParameter.path(pathVar)).toList();
 
       if (spec.segments.any((seg) => seg.isRemainingMatcher)) {
-        path.parameters.add(new APIParameter()
-          ..location = APIParameterLocation.path
-          ..name = "path"
-          ..schema = new APISchemaObject.string()
-          ..description = "This path variable may contain slashes '/' and may be empty."
-        );
+        path.parameters.add(new APIParameter.path("path")
+          ..description = "This path variable may contain slashes '/' and may be empty.");
       }
 
       path.operations = spec.controller.documentOperations(components, path);
 
-      map[pathKey] = path;
+      pathMap[pathKey] = path;
 
-      return map;
+      return pathMap;
     });
   }
 }

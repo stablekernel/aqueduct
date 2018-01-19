@@ -1,10 +1,41 @@
+import 'dart:mirrors';
+
+import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+
 import 'http.dart';
 
 /// Interface for serializable instances to be decoded from an HTTP request body and encoded to an HTTP response body.
 ///
 /// Implementers of this interface may be a [Response.body] and bound with an [Bind.body] in [RESTController].
 abstract class HTTPSerializable {
-  HTTPSerializable();
+  /// Documents [serializable].
+  ///
+  /// [serializable] must implement, extend or mixin [HTTPSerializable]. The returned [APISchemaObject]
+  /// will be of type 'object'. Each instance variable declared in [serializable] will be a property of this object.
+  /// Instance variables are documented according to [APIComponentDocumenter.documentVariable]. See the API reference
+  /// for this method for supported types.
+  static APISchemaObject document(APIDocumentContext context, Type serializable) {
+    final mirror = reflectClass(serializable);
+    if (!mirror.isAssignableTo(reflectType(HTTPSerializable))) {
+      throw new ArgumentError("Cannot document '${MirrorSystem.getName(
+          mirror.simpleName)}' as 'HTTPSerializable', because it is not an 'HTTPSerializable'.");
+    }
+
+    final properties = <String, APISchemaObject>{};
+    for (var property in mirror.declarations.values.where((d) => d is VariableMirror)) {
+      properties[MirrorSystem.getName(property.simpleName)] = APIComponentDocumenter.documentVariable(context, property);
+    }
+
+    final obj = new APISchemaObject.object(properties);
+    context.defer(() async {
+      final docs = await DocumentedElement.get(serializable);
+      obj
+        ..title = docs?.summary
+        ..description = docs?.description;
+    });
+
+    return obj;
+  }
 
   /// Reads values from [requestBody] into an object.
   ///
@@ -19,6 +50,4 @@ abstract class HTTPSerializable {
   /// performed by the [Response].  A [Response.body] may also be a [List<HTTPSerializable>], for which this method is invoked on
   /// each element in the list.
   Map<String, dynamic> asMap();
-
-  APISchemaObject asSchemaObject() => null;
 }

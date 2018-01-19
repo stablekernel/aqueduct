@@ -92,31 +92,19 @@ class DocumentedController extends Controller {
   Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
     if (path.containsPathParameters([])) {
       return {
-        "get": new APIOperation()
-          ..id = "get/0"
-          ..responses = {
-            "200": new APIResponse()
-              ..description = "get/0-200"
-              ..content = {"application/json": new APIMediaType(schema: new APISchemaObject.string())}
-          },
-        "post": new APIOperation()
-          ..id = "post/0"
-          ..responses = {
-            "200": new APIResponse()
-              ..description = "post/0-200"
-              ..content = {"application/json": new APIMediaType(schema: new APISchemaObject.string())}
-          },
+        "get": new APIOperation("get/0", {
+          "200": new APIResponse("get/0-200", content: {"application/json": new APIMediaType(schema: new APISchemaObject.string())})
+        }),
+        "post": new APIOperation("post/0", {
+          "200": new APIResponse("post/0-200", content: {"application/json": new APIMediaType(schema: new APISchemaObject.string())})
+        })
       };
     }
 
     return {
-      "get": new APIOperation()
-        ..id = "get/1"
-        ..responses = {
-          "200": new APIResponse()
-            ..description = "get/1-200"
-            ..content = {"application/json": new APIMediaType(schema: new APISchemaObject.string())}
-        }
+      "get": new APIOperation("get/1", {
+        "200": new APIResponse("get/1-200", content: {"application/json": new APIMediaType(schema: new APISchemaObject.string())})
+      })
     };
   }
 }

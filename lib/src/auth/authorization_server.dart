@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:crypto/crypto.dart';
 
-import '../http/documentable.dart';
+import 'package:aqueduct/src/openapi/documentable.dart';
 import '../utilities/token_generator.dart';
 import 'auth.dart';
 
@@ -56,7 +56,7 @@ import 'auth.dart';
 ///           }
 ///         }
 ///
-class AuthServer extends Object with APIDocumentRecorder implements AuthValidator {
+class AuthServer extends Object with APIComponentDocumenter implements AuthValidator {
   static const String TokenTypeBearer = "bearer";
 
   /// Creates a new instance of an [AuthServer] with a [delegate].
@@ -408,11 +408,11 @@ class AuthServer extends Object with APIDocumentRecorder implements AuthValidato
   List<APISecurityRequirement> documentRequirementsForAuthorizer(Authorizer authorizer, {List<AuthScope> scopes}) {
     if (authorizer.parser is AuthorizationBasicParser) {
       return [
-        new APISecurityRequirement()..requirements = {"oauth2-client-authentication": []}
+        new APISecurityRequirement({"oauth2-client-authentication": []})
       ];
     } else if (authorizer.parser is AuthorizationBearerParser) {
       return [
-        new APISecurityRequirement()..requirements = {"oauth2": scopes?.map((s) => s.toString())?.toList() ?? []}
+        new APISecurityRequirement({"oauth2": scopes?.map((s) => s.toString())?.toList() ?? []})
       ];
     }
 

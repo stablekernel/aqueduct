@@ -2,7 +2,7 @@ export 'request_body.dart';
 export 'body_decoder.dart';
 export 'cache_policy.dart';
 export 'cors_policy.dart';
-export 'documentable.dart';
+export 'package:aqueduct/src/openapi/documentable.dart';
 export 'file_controller.dart';
 export 'http_codec_repository.dart';
 export 'rest_controller.dart';

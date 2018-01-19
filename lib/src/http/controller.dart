@@ -222,7 +222,9 @@ class Controller extends Object with APIOperationDocumenter implements APICompon
   Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
     if (nextController == null) {
       if (_handler == null) {
-        throw new APIException("Invalid documenter '${runtimeType}'. Reached end of controller chain and found no operations. Path has summary '${path.summary}'.");
+        throw new APIException(
+            "Invalid documenter '${runtimeType}'. Reached end of controller chain and found no operations. Path has summary '${path
+                .summary}'.");
       }
       return {};
     }
@@ -231,14 +233,7 @@ class Controller extends Object with APIOperationDocumenter implements APICompon
   }
 
   @override
-  List<APISecurityRequirement> documentOperationSecurity(
-          APIDocumentContext context, APIPath path, String method, APIOperation operation) =>
-      nextController?.documentOperationSecurity(context, path, method, operation);
-
-  @override
-  void documentComponents(APIDocumentContext context) {
-    nextController?.documentComponents(context);
-  }
+  void documentComponents(APIDocumentContext context) => nextController?.documentComponents(context);
 
   Future _handlePreflightRequest(Request req) async {
     Controller controllerToDictatePolicy;
@@ -360,9 +355,7 @@ class _ControllerGenerator extends Controller {
   }
 
   @override
-  void documentComponents(APIDocumentContext components) {
-    nextInstanceToReceive.documentComponents(components);
-  }
+  void documentComponents(APIDocumentContext components) => nextInstanceToReceive.documentComponents(components);
 
   @override
   Map<String, APIPath> documentPaths(APIDocumentContext components) => nextInstanceToReceive.documentPaths(components);
@@ -370,9 +363,4 @@ class _ControllerGenerator extends Controller {
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) =>
       nextInstanceToReceive.documentOperations(components, path);
-
-  @override
-  List<APISecurityRequirement> documentOperationSecurity(
-          APIDocumentContext components, APIPath path, String method, APIOperation operation) =>
-      nextInstanceToReceive.documentOperationSecurity(components, path, method, operation);
 }

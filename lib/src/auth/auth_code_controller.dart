@@ -64,7 +64,7 @@ class AuthCodeController extends RESTController {
 
   /// The client ID of the authenticating client.
   ///
-  /// This must be a valid client ID according to [authServer].
+  /// This must be a valid client ID according to [authServer].\
   @Bind.query("client_id")
   String clientID;
 
@@ -80,7 +80,11 @@ class AuthCodeController extends RESTController {
   /// The 'client_id' must be a registered, valid client of this server. The client must also provide
   /// a [state] to this request and verify that the redirect contains the same value in its query string.
   @Operation.get()
-  Future<Response> getAuthorizationPage({@Bind.query("scope") String scope}) async {
+  Future<Response> getAuthorizationPage(
+      {
+
+      /// A space-delimited list of access scopes to be requested by the form submission on the returned page.
+      @Bind.query("scope") String scope}) async {
     if (delegate == null) {
       return new Response(405, {}, null);
     }
@@ -102,8 +106,15 @@ class AuthCodeController extends RESTController {
   /// This method is typically invoked by the login form returned from the GET to this controller.
   @Operation.post()
   Future<Response> authorize(
-      {@Bind.query("username") String username,
+      {
+
+      /// The username of the authenticating user.
+      @Bind.query("username") String username,
+
+      /// The password of the authenticating user.
       @Bind.query("password") String password,
+
+      /// A space-delimited list of access scopes being requested.
       @Bind.query("scope") String scope}) async {
     var client = await authServer.clientForID(clientID);
 
@@ -134,33 +145,50 @@ class AuthCodeController extends RESTController {
   }
 
   @override
-  List<APIResponse> documentResponsesForOperation(APIOperation operation) {
-    var responses = super.documentResponsesForOperation(operation);
-    if (operation.id == APIOperation.idForMethod(this, #authorize)) {
-      responses.addAll([
-        new APIResponse()
-          ..statusCode = HttpStatus.MOVED_TEMPORARILY
-          ..description = "Successfully issued an authorization code.",
-        new APIResponse()
-          ..statusCode = HttpStatus.BAD_REQUEST
-          ..description = "Missing one or more of: 'client_id', 'username', 'password'.",
-        new APIResponse()
-          ..statusCode = HttpStatus.UNAUTHORIZED
-          ..description = "Not authorized",
-      ]);
+  APIRequestBody documentOperationRequestBody(APIDocumentContext context, Operation operation) {
+    final body = super.documentOperationRequestBody(context, operation);
+    if (operation.method == "POST") {
+      body.content["application/x-www-form-urlencoded"].schema.properties["password"].format = "password";
+      body.content["application/x-www-form-urlencoded"].schema.required = [
+        "client_id",
+        "state",
+        "response_type",
+        "username",
+        "password"
+      ];
     }
-
-    return responses;
+    return body;
   }
 
   @override
-  void willSendResponse(Response resp) {
-    if (resp.statusCode == 302) {
-      var locationHeader = resp.headers[HttpHeaders.LOCATION];
-      if (locationHeader != null && state != null) {
-        resp.headers[HttpHeaders.LOCATION] = locationHeader;
-      }
+  List<APIParameter> documentOperationParameters(APIDocumentContext context, Operation operation) {
+    final params = super.documentOperationParameters(context, operation);
+    params.where((p) => p.name != "scope").forEach((p) {
+      p.isRequired = true;
+    });
+    return params;
+  }
+
+  @override
+  Map<String, APIResponse> documentOperationResponses(APIDocumentContext context, Operation operation) {
+    if (operation.method == "GET") {
+      return {
+        "200": new APIResponse.schema("Serves a login form.", new APISchemaObject.string(), contentTypes: ["text/html"])
+      };
+    } else if (operation.method == "POST") {
+      return {
+        "${HttpStatus.MOVED_TEMPORARILY}": new APIResponse(
+            "If successful, the query parameter of the redirect URI named 'code' contains authorization code. "
+            "Otherwise, the query parameter 'error' is present and contains a error string.",
+            headers: {"Location": new APIHeader()..schema = new APISchemaObject.string(format: "uri")}),
+        "${HttpStatus.BAD_REQUEST}": new APIResponse.schema(
+            "If 'client_id' is invalid, the redirect URI cannot be verified and this response is sent.",
+            new APISchemaObject.object({"error": new APISchemaObject.string()}),
+            contentTypes: ["application/json"])
+      };
     }
+
+    throw new StateError("AuthCodeController documentation failed.");
   }
 
   static Response _redirectResponse(String uriString, String clientStateOrNull,

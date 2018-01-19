@@ -147,7 +147,7 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
     await messageHub.close();
   }
 
-  APIDocument documentAPI(Map<String, dynamic> projectSpec) {
+  Future<APIDocument> documentAPI(Map<String, dynamic> projectSpec) async {
     final doc = new APIDocument()..components = new APIComponents();
     final root = entryPoint;
     root.prepare();
@@ -157,12 +157,9 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
 
     doc.paths = root.documentPaths(context);
 
-    doc.info = new APIInfo()
-      ..title = projectSpec["name"]
-      ..version = projectSpec["version"]
-      ..description = projectSpec["description"];
+    doc.info = new APIInfo(projectSpec["name"], projectSpec["version"], description: projectSpec["description"]);
 
-    context.finalize();
+    await context.finalize();
 
     return doc;
   }
@@ -173,7 +170,7 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
 
     final type = reflect(this).type;
     final documenter = reflectType(APIComponentDocumenter);
-    type.declarations.forEach((_, member) {
+    type.declarations.values.forEach((member) {
       if (member is VariableMirror && !member.isStatic) {
         if (member.type.isAssignableTo(documenter)) {
           APIComponentDocumenter object = reflect(this).getField(member.simpleName).reflectee;

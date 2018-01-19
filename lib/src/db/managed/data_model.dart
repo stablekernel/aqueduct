@@ -1,4 +1,6 @@
 import 'dart:mirrors';
+import 'package:aqueduct/src/openapi/documentable.dart';
+
 import 'managed.dart';
 import 'data_model_builder.dart';
 import '../query/query.dart';
@@ -12,7 +14,7 @@ import '../query/query.dart';
 ///
 /// Most applications do not need to access instances of this type.
 ///
-class ManagedDataModel {
+class ManagedDataModel extends Object with APIComponentDocumenter {
   /// Creates an instance of [ManagedDataModel] from a list of types that extend [ManagedObject]. It is preferable
   /// to use [ManagedDataModel.fromCurrentMirrorSystem] over this method.
   ///
@@ -70,6 +72,11 @@ class ManagedDataModel {
   ///         }
   ManagedEntity entityForType(Type type) {
     return _entities[type] ?? _persistentTypeToEntityMap[type];
+  }
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    entities.forEach((e) => e.documentComponents(context));
   }
 }
 

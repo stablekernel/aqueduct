@@ -15,7 +15,7 @@ bool requestHasFormData(Request request) {
   return false;
 }
 
-Map<Symbol, dynamic> toSymbolMap(List<HTTPValueBinding> boundValues) {
+Map<Symbol, dynamic> toSymbolMap(Iterable<HTTPValueBinding> boundValues) {
   return new Map.fromIterable(boundValues.where((v) => v.value != null),
       key: (HTTPValueBinding v) => v.symbol, value: (HTTPValueBinding v) => v.value);
 }

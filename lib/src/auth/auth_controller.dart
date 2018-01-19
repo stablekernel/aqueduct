@@ -123,45 +123,55 @@ class AuthController extends RESTController {
     }
   }
 
+
+  @override
+  List<APIParameter> documentOperationParameters(APIDocumentContext context, Operation operation) {
+    final parameters = super.documentOperationParameters(context, operation);
+    parameters.removeWhere((p) => p.name == HttpHeaders.AUTHORIZATION);
+    return parameters;
+  }
+
+  @override
+  APIRequestBody documentOperationRequestBody(APIDocumentContext context, Operation operation) {
+    final body = super.documentOperationRequestBody(context, operation);
+    body.content["application/x-www-form-urlencoded"].schema.required = ["grant_type"];
+    body.content["application/x-www-form-urlencoded"].schema.properties["password"].format = "password";
+    return body;
+  }
+
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
     final operations = super.documentOperations(components, path);
 
     operations.forEach((_, op) {
-      op.security = [new APISecurityRequirement()..requirements = {
-        "oauth2-client-authentication": []
-      }];
+      op.security = [
+        new APISecurityRequirement({"oauth2-client-authentication": []})
+      ];
     });
 
     return operations;
   }
 
   @override
-  List<APIResponse> documentResponsesForOperation(APIOperation operation) {
-    var responses = super.documentResponsesForOperation(operation);
-    if (operation.id == APIOperation.idForMethod(this, #grant)) {
-      responses.addAll([
-        new APIResponse()
-          ..statusCode = HttpStatus.OK
-          ..description = "Successfully exchanged credentials for credentials"
-          ..schema = new APISchemaObject(properties: {
+  Map<String, APIResponse> documentOperationResponses(APIDocumentContext context, Operation operation) {
+    return {
+      "200": new APIResponse.schema(
+          "Successfully exchanged credentials for token",
+          new APISchemaObject.object({
             "access_token": new APISchemaObject.string(),
             "token_type": new APISchemaObject.string(),
-            "expires_in": new APISchemaObject.int(),
-            "refresh_token": new APISchemaObject.string()..required = false
+            "expires_in": new APISchemaObject.integer(),
+            "refresh_token": new APISchemaObject.string(),
+            "scope": new APISchemaObject.string()
           }),
-        new APIResponse()
-          ..statusCode = HttpStatus.BAD_REQUEST
-          ..description = "Missing one or more of: 'client_id', 'username', 'password'."
-          ..schema = new APISchemaObject(properties: {"error": new APISchemaObject.string()}),
-      ]);
-    }
-
-    return responses;
+          contentTypes: ["application/json"]),
+      "400": new APIResponse.schema("Invalid credentials or missing parameters.",
+          new APISchemaObject.object({"error": new APISchemaObject.string()}),
+          contentTypes: ["application/json"])
+    };
   }
 
   Response _responseForError(AuthRequestError error) {
-    var errorString = AuthServerException.errorString(error);
-    return new Response.badRequest(body: {"error": errorString});
+    return new Response.badRequest(body: {"error": AuthServerException.errorString(error)});
   }
 }

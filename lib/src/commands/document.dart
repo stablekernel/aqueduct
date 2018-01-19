@@ -70,7 +70,7 @@ abstract class CLIDocumentOptions implements CLICommand {
       var document = await Application.document(ApplicationChannel.defaultType, config, values["pubspec"]);
 
       document.servers =
-          (values["hosts"] as List<Uri>)?.map((uri) => new APIServerDescription()..url = uri)?.toList() ?? [];
+          (values["hosts"] as List<Uri>)?.map((uri) => new APIServerDescription(uri))?.toList() ?? [];
 
       if (values["title"] != null) {
         document.info.title = values["title"];

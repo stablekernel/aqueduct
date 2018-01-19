@@ -169,7 +169,7 @@ class Application<T extends ApplicationChannel> {
 
     await server.channel.prepare();
 
-    final doc = server.channel.documentAPI(projectSpec);
+    final doc = await server.channel.documentAPI(projectSpec);
 
     await server.channel.close();
 

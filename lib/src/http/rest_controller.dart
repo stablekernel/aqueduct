@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:analyzer/analyzer.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 import 'http.dart';
@@ -120,7 +119,8 @@ abstract class RESTController extends Controller {
     final conflictingOperations = binder.conflictingOperations;
     if (conflictingOperations.length > 0) {
       final opNames = conflictingOperations.map((s) => "'$s'").join(", ");
-      throw new StateError("Invalid controller. Controller '${runtimeType.toString()}' has ambiguous operations. Offending operating methods: $opNames.");
+      throw new StateError("Invalid controller. Controller '${runtimeType
+          .toString()}' has ambiguous operations. Offending operating methods: $opNames.");
     }
 
     final unsatisfiableOperations = binder.unsatisfiableOperations;
@@ -145,31 +145,41 @@ abstract class RESTController extends Controller {
       return preprocessedResult;
     }
 
-
-    throw new StateError("'$runtimeType' returned invalid object from 'willProcessRequest'. Must return 'Request' or 'Response'.");
+    throw new StateError(
+        "'$runtimeType' returned invalid object from 'willProcessRequest'. Must return 'Request' or 'Response'.");
   }
 
-  List<APIParameter> documentOperationParameters(Operation operation) {
-    final binder = _binderForOperation(operation);
+  List<APIParameter> documentOperationParameters(APIDocumentContext context, Operation operation) {
+    final binder = RESTControllerBinder.binderForType(runtimeType);
 
     bool usesFormEncodedData = operation.method == "POST" &&
         acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
 
-    final params = [binder.optionalParameters, binder.positionalParameters]
-        .expand((p) => p)
-        .map((param) => param.asDocumentedParameter());
-    if (usesFormEncodedData) {
-      return params.where((p) => p.location != APIParameterLocation.query).toList();
-    }
+    return binder
+        .parametersForOperation(operation)
+        .map((param) {
+          if (param.binding is HTTPBody) {
+            return null;
+          }
+          if (usesFormEncodedData && param.binding is HTTPQuery) {
+            return null;
+          }
 
-    return params.toList();
+          return _documentParameter(context, operation, param);
+        })
+        .where((p) => p != null)
+        .toList();
   }
 
-  String documentOperationSummary(Operation operation) {}
+  String documentOperationSummary(APIDocumentContext context, Operation operation) {
+    return null;
+  }
 
-  String documentOperationDescription(Operation operation) {}
+  String documentOperationDescription(APIDocumentContext context, Operation operation) {
+    return null;
+  }
 
-  APIRequestBody documentOperationRequestBody(Operation operation) {
+  APIRequestBody documentOperationRequestBody(APIDocumentContext context, Operation operation) {
     final binder = _binderForOperation(operation);
     final usesFormEncodedData = operation.method == "POST" &&
         acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
@@ -177,57 +187,87 @@ abstract class RESTController extends Controller {
         binder.optionalParameters.firstWhere((p) => p.binding is HTTPBody, orElse: () => null);
 
     if (boundBody != null) {
-      final body = new APIRequestBody()..isRequired = boundBody.isRequired;
-      final HTTPSerializable instance = boundBody.boundValueType.newInstance(const Symbol(""), []).reflectee;
-      for (final type in acceptedContentTypes) {
-        body.content[type.toString()] = new APIMediaType(schema: instance.asSchemaObject());
-      }
+      final type = boundBody.boundValueType.reflectedType;
 
-      return body;
+      return new APIRequestBody.schema(context.schema.getObjectWithType(type),
+          contentTypes: acceptedContentTypes.map((ct) => ct.toString()), required: boundBody.isRequired);
     } else if (usesFormEncodedData) {
-      final params = [binder.optionalParameters, binder.positionalParameters]
-          .expand((p) => p)
-          .map((param) => param.asDocumentedParameter())
-          .where((p) => p.location == APIParameterLocation.query)
-          .toList();
-
-      final props = params.fold(<String, APIParameter>{}, (prev, elem) {
-        prev[elem.name] = elem;
+      final controller = RESTControllerBinder.binderForType(runtimeType);
+      final props = controller
+          .parametersForOperation(operation)
+          .where((p) => p.binding is HTTPQuery)
+          .map((param) => _documentParameter(context, operation, param))
+          .fold(<String, APISchemaObject>{}, (prev, elem) {
+        prev[elem.name] = elem.schema;
         return prev;
       });
 
-      return new APIRequestBody()
-        ..isRequired = true
-        ..content = {"application/x-www-form-urlencoded": new APIMediaType(schema: new APISchemaObject.object(props))};
+      return new APIRequestBody.schema(new APISchemaObject.object(props),
+          contentTypes: ["application/x-www-form-urlencoded"], required: true);
     }
 
     return null;
   }
 
-  Map<String, APIResponse> documentOperationResponses(Operation operation) {
+  Map<String, APIResponse> documentOperationResponses(APIDocumentContext context, Operation operation) {
     return {};
   }
 
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
-    return RESTControllerBinder
+    final operations = RESTControllerBinder
         .binderForType(runtimeType)
         .methodBinders
-        .where((method) => path.containsPathParameters(method.pathVariables))
-        .fold(<String, APIOperation>{}, (opMap, method) {
-      final annotation = firstMetadataOfType(Operation, reflect(this).type.instanceMembers[method.methodSymbol]);
-      final op = new APIOperation()
-        ..id = MirrorSystem.getName(method.methodSymbol)
-        ..summary = documentOperationSummary(annotation)
-        ..description = documentOperationDescription(annotation)
-        ..parameters = documentOperationParameters(annotation)
-        ..requestBody = documentOperationRequestBody(annotation)
-        ..responses = documentOperationResponses(annotation);
+        .where((method) => path.containsPathParameters(method.pathVariables));
 
-      opMap[method.httpMethod.toLowerCase()] = op;
+    return operations.fold(<String, APIOperation>{}, (prev, method) {
+      final operation = firstMetadataOfType(Operation, reflect(this).type.instanceMembers[method.methodSymbol]);
 
-      return opMap;
+      final op = new APIOperation(
+          MirrorSystem.getName(method.methodSymbol), documentOperationResponses(context, operation),
+          summary: documentOperationSummary(context, operation),
+          description: documentOperationDescription(context, operation),
+          parameters: documentOperationParameters(context, operation),
+          requestBody: documentOperationRequestBody(context, operation));
+
+      if (op.summary == null) {
+        context.defer(() async {
+          final binder = _binderForOperation(operation);
+
+          final type = await DocumentedElement.get(this.runtimeType);
+          op.summary = type[binder.methodSymbol].summary;
+        });
+      }
+
+      if (op.description == null) {
+        context.defer(() async {
+          final binder = _binderForOperation(operation);
+          final type = await DocumentedElement.get(this.runtimeType);
+          op.description = type[binder.methodSymbol].description;
+        });
+      }
+
+      prev[method.httpMethod.toLowerCase()] = op;
+      return prev;
     });
+  }
+
+  APIParameter _documentParameter(
+      APIDocumentContext context, Operation operation, RESTControllerParameterBinder param) {
+    final schema = APIComponentDocumenter.documentType(context, param.boundValueType);
+    final documentedParameter = new APIParameter(param.name, param.binding.location,
+        schema: schema, required: param.isRequired, allowEmptyValue: schema.type == APIType.boolean);
+
+    context.defer(() async {
+      final controllerDocs = await DocumentedElement.get(runtimeType);
+      final operationDocs = controllerDocs[_binderForOperation(operation).methodSymbol];
+      final documentation = controllerDocs[param.symbol] ?? operationDocs[param.symbol];
+      if (documentation != null) {
+        documentedParameter.description = "${documentation.summary ?? ""} ${documentation.description ?? ""}";
+      }
+    });
+
+    return documentedParameter;
   }
 
   RESTControllerMethodBinder _binderForOperation(Operation operation) {
@@ -236,7 +276,7 @@ abstract class RESTController extends Controller {
         return false;
       }
 
-      if (m.pathVariables.length == operation.pathVariables.length) {
+      if (m.pathVariables.length != operation.pathVariables.length) {
         return false;
       }
 

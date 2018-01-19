@@ -291,10 +291,10 @@ void main() {
   group("Documentation Generation", () {
     APIDocument doc = new APIDocument()
       ..version = "3.0.0"
-      ..info = (new APIInfo()..version = "1.0"..title = "Whatever")
+      ..info = (new APIInfo("whatever", "1.0"))
       ..components = new APIComponents();
 
-    setUpAll(() async {
+    setUpAll(() {
       doc.paths = router.documentPaths(new APIDocumentContext(doc.components));
     });
 

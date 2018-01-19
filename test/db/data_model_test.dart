@@ -392,52 +392,6 @@ void main() {
         true);
   });
 
-  group("Schema generation", () {
-    ManagedDataModel dataModel;
-
-    setUp(() {
-      dataModel = new ManagedDataModel([User, Item, Manager]);
-      ManagedContext.defaultContext =
-          new ManagedContext(dataModel, new DefaultPersistentStore());
-    });
-
-    test("works for a data model", () {
-      var entity = dataModel.entityForType(User);
-
-      expect(entity.documentedResponseSchema.title, "User");
-      expect(entity.documentedResponseSchema.type, APISchemaObject.TypeObject);
-      expect(entity.documentedResponseSchema.properties.isNotEmpty, true);
-    });
-
-    test("includes transient properties", () {
-      var entity = dataModel.entityForType(User);
-      expect(entity.documentedResponseSchema.properties["stringID"].type,
-          APISchemaObject.TypeString);
-    });
-
-    test("does not include has(One|Many) relationships", () {
-      var entity = dataModel.entityForType(User);
-      expect(entity.documentedResponseSchema.properties.containsKey("items"),
-          false);
-      expect(entity.documentedResponseSchema.properties.containsKey("manager"),
-          false);
-    });
-
-    test("includes belongsTo relationships", () {
-      var entity = dataModel.entityForType(Item);
-      expect(entity.documentedResponseSchema.properties["user"], isNotNull);
-
-      // Make sure that only primary key is included
-      expect(
-          entity.documentedResponseSchema.properties["user"].properties["id"],
-          isNotNull);
-      expect(
-          entity.documentedResponseSchema.properties["user"].properties
-              .containsKey("username"),
-          false);
-    });
-  });
-
   group("Error cases", () {
     test("Both properties have Relationship metadata", () {
       try {

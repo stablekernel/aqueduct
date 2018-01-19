@@ -1,6 +1,6 @@
 import 'dart:mirrors';
 import 'managed.dart';
-import '../../http/documentable.dart';
+import 'package:aqueduct/src/openapi/documentable.dart';
 import '../query/query.dart';
 import 'relationship_type.dart';
 
@@ -20,12 +20,11 @@ import 'relationship_type.dart';
 ///
 /// The value of a relationship property is a reference to another [ManagedObject]. If a relationship property has [Relate] metadata,
 /// the property is backed be a foreign key column in the underlying database. Relationships are represented by [ManagedRelationshipDescription].
-class ManagedEntity {
+class ManagedEntity extends Object with APIComponentDocumenter {
   /// Creates an instance of this type..
   ///
   /// You should never call this method directly, it will be called by [ManagedDataModel].
-  ManagedEntity(
-      this.dataModel, this._tableName, this.instanceType, this.persistentType);
+  ManagedEntity(this.dataModel, this._tableName, this.instanceType, this.persistentType);
 
   /// The type of instances represented by this entity.
   ///
@@ -42,35 +41,17 @@ class ManagedEntity {
   /// The [ManagedDataModel] this instance belongs to.
   final ManagedDataModel dataModel;
 
-  /// Schema of the managed object as returned in a response to use in generating documentation.
-  APISchemaObject get documentedResponseSchema {
-    return new APISchemaObject()
-      ..title = MirrorSystem.getName(instanceType.simpleName)
-      ..type = APISchemaObject.TypeObject
-      ..properties = _propertiesForEntity(this);
-  }
-
-  /// Schema of the managed object as returned from a request to use in generating documentation.
-  APISchemaObject get documentedRequestSchema {
-    return new APISchemaObject()
-      ..title = MirrorSystem.getName(instanceType.simpleName)
-      ..type = APISchemaObject.TypeObject
-      ..properties = _propertiesForEntity(this, asRequestObject: true);
-  }
-
   /// All attribute values of this entity.
   ///
   /// An attribute maps to a single column or field in a database that is a scalar value, such as a string, integer, etc. or a
   /// transient property declared in the instance type.
   /// The keys are the case-sensitive name of the attribute. Values that represent a relationship to another object
   /// are not stored in [attributes].
-  Map<String, ManagedAttributeDescription> _attributes;
   Map<String, ManagedAttributeDescription> get attributes => _attributes;
+
   set attributes(Map<String, ManagedAttributeDescription> m) {
     _attributes = m;
-    _primaryKey = m.values
-        .firstWhere((attrDesc) => attrDesc.isPrimaryKey, orElse: () => null)
-        ?.name;
+    _primaryKey = m.values.firstWhere((attrDesc) => attrDesc.isPrimaryKey, orElse: () => null)?.name;
   }
 
   /// All relationship values of this entity.
@@ -88,8 +69,7 @@ class ManagedEntity {
   /// The string key is the name of the property, case-sensitive. Values will be instances of either [ManagedAttributeDescription]
   /// or [ManagedRelationshipDescription]. This is the concatenation of [attributes] and [relationships].
   Map<String, ManagedPropertyDescription> get properties {
-    var all =
-        new Map.from(attributes) as Map<String, ManagedPropertyDescription>;
+    var all = new Map.from(attributes) as Map<String, ManagedPropertyDescription>;
     if (relationships != null) {
       all.addAll(relationships);
     }
@@ -127,16 +107,13 @@ class ManagedEntity {
           .toList();
 
       _defaultProperties.addAll(relationships.values
-          .where((prop) =>
-              prop.isIncludedInDefaultResultSet &&
-              prop.relationshipType == ManagedRelationshipType.belongsTo)
+          .where(
+              (prop) => prop.isIncludedInDefaultResultSet && prop.relationshipType == ManagedRelationshipType.belongsTo)
           .map((prop) => prop.name)
           .toList());
     }
     return _defaultProperties;
   }
-
-  List<String> _defaultProperties;
 
   /// Name of primary key property.
   ///
@@ -145,8 +122,6 @@ class ManagedEntity {
   String get primaryKey {
     return _primaryKey;
   }
-
-  String _primaryKey;
 
   ManagedAttributeDescription get primaryKeyAttribute {
     return properties[primaryKey];
@@ -166,6 +141,9 @@ class ManagedEntity {
   }
 
   String _tableName;
+  String _primaryKey;
+  List<String> _defaultProperties;
+  Map<String, ManagedAttributeDescription> _attributes;
 
   /// Derived from this' [tableName].
   @override
@@ -175,89 +153,9 @@ class ManagedEntity {
 
   /// Creates a new instance of this entity's instance type.
   ManagedObject newInstance() {
-    var model =
-        instanceType.newInstance(new Symbol(""), []).reflectee as ManagedObject;
+    var model = instanceType.newInstance(new Symbol(""), []).reflectee as ManagedObject;
     model.entity = this;
     return model;
-  }
-
-  Map<String, APISchemaObject> _propertiesForEntity(ManagedEntity me,
-      {bool shallow: false, bool asRequestObject: false}) {
-    Map<String, APISchemaObject> schemaProperties = {};
-
-    if (shallow) {
-      // Only include the primary key
-      var primaryKeyAttribute = me.attributes[me.primaryKey];
-      schemaProperties[me.primaryKey] = new APISchemaObject()
-        ..title = primaryKeyAttribute.name
-        ..type = _schemaObjectTypeForPropertyType(primaryKeyAttribute.type)
-        ..format = _schemaObjectFormatForPropertyType(primaryKeyAttribute.type);
-
-      return schemaProperties;
-    }
-
-    me.attributes.values
-        .where((attribute) =>
-            attribute.isIncludedInDefaultResultSet ||
-            (attribute.transientStatus?.isAvailableAsOutput ?? false))
-        .where((attribute) =>
-            !asRequestObject || (asRequestObject && !attribute.autoincrement))
-        .forEach((attribute) {
-      schemaProperties[attribute.name] = new APISchemaObject()
-        ..title = attribute.name
-        ..type = _schemaObjectTypeForPropertyType(attribute.type)
-        ..format = _schemaObjectFormatForPropertyType(attribute.type);
-    });
-
-    me.relationships.values
-        .where((relationship) => relationship.isIncludedInDefaultResultSet)
-        .where((relationship) =>
-            relationship.relationshipType == ManagedRelationshipType.belongsTo)
-        .forEach((relationship) {
-      schemaProperties[relationship.name] = new APISchemaObject()
-        ..title = relationship.name
-        ..type = APISchemaObject.TypeObject
-        ..properties =
-            _propertiesForEntity(relationship.destinationEntity, shallow: true);
-    });
-
-    return schemaProperties;
-  }
-
-  String _schemaObjectTypeForPropertyType(ManagedPropertyType pt) {
-    switch (pt) {
-      case ManagedPropertyType.integer:
-      case ManagedPropertyType.bigInteger:
-        return APISchemaObject.TypeInteger;
-      case ManagedPropertyType.string:
-      case ManagedPropertyType.datetime:
-        return APISchemaObject.TypeString;
-      case ManagedPropertyType.boolean:
-        return APISchemaObject.TypeBoolean;
-      case ManagedPropertyType.doublePrecision:
-        return APISchemaObject.TypeNumber;
-      case ManagedPropertyType.transientList:
-        return APISchemaObject.TypeArray;
-      case ManagedPropertyType.transientMap:
-        return APISchemaObject.TypeObject;
-      default:
-        return null;
-    }
-  }
-
-  String _schemaObjectFormatForPropertyType(ManagedPropertyType pt) {
-    switch (pt) {
-      case ManagedPropertyType.integer:
-        return APISchemaObject.FormatInt32;
-      case ManagedPropertyType.bigInteger:
-        return APISchemaObject.FormatInt64;
-      case ManagedPropertyType.datetime:
-        return APISchemaObject.FormatDateTime;
-      case ManagedPropertyType.doublePrecision:
-        return APISchemaObject.FormatDouble;
-      default:
-        return null;
-    }
   }
 
   /// Two entities are considered equal if they have the same [tableName].
@@ -270,4 +168,36 @@ class ManagedEntity {
   String toString() {
     return "ManagedEntity on $tableName";
   }
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    final properties = <String, APISchemaObject>{};
+    final obj = new APISchemaObject.object(properties);
+
+    attributes.forEach((name, def) {
+      APISchemaObject object;
+      switch (def.type) {
+        case ManagedPropertyType.integer: object = new APISchemaObject.integer(); break;
+        case ManagedPropertyType.bigInteger: object = new APISchemaObject.integer(); break;
+        case ManagedPropertyType.doublePrecision: object = new APISchemaObject.number(); break;
+        case ManagedPropertyType.string: object = new APISchemaObject.integer(); break;
+        case ManagedPropertyType.datetime: object = new APISchemaObject.integer(); break;
+        case ManagedPropertyType.boolean: object = new APISchemaObject.integer(); break;
+        case ManagedPropertyType.transientList: object = new APISchemaObject.integer(); break;
+        case ManagedPropertyType.transientMap: object = new APISchemaObject.integer(); break;
+      }
+    });
+
+    relationships.forEach((name, def) {
+
+    });
+
+    // Get documentation for each property and defer
+
+    context.schema.register(MirrorSystem.getName(instanceType.simpleName), obj);
+  }
+}
+
+APISchemaObject _typedSchemaObject(ManagedAttributeDescription desc) {
+  switch ()
 }

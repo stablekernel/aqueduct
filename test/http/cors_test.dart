@@ -509,8 +509,11 @@ class CORSChannel extends ApplicationChannel implements AuthValidator {
     return new Authorization("a", 1, this);
   }
 
+
   @override
-  List<APISecurityRequirement> requirementsForStrategy(AuthorizationParser strategy) => null;
+  List<APISecurityRequirement> documentRequirementsForAuthorizer(Authorizer authorizer, {List<AuthScope> scopes}) {
+    return null;
+  }
 }
 
 class NoPolicyController extends RESTController {

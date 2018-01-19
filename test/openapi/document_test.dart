@@ -1,3 +1,5 @@
+import 'dart:mirrors';
+
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
@@ -130,6 +132,133 @@ void main() {
       });
     });
   });
+
+  group("Schema object documentation", () {
+    APIDocumentContext ctx;
+    setUp(() {
+      ctx = new APIDocumentContext(new APIComponents());
+    });
+
+    tearDown(() async {
+      // Just in case the test didn't clear these
+      await ctx.finalize();
+    });
+
+    test("Type documentation for primitive types", () {
+      expect(APIComponentDocumenter.documentType(ctx, reflectType(int)).type, APIType.integer);
+      expect(APIComponentDocumenter.documentType(ctx, reflectType(double)).type, APIType.number);
+      expect(APIComponentDocumenter.documentType(ctx, reflectType(String)).type, APIType.string);
+      expect(APIComponentDocumenter.documentType(ctx, reflectType(bool)).type, APIType.boolean);
+      expect(APIComponentDocumenter.documentType(ctx, reflectType(DateTime)).type, APIType.string);
+      expect(APIComponentDocumenter.documentType(ctx, reflectType(DateTime)).format, "date-time");
+    });
+
+    test("Type documentation throws error in type is unsupported", () {
+      try {
+        APIComponentDocumenter.documentType(ctx, reflectType(DefaultChannel));
+        fail("unreachable");
+      } on ArgumentError {}
+    });
+
+    test("Non-string key map throws error", () {
+      try {
+        APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#x] as VariableMirror).type);
+        fail("unreachable");
+      } on ArgumentError {}
+    });
+
+    test("List that contains non-serializble types throws", () {
+      try {
+        APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#y] as VariableMirror).type);
+        fail("unreachable");
+      } on ArgumentError {}
+    });
+
+    test("Map that contains values that aren't serializable throws", () {
+      try {
+        APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#z] as VariableMirror).type);
+        fail("unreachable");
+      } on ArgumentError {}
+    });
+
+    test("Type documentation for complex types", () {
+      final stringIntMap =
+          APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#a] as VariableMirror).type);
+      final intList =
+          APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#b] as VariableMirror).type);
+      final listOfMaps =
+          APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#c] as VariableMirror).type);
+      final listOfSerial =
+          APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#d] as VariableMirror).type);
+      final serial =
+          APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#e] as VariableMirror).type);
+      final stringListMap =
+          APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#f] as VariableMirror).type);
+
+      expect(stringIntMap.type, APIType.object);
+      expect(stringIntMap.additionalProperties.type, APIType.integer);
+      expect(intList.type, APIType.array);
+      expect(intList.items.type, APIType.integer);
+      expect(listOfMaps.type, APIType.array);
+      expect(listOfMaps.items.type, APIType.object);
+      expect(listOfMaps.items.additionalProperties.type, APIType.string);
+      expect(listOfSerial.type, APIType.array);
+      expect(listOfSerial.items.type, APIType.object);
+      expect(listOfSerial.items.properties["x"].type, APIType.integer);
+      expect(serial.type, APIType.object);
+      expect(serial.properties["x"].type, APIType.integer);
+      expect(stringListMap.type, APIType.object);
+      expect(stringListMap.additionalProperties.type, APIType.array);
+      expect(stringListMap.additionalProperties.items.type, APIType.string);
+    });
+
+    test("Documentation comments for declarations are available in schema object", () async {
+      final titleOnly =
+        APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#a]);
+      final titleAndSummary =
+        APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#b]);
+      final noDocs =
+        APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#c]);
+      await ctx.finalize();
+
+      expect(titleOnly.title, "title");
+      expect(titleOnly.description, isEmpty);
+      expect(titleAndSummary.title, "title");
+      expect(titleAndSummary.description, contains("summary"));
+      expect(noDocs.title, isEmpty);
+      expect(noDocs.description, isEmpty);
+    });
+  });
+}
+
+class ComplexTypes {
+  Map<int, String> x;
+  List<DefaultChannel> y;
+  Map<String, DefaultChannel> z;
+
+  /// title
+  Map<String, int> a;
+
+  /// title
+  ///
+  /// summary
+  List<int> b;
+  List<Map<String, String>> c;
+  List<Serial> d;
+  Serial e;
+  Map<String, List<String>> f;
+}
+
+class Serial extends HTTPSerializable {
+  int x;
+
+  @override
+  void readFromMap(Map<String, dynamic> requestBody) {}
+
+  @override
+  Map<String, dynamic> asMap() {
+    return null;
+  }
 }
 
 class DefaultChannel extends ApplicationChannel {
@@ -157,7 +286,11 @@ class DefaultChannel extends ApplicationChannel {
 
     router.route("/path/[:id]").link(() => new Middleware()).link(() => new Endpoint());
 
-    router.route("/constant").link(() => new UndocumentedMiddleware()).link(() => new Middleware()).link(() => new Endpoint());
+    router
+        .route("/constant")
+        .link(() => new UndocumentedMiddleware())
+        .link(() => new Middleware())
+        .link(() => new Endpoint());
 
     router.route("/dynamic").linkFunction((Request req) async {
       return new Response.ok("");
@@ -195,22 +328,21 @@ class Endpoint extends Controller {
   Map<String, APIOperation> documentOperations(APIDocumentContext registry, APIPath path) {
     if (path.parameters.length >= 1) {
       return {
-        "get": new APIOperation()
-          ..parameters = [new APIParameter.header("x-op", schema: new APISchemaObject.integer())]
-          ..responses = {
-            "200": new APIResponse()..description = "get/1-200",
-            "400": new APIResponse()..description = "get/1-400",
-          },
-        "put": new APIOperation()..responses = {"200": new APIResponse()..description = "put/1-200"},
+        "get": new APIOperation("get1", {
+          "200": new APIResponse("get/1-200"),
+          "400": new APIResponse("get/1-400"),
+        }, parameters: [
+          new APIParameter.header("x-op", schema: new APISchemaObject.integer())
+        ]),
+        "put": new APIOperation("put1", {"200": new APIResponse("put/1-200")}),
       };
     }
 
     return {
-      "get": new APIOperation()..responses = {"200": new APIResponse()..description = "get/0-200"},
-      "post": new APIOperation()
-        ..requestBody = (new APIRequestBody()
-          ..content = {"application/json": new APIMediaType(schema: registry.schema["someObject"])})
-        ..responses = {"200": new APIResponse()..description = "post/0-200"}
+      "get": new APIOperation("get0", {"200": new APIResponse("get/0-200")}),
+      "post": new APIOperation("post0", {"200": new APIResponse("post/0-200")},
+          requestBody:
+              new APIRequestBody({"application/json": new APIMediaType(schema: registry.schema["someObject"])}))
     };
   }
 }
