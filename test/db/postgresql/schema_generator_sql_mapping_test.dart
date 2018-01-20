@@ -1,3 +1,5 @@
+import 'dart:mirrors';
+
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
@@ -171,7 +173,7 @@ void main() {
       var schema = new Schema.fromDataModel(dm);
 
       var propDesc = new ManagedAttributeDescription(
-          dm.entityForType(GeneratorModel1), "foobar", ManagedPropertyType.integer,
+          dm.entityForType(GeneratorModel1), "foobar", new ManagedType(reflectType(int)),
           nullable: true);
       var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromProperty(propDesc));
       expect(cmds, ["ALTER TABLE _GeneratorModel1 ADD COLUMN foobar INT NULL"]);
@@ -182,7 +184,7 @@ void main() {
       var schema = new Schema.fromDataModel(dm);
 
       var propDesc = new ManagedAttributeDescription(
-          dm.entityForType(GeneratorModel1), "foobar", ManagedPropertyType.integer,
+          dm.entityForType(GeneratorModel1), "foobar", new ManagedType(reflectType(int)),
           defaultValue: "4", unique: true, indexed: true, nullable: true, autoincrement: true);
       var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromProperty(propDesc));
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar SERIAL NULL DEFAULT 4 UNIQUE");
@@ -196,7 +198,7 @@ void main() {
       var propDesc = new ManagedRelationshipDescription(
           dm.entityForType(GeneratorModel1),
           "foobar",
-          ManagedPropertyType.string,
+          new ManagedType(reflectType(String)),
           dm.entityForType(GeneratorModel2),
           DeleteRule.cascade,
           ManagedRelationshipType.belongsTo,

@@ -44,7 +44,7 @@ class SchemaColumn {
       isPrimaryKey = desc.isPrimaryKey;
     }
 
-    _type = typeStringForType(desc.type);
+    _type = typeStringForType(desc.type.kind);
     isNullable = desc.isNullable;
     autoincrement = desc.autoincrement;
     isUnique = desc.isUnique;
@@ -173,9 +173,9 @@ class SchemaColumn {
         return "datetime";
       case ManagedPropertyType.string:
         return "string";
-      case ManagedPropertyType.transientList:
+      case ManagedPropertyType.list:
         return null;
-      case ManagedPropertyType.transientMap:
+      case ManagedPropertyType.map:
         return null;
     }
     return null;
