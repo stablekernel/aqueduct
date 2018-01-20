@@ -4,33 +4,7 @@ import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
 import 'relationship_type.dart';
 import 'exception.dart';
-
-/// Possible data types for [ManagedEntity] attributes.
-enum ManagedPropertyType {
-  /// Represented by instances of [int].
-  integer,
-
-  /// Represented by instances of [int].
-  bigInteger,
-
-  /// Represented by instances of [String].
-  string,
-
-  /// Represented by instances of [DateTime].
-  datetime,
-
-  /// Represented by instances of [bool].
-  boolean,
-
-  /// Represented by instances of [double].
-  doublePrecision,
-
-  /// Represented by instances of [Map]. Cannot be backed by underlying database.
-  transientMap,
-
-  /// Represented by instances of [List]. Cannot be backed by underlying database.
-  transientList
-}
+import 'type.dart';
 
 /// Contains database column information and metadata for a property of a [ManagedObject] object.
 ///
@@ -57,7 +31,7 @@ abstract class ManagedPropertyDescription {
   /// The value type of this property.
   ///
   /// Will indicate the Dart type and database column type of this property.
-  final ManagedPropertyType type;
+  final ManagedType type;
 
   /// The identifying name of this property.
   final String name;
@@ -89,62 +63,9 @@ abstract class ManagedPropertyDescription {
   /// by the database.
   final bool autoincrement;
 
-  /// Returns the corresponding [ManagedPropertyType] given a Dart type.
-  static ManagedPropertyType propertyTypeForDartType(Type t) {
-    if (t == int) {
-      return ManagedPropertyType.integer;
-    } else if (t == String) {
-      return ManagedPropertyType.string;
-    } else if (t == DateTime) {
-      return ManagedPropertyType.datetime;
-    } else if (t == bool) {
-      return ManagedPropertyType.boolean;
-    } else if (t == double) {
-      return ManagedPropertyType.doublePrecision;
-    }
-
-    var mirror = reflectClass(t);
-    if (mirror.isSubtypeOf(reflectType(Map))) {
-      return ManagedPropertyType.transientMap;
-    } else if (mirror.isSubtypeOf(reflectType(List))) {
-      return ManagedPropertyType.transientList;
-    } else if (mirror.isEnum) {
-      return ManagedPropertyType.string;
-    }
-
-    return null;
-  }
-
-  static List<Type> get supportedDartTypes {
-    return [String, DateTime, bool, int, double];
-  }
 
   /// Whether or not a the argument can be assigned to this property.
-  bool isAssignableWith(dynamic dartValue) {
-    if (dartValue == null) {
-      return true;
-    }
-
-    switch (type) {
-      case ManagedPropertyType.integer:
-        return dartValue is int;
-      case ManagedPropertyType.bigInteger:
-        return dartValue is int;
-      case ManagedPropertyType.boolean:
-        return dartValue is bool;
-      case ManagedPropertyType.datetime:
-        return dartValue is DateTime;
-      case ManagedPropertyType.doublePrecision:
-        return dartValue is double;
-      case ManagedPropertyType.string:
-        return dartValue is String;
-      case ManagedPropertyType.transientMap:
-        return dartValue is Map;
-      case ManagedPropertyType.transientList:
-        return dartValue is List;
-    }
-    return false;
-  }
+  bool isAssignableWith(dynamic dartValue) => type.isAssignableWith(dartValue);
 
   /// Converts a value from a more complex value into a primitive value according to this instance's definition.
   ///
@@ -172,7 +93,7 @@ abstract class ManagedPropertyDescription {
 /// Each scalar property [ManagedObject] object persists is described by an instance of [ManagedAttributeDescription]. This class
 /// adds two properties to [ManagedPropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class ManagedAttributeDescription extends ManagedPropertyDescription {
-  ManagedAttributeDescription(ManagedEntity entity, String name, ManagedPropertyType type,
+  ManagedAttributeDescription(ManagedEntity entity, String name, ManagedType type,
       {Serialize transientStatus,
       bool primaryKey: false,
       String defaultValue,
@@ -196,7 +117,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
             autoincrement: autoincrement);
 
   ManagedAttributeDescription.transient(
-      ManagedEntity entity, String name, ManagedPropertyType type, this.transientStatus)
+      ManagedEntity entity, String name, ManagedType type, this.transientStatus)
       : this.isPrimaryKey = false,
         this.enumerationValueMap = null,
         this.defaultValue = null,
@@ -282,9 +203,9 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   dynamic convertFromPrimitiveValue(dynamic value) {
-    if (type == ManagedPropertyType.datetime && value is String) {
+    if (type.kind == ManagedPropertyType.datetime && value is String) {
       value = DateTime.parse(value);
-    } else if (type == ManagedPropertyType.doublePrecision && value is num) {
+    } else if (type.kind == ManagedPropertyType.doublePrecision && value is num) {
       value = value.toDouble();
     } else if (isEnumeratedValue) {
       if (!enumerationValueMap.containsKey(value)) {
@@ -301,7 +222,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
 /// Contains information for a relationship property of a [ManagedObject].
 class ManagedRelationshipDescription extends ManagedPropertyDescription {
-  ManagedRelationshipDescription(ManagedEntity entity, String name, ManagedPropertyType type, this.destinationEntity,
+  ManagedRelationshipDescription(ManagedEntity entity, String name, ManagedType type, this.destinationEntity,
       this.deleteRule, this.relationshipType, this.inverseKey,
       {bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true})
       : super(entity, name, type,

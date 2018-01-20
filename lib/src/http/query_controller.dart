@@ -45,8 +45,8 @@ abstract class QueryController<InstanceType extends ManagedObject>
         var primaryKeyDesc = query.entity.attributes[query.entity.primaryKey];
         if (primaryKeyDesc.isAssignableWith(idValue)) {
           query.where[query.entity.primaryKey] = whereEqualTo(idValue);
-        } else if (primaryKeyDesc.type == ManagedPropertyType.bigInteger ||
-            primaryKeyDesc.type == ManagedPropertyType.integer) {
+        } else if (primaryKeyDesc.type.kind == ManagedPropertyType.bigInteger ||
+            primaryKeyDesc.type.kind == ManagedPropertyType.integer) {
           try {
             query.where[query.entity.primaryKey] = whereEqualTo(int.parse(idValue));
           } on FormatException {            

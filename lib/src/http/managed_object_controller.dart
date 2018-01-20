@@ -348,7 +348,7 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends RESTCo
     }
 
     try {
-      switch (desc.type) {
+      switch (desc.type.kind) {
         case ManagedPropertyType.string:
           return value;
         case ManagedPropertyType.bigInteger:
@@ -361,9 +361,9 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends RESTCo
           return double.parse(value);
         case ManagedPropertyType.boolean:
           return value == "true";
-        case ManagedPropertyType.transientList:
+        case ManagedPropertyType.list:
           return null;
-        case ManagedPropertyType.transientMap:
+        case ManagedPropertyType.map:
           return null;
       }
     } on FormatException {

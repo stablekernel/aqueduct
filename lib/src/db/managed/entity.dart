@@ -158,6 +158,7 @@ class ManagedEntity extends Object with APIComponentDocumenter {
     return model;
   }
 
+
   /// Two entities are considered equal if they have the same [tableName].
   @override
   bool operator ==(dynamic other) {
@@ -175,17 +176,8 @@ class ManagedEntity extends Object with APIComponentDocumenter {
     final obj = new APISchemaObject.object(properties);
 
     attributes.forEach((name, def) {
-      APISchemaObject object;
-      switch (def.type) {
-        case ManagedPropertyType.integer: object = new APISchemaObject.integer(); break;
-        case ManagedPropertyType.bigInteger: object = new APISchemaObject.integer(); break;
-        case ManagedPropertyType.doublePrecision: object = new APISchemaObject.number(); break;
-        case ManagedPropertyType.string: object = new APISchemaObject.integer(); break;
-        case ManagedPropertyType.datetime: object = new APISchemaObject.integer(); break;
-        case ManagedPropertyType.boolean: object = new APISchemaObject.integer(); break;
-        case ManagedPropertyType.transientList: object = new APISchemaObject.integer(); break;
-        case ManagedPropertyType.transientMap: object = new APISchemaObject.integer(); break;
-      }
+      final prop = _typedSchemaObject(def.type);
+      properties[name] = prop;
     });
 
     relationships.forEach((name, def) {
@@ -198,6 +190,17 @@ class ManagedEntity extends Object with APIComponentDocumenter {
   }
 }
 
-APISchemaObject _typedSchemaObject(ManagedAttributeDescription desc) {
-  switch ()
+APISchemaObject _typedSchemaObject(ManagedType type) {
+  switch (type.kind) {
+    case ManagedPropertyType.integer: return new APISchemaObject.integer();
+    case ManagedPropertyType.bigInteger: return new APISchemaObject.integer();
+    case ManagedPropertyType.doublePrecision: return new APISchemaObject.number();
+    case ManagedPropertyType.string: return new APISchemaObject.integer();
+    case ManagedPropertyType.datetime: return new APISchemaObject.integer();
+    case ManagedPropertyType.boolean: return new APISchemaObject.integer();
+    case ManagedPropertyType.list: return new APISchemaObject.integer()
+      ..items = _typedSchemaObject(type.elements);
+    case ManagedPropertyType.map: return new APISchemaObject.integer()
+      ..additionalProperties = _typedSchemaObject(type.elements);
+  }
 }

@@ -87,7 +87,7 @@ class ManagedValidator {
 
   void _build() {
     if (definition._builtinValidate == _BuiltinValidate.regex) {
-      if (attribute.type != ManagedPropertyType.string) {
+      if (attribute.type.kind != ManagedPropertyType.string) {
         throw new ManagedDataModelError.invalidValidator(
             attribute.entity, attribute.name, "Property type for Validate.matches must be String");
       }
@@ -97,7 +97,7 @@ class ManagedValidator {
       _buildComparisonExpressions();
       _validationMethod = _validateExpressions;
     } else if (definition._builtinValidate == _BuiltinValidate.length) {
-      if (attribute.type != ManagedPropertyType.string) {
+      if (attribute.type.kind != ManagedPropertyType.string) {
         throw new ManagedDataModelError.invalidValidator(
             attribute.entity, attribute.name, "Property type for Validate.length must be String");
       }
@@ -221,7 +221,7 @@ class ManagedValidator {
   }
 
   dynamic  _comparisonValueForAttributeType(dynamic inputValue) {
-    if (attribute.type == ManagedPropertyType.datetime) {
+    if (attribute.type.kind == ManagedPropertyType.datetime) {
       try {
         return DateTime.parse(inputValue);
       } on FormatException {

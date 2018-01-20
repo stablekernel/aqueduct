@@ -106,6 +106,14 @@ void main() {
     expect(posts.first.owner.name, "Bob");
   });
 
+  test("Can assign null to relationships", () {
+    var u = new User();
+    u.posts = null;
+
+    var p = new Post();
+    p.owner = null;
+  });
+
   test("Can convert object to map", () {
     var user = new User();
     user.id = 1;

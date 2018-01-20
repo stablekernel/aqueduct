@@ -91,7 +91,7 @@ class ManagedDataModelError extends Error {
         "must have a primary key. Usually, this means you want to add '@primaryKey int id;' "
         "to ${_getPersistentClassName(entity)}, but if you want more control over "
         "the type of primary key, declare the property as one of "
-        "${ManagedPropertyDescription.supportedDartTypes.join(", ")} and "
+        "${ManagedType.supportedDartTypes.join(", ")} and "
         "add '@Column(primaryKey: true)' above it.");
   }
 
@@ -100,7 +100,7 @@ class ManagedDataModelError extends Error {
     return new ManagedDataModelError("Property '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}'"
         " has an unsupported type. Must be "
-        "${ManagedPropertyDescription.supportedDartTypes.join(", ")}"
+        "${ManagedType.supportedDartTypes.join(", ")}"
         ", an enum, or ManagedObject subclass (see also 'Relationship.deferred'). "
         "If you want to store something "
         "weird in the database, try declaring accessors in the ManagedObject subclass, "
