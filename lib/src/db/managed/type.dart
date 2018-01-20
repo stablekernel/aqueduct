@@ -28,7 +28,11 @@ enum ManagedPropertyType {
   list
 }
 
+/// Complex type storage for [ManagedEntity] attributes.
 class ManagedType {
+  /// Creates a new instance from a [ClassMirror].
+  ///
+  /// [t] must be representable by [ManagedPropertyType].
   ManagedType(ClassMirror t) {
     if (t.isAssignableTo(reflectType(int))) {
       kind = ManagedPropertyType.integer;
@@ -41,6 +45,9 @@ class ManagedType {
     } else if (t.isAssignableTo(reflectType(double))) {
       kind = ManagedPropertyType.doublePrecision;
     } else if (t.isSubtypeOf(reflectType(Map))) {
+      if (!t.typeArguments.first.isAssignableTo(reflectType(String))) {
+        throw new UnsupportedError("Invalid type '$t' for 'ManagedType'. Key is invalid; must be 'String'.");
+      }
       kind = ManagedPropertyType.map;
       elements = new ManagedType(t.typeArguments.last);
     } else if (t.isSubtypeOf(reflectType(List))) {
@@ -53,11 +60,25 @@ class ManagedType {
     }
   }
 
-  ManagedType.fromKind(this.kind);
+  /// Creates a new instance from a [ManagedPropertyType];
+  ManagedType.fromKind(this.kind) {
+    if (kind == ManagedPropertyType.list || kind == ManagedPropertyType.map) {
+      throw new ArgumentError("Cannot instantiate 'ManagedType' from complex type 'list' or 'map'. Use default constructor.");
+    }
+  }
 
+  /// The primitive kind of this type.
+  ///
+  /// All types have a kind. If kind is a map or list, it will also have [elements].
   ManagedPropertyType kind;
+
+  /// The primitive kind of each element of this type.
+  ///
+  /// If [kind] is a collection (map or list), this value stores the type of each element in the collection.
+  /// Keys of map types are always [String].
   ManagedType elements;
 
+  /// Whether [dartValue] can be assigned to properties with this type.
   bool isAssignableWith(dynamic dartValue) {
     if (dartValue == null) {
       return true;

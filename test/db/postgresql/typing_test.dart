@@ -1,3 +1,5 @@
+import 'dart:mirrors';
+
 import 'package:aqueduct/src/db/postgresql/postgresql_query.dart';
 import 'package:aqueduct/src/db/postgresql/query_builder.dart';
 
@@ -53,6 +55,39 @@ void main() {
     expect(insertString, contains("b:boolean"));
     expect(insertString, contains("d:float8"));
   });
+
+  test("Have access to type args in Map", () {
+    final type = new ManagedType(typeOf(#mapOfInts));
+    expect(type.kind, ManagedPropertyType.map);
+    expect(type.elements.kind, ManagedPropertyType.integer);
+  });
+
+  test("Have access to type args in list of maps", () {
+    final type = new ManagedType(typeOf(#listOfIntMaps));
+    expect(type.kind, ManagedPropertyType.list);
+    expect(type.elements.kind, ManagedPropertyType.map);
+    expect(type.elements.elements.kind, ManagedPropertyType.integer);
+  });
+
+  test("Cannot create ManagedType from invalid types", () {
+    try {
+      new ManagedType(typeOf(#invalidMapKey));
+      fail("unreachable");
+    } on UnsupportedError {}
+    try {
+      new ManagedType(typeOf(#invalidMapValue));
+      fail("unreachable");
+    } on UnsupportedError {}
+    try {
+      new ManagedType(typeOf(#invalidList));
+      fail("unreachable");
+    } on UnsupportedError {}
+
+    try {
+      new ManagedType(typeOf(#uri));
+      fail("unreachable");
+    } on UnsupportedError {}
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {
@@ -67,4 +102,20 @@ class _TestModel {
   int l;
   bool b;
   double d;
+}
+
+class TypeRepo {
+  Map<String, int> mapOfInts;
+  List<Map<String, int>> listOfIntMaps;
+
+  Map<int, String> invalidMapKey;
+  Map<String, Uri> invalidMapValue;
+
+  List<Uri> invalidList;
+
+  Uri uri;
+}
+
+ClassMirror typeOf(Symbol symbol) {
+  return (reflectClass(TypeRepo).declarations[symbol] as VariableMirror).type;
 }
