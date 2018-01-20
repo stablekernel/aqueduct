@@ -190,8 +190,8 @@ class ManagedEntity {
       var primaryKeyAttribute = me.attributes[me.primaryKey];
       schemaProperties[me.primaryKey] = new APISchemaObject()
         ..title = primaryKeyAttribute.name
-        ..type = _schemaObjectTypeForPropertyType(primaryKeyAttribute.type)
-        ..format = _schemaObjectFormatForPropertyType(primaryKeyAttribute.type);
+        ..type = _schemaObjectTypeForPropertyType(primaryKeyAttribute.type.kind)
+        ..format = _schemaObjectFormatForPropertyType(primaryKeyAttribute.type.kind);
 
       return schemaProperties;
     }
@@ -205,8 +205,8 @@ class ManagedEntity {
         .forEach((attribute) {
       schemaProperties[attribute.name] = new APISchemaObject()
         ..title = attribute.name
-        ..type = _schemaObjectTypeForPropertyType(attribute.type)
-        ..format = _schemaObjectFormatForPropertyType(attribute.type);
+        ..type = _schemaObjectTypeForPropertyType(attribute.type.kind)
+        ..format = _schemaObjectFormatForPropertyType(attribute.type.kind);
     });
 
     me.relationships.values
@@ -236,9 +236,9 @@ class ManagedEntity {
         return APISchemaObject.TypeBoolean;
       case ManagedPropertyType.doublePrecision:
         return APISchemaObject.TypeNumber;
-      case ManagedPropertyType.transientList:
+      case ManagedPropertyType.list:
         return APISchemaObject.TypeArray;
-      case ManagedPropertyType.transientMap:
+      case ManagedPropertyType.map:
         return APISchemaObject.TypeObject;
       default:
         return null;

@@ -83,14 +83,14 @@ void main() {
       var entity = dataModel.entityForType(User);
       var idAttr = entity.attributes[entity.primaryKey];
       expect(idAttr.isPrimaryKey, true);
-      expect(idAttr.type, ManagedPropertyType.bigInteger);
+      expect(idAttr.type.kind, ManagedPropertyType.bigInteger);
       expect(idAttr.autoincrement, true);
       expect(idAttr.name, "id");
 
       entity = dataModel.entityForType(Item);
       idAttr = entity.attributes[entity.primaryKey];
       expect(idAttr.isPrimaryKey, true);
-      expect(idAttr.type, ManagedPropertyType.string);
+      expect(idAttr.type.kind, ManagedPropertyType.string);
       expect(idAttr.autoincrement, false);
       expect(idAttr.name, "name");
     });
@@ -113,7 +113,7 @@ void main() {
       var entity = dataModel.entityForType(User);
       var loadedValue = entity.attributes["loadedTimestamp"];
       expect(loadedValue.isPrimaryKey, false);
-      expect(loadedValue.type, ManagedPropertyType.datetime);
+      expect(loadedValue.type.kind, ManagedPropertyType.datetime);
       expect(loadedValue.autoincrement, false);
       expect(loadedValue.name, "loadedTimestamp");
       expect(loadedValue.defaultValue, "'now()'");
@@ -174,7 +174,7 @@ void main() {
 
     test("Enums are string attributes in persistent type", () {
       var entity = dataModel.entityForType(EnumObject);
-      expect(entity.attributes["enumValues"].type, ManagedPropertyType.string);
+      expect(entity.attributes["enumValues"].type.kind, ManagedPropertyType.string);
     });
   });
 
@@ -359,7 +359,7 @@ void main() {
       expect(
           e.message,
           contains(
-              "Property 'uri' on '_InvalidModel' has an unsupported type"));
+              "Invalid declaration '_InvalidModel.uri'"));
     }
   });
 
@@ -372,7 +372,7 @@ void main() {
       expect(
           e.message,
           startsWith(
-              "Property 'uri' on '_InvalidTransientModel' has an unsupported type"));
+              "Invalid declaration 'InvalidTransientModel.uri'"));
     }
   });
 

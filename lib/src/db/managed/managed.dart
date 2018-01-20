@@ -7,3 +7,4 @@ export 'object.dart';
 export 'property_description.dart';
 export 'set.dart';
 export 'validate.dart';
+export 'type.dart';
