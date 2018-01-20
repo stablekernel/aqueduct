@@ -84,6 +84,12 @@ class ManagedType {
     return false;
   }
 
+
+  @override
+  String toString() {
+    return "$kind";
+  }
+
   static List<Type> get supportedDartTypes {
     return [String, DateTime, bool, int, double];
   }

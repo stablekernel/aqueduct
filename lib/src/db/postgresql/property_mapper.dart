@@ -33,11 +33,11 @@ abstract class PropertyMapper extends PostgresMapper {
 
   PropertyMapper(this.table, this.property);
 
-  ManagedPropertyDescription property;
-  EntityTableMapper table;
+  final ManagedPropertyDescription property;
+  final EntityTableMapper table;
+
   String get typeSuffix {
-    var type =
-        PostgreSQLFormat.dataTypeStringForDataType(typeMap[property.type]);
+    var type = PostgreSQLFormat.dataTypeStringForDataType(typeMap[property.type.kind]);
     if (type != null) {
       return ":$type";
     }
@@ -65,15 +65,10 @@ abstract class PropertyMapper extends PostgresMapper {
     return value;
   }
 
-  String columnName(
-      {bool withTypeSuffix: false,
-      bool withTableNamespace: false,
-      String withPrefix}) {
+  String columnName({bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix}) {
     var name = property.name;
     if (property is ManagedRelationshipDescription) {
-      var relatedPrimaryKey = (property as ManagedRelationshipDescription)
-          .destinationEntity
-          .primaryKey;
+      var relatedPrimaryKey = (property as ManagedRelationshipDescription).destinationEntity.primaryKey;
       name = "${name}_$relatedPrimaryKey";
     }
 
