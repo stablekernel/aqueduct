@@ -230,11 +230,44 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends RESTCo
 
   @Operation.get()
   Future<Response> getObjects(
-      {@Bind.query("count") int count: 0,
+      {
+
+      /// Limits the number of objects returned.
+      @Bind.query("count") int count: 0,
+
+      /// An integer offset into an ordered list of objects.
+      ///
+      /// Use with count.
+      ///
+      /// See pageBy for an alternative form of offsetting.
       @Bind.query("offset") int offset: 0,
+
+      /// The property of this object to page by.
+      ///
+      /// Must be a key in the object type being fetched. Must
+      /// provide either pageAfter or pagePrior. Use with count.
       @Bind.query("pageBy") String pageBy,
+
+      /// A value-based offset into an ordered list of objects.
+      ///
+      /// Objects are returned if their
+      /// value for the property named by pageBy is greater than
+      /// the value of pageAfter. Must provide pageBy, and the type
+      /// of the property designated by pageBy must be the same as pageAfter.
       @Bind.query("pageAfter") String pageAfter,
+
+      /// A value-based offset into an ordered list of objects.
+      ///
+      /// Objects are returned if their
+      /// value for the property named by pageBy is less than
+      /// the value of pageAfter. Must provide pageBy, and the type
+      /// of the property designated by pageBy must be the same as pageAfter.
       @Bind.query("pagePrior") String pagePrior,
+
+      /// Designates a sorting strategy for the returned objects.
+      ///
+      /// This value must take the form 'name,asc' or 'name,desc', where name
+      /// is the property of the returned objects to sort on.
       @Bind.query("sortBy") List<String> sortBy}) async {
     _query.fetchLimit = count;
     _query.offset = offset;
@@ -345,14 +378,13 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends RESTCo
     return {};
   }
 
-
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
     final ops = super.documentOperations(context, path);
 
     final entityName = MirrorSystem.getName(_query.entity.instanceType.simpleName);
 
-    if ((path.parameters?.where((p) => p.location == APIParameterLocation.path)?.length ?? 0)> 0) {
+    if ((path.parameters?.where((p) => p.location == APIParameterLocation.path)?.length ?? 0) > 0) {
       ops["get"].id = "get$entityName";
       ops["put"].id = "update$entityName";
       ops["delete"].id = "delete$entityName";

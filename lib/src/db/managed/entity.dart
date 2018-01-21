@@ -176,16 +176,28 @@ class ManagedEntity extends Object with APIComponentDocumenter {
     final properties = <String, APISchemaObject>{};
     final obj = new APISchemaObject.object(properties)..title = "${MirrorSystem.getName(instanceType.simpleName)}";
 
+    // Documentation comments
     context.defer(() async {
       final entityDocs = await DocumentedElement.get(instanceType.reflectedType);
       obj.title = entityDocs.summary ?? obj.title;
       obj.description = entityDocs.description;
     });
 
+    // Attributes
     attributes.forEach((name, def) {
-      final prop = _typedSchemaObject(def.type);
+      var prop = _typedSchemaObject(def.type);
       properties[name] = prop;
 
+      // Add'l schema info
+      prop.isNullable = def.isNullable;
+      if (def.isEnumeratedValue) {
+        prop.enumerated = def.enumerationValueMap.keys.toList();
+      }
+
+      final validators = def.validators;
+
+
+      // Documentation comments
       context.defer(() async {
         DocumentedElement attrDocs;
         if (def.isTransient) {
@@ -201,8 +213,11 @@ class ManagedEntity extends Object with APIComponentDocumenter {
       });
     });
 
+    // Relationships
     relationships.forEach((name, def) {
       properties[name] = context.schema.getObjectWithType(def.inverse.entity.instanceType.reflectedType);
+
+      // Documentation comments
       context.defer(() async {
         final entityDocs = await DocumentedElement.get(persistentType.reflectedType);
         final relationshipDocs = entityDocs[new Symbol(name)];
