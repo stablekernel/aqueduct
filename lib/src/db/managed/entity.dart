@@ -1,4 +1,6 @@
 import 'dart:mirrors';
+import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+
 import 'managed.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import '../query/query.dart';
@@ -158,7 +160,6 @@ class ManagedEntity extends Object with APIComponentDocumenter {
     return model;
   }
 
-
   /// Two entities are considered equal if they have the same [tableName].
   @override
   bool operator ==(dynamic other) {
@@ -173,34 +174,66 @@ class ManagedEntity extends Object with APIComponentDocumenter {
   @override
   void documentComponents(APIDocumentContext context) {
     final properties = <String, APISchemaObject>{};
-    final obj = new APISchemaObject.object(properties);
+    final obj = new APISchemaObject.object(properties)..title = "${MirrorSystem.getName(instanceType.simpleName)}";
+
+    context.defer(() async {
+      final entityDocs = await DocumentedElement.get(instanceType.reflectedType);
+      obj.title = entityDocs.summary ?? obj.title;
+      obj.description = entityDocs.description;
+    });
 
     attributes.forEach((name, def) {
       final prop = _typedSchemaObject(def.type);
       properties[name] = prop;
+
+      context.defer(() async {
+        DocumentedElement attrDocs;
+        if (def.isTransient) {
+          final entityDocs = await DocumentedElement.get(instanceType.reflectedType);
+          attrDocs = entityDocs[new Symbol(name)];
+        } else {
+          final entityDocs = await DocumentedElement.get(persistentType.reflectedType);
+          attrDocs = entityDocs[new Symbol(name)];
+        }
+
+        prop.title = attrDocs.summary;
+        prop.description = attrDocs.description;
+      });
     });
 
     relationships.forEach((name, def) {
-
+      properties[name] = context.schema.getObjectWithType(def.inverse.entity.instanceType.reflectedType);
+      context.defer(() async {
+        final entityDocs = await DocumentedElement.get(persistentType.reflectedType);
+        final relationshipDocs = entityDocs[new Symbol(name)];
+        properties[name].title = relationshipDocs.summary;
+        properties[name].description = relationshipDocs.description;
+      });
     });
 
-    // Get documentation for each property and defer
-
-    context.schema.register(MirrorSystem.getName(instanceType.simpleName), obj);
+    context.schema.register(MirrorSystem.getName(instanceType.simpleName), obj, representation: instanceType.reflectedType);
   }
 }
 
 APISchemaObject _typedSchemaObject(ManagedType type) {
   switch (type.kind) {
-    case ManagedPropertyType.integer: return new APISchemaObject.integer();
-    case ManagedPropertyType.bigInteger: return new APISchemaObject.integer();
-    case ManagedPropertyType.doublePrecision: return new APISchemaObject.number();
-    case ManagedPropertyType.string: return new APISchemaObject.integer();
-    case ManagedPropertyType.datetime: return new APISchemaObject.integer();
-    case ManagedPropertyType.boolean: return new APISchemaObject.integer();
-    case ManagedPropertyType.list: return new APISchemaObject.integer()
-      ..items = _typedSchemaObject(type.elements);
-    case ManagedPropertyType.map: return new APISchemaObject.integer()
-      ..additionalProperties = _typedSchemaObject(type.elements);
+    case ManagedPropertyType.integer:
+      return new APISchemaObject.integer();
+    case ManagedPropertyType.bigInteger:
+      return new APISchemaObject.integer();
+    case ManagedPropertyType.doublePrecision:
+      return new APISchemaObject.number();
+    case ManagedPropertyType.string:
+      return new APISchemaObject.integer();
+    case ManagedPropertyType.datetime:
+      return new APISchemaObject.integer();
+    case ManagedPropertyType.boolean:
+      return new APISchemaObject.integer();
+    case ManagedPropertyType.list:
+      return new APISchemaObject.integer()..items = _typedSchemaObject(type.elements);
+    case ManagedPropertyType.map:
+      return new APISchemaObject.integer()..additionalProperties = _typedSchemaObject(type.elements);
   }
+
+  throw new UnsupportedError("Unsupported type '$type' when documenting entity.");
 }

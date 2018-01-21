@@ -142,10 +142,7 @@ class APIComponentCollection<T extends APIObject> {
     APIObject obj = reflectClass(T).newInstance(#empty, []).reflectee;
     obj.referenceURI = "aqueduct-unresolved-reference";
 
-    // If this type is HTTPSerializable, then we should add it as a component
-    // here. We'll have to let this future complete in context.finalize.
-    // We can also use this as an o
-    final completer = _resolutionMap.putIfAbsent(type, () => new Completer<T>());
+    final completer = _resolutionMap.putIfAbsent(type, () => new Completer<T>.sync());
 
     completer.future.then((refObject) {
       obj.referenceURI = refObject.referenceURI;

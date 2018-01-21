@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:mirrors';
 
 import '../db/db.dart';
 import 'http.dart';
@@ -321,6 +322,8 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends RESTCo
               "Invalid request.", new APISchemaObject.object({"error": new APISchemaObject.string()})),
           "422": new APIResponse.schema(
               "Entity in unexpected format", new APISchemaObject.object({"error": new APISchemaObject.string()})),
+          "409": new APIResponse.schema(
+              "Object already exists", new APISchemaObject.object({"error": new APISchemaObject.string()})),
         };
       case "POST":
         return {
@@ -340,6 +343,25 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends RESTCo
     }
 
     return {};
+  }
+
+
+  @override
+  Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
+    final ops = super.documentOperations(context, path);
+
+    final entityName = MirrorSystem.getName(_query.entity.instanceType.simpleName);
+
+    if ((path.parameters?.where((p) => p.location == APIParameterLocation.path)?.length ?? 0)> 0) {
+      ops["get"].id = "get$entityName";
+      ops["put"].id = "update$entityName";
+      ops["delete"].id = "delete$entityName";
+    } else {
+      ops["get"].id = "get${entityName}s";
+      ops["post"].id = "create$entityName";
+    }
+
+    return ops;
   }
 
   dynamic _parseValueForProperty(String value, ManagedPropertyDescription desc) {

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:async';
 
 import 'package:aqueduct/test.dart';
@@ -268,89 +267,83 @@ void main() {
   });
 
   group("Documentation", () {
-    var dataModel = new ManagedDataModel([TestModel]);
-    ManagedContext.defaultContext =
-        new ManagedContext(dataModel, new DefaultPersistentStore());
-    ManagedObjectController c = new ManagedObjectController<TestModel>();
-    c.prepare();
-    var resolver = new PackagePathResolver(new File(".packages").path);
-    var operations = c.documentOperations(resolver);
+    Map<String, APIOperation> collectionOperations;
+    Map<String, APIOperation> idOperations;
+    setUpAll(() async {
+      final context = new APIDocumentContext(new APIComponents());
 
-    test("includes responses for each operation", () {
-      operations.forEach((op) =>
-          expect(c.documentResponsesForOperation(op).length, greaterThan(0)));
+      var dataModel = new ManagedDataModel([TestModel]);
+      ManagedContext.defaultContext =
+      new ManagedContext(dataModel, new DefaultPersistentStore());
+      final c = new ManagedObjectController<TestModel>();
+      c.prepare();
+
+      collectionOperations = c.documentOperations(context, new APIPath());
+      idOperations = c.documentOperations(context, new APIPath(parameters: [new APIParameter.path("id")]));
+
+      ManagedContext.defaultContext.documentComponents(context);
+
+      await context.finalize();
     });
 
     test("getObject", () {
-      var op = operations
-          .firstWhere((e) => e.id == APIOperation.idForMethod(c, #getObject));
-      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+      var op = idOperations["get"];
+      expect(op.id, "getTestModel");
 
-      expect(getResponses.length, 3);
+      expect(op.responses.length, 2);
 
-      var successResponse = getResponses.firstWhere((r) => r.key == "200");
-      expect(successResponse.schema.title, "TestModel");
-
-      var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema, isNull);
+      expect(op.responses["404"], isNotNull);
+      expect(op.responses["200"].content["application/json"].schema.referenceURI, "#/components/schemas/TestModel");
     });
 
     test("createObject", () {
-      var op = operations.firstWhere(
-          (e) => e.id == APIOperation.idForMethod(c, #createObject));
-      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+      var op = collectionOperations["post"];
+      expect(op.id, "createTestModel");
 
-      expect(getResponses.length, 3);
+      expect(op.responses.length, 4);
 
-      var successResponse = getResponses.firstWhere((r) => r.key == "200");
-      expect(successResponse.schema.title, "TestModel");
-
-      expect(getResponses.firstWhere((r) => r.key == "409"), isNotNull);
+      expect(op.responses["409"], isNotNull);
+      expect(op.responses["422"], isNotNull);
+      expect(op.responses["400"], isNotNull);
+      expect(op.responses["200"].content["application/json"].schema.referenceURI, "#/components/schemas/TestModel");
+      expect(op.requestBody.content["application/json"].schema.referenceURI, "#/components/schemas/TestModel");
     });
 
     test("updateObject", () {
-      var op = operations.firstWhere(
-          (e) => e.id == APIOperation.idForMethod(c, #updateObject));
-      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+      var op = idOperations["put"];
+      expect(op.id, "updateTestModel");
 
-      expect(getResponses.length, 4);
+      expect(op.responses.length, 5);
 
-      var successResponse = getResponses.firstWhere((r) => r.key == "200");
-      expect(successResponse.schema.title, "TestModel");
-
-      var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema, isNull);
-
-      expect(getResponses.firstWhere((r) => r.key == "409"), isNotNull);
+      expect(op.responses["404"], isNotNull);
+      expect(op.responses["409"], isNotNull);
+      expect(op.responses["422"], isNotNull);
+      expect(op.responses["400"], isNotNull);
+      expect(op.responses["200"].content["application/json"].schema.referenceURI, "#/components/schemas/TestModel");
+      expect(op.requestBody.content["application/json"].schema.referenceURI, "#/components/schemas/TestModel");
     });
 
     test("deleteObject", () {
-      var op = operations.firstWhere(
-          (e) => e.id == APIOperation.idForMethod(c, #deleteObject));
-      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+      var op = idOperations["delete"];
+      expect(op.id, "deleteTestModel");
 
-      expect(getResponses.length, 3);
+      expect(op.responses.length, 2);
 
-      var successResponse = getResponses.firstWhere((r) => r.key == "200");
-      expect(successResponse.schema, isNull);
-
-      var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema, isNull);
+      expect(op.responses["404"], isNotNull);
+      expect(op.responses["200"].content, isNull);
     });
 
     test("getObjects", () {
-      var op = operations
-          .firstWhere((e) => e.id == APIOperation.idForMethod(c, #getObjects));
-      List<APIResponse> getResponses = c.documentResponsesForOperation(op);
+      var op = collectionOperations["get"];
+      expect(op.id, "getTestModels");
 
-      expect(getResponses.length, 3);
+      expect(op.responses.length, 2);
+      expect(op.parameters.length, 6);
+      expect(op.parameters.every((p) => p.isRequired == false), true);
 
-      var successResponse = getResponses.firstWhere((r) => r.key == "200");
-      expect(successResponse.schema.type, APISchemaObject.TypeArray);
-      expect(successResponse.schema.items.title, "TestModel");
-
-      var errorResponse = getResponses.firstWhere((r) => r.key == "404");
-      expect(errorResponse.schema, isNull);
+      expect(op.responses["400"], isNotNull);
+      expect(op.responses["200"].content["application/json"].schema.type, APIType.array);
+      expect(op.responses["200"].content["application/json"].schema.items.referenceURI, "#/components/schemas/TestModel");
     });
   });
 
