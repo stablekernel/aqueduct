@@ -1,4 +1,5 @@
 import 'dart:mirrors';
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 import 'managed.dart';
@@ -190,12 +191,7 @@ class ManagedEntity extends Object with APIComponentDocumenter {
 
       // Add'l schema info
       prop.isNullable = def.isNullable;
-      if (def.isEnumeratedValue) {
-        prop.enumerated = def.enumerationValueMap.keys.toList();
-      }
-
-      final validators = def.validators;
-
+      def.validators.forEach((v) => v.documentSchema(context, prop));
 
       // Documentation comments
       context.defer(() async {

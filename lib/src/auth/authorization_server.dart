@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:crypto/crypto.dart';
 
 import 'package:aqueduct/src/openapi/documentable.dart';

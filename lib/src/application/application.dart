@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
 
 import '../http/http.dart';

@@ -270,7 +270,7 @@ void main() {
     Map<String, APIOperation> collectionOperations;
     Map<String, APIOperation> idOperations;
     setUpAll(() async {
-      final context = new APIDocumentContext(new APIComponents());
+      final context = new APIDocumentContext(new APIDocument()..components = new APIComponents());
 
       var dataModel = new ManagedDataModel([TestModel]);
       ManagedContext.defaultContext =

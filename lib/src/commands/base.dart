@@ -275,7 +275,7 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
 
   Map<String, dynamic> get projectSpecification {
     if (_pubspec == null) {
-      var file = new File.fromUri(projectDirectory.uri.resolve("pubspec.yaml"));
+      final file = projectSpecificationFile;
       if (!file.existsSync()) {
         throw new CLIException("Failed to locate pubspec.yaml in project directory '${projectDirectory.path}'");
       }
@@ -285,6 +285,8 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
 
     return _pubspec;
   }
+
+  File get projectSpecificationFile => new File.fromUri(projectDirectory.uri.resolve("pubspec.yaml"));
 
   Directory get projectDirectory => new Directory(values["directory"]).absolute;
 

@@ -12,10 +12,24 @@ will have their own tests. It does test Router, though.
 void main() {
   group(("Default channel"), () {
     APIDocument doc;
+    DateTime controllerDocumented;
+    DateTime controllerPrepared;
 
     setUpAll(() async {
+      DefaultChannel.channelClosed = new Completer();
+      DefaultChannel.controllerDocumented = new Completer();
+      DefaultChannel.controllerPrepared = new Completer();
+
+      DefaultChannel.controllerPrepared.future.then((_) => controllerPrepared = new DateTime.now());
+      DefaultChannel.controllerDocumented.future.then((_) => controllerDocumented = new DateTime.now());
       doc = await Application.document(DefaultChannel, new ApplicationOptions(),
           {"name": "test-title", "description": "test-description", "version": "1.2.3"});
+    });
+
+    tearDownAll(() {
+      DefaultChannel.channelClosed = null;
+      DefaultChannel.controllerDocumented = null;
+      DefaultChannel.controllerPrepared = null;
     });
 
     test("Document has appropriate metadata", () {
@@ -28,6 +42,18 @@ void main() {
     test("Has required properties", () {
       expect(doc.asMap(), isNotNull);
     });
+
+    test("Controllers are prepared prior to documenting", () async {
+      expect(controllerPrepared.isBefore(controllerDocumented), true);
+    });
+
+    test("Channel is closed after documenting", () async {
+      expect(DefaultChannel.channelClosed.future, completes);
+    });
+  });
+
+  group("Defer and component behavior", () {
+
   });
 
   group("Happy path", () {
@@ -136,7 +162,7 @@ void main() {
   group("Schema object documentation", () {
     APIDocumentContext ctx;
     setUp(() {
-      ctx = new APIDocumentContext(new APIComponents());
+      ctx = new APIDocumentContext(new APIDocument()..components = new APIComponents());
     });
 
     tearDown(() async {
@@ -262,6 +288,10 @@ class Serial extends HTTPSerializable {
 }
 
 class DefaultChannel extends ApplicationChannel {
+  static Completer controllerPrepared;
+  static Completer controllerDocumented;
+  static Completer channelClosed;
+
   ComponentA a;
 
   ComponentB b = new ComponentB();
@@ -284,13 +314,13 @@ class DefaultChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    router.route("/path/[:id]").link(() => new Middleware()).link(() => new Endpoint());
+    router.route("/path/[:id]").link(() => new Middleware()).link(() => new Endpoint(null, null));
 
     router
         .route("/constant")
         .link(() => new UndocumentedMiddleware())
         .link(() => new Middleware())
-        .link(() => new Endpoint());
+        .link(() => new Endpoint(controllerPrepared, controllerDocumented));
 
     router.route("/dynamic").linkFunction((Request req) async {
       return new Response.ok("");
@@ -298,6 +328,13 @@ class DefaultChannel extends ApplicationChannel {
 
     return router;
   }
+
+  @override
+  Future close() async {
+    channelClosed?.complete();
+  }
+
+
 }
 
 class UndocumentedMiddleware extends Controller {}
@@ -324,8 +361,15 @@ class Middleware extends Controller {
 }
 
 class Endpoint extends Controller {
+  Endpoint(this.prepared, this.documented);
+
+  Completer prepared;
+  Completer documented;
+
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext registry, APIPath path) {
+    documented?.complete();
+
     if (path.parameters.length >= 1) {
       return {
         "get": new APIOperation("get1", {
@@ -344,6 +388,11 @@ class Endpoint extends Controller {
           requestBody:
               new APIRequestBody({"application/json": new APIMediaType(schema: registry.schema["someObject"])}))
     };
+  }
+
+  @override
+  void prepare() {
+    prepared?.complete();
   }
 }
 

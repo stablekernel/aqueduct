@@ -287,36 +287,6 @@ void main() {
       expect(response.body, cssContents);
     });
   });
-
-  group("Documentation Generation", () {
-    APIDocument doc = new APIDocument()
-      ..version = "3.0.0"
-      ..info = (new APIInfo("whatever", "1.0"))
-      ..components = new APIComponents();
-
-    setUpAll(() {
-      doc.paths = router.documentPaths(new APIDocumentContext(doc.components));
-    });
-
-    test("Emit acceptable document", () {
-      expect(doc.asMap(), isNotNull);
-    });
-
-    test("Path variable is appropriate marked up", () {
-      final path = doc.paths["/files/{path}"];
-      expect(path, isNotNull);
-      expect(path.parameters.length, 1);
-      expect(path.parameters.first.location, APIParameterLocation.path);
-      expect(path.parameters.first.schema.type, APIType.string);
-      expect(path.parameters.first.description, contains("may be empty"));
-      expect(path.parameters.first.description, contains("may contain slashes '/'"));
-
-      expect(path.operations.length, 1);
-      final op = path.operations["get"];
-      expect(op.responses["200"].description, contains("Successful file fetch"));
-      expect(op.responses["404"].description, contains("No file exists at path"));
-    });
-  });
 }
 
 Future<http.Response> getFile(String path, {Map<String, String> headers}) async {

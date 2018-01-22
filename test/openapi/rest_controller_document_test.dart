@@ -8,11 +8,11 @@ void main() {
   Map<String, APIOperation> idOperations;
 
   setUpAll(() async {
-    final context = new APIDocumentContext(new APIComponents());
+    final context = new APIDocumentContext(new APIDocument()..components = new APIComponents());
     final ac = new A();
     ac.prepare();
     collectionOperations = ac.documentOperations(context, new APIPath());
-    idOperations = ac.documentOperations(new APIDocumentContext(new APIComponents()), new APIPath(parameters: [
+    idOperations = ac.documentOperations(context, new APIPath(parameters: [
       new APIParameter.path("id")
     ]));
     await context.finalize();

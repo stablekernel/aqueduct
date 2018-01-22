@@ -524,6 +524,43 @@ class Validate<T> {
   bool validate(ValidateOperation operation, ManagedAttributeDescription property, T value, List<String> errors) {
     return false;
   }
+
+  void documentSchema(APIDocumentContext context, APISchemaObject object) {
+    switch (_builtinValidate) {
+      case _BuiltinValidate.regex: {
+        object.pattern = _value;
+      } break;
+      case _BuiltinValidate.comparison: {
+        if (_value is num) {
+          if (_greaterThan != null) {
+            object.exclusiveMinimum = true;
+            object.minimum = _value;
+          } else if (_greaterThanEqualTo != null) {
+            object.exclusiveMinimum = false;
+            object.minimum = _value;
+          } else if (_lessThan != null) {
+            object.exclusiveMinimum = true;
+            object.minimum = _value;
+          } else if (_lessThanEqualTo != null) {
+            object.exclusiveMinimum = false;
+            object.minimum = _value;
+          }
+        }
+      } break;
+      case _BuiltinValidate.length: {
+        object.maxLength = _value;
+      } break;
+      case _BuiltinValidate.present: {
+
+      } break;
+      case _BuiltinValidate.absent: {
+
+      } break;
+      case _BuiltinValidate.oneOf: {
+        object.enumerated = _values;
+      } break;
+    }
+  }
 }
 
 typedef bool _Validation(ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors);

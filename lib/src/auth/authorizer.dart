@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
+
 import '../http/http.dart';
 import 'auth.dart';
 
@@ -119,7 +121,9 @@ class Authorizer extends Controller {
 
     final requirements = validator.documentRequirementsForAuthorizer(this, scopes: scopes);
     operations.forEach((_, op) {
-      op.security = requirements;
+      requirements.forEach((req) {
+        op.addSecurityRequirement(req);
+      });
     });
 
     return operations;

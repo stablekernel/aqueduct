@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:async';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
+
 import 'http.dart';
 import 'route_specification.dart';
 import 'route_node.dart';

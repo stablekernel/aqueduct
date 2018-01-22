@@ -4,7 +4,7 @@ import 'package:aqueduct/aqueduct.dart';
 void main() {
   APIDocumentContext ctx;
   setUp(() {
-    ctx = new APIDocumentContext(new APIComponents());
+    ctx = new APIDocumentContext(new APIDocument()..components = new APIComponents());
   });
 
   tearDown(() async {

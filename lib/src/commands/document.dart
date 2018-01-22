@@ -1,5 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:yaml/yaml.dart';
 
 import '../http/http.dart';
 import '../application/application.dart';
@@ -63,11 +67,12 @@ abstract class CLIDocumentOptions implements CLICommand {
           valueHelp: "https://api.myapp.com:8000");
   }
 
-  Future<Map<String, dynamic>> documentProject(Uri projectDirectory, String libraryName, Map<String, dynamic> pubspec) {
+  Future<Map<String, dynamic>> documentProject(Uri projectDirectory, String libraryName, File pubspecFile) {
     var generator = new SourceGenerator((List<String> args, Map<String, dynamic> values) async {
       var config = new ApplicationOptions()..configurationFilePath = values["configPath"];
 
-      var document = await Application.document(ApplicationChannel.defaultType, config, values["pubspec"]);
+      final pubspec = new File(values["pubspec"]);
+      var document = await Application.document(ApplicationChannel.defaultType, config, loadYaml(pubspec.readAsStringSync()));
 
       document.servers =
           (values["hosts"] as List<Uri>)?.map((uri) => new APIServerDescription(uri))?.toList() ?? [];
@@ -105,26 +110,33 @@ abstract class CLIDocumentOptions implements CLICommand {
       "package:aqueduct/aqueduct.dart",
       "package:$libraryName/$libraryName.dart",
       "dart:isolate",
+      "dart:io",
+      "package:yaml/yaml.dart",
       "dart:mirrors",
       "dart:async",
       "dart:convert"
     ]);
 
+    final variables = {
+      "pubspecPath": pubspecFile.uri.toString(),
+      "hosts": hosts,
+      "configPath": configurationPath,
+      "title": title,
+      "description": apiDescription,
+      "version": version,
+      "termsOfServiceURL": termsOfServiceURL,
+      "contactEmail": contactEmail,
+      "contactName": contactName,
+      "contactURL": contactURL,
+      "licenseURL": licenseURL,
+      "licenseName": licenseName
+    };
+    variables.forEach((k, v) {
+      print("$k ${v.runtimeType}");
+    });
+
     var executor = new IsolateExecutor(generator, [libraryName],
-        message: {
-          "pubspec": pubspec,
-          "hosts": hosts,
-          "configPath": configurationPath,
-          "title": title,
-          "description": apiDescription,
-          "version": version,
-          "termsOfServiceURL": termsOfServiceURL,
-          "contactEmail": contactEmail,
-          "contactName": contactName,
-          "contactURL": contactURL,
-          "licenseURL": licenseURL,
-          "licenseName": licenseName
-        },
+        message: variables,
         packageConfigURI: projectDirectory.resolve(".packages"));
 
     return executor.execute(projectDirectory) as Future<Map<String, dynamic>>;
@@ -140,7 +152,7 @@ class CLIDocument extends CLICommand with CLIProject, CLIDocumentOptions {
   @override
   Future<int> handle() async {
     try {
-      var documentMap = await documentProject(projectDirectory.uri, libraryName, projectSpecification);
+      var documentMap = await documentProject(projectDirectory.uri, libraryName, projectSpecificationFile);
       print("${JSON.encode(documentMap)}");
     } catch (e, st) {
       displayError("Failed to generate documentation");

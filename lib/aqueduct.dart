@@ -41,10 +41,10 @@ library aqueduct;
 
 export 'package:logging/logging.dart';
 export 'package:safe_config/safe_config.dart';
-export 'package:open_api/v3.dart';
 
 export 'src/application/application.dart';
 export 'src/auth/auth.dart';
 export 'src/db/db.dart';
 export 'src/http/http.dart';
+export 'src/openapi/openapi.dart';
 

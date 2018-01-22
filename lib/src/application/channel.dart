@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
 
 import '../http/http.dart';
@@ -152,7 +153,7 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
     final root = entryPoint;
     root.prepare();
 
-    final context = new APIDocumentContext(doc.components);
+    final context = new APIDocumentContext(doc);
     documentComponents(context);
 
     doc.paths = root.documentPaths(context);

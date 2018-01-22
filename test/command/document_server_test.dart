@@ -30,6 +30,7 @@ void main() {
     var aggregateOutput = "";
     var sub = process.stdout.listen((bytes) {
       var logItem = UTF8.decode(bytes);
+      print("$logItem");
       aggregateOutput += logItem;
       if (aggregateOutput.contains("listening")) {
         available?.complete();
