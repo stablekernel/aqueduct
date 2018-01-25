@@ -11,7 +11,7 @@ class CLIDatabaseVersion extends CLIDatabaseConnectingCommand {
       var current = await persistentStore.schemaVersion;
       displayInfo("Current version: $current");
       if (current == 0) {
-        displayProgress("This database hasn't has a a migration yet.");
+        displayProgress("This database hasn't had a migration yet.");
       }
     } on SocketException catch (e) {
       displayError("Could not connect to database.");
