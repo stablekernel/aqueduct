@@ -63,7 +63,7 @@ class Application<T extends ApplicationChannel> {
   ///
   /// This value will return to false after [stop] has completed.
   bool get hasFinishedLaunching => _hasFinishedLaunching;
-  bool _hasFinishedLaunching;
+  bool _hasFinishedLaunching = false;
 
   /// Starts the application by spawning Isolates that listen for HTTP requests.
   ///

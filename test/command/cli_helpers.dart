@@ -15,7 +15,7 @@ class Terminal {
 
   final Directory workingDirectory;
 
-  static Directory get temporaryDirectory => new Directory.fromUri(Directory.current.uri.resolve("tmp"));
+  static Directory get temporaryDirectory => new Directory.fromUri(Directory.current.uri.resolve("tmp/"));
 
   static Directory get emptyProjectDirectory =>
       new Directory.fromUri(Directory.current.uri.resolve("test/").resolve("empty_project/"));
@@ -58,6 +58,7 @@ class Terminal {
     args.add(name);
 
     await creator.runAqueductCommand("create", args);
+    print("${creator.output}");
 
     return new Terminal(new Directory.fromUri(temporaryDirectory.uri.resolve("$name/")));
   }
