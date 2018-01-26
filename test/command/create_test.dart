@@ -8,6 +8,14 @@ import 'package:path/path.dart' as path_lib;
 void main() {
   Terminal terminal;
 
+  setUpAll(() async {
+    await Process.run("pub", ["global", "activate", "-spath", "."]);
+  });
+
+  tearDownAll(() async {
+    await Process.run("pub", ["global", "deactivate", "aqueduct"]);
+  });
+
   setUp(() {
     terminal = new Terminal(Terminal.temporaryDirectory);
   });
@@ -18,7 +26,7 @@ void main() {
 
   group("Project naming", () {
     test("Appropriately named project gets created correctly", () async {
-      final res = await terminal.runAqueductCommand("create", ["test_project", "--offline"]);
+      final res = await terminal.runAqueductCommand("create", ["test_project", "--offline", "--stacktrace"]);
       expect(res, 0);
 
       expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), true);
