@@ -1,23 +1,23 @@
-import 'dart:io';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
-import 'generate_helpers.dart';
+import 'cli_helpers.dart';
 import 'package:postgres/postgres.dart';
 
 void main() {
   group("Schema diffs", () {
-    var migrationDirectory = new Directory("tmp_migrations/migrations");
+    Terminal terminal;
     PostgreSQLConnection connection;
 
     setUp(() async {
       connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
           username: "dart", password: "dart");
       await connection.open();
-      migrationDirectory.createSync(recursive: true);
+      terminal = await Terminal.createProject();
+      await terminal.getDependencies();
     });
 
     tearDown(() async {
-      migrationDirectory.parent.deleteSync(recursive: true);
+      Terminal.deleteTemporaryDirectory();
 
       for (var tableName in ["v", "u", "t"]) {
         await connection.execute("DROP TABLE IF EXISTS $tableName");
@@ -32,7 +32,7 @@ void main() {
      */
 
     test("Table that is new to destination schema emits createTable", () async {
-      await writeMigrations(migrationDirectory, [
+      await terminal.writeMigrations([
         new Schema.empty(),
         new Schema([
           new SchemaTable("t", [
@@ -42,7 +42,7 @@ void main() {
         ])
       ]);
 
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.executeMigrations();
 
       var results =
       await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
@@ -73,8 +73,8 @@ void main() {
             ]),
           ];
 
-          await writeMigrations(migrationDirectory, schemas.sublist(0, 2));
-          await executeMigrations(migrationDirectory.parent);
+          await terminal.writeMigrations(schemas.sublist(0, 2));
+          await terminal.executeMigrations();
 
           var results =
           await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
@@ -87,8 +87,8 @@ void main() {
             [1]
           ]);
 
-          await writeMigrations(migrationDirectory, schemas.sublist(1));
-          await executeMigrations(migrationDirectory.parent);
+          await terminal.writeMigrations(schemas.sublist(1));
+          await terminal.executeMigrations();
 
           results =
           await connection.query("INSERT INTO u (id) VALUES (2) RETURNING id");
@@ -122,8 +122,8 @@ void main() {
             ]),
             new Schema.empty()
           ];
-          await writeMigrations(migrationDirectory, schemas.sublist(0, 2));
-          await executeMigrations(migrationDirectory.parent);
+          await terminal.writeMigrations(schemas.sublist(0, 2));
+          await terminal.executeMigrations();
 
           // We try and delete this in the wrong order to ensure that when we do delete it,
           // we're actually solving a problem.
@@ -134,8 +134,8 @@ void main() {
             expect(e.message, contains("cannot drop table t"));
           }
 
-          await writeMigrations(migrationDirectory, schemas.sublist(1));
-          await executeMigrations(migrationDirectory.parent);
+          await terminal.writeMigrations(schemas.sublist(1));
+          await terminal.executeMigrations();
 
           try {
             await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
@@ -172,8 +172,8 @@ void main() {
             new Schema.empty()
           ];
 
-          await writeMigrations(migrationDirectory, schemas);
-          await executeMigrations(migrationDirectory.parent);
+          await terminal.writeMigrations(schemas);
+          await terminal.executeMigrations();
 
           try {
             await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
@@ -213,8 +213,8 @@ void main() {
         ])
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas);
+      await terminal.executeMigrations();
 
       await connection.query("INSERT INTO t (id) VALUES (1)");
       var results = await connection.query(
@@ -248,8 +248,8 @@ void main() {
             ])
           ];
 
-          await writeMigrations(migrationDirectory, schemas);
-          await executeMigrations(migrationDirectory.parent);
+          await terminal.writeMigrations(schemas);
+          await terminal.executeMigrations();
 
           await connection.query("INSERT INTO t (id) VALUES (1)");
           var results = await connection.query(
@@ -279,8 +279,8 @@ void main() {
         ])
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas);
+      await terminal.executeMigrations();
 
       await connection.query("INSERT INTO u (id,a,b) VALUES (1,1,1)");
       try {
@@ -312,8 +312,8 @@ void main() {
         ])
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas);
+      await terminal.executeMigrations();
 
       await connection.query("INSERT INTO u (id,a,b) VALUES (1,1,1)");
       var y = await connection.query("INSERT INTO u (id,a,b) VALUES (2,1,1)");
@@ -342,8 +342,8 @@ void main() {
         ])
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas);
+      await terminal.executeMigrations();
 
       await connection.query("INSERT INTO u (id,a,b,c) VALUES (1,1,1,1)");
       var y = await connection.query("INSERT INTO u (id,a,b,c) VALUES (2,1,1,2)");

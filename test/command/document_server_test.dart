@@ -1,56 +1,35 @@
 import 'dart:io';
-import 'dart:async';
-import 'dart:convert';
 
 import 'package:test/test.dart';
 import 'package:http/http.dart' as http;
 
 import 'cli_helpers.dart';
 
-Directory temporaryDirectory = new Directory.fromUri(Directory.current.uri.resolve("test_project"));
-
 void main() {
-  setUpAll(() {
-    Process.runSync("pub", ["global", "activate", "-spath", Directory.current.path]);
+  Terminal terminal = new Terminal(Terminal.temporaryDirectory);
+
+  setUpAll(() async {
+    await Process.run("pub", ["global", "activate", "-spath", "."]);
+    terminal = await Terminal.createProject(template: "db_and_auth");
+    await terminal.getDependencies();
   });
 
-  tearDown(() {
-    if (temporaryDirectory.existsSync()) {
-      temporaryDirectory.deleteSync(recursive: true);
-    }
+  tearDown(() async {
+    await Process.run("pub", ["global", "deactivate", "aqueduct"]);
+    Terminal.deleteTemporaryDirectory();
   });
 
   test("Can get API reference", () async {
-    await runWith(["test_project", "-t", "db"]);
+    final task = terminal.startAqueductCommand("document", ["serve"]);
+    await task.hasStarted;
 
-    var process = await Process.start("pub", ["global", "run", "aqueduct:aqueduct", "document", "serve"],
-        runInShell: true, workingDirectory: temporaryDirectory.path);
-
-    var available = new Completer();
-    var aggregateOutput = "";
-    var sub = process.stdout.listen((bytes) {
-      var logItem = UTF8.decode(bytes);
-      aggregateOutput += logItem;
-      if (aggregateOutput.contains("listening")) {
-        available?.complete();
-        available = null;
-      }
-    });
-
-    await available.future;
+    expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve(".aqueduct_spec/")).existsSync(), true);
 
     var response = await http.get("http://localhost:8111");
     expect(response.body, contains("redoc spec-url='swagger.json'"));
 
-    await sub.cancel();
-
-    process.kill();
+    task.process.stop(0);
+    expect(await task.exitCode, 0);
+    expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve(".aqueduct_spec/")).existsSync(), false);
   });
-}
-
-Future<CLIResult> runWith(List<String> args) {
-  var allArgs = ["create"];
-  allArgs.addAll(args);
-
-  return runAqueductProcess(allArgs, Directory.current);
 }

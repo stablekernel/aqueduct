@@ -26,11 +26,9 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
     }
 
     var currentVersion = await persistentStore.schemaVersion;
-    var versionsToApply =
-        versionMap.keys.where((v) => v > currentVersion).toList();
+    var versionsToApply = versionMap.keys.where((v) => v > currentVersion).toList();
     if (versionsToApply.length == 0) {
-      displayInfo(
-          "Database version is already current (version: $currentVersion).");
+      displayInfo("Database version is already current (version: $currentVersion).");
       return 0;
     }
 
@@ -46,7 +44,8 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
       if (contents.contains(pattern)) {
         displayError("Migration file needs input");
         displayProgress("Migration file: ${file.path}");
-        displayProgress("An ambiguous change to the schema requires your input in the referenced file. Search for '<<set>>' and replace with an appropriate value.");
+        displayProgress(
+            "An ambiguous change to the schema requires your input in the referenced file. Search for '<<set>>' and replace with an appropriate value.");
         return 1;
       }
     }
@@ -59,11 +58,8 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
 
     for (var migration in migrationFilesToRun) {
       displayInfo("Applying version ${versionNumberFromFile(migration)}...");
-      schema =
-          await executeUpgradeForFile(migration, schema, _storeConnectionMap);
-      displayProgress(
-          "Applied version ${versionNumberFromFile(migration)} successfully.",
-          color: CLIColor.green);
+      schema = await executeUpgradeForFile(migration, schema, _storeConnectionMap);
+      displayProgress("Applied version ${versionNumberFromFile(migration)} successfully.", color: CLIColor.green);
     }
 
     return 0;
@@ -82,16 +78,14 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
   List<List<File>> splitMigrationFiles(int aroundVersion) {
     var files = migrationFiles;
     var latestMigrationFile = files.last;
-    var latestMigrationVersionNumber =
-        versionNumberFromFile(latestMigrationFile);
+    var latestMigrationVersionNumber = versionNumberFromFile(latestMigrationFile);
 
     List<File> migrationFilesToRun = [];
     List<File> migrationFilesToGetToCurrent = [];
     if (aroundVersion == 0) {
       migrationFilesToRun = files;
     } else if (latestMigrationVersionNumber > aroundVersion) {
-      var indexOfCurrent = files.indexOf(
-          files.firstWhere((f) => versionNumberFromFile(f) == aroundVersion));
+      var indexOfCurrent = files.indexOf(files.firstWhere((f) => versionNumberFromFile(f) == aroundVersion));
       migrationFilesToGetToCurrent = files.sublist(0, indexOfCurrent + 1);
       migrationFilesToRun = files.sublist(indexOfCurrent + 1);
     } else {
@@ -101,49 +95,37 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
     return [migrationFilesToGetToCurrent, migrationFilesToRun];
   }
 
-  Future<Schema> executeUpgradeForFile(
-      File file, Schema schema, Map<String, dynamic> connectionInfo) async {
-    var generator = new SourceGenerator(
-        (List<String> args, Map<String, dynamic> values) async {
+  Future<Schema> executeUpgradeForFile(File file, Schema schema, Map<String, dynamic> connectionInfo) async {
+    var generator = new SourceGenerator((List<String> args, Map<String, dynamic> values) async {
       hierarchicalLoggingEnabled = true;
 
       PostgreSQLPersistentStore.logger.level = Level.ALL;
-      PostgreSQLPersistentStore.logger.onRecord
-          .listen((r) => print("\t${r.message}"));
+      PostgreSQLPersistentStore.logger.onRecord.listen((r) => print("\t${r.message}"));
 
-      var inputSchema =
-          new Schema.fromMap(values["schema"] as Map<String, dynamic>);
+      var inputSchema = new Schema.fromMap(values["schema"] as Map<String, dynamic>);
       var dbInfo = values["dbInfo"];
 
       PersistentStore store;
       if (dbInfo != null && dbInfo["flavor"] == "postgres") {
         store = new PostgreSQLPersistentStore(
-            dbInfo["username"],
-            dbInfo["password"],
-            dbInfo["host"],
-            dbInfo["port"],
-            dbInfo["databaseName"],
+            dbInfo["username"], dbInfo["password"], dbInfo["host"], dbInfo["port"], dbInfo["databaseName"],
             timeZone: dbInfo["timeZone"]);
       }
 
       var versionNumber = int.parse(args.first);
       var migrationClassMirror = currentMirrorSystem()
-              .isolate
-              .rootLibrary
-              .declarations
-              .values
-              .firstWhere((dm) =>
-                  dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration)))
-          as ClassMirror;
+          .isolate
+          .rootLibrary
+          .declarations
+          .values
+          .firstWhere((dm) => dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration))) as ClassMirror;
 
-      var migrationInstance = migrationClassMirror
-          .newInstance(new Symbol(''), []).reflectee as Migration;
+      var migrationInstance = migrationClassMirror.newInstance(new Symbol(''), []).reflectee as Migration;
       migrationInstance.database = new SchemaBuilder(store, inputSchema);
 
       await migrationInstance.upgrade();
 
-      await migrationInstance.store
-          .upgrade(versionNumber, migrationInstance.database.commands);
+      await migrationInstance.store.upgrade(versionNumber, migrationInstance.database.commands);
       await migrationInstance.seed();
       await migrationInstance.database.store.close();
 
@@ -156,11 +138,11 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
       "dart:mirrors"
     ], additionalContents: file.readAsStringSync());
 
-    var executor = new IsolateExecutor(
-        generator, ["${versionNumberFromFile(file)}"],
-        message: {"schema": schema.asMap(), "dbInfo": connectionInfo});
+    var executor = new IsolateExecutor(generator, ["${versionNumberFromFile(file)}"],
+        message: {"schema": schema.asMap(), "dbInfo": connectionInfo},
+        packageConfigURI: projectDirectory.uri.resolve(".packages"));
 
-    var schemaMap = await executor.execute(projectDirectory.uri);
+    var schemaMap = await executor.execute();
     return new Schema.fromMap(schemaMap as Map<String, dynamic>);
   }
 

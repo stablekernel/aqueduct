@@ -5,8 +5,7 @@ import '../utilities/source_generator.dart';
 import 'base.dart';
 import 'db.dart';
 
-class CLIDatabaseValidate extends CLICommand
-    with CLIDatabaseMigratable, CLIProject {
+class CLIDatabaseValidate extends CLICommand with CLIDatabaseMigratable, CLIProject {
   @override
   Future<int> handle() async {
     var files = migrationFiles;
@@ -15,8 +14,7 @@ class CLIDatabaseValidate extends CLICommand
       return 1;
     }
 
-    var currentSchemaGenerator = new SourceGenerator(
-        (List<String> args, Map<String, dynamic> values) async {
+    var currentSchemaGenerator = new SourceGenerator((List<String> args, Map<String, dynamic> values) async {
       var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
       var schema = new Schema.fromDataModel(dataModel);
 
@@ -29,16 +27,14 @@ class CLIDatabaseValidate extends CLICommand
       "dart:async"
     ]);
 
-    var currentSchemaExecutor = new IsolateExecutor(
-        currentSchemaGenerator, [libraryName],
+    var currentSchemaExecutor = new IsolateExecutor(currentSchemaGenerator, [libraryName],
         packageConfigURI: projectDirectory.uri.resolve(".packages"));
-    var result = await currentSchemaExecutor.execute(projectDirectory.uri);
+    var result = await currentSchemaExecutor.execute();
     var currentSchema = new Schema.fromMap(result as Map<String, dynamic>);
 
     var schemaFromMigrationFiles = new Schema.empty();
     for (var migrationFile in migrationFiles) {
-      schemaFromMigrationFiles =
-          await schemaByApplyingMigrationFile(migrationFile, schemaFromMigrationFiles);
+      schemaFromMigrationFiles = await schemaByApplyingMigrationFile(migrationFile, schemaFromMigrationFiles);
     }
 
     var differences = currentSchema.differenceFrom(schemaFromMigrationFiles);
@@ -53,8 +49,7 @@ class CLIDatabaseValidate extends CLICommand
     }
 
     displayInfo("Validation OK", color: CLIColor.boldGreen);
-    displayProgress(
-        "Latest version is ${versionNumberFromFile(migrationFiles.last)}");
+    displayProgress("Latest version is ${versionNumberFromFile(migrationFiles.last)}");
 
     return 0;
   }
@@ -69,5 +64,3 @@ class CLIDatabaseValidate extends CLICommand
     return "Compares the schema created by the sum of migration files to the current codebase's schema.";
   }
 }
-
-

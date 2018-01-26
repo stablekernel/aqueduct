@@ -85,7 +85,7 @@ class CLIDatabaseGenerate extends CLICommand
       "version": inputVersion
     }, packageConfigURI: projectDirectory.uri.resolve(".packages"));
 
-    return executor.execute(projectDirectory.uri) as Future<Map<String, dynamic>>;
+    return executor.execute() as Future<Map<String, dynamic>>;
   }
 
   Future<Map<String, dynamic>> schemaMapFromExistingMigrationFiles() async {
