@@ -4,6 +4,7 @@ import 'package:aqueduct/executable.dart';
 import 'dart:io';
 
 import 'package:aqueduct/src/commands/running_process.dart';
+import 'package:test/test.dart';
 
 class Terminal {
   Terminal(this.workingDirectory) {
@@ -75,6 +76,10 @@ class Terminal {
     return new Directory.fromUri(workingDirectory.uri.resolve("lib/"));
   }
 
+  void clearOutput() {
+    _output.clear();
+  }
+
   void addOrReplaceFile(String path, String contents, {bool importAqueduct: true}) {
     final pathComponents = path.split("/");
     final relativeDirectoryComponents = pathComponents.sublist(0, pathComponents.length - 1);
@@ -102,8 +107,12 @@ class Terminal {
     file.writeAsStringSync(output);
   }
 
-  Future<int> executeMigrations({String connectString: "postgres://dart:dart@localhost:5432/dart_test"}) {
-    return runAqueductCommand("db", ["upgrade", "--connect", connectString]);
+  Future<int> executeMigrations({String connectString: "postgres://dart:dart@localhost:5432/dart_test"}) async {
+    final res = await runAqueductCommand("db", ["upgrade", "--connect", connectString]);
+    if (res != 0) {
+      print("executeMigrations failed: $output");
+    }
+    return res;
   }
 
   Future writeMigrations(List<Schema> schemas) async {

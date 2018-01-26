@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'token_generator.dart';
 import 'dart:mirrors';
 
 class SourceGenerator {
@@ -47,12 +46,12 @@ class IsolateExecutor {
       {this.message, this.packageConfigURI});
 
   static Future<dynamic> executeSource(
-      SourceGenerator source, List<String> arguments, Uri workingDirectory,
+      SourceGenerator source, List<String> arguments,
       {Map<String, dynamic> message, Uri packageConfigURI}) async {
     var executor = new IsolateExecutor(source, arguments,
         message: message, packageConfigURI: packageConfigURI);
 
-    return executor.execute(workingDirectory);
+    return executor.execute();
   }
 
   SourceGenerator generator;
@@ -61,12 +60,8 @@ class IsolateExecutor {
   Uri packageConfigURI;
   Completer completer = new Completer();
 
-  Future<dynamic> execute(Uri workingDirectory) async {
+  Future<dynamic> execute() async {
     message ??= {};
-
-    var tempFile = new File.fromUri(
-        workingDirectory.resolve("tmp_${randomStringOfLength(10)}.dart"));
-    tempFile.writeAsStringSync(generator.source);
 
     if (packageConfigURI != null &&
         !(new File.fromUri(packageConfigURI).existsSync())) {
@@ -91,13 +86,15 @@ class IsolateExecutor {
     try {
       message["_sendPort"] = controlPort.sendPort;
 
+      final source = generator.source;
+      final dataUri = Uri.parse("data:application/dart;charset=utf-8,${Uri.encodeComponent(source)}");
       if (packageConfigURI != null) {
-        await Isolate.spawnUri(tempFile.absolute.uri, arguments, message,
+        await Isolate.spawnUri(dataUri, arguments, message,
             errorsAreFatal: true,
             onError: onErrorPort.sendPort,
             packageConfig: packageConfigURI);
       } else {
-        await Isolate.spawnUri(tempFile.uri, arguments, message,
+        await Isolate.spawnUri(dataUri, arguments, message,
             errorsAreFatal: true,
             onError: onErrorPort.sendPort,
             automaticPackageResolution: true);
@@ -105,7 +102,6 @@ class IsolateExecutor {
 
       return await completer.future;
     } finally {
-      tempFile.deleteSync();
       onErrorPort.close();
       controlPort.close();
     }

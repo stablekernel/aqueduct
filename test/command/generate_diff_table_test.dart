@@ -13,6 +13,7 @@ void main() {
           username: "dart", password: "dart");
       await connection.open();
       terminal = await Terminal.createProject();
+      await terminal.getDependencies();
     });
 
     tearDown(() async {

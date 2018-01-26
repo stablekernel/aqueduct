@@ -36,6 +36,7 @@ void main() {
       terminal.addOrReplaceFile("lib/test_application.dart", code.first);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
+      terminal.clearOutput();
 
       terminal.addOrReplaceFile("lib/application_test.dart", code.last);
       res = await terminal.runAqueductCommand("db", ["generate"]);
@@ -82,6 +83,7 @@ void main() {
       terminal.addOrReplaceFile("lib/application_test.dart", code.first);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
+      terminal.clearOutput();
 
       terminal.addOrReplaceFile("lib/application_test.dart", code.last);
       res = await terminal.runAqueductCommand("db", ["generate"]);
@@ -112,6 +114,7 @@ void main() {
       terminal.addOrReplaceFile("lib/application_test.dart", code.first);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
+      terminal.clearOutput();
 
       terminal.addOrReplaceFile("lib/application_test.dart", code.last);
       res = await terminal.runAqueductCommand("db", ["generate"]);
@@ -142,6 +145,7 @@ void main() {
       terminal.addOrReplaceFile("lib/application_test.dart", code.first);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
+      terminal.clearOutput();
 
       terminal.addOrReplaceFile("lib/application_test.dart", code.last);
       res = await terminal.runAqueductCommand("db", ["generate"]);
@@ -174,6 +178,7 @@ void main() {
       terminal.addOrReplaceFile("lib/application_test.dart", code.first);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
+      terminal.clearOutput();
 
       terminal.addOrReplaceFile("lib/application_test.dart", code.last);
       res = await terminal.runAqueductCommand("db", ["generate"]);
@@ -205,7 +210,8 @@ void main() {
       terminal.addOrReplaceFile("lib/application_test.dart", code.first);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
-
+      terminal.clearOutput();
+      
       terminal.addOrReplaceFile("lib/application_test.dart", code.last);
       res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, isNot(0));

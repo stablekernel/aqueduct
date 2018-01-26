@@ -45,6 +45,6 @@ class CLIDatabaseSchema extends CLICommand with CLIDatabaseMigratable, CLIProjec
     var executor = new IsolateExecutor(generator, [libraryName],
         message: {}, packageConfigURI: projectDirectory.uri.resolve(".packages"));
 
-    return executor.execute(projectDirectory.uri) as Future<Map<String, dynamic>>;
+    return executor.execute() as Future<Map<String, dynamic>>;
   }
 }

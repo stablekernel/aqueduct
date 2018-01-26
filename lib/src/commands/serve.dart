@@ -75,8 +75,8 @@ class CLIServer extends CLICommand with CLIProject {
 
   Directory get binDirectory => subdirectoryInProjectDirectory("bin");
 
-  final ReceivePort messagePort = new ReceivePort();
-  final ReceivePort errorPort = new ReceivePort();
+  ReceivePort messagePort;
+  ReceivePort errorPort;
   Completer<int> exitCode = new Completer<int>();
 
   @override
@@ -100,8 +100,8 @@ class CLIServer extends CLICommand with CLIProject {
 
   @override
   Future cleanup() async {
-    messagePort.close();
-    errorPort.close();
+    messagePort?.close();
+    errorPort?.close();
   }
 
   /////
@@ -124,6 +124,9 @@ class CLIServer extends CLICommand with CLIProject {
     displayProgress("Channel: $channelType");
     displayProgress("Config: ${configurationFile?.path}");
     displayProgress("Port: $port");
+
+    errorPort = new ReceivePort();
+    messagePort = new ReceivePort();
 
     final generatedStartScript = createScriptSource(replacements);
     final dataUri = Uri.parse("data:application/dart;charset=utf-8,${Uri.encodeComponent(generatedStartScript)}");
@@ -193,7 +196,7 @@ class CLIServer extends CLICommand with CLIProject {
 
     var executor =
         new IsolateExecutor(generator, [libraryName], packageConfigURI: projectDirectory.uri.resolve(".packages"));
-    var result = await executor.execute(projectDirectory.uri);
+    var result = await executor.execute();
     if (result == "null") {
       throw new CLIException("No ApplicationChannel subclass found in $packageName/$libraryName");
     }

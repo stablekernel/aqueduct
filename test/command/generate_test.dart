@@ -50,6 +50,8 @@ class _TestObject {
 
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
+      print("${terminal.output}");
+      terminal.clearOutput();
 
       res = await terminal.runAqueductCommand("db", ["validate"]);
       expect(res, 0);
@@ -60,6 +62,7 @@ class _TestObject {
 
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
+      terminal.clearOutput();
 
       // Let's add an index
       terminal.modifyFile("lib/application_test.dart", (prev) {
@@ -68,6 +71,7 @@ class _TestObject {
 
       res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
+      terminal.clearOutput();
 
       expect(terminal.migrationDirectory.listSync().where((fse) => !fse.uri.pathSegments.last.startsWith(".")), hasLength(2));
       expect(new File.fromUri(terminal.migrationDirectory.uri.resolve("00000001_Initial.migration.dart")).existsSync(), true);
