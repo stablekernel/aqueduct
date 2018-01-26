@@ -139,7 +139,7 @@ abstract class CLIDocumentOptions implements CLICommand {
         message: variables,
         packageConfigURI: projectDirectory.resolve(".packages"));
 
-    return executor.execute(projectDirectory) as Future<Map<String, dynamic>>;
+    return executor.execute() as Future<Map<String, dynamic>>;
   }
 }
 

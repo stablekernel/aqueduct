@@ -137,8 +137,8 @@ abstract class CLIDatabaseConnectingCommand extends CLICommand with CLIDatabaseM
         }
       }
 
-      _persistentStore = new PostgreSQLPersistentStore(connectedDatabase.username,
-          connectedDatabase.password, connectedDatabase.host, connectedDatabase.port, connectedDatabase.databaseName,
+      _persistentStore = new PostgreSQLPersistentStore(connectedDatabase.username, connectedDatabase.password,
+          connectedDatabase.host, connectedDatabase.port, connectedDatabase.databaseName,
           useSSL: useSSL);
       return _persistentStore;
     }
@@ -221,9 +221,8 @@ abstract class CLIDatabaseMigratable {
         imports: ["dart:async", "package:aqueduct/aqueduct.dart", "dart:isolate", "dart:mirrors"],
         additionalContents: migrationFile.readAsStringSync());
 
-    var schemaMap = await IsolateExecutor.executeSource(
-        generator, [], projectDirectory.uri,
-        message: {"schema": fromSchema.asMap()});
+    var schemaMap = await IsolateExecutor.executeSource(generator, [],
+        message: {"schema": fromSchema.asMap()}, packageConfigURI: projectDirectory.uri.resolve(".packages"));
 
     return new Schema.fromMap(schemaMap as Map<String, dynamic>);
   }

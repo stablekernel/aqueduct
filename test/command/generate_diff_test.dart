@@ -4,22 +4,23 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:postgres/postgres.dart';
 import 'package:test/test.dart';
 
-import 'generate_helpers.dart';
+import 'cli_helpers.dart';
 
 void main() {
   group("Schema diffs", () {
-    var migrationDirectory = new Directory("tmp_migrations/migrations");
+    Terminal terminal;
     PostgreSQLConnection connection;
 
     setUp(() async {
       connection = new PostgreSQLConnection("localhost", 5432, "dart_test",
           username: "dart", password: "dart");
       await connection.open();
-      migrationDirectory.createSync(recursive: true);
+      terminal = await Terminal.createProject();
+      await terminal.getDependencies();
     });
 
     tearDown(() async {
-      migrationDirectory.parent.deleteSync(recursive: true);
+      Terminal.deleteTemporaryDirectory();
 
       for (var tableName in ["v", "u", "t"]) {
         await connection.execute("DROP TABLE IF EXISTS $tableName");
@@ -51,8 +52,8 @@ void main() {
         ])
       ];
 
-      await writeMigrations(migrationDirectory, schemas.sublist(0, 2));
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas.sublist(0, 2));
+      await terminal.executeMigrations();
 
       await connection.query("INSERT INTO t (id) VALUES (1)");
       var results = await connection.query("SELECT * FROM t");
@@ -60,8 +61,8 @@ void main() {
         [1]
       ]);
 
-      await writeMigrations(migrationDirectory, schemas.sublist(1));
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas.sublist(1));
+      await terminal.executeMigrations();
 
       await connection.query("INSERT INTO t (id, x) VALUES (2, 0)");
       results = await connection.query("SELECT * from t ORDER BY id ASC");
@@ -91,13 +92,13 @@ void main() {
               ]),
             ])
           ];
-          await writeMigrations(migrationDirectory, schemas.sublist(0, 2));
-          await executeMigrations(migrationDirectory.parent);
+          await terminal.writeMigrations(schemas.sublist(0, 2));
+          await terminal.executeMigrations();
 
           await connection.query("INSERT INTO t (id) VALUES (1)");
 
-          await writeMigrations(migrationDirectory, schemas.sublist(1));
-          await executeMigrations(migrationDirectory.parent);
+          await terminal.writeMigrations(schemas.sublist(1));
+          await terminal.executeMigrations();
 
           await connection.query("INSERT INTO t (id) VALUES (2)");
           await connection.query("INSERT INTO t (id, x) VALUES (3, 0)");
@@ -130,23 +131,23 @@ void main() {
             ])
           ];
 
-          await writeMigrations(migrationDirectory, schemas.sublist(0, 2));
-          await executeMigrations(migrationDirectory.parent);
+          await terminal.writeMigrations(schemas.sublist(0, 2));
+          await terminal.executeMigrations();
           await connection.query("INSERT INTO t (id) VALUES (1)");
-          await writeMigrations(migrationDirectory, schemas.sublist(1));
+          await terminal.writeMigrations(schemas.sublist(1));
 
           // Fails because syntax error for placeholder for unencodedInitialValue
-          var res = await executeMigrations(migrationDirectory.parent);
-          expect(res.exitCode, isNot(0));
+          var res = await terminal.executeMigrations();
+          expect(res, isNot(0));
 
           // Update generated source code to add initialValue,
           var lastMigrationFile =
-          new File.fromUri(migrationDirectory.uri.resolve("2.migration.dart"));
+          new File.fromUri(terminal.migrationDirectory.uri.resolve("2.migration.dart"));
           var contents =
           lastMigrationFile.readAsStringSync().replaceFirst(r"<<set>>", "'2'");
           lastMigrationFile.writeAsStringSync(contents);
-          res = await executeMigrations(migrationDirectory.parent);
-          expect(res.exitCode, 0);
+          res = await terminal.executeMigrations();
+          expect(res, 0);
 
           await connection.query("INSERT INTO t (id, x) VALUES (2, 3)");
           var results =
@@ -178,8 +179,8 @@ void main() {
             ])
           ];
 
-          await writeMigrations(migrationDirectory, schemas);
-          await executeMigrations(migrationDirectory.parent);
+          await terminal.writeMigrations(schemas);
+          await terminal.executeMigrations();
 
           var results = await connection.query(
               "INSERT INTO t (id, x, y) VALUES (1, 2, 'a') RETURNING id, x, y");
@@ -207,8 +208,8 @@ void main() {
         ])
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas);
+      await terminal.executeMigrations();
 
       var results =
       await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
@@ -250,8 +251,8 @@ void main() {
         ]),
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas);
+      await terminal.executeMigrations();
 
       var results = await connection.query(
           "SELECT indexname, indexdef FROM pg_indexes where tablename = 't' ORDER BY indexname ASC");
@@ -289,8 +290,8 @@ void main() {
         ]),
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas);
+      await terminal.executeMigrations();
 
       var results = await connection.query(
           "INSERT INTO t (id) VALUES (1) RETURNING id, wasNullable, nowNullable");
@@ -320,24 +321,24 @@ void main() {
         ])
       ];
 
-      await writeMigrations(migrationDirectory, schemas.sublist(0, 2));
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas.sublist(0, 2));
+      await terminal.executeMigrations();
       await connection.query("INSERT INTO t (id) VALUES (1)");
       await connection.query("INSERT INTO t (id, x) VALUES (2, 7)");
-      await writeMigrations(migrationDirectory, schemas.sublist(1));
+      await terminal.writeMigrations(schemas.sublist(1));
 
       // Fails because syntax error for placeholder for unencodedInitialValue
-      var res = await executeMigrations(migrationDirectory.parent);
-      expect(res.exitCode, isNot(0));
+      var res = await terminal.executeMigrations();
+      expect(res, isNot(0));
 
       // Update generated source code to add initialValue,
       var lastMigrationFile =
-      new File.fromUri(migrationDirectory.uri.resolve("2.migration.dart"));
+      new File.fromUri(terminal.migrationDirectory.uri.resolve("2.migration.dart"));
       var contents =
       lastMigrationFile.readAsStringSync().replaceFirst(r"<<set>>", "'2'");
       lastMigrationFile.writeAsStringSync(contents);
-      res = await executeMigrations(migrationDirectory.parent);
-      expect(res.exitCode, 0);
+      res = await terminal.executeMigrations();
+      expect(res, 0);
 
       await connection.query("INSERT INTO t (id, x) VALUES (3, 3)");
       var results =
@@ -374,8 +375,8 @@ void main() {
         ]),
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas);
+      await terminal.executeMigrations();
 
       var results = await connection.query(
           "SELECT indexname, indexdef FROM pg_indexes where tablename = 't' ORDER BY indexname ASC");
@@ -413,8 +414,8 @@ void main() {
         ]),
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas);
+      await terminal.executeMigrations();
 
       var results = await connection.query(
           "INSERT INTO t (id, wasDefault) VALUES (1, 1) RETURNING id, wasDefault, nowDefault");
@@ -463,8 +464,8 @@ void main() {
         ]),
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas);
+      await terminal.executeMigrations();
 
       await connection.query("INSERT INTO t (id) VALUES (1)");
       await connection.query("INSERT INTO u (id, ref_id) VALUES (1, 1)");
@@ -494,8 +495,8 @@ void main() {
         ]),
       ];
 
-      await writeMigrations(migrationDirectory, schemas);
-      await executeMigrations(migrationDirectory.parent);
+      await terminal.writeMigrations(schemas);
+      await terminal.executeMigrations();
 
       var results = await connection
           .query("INSERT INTO t (id) VALUES (1) RETURNING id, x");

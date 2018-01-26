@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:aqueduct/src/commands/running_process.dart';
+
 import '../http/http.dart';
 
 import 'base.dart';
@@ -17,56 +19,56 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
 
   int get port => int.parse(values["port"]);
 
-  Router _router = new Router();
+  @override
+  StoppableProcess runningProcess;
 
   Directory get _hostedDirectory => new Directory.fromUri(projectDirectory.uri.resolve(".aqueduct_spec"));
-  HttpServer _server;
 
   @override
   Future<int> handle() async {
-    var onComplete = new Completer();
-    ProcessSignal.SIGINT.watch().listen((_) {
-      onComplete.complete();
-    });
-
     await _build();
 
-    _server = await _listen();
+    runningProcess = await _listen();
 
-    displayInfo("Document server listening on http://${_server.address.host}:${_server.port}/.",
-        color: CLIColor.boldGreen);
-    displayProgress("Use Ctrl-C (SIGINT) to stop running the server.");
-
-    await onComplete.future;
-
-    return 0;
+    return runningProcess.exitCode;
   }
 
   @override
   Future cleanup() async {
-    await _server?.close();
-    _hostedDirectory.deleteSync(recursive: true);
+    if (_hostedDirectory.existsSync()) {
+      _hostedDirectory.deleteSync(recursive: true);
+    }
   }
 
-  Future<HttpServer> _listen() async {
-    var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, port);
+  Future<StoppableProcess> _listen() async {
+    final server = await HttpServer.bind(InternetAddress.ANY_IP_V4, port);
 
-    var fileController = new HTTPFileController(_hostedDirectory.uri.path)
+    final fileController = new HTTPFileController(_hostedDirectory.uri.path)
       ..addCachePolicy(new HTTPCachePolicy(requireConditionalRequest: true), (p) => p.endsWith(".html"))
       ..addCachePolicy(new HTTPCachePolicy(requireConditionalRequest: true), (p) => p.endsWith(".json"))
       ..addCachePolicy(new HTTPCachePolicy(expirationFromNow: new Duration(days: 300)), (p) => true)
       ..logger.onRecord.listen((rec) {
-        print("${rec.message} ${rec.stackTrace ?? ""}");
+        outputSink.writeln("${rec.message} ${rec.stackTrace ?? ""}");
       });
 
-    _router.route("/*").link(() => fileController);
-    _router.prepare();
+    final router = new Router();
+    router.route("/*").link(() => fileController);
+    router.prepare();
 
     server.map((req) => new Request(req)).listen((req) {
-      _router.receive(req);
+      router.receive(req);
     });
 
-    return server;
+    displayInfo("Document server listening on http://${server.address.host}:${server.port}/.",
+        color: CLIColor.boldGreen);
+    displayProgress("Use Ctrl-C (SIGINT) to stop running the server.");
+
+    return new StoppableProcess((reason) async {
+      displayInfo("Shutting down.");
+      displayProgress("Reason: $reason");
+      await server.close();
+      displayProgress("Graceful shutdown complete.");
+    });
   }
 
   Future _build() async {
@@ -85,8 +87,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
 <!DOCTYPE html>
 <html>
   <head>
-    <title>ReDoc</title>
-    <!-- needed for adaptive design -->
+    <title>${packageName} API Reference</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>

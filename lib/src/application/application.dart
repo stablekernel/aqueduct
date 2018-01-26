@@ -63,9 +63,8 @@ class Application<T extends ApplicationChannel> {
   /// This will return true if [start] has been invoked and completed; i.e. this is the synchronous version of the [Future] returned by [start].
   ///
   /// This value will return to false after [stop] has completed.
-  bool get hasFinishedLaunching => _interruptSubscription != null;
-
-  StreamSubscription<ProcessSignal> _interruptSubscription;
+  bool get hasFinishedLaunching => _hasFinishedLaunching;
+  bool _hasFinishedLaunching = false;
 
   /// Starts the application by spawning Isolates that listen for HTTP requests.
   ///
@@ -106,11 +105,7 @@ class Application<T extends ApplicationChannel> {
       rethrow;
     }
     supervisors.forEach((sup) => sup.sendPendingMessages());
-
-    _interruptSubscription = ProcessSignal.SIGINT.watch().listen((evt) {
-      logger.info("Shutting down due to interrupt signal.");
-      stop();
-    });
+    _hasFinishedLaunching = true;
   }
 
   /// Starts the application for the purpose of running automated tests.
@@ -131,29 +126,24 @@ class Application<T extends ApplicationChannel> {
       server = new ApplicationServer(channelType, options, 1, captureStack: true);
 
       await server.start();
+      _hasFinishedLaunching = true;
     } catch (e, st) {
       logger.severe("$e", this, st);
       await stop().timeout(new Duration(seconds: 5));
       rethrow;
     }
-
-    _interruptSubscription = ProcessSignal.SIGINT.watch().listen((evt) {
-      logger.info("Shutting down due to interrupt signal.");
-      stop();
-    });
   }
 
   /// Stops the application from running.
   ///
   /// Closes down every channel and stops listening for HTTP requests.
   Future stop() async {
+    _hasFinishedLaunching = false;
     await Future.wait(supervisors.map((s) => s.stop()));
     await server?.server?.close(force: true);
 
     await ApplicationServiceRegistry.defaultInstance.close();
-    await _interruptSubscription?.cancel();
-
-    _interruptSubscription = null;
+    _hasFinishedLaunching = false;
     server = null;
     supervisors = [];
 

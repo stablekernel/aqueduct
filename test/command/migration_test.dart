@@ -4,23 +4,20 @@ import 'package:aqueduct/executable.dart';
 import 'dart:async';
 import 'dart:io';
 import 'cli_helpers.dart';
-import 'generate_helpers.dart';
 
 void main() {
   group("Cooperation", () {
     PersistentStore store;
 
     setUp(() {
-      store = new PostgreSQLPersistentStore(
-          "dart", "dart", "localhost", 5432, "dart_test");
+      store = new PostgreSQLPersistentStore("dart", "dart", "localhost", 5432, "dart_test");
     });
 
     tearDown(() async {
       await store.close();
     });
 
-    test(
-        "Migration subclasses can be executed and commands are generated and executed on the DB, schema is udpated",
+    test("Migration subclasses can be executed and commands are generated and executed on the DB, schema is udpated",
         () async {
       // Note that the permutations of operations are covered in different tests, this is just to ensure that
       // executing a migration/upgrade all work together.
@@ -29,14 +26,11 @@ void main() {
           new SchemaColumn("columnToEdit", ManagedPropertyType.string),
           new SchemaColumn("columnToDelete", ManagedPropertyType.integer)
         ]),
-        new SchemaTable("tableToDelete",
-            [new SchemaColumn("whocares", ManagedPropertyType.integer)]),
-        new SchemaTable("tableToRename",
-            [new SchemaColumn("whocares", ManagedPropertyType.integer)])
+        new SchemaTable("tableToDelete", [new SchemaColumn("whocares", ManagedPropertyType.integer)]),
+        new SchemaTable("tableToRename", [new SchemaColumn("whocares", ManagedPropertyType.integer)])
       ]);
 
-      var initialBuilder =
-          new SchemaBuilder.toSchema(store, schema, isTemporary: true);
+      var initialBuilder = new SchemaBuilder.toSchema(store, schema, isTemporary: true);
       for (var cmd in initialBuilder.commands) {
         await store.execute(cmd);
       }
@@ -47,26 +41,21 @@ void main() {
       await store.upgrade(1, db.commands, temporary: true);
 
       // 'Sync up' that schema to compare it
-      schema.tableForName("tableToKeep").addColumn(new SchemaColumn(
-          "addedColumn", ManagedPropertyType.integer,
-          defaultValue: "2"));
-      schema.tableForName("tableToKeep").removeColumn(
-          new SchemaColumn("columnToDelete", ManagedPropertyType.integer));
       schema
           .tableForName("tableToKeep")
-          .columnForName("columnToEdit")
-          .defaultValue = "'foo'";
+          .addColumn(new SchemaColumn("addedColumn", ManagedPropertyType.integer, defaultValue: "2"));
+      schema.tableForName("tableToKeep").removeColumn(new SchemaColumn("columnToDelete", ManagedPropertyType.integer));
+      schema.tableForName("tableToKeep").columnForName("columnToEdit").defaultValue = "'foo'";
 
       schema.removeTable(schema.tableForName("tableToDelete"));
 
-      schema.addTable(new SchemaTable("foo", [
-        new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)
-      ]));
+      schema
+          .addTable(new SchemaTable("foo", [new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)]));
 
       expect(db.schema.differenceFrom(schema).hasDifferences, false);
 
-      var insertResults = await db.store.execute(
-          "INSERT INTO tableToKeep (columnToEdit) VALUES ('1') RETURNING columnToEdit, addedColumn");
+      var insertResults = await db.store
+          .execute("INSERT INTO tableToKeep (columnToEdit) VALUES ('1') RETURNING columnToEdit, addedColumn");
       expect(insertResults, [
         ['1', 2]
       ]);
@@ -75,12 +64,10 @@ void main() {
 
   group("Scanning for migration files", () {
     var temporaryDirectory = new Directory("migration_tmp");
-    var migrationsDirectory =
-        new Directory.fromUri(temporaryDirectory.uri.resolve("migrations"));
+    var migrationsDirectory = new Directory.fromUri(temporaryDirectory.uri.resolve("migrations"));
     var addFiles = (List<String> filenames) {
       filenames.forEach((name) {
-        new File.fromUri(migrationsDirectory.uri.resolve(name))
-            .writeAsStringSync(" ");
+        new File.fromUri(migrationsDirectory.uri.resolve(name)).writeAsStringSync(" ");
       });
     };
 
@@ -94,13 +81,7 @@ void main() {
     });
 
     test("Ignores not .migration.dart files", () async {
-      addFiles([
-        "00000001.migration.dart",
-        "foobar.txt",
-        ".DS_Store",
-        "a.dart",
-        "migration.dart"
-      ]);
+      addFiles(["00000001.migration.dart", "foobar.txt", ".DS_Store", "a.dart", "migration.dart"]);
       expect(migrationsDirectory.listSync().length, 5);
 
       var mock = new MockMigratable(temporaryDirectory);
@@ -136,83 +117,92 @@ void main() {
         mock.migrationFiles;
         expect(true, false);
       } on CLIException catch (e) {
-        expect(e.message,
-            contains("Migration files must have the following format"));
+        expect(e.message, contains("Migration files must have the following format"));
       }
     });
   });
 
-
-
   group("Validating", () {
-    var projectSourceDirectory = getTestProjectDirectory("initial");
-    Directory projectDirectory = new Directory("test_project");
-    var migrationDirectory =
-        new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
+    Terminal terminal;
 
     setUp(() async {
-      createTestProject(projectSourceDirectory, projectDirectory);
-      await runPubGet(projectDirectory, offline: true);
+      terminal = await Terminal.createProject();
+      terminal.addOrReplaceFile("lib/application_test.dart", """
+class TestObject extends ManagedObject<_TestObject> {}
+
+class _TestObject {
+  @primaryKey
+  int id;
+
+  String foo;
+}
+      """);
+      await terminal.getDependencies(offline: true);
     });
 
     tearDown(() {
-      projectDirectory.deleteSync(recursive: true);
+      Terminal.deleteTemporaryDirectory();
     });
 
     test("If validating with no migration dir, get error", () async {
-      var res = await runAqueductProcess(["db", "validate"], projectDirectory);
+      var res = await terminal.runAqueductCommand("db", ["validate"]);
 
-      expect(res.exitCode, isNot(0));
-      expect(res.output, contains("No migration files found"));
+      expect(res, isNot(0));
+      expect(terminal.output, contains("No migration files found"));
     });
 
     test("Validating two equal schemas succeeds", () async {
-      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
-      expect(res.exitCode, 0);
+      var res = await terminal.runAqueductCommand("db", ["generate"]);
+      expect(res, 0);
 
-      res = await runAqueductProcess(["db", "validate"], projectDirectory);
-      expect(res.exitCode, 0);
-      expect(res.output, contains("Validation OK"));
-      expect(res.output, contains("version is 1"));
+      res = await terminal.runAqueductCommand("db", ["validate"]);
+      expect(res, 0);
+      expect(terminal.output, contains("Validation OK"));
+      expect(terminal.output, contains("version is 1"));
     });
 
     test("Validating different schemas fails", () async {
-      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
-      expect(res.exitCode, 0);
+      var res = await terminal.runAqueductCommand("db", ["generate"]);
+      expect(res, 0);
 
-      addLinesToUpgradeFile(
-          new File.fromUri(migrationDirectory.uri
-              .resolve("00000001_Initial.migration.dart")),
-          ["database.createTable(new SchemaTable(\"foo\", []));"]);
+      terminal.modifyFile("migrations/00000001_Initial.migration.dart", (contents) {
+        final upgradeLocation = "upgrade()";
+        final nextLine = contents.indexOf("\n", contents.indexOf(upgradeLocation));
+        return contents.replaceRange(nextLine, nextLine + 1, """
+        database.createTable(new SchemaTable(\"foo\", []));
+        """);
+      });
 
-      res = await runAqueductProcess(["db", "validate"], projectDirectory);
-      expect(res.exitCode, isNot(0));
-      expect(res.output, contains("Validation failed"));
+      res = await terminal.runAqueductCommand("db", ["validate"]);
+      expect(res, isNot(0));
+      expect(terminal.output, contains("Validation failed"));
     });
 
-    test(
-        "Validating runs all migrations in directory and checks the total product",
-        () async {
-      var res = await runAqueductProcess(["db", "generate"], projectDirectory);
-      expect(res.exitCode, 0);
+    test("Validating runs all migrations in directory and checks the total product", () async {
+      var res = await terminal.runAqueductCommand("db", ["generate"]);
+      expect(res, 0);
 
-      addLinesToUpgradeFile(
-          new File.fromUri(migrationDirectory.uri
-              .resolve("00000001_Initial.migration.dart")),
-          ["database.createTable(new SchemaTable(\"foo\", []));"]);
+      terminal.modifyFile("migrations/00000001_Initial.migration.dart", (contents) {
+        final upgradeLocation = "upgrade()";
+        final nextLine = contents.indexOf("\n", contents.indexOf(upgradeLocation));
+        return contents.replaceRange(nextLine, nextLine + 1, """
+        database.createTable(new SchemaTable(\"foo\", []));
+        """);
+      });
 
-      res = await runAqueductProcess(["db", "validate"], projectDirectory);
-      expect(res.exitCode, isNot(0));
-      expect(res.output, contains("Validation failed"));
+      res = await terminal.runAqueductCommand("db", ["validate"]);
+      expect(res, isNot(0));
+      expect(terminal.output, contains("Validation failed"));
 
-      res = await runAqueductProcess(["db", "generate"], projectDirectory);
-      expect(res.exitCode, 0);
+      res = await terminal.runAqueductCommand("db", ["generate"]);
+      expect(res, 0);
 
-      var secondMigrationFile = new File.fromUri(migrationDirectory.uri.resolve("00000002_Unnamed.migration.dart"));
+      var secondMigrationFile =
+          new File.fromUri(terminal.migrationDirectory.uri.resolve("00000002_Unnamed.migration.dart"));
       expect(secondMigrationFile.readAsStringSync(), contains("database.deleteTable(\"foo\")"));
 
-      res = await runAqueductProcess(["db", "validate"], projectDirectory);
-      expect(res.exitCode, 0);
+      res = await terminal.runAqueductCommand("db", ["validate"]);
+      expect(res, 0);
     });
   });
 }
@@ -220,17 +210,13 @@ void main() {
 class Migration1 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(new SchemaTable("foo", [
-      new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)
-    ]));
+    database.createTable(
+        new SchemaTable("foo", [new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)]));
 
     //database.renameTable(currentSchema["tableToRename"], "renamedTable");
     database.deleteTable("tableToDelete");
 
-    database.addColumn(
-        "tableToKeep",
-        new SchemaColumn("addedColumn", ManagedPropertyType.integer,
-            defaultValue: "2"));
+    database.addColumn("tableToKeep", new SchemaColumn("addedColumn", ManagedPropertyType.integer, defaultValue: "2"));
     database.deleteColumn("tableToKeep", "columnToDelete");
     //database.renameColumn()
     database.alterColumn("tableToKeep", "columnToEdit", (col) {
@@ -240,10 +226,10 @@ class Migration1 extends Migration {
 
   @override
   Future downgrade() async {}
+
   @override
   Future seed() async {}
 }
-
 
 class MockMigratable extends CLICommand with CLIDatabaseMigratable, CLIProject {
   MockMigratable(this.projectDirectory);
