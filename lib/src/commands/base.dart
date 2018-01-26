@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/commands/running_process.dart';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path_lib;
 import 'package:yaml/yaml.dart';
@@ -59,6 +60,10 @@ abstract class CLICommand implements CLIResultHandler {
 
   @override
   ArgResults values;
+
+  StoppableProcess get runningProcess {
+    return _commandMap.values.firstWhere((cmd) => cmd.runningProcess != null, orElse: () => null)?.runningProcess;
+  }
 
   bool get showColors => values["color"];
 

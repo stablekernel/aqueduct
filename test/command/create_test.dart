@@ -1,62 +1,59 @@
 import 'dart:io';
-import 'dart:async';
 
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 import 'cli_helpers.dart';
 import 'package:path/path.dart' as path_lib;
 
-Directory temporaryDirectory = new Directory.fromUri(Directory.current.uri.resolve("test_project"));
-
 void main() {
-  setUpAll(() {
-    Process.runSync("pub", ["global", "activate", "-spath", Directory.current.path]);
+  Terminal terminal;
+
+  setUp(() {
+    terminal = new Terminal(Terminal.temporaryDirectory);
   });
 
   tearDown(() {
-    if (temporaryDirectory.existsSync()) {
-      temporaryDirectory.deleteSync(recursive: true);
-    }
+    Terminal.deleteTemporaryDirectory();
   });
 
   group("Project naming", () {
     test("Appropriately named project gets created correctly", () async {
-      var res = await runWith(["test_project"]);
-      expect(res.exitCode, 0);
+      final res = await terminal.runAqueductCommand("create", ["test_project", "--offline"]);
+      expect(res, 0);
 
-      expect(new Directory(path_lib.join(temporaryDirectory.path)).existsSync(), true);
+      expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), true);
     });
 
     test("Project name with bad characters fails immediately", () async {
-      var res = await runWith(["!@"]);
-      expect(res.exitCode, isNot(0));
-      expect(res.output, contains("Invalid project name"));
-      expect(res.output, contains("snake_case"));
+      final res = await terminal.runAqueductCommand("create", ["!@", "--offline"]);
+      expect(res, isNot(0));
+      expect(terminal.output, contains("Invalid project name"));
+      expect(terminal.output, contains("snake_case"));
 
-      expect(temporaryDirectory.existsSync(), false);
+      expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), false);
     });
 
     test("Project name with uppercase characters fails immediately", () async {
-      var res = await runWith(["ANeatApp"]);
-      expect(res.exitCode, isNot(0));
-      expect(res.output, contains("Invalid project name"));
-      expect(res.output, contains("snake_case"));
+      final res = await terminal.runAqueductCommand("create", ["ANeatApp", "--offline"]);
+      expect(res, isNot(0));
+      expect(terminal.output, contains("Invalid project name"));
+      expect(terminal.output, contains("snake_case"));
 
-      expect(temporaryDirectory.existsSync(), false);
+      expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), false);
     });
 
     test("Project name with dashes fails immediately", () async {
-      var res = await runWith(["a-neat-app"]);
-      expect(res.exitCode, isNot(0));
-      expect(res.output, contains("Invalid project name"));
-      expect(res.output, contains("snake_case"));
+      final res = await terminal.runAqueductCommand("create", ["a-neat-app", "--offline"]);
+      expect(res, isNot(0));
+      expect(terminal.output, contains("Invalid project name"));
+      expect(terminal.output, contains("snake_case"));
 
-      expect(temporaryDirectory.existsSync(), false);
+      expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), false);
     });
 
     test("Not providing name returns error", () async {
-      var res = await runWith([]);
-      expect(res.exitCode, isNot(0));
+      final res = await terminal.runAqueductCommand("create");
+      expect(res, isNot(0));
     });
   });
 
@@ -65,17 +62,9 @@ void main() {
       // This test will fail if you add or change the name of a template.
       // If you are adding a template, just add it to this list. If you are renaming/deleting a template,
       // make sure there is still a 'default' template.
-      var result = await runWith(["list-templates"]);
+      await terminal.runAqueductCommand("create", ["list-templates"]);
       var names = ["db", "db_and_auth", "default"];
-      var lines = result.output.split("\n");
-
-      // [0;1m-- Aqueduct CLI Version: 2.1.1[0m
-      // [0;1m-- Available templates:[0m
-      // [0m    [0m
-      // [0m    default - an empty Aqueduct application[0m
-      // [0m    db - an Aqueduct application with a database connection and data model[0m
-      // [0m    db_and_auth - an Aqueduct application with a database connection, data model and OAuth 2.0 endpoints[0m
-      //
+      var lines = terminal.output.split("\n");
 
       expect(lines.length, names.length + 4);
       for (var n in names) {
@@ -84,10 +73,10 @@ void main() {
     });
 
     test("Template gets generated from local path, project points to it", () async {
-      var res = await runWith(["test_project"]);
-      expect(res.exitCode, 0);
+      var res = await terminal.runAqueductCommand("create", ["test_project", "--offline"]);
+      expect(res, 0);
 
-      var aqueductLocationString = new File.fromUri(temporaryDirectory.uri.resolve(".packages"))
+      var aqueductLocationString = new File.fromUri(terminal.workingDirectory.uri.resolve("test_project/").resolve(".packages"))
           .readAsStringSync()
           .split("\n")
           .firstWhere((p) => p.startsWith("aqueduct:"))
@@ -116,28 +105,14 @@ void main() {
       });
 
       test("Tests run on template generated from local path", () async {
-        expect((await runWith(["test_project", "-t", template])).exitCode, 0);
+        expect((await terminal.runAqueductCommand("create", ["test_project", "-t", template, "--offline"])), 0);
 
         var res = Process.runSync("pub", ["run", "test", "-j", "1"],
-            runInShell: true, workingDirectory: temporaryDirectory.path);
+            runInShell: true, workingDirectory: terminal.workingDirectory.uri.resolve("test_project").path);
 
         expect(res.stdout, contains("All tests passed"));
         expect(res.exitCode, 0);
       });
     }
   });
-}
-
-Future<CLIResult> runWith(List<String> args) {
-  var allArgs = ["create"];
-  allArgs.addAll(args);
-
-  return runAqueductProcess(allArgs, Directory.current);
-}
-
-void addLinesToFile(File file, String afterFindingThisString, String insertThisString) {
-  var contents = file.readAsStringSync();
-  var indexOf = contents.indexOf(afterFindingThisString) + afterFindingThisString.length;
-  var newContents = contents.replaceRange(indexOf, indexOf, insertThisString);
-  file.writeAsStringSync(newContents);
 }

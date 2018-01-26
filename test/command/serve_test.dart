@@ -9,88 +9,77 @@ import 'package:pub_semver/pub_semver.dart';
 import 'cli_helpers.dart';
 
 void main() {
-  var temporaryDirectory = new Directory("test_project");
-  var testDirectory =
-      new Directory.fromUri(Directory.current.uri.resolve("test"));
-  var commandDirectory =
-      new Directory.fromUri(testDirectory.uri.resolve("command"));
-  var sourceDirectory =
-      new Directory.fromUri(commandDirectory.uri.resolve("serve_test_project"));
-
-  tearDown(() async {
-    await runAqueductProcess(["serve", "stop"], temporaryDirectory);
-    if (temporaryDirectory.existsSync()) {
-      temporaryDirectory.deleteSync(recursive: true);
-    }
-  });
+  Terminal terminal;
+  CLITask task;
 
   setUp(() async {
-    createTestProject(sourceDirectory, temporaryDirectory);
-    await runPubGet(temporaryDirectory, offline: true);
+    terminal = await Terminal.createProject();
+    await terminal.getDependencies(offline: true);
+  });
+
+  tearDown(() async {
+    await task?.process?.stop(0);
+    Terminal.deleteTemporaryDirectory();
   });
 
   test("Served application starts and responds to route", () async {
-    var res =
-        await runAqueductProcess(["serve", "--detached"], temporaryDirectory);
-    print("${res.exitCode} ${res.output}");
-    expect(res.exitCode, 0);
-    expect(res.output, contains("port 8888"));
-    expect(res.output, contains("config.yaml"));
+    task = terminal.startAqueductCommand("serve", []);
+    await task.hasStarted;
 
+    expect(terminal.output, contains("Port: 8888"));
+    expect(terminal.output, contains("config.yaml"));
 
-    var thisPubspec = yaml.loadYaml(new File("pubspec.yaml").readAsStringSync());
+    var thisPubspec = yaml.loadYaml(new File.fromUri(Directory.current.uri.resolve("pubspec.yaml")).readAsStringSync());
     var thisVersion = new Version.parse(thisPubspec["version"]);
-    expect(res.output, contains("CLI Version: $thisVersion"));
-    expect(res.output, contains("Aqueduct project version: $thisVersion"));
-    
-    
-    var result = await http.get("http://localhost:8888/endpoint");
+    expect(terminal.output, contains("CLI Version: $thisVersion"));
+    expect(terminal.output, contains("Aqueduct project version: $thisVersion"));
+
+    var result = await http.get("http://localhost:8888/example");
     expect(result.statusCode, 200);
+
+    task.process.stop(0);
+    expect(await task.exitCode, 0);
   });
 
-  test("Ensure we don't find the base ApplicatioNChannel class", () async {
-    var libDir = new Directory.fromUri(temporaryDirectory.uri.resolve("lib"));
-    var libFile = new File.fromUri(libDir.uri.resolve("wildfire.dart"));
-    libFile.writeAsStringSync("import 'package:aqueduct/aqueduct.dart';");
+  test("Ensure we don't find the base ApplicationChannel class", () async {
+    terminal.addOrReplaceFile("lib/application_test.dart", "import 'package:aqueduct/aqueduct.dart';");
 
-    var res = await runAqueductProcess(["serve"], temporaryDirectory);
-    expect(res.exitCode, isNot(0));
-    expect(res.output, contains("No ApplicationChannel subclass"));
+    task = terminal.startAqueductCommand("serve", []);
+    task.hasStarted.catchError((_) => null);
+    expect(await task.exitCode, isNot(0));
+    expect(terminal.output, contains("No ApplicationChannel subclass"));
   });
 
   test("Exception throw during initializeApplication halts startup", () async {
-    var libDir = new Directory.fromUri(temporaryDirectory.uri.resolve("lib"));
-    var libFile = new File.fromUri(libDir.uri.resolve("wildfire.dart"));
-    addLinesToFile(
-        libFile,
-        "class WildfireChannel extends ApplicationChannel {",
-        """
-    static Future initializeApplication(ApplicationOptions x) async { throw new Exception("error"); }
-    """);
+    terminal.modifyFile("lib/channel.dart", (contents) {
+      return contents.replaceFirst("extends ApplicationChannel {", """extends ApplicationChannel {
+static Future initializeApplication(ApplicationOptions x) async { throw new Exception("error"); }            
+      """);
+    });
 
-    var res = await runAqueductProcess(["serve"], temporaryDirectory);
-    expect(res.exitCode, isNot(0));
-    expect(res.output, contains("Application failed to start"));
-    expect(res.output, contains("Exception: error")); // error generated
-    expect(res.output, contains("WildfireChannel.initializeApplication")); // stacktrace
+    task = terminal.startAqueductCommand("serve", []);
+
+    task.hasStarted.catchError((_) => null);
+    expect(await task.exitCode, isNot(0));
+    expect(terminal.output, contains("Application failed to start"));
+    expect(terminal.output, contains("Exception: error")); // error generated
+    expect(terminal.output, contains("TestChannel.initializeApplication")); // stacktrace
   });
 
   test("Start with valid SSL args opens https server", () async {
     var certFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.cert.pem"));
     var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
 
-    certFile.copySync(temporaryDirectory.uri.resolve("server.crt").path);
-    keyFile.copySync(temporaryDirectory.uri.resolve("server.key").path);
+    certFile.copySync(terminal.workingDirectory.uri.resolve("server.crt").path);
+    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
 
-    var res = await runAqueductProcess(
-          ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
-          temporaryDirectory);
-    print("${res.output}");
-    expect(res.exitCode, 0);
+    task = terminal.startAqueductCommand("serve",
+        ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
+    await task.hasStarted;
 
     var completer = new Completer();
     var socket = await SecureSocket.connect("localhost", 8888, onBadCertificate: (_) => true);
-    var request = "GET /endpoint HTTP/1.1\r\nConnection: close\r\nHost: localhost\r\n\r\n";
+    var request = "GET /example HTTP/1.1\r\nConnection: close\r\nHost: localhost\r\n\r\n";
     socket.add(request.codeUnits);
 
     socket.listen((bytes) => completer.complete(bytes));
@@ -103,60 +92,50 @@ void main() {
     var certFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.cert.pem"));
     var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
 
-    certFile.copySync(temporaryDirectory.uri.resolve("server.crt").path);
-    keyFile.copySync(temporaryDirectory.uri.resolve("server.key").path);
+    certFile.copySync(terminal.workingDirectory.uri.resolve("server.crt").path);
+    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
 
-    var res = await runAqueductProcess(
-        ["serve", "--detached", "--ssl-key-path", "server.key"],
-        temporaryDirectory);
-    expect(res.exitCode, 1);
+    task = terminal.startAqueductCommand("serve", ["--ssl-key-path", "server.key"]);
+    task.hasStarted.catchError((_) => null);
+    expect(await task.exitCode, isNot(0));
 
-    res = await runAqueductProcess(
-        ["serve", "--detached", "--ssl-certificate-path", "server.crt"],
-        temporaryDirectory);
-    expect(res.exitCode, 1);
+    task = terminal.startAqueductCommand("serve", ["--ssl-certificate-path", "server.crt"]);
+    task.hasStarted.catchError((_) => null);
+    expect(await task.exitCode, isNot(0));
   });
 
   test("Start with invalid SSL values throws exceptions", () async {
     var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
-    keyFile.copySync(temporaryDirectory.uri.resolve("server.key").path);
+    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
 
-    var badCertFile = new File.fromUri(temporaryDirectory.uri.resolve("server.crt"));
+    var badCertFile = new File.fromUri(terminal.workingDirectory.uri.resolve("server.crt"));
     badCertFile.writeAsStringSync("foobar");
 
-    var res = await runAqueductProcess(
-        ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
-        temporaryDirectory);
-    expect(res.exitCode, 1);
+    task = terminal.startAqueductCommand("serve",
+        ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
+    task.hasStarted.catchError((_) => null);
+    expect(await task.exitCode, isNot(0));
   });
 
   test("Can't find SSL file, throws exception", () async {
     var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
-    keyFile.copySync(temporaryDirectory.uri.resolve("server.key").path);
+    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
 
-    var res = await runAqueductProcess(
-        ["serve", "--detached", "--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"],
-        temporaryDirectory);
-    expect(res.exitCode, 1);
+    task = terminal.startAqueductCommand("serve",
+        ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
+    task.hasStarted.catchError((_) => null);
+    expect(await task.exitCode, isNot(0));
   });
-
 
   test("Run application with invalid code fails with error", () async {
-    var f = new File.fromUri(temporaryDirectory.uri.resolve("lib/").resolve("wildfire.dart"));
-    addLinesToFile(f, "import", "ajsdjklasd");
+    terminal.modifyFile("lib/channel.dart", (contents) {
+      return contents.replaceFirst("import", "importasjakads");
+    });
 
-    var res = await runAqueductProcess(["serve", "--detached"], temporaryDirectory);
+    task = terminal.startAqueductCommand("serve", []);
+    task.hasStarted.catchError((_) => null);
 
-    expect(res.exitCode, isNot(0));
-    expect(res.output, contains("unexpected token"));
+    expect(await task.exitCode, isNot(0));
+    expect(terminal.output, contains("unexpected token"));
   });
-}
-
-void addLinesToFile(
-    File file, String afterFindingThisString, String insertThisString) {
-  var contents = file.readAsStringSync();
-  var indexOf =
-      contents.indexOf(afterFindingThisString) + afterFindingThisString.length;
-  var newContents = contents.replaceRange(indexOf, indexOf, insertThisString);
-  file.writeAsStringSync(newContents);
 }

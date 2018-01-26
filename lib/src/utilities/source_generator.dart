@@ -71,7 +71,7 @@ class IsolateExecutor {
     if (packageConfigURI != null &&
         !(new File.fromUri(packageConfigURI).existsSync())) {
       throw new IsolateExecutorException(
-          "packageConfigURI specified but does not exist '${packageConfigURI.path}'.");
+          "Package file '$packageConfigURI' not found.");
     }
 
     var onErrorPort = new ReceivePort()
