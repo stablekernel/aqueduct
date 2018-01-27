@@ -71,7 +71,7 @@ void main() {
       expect(doc.info.description, "test-description");
     });
 
-    group("Paths", () {
+    group("Operations", () {
       test("All paths in Router accounted for", () {
         expect(doc.paths.length, 4);
         expect(doc.paths.containsKey("/path"), true);
@@ -134,17 +134,13 @@ void main() {
         expect(doc.components.parameters["x-api-key"], isNotNull);
       });
 
-      test("Componentable property in channel automatically emit components", () {
+      test("APIComponentDocumenter properties in channel are automatically emitted in components", () {
         expect(doc.components.schemas["someObject"], isNotNull);
         expect(doc.components.schemas["named-component"], isNotNull);
         expect(doc.components.schemas["ref-component"], isNotNull);
       });
 
-      test("Componentable getter in channel does not automatically emit components", () {
-        expect(doc.components.schemas["won't-show-up"], isNull);
-      });
-
-      test("Regular instance method in channel does not automatically emit component", () {
+      test("Componentable getter/regular instance method in channel does not automatically emit components", () {
         expect(doc.components.schemas["won't-show-up"], isNull);
       });
 

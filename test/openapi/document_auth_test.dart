@@ -60,7 +60,9 @@ void main() {
     });
   });
 
-  group("Controller Registration", () {});
+  group("Controller Registration", () {
+    test("nyi", () => throw 'NYI');
+  });
 }
 
 class TestChannel extends ApplicationChannel {
