@@ -65,14 +65,16 @@ class IsolateExecutor {
 
     if (packageConfigURI != null &&
         !(new File.fromUri(packageConfigURI).existsSync())) {
-      throw new IsolateExecutorException(
-          "Package file '$packageConfigURI' not found.");
+      throw new StateError("Package file '$packageConfigURI' not found. Run 'pub get' and retry.");
     }
 
     var onErrorPort = new ReceivePort()
       ..listen((err) {
-        if (err is List) {
-          completer.completeError(err.first, new StackTrace.fromString(err.last));
+        if (err is List<String>) {
+          final source = Uri.encodeComponent(generator.source);
+          final stack = new StackTrace.fromString(err.last.replaceAll(source, ""));
+
+          completer.completeError(new StateError(err.first), stack);
         } else {
           completer.completeError(err);
         }
@@ -106,13 +108,4 @@ class IsolateExecutor {
       controlPort.close();
     }
   }
-}
-
-class IsolateExecutorException implements Exception {
-  IsolateExecutorException(this.message);
-
-  final String message;
-
-  @override
-  String toString() => "IsolateExecutorException: $message";
 }

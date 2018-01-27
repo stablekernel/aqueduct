@@ -181,6 +181,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     } catch (e) {
       destinationDirectory.deleteSync(recursive: true);
       displayError("$e");
+      rethrow;
     }
   }
 
