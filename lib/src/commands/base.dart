@@ -28,8 +28,8 @@ export 'setup.dart';
 class CLIException {
   CLIException(this.message, {this.instructions});
 
-  List<String> instructions;
-  String message;
+  final List<String> instructions;
+  final String message;
 
   @override
   String toString() => message;
@@ -138,31 +138,17 @@ abstract class CLICommand implements CLIResultHandler {
 
       return await handle();
     } on CLIException catch (e, st) {
-      displayError(e.message);
+      displayError("Reason: " + e.message);
       e.instructions?.forEach((instruction) {
         displayProgress(instruction);
       });
-      print("");
-      if (showStacktrace) {
-        displayError("Offending Stacktrace ***", color: CLIColor.red);
-        print("$st");
-      }
-    } on IsolateExecutorException catch (e, st) {
-      displayError(e.message);
-      displayProgress("Try running 'pub get' first.");
-      print("");
 
       if (showStacktrace) {
-        displayError("Offending Stacktrace ***", color: CLIColor.red);
-        print("$st");
+        printStackTrace(st);
       }
     } catch (e, st) {
-      displayError("$e");
-      print("");
-      if (showStacktrace) {
-        displayError("Offending Stacktrace ***", color: CLIColor.red);
-        print("$st");
-      }
+      displayError("Reason: $e");
+      printStackTrace(st);
     } finally {
       await cleanup();
     }
@@ -272,6 +258,17 @@ abstract class CLICommand implements CLIResultHandler {
     ProcessResult results = Process.runSync(locator, [name], runInShell: true);
 
     return results.exitCode == 0;
+  }
+
+  void printStackTrace(StackTrace st) {
+    outputSink.writeln("  **** Stacktrace");
+    st.toString().split("\n").forEach((line) {
+      if (line.isEmpty) {
+        outputSink.writeln("  ****");
+      } else {
+        outputSink.writeln("  * $line");
+      }
+    });
   }
 }
 

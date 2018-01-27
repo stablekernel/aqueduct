@@ -19,9 +19,7 @@ class CLIAuth extends CLICommand {
   }
 
   @override
-  Future cleanup() async {
-
-  }
+  Future cleanup() async {}
 
   @override
   String get name {
@@ -52,11 +50,14 @@ class CLIAuth extends CLICommand {
 class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
   CLIAuthScopeClient() {
     options
-      ..addOption("scopes", help: "A space-delimited list of allowed scopes. Omit if application does not support scopes.", defaultsTo: "")
+      ..addOption("scopes",
+          help: "A space-delimited list of allowed scopes. Omit if application does not support scopes.",
+          defaultsTo: "")
       ..addOption("id", abbr: "i", help: "The client ID to insert.");
   }
 
   String get clientID => values["id"];
+
   List<String> get scopes {
     var v = values["scopes"] as String;
     if (v.isEmpty) {
@@ -79,32 +80,22 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     ManagedContext.defaultContext = new ManagedContext.standalone(dataModel, persistentStore);
 
-    var scopingClient = new AuthClient.public(
-        clientID, allowedScopes: scopes?.map((s) => new AuthScope(s))?.toList());
+    var scopingClient = new AuthClient.public(clientID, allowedScopes: scopes?.map((s) => new AuthScope(s))?.toList());
 
     var query = new Query<ManagedAuthClient>()
       ..where.id = whereEqualTo(clientID)
       ..values.allowedScope = scopingClient.allowedScopes?.map((s) => s.scopeString)?.join(" ");
 
-
-    try {
-      var result = await query.updateOne();
-      if (result == null) {
-        displayError("Client ID '$clientID' does not exist.");
-        return 1;
-      }
-
-      displayInfo("Success", color: CLIColor.green);
-      displayProgress("Client with ID '$clientID' has been updated.");
-      displayProgress("Updated scope: ${result.allowedScope}");
-      return 0;
-    } catch (e) {
-      displayError("Updating Client Scope Failed");
-
-      displayProgress("$e");
+    var result = await query.updateOne();
+    if (result == null) {
+      displayError("Client ID '$clientID' does not exist.");
+      return 1;
     }
 
-    return 1;
+    displayInfo("Success", color: CLIColor.green);
+    displayProgress("Client with ID '$clientID' has been updated.");
+    displayProgress("Updated scope: ${result.allowedScope}");
+    return 0;
   }
 
   @override
@@ -126,36 +117,48 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
 class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
   CLIAuthAddClient() {
     options
-      ..addOption("allowed-scopes", help: "A space-delimited list of allowed scopes. Omit if application does not support scopes.", defaultsTo: "")
+      ..addOption("allowed-scopes",
+          help: "A space-delimited list of allowed scopes. Omit if application does not support scopes.",
+          defaultsTo: "")
       ..addOption("id", abbr: "i", help: "The client ID to insert.")
-      ..addOption("hash-rounds", help: "Number of hash rounds to apply to secret. Must match AuthServer.hashRounds.", defaultsTo: "1000")
-      ..addOption("hash-length", help: "Length in bytes of secret key after hashing. Must match AuthServer.hashLength.", defaultsTo: "32")
-      ..addOption("hash-function", help: "Hash function to apply when hashing secret. Must match AuthServer.hashFunction.", defaultsTo: "sha256", allowed: [
-        "sha256", "sha1", "md5"
-      ])
-
+      ..addOption("hash-rounds",
+          help: "Number of hash rounds to apply to secret. Must match AuthServer.hashRounds.", defaultsTo: "1000")
+      ..addOption("hash-length",
+          help: "Length in bytes of secret key after hashing. Must match AuthServer.hashLength.", defaultsTo: "32")
+      ..addOption("hash-function",
+          help: "Hash function to apply when hashing secret. Must match AuthServer.hashFunction.",
+          defaultsTo: "sha256",
+          allowed: ["sha256", "sha1", "md5"])
       ..addOption("secret",
           abbr: "s",
           help:
               "The client secret. This secret will be hashed on insertion, so you *must* store it somewhere. For public clients, this option may be omitted.")
       ..addOption("redirect-uri",
           abbr: "r",
-          help:
-              "The redirect URI of the client if it supports the authorization code flow. May be omitted.");
+          help: "The redirect URI of the client if it supports the authorization code flow. May be omitted.");
   }
 
   String get clientID => values["id"];
+
   String get secret => values["secret"];
+
   String get redirectUri => values["redirect-uri"];
+
   Hash get hashFunction {
-    switch(values["hash-function"]) {
-      case "sha256": return sha256;
-      case "sha1": return sha1;
-      case "md5": return md5;
-      default: throw new CLIException("Value '${values["hash-function"]}' is not valid for option hash-function.");
+    switch (values["hash-function"]) {
+      case "sha256":
+        return sha256;
+      case "sha1":
+        return sha1;
+      case "md5":
+        return md5;
+      default:
+        throw new CLIException("Value '${values["hash-function"]}' is not valid for option hash-function.");
     }
   }
+
   int get hashRounds => int.parse(values["hash-rounds"]);
+
   int get hashLength => int.parse(values["hash-length"]);
 
   List<String> get allowedScopes {
@@ -174,8 +177,7 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     }
 
     if (secret == null && redirectUri != null) {
-      displayError(
-          "A client that supports the authorization code flow must be a confidential client");
+      displayError("A client that supports the authorization code flow must be a confidential client");
       displayProgress(
           "Using option --redirect-uri creates a client that supports the authorization code flow. Either provide --secret or remove --redirect-uri.");
       return 1;
@@ -184,9 +186,8 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     ManagedContext.defaultContext = new ManagedContext(dataModel, persistentStore);
 
-    var credentials = AuthUtility.generateAPICredentialPair(
-        clientID, secret, redirectURI: redirectUri,
-        hashLength: hashLength, hashRounds: hashRounds, hashFunction: hashFunction)
+    var credentials = AuthUtility.generateAPICredentialPair(clientID, secret,
+        redirectURI: redirectUri, hashLength: hashLength, hashRounds: hashRounds, hashFunction: hashFunction)
       ..allowedScopes = allowedScopes?.map((s) => new AuthScope(s))?.toList();
 
     var managedCredentials = new ManagedAuthClient()
@@ -204,17 +205,19 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
       displayInfo("Success", color: CLIColor.green);
       displayProgress("Client with ID '$clientID' has been added.");
       if (secret != null) {
-        displayProgress(
-            "The client secret has been hashed. You must store it elsewhere, as it cannot be retrieved.");
+        displayProgress("The client secret has been hashed. You must store it elsewhere, as it cannot be retrieved.");
       }
       if (managedCredentials.allowedScope != null) {
         displayProgress("Allowed scope: ${managedCredentials.allowedScope}");
       }
       return 0;
     } on QueryException catch (e) {
-      displayError("Adding Client Failed");
       if (e.event == QueryExceptionEvent.conflict) {
-        displayProgress("Client already exists, conflict on ${e.offendingItems.map((c) => "'$c'").join(",")}");
+        if (e.offendingItems.contains("id")) {
+          displayError("Client ID '$clientID' already exists.");
+        } else if (e.offendingItems.contains("redirectURI")) {
+          displayError("Redirect URI '$redirectUri' already exists.");
+        }
 
         return 1;
       }
