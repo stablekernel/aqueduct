@@ -261,16 +261,14 @@ abstract class CLICommand implements CLIResultHandler {
   }
 
   void printStackTrace(StackTrace st) {
-    if (showStacktrace) {
-      print("  **** Stacktrace");
-      st.toString().split("\n").forEach((line) {
-        if (line.isEmpty) {
-          print("  ****");
-        } else {
-          print("  * $line");
-        }
-      });
-    }
+    outputSink.writeln("  **** Stacktrace");
+    st.toString().split("\n").forEach((line) {
+      if (line.isEmpty) {
+        outputSink.writeln("  ****");
+      } else {
+        outputSink.writeln("  * $line");
+      }
+    });
   }
 }
 
