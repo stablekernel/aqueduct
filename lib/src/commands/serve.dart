@@ -89,10 +89,8 @@ class CLIServer extends CLICommand with CLIProject {
     try {
       runningProcess = await start();
     } catch (e, st) {
-      displayError("Application failed to start:");
-      displayProgress("$e");
-      displayProgress("$st");
-      exitCode.complete(1);
+      displayError("Application failed to start.");
+      exitCode.completeError(e, st);
     }
 
     return exitCode.future;

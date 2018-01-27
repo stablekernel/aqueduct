@@ -23,7 +23,7 @@ class CLIDatabaseVersion extends CLIDatabaseConnectingCommand {
       displayProgress("  Password: *** not echoed ***");
       displayProgress("  Database: ${connectedDatabase.databaseName}");
 
-      return -1;
+      return 1;
     }
 
     return 0;
