@@ -510,7 +510,7 @@ class CORSChannel extends ApplicationChannel with AuthValidator {
   }
 }
 
-class NoPolicyController extends RESTController {
+class NoPolicyController extends ResourceController {
   NoPolicyController() {
     policy = null;
   }
@@ -526,7 +526,7 @@ class NoPolicyController extends RESTController {
   }
 }
 
-class DefaultPolicyController extends RESTController {
+class DefaultPolicyController extends ResourceController {
   @Operation.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
@@ -538,7 +538,7 @@ class DefaultPolicyController extends RESTController {
   }
 }
 
-class RestrictiveNoCredsOriginController extends RESTController {
+class RestrictiveNoCredsOriginController extends ResourceController {
   RestrictiveNoCredsOriginController() {
     policy.allowedOrigins = ["http://exclusive.com"];
     policy.allowCredentials = false;
@@ -556,7 +556,7 @@ class RestrictiveNoCredsOriginController extends RESTController {
   }
 }
 
-class RestrictiveOriginController extends RESTController {
+class RestrictiveOriginController extends ResourceController {
   RestrictiveOriginController() {
     policy.allowedOrigins = ["http://exclusive.com"];
     policy.exposedResponseHeaders = ["foobar", "x-foo"];
@@ -573,7 +573,7 @@ class RestrictiveOriginController extends RESTController {
   }
 }
 
-class OptionsController extends RESTController {
+class OptionsController extends ResourceController {
   OptionsController() {
     policy = null;
   }
@@ -584,13 +584,13 @@ class OptionsController extends RESTController {
   }
 }
 
-class SingleMethodController extends RESTController {
+class SingleMethodController extends ResourceController {
   SingleMethodController() {
     policy.allowedMethods = ["GET"];
   }
 }
 
-class AdditiveController extends RESTController {
+class AdditiveController extends ResourceController {
   AdditiveController() {
     policy.exposedResponseHeaders.add("X-Header");
   }

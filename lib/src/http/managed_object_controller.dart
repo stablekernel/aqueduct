@@ -38,7 +38,7 @@ import 'http.dart';
 /// - pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [Query.pageBy] for more information.
 /// - pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [Query.pageBy] for more information.
 /// - sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
-class ManagedObjectController<InstanceType extends ManagedObject> extends RESTController {
+class ManagedObjectController<InstanceType extends ManagedObject> extends ResourceController {
   /// Creates an instance of a [ManagedObjectController].
   ///
   /// [context] defaults to [ManagedContext.defaultContext].

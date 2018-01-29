@@ -1,6 +1,6 @@
 import 'dart:mirrors';
 
-import '../rest_controller_binding.dart';
+import '../resource_controller_bindings.dart';
 import '../request.dart';
 import 'bindings.dart';
 
@@ -15,9 +15,9 @@ bool requestHasFormData(Request request) {
   return false;
 }
 
-Map<Symbol, dynamic> toSymbolMap(Iterable<HTTPValueBinding> boundValues) {
+Map<Symbol, dynamic> toSymbolMap(Iterable<BoundValue> boundValues) {
   return new Map.fromIterable(boundValues.where((v) => v.value != null),
-      key: (HTTPValueBinding v) => v.symbol, value: (HTTPValueBinding v) => v.value);
+      key: (BoundValue v) => v.symbol, value: (BoundValue v) => v.value);
 }
 
 

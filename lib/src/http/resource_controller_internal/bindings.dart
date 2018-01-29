@@ -8,8 +8,8 @@ import '../response.dart';
 import 'internal.dart';
 
 /// Parent class for annotations used for optional parameters in controller methods
-abstract class HTTPBinding {
-  HTTPBinding(this.externalName);
+abstract class BoundInput {
+  BoundInput(this.externalName);
 
   /// The name of the variable in the HTTP request.
   final String externalName;
@@ -83,21 +83,21 @@ abstract class HTTPBinding {
   }
 }
 
-class HTTPValueBinding {
-  HTTPValueBinding(this.value, {this.symbol});
+class BoundValue {
+  BoundValue(this.value, {this.symbol});
 
-  HTTPValueBinding.deferred(this.deferredBinder, {this.symbol});
+  BoundValue.deferred(this.deferredBinder, {this.symbol});
 
-  HTTPValueBinding.error(this.errorMessage);
+  BoundValue.error(this.errorMessage);
 
   Symbol symbol;
   dynamic value;
-  RESTControllerParameterBinder deferredBinder;
+  BoundParameter deferredBinder;
   String errorMessage;
 }
 
-class HTTPPath extends HTTPBinding {
-  HTTPPath(String segment) : super(segment);
+class BoundPath extends BoundInput {
+  BoundPath(String segment) : super(segment);
 
   @override
   String get type => "Path";
@@ -111,8 +111,8 @@ class HTTPPath extends HTTPBinding {
   }
 }
 
-class HTTPHeader extends HTTPBinding {
-  HTTPHeader(String header) : super(header);
+class BoundHeader extends BoundInput {
+  BoundHeader(String header) : super(header);
 
   @override
   String get type => "Header";
@@ -127,8 +127,8 @@ class HTTPHeader extends HTTPBinding {
   }
 }
 
-class HTTPQuery extends HTTPBinding {
-  HTTPQuery(String key) : super(key);
+class BoundQueryParameter extends BoundInput {
+  BoundQueryParameter(String key) : super(key);
 
   @override
   String get type => "Query Parameter";
@@ -159,8 +159,8 @@ class HTTPQuery extends HTTPBinding {
   }
 }
 
-class HTTPBody extends HTTPBinding {
-  HTTPBody() : super(null);
+class BoundBody extends BoundInput {
+  BoundBody() : super(null);
 
   @override
   String get type => "Body";
@@ -219,8 +219,8 @@ class HTTPBody extends HTTPBinding {
   }
 }
 
-class HTTPBodyBindingException implements Exception {
-  HTTPBodyBindingException(this.message);
+class BoundBodyException implements Exception {
+  BoundBodyException(this.message);
 
   String message;
 

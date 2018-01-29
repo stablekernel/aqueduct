@@ -36,7 +36,7 @@
         - `Serialize` now replaces `managedTransientAttribute`, `managedTransientInputAttribute`, and `managedTransientOutputAttribute`.
     - `RequestController` -> `Controller`
     - `RequestController.processRequest` -> `Controller.handle`
-    - `HTTPController` -> `RESTController`
+    - `HTTPController` -> `ResourceController`
     - `Router.unhandledRequestController` -> `Router.unmatchedController`
     - `TestClient.fromConfig` -> `TestClient.fromOptions`        
         

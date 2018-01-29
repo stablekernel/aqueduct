@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:mirrors';
 
 import '../response.dart';
-import '../rest_controller.dart';
-import '../rest_controller_binding.dart';
+import '../resource_controller.dart';
+import '../resource_controller_bindings.dart';
 import '../request.dart';
 import 'internal.dart';
 
-class HTTPRequestBinding {
+class BoundOperation {
   Symbol methodSymbol;
   Map<Symbol, dynamic> properties = {};
   List<dynamic> positionalMethodArguments = [];
@@ -21,44 +21,52 @@ class HTTPRequestBinding {
   }
 }
 
-class RESTControllerBinder {
-  RESTControllerBinder(this.controllerType) {
-    var allDeclarations = reflectClass(controllerType).declarations;
+class BoundController {
+  factory BoundController(Type controllerType) {
+    if (!_controllerBinders.containsKey(controllerType)) {
+      _controllerBinders[controllerType] = new BoundController._(controllerType);
+    }
 
-    var boundProperties = allDeclarations.values
+    return _controllerBinders[controllerType];
+  }
+
+  BoundController._(this.controllerType) {
+    final allDeclarations = reflectClass(controllerType).declarations;
+
+    final boundProperties = allDeclarations.values
         .where((decl) => decl is VariableMirror)
         .where((decl) => decl.metadata.any((im) => im.reflectee is Bind))
         .map((decl) {
       var isRequired = allDeclarations[decl.simpleName].metadata.any((im) => im.reflectee is HTTPRequiredParameter);
-      return new RESTControllerParameterBinder(decl, isRequired: isRequired);
+      return new BoundParameter(decl, isRequired: isRequired);
     });
-    propertyBinders.addAll(boundProperties);
+    properties.addAll(boundProperties);
 
-    methodBinders = reflectClass(controllerType)
+    methods = reflectClass(controllerType)
         .instanceMembers
         .values
         .where(isOperation)
-        .map((decl) => new RESTControllerMethodBinder(decl))
+        .map((decl) => new BoundMethod(decl))
         .toList();
   }
 
   Type controllerType;
-  List<RESTControllerParameterBinder> propertyBinders = [];
-  List<RESTControllerMethodBinder> methodBinders;
+  List<BoundParameter> properties = [];
+  List<BoundMethod> methods;
 
-  List<RESTControllerParameterBinder> parametersForOperation(Operation op) {
+  List<BoundParameter> parametersForOperation(Operation op) {
     final methodBinder =
-        methodBinders.firstWhere((b) => b.isSuitableForRequest(op.method, op.pathVariables), orElse: () => null);
+        methods.firstWhere((b) => b.isSuitableForRequest(op.method, op.pathVariables), orElse: () => null);
 
-    return [propertyBinders, methodBinder?.positionalParameters ?? [], methodBinder?.optionalParameters ?? []]
+    return [properties, methodBinder?.positionalParameters ?? [], methodBinder?.optionalParameters ?? []]
         .expand((i) => i)
         .toList();
   }
 
   List<String> get unsatisfiableOperations {
-    return methodBinders
+    return methods
         .where((binder) {
-          final argPathParameters = binder.positionalParameters.where((p) => p.binding is HTTPPath);
+          final argPathParameters = binder.positionalParameters.where((p) => p.binding is BoundPath);
 
           return !argPathParameters.every((p) => binder.pathVariables.contains(p.name));
         })
@@ -67,9 +75,9 @@ class RESTControllerBinder {
   }
 
   List<String> get conflictingOperations {
-    return methodBinders
+    return methods
         .where((sourceBinder) {
-          final possibleConflicts = methodBinders.where((b) => b != sourceBinder);
+          final possibleConflicts = methods.where((b) => b != sourceBinder);
 
           return possibleConflicts.any((comparedBinder) {
             if (comparedBinder.httpMethod != sourceBinder.httpMethod) {
@@ -87,76 +95,52 @@ class RESTControllerBinder {
         .toList();
   }
 
-  RESTControllerMethodBinder methodBinderForRequest(Request req) {
-    return methodBinders.firstWhere(
+  BoundMethod methodBinderForRequest(Request req) {
+    return methods.firstWhere(
         (binder) => binder.isSuitableForRequest(req.raw.method, req.path.variables.keys.toList()),
         orElse: () => null);
   }
 
   // Used to respond with 405 when there is no operation method for HTTP method
   List<String> allowedMethodsForPathVariables(Iterable<String> pathVariables) {
-    return methodBinders
+    return methods
         .where((binder) => binder.isSuitableForRequest(null, pathVariables.toList()))
         .map((binder) => binder.httpMethod)
         .toList();
   }
 
-  // Used during document generation
-  bool hasRequiredBindingsForMethod(MethodMirror mm) {
-    if (propertyBinders.any((binder) => binder.isRequired)) {
-      return true;
-    }
-
-    if (isOperation(mm)) {
-      // todo (joeconwaystk): seems like we are creating a duplicate RESTControllerMethodBinder here
-      // it likely already exists in methodBinders.
-      RESTControllerMethodBinder method = new RESTControllerMethodBinder(mm);
-      return method.positionalParameters.any((p) => p.binding is! HTTPPath && p.isRequired);
-    }
-
-    return false;
-  }
-
-  static Map<Type, RESTControllerBinder> _controllerBinders = {};
-
-  static void addBinder(RESTControllerBinder binder) {
-    _controllerBinders[binder.controllerType] = binder;
-  }
-
-  static RESTControllerBinder binderForType(Type t) {
-    return _controllerBinders[t];
-  }
+  static Map<Type, BoundController> _controllerBinders = {};
 
   // At the end of this method, request.body.decodedData will have been invoked.
-  static Future<HTTPRequestBinding> bindRequest(RESTController controller, Request request) async {
-    var controllerBinder = binderForType(controller.runtimeType);
-    var methodBinder = controllerBinder.methodBinderForRequest(request);
-    if (methodBinder == null) {
+  static Future<BoundOperation> bindRequestToOperation(ResourceController controller, Request request) async {
+    final boundController = new BoundController(controller.runtimeType);
+    final boundMethod = boundController.methodBinderForRequest(request);
+    if (boundMethod == null) {
       throw new Response(405,
-          {"Allow": controllerBinder.allowedMethodsForPathVariables(request.path.variables.keys).join(", ")}, null);
+          {"Allow": boundController.allowedMethodsForPathVariables(request.path.variables.keys).join(", ")}, null);
     }
 
-    var parseWith = (RESTControllerParameterBinder binder) {
+    final parseWith = (BoundParameter binder) {
       var value = binder.parse(request);
       if (value == null && binder.isRequired) {
-        return new HTTPValueBinding.error("missing required ${binder.binding.type} '${binder.name ?? ""}'");
+        return new BoundValue.error("missing required ${binder.binding.type} '${binder.name ?? ""}'");
       }
 
-      return new HTTPValueBinding(value, symbol: binder.symbol);
+      return new BoundValue(value, symbol: binder.symbol);
     };
 
-    var initiallyBindWith = (RESTControllerParameterBinder binder) {
-      if (binder.binding is HTTPBody || (binder.binding is HTTPQuery && requestHasFormData(request))) {
-        return new HTTPValueBinding.deferred(binder, symbol: binder.symbol);
+    final initiallyBindWith = (BoundParameter binder) {
+      if (binder.binding is BoundBody || (binder.binding is BoundQueryParameter && requestHasFormData(request))) {
+        return new BoundValue.deferred(binder, symbol: binder.symbol);
       }
 
       return parseWith(binder);
     };
 
-    var properties = controllerBinder.propertyBinders.map(initiallyBindWith).toList();
-    var positional = methodBinder.positionalParameters.map(initiallyBindWith).toList();
-    var optional = methodBinder.optionalParameters.map(initiallyBindWith).toList();
-    var flattened = [
+    final properties = boundController.properties.map(initiallyBindWith).toList();
+    final positional = boundMethod.positionalParameters.map(initiallyBindWith).toList();
+    final optional = boundMethod.optionalParameters.map(initiallyBindWith).toList();
+    final flattened = [
       properties,
       positional,
       optional,
@@ -189,8 +173,8 @@ class RESTControllerBinder {
       throw new Response.badRequest(body: {"error": errorMessage});
     }
 
-    return new HTTPRequestBinding()
-      ..methodSymbol = methodBinder.methodSymbol
+    return new BoundOperation()
+      ..methodSymbol = boundMethod.methodSymbol
       ..positionalMethodArguments = positional.map((v) => v.value).toList()
       ..optionalMethodArguments = toSymbolMap(optional)
       ..properties = toSymbolMap(properties);

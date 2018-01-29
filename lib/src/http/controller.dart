@@ -19,7 +19,7 @@ typedef FutureOr<RequestOrResponse> _Handler(Request request);
 /// together to form a series of steps that fully handle a request. This composability allows for reuse
 /// of common tasks (like verifying an Authorization header) that can be inserted as a step for many different requests.
 ///
-/// This class is intended to be subclassed. [ApplicationChannel], [Router], [RESTController] are all examples of this type.
+/// This class is intended to be subclassed. [ApplicationChannel], [Router], [ResourceController] are all examples of this type.
 /// Subclasses should implement [handle] to respond to, modify or forward requests.
 class Controller implements APIComponentDocumenter, APIOperationDocumenter {
   /// Default constructor.
