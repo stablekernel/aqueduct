@@ -4,8 +4,8 @@ For convenience in creating files and writing common code, the following Intelli
 
 ## File Templates
 
-- Aqueduct RESTController
-    - Creates a new file with the skeleton of an `RESTController`.
+- Aqueduct ResourceController
+    - Creates a new file with the skeleton of an `ResourceController`.
 - Aqueduct ManagedObject
     - Creates a new file with the skeleton of a `ManagedObject` subclass
 - Aqueduct Test
@@ -16,7 +16,7 @@ After [installation](#installation), file templates are available through any In
 ## Live Templates
 
 - 'bindmethod'
-    - Enters a skeleton of an `RESTController` operation method - after insertion, enter the HTTP method to finish the method declaration.
+    - Enters a skeleton of an `ResourceController` operation method - after insertion, enter the HTTP method to finish the method declaration.
 - 'bindheader'  
     - Enters an `@Bind.header` binding - after insertion, enter the name of the header.
 - 'bindquery'

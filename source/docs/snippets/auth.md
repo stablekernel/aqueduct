@@ -80,7 +80,7 @@ class AppChannel extends ApplicationChannel {
   }
 }
 
-class ProfileController extends RESTController {
+class ProfileController extends ResourceController {
   @Operation.get()
   Future<Response> getProfile() async {
     var id = request.authorization.resourceOwnerIdentifier;

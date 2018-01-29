@@ -73,7 +73,7 @@ class Authorizer extends Controller {
 Controllers let a request pass to their linked controller by returning the request from `handle`. (Whereas returning a `Response` sends the response, and the linked controller never sees the request.)
 
 !!! tip "Endpoint Controllers"
-    In most cases, endpoint controllers are created by subclassing [RESTController](rest_controller.md). This controller allows you to declare more than one handler method in a controller to better organize logic. For example, one method might handle POST requests, while another handles GET requests.
+    In most cases, endpoint controllers are created by subclassing [ResourceController](resource_controller.md). This controller allows you to declare more than one handler method in a controller to better organize logic. For example, one method might handle POST requests, while another handles GET requests.
 
 ## Linking Functions
 
@@ -86,19 +86,24 @@ For simple behavior, functions with the same signature as `handle` can be linked
     .linkFunction((req) async => new Response.ok(null));
 ```
 
-Linking a function has all of the same behavior: it can return a request or response, automatically handles exceptions, and can have controllers (and functions) linked to it. 
+Linking a function has all of the same behavior: it can return a request or response, automatically handles exceptions, and can have controllers (and functions) linked to it.
 
 ## Exception Handling
 
-`Controller`s wrap `handle` in a try-catch block. If an exception is thrown during the processing of a request, it is caught and the controller will send a response on your behalf. The request is then removed from the channel and no more controllers will receive it.
+If an exception or error is thrown during the handling of a request, the controller currently handling the request will catch it. For the majority of values caught, a controller will send a 500 Server Response. The details of the exception or error will be [logged](configure.md), and the request is completed (it will not be passed to a linked controller).
 
-By default, an uncaught exception will send a 500 Server Error response to the client. The error will be [logged](configure.md). For more control over the error response, an `HTTPResponseException`s can be thrown.
+This is the default behavior for all thrown values except two: `Response` and `HandlerException`.
+
+### Throwing Responses
+
+A `Response` can be thrown at any time; the controller handling the request will catch it and send it to the client. This completes the request. This might not seem useful, for example, the following shows a silly use of this behavior:
 
 ```dart
-class SomeController extends Controller {
+class Thrower extends Controller {
+  @override
   Future<RequestOrResponse> handle(Request request) async {
-    if (somethingBadHappened) {
-      throw new HTTPResponseException(400, "Something bad happened.");
+    if (!isForbidden(request)) {
+      throw new Response.forbidden();
     }
 
     return new Response.ok(null);
@@ -106,19 +111,49 @@ class SomeController extends Controller {
 }
 ```
 
-The message of an `HTTPResponseException` is encoded as JSON in the response body:
+However, it can be valuable to send error responses from elsewhere in code as an application's codebase becomes more layered.
 
-```json
-{
-  "error": "Something bad happened."
+### Throwing HandlerExceptions
+
+Exceptions can implement `HandlerException` to provide a response other than the default when thrown. For example, an application that handles bank  transactions might declare an exception for invalid withdrawals:
+
+```dart
+enum WithdrawalProblem {
+  insufficientFunds,
+  bankClosed
+}
+class WithdrawalException implements Exception {
+  AccountException(this.problem);
+
+  final WithdrawalProblem problem;
 }
 ```
 
-There are built-in subclasses of `HTTPResponseException` for features like the ORM, and you can create your own. `HTTPResponseException`s are not logged, because they are considered normal control flow for an application.
+Controller code might catch this exception to return a different status code depending on the exact problem with a withdrawal. If this code has to be written in multiple places, it is useful for `WithdrawalException` to implement `HandlerException`. An implementor must provide an implementation for `response`:
+
+```dart
+class WithdrawalException implements Exception {
+  AccountException(this.problem);
+
+  final WithdrawalProblem problem;
+
+  @override
+  Response get response {
+    switch (problem) {
+      case WithdrawalProblem.insufficientFunds:
+        return new Response.badRequest(body: {"error": "insufficient_funds"});
+      case WithdrawalProblem.bankClosed:
+        return new Response.badRequest(body: {"error": "bank_closed"});
+    }
+  }
+}
+```
+
+The Aqueduct ORM exceptions (`QueryException`) implement `HandlerException` to return a response that best represents the ORM exception. For example, if a unique constraint is violated by a query, the thrown exception implements `response` to return a 409 Conflict response.
 
 ## Modifying a Response with Middleware
 
-A middleware controller can modify the response created by an endpoint controller:
+A middleware controller can adding *response modifier* to a request. When an endpoint controller eventually creates a response, these modifiers are applied to it before it is sent. Modifiers are added by invoking `addResponseModifier` on a request.
 
 ```dart
 class Versioner extends Controller {
@@ -132,7 +167,9 @@ class Versioner extends Controller {
 }
 ```
 
-While this controller does not create a response for the request, another controller will. That response will have an 'x-api-version' header added to it before it is sent. More than one controller can add a response modifier, and each modifier is run in the order it are added to a request. The modifiers are run before any response body data is encoded.
+When a request passes through this controller, the response will have the header `x-api-version: 2.1`.
+
+Any number of controllers can add a response modifier to a request; they will be processed in the order that they were added. Response modifiers are applied before the response body is encoded, allowing the body object to be manipulated.
 
 ## CORS Headers and Preflight Requests
 

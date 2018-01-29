@@ -14,7 +14,7 @@
 	<key>BackgroundGraphic</key>
 	<dict>
 		<key>Bounds</key>
-		<string>{{0, 0}, {1151.9999694824219, 733}}</string>
+		<string>{{0, 0}, {1151.9999542236328, 733}}</string>
 		<key>Class</key>
 		<string>SolidGraphic</string>
 		<key>ID</key>
@@ -404,7 +404,8 @@
 {\*\expandedcolortbl;;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs30 \cf1 RESTController}</string>
+\f0\fs30 \cf1 Resource\
+Controller}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -472,7 +473,8 @@
 {\*\expandedcolortbl;;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs30 \cf1 RESTController}</string>
+\f0\fs30 \cf1 Resource\
+Controller}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -676,7 +678,8 @@
 {\*\expandedcolortbl;;}
 \pard\tx560\tx1120\tx1680\tx2240\tx2800\tx3360\tx3920\tx4480\tx5040\tx5600\tx6160\tx6720\pardirnatural\qc
 
-\f0\fs30 \cf1 RESTController}</string>
+\f0\fs30 \cf1 Resource\
+Controller}</string>
 				<key>VerticalPad</key>
 				<integer>0</integer>
 			</dict>
@@ -865,7 +868,7 @@
 	<key>MasterSheets</key>
 	<array/>
 	<key>ModificationDate</key>
-	<string>2017-05-29 17:45:57 +0000</string>
+	<string>2018-01-29 21:25:17 +0000</string>
 	<key>Modifier</key>
 	<string>Joe Conway</string>
 	<key>NotesVisible</key>
@@ -896,22 +899,12 @@
 		<key>NSPaperSize</key>
 		<array>
 			<string>size</string>
-			<string>{611.99998474121094, 792}</string>
+			<string>{611.99997711181641, 792}</string>
 		</array>
 		<key>NSPrintReverseOrientation</key>
 		<array>
 			<string>int</string>
 			<string>0</string>
-		</array>
-		<key>NSPrinter</key>
-		<array>
-			<string>coded</string>
-			<string>BAtzdHJlYW10eXBlZIHoA4QBQISEhAlOU1ByaW50ZXIAhIQITlNPYmplY3QAhZKEhIQITlNTdHJpbmcBlIQBKxJDYW5vbiBNWDQ1MCBzZXJpZXOGhg==</string>
-		</array>
-		<key>NSPrinterName</key>
-		<array>
-			<string>string</string>
-			<string>Canon MX450 series</string>
 		</array>
 		<key>NSRightMargin</key>
 		<array>

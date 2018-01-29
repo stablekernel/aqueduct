@@ -141,8 +141,8 @@ The default policy is very permissive: POST, PUT, DELETE and GET are allowed met
 Each individual controller can override or replace the default policy by modifying its own `policy` in its constructor.
 
 ```dart
-class MyRESTController extends RESTController {
-  MyRESTController() {
+class MyResourceController extends ResourceController {
+  MyResourceController() {
     policy.allowedMethods = ["POST"];
   }
 }

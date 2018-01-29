@@ -54,7 +54,7 @@ class AppChannel extends ApplicationChannel {
   }
 }
 
-class Controller extends RESTController {
+class Controller extends ResourceController {
   final List<String> things = const ['thing1', 'thing2'];
 
   @Operation.get()

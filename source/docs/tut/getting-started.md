@@ -236,16 +236,16 @@ In your shell currently running the application, hit Ctrl-C to stop the applicat
 
 You can verify that your server is responding correctly by executing `curl -X GET http://localhost:8888/heroes/11` to view the single hero object. You can also trigger a 404 Not Found response by getting a hero that doesn't exist.
 
-## RESTControllers and Operation Methods
+## ResourceControllers and Operation Methods
 
 Our `HeroesController` is OK right now, but it'll soon run into a problem: what happens when we want to create a new hero? Or update an existing hero's name? Our `handle` method will start to get unmanageable, quickly.
 
-That's where `RESTController` comes in. With a `RESTController`, we can create a distinct method for each operation that we can perform on our heroes. One method will handle getting a list of heroes, another will handle getting a single hero, and so on. Each method has an annotation that identifies the HTTP method and path variables the request must have to trigger it.
+That's where `ResourceController` comes in. With a `ResourceController`, we can create a distinct method for each operation that we can perform on our heroes. One method will handle getting a list of heroes, another will handle getting a single hero, and so on. Each method has an annotation that identifies the HTTP method and path variables the request must have to trigger it.
 
-In `heroes_controller.dart`, change the superclass of `HeroesController` to `RESTController` and then split the request handling logic into two methods.
+In `heroes_controller.dart`, change the superclass of `HeroesController` to `ResourceController` and then split the request handling logic into two methods.
 
 ```dart
-class HeroesController extends RESTController {
+class HeroesController extends ResourceController {
   final heroes = [
     {'id': 11, 'name': 'Mr. Nice'},
     {'id': 12, 'name': 'Narco'},
@@ -272,7 +272,7 @@ class HeroesController extends RESTController {
 }
 ```
 
-Notice that we didn't have to override `handle` - `RESTController` already overrides that method to pick the appropriate method for the request.
+Notice that we didn't have to override `handle` - `ResourceController` already overrides that method to pick the appropriate method for the request.
 These methods are called *operation methods*. The method - `getAllHeroes` and `getHeroByID` - both have an `Operation` annotation. The named constructor `Operation.get` means these methods get called when the request's method is GET.
 
 `getHeroByID`'s annotation also has an argument - the name of our path variable `id`. If that path variable exists in the request's path, `getHeroByID` will be called. If it doesn't exist, `getAllHeroes` will be called.

@@ -1,6 +1,6 @@
-# RESTController
+# ResourceController
 
-A `RESTController` is a [controller](controller.md) that provide conveniences for organizing and streamlining request handling logic. A `RESTController` must be subclassed. A subclass handles every operation on a HTTP resource collection and each resource in that collection. For example, a subclassed named `UserController` might handle the following operations:
+A `ResourceController` is a [controller](controller.md) that provide conveniences for organizing and streamlining request handling logic. A `ResourceController` must be subclassed. A subclass handles every operation on a HTTP resource collection and each resource in that collection. For example, a subclassed named `UserController` might handle the following operations:
 
 - creating a new user (`POST /users`)
 - getting all users (`GET /users`)
@@ -8,14 +8,14 @@ A `RESTController` is a [controller](controller.md) that provide conveniences fo
 - updating an individual user (`PUT /users/:id`)
 - deleting an individual user (`DELETE /users/:id`)
 
-A `RESTController` subclass implements an *operation method* for each operation that it supports.
+A `ResourceController` subclass implements an *operation method* for each operation that it supports.
 
 ## Operation Methods
 
-An operation method is an instance method of a `RESTController` subclass that has an `@Operation` annotation. It must return an instance of `Future<Response>`. Here's an example:
+An operation method is an instance method of a `ResourceController` subclass that has an `@Operation` annotation. It must return an instance of `Future<Response>`. Here's an example:
 
 ```dart
-class CityController extends RESTController {
+class CityController extends ResourceController {
   @Operation.get()
   Future<Response> getAllCities() async {
     return new Response.ok(["Atlanta", "Madison", "Mountain View"]);
@@ -26,7 +26,7 @@ class CityController extends RESTController {
 The above operation method will be invoked when `CityController` handles `GET` requests without path variables. To handle operation methods with path variables, the name of the path variable is added to the `@Operation` annotation:
 
 ```dart
-class CityController extends RESTController {
+class CityController extends ResourceController {
   @Operation.get()
   Future<Response> getAllCities() async {
     return new Response.ok(["Atlanta", "Madison", "Mountain View"]);
@@ -70,9 +70,9 @@ Future<Response> getUserItem() async {
 
 If no operation method exists for an operation, a 405 Method Not Allowed response is automatically sent and no operation method is invoked.
 
-## Routing to a RESTController
+## Routing to a ResourceController
 
-A `RESTController` subclass must be preceded by a `Router` in the application channel. The `Router` will parse path variables so that the controller can use them to determine which operation method should be invoked. A typical route to a `RESTController` contains an optional identifying path variable:
+A `ResourceController` subclass must be preceded by a `Router` in the application channel. The `Router` will parse path variables so that the controller can use them to determine which operation method should be invoked. A typical route to a `ResourceController` contains an optional identifying path variable:
 
 ```dart
 router
@@ -123,7 +123,7 @@ You may bind any number of HTTP request properties to a single operation method.
 The following operation method binds the header named `X-API-Key` to `apiKey`:
 
 ```dart
-class CityController extends RESTController {
+class CityController extends ResourceController {
   @Operation.get()
   Future<Response> getAllCities(@Bind.header('x-api-key') String apiKey) async {
     if (!isValid(apiKey)) {
@@ -155,7 +155,7 @@ Header names are case-insensitive per the HTTP specification. Therefore, the hea
 
 The following operation methods binds the query parameter named 'name' to the parameter `cityName`:
 
-class CityController extends RESTController {
+class CityController extends ResourceController {
   @Operation.get()
   Future<Response> getAllCities(@Bind.query('name') String cityName) async {
     return new Response.ok(cities.where((c) => c.name == cityName).toList());
@@ -173,7 +173,7 @@ Query parameters may also bound for query strings in the request body when the c
 The following operation method binds the path variable 'id' to the parameter `cityID`:
 
 ```dart
-class CityController extends RESTController {
+class CityController extends ResourceController {
   @Operation.get('id')
   Future<Response> getCityByID(@Bind.query('id') String cityID) async {
     return new Response.ok(cities.where((c) => c.id == cityID).toList());
@@ -234,7 +234,7 @@ Note that if a parameter is *not* bound to a list and there are multiple occurre
 The body of an HTTP request can also be bound to a parameter:
 
 ```dart
-class CityController extends RESTController {
+class CityController extends ResourceController {
   @Operation.post()
   Future<Response> addCity(@Bind.body() City city) async {
     final query = new Query<City>()
@@ -311,10 +311,10 @@ Note that if the request's `Content-Type` is 'x-www-form-urlencoded' and the que
 
 ### Property Binding
 
-The properties of an `RESTController`s may also have `Bind.query` and `Bind.header` metadata. This binds values from the request to the `RESTController` instance itself, making them accessible from *all* operation methods.
+The properties of an `ResourceController`s may also have `Bind.query` and `Bind.header` metadata. This binds values from the request to the `ResourceController` instance itself, making them accessible from *all* operation methods.
 
 ```dart
-class CityController extends RESTController {
+class CityController extends ResourceController {
   @requiredHTTPParameter
   @Bind.header("x-timestamp")
   DateTime timestamp;
@@ -331,16 +331,16 @@ class CityController extends RESTController {
 
 In the above, both `timestamp` and `limit` are bound prior to `getCities` being invoked. By default, a bound property is optional. Adding an `requiredHTTPParameter` annotation changes a property to required.. If required, any request without the required property fails with a 400 Bad Request status code and none of the operation methods are invoked.
 
-## Other RESTController Behavior
+## Other ResourceController Behavior
 
-Besides binding, `RESTController`s have some other behavior that is important to understand.
+Besides binding, `ResourceController`s have some other behavior that is important to understand.
 
 ### Request and Response Bodies
 
-An `RESTController` can limit the content type of HTTP request bodies it accepts. By default, an `RESTController` will accept only `application/json` request bodies for its `POST` and `PUT` methods. This can be modified by setting the `acceptedContentTypes` property in the constructor.
+An `ResourceController` can limit the content type of HTTP request bodies it accepts. By default, an `ResourceController` will accept only `application/json` request bodies for its `POST` and `PUT` methods. This can be modified by setting the `acceptedContentTypes` property in the constructor.
 
 ```dart
-class UserController extends RESTController {
+class UserController extends ResourceController {
   UserController() {
     acceptedContentTypes = [ContentType.JSON, ContentType.XML];
   }
@@ -366,10 +366,10 @@ Future<Response> createThing() async {
 }
 ```
 
-An `RESTController` can also have a default content type for its responses. By default, this is `application/json`. This default can be changed by changing `responseContentType` in the constructor:
+An `ResourceController` can also have a default content type for its responses. By default, this is `application/json`. This default can be changed by changing `responseContentType` in the constructor:
 
 ```dart
-class UserController extends RESTController {
+class UserController extends ResourceController {
   UserController() {
     responseContentType = ContentType.XML;
   }
@@ -379,7 +379,7 @@ class UserController extends RESTController {
 The `responseContentType` is the *default* response content type. An individual `Response` may set its own `contentType`, which takes precedence over the `responseContentType`. For example, the following controller returns JSON by default, but if the request specifically asks for XML, that's what it will return:
 
 ```dart
-class UserController extends RESTController {
+class UserController extends ResourceController {
   UserController() {
     responseContentType = ContentType.JSON;
   }
@@ -397,11 +397,11 @@ class UserController extends RESTController {
 }
 ```
 
-### More Specialized RESTControllers
+### More Specialized ResourceControllers
 
-Many `RESTController` subclasses will execute [queries](../db/executing_queries.md). There are helpful `RESTController` subclasses for reducing boilerplate code.
+Many `ResourceController` subclasses will execute [queries](../db/executing_queries.md). There are helpful `ResourceController` subclasses for reducing boilerplate code.
 
-A `QueryController<T>` builds a `Query<T>` based on the incoming request. If the request has a body, this `Query<T>`'s `values` property is read from that body. If the request has a path variable, the `Query<T>` assigns a matcher to the primary key value of its `where`. For example, in a normal `RESTController` that responds to a PUT request, you might write the following:
+A `QueryController<T>` builds a `Query<T>` based on the incoming request. If the request has a body, this `Query<T>`'s `values` property is read from that body. If the request has a path variable, the `Query<T>` assigns a matcher to the primary key value of its `where`. For example, in a normal `ResourceController` that responds to a PUT request, you might write the following:
 
 ```dart
 @Operation.put('id')

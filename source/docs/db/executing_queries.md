@@ -86,7 +86,7 @@ var query = new Query<User>()
 
 By default, the returned object from an `insert()` will have all of its properties set. See a later section on configuring which properties are returned from a `Query<T>`.
 
-If an insert query fails because of a conflict - a unique constraint is violated - the `Query<T>` will throw a `QueryException`.  See a later section on how `QueryException`s are gracefully handled by `Controller`s. In short, it is unlikely that you have to handle `QueryException` directly - `Controller`s know how to turn them into the appropriate HTTP response.
+If an insert query fails because of a unique constraint is violated, a `QueryException` will be thrown.  See a later section on how `QueryException`s are gracefully handled by `Controller`s. In short, it is unlikely that you have to handle `QueryException` directly - `Controller`s know how to turn them into the appropriate HTTP response.
 
 ### Updating Data with a Query
 
@@ -234,7 +234,11 @@ Thus, the following three names would be ordered like so: 'Sally Smith', 'John W
 
 ### Exceptions and Errors
 
-An exception encountered in preparing or executing a query will throw a `QueryException`. `Controller`s, by default, will interpret the event of a `QueryException` to return a `Response` to an HTTP client. For common scenarios Aqueduct will return a reasonable status code to the requesting HTTP client. Therefore, you do not have to catch query exceptions unless you wish to override the suggested status code.
+When executing a query, it may fail for any number of reasons: the query is invalid, a database couldn't be reached, constraints were violated, etc. In many cases, this exception originates from the underlying database driver. When thrown in a controller, these exceptions will trigger a 500 Server Error response.
+
+Exceptions that are thrown in response to user input (e.g., violating a database constraint, invalid data type) are re-interpreted into a `QueryException` or `ValidationException`. Both of these exception types have an associated `Response` object that is sent instead of the default 500 Server error.
+
+For this reason, you don't need to catch database query exceptions in a controller; an appropriate response will be sent on your behalf.
 
 ### Statement Reuse
 

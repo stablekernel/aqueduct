@@ -85,9 +85,9 @@ Use the convention of [config.src.yaml file](../http/configure.md) to prevent co
 
 See more in [Application Structure](../http/structure.md).
 
-### Use RESTController Subclasses
+### Use ResourceController Subclasses
 
-Subclassing [RESTController](../http/rest_controller.md) provides significant conveniences, safeties and behaviors used by the majority of an application's request handling logic. Prefer to use this class for non-middleware controllers.
+Subclassing [ResourceController](../http/resource_controller.md) provides significant conveniences, safeties and behaviors used by the majority of an application's request handling logic. Prefer to use this class for non-middleware controllers.
 
 ### Keep ApplicationChannel Tidy
 

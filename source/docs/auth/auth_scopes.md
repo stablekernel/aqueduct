@@ -177,7 +177,7 @@ A request's token must have all of the scopes declared by the `Authorizer` - in 
 This type of protection is often useful, but within a particular controller you may want finer control. For example, you may want to require a different level of access to `POST` than `GET`. You may check if an authorization has valid scopes at any time:
 
 ```dart
-class EmailController extend RESTController {
+class EmailController extend ResourceController {
   @Operation.get()
   Future<Response> getEmail() async {
     if (!request.authorization.authorizedForScope("user:email.readonly")) {

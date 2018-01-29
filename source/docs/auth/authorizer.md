@@ -62,7 +62,7 @@ A bearer token represents a granted authorization - at some point in the past, a
 Controllers protected by an `Authorizer` can access this information to further determine their behavior. For example, a social networking application might have a `/news_feed` endpoint protected by an `Authorizer`. When an authenticated user makes a request for `/news_feed`, the controller will return that user's news feed. It can determine this by using the `Authorization`:
 
 ```dart
-class NewsFeedController extends RESTController {
+class NewsFeedController extends ResourceController {
   @Operation.get()
   Future<Response> getNewsFeed() async {
     var forUserID = request.authorization.resourceOwnerIdentifier;
@@ -80,7 +80,7 @@ In the above controller, it's impossible for a user to access another user's pos
 `Authorization` objects also retain the scope of an access token so that a controller can make more granular decisions about the information/action in the endpoint. Checking whether an `Authorization` has access to a particular scope is accomplished by either looking at the list of its `scopes` or using `authorizedForScope`:
 
 ```dart
-class NewsFeedController extends RESTController {
+class NewsFeedController extends ResourceController {
   @Operation.get()
   Future<Response> getNewsFeed() async {
     if (!request.authorization.authorizedForScope("user:feed")) {

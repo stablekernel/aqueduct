@@ -117,7 +117,7 @@ var identifier = request.path.variables["id"];
 
 The values in `variables` are always `String`s, since a request path is a `String`. `Controller`s may parse path variables into types like `int`.
 
-[RESTController](rest_controller.md) uses path variables to select a operation method to handle a request.
+[ResourceController](resource_controller.md) uses path variables to select a operation method to handle a request.
 
 ## Failed Matches Return 404
 

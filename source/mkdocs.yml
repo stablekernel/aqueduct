@@ -34,7 +34,7 @@ pages:
     - 'Handling Requests: Fundamentals': 'http/controller.md'
     - 'Routing': 'http/routing.md'
     - 'Initialization and the ApplicationChannel': 'http/channel.md'
-    - 'Handling Requests: RESTController': 'http/rest_controller.md'
+    - 'Handling Requests: ResourceController': 'http/resource_controller.md'
     - 'Configuration': 'http/configure.md'
     - 'Serving Files and Caching': 'http/serving_files.md'
     - 'Websockets': 'http/websockets.md'

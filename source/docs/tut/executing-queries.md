@@ -88,7 +88,7 @@ The context will coordinate with these two objects to execute queries and transl
 In `heroes_controller.dart`, add a property and create a new constructor:
 
 ```dart
-class HeroesController extends RESTController {
+class HeroesController extends ResourceController {
   HeroesController(this.context);
 
   final ManagedContext context;
@@ -135,7 +135,7 @@ Let's start by replacing `getAllHeroes` in `heroes_controller.dart`. Make sure t
 import 'package:heroes/heroes.dart';
 import 'package:heroes/model/hero.dart';
 
-class HeroesController extends RESTController {
+class HeroesController extends ResourceController {
   HeroesController(this.context);
 
   final ManagedContext context;
@@ -295,8 +295,8 @@ The `@Bind.query('name')` annotation will bind the value of the 'name' query par
 
 Notice that `name` is an *optional parameter* (it is surrounded by curly brackets). An optional parameter in an operation method is also optional in the HTTP request. If we removed the curly brackets from this binding, the 'name' query parameter would become required and the request `GET /heroes` without `?name=x` would fail with a 400 Bad Request.
 
-!!! tip "RESTController Binding"
-    There is even more to bindings than we've shown (like automatically parsing bound values into types like `int` and `DateTime`). For more information, see [RESTControllers](../http/rest_controller.md).
+!!! tip "ResourceController Binding"
+    There is even more to bindings than we've shown (like automatically parsing bound values into types like `int` and `DateTime`). For more information, see [ResourceControllers](../http/resource_controller.md).
 
 Binding query and header parameters in a operation method is a good way to make your code more intentional and avoid boilerplate parsing code. Aqueduct is able to generate better documentation when using bindings.
 
