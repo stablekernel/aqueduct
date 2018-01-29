@@ -399,10 +399,13 @@ void main() {
   group("Documentation", () {
     Map<String, APIOperation> operations;
     setUpAll(() async {
-      final context = new APIDocumentContext(new APIDocument()..components = new APIComponents());
+      final context = new APIDocumentContext(new APIDocument()
+        ..info = new APIInfo("title", "1.0.0")
+        ..paths = {}
+        ..components = new APIComponents());
       AuthCodeController ac = new AuthCodeController(new AuthServer(new InMemoryAuthStorage()));
       ac.prepare();
-      operations = ac.documentOperations(context, new APIPath());
+      operations = ac.documentOperations(context, "/", new APIPath());
       await context.finalize();
     });
 

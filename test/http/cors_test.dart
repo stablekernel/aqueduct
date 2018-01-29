@@ -482,7 +482,7 @@ void expectThatNoCORSProcessingOccurred(dynamic resp) {
   }
 }
 
-class CORSChannel extends ApplicationChannel implements AuthValidator {
+class CORSChannel extends ApplicationChannel with AuthValidator {
   @override
   Controller get entryPoint {
     final router = new Router();
@@ -507,12 +507,6 @@ class CORSChannel extends ApplicationChannel implements AuthValidator {
       return null;
     }
     return new Authorization("a", 1, this);
-  }
-
-
-  @override
-  List<APISecurityRequirement> documentRequirementsForAuthorizer(Authorizer authorizer, {List<AuthScope> scopes}) {
-    return null;
   }
 }
 

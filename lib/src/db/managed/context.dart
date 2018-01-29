@@ -27,7 +27,7 @@ import 'package:aqueduct/src/openapi/documentable.dart';
 /// A [Query] must have a valid [ManagedContext] to execute. Most applications only need one [ManagedContext],
 /// so the most recently [ManagedContext] instantiated becomes the [ManagedContext.defaultContext]. By default, [Query]s
 /// target the [ManagedContext.defaultContext] and need not be specified.
-class ManagedContext extends Object with APIComponentDocumenter {
+class ManagedContext implements APIComponentDocumenter {
   /// The default context that a [Query] runs on.
   ///
   /// For classes that require a [ManagedContext] - like [Query] - this is the default context when none

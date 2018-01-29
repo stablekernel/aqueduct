@@ -21,7 +21,7 @@ typedef FutureOr<RequestOrResponse> _Handler(Request request);
 ///
 /// This class is intended to be subclassed. [ApplicationChannel], [Router], [RESTController] are all examples of this type.
 /// Subclasses should implement [handle] to respond to, modify or forward requests.
-class Controller extends Object with APIOperationDocumenter implements APIComponentDocumenter {
+class Controller implements APIComponentDocumenter, APIOperationDocumenter {
   /// Default constructor.
   ///
   /// For subclasses, override [handle] and do not provide [handler].
@@ -220,7 +220,7 @@ class Controller extends Object with APIOperationDocumenter implements APICompon
   Map<String, APIPath> documentPaths(APIDocumentContext context) => nextController?.documentPaths(context);
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
+  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
     if (nextController == null) {
       if (_handler == null) {
         throw new APIException(
@@ -230,7 +230,7 @@ class Controller extends Object with APIOperationDocumenter implements APICompon
       return {};
     }
 
-    return nextController?.documentOperations(context, path);
+    return nextController?.documentOperations(context, route, path);
   }
 
   @override
@@ -362,6 +362,6 @@ class _ControllerGenerator extends Controller {
   Map<String, APIPath> documentPaths(APIDocumentContext components) => nextInstanceToReceive.documentPaths(components);
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) =>
-      nextInstanceToReceive.documentOperations(components, path);
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) =>
+      nextInstanceToReceive.documentOperations(components, route, path);
 }

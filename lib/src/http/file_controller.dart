@@ -187,7 +187,7 @@ class HTTPFileController extends Controller {
   }
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) {
     return {
       "get": new APIOperation(
           "getFile",

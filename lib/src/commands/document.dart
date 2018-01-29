@@ -52,15 +52,15 @@ abstract class CLIDocumentOptions implements CLICommand {
           help:
               "The path to a configuration file that this application needs to initialize resources for the purpose of documenting its API.",
           defaultsTo: "config.src.yaml")
-      ..addOption("title", help: "API Docs: Title", defaultsTo: "Aqueduct App")
-      ..addOption("description", help: "API Docs: Description", defaultsTo: "An Aqueduct App")
-      ..addOption("version", help: "API Docs: Version", defaultsTo: "1.0")
-      ..addOption("tos", help: "API Docs: Terms of Service URL", defaultsTo: "")
-      ..addOption("contact-email", help: "API Docs: Contact Email", defaultsTo: "")
-      ..addOption("contact-name", help: "API Docs: Contact Name", defaultsTo: "")
-      ..addOption("contact-url", help: "API Docs: Contact URL", defaultsTo: "")
-      ..addOption("license-url", help: "API Docs: License URL", defaultsTo: "")
-      ..addOption("license-name", help: "API Docs: License Name", defaultsTo: "")
+      ..addOption("title", help: "API Docs: Title")
+      ..addOption("description", help: "API Docs: Description")
+      ..addOption("version", help: "API Docs: Version")
+      ..addOption("tos", help: "API Docs: Terms of Service URL")
+      ..addOption("contact-email", help: "API Docs: Contact Email")
+      ..addOption("contact-name", help: "API Docs: Contact Name")
+      ..addOption("contact-url", help: "API Docs: Contact URL")
+      ..addOption("license-url", help: "API Docs: License URL")
+      ..addOption("license-name", help: "API Docs: License Name")
       ..addOption("host",
           allowMultiple: true,
           help: "Scheme, host and port for available instances.",
@@ -71,37 +71,49 @@ abstract class CLIDocumentOptions implements CLICommand {
     var generator = new SourceGenerator((List<String> args, Map<String, dynamic> values) async {
       var config = new ApplicationOptions()..configurationFilePath = values["configPath"];
 
-      final pubspec = new File(values["pubspec"]);
-      var document = await Application.document(ApplicationChannel.defaultType, config, loadYaml(pubspec.readAsStringSync()));
+      var document = await Application.document(ApplicationChannel.defaultType, config, loadYaml(values["pubspec"]));
 
       document.servers =
           (values["hosts"] as List<Uri>)?.map((uri) => new APIServerDescription(uri))?.toList() ?? [];
-
       if (values["title"] != null) {
+        document.info ??= new APIInfo.empty();
         document.info.title = values["title"];
       }
       if (values["description"] != null) {
+        document.info ??= new APIInfo.empty();
         document.info.description = values["description"];
       }
       if (values["version"] != null) {
+        document.info ??= new APIInfo.empty();
         document.info.version = values["version"];
       }
       if (values["termsOfServiceURL"] != null) {
-        document.info.termsOfServiceURL = values["termsOfServiceURL"];
+        document.info ??= new APIInfo.empty();
+        document.info.termsOfServiceURL = Uri.parse(values["termsOfServiceURL"]);
       }
       if (values["contactEmail"] != null) {
+        document.info ??= new APIInfo.empty();
+        document.info.contact ??= new APIContact.empty();
         document.info.contact.email = values["contactEmail"];
       }
       if (values["contactName"] != null) {
+        document.info ??= new APIInfo.empty();
+        document.info.contact ??= new APIContact.empty();
         document.info.contact.name = values["contactName"];
       }
       if (values["contactURL"] != null) {
-        document.info.contact.url = values["contactURL"];
+        document.info ??= new APIInfo.empty();
+        document.info.contact ??= new APIContact.empty();
+        document.info.contact.url = Uri.parse(values["contactURL"]);
       }
       if (values["licenseURL"] != null) {
-        document.info.license.url = values["licenseURL"];
+        document.info ??= new APIInfo.empty();
+        document.info.license ??= new APILicense.empty();
+        document.info.license.url = Uri.parse(values["licenseURL"]);
       }
       if (values["licenseName"] != null) {
+        document.info ??= new APIInfo.empty();
+        document.info.license ??= new APILicense.empty();
         document.info.license.name = values["licenseName"];
       }
 
@@ -118,7 +130,7 @@ abstract class CLIDocumentOptions implements CLICommand {
     ]);
 
     final variables = {
-      "pubspecPath": pubspecFile.uri.toString(),
+      "pubspec": pubspecFile.readAsStringSync(),
       "hosts": hosts,
       "configPath": configurationPath,
       "title": title,
@@ -131,9 +143,6 @@ abstract class CLIDocumentOptions implements CLICommand {
       "licenseURL": licenseURL,
       "licenseName": licenseName
     };
-    variables.forEach((k, v) {
-      print("$k ${v.runtimeType}");
-    });
 
     var executor = new IsolateExecutor(generator, [libraryName],
         message: variables,
@@ -151,18 +160,10 @@ class CLIDocument extends CLICommand with CLIProject, CLIDocumentOptions {
 
   @override
   Future<int> handle() async {
-    try {
-      var documentMap = await documentProject(projectDirectory.uri, libraryName, projectSpecificationFile);
-      print("${JSON.encode(documentMap)}");
-    } catch (e, st) {
-      displayError("Failed to generate documentation");
-      displayProgress("$e");
-      if (showStacktrace) {
-        displayProgress("$st");
-      }
+    var documentMap = await documentProject(projectDirectory.uri, libraryName, projectSpecificationFile);
 
-      return -1;
-    }
+    outputSink.writeln("${JSON.encode(documentMap)}");
+
     return 0;
   }
 

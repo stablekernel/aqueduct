@@ -1,4 +1,7 @@
 import 'dart:mirrors';
+import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:open_api/v3.dart';
+
 import 'managed.dart';
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
@@ -63,7 +66,6 @@ abstract class ManagedPropertyDescription {
   /// by the database.
   final bool autoincrement;
 
-
   /// Whether or not a the argument can be assigned to this property.
   bool isAssignableWith(dynamic dartValue) => type.isAssignableWith(dartValue);
 
@@ -80,6 +82,31 @@ abstract class ManagedPropertyDescription {
   /// and turns it into a Dart representation . How this value is computed
   /// depends on this instance's definition.
   dynamic convertFromPrimitiveValue(dynamic value);
+
+  APISchemaObject documentSchemaObject(APIDocumentContext context);
+
+  APISchemaObject _typedSchemaObject(ManagedType type) {
+    switch (type.kind) {
+      case ManagedPropertyType.integer:
+        return new APISchemaObject.integer();
+      case ManagedPropertyType.bigInteger:
+        return new APISchemaObject.integer();
+      case ManagedPropertyType.doublePrecision:
+        return new APISchemaObject.number();
+      case ManagedPropertyType.string:
+        return new APISchemaObject.string();
+      case ManagedPropertyType.datetime:
+        return new APISchemaObject.string(format: "date-time");
+      case ManagedPropertyType.boolean:
+        return new APISchemaObject.boolean();
+      case ManagedPropertyType.list:
+        return new APISchemaObject.array(ofSchema: _typedSchemaObject(type.elements));
+      case ManagedPropertyType.map:
+        return new APISchemaObject.map(ofSchema: _typedSchemaObject(type.elements));
+    }
+
+    throw new UnsupportedError("Unsupported type '$type' when documenting entity.");
+  }
 }
 
 /// Stores the specifics of database columns in [ManagedObject]s as indicated by [Column].
@@ -174,6 +201,26 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   /// Whether or not this attribute is represented by a Dart enum.
   bool get isEnumeratedValue => enumerationValueMap != null;
+
+
+  @override
+  APISchemaObject documentSchemaObject(APIDocumentContext context) {
+    final prop = _typedSchemaObject(type);
+
+    // Add'l schema info
+    prop.isNullable = isNullable;
+    validators.forEach((v) => v.constrainSchemaObject(context, prop));
+
+    if (isTransient) {
+      if (transientStatus.isAvailableAsInput && !transientStatus.isAvailableAsOutput) {
+        prop.isWriteOnly = true;
+      } else if (!transientStatus.isAvailableAsInput && transientStatus.isAvailableAsOutput) {
+        prop.isReadOnly = true;
+      }
+    }
+
+    return prop;
+  }
 
   @override
   bool isAssignableWith(dynamic dartValue) {
@@ -319,6 +366,17 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       instance.readFromMap(v);
       return instance;
     }));
+  }
+
+  @override
+  APISchemaObject documentSchemaObject(APIDocumentContext context) {
+    final relatedType = context.schema.getObjectWithType(inverse.entity.instanceType.reflectedType);
+
+    if (relationshipType == ManagedRelationshipType.hasMany) {
+      return new APISchemaObject.array(ofSchema: relatedType);
+    }
+
+    return relatedType;
   }
 
   @override

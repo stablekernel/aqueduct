@@ -142,14 +142,20 @@ class AuthController extends RESTController {
   }
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
-    final operations = super.documentOperations(components, path);
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) {
+    final operations = super.documentOperations(components, route, path);
 
     operations.forEach((_, op) {
       op.security = [
         new APISecurityRequirement({"oauth2-client-authentication": []})
       ];
     });
+
+    authServer.documentedAuthorizationCodeFlow.tokenURL = new Uri(path: route);
+    authServer.documentedAuthorizationCodeFlow.refreshURL = new Uri(path: route);
+
+    authServer.documentedPasswordFlow.tokenURL = new Uri(path: route);
+    authServer.documentedPasswordFlow.refreshURL = new Uri(path: route);
 
     return operations;
   }
@@ -171,6 +177,12 @@ class AuthController extends RESTController {
           new APISchemaObject.object({"error": new APISchemaObject.string()}),
           contentTypes: ["application/json"])
     };
+  }
+
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    // password
   }
 
   Response _responseForError(AuthRequestError error) {

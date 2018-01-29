@@ -14,12 +14,15 @@ void main() {
     APIDocument doc;
     DateTime controllerDocumented;
     DateTime controllerPrepared;
+    DateTime appPrepared;
 
     setUpAll(() async {
       DefaultChannel.channelClosed = new Completer();
       DefaultChannel.controllerDocumented = new Completer();
       DefaultChannel.controllerPrepared = new Completer();
+      DefaultChannel.appPrepared = new Completer();
 
+      DefaultChannel.appPrepared.future.then((_) => appPrepared = new DateTime.now());
       DefaultChannel.controllerPrepared.future.then((_) => controllerPrepared = new DateTime.now());
       DefaultChannel.controllerDocumented.future.then((_) => controllerDocumented = new DateTime.now());
       doc = await Application.document(DefaultChannel, new ApplicationOptions(),
@@ -47,13 +50,124 @@ void main() {
       expect(controllerPrepared.isBefore(controllerDocumented), true);
     });
 
+    test("Static init is ran prior to controller prep", () async {
+      expect(appPrepared.isBefore(controllerPrepared), true);
+    });
+
     test("Channel is closed after documenting", () async {
       expect(DefaultChannel.channelClosed.future, completes);
     });
   });
 
-  group("Defer and component behavior", () {
+  group("Defer behavior", () {
+    APIDocumentContext ctx;
 
+    setUp(() async {
+      ctx = new APIDocumentContext(new APIDocument()
+        ..info = new APIInfo("test", "1.0.0")
+        ..paths = {}
+        ..components = new APIComponents());
+    });
+
+    test("Can defer async functions", () async {
+      final completer = new Completer();
+
+      ctx.defer(() {
+        return new Future(() => completer.complete());
+      });
+
+      await ctx.finalize();
+      expect(completer.future, completes);;
+    });
+
+    test("Can defer sync functions", () async {
+      final completer = new Completer();
+
+      ctx.defer(() {
+        completer.complete();
+      });
+
+      await ctx.finalize();
+      expect(completer.future, completes);;
+    });
+
+    test("Deferred operations are executed in order, even when async", () async {
+      final completer1 = new Completer<DateTime>();
+      final completer2 = new Completer<DateTime>();
+      final completer3 = new Completer<DateTime>();
+
+      ctx.defer(() {
+        return new Future(() => completer1.complete(new DateTime.now()));
+      });
+      ctx.defer(() {
+        completer2.complete(new DateTime.now());
+      });
+      ctx.defer(() {
+        return new Future(() => completer3.complete(new DateTime.now()));
+      });
+      await ctx.finalize();
+
+      expect((await completer1.future).isBefore(await completer2.future), true);
+      expect((await completer2.future).isBefore(await completer3.future), true);
+    });
+
+    test("Finalize throws error if contains unresolved type reference", () async {
+      ctx.document.paths = {
+        "/path": new APIPath(operations: {
+          "get":  new APIOperation("id1", {
+            "200": ctx.responses.getObjectWithType(String)
+          })
+        })
+      };
+
+      try {
+        await ctx.finalize();
+        fail("unreachable");
+      } on StateError catch (e) {
+        expect(e.message, contains("Unresolved"));
+        expect(e.message, contains("'responses'"));
+        expect(e.message, contains("'String'"));
+      }
+    });
+
+    test("Finalize throws error if contains unresolved uri reference", () async {
+      ctx.document.components.responses["test"] = new APIResponse("desc", content: {
+        "application/json": new APIMediaType(schema: ctx.schema.getObject("foo"))
+      });
+
+      try {
+        await ctx.finalize();
+        fail("unreachable");
+      } on StateError catch (e) {
+        expect(e.message, contains("Unresolved"));
+        expect(e.message, contains("'#/components/schemas/foo'"));
+      }
+    });
+
+    test("Deferred async/sync components can be used to register components after they have been referenced", () async {
+      ctx.document.paths = {
+        "/path": new APIPath(operations: {
+          "get":  new APIOperation("id1", {
+            "200": ctx.responses.getObjectWithType(String)
+          })
+        })
+      };
+
+      ctx.document.components.responses["test"] = new APIResponse("desc", content: {
+        "application/json": new APIMediaType(schema: ctx.schema.getObject("foo"))
+      });
+
+      ctx.schema.register("foo", new APISchemaObject.integer());
+      ctx.defer(() {
+        return new Future(() => ctx.responses.register("whatever", new APIResponse("foo"), representation: String));
+      });
+
+      await ctx.finalize();
+
+      final map = ctx.document.asMap();
+      expect(map["paths"]["/path"]["get"]["responses"]["200"][r"$ref"], "#/components/responses/whatever");
+      expect(map["components"]["responses"]["test"]["content"]["application/json"]["schema"][r"$ref"], "#/components/schemas/foo");
+    });
   });
 
   group("Happy path", () {
@@ -158,7 +272,10 @@ void main() {
   group("Schema object documentation", () {
     APIDocumentContext ctx;
     setUp(() {
-      ctx = new APIDocumentContext(new APIDocument()..components = new APIComponents());
+      ctx = new APIDocumentContext(new APIDocument()
+        ..info = new APIInfo("x", "1.0.0")
+        ..paths = {}
+        ..components = new APIComponents());
     });
 
     tearDown(() async {
@@ -287,6 +404,7 @@ class DefaultChannel extends ApplicationChannel {
   static Completer controllerPrepared;
   static Completer controllerDocumented;
   static Completer channelClosed;
+  static Completer appPrepared;
 
   ComponentA a;
 
@@ -299,6 +417,10 @@ class DefaultChannel extends ApplicationChannel {
 
   Controller documentableButNotAutomaticMethod() {
     return new UnaccountedForControllerWithComponents();
+  }
+
+  static Future initializeApplication(ApplicationOptions options) async {
+    appPrepared.complete();
   }
 
   @override
@@ -329,8 +451,6 @@ class DefaultChannel extends ApplicationChannel {
   Future close() async {
     channelClosed?.complete();
   }
-
-
 }
 
 class UndocumentedMiddleware extends Controller {}
@@ -344,8 +464,8 @@ class Middleware extends Controller {
   }
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
-    final ops = super.documentOperations(components, path);
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) {
+    final ops = super.documentOperations(components, route, path);
 
     ops.values.forEach((op) {
       op.parameters ??= [];
@@ -363,7 +483,7 @@ class Endpoint extends Controller {
   Completer documented;
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext registry, APIPath path) {
+  Map<String, APIOperation> documentOperations(APIDocumentContext registry, String route, APIPath path) {
     documented?.complete();
 
     if (path.parameters.length >= 1) {
@@ -392,7 +512,7 @@ class Endpoint extends Controller {
   }
 }
 
-class ComponentA extends Object with APIComponentDocumenter {
+class ComponentA implements APIComponentDocumenter {
   @override
   void documentComponents(APIDocumentContext components) {
     final schemaObject = new APISchemaObject.object({

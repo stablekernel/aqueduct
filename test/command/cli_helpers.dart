@@ -4,7 +4,6 @@ import 'package:aqueduct/executable.dart';
 import 'dart:io';
 
 import 'package:aqueduct/src/commands/running_process.dart';
-import 'package:test/test.dart';
 
 class Terminal {
   Terminal(this.workingDirectory) {

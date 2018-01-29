@@ -57,7 +57,7 @@ import 'auth.dart';
 ///           }
 ///         }
 ///
-class AuthServer extends Object with APIComponentDocumenter implements AuthValidator {
+class AuthServer implements AuthValidator, APIComponentDocumenter  {
   static const String TokenTypeBearer = "bearer";
 
   /// Creates a new instance of an [AuthServer] with a [delegate].
@@ -75,9 +75,6 @@ class AuthServer extends Object with APIComponentDocumenter implements AuthValid
   /// [AuthServer] for more details.
   final AuthServerDelegate delegate;
 
-  /// The OpenAPI security scheme for this object.
-  final APISecurityScheme securityScheme = new APISecurityScheme.oauth2({})..description = "Standard OAuth 2.0";
-
   /// The number of hashing rounds performed by this instance when validating a password.
   final int hashRounds;
 
@@ -86,6 +83,9 @@ class AuthServer extends Object with APIComponentDocumenter implements AuthValid
 
   /// The [Hash] function used by the PBKDF2 algorithm to generate password hashes by this instance.
   final Hash hashFunction;
+
+  final APISecuritySchemeOAuth2Flow documentedAuthorizationCodeFlow = new APISecuritySchemeOAuth2Flow.empty()..scopes = {};
+  final APISecuritySchemeOAuth2Flow documentedPasswordFlow = new APISecuritySchemeOAuth2Flow.empty()..scopes = {};
 
   /// Hashes a [password] with [salt] using PBKDF2 algorithm.
   ///
@@ -399,19 +399,46 @@ class AuthServer extends Object with APIComponentDocumenter implements AuthValid
           "If the client ID does not have a secret (public client), the password is the empty string (retain the separating colon, e.g. 'com.aqueduct.app:').";
     context.securitySchemes.register("oauth2-client-authentication", basic);
 
-    context.securitySchemes.register("oauth2", securityScheme);
+    final oauth2 = new APISecurityScheme.oauth2({
+      "authorizationCode": documentedAuthorizationCodeFlow,
+      "password": documentedPasswordFlow
+    })..description = "Standard OAuth 2.0";
+
+    context.securitySchemes.register("oauth2", oauth2);
+
+    context.defer(() {
+      if (documentedAuthorizationCodeFlow.authorizationURL == null) {
+        oauth2.flows.remove("authorizationCode");
+      }
+
+      if (documentedAuthorizationCodeFlow.tokenURL == null) {
+        oauth2.flows.remove("authorizationCode");
+      }
+
+      if (documentedPasswordFlow.tokenURL == null) {
+        oauth2.flows.remove("password");
+      }
+    });
   }
 
   /////
   // AuthValidator overrides
   /////
   @override
-  List<APISecurityRequirement> documentRequirementsForAuthorizer(Authorizer authorizer, {List<AuthScope> scopes}) {
+  List<APISecurityRequirement> documentRequirementsForAuthorizer(APIDocumentContext context, Authorizer authorizer, {List<AuthScope> scopes}) {
     if (authorizer.parser is AuthorizationBasicParser) {
       return [
         new APISecurityRequirement({"oauth2-client-authentication": []})
       ];
     } else if (authorizer.parser is AuthorizationBearerParser) {
+      // Add scopes to our registered security scheme flows
+      final knownScopes = context.document.components.securitySchemes["oauth2"].flows.values.first.scopes.keys;
+      scopes?.map((scope) => scope.toString())?.where((scope) => !knownScopes.contains(scope))?.forEach((scope) {
+        context.document.components.securitySchemes["oauth2"].flows.values.forEach((flow) {
+          flow.scopes[scope] = "";
+        });
+      });
+
       return [
         new APISecurityRequirement({"oauth2": scopes?.map((s) => s.toString())?.toList() ?? []})
       ];

@@ -26,5 +26,5 @@ abstract class AuthValidator {
       {List<AuthScope> requiredScope});
 
 
-  List<APISecurityRequirement> documentRequirementsForAuthorizer(Authorizer authorizer, {List<AuthScope> scopes}) => [];
+  List<APISecurityRequirement> documentRequirementsForAuthorizer(APIDocumentContext context, Authorizer authorizer, {List<AuthScope> scopes}) => [];
 }

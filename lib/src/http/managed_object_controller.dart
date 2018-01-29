@@ -381,8 +381,8 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends RESTCo
   }
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
-    final ops = super.documentOperations(context, path);
+  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
+    final ops = super.documentOperations(context, route, path);
 
     final entityName = MirrorSystem.getName(_query.entity.instanceType.simpleName);
 

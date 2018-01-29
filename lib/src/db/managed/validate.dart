@@ -28,8 +28,7 @@ class ManagedValidator {
   /// ignore any validations that occur by overriding [ManagedObject.validate] and should be avoided.
   ///
   /// Pass an empty list for [errors] to receive more details on any failed validations.
-  static bool run(
-      ManagedObject object, {ValidateOperation operation: ValidateOperation.insert, List<String> errors}) {
+  static bool run(ManagedObject object, {ValidateOperation operation: ValidateOperation.insert, List<String> errors}) {
     errors ??= [];
 
     var valid = true;
@@ -81,7 +80,8 @@ class ManagedValidator {
   List<_Validation> _expressionValidations;
   List<dynamic> _options;
 
-  bool _isValidFor(ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+  bool _isValidFor(
+      ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
     return _validationMethod(operation, property, value, errors);
   }
 
@@ -109,8 +109,8 @@ class ManagedValidator {
             attribute.entity, attribute.name, "Validate.oneOf must have at least one element");
       }
       if (definition._values.any((v) => !attribute.isAssignableWith(v))) {
-        throw new ManagedDataModelError.invalidValidator(
-            attribute.entity, attribute.name, "All elements of Validate.oneOf must be assignable to '${attribute.type}'");
+        throw new ManagedDataModelError.invalidValidator(attribute.entity, attribute.name,
+            "All elements of Validate.oneOf must be assignable to '${attribute.type}'");
       }
       _options = definition._values;
       _validationMethod = _validateOneOf;
@@ -122,7 +122,8 @@ class ManagedValidator {
 
     if (definition._greaterThan != null) {
       var comparisonValue = _comparisonValueForAttributeType(definition._greaterThan);
-      _expressionValidations.add((ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
+      _expressionValidations.add(
+          (ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
         if (value.compareTo(comparisonValue) <= 0) {
           errors.add("The value for '${property.name}' is invalid. Must be greater than '$comparisonValue'.");
           return false;
@@ -132,9 +133,11 @@ class ManagedValidator {
 
     if (definition._greaterThanEqualTo != null) {
       var comparisonValue = _comparisonValueForAttributeType(definition._greaterThanEqualTo);
-      _expressionValidations.add((ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
+      _expressionValidations.add(
+          (ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
         if (value.compareTo(comparisonValue) < 0) {
-          errors.add("The value for '${property.name}' is invalid. Must be greater than or equal to '$comparisonValue'.");
+          errors
+              .add("The value for '${property.name}' is invalid. Must be greater than or equal to '$comparisonValue'.");
           return false;
         }
       });
@@ -142,7 +145,8 @@ class ManagedValidator {
 
     if (definition._lessThan != null) {
       var comparisonValue = _comparisonValueForAttributeType(definition._lessThan);
-      _expressionValidations.add((ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
+      _expressionValidations.add(
+          (ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
         if (value.compareTo(comparisonValue) >= 0) {
           errors.add("The value for '${property.name}' is invalid. Must be less than to '$comparisonValue'.");
           return false;
@@ -152,7 +156,8 @@ class ManagedValidator {
 
     if (definition._lessThanEqualTo != null) {
       var comparisonValue = _comparisonValueForAttributeType(definition._lessThanEqualTo);
-      _expressionValidations.add((ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
+      _expressionValidations.add(
+          (ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
         if (value.compareTo(comparisonValue) > 0) {
           errors.add("The value for '${property.name}' is invalid. Must be less than or equal to '$comparisonValue'.");
           return false;
@@ -162,7 +167,8 @@ class ManagedValidator {
 
     if (definition._equalTo != null) {
       var comparisonValue = _comparisonValueForAttributeType(definition._equalTo);
-      _expressionValidations.add((ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
+      _expressionValidations.add(
+          (ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
         if (value.compareTo(comparisonValue) != 0) {
           errors.add("The value for '${property.name}' is invalid. Must be equal to '$comparisonValue'.");
           return false;
@@ -175,43 +181,52 @@ class ManagedValidator {
     _expressionValidations = [];
 
     if (definition._greaterThan != null) {
-      _expressionValidations.add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+      _expressionValidations
+          .add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
         if (value.length <= definition._greaterThan) {
-          errors.add("The value for '${property.name}' is invalid. Length be greater than '${definition._greaterThan}'.");
+          errors
+              .add("The value for '${property.name}' is invalid. Length be greater than '${definition._greaterThan}'.");
           return false;
         }
       });
     }
 
     if (definition._greaterThanEqualTo != null) {
-      _expressionValidations.add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+      _expressionValidations
+          .add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
         if (value.length < definition._greaterThanEqualTo) {
-          errors.add("The value for '${property.name}' is invalid. Length must be greater than or equal to '${definition._greaterThanEqualTo}'.");
+          errors.add("The value for '${property.name}' is invalid. Length must be greater than or equal to '${definition
+              ._greaterThanEqualTo}'.");
           return false;
         }
       });
     }
 
     if (definition._lessThan != null) {
-      _expressionValidations.add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+      _expressionValidations
+          .add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
         if (value.length >= definition._lessThan) {
-          errors.add("The value for '${property.name}' is invalid. Length must be less than to '${definition._lessThan}'.");
+          errors.add(
+              "The value for '${property.name}' is invalid. Length must be less than to '${definition._lessThan}'.");
           return false;
         }
       });
     }
 
     if (definition._lessThanEqualTo != null) {
-      _expressionValidations.add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+      _expressionValidations
+          .add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
         if (value.length > definition._lessThanEqualTo) {
-          errors.add("The value for '${property.name}' is invalid. Length must be less than or equal to '${definition._lessThanEqualTo}'.");
+          errors.add("The value for '${property.name}' is invalid. Length must be less than or equal to '${definition
+              ._lessThanEqualTo}'.");
           return false;
         }
       });
     }
 
     if (definition._equalTo != null) {
-      _expressionValidations.add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+      _expressionValidations
+          .add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
         if (value.length != definition._equalTo) {
           errors.add("The value for '${property.name}' is invalid. Length must be equal to '${definition._equalTo}'.");
           return false;
@@ -220,21 +235,21 @@ class ManagedValidator {
     }
   }
 
-  dynamic  _comparisonValueForAttributeType(dynamic inputValue) {
+  dynamic _comparisonValueForAttributeType(dynamic inputValue) {
     if (attribute.type.kind == ManagedPropertyType.datetime) {
       try {
         return DateTime.parse(inputValue);
       } on FormatException {
         throw new ManagedDataModelError.invalidValidator(
-            attribute.entity, attribute.name,
-            "'$inputValue' cannot be parsed as DateTime");
+            attribute.entity, attribute.name, "'$inputValue' cannot be parsed as DateTime");
       }
     }
 
     return inputValue;
   }
 
-  bool _validateRegex(ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+  bool _validateRegex(
+      ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
     if (!_regex.hasMatch(value)) {
       errors.add("The value for '${property.name}' is invalid. Must match pattern ${_regex.pattern}.");
       return false;
@@ -243,7 +258,8 @@ class ManagedValidator {
     return true;
   }
 
-  bool _validateExpressions(ValidateOperation op, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+  bool _validateExpressions(
+      ValidateOperation op, ManagedAttributeDescription property, dynamic value, List<String> errors) {
     // If any are false, then this validation failed and this returns false. Otherwise none are false and this method returns true.
     return !_expressionValidations.any((expr) => expr(op, property, value, errors) == false);
   }
@@ -251,7 +267,8 @@ class ManagedValidator {
   bool _validateOneOf(
       ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
     if (_options.every((v) => value != v)) {
-      errors.add("The value for '${property.name}' is invalid. Must be one of: ${_options.map((v) => "'$v'").join(",")}.");
+      errors.add(
+          "The value for '${property.name}' is invalid. Must be one of: ${_options.map((v) => "'$v'").join(",")}.");
       return false;
     }
 
@@ -260,9 +277,12 @@ class ManagedValidator {
 
   static String _errorStringForOperation(ValidateOperation op) {
     switch (op) {
-      case ValidateOperation.insert: return "insert";
-      case ValidateOperation.update: return "update";
-      default: return "unknown";
+      case ValidateOperation.insert:
+        return "insert";
+      case ValidateOperation.update:
+        return "update";
+      default:
+        return "unknown";
     }
   }
 }
@@ -321,14 +341,13 @@ class Validate<T> {
       {bool onUpdate: true,
       bool onInsert: true,
       _BuiltinValidate validator,
-        dynamic value,
-        List<dynamic> values,
-        Comparable greaterThan,
-        Comparable greaterThanEqualTo,
-        Comparable equalTo,
-        Comparable lessThan,
-        Comparable lessThanEqualTo
-      })
+      dynamic value,
+      List<dynamic> values,
+      Comparable greaterThan,
+      Comparable greaterThanEqualTo,
+      Comparable equalTo,
+      Comparable lessThan,
+      Comparable lessThanEqualTo})
       : runOnUpdate = onUpdate,
         runOnInsert = onInsert,
         _builtinValidate = validator,
@@ -350,11 +369,7 @@ class Validate<T> {
   /// If [onUpdate] is true (the default), this validation is run on update queries.
   /// If [onInsert] is true (the default), this validation is run on insert queries.
   const Validate.matches(String pattern, {bool onUpdate: true, onInsert: true})
-      : this._(
-            value: pattern,
-            onUpdate: onUpdate,
-            onInsert: onInsert,
-            validator: _BuiltinValidate.regex);
+      : this._(value: pattern, onUpdate: onUpdate, onInsert: onInsert, validator: _BuiltinValidate.regex);
 
   /// A validator for comparing a value.
   ///
@@ -386,10 +401,10 @@ class Validate<T> {
   /// If [onInsert] is true (the default), this validation is run on insert queries.
   const Validate.compare(
       {Comparable lessThan,
-        Comparable greaterThan,
-        Comparable equalTo,
-        Comparable greaterThanEqualTo,
-        Comparable lessThanEqualTo,
+      Comparable greaterThan,
+      Comparable equalTo,
+      Comparable greaterThanEqualTo,
+      Comparable lessThanEqualTo,
       bool onUpdate: true,
       onInsert: true})
       : this._(
@@ -424,10 +439,10 @@ class Validate<T> {
   /// If [onInsert] is true (the default), this validation is run on insert queries.
   const Validate.length(
       {int lessThan,
-        int greaterThan,
-        int equalTo,
-        int greaterThanEqualTo,
-        int lessThanEqualTo,
+      int greaterThan,
+      int equalTo,
+      int greaterThanEqualTo,
+      int lessThanEqualTo,
       bool onUpdate: true,
       onInsert: true})
       : this._(
@@ -448,10 +463,7 @@ class Validate<T> {
   /// If [onUpdate] is true (the default), this validation requires a property to be present for update queries.
   /// If [onInsert] is true (the default), this validation requires a property to be present for insert queries.
   const Validate.present({bool onUpdate: true, bool onInsert: true})
-      : this._(
-            onUpdate: onUpdate,
-            onInsert: onInsert,
-            validator: _BuiltinValidate.present);
+      : this._(onUpdate: onUpdate, onInsert: onInsert, validator: _BuiltinValidate.present);
 
   /// A validator for ensuring a property does not have a value when being inserted or updated.
   ///
@@ -467,10 +479,7 @@ class Validate<T> {
   /// If [onUpdate] is true (the default), this validation requires a property to be absent for update queries.
   /// If [onInsert] is true (the default), this validation requires a property to be absent for insert queries.
   const Validate.absent({bool onUpdate: true, bool onInsert: true})
-      : this._(
-            onUpdate: onUpdate,
-            onInsert: onInsert,
-            validator: _BuiltinValidate.absent);
+      : this._(onUpdate: onUpdate, onInsert: onInsert, validator: _BuiltinValidate.absent);
 
   /// A validator for ensuring a value is one of a set of values.
   ///
@@ -485,13 +494,8 @@ class Validate<T> {
   ///
   /// If [onUpdate] is true (the default), this validation is run on update queries.
   /// If [onInsert] is true (the default), this validation is run on insert queries.
-  const Validate.oneOf(List<dynamic> values,
-      {bool onUpdate: true, bool onInsert: true})
-      : this._(
-            values: values,
-            onUpdate: onUpdate,
-            onInsert: onInsert,
-            validator: _BuiltinValidate.oneOf);
+  const Validate.oneOf(List<dynamic> values, {bool onUpdate: true, bool onInsert: true})
+      : this._(values: values, onUpdate: onUpdate, onInsert: onInsert, validator: _BuiltinValidate.oneOf);
 
   /// Whether or not this validation is checked on update queries.
   final bool runOnUpdate;
@@ -525,43 +529,67 @@ class Validate<T> {
     return false;
   }
 
-  void documentSchema(APIDocumentContext context, APISchemaObject object) {
+  void constrainSchemaObject(APIDocumentContext context, APISchemaObject object) {
     switch (_builtinValidate) {
-      case _BuiltinValidate.regex: {
-        object.pattern = _value;
-      } break;
-      case _BuiltinValidate.comparison: {
-        if (_value is num) {
-          if (_greaterThan != null) {
+      case _BuiltinValidate.regex:
+        {
+          object.pattern = _value;
+        }
+        break;
+      case _BuiltinValidate.comparison:
+        {
+          if (_greaterThan is num) {
             object.exclusiveMinimum = true;
-            object.minimum = _value;
-          } else if (_greaterThanEqualTo != null) {
+            object.minimum = _greaterThan;
+          } else if (_greaterThanEqualTo is num) {
             object.exclusiveMinimum = false;
-            object.minimum = _value;
-          } else if (_lessThan != null) {
-            object.exclusiveMinimum = true;
-            object.minimum = _value;
-          } else if (_lessThanEqualTo != null) {
-            object.exclusiveMinimum = false;
-            object.minimum = _value;
+            object.minimum = _greaterThanEqualTo;
+          }
+
+          if (_lessThan is num) {
+            object.exclusiveMaximum = true;
+            object.maximum = _lessThan;
+          } else if (_lessThanEqualTo is num) {
+            object.exclusiveMaximum = false;
+            object.maximum = _lessThanEqualTo;
           }
         }
-      } break;
-      case _BuiltinValidate.length: {
-        object.maxLength = _value;
-      } break;
-      case _BuiltinValidate.present: {
+        break;
+      case _BuiltinValidate.length:
+        {
+          if (_equalTo != null) {
+            object.maxLength = _equalTo;
+            object.minLength = _equalTo;
+          } else {
+            if (_greaterThan is int) {
+              object.minLength = 1 + _greaterThan;
+            } else if (_greaterThanEqualTo is int) {
+              object.minLength = _greaterThanEqualTo;
+            }
 
-      } break;
-      case _BuiltinValidate.absent: {
-
-      } break;
-      case _BuiltinValidate.oneOf: {
-        object.enumerated = _values;
-      } break;
+            if (_lessThan is int) {
+              object.maxLength = (-1) + _lessThan;
+            } else if (_lessThanEqualTo != null) {
+              object.maximum = _lessThanEqualTo;
+            }
+          }
+        }
+        break;
+      case _BuiltinValidate.present:
+        {}
+        break;
+      case _BuiltinValidate.absent:
+        {}
+        break;
+      case _BuiltinValidate.oneOf:
+        {
+          object.enumerated = _values;
+        }
+        break;
     }
   }
 }
 
-typedef bool _Validation(ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors);
+typedef bool _Validation(
+    ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors);
 enum _BuiltinValidate { regex, comparison, length, present, absent, oneOf }

@@ -209,7 +209,7 @@ class _RouteController extends Controller {
           ..description = "This path variable may contain slashes '/' and may be empty.");
       }
 
-      path.operations = spec.controller.documentOperations(components, path);
+      path.operations = spec.controller.documentOperations(components, pathKey, path);
 
       pathMap[pathKey] = path;
 

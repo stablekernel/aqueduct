@@ -159,7 +159,7 @@ abstract class APIOperationDocumenter {
   ///
   ///         return ops;
   ///       }
-  Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path);
+  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path);
 }
 
 /// Register and reference OpenAPI components while documenting an application.
@@ -223,7 +223,27 @@ class APIDocumentContext {
     _deferredOperations = [];
     await Future.forEach(ops, (op) => op());
 
+    _validateReferences(document.asMap());
+  }
 
+  void _validateReferences(Map<String, dynamic> spec) {
+    String refUri = spec[r"$ref"];
+    if (refUri != null) {
+      final resolved = document.components.resolve(new APIObject.reference(refUri));
+      if (resolved == null) {
+        if (refUri.contains("aqueduct-typeref:")) {
+          final segments = refUri.split("/");
+          throw new StateError("Unresolved OpenAPI reference. No component was registered in '${segments[2]}' for type '${segments.last.split(":").last}'.");
+        }
+        throw new StateError("Unresolved OpenAPI reference. No component was registered for '$refUri'.");
+      }
+    }
+
+    spec.values.forEach((v) {
+      if (v is Map) {
+        _validateReferences(v);
+      }
+    });
   }
 }
 
@@ -289,7 +309,7 @@ class APIComponentCollection<T extends APIObject> {
     }
 
     APIObject obj = reflectClass(T).newInstance(#empty, []).reflectee;
-    obj.referenceURI = "aqueduct-unresolved-reference";
+    obj.referenceURI = "#/components/$_typeName/aqueduct-typeref:${MirrorSystem.getName(reflectType(type).simpleName)}";
 
     final completer = _resolutionMap.putIfAbsent(type, () => new Completer<T>.sync());
 

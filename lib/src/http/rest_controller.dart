@@ -211,11 +211,18 @@ abstract class RESTController extends Controller {
   }
 
   Map<String, APIResponse> documentOperationResponses(APIDocumentContext context, Operation operation) {
-    return {};
+    return {
+      "200": new APIResponse("Successful response.")
+    };
+  }
+
+  List<String> documentOperationTags(APIDocumentContext context) {
+    final tag = "$runtimeType".replaceAll("Controller", "");
+    return [tag];
   }
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
+  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
     final operations = RESTControllerBinder
         .binderForType(runtimeType)
         .methodBinders
@@ -229,7 +236,8 @@ abstract class RESTController extends Controller {
           summary: documentOperationSummary(context, operation),
           description: documentOperationDescription(context, operation),
           parameters: documentOperationParameters(context, operation),
-          requestBody: documentOperationRequestBody(context, operation));
+          requestBody: documentOperationRequestBody(context, operation),
+          tags: documentOperationTags(context));
 
       if (op.summary == null) {
         context.defer(() async {

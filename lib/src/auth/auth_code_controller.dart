@@ -193,6 +193,14 @@ class AuthCodeController extends RESTController {
     throw new StateError("AuthCodeController documentation failed.");
   }
 
+
+  @override
+  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
+    final ops = super.documentOperations(context, route, path);
+    authServer.documentedAuthorizationCodeFlow.authorizationURL = new Uri(path: route);
+    return ops;
+  }
+
   static Response _redirectResponse(String uriString, String clientStateOrNull,
       {String code, AuthServerException error}) {
     uriString ??= error.client?.redirectURI;

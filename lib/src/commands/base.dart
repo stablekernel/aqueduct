@@ -9,7 +9,6 @@ import 'package:path/path.dart' as path_lib;
 import 'package:yaml/yaml.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-import '../utilities/source_generator.dart';
 import 'auth.dart';
 import 'create.dart';
 import 'db.dart';
@@ -138,7 +137,7 @@ abstract class CLICommand implements CLIResultHandler {
 
       return await handle();
     } on CLIException catch (e, st) {
-      displayError("Reason: " + e.message);
+      displayError(e.message);
       e.instructions?.forEach((instruction) {
         displayProgress(instruction);
       });
@@ -147,7 +146,7 @@ abstract class CLICommand implements CLIResultHandler {
         printStackTrace(st);
       }
     } catch (e, st) {
-      displayError("Reason: $e");
+      displayError("Uncaught error: $e");
       printStackTrace(st);
     } finally {
       await cleanup();

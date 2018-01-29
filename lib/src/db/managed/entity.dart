@@ -23,7 +23,7 @@ import 'relationship_type.dart';
 ///
 /// The value of a relationship property is a reference to another [ManagedObject]. If a relationship property has [Relate] metadata,
 /// the property is backed be a foreign key column in the underlying database. Relationships are represented by [ManagedRelationshipDescription].
-class ManagedEntity extends Object with APIComponentDocumenter {
+class ManagedEntity implements APIComponentDocumenter {
   /// Creates an instance of this type..
   ///
   /// You should never call this method directly, it will be called by [ManagedDataModel].
@@ -174,8 +174,9 @@ class ManagedEntity extends Object with APIComponentDocumenter {
 
   @override
   void documentComponents(APIDocumentContext context) {
-    final properties = <String, APISchemaObject>{};
-    final obj = new APISchemaObject.object(properties)..title = "${MirrorSystem.getName(instanceType.simpleName)}";
+    final schemaProperties = <String, APISchemaObject>{};
+    final obj = new APISchemaObject.object(schemaProperties)
+      ..title = "${MirrorSystem.getName(instanceType.simpleName)}";
 
     // Documentation comments
     context.defer(() async {
@@ -184,19 +185,17 @@ class ManagedEntity extends Object with APIComponentDocumenter {
       obj.description = entityDocs.description;
     });
 
-    // Attributes
-    attributes.forEach((name, def) {
-      var prop = _typedSchemaObject(def.type);
-      properties[name] = prop;
+    properties.forEach((name, def) {
+      if (def is ManagedAttributeDescription && !def.isIncludedInDefaultResultSet && !def.isTransient) {
+        return;
+      }
 
-      // Add'l schema info
-      prop.isNullable = def.isNullable;
-      def.validators.forEach((v) => v.documentSchema(context, prop));
+      final schemaProperty = def.documentSchemaObject(context);
+      schemaProperties[name] = schemaProperty;
 
-      // Documentation comments
       context.defer(() async {
         DocumentedElement attrDocs;
-        if (def.isTransient) {
+        if (def is ManagedAttributeDescription && def.isTransient) {
           final entityDocs = await DocumentedElement.get(instanceType.reflectedType);
           attrDocs = entityDocs[new Symbol(name)];
         } else {
@@ -204,25 +203,13 @@ class ManagedEntity extends Object with APIComponentDocumenter {
           attrDocs = entityDocs[new Symbol(name)];
         }
 
-        prop.title = attrDocs.summary;
-        prop.description = attrDocs.description;
+        schemaProperty.title = attrDocs.summary;
+        schemaProperty.description = (attrDocs.description ?? "") + (schemaProperty.description ?? "");
       });
     });
 
-    // Relationships
-    relationships.forEach((name, def) {
-      properties[name] = context.schema.getObjectWithType(def.inverse.entity.instanceType.reflectedType);
-
-      // Documentation comments
-      context.defer(() async {
-        final entityDocs = await DocumentedElement.get(persistentType.reflectedType);
-        final relationshipDocs = entityDocs[new Symbol(name)];
-        properties[name].title = relationshipDocs.summary;
-        properties[name].description = relationshipDocs.description;
-      });
-    });
-
-    context.schema.register(MirrorSystem.getName(instanceType.simpleName), obj, representation: instanceType.reflectedType);
+    context.schema
+        .register(MirrorSystem.getName(instanceType.simpleName), obj, representation: instanceType.reflectedType);
   }
 }
 
@@ -235,15 +222,15 @@ APISchemaObject _typedSchemaObject(ManagedType type) {
     case ManagedPropertyType.doublePrecision:
       return new APISchemaObject.number();
     case ManagedPropertyType.string:
-      return new APISchemaObject.integer();
+      return new APISchemaObject.string();
     case ManagedPropertyType.datetime:
-      return new APISchemaObject.integer();
+      return new APISchemaObject.string(format: "date-time");
     case ManagedPropertyType.boolean:
-      return new APISchemaObject.integer();
+      return new APISchemaObject.boolean();
     case ManagedPropertyType.list:
-      return new APISchemaObject.integer()..items = _typedSchemaObject(type.elements);
+      return new APISchemaObject.array(ofSchema: _typedSchemaObject(type.elements));
     case ManagedPropertyType.map:
-      return new APISchemaObject.integer()..additionalProperties = _typedSchemaObject(type.elements);
+      return new APISchemaObject.map(ofSchema: _typedSchemaObject(type.elements));
   }
 
   throw new UnsupportedError("Unsupported type '$type' when documenting entity.");

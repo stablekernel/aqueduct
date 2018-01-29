@@ -25,7 +25,6 @@ void main() {
   var subdirFile = new File.fromUri(subdir.uri.resolve("index.html"));
 
   HttpServer server;
-  Router router;
 
   setUpAll(() async {
     fileDirectory.createSync();

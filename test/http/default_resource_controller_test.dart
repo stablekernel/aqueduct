@@ -278,8 +278,8 @@ void main() {
       final c = new ManagedObjectController<TestModel>();
       c.prepare();
 
-      collectionOperations = c.documentOperations(context, new APIPath());
-      idOperations = c.documentOperations(context, new APIPath(parameters: [new APIParameter.path("id")]));
+      collectionOperations = c.documentOperations(context, "/", new APIPath());
+      idOperations = c.documentOperations(context, "/", new APIPath(parameters: [new APIParameter.path("id")]));
 
       ManagedContext.defaultContext.documentComponents(context);
 

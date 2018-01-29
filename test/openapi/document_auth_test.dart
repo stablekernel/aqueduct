@@ -6,12 +6,11 @@ import 'dart:async';
 import '../helpers.dart';
 
 void main() {
-  group("Standard tests", () {
+  group("Operations and security schemes", () {
     APIDocument doc;
 
     setUpAll(() async {
       doc = await Application.document(TestChannel, new ApplicationOptions(), {"name": "Test", "version": "1.0"});
-      print("${JSON.encode(doc.asMap())}");
     });
 
     test("AuthServer documents components", () {
@@ -60,9 +59,38 @@ void main() {
     });
   });
 
-  group("Controller Registration", () {
-    test("nyi", () => throw 'NYI');
+  group("Controller Registration and Scopes", () {
+    test("If no controllers added to channel, do not support have flows for oauth2 security type", () async {
+      final doc = await Application.document(TestChannel, new ApplicationOptions(), {"name": "Test", "version": "1.0"});
+      expect(doc.components.securitySchemes["oauth2"].flows, {});
+    });
+
+    test("If only AuthController added to channel, do not support auth code flow", () async {
+      final doc = await Application.document(AuthControllerOnlyChannel, new ApplicationOptions(), {"name": "Test", "version": "1.0"});
+      expect(doc.components.securitySchemes["oauth2"].flows["password"].refreshURL, new Uri(path: "/auth/token"));
+      expect(doc.components.securitySchemes["oauth2"].flows["password"].tokenURL, new Uri(path: "/auth/token"));
+      expect(doc.components.securitySchemes["oauth2"].flows["password"].authorizationURL, isNull);
+      expect(doc.components.securitySchemes["oauth2"].flows["password"].scopes, {});
+    });
+
+    test("If both AuthController and AuthCodeController added to channel, support both flows and have appropriate urls", () async {
+      final doc = await Application.document(ScopedControllerChannel, new ApplicationOptions(), {"name": "Test", "version": "1.0"});
+      expect(doc.components.securitySchemes["oauth2"].flows["password"].refreshURL, new Uri(path: "/auth/token"));
+      expect(doc.components.securitySchemes["oauth2"].flows["password"].tokenURL, new Uri(path: "/auth/token"));
+      expect(doc.components.securitySchemes["oauth2"].flows["password"].authorizationURL, isNull);
+
+      expect(doc.components.securitySchemes["oauth2"].flows["authorizationCode"].refreshURL, new Uri(path: "/auth/token"));
+      expect(doc.components.securitySchemes["oauth2"].flows["authorizationCode"].tokenURL, new Uri(path: "/auth/token"));
+      expect(doc.components.securitySchemes["oauth2"].flows["authorizationCode"].authorizationURL, new Uri(path: "/auth/code"));
+    });
+
+    test("Referenced scopes for supported flows are available in oauth2 flow map", () async {
+      final doc = await Application.document(ScopedControllerChannel, new ApplicationOptions(), {"name": "Test", "version": "1.0"});
+      expect(doc.components.securitySchemes["oauth2"].flows["password"].scopes, {"scope1": "", "scope2": ""});
+      expect(doc.components.securitySchemes["oauth2"].flows["authorizationCode"].scopes, {"scope1": "", "scope2": ""});
+    });
   });
+
 }
 
 class TestChannel extends ApplicationChannel {
@@ -75,6 +103,9 @@ class TestChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
+    // Note that AuthCodeController/AuthController are not added to channel.
+    // This supports a test in 'Controller Registration and Scopes'.
+
     final router = new Router();
     router.route("/basic/[:id]").link(() => new Authorizer.basic(authServer)).link(() => new DocumentedController());
     router
@@ -91,7 +122,7 @@ class TestChannel extends ApplicationChannel {
 
 class DocumentedController extends Controller {
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) {
     if (path.containsPathParameters([])) {
       return {
         "get": new APIOperation("get/0", {
@@ -108,5 +139,51 @@ class DocumentedController extends Controller {
         "200": new APIResponse("get/1-200", content: {"application/json": new APIMediaType(schema: new APISchemaObject.string())})
       })
     };
+  }
+}
+
+class AuthControllerOnlyChannel extends ApplicationChannel {
+  AuthServer authServer;
+
+  @override
+  Future prepare() async {
+    authServer = new AuthServer(new InMemoryAuthStorage());
+  }
+
+  @override
+  Controller get entryPoint {
+    final router = new Router();
+    router.route("/auth/token").link(() => new AuthController(authServer));
+    return router;
+  }
+}
+
+class ScopedControllerChannel extends ApplicationChannel {
+  AuthServer authServer;
+
+  @override
+  Future prepare() async {
+    authServer = new AuthServer(new InMemoryAuthStorage());
+  }
+
+  @override
+  Controller get entryPoint {
+    final router = new Router();
+    router.route("/auth/token").link(() => new AuthController(authServer));
+    router.route("/auth/code").link(() => new AuthCodeController(authServer));
+    router
+        .route("/r1")
+        .link(() => new Authorizer.bearer(authServer, scopes: ["scope1"]))
+        .link(() => new DocumentedController());
+    router
+        .route("/r2")
+        .link(() => new Authorizer.bearer(authServer, scopes: ["scope1", "scope2"]))
+        .link(() => new DocumentedController());
+
+    router
+        .route("/r3")
+        .link(() => new Authorizer.bearer(authServer))
+        .link(() => new DocumentedController());
+    return router;
   }
 }

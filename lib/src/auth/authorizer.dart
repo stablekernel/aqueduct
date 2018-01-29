@@ -116,10 +116,10 @@ class Authorizer extends Controller {
   }
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext components, APIPath path) {
-    final operations = super.documentOperations(components, path);
+  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
+    final operations = super.documentOperations(context, route, path);
 
-    final requirements = validator.documentRequirementsForAuthorizer(this, scopes: scopes);
+    final requirements = validator.documentRequirementsForAuthorizer(context, this, scopes: scopes);
     operations.forEach((_, op) {
       requirements.forEach((req) {
         op.addSecurityRequirement(req);
