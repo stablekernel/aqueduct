@@ -205,7 +205,8 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   APISchemaObject documentSchemaObject(APIDocumentContext context) {
-    final prop = _typedSchemaObject(type);
+    final prop = _typedSchemaObject(type)
+      ..description = "";
 
     // Add'l schema info
     prop.isNullable = isNullable;
@@ -217,6 +218,17 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       } else if (!transientStatus.isAvailableAsInput && transientStatus.isAvailableAsOutput) {
         prop.isReadOnly = true;
       }
+    }
+
+    if (isUnique) {
+      prop.description += "\nNo two objects may have the same value for this field.";
+    }
+    if (isPrimaryKey) {
+      prop.description += "\nThis is the primary identifier for this object.";
+    }
+
+    if (defaultValue != null) {
+      prop.defaultValue = defaultValue;
     }
 
     return prop;

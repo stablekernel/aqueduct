@@ -181,8 +181,15 @@ class ManagedEntity implements APIComponentDocumenter {
     // Documentation comments
     context.defer(() async {
       final entityDocs = await DocumentedElement.get(instanceType.reflectedType);
-      obj.title = entityDocs.summary ?? obj.title;
-      obj.description = entityDocs.description;
+      obj.description = entityDocs.description ?? "";
+      if (!(entityDocs.summary.isEmpty)) {
+        obj.title = entityDocs.summary;
+      }
+
+      if (uniquePropertySet != null) {
+        final propString = uniquePropertySet.map((s) => "'${s.name}'").join(", ");
+        obj.description += "\nNo two objects may have the same value for all of: $propString.";
+      }
     });
 
     properties.forEach((name, def) {
@@ -211,27 +218,4 @@ class ManagedEntity implements APIComponentDocumenter {
     context.schema
         .register(MirrorSystem.getName(instanceType.simpleName), obj, representation: instanceType.reflectedType);
   }
-}
-
-APISchemaObject _typedSchemaObject(ManagedType type) {
-  switch (type.kind) {
-    case ManagedPropertyType.integer:
-      return new APISchemaObject.integer();
-    case ManagedPropertyType.bigInteger:
-      return new APISchemaObject.integer();
-    case ManagedPropertyType.doublePrecision:
-      return new APISchemaObject.number();
-    case ManagedPropertyType.string:
-      return new APISchemaObject.string();
-    case ManagedPropertyType.datetime:
-      return new APISchemaObject.string(format: "date-time");
-    case ManagedPropertyType.boolean:
-      return new APISchemaObject.boolean();
-    case ManagedPropertyType.list:
-      return new APISchemaObject.array(ofSchema: _typedSchemaObject(type.elements));
-    case ManagedPropertyType.map:
-      return new APISchemaObject.map(ofSchema: _typedSchemaObject(type.elements));
-  }
-
-  throw new UnsupportedError("Unsupported type '$type' when documenting entity.");
 }
