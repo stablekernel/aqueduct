@@ -137,6 +137,7 @@ class BoundController {
       return parseWith(binder);
     };
 
+
     final properties = boundController.properties.map(initiallyBindWith).toList();
     final positional = boundMethod.positionalParameters.map(initiallyBindWith).toList();
     final optional = boundMethod.optionalParameters.map(initiallyBindWith).toList();
