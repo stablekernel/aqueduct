@@ -115,9 +115,7 @@ void main() {
     test("Finalize throws error if contains unresolved type reference", () async {
       ctx.document.paths = {
         "/path": new APIPath(operations: {
-          "get":  new APIOperation("id1", {
-            "200": ctx.responses.getObjectWithType(String)
-          })
+          "get": new APIOperation("id1", {"200": ctx.responses.getObjectWithType(String)})
         })
       };
 
@@ -132,9 +130,8 @@ void main() {
     });
 
     test("Finalize throws error if contains unresolved uri reference", () async {
-      ctx.document.components.responses["test"] = new APIResponse("desc", content: {
-        "application/json": new APIMediaType(schema: ctx.schema.getObject("foo"))
-      });
+      ctx.document.components.responses["test"] =
+          new APIResponse("desc", content: {"application/json": new APIMediaType(schema: ctx.schema.getObject("foo"))});
 
       try {
         await ctx.finalize();
@@ -148,15 +145,12 @@ void main() {
     test("Deferred async/sync components can be used to register components after they have been referenced", () async {
       ctx.document.paths = {
         "/path": new APIPath(operations: {
-          "get":  new APIOperation("id1", {
-            "200": ctx.responses.getObjectWithType(String)
-          })
+          "get": new APIOperation("id1", {"200": ctx.responses.getObjectWithType(String)})
         })
       };
 
-      ctx.document.components.responses["test"] = new APIResponse("desc", content: {
-        "application/json": new APIMediaType(schema: ctx.schema.getObject("foo"))
-      });
+      ctx.document.components.responses["test"] =
+          new APIResponse("desc", content: {"application/json": new APIMediaType(schema: ctx.schema.getObject("foo"))});
 
       ctx.schema.register("foo", new APISchemaObject.integer());
       ctx.defer(() {
@@ -167,7 +161,8 @@ void main() {
 
       final map = ctx.document.asMap();
       expect(map["paths"]["/path"]["get"]["responses"]["200"][r"$ref"], "#/components/responses/whatever");
-      expect(map["components"]["responses"]["test"]["content"]["application/json"]["schema"][r"$ref"], "#/components/schemas/foo");
+      expect(map["components"]["responses"]["test"]["content"]["application/json"]["schema"][r"$ref"],
+          "#/components/schemas/foo");
     });
   });
 
@@ -322,18 +317,18 @@ void main() {
     });
 
     test("Type documentation for complex types", () {
-      final stringIntMap =
-          APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#a] as VariableMirror).type);
-      final intList =
-          APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#b] as VariableMirror).type);
-      final listOfMaps =
-          APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#c] as VariableMirror).type);
-      final listOfSerial =
-          APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#d] as VariableMirror).type);
-      final serial =
-          APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#e] as VariableMirror).type);
-      final stringListMap =
-          APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#f] as VariableMirror).type);
+      final stringIntMap = APIComponentDocumenter.documentType(
+          ctx, (reflectClass(ComplexTypes).declarations[#a] as VariableMirror).type);
+      final intList = APIComponentDocumenter.documentType(
+          ctx, (reflectClass(ComplexTypes).declarations[#b] as VariableMirror).type);
+      final listOfMaps = APIComponentDocumenter.documentType(
+          ctx, (reflectClass(ComplexTypes).declarations[#c] as VariableMirror).type);
+      final listOfSerial = APIComponentDocumenter.documentType(
+          ctx, (reflectClass(ComplexTypes).declarations[#d] as VariableMirror).type);
+      final serial = APIComponentDocumenter.documentType(
+          ctx, (reflectClass(ComplexTypes).declarations[#e] as VariableMirror).type);
+      final stringListMap = APIComponentDocumenter.documentType(
+          ctx, (reflectClass(ComplexTypes).declarations[#f] as VariableMirror).type);
 
       expect(stringIntMap.type, APIType.object);
       expect(stringIntMap.additionalProperties.type, APIType.integer);
@@ -353,12 +348,9 @@ void main() {
     });
 
     test("Documentation comments for declarations are available in schema object", () async {
-      final titleOnly =
-        APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#a]);
-      final titleAndSummary =
-        APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#b]);
-      final noDocs =
-        APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#c]);
+      final titleOnly = APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#a]);
+      final titleAndSummary = APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#b]);
+      final noDocs = APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#c]);
       await ctx.finalize();
 
       expect(titleOnly.title, "title");
@@ -433,7 +425,11 @@ class DefaultChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    router.route("/path/[:id]").link(() => new Middleware()).link(() => new Endpoint(null, null));
+    router
+        .route("/path/[:id]")
+        .linkFunction((req) => req)
+        .link(() => new Middleware())
+        .link(() => new Endpoint(null, null));
 
     final middleware = new Middleware();
     router
