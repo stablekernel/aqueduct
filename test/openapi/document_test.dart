@@ -33,6 +33,7 @@ void main() {
       DefaultChannel.channelClosed = null;
       DefaultChannel.controllerDocumented = null;
       DefaultChannel.controllerPrepared = null;
+      DefaultChannel.appPrepared = null;
     });
 
     test("Document has appropriate metadata", () {
@@ -420,7 +421,7 @@ class DefaultChannel extends ApplicationChannel {
   }
 
   static Future initializeApplication(ApplicationOptions options) async {
-    appPrepared.complete();
+    appPrepared?.complete();
   }
 
   @override
@@ -434,10 +435,11 @@ class DefaultChannel extends ApplicationChannel {
 
     router.route("/path/[:id]").link(() => new Middleware()).link(() => new Endpoint(null, null));
 
+    final middleware = new Middleware();
     router
         .route("/constant")
         .link(() => new UndocumentedMiddleware())
-        .link(() => new Middleware())
+        .link(() => middleware)
         .link(() => new Endpoint(controllerPrepared, controllerDocumented));
 
     router.route("/dynamic").linkFunction((Request req) async {
