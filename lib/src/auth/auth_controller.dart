@@ -179,12 +179,6 @@ class AuthController extends RESTController {
     };
   }
 
-
-  @override
-  void documentComponents(APIDocumentContext context) {
-    // password
-  }
-
   Response _responseForError(AuthRequestError error) {
     return new Response.badRequest(body: {"error": AuthServerException.errorString(error)});
   }

@@ -148,6 +148,20 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
     await messageHub.close();
   }
 
+  /// Returns an OpenAPI document for the components and paths defined by this channel and its properties.
+  ///
+  /// This method invokes [entryPoint] and [prepare] on the entry point before starting the documentation process.
+  ///
+  /// The documentation process first invokes [documentComponents] on this channel. Every controller in the channel will have its
+  /// [documentComponents] methods invoked. Any declared property
+  /// of this channel that implements [APIComponentDocumenter] will have its [documentComponents]
+  /// method invoked. If there services that are part of the application, but not stored as properties of this channel, you may override
+  /// [documentComponents] in your subclass to add them. You must call the superclass' implementation of [documentComponents].
+  ///
+  /// After components have been documented, [APIOperationDocumenter.documentPaths] is invoked on [entryPoint]. The controllers
+  /// of the channel will add paths and operations to the document during this process.
+  ///
+  /// This method should not be overridden.
   Future<APIDocument> documentAPI(Map<String, dynamic> projectSpec) async {
     final doc = new APIDocument()..components = new APIComponents();
     final root = entryPoint;

@@ -322,8 +322,9 @@ class APIComponentCollection<T extends APIObject> {
     return obj;
   }
 
-  bool hasRegisteredType(Type reflectedType) {
-    return _typeReferenceMap.containsKey(reflectedType);
+  /// Whether or not [type] has been registered with [register].
+  bool hasRegisteredType(Type type) {
+    return _typeReferenceMap.containsKey(type);
   }
 
 }

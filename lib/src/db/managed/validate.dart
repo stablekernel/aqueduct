@@ -529,6 +529,10 @@ class Validate<T> {
     return false;
   }
 
+  /// Adds constraints to an [APISchemaObject] imposed by this validator.
+  ///
+  /// Used during documentation process. When creating custom validator subclasses, override this method
+  /// to modify [object] for any constraints the validator imposes.
   void constrainSchemaObject(APIDocumentContext context, APISchemaObject object) {
     switch (_builtinValidate) {
       case _BuiltinValidate.regex:

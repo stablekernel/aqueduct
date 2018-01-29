@@ -83,6 +83,9 @@ abstract class ManagedPropertyDescription {
   /// depends on this instance's definition.
   dynamic convertFromPrimitiveValue(dynamic value);
 
+  /// Returns an [APISchemaObject] that represents this property.
+  ///
+  /// Used during documentation.
   APISchemaObject documentSchemaObject(APIDocumentContext context);
 
   APISchemaObject _typedSchemaObject(ManagedType type) {

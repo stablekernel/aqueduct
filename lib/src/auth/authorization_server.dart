@@ -84,7 +84,10 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   /// The [Hash] function used by the PBKDF2 algorithm to generate password hashes by this instance.
   final Hash hashFunction;
 
+  /// Used during OpenAPI documentation.
   final APISecuritySchemeOAuth2Flow documentedAuthorizationCodeFlow = new APISecuritySchemeOAuth2Flow.empty()..scopes = {};
+
+  /// Used during OpenAPI documentation.
   final APISecuritySchemeOAuth2Flow documentedPasswordFlow = new APISecuritySchemeOAuth2Flow.empty()..scopes = {};
 
   /// Hashes a [password] with [salt] using PBKDF2 algorithm.

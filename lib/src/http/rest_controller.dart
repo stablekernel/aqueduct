@@ -150,6 +150,12 @@ abstract class RESTController extends Controller {
         "'$runtimeType' returned invalid object from 'willProcessRequest'. Must return 'Request' or 'Response'.");
   }
 
+  /// Returns a documented list of [APIParameter] for [operation].
+  ///
+  /// This method will automatically create [APIParameter]s for any bound properties and operation method arguments.
+  /// If an operation method requires additional parameters that cannot be bound using [Bind] annotations, override
+  /// this method. When overriding this method, call the superclass' implementation and add the additional parameters
+  /// to the returned list before returning the combined list.
   List<APIParameter> documentOperationParameters(APIDocumentContext context, Operation operation) {
     final binder = RESTControllerBinder.binderForType(runtimeType);
 
@@ -172,14 +178,27 @@ abstract class RESTController extends Controller {
         .toList();
   }
 
+  /// Returns a documented summary for [operation].
+  ///
+  /// By default, this method returns null and the summary is derived from documentation comments
+  /// above the operation method. You may override this method to manually add a summary to an operation.
   String documentOperationSummary(APIDocumentContext context, Operation operation) {
     return null;
   }
 
+  /// Returns a documented description for [operation].
+  ///
+  /// By default, this method returns null and the description is derived from documentation comments
+  /// above the operation method. You may override this method to manually add a description to an operation.
   String documentOperationDescription(APIDocumentContext context, Operation operation) {
     return null;
   }
 
+  /// Returns a documented request body for [operation].
+  ///
+  /// If an operation method binds an [Bind.body] argument or accepts form data, this method returns a [APIRequestBody]
+  /// that describes the bound body type. You may override this method to take an alternative approach or to augment the
+  /// automatically generated request body documentation.
   APIRequestBody documentOperationRequestBody(APIDocumentContext context, Operation operation) {
     final binder = _binderForOperation(operation);
     final usesFormEncodedData = operation.method == "POST" &&
@@ -210,11 +229,22 @@ abstract class RESTController extends Controller {
     return null;
   }
 
+  /// Returns a map of possible responses for [operation].
+  ///
+  /// To provide documentation for an operation, you must override this method and return a map of
+  /// possible responses. The key is a [String] representation of a status code (e.g., "200") and the value
+  /// is an [APIResponse] object.
   Map<String, APIResponse> documentOperationResponses(APIDocumentContext context, Operation operation) {
     return {"200": new APIResponse("Successful response.")};
   }
 
-  List<String> documentOperationTags(APIDocumentContext context) {
+  /// Returns a list of tags for [operation].
+  ///
+  /// By default, this method will return the name of the class. This groups each operation
+  /// defined by this controller in the same tag. You may override this method
+  /// to provide additional tags. You should call the superclass' implementation to retain
+  /// the controller grouping tag.
+  List<String> documentOperationTags(APIDocumentContext context, Operation operation) {
     final tag = "$runtimeType".replaceAll("Controller", "");
     return [tag];
   }
@@ -235,7 +265,7 @@ abstract class RESTController extends Controller {
           description: documentOperationDescription(context, operation),
           parameters: documentOperationParameters(context, operation),
           requestBody: documentOperationRequestBody(context, operation),
-          tags: documentOperationTags(context));
+          tags: documentOperationTags(context, operation));
 
       if (op.summary == null) {
         context.defer(() async {

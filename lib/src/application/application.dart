@@ -150,7 +150,9 @@ class Application<T extends ApplicationChannel> {
     logger.clearListeners();
   }
 
-  /// Creates an [APIDocument] for this application.
+  /// Creates an [APIDocument] from an [ApplicationChannel].
+  ///
+  /// [channelType] must be a subclass [ApplicationChannel]. This method is called by the `aqueduct document` CLI.
   static Future<APIDocument> document(Type channelType, ApplicationOptions config, Map<String, dynamic> projectSpec) async {
     var channelMirror = reflectClass(channelType);
 
