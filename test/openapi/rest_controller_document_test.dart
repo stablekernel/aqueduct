@@ -6,11 +6,17 @@ import 'package:test/test.dart';
 void main() {
   Map<String, APIOperation> collectionOperations;
   Map<String, APIOperation> idOperations;
+  APIDocumentContext context;
 
   setUpAll(() async {
-    final context = new APIDocumentContext(new APIDocument()..components = new APIComponents());
+    context = new APIDocumentContext(new APIDocument()
+      ..info = new APIInfo("x", "1.0.0")
+      ..paths = {}
+      ..components = new APIComponents());
     final ac = new A();
     ac.prepare();
+    ac.documentComponents(context);
+
     collectionOperations = ac.documentOperations(context, "/", new APIPath());
     idOperations = ac.documentOperations(context, "/", new APIPath(parameters: [
       new APIParameter.path("id")
@@ -84,12 +90,9 @@ void main() {
     expect(collectionOperations["post"].parameterNamed("requiredQueryParameter").description, isNull);
   });
 
-  test("If request body is bound, shows up in documentation for operation", () {
-
-  });
-
-  test("If request body is bound and has doc comment, this comment override body type comment", () {
-
+  test("If request body is bound, shows up in documentation for operation with valid ref", () {
+    expect(context.schema.hasRegisteredType(AModel), true);
+    expect(collectionOperations["post"].requestBody.content["application/json"].schema.referenceURI, "#/components/schemas/AModel");
   });
 }
 
@@ -131,6 +134,8 @@ class A extends RESTController {
   @Operation.post()
   Future<Response> createA(
       /// 1
+      ///
+      /// 2
       @Bind.body() AModel model, @Bind.query("requiredQueryParameter") int q) async {
     return new Response.ok(null);
   }

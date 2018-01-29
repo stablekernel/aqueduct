@@ -189,9 +189,9 @@ abstract class RESTController extends Controller {
 
     if (boundBody != null) {
       final type = boundBody.boundValueType.reflectedType;
-
       return new APIRequestBody.schema(context.schema.getObjectWithType(type),
-          contentTypes: acceptedContentTypes.map((ct) => ct.toString()), required: boundBody.isRequired);
+          contentTypes: acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}"),
+          required: boundBody.isRequired);
     } else if (usesFormEncodedData) {
       final controller = RESTControllerBinder.binderForType(runtimeType);
       final props = controller
@@ -211,9 +211,7 @@ abstract class RESTController extends Controller {
   }
 
   Map<String, APIResponse> documentOperationResponses(APIDocumentContext context, Operation operation) {
-    return {
-      "200": new APIResponse("Successful response.")
-    };
+    return {"200": new APIResponse("Successful response.")};
   }
 
   List<String> documentOperationTags(APIDocumentContext context) {
@@ -258,6 +256,23 @@ abstract class RESTController extends Controller {
 
       prev[method.httpMethod.toLowerCase()] = op;
       return prev;
+    });
+  }
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    final binders = RESTControllerBinder.binderForType(runtimeType).methodBinders;
+    binders.forEach((b) {
+      [b.positionalParameters, b.optionalParameters]
+          .expand((b) => b)
+          .where((b) => b.binding is HTTPBody)
+          .map((b) => b.boundValueType)
+          .forEach((b) {
+            final type = b.reflectedType;
+            if (!context.schema.hasRegisteredType(type)) {
+              context.schema.register(MirrorSystem.getName(b.simpleName), HTTPSerializable.document(context, type), representation: type);
+            }
+      });
     });
   }
 

@@ -78,7 +78,7 @@ void main() {
       });
 
       await ctx.finalize();
-      expect(completer.future, completes);;
+      expect(completer.future, completes);
     });
 
     test("Can defer sync functions", () async {
@@ -89,7 +89,7 @@ void main() {
       });
 
       await ctx.finalize();
-      expect(completer.future, completes);;
+      expect(completer.future, completes);
     });
 
     test("Deferred operations are executed in order, even when async", () async {

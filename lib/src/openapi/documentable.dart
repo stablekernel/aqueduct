@@ -245,6 +245,8 @@ class APIDocumentContext {
       }
     });
   }
+
+
 }
 
 /// A collection of reusable OpenAPI objects.
@@ -319,4 +321,9 @@ class APIComponentCollection<T extends APIObject> {
 
     return obj;
   }
+
+  bool hasRegisteredType(Type reflectedType) {
+    return _typeReferenceMap.containsKey(reflectedType);
+  }
+
 }
