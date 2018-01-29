@@ -84,7 +84,7 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
 
     var query = new Query<ManagedAuthClient>()
       ..where.id = whereEqualTo(clientID)
-      ..values.allowedScope = scopingClient.allowedScopes?.map((s) => s.scopeString)?.join(" ");
+      ..values.allowedScope = scopingClient.allowedScopes?.map((s) => s.toString())?.join(" ");
 
     var result = await query.updateOne();
     if (result == null) {
@@ -195,7 +195,7 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
       ..hashedSecret = credentials.hashedSecret
       ..salt = credentials.salt
       ..redirectURI = credentials.redirectURI
-      ..allowedScope = credentials.allowedScopes?.map((s) => s.scopeString)?.join(" ");
+      ..allowedScope = credentials.allowedScopes?.map((s) => s.toString())?.join(" ");
 
     var query = new Query<ManagedAuthClient>()..values = managedCredentials;
 

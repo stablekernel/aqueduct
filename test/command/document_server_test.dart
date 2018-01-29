@@ -10,12 +10,19 @@ void main() {
 
   setUpAll(() async {
     await Process.run("pub", ["global", "activate", "-spath", "."]);
+  });
+
+  tearDownAll(() async {
+    await Process.run("pub", ["global", "deactivate", "aqueduct"]);
+
+  });
+
+  setUp(() async {
     terminal = await Terminal.createProject(template: "db_and_auth");
     await terminal.getDependencies();
   });
 
   tearDown(() async {
-    await Process.run("pub", ["global", "deactivate", "aqueduct"]);
     Terminal.deleteTemporaryDirectory();
   });
 

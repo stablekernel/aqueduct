@@ -1,7 +1,7 @@
 import 'dart:async';
 
-import 'package:aqueduct/src/http/documentable.dart';
 import 'package:aqueduct/src/http/request.dart';
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'auth.dart';
 
 /// Instances that implement this type can be used by an [Authorizer] to determine authorization of a request.
@@ -25,6 +25,9 @@ abstract class AuthValidator {
   FutureOr<Authorization> validate<T>(AuthorizationParser<T> parser, T authorizationData,
       {List<AuthScope> requiredScope});
 
-  // todo (joeconwaystk): temporary until openapi integration
-  List<APISecurityRequirement> requirementsForStrategy(AuthorizationParser<dynamic> strategy) => [];
+  /// Provide [APISecurityRequirement]s for [authorizer].
+  ///
+  /// An [Authorizer] that adds security requirements to operations will invoke this method to allow this validator to define those requirements.
+  /// The [Authorizer] must provide the [context] it was given to document the operations, itself and optionally a list of [scopes] required to pass it.
+  List<APISecurityRequirement> documentRequirementsForAuthorizer(APIDocumentContext context, Authorizer authorizer, {List<AuthScope> scopes}) => [];
 }

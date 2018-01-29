@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
+
 import '../http/http.dart';
 import 'auth.dart';
 
-/// A [Controller] that verifies the Authorization header of a request.
+/// A [Controller] that validates the Authorization header of a request.
 ///
 /// An instance of this type will validate that the authorization information in an Authorization header is sufficient to access
 /// the next controller in the channel.
@@ -114,12 +116,14 @@ class Authorizer extends Controller {
   }
 
   @override
-  List<APIOperation> documentOperations(PackagePathResolver resolver) {
-    List<APIOperation> operations = nextController.documentOperations(resolver);
-    var requirements = validator.requirementsForStrategy(parser);
+  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
+    final operations = super.documentOperations(context, route, path);
 
-    operations.forEach((i) {
-      i.security = requirements;
+    final requirements = validator.documentRequirementsForAuthorizer(context, this, scopes: scopes);
+    operations.forEach((_, op) {
+      requirements.forEach((req) {
+        op.addSecurityRequirement(req);
+      });
     });
 
     return operations;

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
 
 import '../http/http.dart';
@@ -149,19 +150,23 @@ class Application<T extends ApplicationChannel> {
     logger.clearListeners();
   }
 
-  /// Creates an [APIDocument] for this application.
-  static Future<APIDocument> document(
-      Type channelType, ApplicationOptions config, PackagePathResolver resolver) async {
+  /// Creates an [APIDocument] from an [ApplicationChannel].
+  ///
+  /// [channelType] must be a subclass [ApplicationChannel]. This method is called by the `aqueduct document` CLI.
+  static Future<APIDocument> document(Type channelType, ApplicationOptions config, Map<String, dynamic> projectSpec) async {
     var channelMirror = reflectClass(channelType);
 
-    config.isDocumenting = true;
     await _globalStart(channelMirror, config);
 
     final server = new ApplicationServer(channelMirror, config, 1, captureStack: true);
 
     await server.channel.prepare();
 
-    return server.channel.documentAPI(resolver);
+    final doc = await server.channel.documentAPI(projectSpec);
+
+    await server.channel.close();
+
+    return doc;
   }
 
   static Future _globalStart(ClassMirror channelType, ApplicationOptions config) {

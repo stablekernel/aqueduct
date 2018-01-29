@@ -1,8 +1,9 @@
 import 'dart:async';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:crypto/crypto.dart';
 
-import '../http/documentable.dart';
+import 'package:aqueduct/src/openapi/documentable.dart';
 import '../utilities/token_generator.dart';
 import 'auth.dart';
 
@@ -56,14 +57,14 @@ import 'auth.dart';
 ///           }
 ///         }
 ///
-class AuthServer extends Object with APIDocumentable implements AuthValidator {
+class AuthServer implements AuthValidator, APIComponentDocumenter  {
   static const String TokenTypeBearer = "bearer";
 
   /// Creates a new instance of an [AuthServer] with a [delegate].
   ///
   /// [hashFunction] defaults to [sha256].
-  AuthServer(this.delegate, {this.hashRounds: 1000, this.hashLength: 32, Hash hashFunction}) :
-      this.hashFunction = hashFunction ?? sha256;
+  AuthServer(this.delegate, {this.hashRounds: 1000, this.hashLength: 32, Hash hashFunction})
+      : this.hashFunction = hashFunction ?? sha256;
 
   /// The object responsible for carrying out the storage mechanisms of this instance.
   ///
@@ -83,14 +84,19 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// The [Hash] function used by the PBKDF2 algorithm to generate password hashes by this instance.
   final Hash hashFunction;
 
+  /// Used during OpenAPI documentation.
+  final APISecuritySchemeOAuth2Flow documentedAuthorizationCodeFlow = new APISecuritySchemeOAuth2Flow.empty()..scopes = {};
+
+  /// Used during OpenAPI documentation.
+  final APISecuritySchemeOAuth2Flow documentedPasswordFlow = new APISecuritySchemeOAuth2Flow.empty()..scopes = {};
+
   /// Hashes a [password] with [salt] using PBKDF2 algorithm.
   ///
   /// See [hashRounds], [hashLength] and [hashFunction] for more details. This method
   /// invoke [AuthUtility.generatePasswordHash] with the above inputs.
   String hashPassword(String password, String salt) {
-    return AuthUtility.generatePasswordHash(
-        password, salt, hashRounds: hashRounds, hashLength: hashLength,
-        hashFunction: hashFunction);
+    return AuthUtility.generatePasswordHash(password, salt,
+        hashRounds: hashRounds, hashLength: hashLength, hashFunction: hashFunction);
   }
 
   /// Returns a [AuthClient] record for its [clientID].
@@ -131,8 +137,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// If credentials are not correct, it will throw the appropriate [AuthRequestError].
   ///
   /// After [expiration], this token will no longer be valid.
-  Future<AuthToken> authenticate(
-      String username, String password, String clientID, String clientSecret,
+  Future<AuthToken> authenticate(String username, String password, String clientID, String clientSecret,
       {Duration expiration: const Duration(hours: 24), List<AuthScope> requestedScopes}) async {
     if (clientID == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
@@ -161,8 +166,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       }
     }
 
-    var authenticatable =
-        await delegate.fetchAuthenticatableByUsername(this, username);
+    var authenticatable = await delegate.fetchAuthenticatableByUsername(this, username);
     if (authenticatable == null) {
       throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
@@ -175,10 +179,8 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     }
 
     List<AuthScope> validScopes = _validatedScopes(client, authenticatable, requestedScopes);
-    AuthToken token = _generateToken(
-        authenticatable.id, client.id, expiration.inSeconds,
-        allowRefresh: !client.isPublic,
-        scopes: validScopes);
+    AuthToken token = _generateToken(authenticatable.id, client.id, expiration.inSeconds,
+        allowRefresh: !client.isPublic, scopes: validScopes);
     await delegate.storeToken(this, token);
 
     return token;
@@ -200,8 +202,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
 
     if (scopesRequired != null) {
       var hasAllRequiredScopes = scopesRequired.every((requiredScope) {
-        var tokenHasValidScope = t.scopes
-            ?.any((tokenScope) => requiredScope.allowsScope(tokenScope));
+        var tokenHasValidScope = t.scopes?.any((tokenScope) => requiredScope.allowsScope(tokenScope));
 
         return tokenHasValidScope ?? false;
       });
@@ -219,8 +220,8 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// This method will refresh a [AuthToken] given the [AuthToken]'s [refreshToken] for a given client ID.
   /// This method coordinates with this instance's [delegate] to update the old token with a new access token and issue/expiration dates if successful.
   /// If not successful, it will throw an [AuthRequestError].
-  Future<AuthToken> refresh(
-      String refreshToken, String clientID, String clientSecret, {List<AuthScope> requestedScopes}) async {
+  Future<AuthToken> refresh(String refreshToken, String clientID, String clientSecret,
+      {List<AuthScope> requestedScopes}) async {
     if (clientID == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
     }
@@ -251,8 +252,8 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     if ((requestedScopes?.length ?? 0) != 0) {
       // If we do specify scope
       for (var incomingScope in requestedScopes) {
-        var hasExistingScopeOrSuperset = t.scopes
-            .any((existingScope) => incomingScope.isSubsetOrEqualTo(existingScope));
+        var hasExistingScopeOrSuperset =
+            t.scopes.any((existingScope) => incomingScope.isSubsetOrEqualTo(existingScope));
 
         if (!hasExistingScopeOrSuperset) {
           throw new AuthServerException(AuthRequestError.invalidScope, client);
@@ -285,8 +286,8 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
       ..clientID = t.clientID;
 
-    await delegate.refreshTokenWithAccessToken(this, t.accessToken,
-        newToken.accessToken, newToken.issueDate, newToken.expirationDate);
+    await delegate.refreshTokenWithAccessToken(
+        this, t.accessToken, newToken.accessToken, newToken.issueDate, newToken.expirationDate);
 
     return newToken;
   }
@@ -296,8 +297,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// This methods works with this instance's [delegate] to generate and store the authorization code
   /// if the credentials are correct. If they are not correct, it will throw the
   /// appropriate [AuthRequestError].
-  Future<AuthCode> authenticateForCode(
-      String username, String password, String clientID,
+  Future<AuthCode> authenticateForCode(String username, String password, String clientID,
       {int expirationInSeconds: 600, List<AuthScope> requestedScopes}) async {
     if (clientID == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
@@ -313,12 +313,10 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     }
 
     if (client.redirectURI == null) {
-      throw new AuthServerException(
-          AuthRequestError.unauthorizedClient, client);
+      throw new AuthServerException(AuthRequestError.unauthorizedClient, client);
     }
 
-    var authenticatable =
-        await delegate.fetchAuthenticatableByUsername(this, username);
+    var authenticatable = await delegate.fetchAuthenticatableByUsername(this, username);
     if (authenticatable == null) {
       throw new AuthServerException(AuthRequestError.accessDenied, client);
     }
@@ -330,8 +328,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     }
 
     List<AuthScope> validScopes = _validatedScopes(client, authenticatable, requestedScopes);
-    AuthCode authCode =
-        _generateAuthCode(authenticatable.id, client, expirationInSeconds, scopes: validScopes);
+    AuthCode authCode = _generateAuthCode(authenticatable.id, client, expirationInSeconds, scopes: validScopes);
     await delegate.storeAuthCode(this, authCode);
     return authCode;
   }
@@ -341,8 +338,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   /// If the authorization code has not expired, has not been used, matches the client ID,
   /// and the client secret is correct, it will return a valid [AuthToken]. Otherwise,
   /// it will throw an appropriate [AuthRequestError].
-  Future<AuthToken> exchange(
-      String authCodeString, String clientID, String clientSecret,
+  Future<AuthToken> exchange(String authCodeString, String clientID, String clientSecret,
       {int expirationInSeconds: 3600}) async {
     if (clientID == null) {
       throw new AuthServerException(AuthRequestError.invalidClient, null);
@@ -387,8 +383,8 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
 
       throw new AuthServerException(AuthRequestError.invalidGrant, client);
     }
-    AuthToken token = _generateToken(
-        authCode.resourceOwnerIdentifier, client.id, expirationInSeconds, scopes: authCode.requestedScopes);
+    AuthToken token = _generateToken(authCode.resourceOwnerIdentifier, client.id, expirationInSeconds,
+        scopes: authCode.requestedScopes);
     await delegate.storeToken(this, token, issuedFrom: authCode);
 
     return token;
@@ -398,32 +394,61 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
   // APIDocumentable overrides
   //////
 
-  static const String _SecuritySchemeClientAuth = "basic.clientAuth";
-  static const String _SecuritySchemePassword = "oauth2.password";
-  static const String _SecuritySchemeAuthorizationCode = "oauth2.accessCode";
-
   @override
-  Map<String, APISecurityScheme> documentSecuritySchemes(
-      PackagePathResolver resolver) {
-    var secPassword =
-        new APISecurityScheme.oauth2(APISecuritySchemeFlow.password)
-          ..description = "OAuth 2.0 Resource Owner Flow";
-    var secAccess =
-        new APISecurityScheme.oauth2(APISecuritySchemeFlow.authorizationCode)
-          ..description = "OAuth 2.0 Authorization Code Flow";
-    var basicAccess = new APISecurityScheme.basic()
-      ..description = "Client Authentication";
+  void documentComponents(APIDocumentContext context) {
+    final basic = new APISecurityScheme.http("basic")
+      ..description =
+          "This endpoint requires an OAuth2 Client ID and Secret as the Basic Authentication username and password. "
+          "If the client ID does not have a secret (public client), the password is the empty string (retain the separating colon, e.g. 'com.aqueduct.app:').";
+    context.securitySchemes.register("oauth2-client-authentication", basic);
 
-    return {
-      _SecuritySchemeClientAuth: basicAccess,
-      _SecuritySchemePassword: secPassword,
-      _SecuritySchemeAuthorizationCode: secAccess
-    };
+    final oauth2 = new APISecurityScheme.oauth2({
+      "authorizationCode": documentedAuthorizationCodeFlow,
+      "password": documentedPasswordFlow
+    })..description = "Standard OAuth 2.0";
+
+    context.securitySchemes.register("oauth2", oauth2);
+
+    context.defer(() {
+      if (documentedAuthorizationCodeFlow.authorizationURL == null) {
+        oauth2.flows.remove("authorizationCode");
+      }
+
+      if (documentedAuthorizationCodeFlow.tokenURL == null) {
+        oauth2.flows.remove("authorizationCode");
+      }
+
+      if (documentedPasswordFlow.tokenURL == null) {
+        oauth2.flows.remove("password");
+      }
+    });
   }
 
   /////
   // AuthValidator overrides
   /////
+  @override
+  List<APISecurityRequirement> documentRequirementsForAuthorizer(APIDocumentContext context, Authorizer authorizer, {List<AuthScope> scopes}) {
+    if (authorizer.parser is AuthorizationBasicParser) {
+      return [
+        new APISecurityRequirement({"oauth2-client-authentication": []})
+      ];
+    } else if (authorizer.parser is AuthorizationBearerParser) {
+      // Add scopes to our registered security scheme flows
+      final knownScopes = context.document.components.securitySchemes["oauth2"].flows.values.first.scopes.keys;
+      scopes?.map((scope) => scope.toString())?.where((scope) => !knownScopes.contains(scope))?.forEach((scope) {
+        context.document.components.securitySchemes["oauth2"].flows.values.forEach((flow) {
+          flow.scopes[scope] = "";
+        });
+      });
+
+      return [
+        new APISecurityRequirement({"oauth2": scopes?.map((s) => s.toString())?.toList() ?? []})
+      ];
+    }
+
+    return [];
+  }
 
   @override
   FutureOr<Authorization> validate<T>(AuthorizationParser<T> parser, T authorizationData,
@@ -438,8 +463,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     throw new ArgumentError("Invalid 'parser' for 'AuthServer.validate'. Use 'AuthorizationBasicParser' or 'AuthorizationBearerHeader'.");
   }
 
-  Future<Authorization> _validateClientCredentials(
-      AuthBasicCredentials credentials) async {
+  Future<Authorization> _validateClientCredentials(AuthBasicCredentials credentials) async {
     var username = credentials.username;
     var password = credentials.password;
 
@@ -464,31 +488,15 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     return new Authorization(client.id, null, this, credentials: credentials);
   }
 
-
-  @override
-  List<APISecurityRequirement> requirementsForStrategy(AuthorizationParser strategy) {
-    if (strategy is AuthorizationBasicParser) {
-      return [new APISecurityRequirement()..name = _SecuritySchemeClientAuth];
-    } else if (strategy is AuthorizationBearerParser) {
-      return [
-        new APISecurityRequirement()..name = _SecuritySchemeAuthorizationCode,
-        new APISecurityRequirement()..name = _SecuritySchemePassword
-      ];
-    }
-
-    return [];
-  }
-
-  List<AuthScope> _validatedScopes(AuthClient client, Authenticatable authenticatable, List<AuthScope> requestedScopes) {
+  List<AuthScope> _validatedScopes(
+      AuthClient client, Authenticatable authenticatable, List<AuthScope> requestedScopes) {
     List<AuthScope> validScopes;
     if (client.supportsScopes) {
       if ((requestedScopes?.length ?? 0) == 0) {
         throw new AuthServerException(AuthRequestError.invalidScope, client);
       }
 
-      validScopes = requestedScopes
-          .where((incomingScope) => client.allowsScope(incomingScope))
-          .toList();
+      validScopes = requestedScopes.where((incomingScope) => client.allowsScope(incomingScope)).toList();
 
       if (validScopes.length == 0) {
         throw new AuthServerException(AuthRequestError.invalidScope, client);
@@ -498,8 +506,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
       if (!identical(validScopesForAuthenticatable, AuthScope.Any)) {
         validScopes = validScopes
             .where((clientAllowedScope) =>
-              validScopesForAuthenticatable.any((userScope) =>
-                  userScope.allowsScope(clientAllowedScope)))
+                validScopesForAuthenticatable.any((userScope) => userScope.allowsScope(clientAllowedScope)))
             .toList();
 
         if (validScopes.length == 0) {
@@ -511,8 +518,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     return validScopes;
   }
 
-  AuthToken _generateToken(
-      dynamic ownerID, String clientID, int expirationInSeconds,
+  AuthToken _generateToken(dynamic ownerID, String clientID, int expirationInSeconds,
       {bool allowRefresh: true, List<AuthScope> scopes}) {
     var now = new DateTime.now().toUtc();
     AuthToken token = new AuthToken()
@@ -531,8 +537,7 @@ class AuthServer extends Object with APIDocumentable implements AuthValidator {
     return token;
   }
 
-  AuthCode _generateAuthCode(
-      dynamic ownerID, AuthClient client, int expirationInSeconds, {List<AuthScope> scopes}) {
+  AuthCode _generateAuthCode(dynamic ownerID, AuthClient client, int expirationInSeconds, {List<AuthScope> scopes}) {
     var now = new DateTime.now().toUtc();
     return new AuthCode()
       ..code = randomStringOfLength(32)

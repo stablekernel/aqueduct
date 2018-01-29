@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:path/path.dart' as path;
 import 'http.dart';
 
@@ -72,7 +73,7 @@ class HTTPFileController extends Controller {
       : _servingDirectory = new Uri.directory(pathOfDirectoryToServe),
         _onFileNotFound = onFileNotFound;
 
-  Map<String, ContentType> _extensionMap =  new Map.from(_defaultExtensionMap);
+  Map<String, ContentType> _extensionMap = new Map.from(_defaultExtensionMap);
   List<_PolicyPair> _policyPairs = [];
   final Uri _servingDirectory;
   final Function _onFileNotFound;
@@ -94,8 +95,7 @@ class HTTPFileController extends Controller {
   ///
   /// When a file with [extension] file extension is served by any instance of this type,
   /// the [contentType] will be sent as the response's Content-Type header.
-  void setContentTypeForExtension(
-      String extension, ContentType contentType) {
+  void setContentTypeForExtension(String extension, ContentType contentType) {
     _extensionMap[extension] = contentType;
   }
 
@@ -134,9 +134,7 @@ class HTTPFileController extends Controller {
   /// Evaluates each policy added by [addCachePolicy] against the [path] and
   /// returns it if exists.
   HTTPCachePolicy cachePolicyForPath(String path) {
-    return _policyPairs.firstWhere((pair) => pair.shouldApplyToPath(path),
-        orElse: () => null)
-        ?.policy;
+    return _policyPairs.firstWhere((pair) => pair.shouldApplyToPath(path), orElse: () => null)?.policy;
   }
 
   @override
@@ -178,21 +176,36 @@ class HTTPFileController extends Controller {
     }
 
     var lastModifiedDateStringValue = HttpDate.format(lastModifiedDate);
-    var contentType = contentTypeForExtension(path.extension(file.path))
-        ?? new ContentType("application", "octet-stream");
+    var contentType =
+        contentTypeForExtension(path.extension(file.path)) ?? new ContentType("application", "octet-stream");
     var byteStream = file.openRead();
 
-    return new Response.ok(byteStream,
-        headers: {HttpHeaders.LAST_MODIFIED: lastModifiedDateStringValue})
+    return new Response.ok(byteStream, headers: {HttpHeaders.LAST_MODIFIED: lastModifiedDateStringValue})
       ..cachePolicy = _policyForFile(file)
       ..encodeBody = false
       ..contentType = contentType;
+  }
+
+  @override
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) {
+    return {
+      "get": new APIOperation(
+          "getFile",
+          {
+            "200": new APIResponse("Successful file fetch.",
+                content: {"*/*": new APIMediaType(schema: new APISchemaObject.file())}),
+            "404": new APIResponse("No file exists at path.")
+          },
+          description: "Content-Type is determined by the suffix of the file.",
+          summary: "Returns the contents of a file on the server's filesystem.")
+    };
   }
 
   HTTPCachePolicy _policyForFile(File file) => cachePolicyForPath(file.path);
 }
 
 typedef bool _ShouldApplyToPath(String path);
+
 class _PolicyPair {
   _PolicyPair(this.policy, this.shouldApplyToPath);
 

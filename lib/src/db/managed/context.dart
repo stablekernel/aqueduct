@@ -3,6 +3,7 @@ import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
 import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/http/http.dart';
+import 'package:aqueduct/src/openapi/documentable.dart';
 
 /// The target for database queries and coordinator of [Query]s.
 ///
@@ -26,7 +27,7 @@ import 'package:aqueduct/src/http/http.dart';
 /// A [Query] must have a valid [ManagedContext] to execute. Most applications only need one [ManagedContext],
 /// so the most recently [ManagedContext] instantiated becomes the [ManagedContext.defaultContext]. By default, [Query]s
 /// target the [ManagedContext.defaultContext] and need not be specified.
-class ManagedContext {
+class ManagedContext implements APIComponentDocumenter {
   /// The default context that a [Query] runs on.
   ///
   /// For classes that require a [ManagedContext] - like [Query] - this is the default context when none
@@ -55,10 +56,10 @@ class ManagedContext {
   ManagedContext.standalone(this.dataModel, this.persistentStore);
 
   /// The persistent store that [Query]s on this context are executed through.
-  PersistentStore persistentStore;
+  final PersistentStore persistentStore;
 
   /// The data model containing the [ManagedEntity]s that describe the [ManagedObject]s this instance works with.
-  ManagedDataModel dataModel;
+  final ManagedDataModel dataModel;
 
   /// Returns an entity for a type from [dataModel].
   ///
@@ -66,4 +67,7 @@ class ManagedContext {
   ManagedEntity entityForType(Type type) {
     return dataModel.entityForType(type);
   }
+
+  @override
+  void documentComponents(APIDocumentContext context) => dataModel.documentComponents(context);
 }

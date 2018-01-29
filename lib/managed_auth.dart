@@ -52,7 +52,7 @@ class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
       ..issueDate = t.issueDate
       ..expirationDate = t.expirationDate
       ..type = t.type
-      ..scope = t.scopes?.map((s) => s.scopeString)?.join(" ")
+      ..scope = t.scopes?.map((s) => s.toString())?.join(" ")
       ..resourceOwner = tokenResourceOwner as dynamic
       ..client = (new ManagedAuthClient()..id = t.clientID);
   }
@@ -71,7 +71,7 @@ class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
       ..resourceOwner = tokenResourceOwner as dynamic
       ..issueDate = code.issueDate
       ..expirationDate = code.expirationDate
-      ..scope = code.requestedScopes?.map((s) => s.scopeString)?.join(" ")
+      ..scope = code.requestedScopes?.map((s) => s.toString())?.join(" ")
       ..client = (new ManagedAuthClient()..id = code.clientID);
   }
 

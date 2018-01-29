@@ -44,8 +44,16 @@ class RESTControllerBinder {
 
   Type controllerType;
   List<RESTControllerParameterBinder> propertyBinders = [];
-
   List<RESTControllerMethodBinder> methodBinders;
+
+  List<RESTControllerParameterBinder> parametersForOperation(Operation op) {
+    final methodBinder =
+        methodBinders.firstWhere((b) => b.isSuitableForRequest(op.method, op.pathVariables), orElse: () => null);
+
+    return [propertyBinders, methodBinder?.positionalParameters ?? [], methodBinder?.optionalParameters ?? []]
+        .expand((i) => i)
+        .toList();
+  }
 
   List<String> get unsatisfiableOperations {
     return methodBinders
@@ -148,7 +156,11 @@ class RESTControllerBinder {
     var properties = controllerBinder.propertyBinders.map(initiallyBindWith).toList();
     var positional = methodBinder.positionalParameters.map(initiallyBindWith).toList();
     var optional = methodBinder.optionalParameters.map(initiallyBindWith).toList();
-    var flattened = [properties, positional, optional].expand((x) => x).toList();
+    var flattened = [
+      properties,
+      positional,
+      optional,
+    ].expand((x) => x).toList();
 
     var errorMessage = flattened.where((v) => v.errorMessage != null).map((v) => v.errorMessage).join(", ");
 

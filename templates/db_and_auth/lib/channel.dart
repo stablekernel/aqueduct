@@ -89,15 +89,6 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
 
     return htmlRenderer.renderHTML("web/login.html", map);
   }
-
-  /*
-   * Overrides
-   */
-
-  @override
-  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) {
-    return authServer.documentSecuritySchemes(resolver);
-  }
 }
 
 /// An instance of this class represents values from a configuration

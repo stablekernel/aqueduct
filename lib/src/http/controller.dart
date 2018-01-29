@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
 
 import 'http.dart';
@@ -18,17 +19,9 @@ typedef FutureOr<RequestOrResponse> _Handler(Request request);
 /// together to form a series of steps that fully handle a request. This composability allows for reuse
 /// of common tasks (like verifying an Authorization header) that can be inserted as a step for many different requests.
 ///
-/// Controllers fall into two categories: endpoint controllers and middleware. An endpoint controller fulfills a request
-/// (e.g., fetching a database row and encoding it into a response). Middleware typically verifies something about a request
-/// or adds something to the response created by an endpoint controller.
-///
-/// This series of steps is declared by subclassing [ApplicationChannel] and overriding its [ApplicationChannel.entryPoint] method.
-/// This method returns the first controller that will receive requests. (The entry point
-/// is typically a [Router].) Controllers are linked to the entry point to form an application's request handling behavior.
-///
-/// This class is intended to be subclassed. The task performed by the subclass is defined by overriding [handle].
-/// A [Controller] may also wrap a closure to provide its task.
-class Controller extends Object with APIDocumentable {
+/// This class is intended to be subclassed. [ApplicationChannel], [Router], [RESTController] are all examples of this type.
+/// Subclasses should implement [handle] to respond to, modify or forward requests.
+class Controller implements APIComponentDocumenter, APIOperationDocumenter {
   /// Default constructor.
   ///
   /// For subclasses, override [handle] and do not provide [handler].
@@ -65,9 +58,6 @@ class Controller extends Object with APIDocumentable {
 
   /// The CORS policy of this controller.
   CORSPolicy policy = new CORSPolicy();
-
-  @override
-  APIDocumentable get documentableChild => nextController;
 
   Controller _nextController;
   final _Handler _handler;
@@ -226,6 +216,26 @@ class Controller extends Object with APIDocumentable {
     }
   }
 
+  @override
+  Map<String, APIPath> documentPaths(APIDocumentContext context) => nextController?.documentPaths(context);
+
+  @override
+  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
+    if (nextController == null) {
+      if (_handler == null) {
+        throw new APIException(
+            "Invalid documenter '${runtimeType}'. Reached end of controller chain and found no operations. Path has summary '${path
+                .summary}'.");
+      }
+      return {};
+    }
+
+    return nextController?.documentOperations(context, route, path);
+  }
+
+  @override
+  void documentComponents(APIDocumentContext context) => nextController?.documentComponents(context);
+
   Future _handlePreflightRequest(Request req) async {
     Controller controllerToDictatePolicy;
     try {
@@ -299,8 +309,8 @@ class _ControllerGenerator extends Controller {
   Controller nextInstanceToReceive;
 
   Controller instantiate() {
-    final Controller instance = generator();
-    instance._nextController = this.nextController;
+    Controller instance = generator();
+    instance._nextController = nextController;
     if (policyOverride != null) {
       instance.policy = policyOverride;
     }
@@ -346,16 +356,12 @@ class _ControllerGenerator extends Controller {
   }
 
   @override
-  APIDocument documentAPI(PackagePathResolver resolver) => nextInstanceToReceive.documentAPI(resolver);
+  void documentComponents(APIDocumentContext components) => nextInstanceToReceive.documentComponents(components);
 
   @override
-  List<APIPath> documentPaths(PackagePathResolver resolver) => nextInstanceToReceive.documentPaths(resolver);
+  Map<String, APIPath> documentPaths(APIDocumentContext components) => nextInstanceToReceive.documentPaths(components);
 
   @override
-  List<APIOperation> documentOperations(PackagePathResolver resolver) =>
-      nextInstanceToReceive.documentOperations(resolver);
-
-  @override
-  Map<String, APISecurityScheme> documentSecuritySchemes(PackagePathResolver resolver) =>
-      nextInstanceToReceive.documentSecuritySchemes(resolver);
+  Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) =>
+      nextInstanceToReceive.documentOperations(components, route, path);
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
 
 import '../http/http.dart';
@@ -47,7 +48,7 @@ import 'package:aqueduct/src/application/service_registry.dart';
 /// of [ApplicationChannel].
 ///
 /// [ApplicationChannel] instances may pass values to each other through [messageHub].
-abstract class ApplicationChannel extends Object with APIDocumentable {
+abstract class ApplicationChannel implements APIComponentDocumenter {
   /// One-time setup method for an application.
   ///
   /// This method is invoked as the first step during application startup. It is only invoked once per application, whereas other initialization
@@ -73,11 +74,13 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
   ///
   /// Reference back to the owning server that adds requests into this channel.
   ApplicationServer get server => _server;
+
   set server(ApplicationServer server) {
     _server = server;
     messageHub._outboundController.stream.listen(server.sendApplicationEvent);
     server.hubSink = messageHub._inboundController.sink;
   }
+
   ApplicationServer _server;
 
   /// Sends and receives messages to other isolates running a [ApplicationChannel].
@@ -145,53 +148,51 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
     await messageHub.close();
   }
 
-  @override
-  APIDocument documentAPI(PackagePathResolver resolver) {
-    var doc = new APIDocument();
+  /// Returns an OpenAPI document for the components and paths defined by this channel and its properties.
+  ///
+  /// This method invokes [entryPoint] and [prepare] on the entry point before starting the documentation process.
+  ///
+  /// The documentation process first invokes [documentComponents] on this channel. Every controller in the channel will have its
+  /// [documentComponents] methods invoked. Any declared property
+  /// of this channel that implements [APIComponentDocumenter] will have its [documentComponents]
+  /// method invoked. If there services that are part of the application, but not stored as properties of this channel, you may override
+  /// [documentComponents] in your subclass to add them. You must call the superclass' implementation of [documentComponents].
+  ///
+  /// After components have been documented, [APIOperationDocumenter.documentPaths] is invoked on [entryPoint]. The controllers
+  /// of the channel will add paths and operations to the document during this process.
+  ///
+  /// This method should not be overridden.
+  Future<APIDocument> documentAPI(Map<String, dynamic> projectSpec) async {
+    final doc = new APIDocument()..components = new APIComponents();
     final root = entryPoint;
     root.prepare();
 
-    doc.paths = root.documentPaths(resolver);
-    doc.securitySchemes = documentSecuritySchemes(resolver);
+    final context = new APIDocumentContext(doc);
+    documentComponents(context);
 
-    var host = new Uri(scheme: "http", host: "localhost");
-    if (doc.hosts.length > 0) {
-      host = doc.hosts.first.uri;
-    }
+    doc.paths = root.documentPaths(context);
 
-    doc.securitySchemes?.values?.forEach((scheme) {
-      if (scheme.isOAuth2) {
-        var authCodePath = _authorizationPath(doc.paths);
-        if (authCodePath != null) {
-          scheme.authorizationURL = host.resolve(authCodePath).toString();
-        }
+    doc.info = new APIInfo(projectSpec["name"], projectSpec["version"], description: projectSpec["description"]);
 
-        var tokenPath = _authorizationTokenPath(doc.paths);
-        if (tokenPath != null) {
-          scheme.tokenURL = host.resolve(tokenPath).toString();
+    await context.finalize();
+
+    return doc;
+  }
+
+  @override
+  void documentComponents(APIDocumentContext registry) {
+    entryPoint.documentComponents(registry);
+
+    final type = reflect(this).type;
+    final documenter = reflectType(APIComponentDocumenter);
+    type.declarations.values.forEach((member) {
+      if (member is VariableMirror && !member.isStatic) {
+        if (member.type.isAssignableTo(documenter)) {
+          APIComponentDocumenter object = reflect(this).getField(member.simpleName).reflectee;
+          object?.documentComponents(registry);
         }
       }
     });
-
-    var distinct = (Iterable<ContentType> items) {
-      var retain = <ContentType>[];
-
-      return items.where((ct) {
-        if (!retain.any((retained) =>
-            ct.primaryType == retained.primaryType &&
-            ct.subType == retained.subType &&
-            ct.charset == retained.charset)) {
-          retain.add(ct);
-          return true;
-        }
-
-        return false;
-      }).toList();
-    };
-    doc.consumes = distinct(doc.paths.expand((p) => p.operations.expand((op) => op.consumes)));
-    doc.produces = distinct(doc.paths.expand((p) => p.operations.expand((op) => op.produces)));
-
-    return doc;
   }
 
   /// Returns the subclass of [ApplicationChannel] found in an application library.
@@ -202,7 +203,8 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
         .values
         .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
         .expand((lib) => lib.declarations.values)
-        .where((decl) => decl is ClassMirror && decl.isSubclassOf(channelType) && decl.reflectedType != ApplicationChannel)
+        .where(
+            (decl) => decl is ClassMirror && decl.isSubclassOf(channelType) && decl.reflectedType != ApplicationChannel)
         .map((decl) => decl as ClassMirror)
         .toList();
 
@@ -211,42 +213,6 @@ abstract class ApplicationChannel extends Object with APIDocumentable {
     }
 
     return classes.first.reflectedType;
-  }
-
-  String _authorizationPath(List<APIPath> paths) {
-    var op = paths.expand((p) => p.operations).firstWhere((op) {
-      return op.method.toLowerCase() == "post" &&
-          op.responses.any((resp) {
-            return resp.statusCode == HttpStatus.MOVED_TEMPORARILY &&
-                ["client_id", "username", "password", "state"].every((qp) {
-                  return op.parameters.map((apiParam) => apiParam.name).contains(qp);
-                });
-          });
-    }, orElse: () => null);
-
-    if (op == null) {
-      return null;
-    }
-
-    var path = paths.firstWhere((p) => p.operations.contains(op));
-    return path.path;
-  }
-
-  String _authorizationTokenPath(List<APIPath> paths) {
-    var op = paths.expand((p) => p.operations).firstWhere((op) {
-      return op.method.toLowerCase() == "post" &&
-          op.responses.any((resp) {
-            return ["access_token", "token_type", "expires_in", "refresh_token"]
-                .every((property) => resp.schema?.properties?.containsKey(property) ?? false);
-          });
-    }, orElse: () => null);
-
-    if (op == null) {
-      return null;
-    }
-
-    var path = paths.firstWhere((p) => p.operations.contains(op));
-    return path.path;
   }
 }
 

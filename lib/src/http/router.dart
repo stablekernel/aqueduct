@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:async';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
+
 import 'http.dart';
 import 'route_specification.dart';
 import 'route_node.dart';
@@ -88,7 +90,7 @@ class Router extends Controller {
 
   @override
   void prepare() {
-    _rootRouteNode = new RouteNode(_routeControllers.expand((rh) => rh.patterns).toList());
+    _rootRouteNode = new RouteNode(_routeControllers.expand((rh) => rh.specifications).toList());
 
     for (var c in _routeControllers) {
       c.prepare();
@@ -136,15 +138,24 @@ class Router extends Controller {
       return handleError(req, any, stack);
     }
 
+    // This line is intentionally outside of the try block
+    // so that this object doesn't handle exceptions for 'next'.
     return next?.receive(req);
   }
 
   @override
-  List<APIPath> documentPaths(PackagePathResolver resolver) {
-    return _routeControllers
-        .expand((rh) => rh.patterns)
-        .map((RouteSpecification routeSpec) => routeSpec.documentPaths(resolver).first)
-        .toList();
+  Map<String, APIPath> documentPaths(APIDocumentContext components) {
+    return _routeControllers.fold(<String, APIPath>{}, (prev, elem) {
+      prev.addAll(elem.documentPaths(components));
+      return prev;
+    });
+  }
+
+  @override
+  void documentComponents(APIDocumentContext components) {
+    _routeControllers.forEach((_RouteController controller) {
+      controller.documentComponents(components);
+    });
   }
 
   @override
@@ -167,13 +178,42 @@ class Router extends Controller {
 }
 
 class _RouteController extends Controller {
-  /// Do not create instances of this class manually.
-  _RouteController(this.patterns) {
-    patterns.forEach((p) {
+  _RouteController(this.specifications) {
+    specifications.forEach((p) {
       p.controller = this;
     });
   }
 
   /// Route specifications for this controller.
-  final List<RouteSpecification> patterns;
+  final List<RouteSpecification> specifications;
+
+  @override
+  Map<String, APIPath> documentPaths(APIDocumentContext components) {
+    return specifications.fold(<String, APIPath>{}, (pathMap, spec) {
+      final pathKey = "/" +
+          spec.segments.map((rs) {
+            if (rs.isLiteralMatcher) {
+              return rs.literal;
+            } else if (rs.isVariable) {
+              return "{${rs.variableName}}";
+            } else if (rs.isRemainingMatcher) {
+              return "{path}";
+            }
+          }).join("/");
+
+      final path = new APIPath()
+        ..parameters = spec.variableNames.map((pathVar) => new APIParameter.path(pathVar)).toList();
+
+      if (spec.segments.any((seg) => seg.isRemainingMatcher)) {
+        path.parameters.add(new APIParameter.path("path")
+          ..description = "This path variable may contain slashes '/' and may be empty.");
+      }
+
+      path.operations = spec.controller.documentOperations(components, pathKey, path);
+
+      pathMap[pathKey] = path;
+
+      return pathMap;
+    });
+  }
 }

@@ -36,21 +36,13 @@ void main() {
   /////////
 
   group("GET success case", () {
-    test(
-        "GET login form with valid values returns a 'page' with the provided values",
-        () async {
+    test("GET login form with valid values returns a 'page' with the provided values", () async {
       var req = client.request("/auth/code")
-        ..formData = {
-          "client_id": "com.stablekernel.redirect",
-          "response_type": "code"
-        };
+        ..formData = {"client_id": "com.stablekernel.redirect", "response_type": "code"};
 
       var res = await req.get();
-      expect(
-          res,
-          hasResponse(200, null,
-              headers: {"content-type": "text/html; charset=utf-8"}));
-      // The data is actually JSON, just makes it easier to validate here.
+      expect(res, hasResponse(200, null, headers: {"content-type": "text/html; charset=utf-8"}));
+      // The data is actually JSON for purposes of this test, just makes it easier to validate here.
       var decoded = JSON.decode(res.body);
       expect(decoded, {
         "response_type": "code",
@@ -61,9 +53,7 @@ void main() {
       });
     });
 
-    test(
-        "GET login form with valid values returns a 'page' with the provided values + state + scope",
-        () async {
+    test("GET login form with valid values returns a 'page' with the provided values + state + scope", () async {
       var req = client.request("/auth/code")
         ..formData = {
           "client_id": "com.stablekernel.redirect",
@@ -88,10 +78,7 @@ void main() {
   group("GET failure cases", () {
     test("No registered rendered returns 405", () async {
       var req = client.request("/nopage")
-        ..formData = {
-          "client_id": "com.stablekernel.redirect",
-          "response_type": "code"
-        };
+        ..formData = {"client_id": "com.stablekernel.redirect", "response_type": "code"};
       var res = await req.get();
       expect(res, hasStatus(405));
     });
@@ -109,8 +96,7 @@ void main() {
         "password": InMemoryAuthStorage.DefaultPassword
       });
 
-      expectRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"),
-          state: "Wisconsin@&");
+      expectRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"), state: "Wisconsin@&");
     });
 
     test("With scope", () async {
@@ -122,8 +108,7 @@ void main() {
         "scope": "user"
       });
 
-      expectRedirect(res, new Uri.http("stablekernel.com", "/auth/scoped"),
-          state: "Wisconsin@&");
+      expectRedirect(res, new Uri.http("stablekernel.com", "/auth/scoped"), state: "Wisconsin@&");
 
       var redirectURI = Uri.parse(res.headers["location"].first);
       var codeParam = redirectURI.queryParameters["code"];
@@ -141,8 +126,7 @@ void main() {
         "scope": "user other_scope"
       });
 
-      expectRedirect(res, new Uri.http("stablekernel.com", "/auth/scoped"),
-          state: "Wisconsin@&");
+      expectRedirect(res, new Uri.http("stablekernel.com", "/auth/scoped"), state: "Wisconsin@&");
 
       var redirectURI = Uri.parse(res.headers["location"].first);
       var codeParam = redirectURI.queryParameters["code"];
@@ -161,9 +145,7 @@ void main() {
         "password": InMemoryAuthStorage.DefaultPassword,
         "state": "a"
       });
-      expectErrorRedirect(res,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied",
-          state: "a");
+      expectErrorRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied", state: "a");
     });
 
     test("Username is empty returns 302 with error", () async {
@@ -173,20 +155,13 @@ void main() {
         "password": InMemoryAuthStorage.DefaultPassword,
         "state": "a"
       });
-      expectErrorRedirect(res,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied",
-          state: "a");
+      expectErrorRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied", state: "a");
     });
 
     test("Username is missing returns 302 with error", () async {
-      var res = await codeResponse({
-        "client_id": "com.stablekernel.redirect",
-        "password": InMemoryAuthStorage.DefaultPassword,
-        "state": "a"
-      });
-      expectErrorRedirect(res,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request",
-          state: "a");
+      var res = await codeResponse(
+          {"client_id": "com.stablekernel.redirect", "password": InMemoryAuthStorage.DefaultPassword, "state": "a"});
+      expectErrorRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request", state: "a");
     });
 
     test("Username is repeated returns 400", () async {
@@ -220,32 +195,19 @@ void main() {
         "password": "nonsense",
         "state": "a"
       });
-      expectErrorRedirect(resp,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied",
-          state: "a");
+      expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied", state: "a");
     });
 
     test("password is empty returns 302 with error", () async {
-      var resp = await codeResponse({
-        "client_id": "com.stablekernel.redirect",
-        "username": user1["username"],
-        "password": "",
-        "state": "a"
-      });
-      expectErrorRedirect(resp,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied",
-          state: "a");
+      var resp = await codeResponse(
+          {"client_id": "com.stablekernel.redirect", "username": user1["username"], "password": "", "state": "a"});
+      expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied", state: "a");
     });
 
     test("password is missing returns 302 with error", () async {
-      var resp = await codeResponse({
-        "client_id": "com.stablekernel.redirect",
-        "username": user1["username"],
-        "state": "a"
-      });
-      expectErrorRedirect(resp,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request",
-          state: "a");
+      var resp =
+          await codeResponse({"client_id": "com.stablekernel.redirect", "username": user1["username"], "state": "a"});
+      expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request", state: "a");
     });
 
     test("password is repeated returns 302 with error", () async {
@@ -282,9 +244,7 @@ void main() {
             "username=$encodedUsername&password=$encodedPassword&response_type=notcode&client_id=com.stablekernel.redirect&state=a"
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
-      expectErrorRedirect(resp,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request",
-          state: "a");
+      expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request", state: "a");
     });
 
     test("response_type is duplicated returns 302 with error", () async {
@@ -311,21 +271,13 @@ void main() {
 
   group("client_id failures", () {
     test("Omit client_id returns 400", () async {
-      var resp = await codeResponse({
-        "username": user1["username"],
-        "password": user1["password"],
-        "state": "a"
-      });
+      var resp = await codeResponse({"username": user1["username"], "password": user1["password"], "state": "a"});
       expect(resp, hasStatus(400));
     });
 
     test("client_id does not exist for app returns 400", () async {
-      var resp = await codeResponse({
-        "client_id": "abc",
-        "username": user1["username"],
-        "password": user1["password"],
-        "state": "a"
-      });
+      var resp = await codeResponse(
+          {"client_id": "abc", "username": user1["username"], "password": user1["password"], "state": "a"});
       expect(resp, hasStatus(400));
     });
 
@@ -359,12 +311,8 @@ void main() {
     });
 
     test("client_id is empty returns 400", () async {
-      var resp = await codeResponse({
-        "client_id": "",
-        "username": user1["username"],
-        "password": user1["password"],
-        "state": "a"
-      });
+      var resp = await codeResponse(
+          {"client_id": "", "username": user1["username"], "password": user1["password"], "state": "a"});
       expect(resp, hasStatus(400));
     });
   });
@@ -396,9 +344,7 @@ void main() {
         "password": InMemoryAuthStorage.DefaultPassword,
         "state": "xyz"
       });
-      expectErrorRedirect(res,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied",
-          state: "xyz");
+      expectErrorRedirect(res, new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied", state: "xyz");
     });
 
     test("Failed password + state still returns state in error", () async {
@@ -408,9 +354,7 @@ void main() {
         "password": "nonsense",
         "state": "xyz"
       });
-      expectErrorRedirect(resp,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied",
-          state: "xyz");
+      expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "access_denied", state: "xyz");
     });
 
     test("Failed response_type + state still returns state in error", () async {
@@ -422,9 +366,7 @@ void main() {
             "username=$encodedUsername&password=$encodedPassword&response_type=notcode&client_id=com.stablekernel.redirect&state=xyz"
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
-      expectErrorRedirect(resp,
-          new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request",
-          state: "xyz");
+      expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request", state: "xyz");
     });
   });
 
@@ -454,79 +396,79 @@ void main() {
     });
   });
 
-  ///////
-  /// Doc gen
-  ///////
+  group("Documentation", () {
+    Map<String, APIOperation> operations;
+    setUpAll(() async {
+      final context = new APIDocumentContext(new APIDocument()
+        ..info = new APIInfo("title", "1.0.0")
+        ..paths = {}
+        ..components = new APIComponents());
+      AuthCodeController ac = new AuthCodeController(new AuthServer(new InMemoryAuthStorage()));
+      ac.prepare();
+      operations = ac.documentOperations(context, "/", new APIPath());
+      await context.finalize();
+    });
 
-  test("Response documentation", () {
-    AuthCodeController ac =
-        new AuthCodeController(new AuthServer(new InMemoryAuthStorage()));
-    var resolver = new PackagePathResolver(new File(".packages").path);
-    var operations = ac.documentOperations(resolver);
+    test("Has GET and POST operation", () {
+      expect(operations, {
+        "get": isNotNull,
+        "post": isNotNull
+      });
+    });
 
-    expect(operations.length, 2);
+    test("GET serves HTML string for only response", () {
+      expect(operations["get"].responses.length, 1);
+      expect(operations["get"].responses["200"].content["text/html"].schema.type, APIType.string);
+    });
 
-    var getOp = operations.firstWhere((op) => op.method.toLowerCase() == "get");
-    var scopeGet = getOp.parameters.firstWhere((p) => p.name == "scope");
-    var clientIDGet = getOp.parameters.firstWhere((p) => p.name == "client_id");
-    var stateGet = getOp.parameters.firstWhere((p) => p.name == "state");
-    var responseTypeGet =
-        getOp.parameters.firstWhere((p) => p.name == "response_type");
-    expect(
-        getOp.parameters
-            .every((p) => p.parameterLocation == APIParameterLocation.query),
-        true);
-    expect(
-        getOp.parameters.every((p) => p.schemaObject.type == "string"), true);
-    expect(
-        [clientIDGet, responseTypeGet, stateGet]
-            .every((p) => p.required == true),
-        true);
-    expect([scopeGet].every((p) => p.required == false), true);
-    expect(getOp.produces.length, 1);
-    expect(getOp.produces.first, ContentType.HTML);
-    expect(getOp.security, []);
+    test("GET has parameters for client_id, state, response_type and scope", () {
+      final op = operations["get"];
+      expect(op.parameters.length, 4);
+      expect(op.parameters.every((p) => p.location == APIParameterLocation.query), true);
+      expect(op.parameterNamed("client_id").schema.type, APIType.string);
+      expect(op.parameterNamed("scope").schema.type, APIType.string);
+      expect(op.parameterNamed("response_type").schema.type, APIType.string);
+      expect(op.parameterNamed("state").schema.type, APIType.string);
 
-    var postOperation =
-        operations.firstWhere((op) => op.method.toLowerCase() == "post");
-    var scopePost =
-        postOperation.parameters.firstWhere((p) => p.name == "scope");
-    var clientIDPost =
-        postOperation.parameters.firstWhere((p) => p.name == "client_id");
-    var statePost =
-        postOperation.parameters.firstWhere((p) => p.name == "state");
-    var responseTypePost =
-        postOperation.parameters.firstWhere((p) => p.name == "response_type");
-    var usernamePost =
-        postOperation.parameters.firstWhere((p) => p.name == "username");
-    var passwordPost =
-        postOperation.parameters.firstWhere((p) => p.name == "password");
-    expect(
-        postOperation.parameters
-            .every((p) => p.parameterLocation == APIParameterLocation.formData),
-        true);
-    expect(
-        postOperation.parameters.every((p) => p.schemaObject.type == "string"),
-        true);
-    expect(
-        [clientIDPost, responseTypePost, usernamePost, passwordPost, statePost]
-            .every((p) => p.required == true),
-        true);
-    expect([scopePost].every((p) => p.required == false), true);
-    expect(postOperation.security, []);
+      expect(op.parameterNamed("client_id").isRequired, true);
+      expect(op.parameterNamed("scope").isRequired, false);
+      expect(op.parameterNamed("response_type").isRequired, true);
+      expect(op.parameterNamed("state").isRequired, true);
+    });
 
-    expect(
-        postOperation.responses
-            .any((ar) => ar.key == "${HttpStatus.MOVED_TEMPORARILY}"),
-        true);
-    expect(
-        postOperation.responses
-            .any((ar) => ar.key == "${HttpStatus.BAD_REQUEST}"),
-        true);
-    expect(
-        postOperation.responses
-            .any((ar) => ar.key == "${HttpStatus.INTERNAL_SERVER_ERROR}"),
-        true);
+    test("POST has body parameteters for client_id, state, response_type, scope, username and password", () {
+      final op = operations["post"];
+      expect(op.parameters.length, 0);
+      expect(op.requestBody.isRequired, true);
+
+      final content = op.requestBody.content["application/x-www-form-urlencoded"];
+      expect(content, isNotNull);
+
+      expect(content.schema.type, APIType.object);
+      expect(content.schema.properties.length, 6);
+      expect(content.schema.properties["client_id"].type, APIType.string);
+      expect(content.schema.properties["scope"].type, APIType.string);
+      expect(content.schema.properties["state"].type, APIType.string);
+      expect(content.schema.properties["response_type"].type, APIType.string);
+      expect(content.schema.properties["username"].type, APIType.string);
+      expect(content.schema.properties["password"].type, APIType.string);
+      expect(content.schema.properties["password"].format, "password");
+      expect(content.schema.required, ["client_id", "state", "response_type", "username", "password"]);
+    });
+
+    test("POST response can be redirect or bad request", () {
+      expect(operations["post"].responses, {
+        "${HttpStatus.MOVED_TEMPORARILY}": isNotNull,
+        "${HttpStatus.BAD_REQUEST}": isNotNull,
+      });
+    });
+
+    test("POST response is a redirect", () {
+      final redirectResponse  = operations["post"].responses["${HttpStatus.MOVED_TEMPORARILY}"];
+      expect(redirectResponse.content, isNull);
+      expect(redirectResponse.headers["Location"].schema.type, APIType.string);
+      expect(redirectResponse.headers["Location"].schema.format, "uri");
+    });
   });
 }
 
@@ -560,8 +502,6 @@ class TestChannel extends ApplicationChannel implements AuthCodeControllerDelega
       "scope": scope
     });
   }
-
-
 }
 
 void expectRedirect(TestResponse resp, Uri requestURI, {String state}) {
@@ -579,8 +519,7 @@ void expectRedirect(TestResponse resp, Uri requestURI, {String state}) {
   expect(uri.queryParametersAll["code"].length, 1);
 }
 
-void expectErrorRedirect(TestResponse resp, Uri requestURI, String errorReason,
-    {String state}) {
+void expectErrorRedirect(TestResponse resp, Uri requestURI, String errorReason, {String state}) {
   expect(resp, hasStatus(HttpStatus.MOVED_TEMPORARILY));
 
   var location = resp.headers.value(HttpHeaders.LOCATION);
@@ -593,17 +532,11 @@ void expectErrorRedirect(TestResponse resp, Uri requestURI, String errorReason,
   expect(uri.queryParametersAll["error"].length, 1);
 }
 
-Map<String, String> get user1 => const {
-      "username": "bob+0@stablekernel.com",
-      "password": InMemoryAuthStorage.DefaultPassword
-    };
+Map<String, String> get user1 =>
+    const {"username": "bob+0@stablekernel.com", "password": InMemoryAuthStorage.DefaultPassword};
 
-Map<String, String> get user2 => const {
-      "username": "bob+1@stablekernel.com",
-      "password": InMemoryAuthStorage.DefaultPassword
-    };
+Map<String, String> get user2 =>
+    const {"username": "bob+1@stablekernel.com", "password": InMemoryAuthStorage.DefaultPassword};
 
-Map<String, String> get user3 => const {
-      "username": "bob+2@stablekernel.com",
-      "password": InMemoryAuthStorage.DefaultPassword
-    };
+Map<String, String> get user3 =>
+    const {"username": "bob+2@stablekernel.com", "password": InMemoryAuthStorage.DefaultPassword};

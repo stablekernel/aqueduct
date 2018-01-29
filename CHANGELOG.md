@@ -1,7 +1,8 @@
-# aqueduct changelog
-
 ## 3.0.0
 
+- Adds support for OpenAPI 3.0.0 documentation generation.
+    - Adds `APIComponentDocumenter`, `APIOperationDocumenter`, `APIDocumentContext`.
+    - Removes `PackagePathResolver`, `ApplicationOptions.isDocumenting` and `APIDocumentable`.    
 - Removes `HTTPResponseException`. Responses can now be thrown instead.
 - `QueryException`s are no longer thrown for every ORM exception. If a store chooses to interpret an exception, it will still throw a `QueryException`. Otherwise, the underlying driver exception will be thrown.
 - Default constructor for `PostgreSQLPersistentStore` now takes connection info instead of closure. 
@@ -13,7 +14,9 @@
 - Remove `@httpGet` (and other `HTTPMethod` annotations) constants. Behavior replaced by`@Operation`.
 - Renames `Request.innerRequest` to `Request.raw`.
 - Removes `runOnMainIsolate` from `Application.start()` and introduces `Application.test()` as replacement.
-- Renames `RequestSink` to `ApplicationChannel` and improves its structure.
+- Renames `RequestSink` to `ApplicationChannel`.
+    - Replace constructor and `willOpen` with `prepare`. 
+    - Replace `setupRouter` with `entryPoint`.
 - Replaces `AuthCodeController.renderFunction` with `AuthCodeControllerDelegate`.
 - Removes `AuthStrategy` in place of `AuthorizationParser<T>`.
     - Adds concrete implementations of `AuthorizationParser<T>`, `AuthorizationBearerParser` and `AuthorizationBasicParser`.

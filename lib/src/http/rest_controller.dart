@@ -2,11 +2,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:analyzer/analyzer.dart';
+import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 import 'http.dart';
 import 'rest_controller_internal/internal.dart';
-
 
 /// Controller for operating on an HTTP Resource.
 ///
@@ -120,7 +120,8 @@ abstract class RESTController extends Controller {
     final conflictingOperations = binder.conflictingOperations;
     if (conflictingOperations.length > 0) {
       final opNames = conflictingOperations.map((s) => "'$s'").join(", ");
-      throw new StateError("Invalid controller. Controller '${runtimeType.toString()}' has ambiguous operations. Offending operating methods: $opNames.");
+      throw new StateError("Invalid controller. Controller '${runtimeType
+          .toString()}' has ambiguous operations. Offending operating methods: $opNames.");
     }
 
     final unsatisfiableOperations = binder.unsatisfiableOperations;
@@ -132,6 +133,213 @@ abstract class RESTController extends Controller {
 
     RESTControllerBinder.addBinder(binder);
     super.prepare();
+  }
+
+  @override
+  FutureOr<RequestOrResponse> handle(Request req) async {
+    request = req;
+
+    var preprocessedResult = await willProcessRequest(req);
+    if (preprocessedResult is Request) {
+      return _process();
+    } else if (preprocessedResult is Response) {
+      return preprocessedResult;
+    }
+
+    throw new StateError(
+        "'$runtimeType' returned invalid object from 'willProcessRequest'. Must return 'Request' or 'Response'.");
+  }
+
+  /// Returns a documented list of [APIParameter] for [operation].
+  ///
+  /// This method will automatically create [APIParameter]s for any bound properties and operation method arguments.
+  /// If an operation method requires additional parameters that cannot be bound using [Bind] annotations, override
+  /// this method. When overriding this method, call the superclass' implementation and add the additional parameters
+  /// to the returned list before returning the combined list.
+  List<APIParameter> documentOperationParameters(APIDocumentContext context, Operation operation) {
+    final binder = RESTControllerBinder.binderForType(runtimeType);
+
+    bool usesFormEncodedData = operation.method == "POST" &&
+        acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
+
+    return binder
+        .parametersForOperation(operation)
+        .map((param) {
+          if (param.binding is HTTPBody) {
+            return null;
+          }
+          if (usesFormEncodedData && param.binding is HTTPQuery) {
+            return null;
+          }
+
+          return _documentParameter(context, operation, param);
+        })
+        .where((p) => p != null)
+        .toList();
+  }
+
+  /// Returns a documented summary for [operation].
+  ///
+  /// By default, this method returns null and the summary is derived from documentation comments
+  /// above the operation method. You may override this method to manually add a summary to an operation.
+  String documentOperationSummary(APIDocumentContext context, Operation operation) {
+    return null;
+  }
+
+  /// Returns a documented description for [operation].
+  ///
+  /// By default, this method returns null and the description is derived from documentation comments
+  /// above the operation method. You may override this method to manually add a description to an operation.
+  String documentOperationDescription(APIDocumentContext context, Operation operation) {
+    return null;
+  }
+
+  /// Returns a documented request body for [operation].
+  ///
+  /// If an operation method binds an [Bind.body] argument or accepts form data, this method returns a [APIRequestBody]
+  /// that describes the bound body type. You may override this method to take an alternative approach or to augment the
+  /// automatically generated request body documentation.
+  APIRequestBody documentOperationRequestBody(APIDocumentContext context, Operation operation) {
+    final binder = _binderForOperation(operation);
+    final usesFormEncodedData = operation.method == "POST" &&
+        acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
+    final boundBody = binder.positionalParameters.firstWhere((p) => p.binding is HTTPBody, orElse: () => null) ??
+        binder.optionalParameters.firstWhere((p) => p.binding is HTTPBody, orElse: () => null);
+
+    if (boundBody != null) {
+      final type = boundBody.boundValueType.reflectedType;
+      return new APIRequestBody.schema(context.schema.getObjectWithType(type),
+          contentTypes: acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}"),
+          required: boundBody.isRequired);
+    } else if (usesFormEncodedData) {
+      final controller = RESTControllerBinder.binderForType(runtimeType);
+      final props = controller
+          .parametersForOperation(operation)
+          .where((p) => p.binding is HTTPQuery)
+          .map((param) => _documentParameter(context, operation, param))
+          .fold(<String, APISchemaObject>{}, (prev, elem) {
+        prev[elem.name] = elem.schema;
+        return prev;
+      });
+
+      return new APIRequestBody.schema(new APISchemaObject.object(props),
+          contentTypes: ["application/x-www-form-urlencoded"], required: true);
+    }
+
+    return null;
+  }
+
+  /// Returns a map of possible responses for [operation].
+  ///
+  /// To provide documentation for an operation, you must override this method and return a map of
+  /// possible responses. The key is a [String] representation of a status code (e.g., "200") and the value
+  /// is an [APIResponse] object.
+  Map<String, APIResponse> documentOperationResponses(APIDocumentContext context, Operation operation) {
+    return {"200": new APIResponse("Successful response.")};
+  }
+
+  /// Returns a list of tags for [operation].
+  ///
+  /// By default, this method will return the name of the class. This groups each operation
+  /// defined by this controller in the same tag. You may override this method
+  /// to provide additional tags. You should call the superclass' implementation to retain
+  /// the controller grouping tag.
+  List<String> documentOperationTags(APIDocumentContext context, Operation operation) {
+    final tag = "$runtimeType".replaceAll("Controller", "");
+    return [tag];
+  }
+
+  @override
+  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
+    final operations = RESTControllerBinder
+        .binderForType(runtimeType)
+        .methodBinders
+        .where((method) => path.containsPathParameters(method.pathVariables));
+
+    return operations.fold(<String, APIOperation>{}, (prev, method) {
+      final operation = firstMetadataOfType(Operation, reflect(this).type.instanceMembers[method.methodSymbol]);
+
+      final op = new APIOperation(
+          MirrorSystem.getName(method.methodSymbol), documentOperationResponses(context, operation),
+          summary: documentOperationSummary(context, operation),
+          description: documentOperationDescription(context, operation),
+          parameters: documentOperationParameters(context, operation),
+          requestBody: documentOperationRequestBody(context, operation),
+          tags: documentOperationTags(context, operation));
+
+      if (op.summary == null) {
+        context.defer(() async {
+          final binder = _binderForOperation(operation);
+
+          final type = await DocumentedElement.get(this.runtimeType);
+          op.summary = type[binder.methodSymbol].summary;
+        });
+      }
+
+      if (op.description == null) {
+        context.defer(() async {
+          final binder = _binderForOperation(operation);
+          final type = await DocumentedElement.get(this.runtimeType);
+          op.description = type[binder.methodSymbol].description;
+        });
+      }
+
+      prev[method.httpMethod.toLowerCase()] = op;
+      return prev;
+    });
+  }
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    final binders = RESTControllerBinder.binderForType(runtimeType).methodBinders;
+    binders.forEach((b) {
+      [b.positionalParameters, b.optionalParameters]
+          .expand((b) => b)
+          .where((b) => b.binding is HTTPBody)
+          .map((b) => b.boundValueType)
+          .forEach((b) {
+            final type = b.reflectedType;
+            if (!context.schema.hasRegisteredType(type)) {
+              context.schema.register(MirrorSystem.getName(b.simpleName), HTTPSerializable.document(context, type), representation: type);
+            }
+      });
+    });
+  }
+
+  APIParameter _documentParameter(
+      APIDocumentContext context, Operation operation, RESTControllerParameterBinder param) {
+    final schema = APIComponentDocumenter.documentType(context, param.boundValueType);
+    final documentedParameter = new APIParameter(param.name, param.binding.location,
+        schema: schema, required: param.isRequired, allowEmptyValue: schema.type == APIType.boolean);
+
+    context.defer(() async {
+      final controllerDocs = await DocumentedElement.get(runtimeType);
+      final operationDocs = controllerDocs[_binderForOperation(operation).methodSymbol];
+      final documentation = controllerDocs[param.symbol] ?? operationDocs[param.symbol];
+      if (documentation != null) {
+        documentedParameter.description = "${documentation.summary ?? ""} ${documentation.description ?? ""}";
+      }
+    });
+
+    return documentedParameter;
+  }
+
+  RESTControllerMethodBinder _binderForOperation(Operation operation) {
+    return RESTControllerBinder.binderForType(runtimeType).methodBinders.firstWhere((m) {
+      if (m.httpMethod != operation.method) {
+        return false;
+      }
+
+      if (m.pathVariables.length != operation.pathVariables.length) {
+        return false;
+      }
+
+      if (!operation.pathVariables.every((p) => m.pathVariables.contains(p))) {
+        return false;
+      }
+
+      return true;
+    });
   }
 
   bool _requestContentTypeIsSupported(Request req) {
@@ -157,137 +365,4 @@ abstract class RESTController extends Controller {
 
     return response;
   }
-
-  @override
-  Future<RequestOrResponse> handle(Request req) async {
-    request = req;
-
-    var preprocessedResult = await willProcessRequest(req);
-    if (preprocessedResult is Request) {
-      return _process();
-    } else if (preprocessedResult is Response) {
-      return preprocessedResult;
-    }
-
-    throw new StateError("'$runtimeType' returned invalid object from 'willProcessRequest'. Must return 'Request' or 'Response'.");
-  }
-
-  @override
-  List<APIOperation> documentOperations(PackagePathResolver resolver) {
-    var controllerCache = RESTControllerBinder.binderForType(runtimeType);
-    var reflectedType = reflect(this).type;
-    var uri = reflectedType.location.sourceUri;
-    var fileUnit = parseDartFile(resolver.resolve(uri));
-    var classUnit = fileUnit.declarations
-        .where((u) => u is ClassDeclaration)
-        .map((cu) => cu as ClassDeclaration)
-        .firstWhere((ClassDeclaration classDecl) {
-      return classDecl.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName);
-    });
-
-    Map<Symbol, MethodDeclaration> methodMap = {};
-    classUnit.childEntities.forEach((child) {
-      if (child is MethodDeclaration) {
-        methodMap[new Symbol(child.name.token.lexeme)] = child;
-      }
-    });
-
-    return controllerCache.methodBinders.map((cachedMethod) {
-      var op = new APIOperation();
-      op.id = APIOperation.idForMethod(this, cachedMethod.methodSymbol);
-      op.method = cachedMethod.httpMethod.toLowerCase();
-      op.consumes = acceptedContentTypes;
-      op.produces = [responseContentType];
-      op.responses = documentResponsesForOperation(op);
-      op.requestBody = documentRequestBodyForOperation(op);
-
-      // Add documentation comments
-      var methodDeclaration = methodMap[cachedMethod.methodSymbol];
-      if (methodDeclaration != null) {
-        var comment = methodDeclaration.documentationComment;
-        var tokens = comment?.tokens ?? [];
-        var lines = tokens.map((t) => t.lexeme.trimLeft().substring(3).trim()).toList();
-        if (lines.length > 0) {
-          op.summary = lines.first;
-        }
-
-        if (lines.length > 1) {
-          op.description = lines.sublist(1, lines.length).join("\n");
-        }
-      }
-
-      bool usesFormEncodedData = op.method.toLowerCase() == "post" &&
-          acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
-
-      op.parameters = <List<RESTControllerParameterBinder>>[
-        cachedMethod.positionalParameters,
-        cachedMethod.optionalParameters,
-        controllerCache.propertyBinders
-      ].expand((i) => i).where((p) => p.binding is! HTTPPath).map((param) {
-        var paramLocation = _parameterLocationFromHTTPParameter(param.binding);
-        if (usesFormEncodedData && paramLocation == APIParameterLocation.query) {
-          paramLocation = APIParameterLocation.formData;
-        }
-
-        return new APIParameter()
-          ..name = param.name
-          ..required = param.isRequired
-          ..parameterLocation = paramLocation
-          ..schemaObject = (new APISchemaObject.fromTypeMirror(param.boundValueType));
-      }).toList();
-
-      final pathParameters = cachedMethod.pathVariables.map((pathVar) {
-        final furtherQualifiedPathVar = cachedMethod.positionalParameters
-            .firstWhere((p) => p.binding is HTTPPath && p.binding.externalName == pathVar, orElse: () => null);
-        final varType = furtherQualifiedPathVar?.boundValueType ?? reflectType(String);
-
-        return new APIParameter()
-            ..name = pathVar
-            ..required = true
-            ..parameterLocation = APIParameterLocation.path
-            ..schemaObject = (new APISchemaObject.fromTypeMirror(varType));
-      });
-
-      op.parameters.addAll(pathParameters);
-
-      return op;
-    }).toList();
-  }
-
-  @override
-  List<APIResponse> documentResponsesForOperation(APIOperation operation) {
-    List<APIResponse> responses = [
-      new APIResponse()
-        ..statusCode = 500
-        ..description = "Something went wrong"
-        ..schema = new APISchemaObject(properties: {"error": new APISchemaObject.string()})
-    ];
-
-    var symbol = APIOperation.symbolForID(operation.id, this);
-    if (symbol != null) {
-      var controllerCache = RESTControllerBinder.binderForType(runtimeType);
-      var methodMirror = reflect(this).type.declarations[symbol];
-
-      if (controllerCache.hasRequiredBindingsForMethod(methodMirror)) {
-        responses.add(new APIResponse()
-          ..statusCode = HttpStatus.BAD_REQUEST
-          ..description = "Missing required query and/or header parameter(s)."
-          ..schema = new APISchemaObject(properties: {"error": new APISchemaObject.string()}));
-      }
-    }
-
-    return responses;
-  }
-}
-
-APIParameterLocation _parameterLocationFromHTTPParameter(HTTPBinding p) {
-  if (p is HTTPPath) {
-    return APIParameterLocation.path;
-  } else if (p is HTTPQuery) {
-    return APIParameterLocation.query;
-  } else if (p is HTTPHeader) {
-    return APIParameterLocation.header;
-  }
-
-  return null;
 }

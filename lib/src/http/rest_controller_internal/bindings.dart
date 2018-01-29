@@ -1,5 +1,7 @@
 import 'dart:mirrors';
 
+import 'package:open_api/v3.dart';
+
 import '../serializable.dart';
 import '../request.dart';
 import '../response.dart';
@@ -13,6 +15,8 @@ abstract class HTTPBinding {
   final String externalName;
 
   String get type;
+  
+  APIParameterLocation get location;
 
   bool validateType(TypeMirror type) {
     if (type.reflectedType == dynamic) {
@@ -99,6 +103,9 @@ class HTTPPath extends HTTPBinding {
   String get type => "Path";
 
   @override
+  APIParameterLocation get location => APIParameterLocation.path;
+  
+  @override
   dynamic parse(ClassMirror intoType, Request request) {
     return convertParameterWithMirror(request.path.variables[externalName], intoType);
   }
@@ -109,6 +116,9 @@ class HTTPHeader extends HTTPBinding {
 
   @override
   String get type => "Header";
+
+  @override
+  APIParameterLocation get location => APIParameterLocation.header;
 
   @override
   dynamic parse(ClassMirror intoType, Request request) {
@@ -122,6 +132,9 @@ class HTTPQuery extends HTTPBinding {
 
   @override
   String get type => "Query Parameter";
+
+  @override
+  APIParameterLocation get location => APIParameterLocation.query;
 
   @override
   bool validateType(TypeMirror type) {
@@ -151,6 +164,9 @@ class HTTPBody extends HTTPBinding {
 
   @override
   String get type => "Body";
+
+  @override
+  APIParameterLocation get location => null;
 
   @override
   bool validateType(TypeMirror type) {

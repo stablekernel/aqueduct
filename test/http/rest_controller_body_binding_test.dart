@@ -184,7 +184,7 @@ class _TestModel {
   String name;
 }
 
-class CrashModel implements HTTPSerializable {
+class CrashModel extends HTTPSerializable {
   @override
   void readFromMap(dynamic requestBody) {
     throw new Exception("whatever");
