@@ -122,8 +122,13 @@ class ManagedValidator {
 
     if (definition._greaterThan != null) {
       var comparisonValue = _comparisonValueForAttributeType(definition._greaterThan);
-      _expressionValidations.add(
-          (ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
+      _expressionValidations
+          .add((ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+        if (value is! Comparable) {
+          errors.add("The value for '${property.name}' is invalid. It must be comparable.");
+          return false;
+        }
+
         if (value.compareTo(comparisonValue) <= 0) {
           errors.add("The value for '${property.name}' is invalid. Must be greater than '$comparisonValue'.");
           return false;
@@ -133,8 +138,12 @@ class ManagedValidator {
 
     if (definition._greaterThanEqualTo != null) {
       var comparisonValue = _comparisonValueForAttributeType(definition._greaterThanEqualTo);
-      _expressionValidations.add(
-          (ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
+      _expressionValidations
+          .add((ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+        if (value is! Comparable) {
+          errors.add("The value for '${property.name}' is invalid. It must be comparable.");
+          return false;
+        }
         if (value.compareTo(comparisonValue) < 0) {
           errors
               .add("The value for '${property.name}' is invalid. Must be greater than or equal to '$comparisonValue'.");
@@ -145,8 +154,12 @@ class ManagedValidator {
 
     if (definition._lessThan != null) {
       var comparisonValue = _comparisonValueForAttributeType(definition._lessThan);
-      _expressionValidations.add(
-          (ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
+      _expressionValidations
+          .add((ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+        if (value is! Comparable) {
+          errors.add("The value for '${property.name}' is invalid. It must be comparable.");
+          return false;
+        }
         if (value.compareTo(comparisonValue) >= 0) {
           errors.add("The value for '${property.name}' is invalid. Must be less than to '$comparisonValue'.");
           return false;
@@ -156,8 +169,12 @@ class ManagedValidator {
 
     if (definition._lessThanEqualTo != null) {
       var comparisonValue = _comparisonValueForAttributeType(definition._lessThanEqualTo);
-      _expressionValidations.add(
-          (ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
+      _expressionValidations
+          .add((ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+        if (value is! Comparable) {
+          errors.add("The value for '${property.name}' is invalid. It must be comparable.");
+          return false;
+        }
         if (value.compareTo(comparisonValue) > 0) {
           errors.add("The value for '${property.name}' is invalid. Must be less than or equal to '$comparisonValue'.");
           return false;
@@ -167,8 +184,12 @@ class ManagedValidator {
 
     if (definition._equalTo != null) {
       var comparisonValue = _comparisonValueForAttributeType(definition._equalTo);
-      _expressionValidations.add(
-          (ValidateOperation operation, ManagedAttributeDescription property, Comparable value, List<String> errors) {
+      _expressionValidations
+          .add((ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+        if (value is! Comparable) {
+          errors.add("The value for '${property.name}' is invalid. It must be comparable.");
+          return false;
+        }
         if (value.compareTo(comparisonValue) != 0) {
           errors.add("The value for '${property.name}' is invalid. Must be equal to '$comparisonValue'.");
           return false;
@@ -182,7 +203,11 @@ class ManagedValidator {
 
     if (definition._greaterThan != null) {
       _expressionValidations
-          .add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+          .add((ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+        if (value is! String) {
+          errors.add("The value for '${property.name}' is invalid. It must be a string.");
+          return false;
+        }
         if (value.length <= definition._greaterThan) {
           errors
               .add("The value for '${property.name}' is invalid. Length be greater than '${definition._greaterThan}'.");
@@ -193,7 +218,11 @@ class ManagedValidator {
 
     if (definition._greaterThanEqualTo != null) {
       _expressionValidations
-          .add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+          .add((ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+        if (value is! String) {
+          errors.add("The value for '${property.name}' is invalid. It must be a string.");
+          return false;
+        }
         if (value.length < definition._greaterThanEqualTo) {
           errors.add("The value for '${property.name}' is invalid. Length must be greater than or equal to '${definition
               ._greaterThanEqualTo}'.");
@@ -204,7 +233,11 @@ class ManagedValidator {
 
     if (definition._lessThan != null) {
       _expressionValidations
-          .add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+          .add((ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+        if (value is! String) {
+          errors.add("The value for '${property.name}' is invalid. It must be a string.");
+          return false;
+        }
         if (value.length >= definition._lessThan) {
           errors.add(
               "The value for '${property.name}' is invalid. Length must be less than to '${definition._lessThan}'.");
@@ -215,7 +248,11 @@ class ManagedValidator {
 
     if (definition._lessThanEqualTo != null) {
       _expressionValidations
-          .add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+          .add((ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+        if (value is! String) {
+          errors.add("The value for '${property.name}' is invalid. It must be a string.");
+          return false;
+        }
         if (value.length > definition._lessThanEqualTo) {
           errors.add("The value for '${property.name}' is invalid. Length must be less than or equal to '${definition
               ._lessThanEqualTo}'.");
@@ -226,7 +263,11 @@ class ManagedValidator {
 
     if (definition._equalTo != null) {
       _expressionValidations
-          .add((ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+          .add((ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+        if (value is! String) {
+          errors.add("The value for '${property.name}' is invalid. It must be a string.");
+          return false;
+        }
         if (value.length != definition._equalTo) {
           errors.add("The value for '${property.name}' is invalid. Length must be equal to '${definition._equalTo}'.");
           return false;
@@ -249,7 +290,10 @@ class ManagedValidator {
   }
 
   bool _validateRegex(
-      ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+      ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+    if (value is! String) {
+      errors.add("The value for '${property.name}' is invalid. It must be a string.");
+    }
     if (!_regex.hasMatch(value)) {
       errors.add("The value for '${property.name}' is invalid. Must match pattern ${_regex.pattern}.");
       return false;
@@ -594,6 +638,6 @@ class Validate<T> {
   }
 }
 
-typedef bool _Validation(
-    ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors);
+typedef bool _Validation<T>(
+    ValidateOperation operation, ManagedAttributeDescription property, T value, List<String> errors);
 enum _BuiltinValidate { regex, comparison, length, present, absent, oneOf }
