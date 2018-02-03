@@ -6,16 +6,16 @@ import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 import 'http.dart';
-import 'rest_controller_internal/internal.dart';
+import 'resource_controller_internal/internal.dart';
 
 /// Controller for operating on an HTTP Resource.
 ///
-/// [RESTController]s provide a means to organize the logic for all operations on an HTTP resource. They also provide conveniences for handling these operations.
+/// [ResourceController]s provide a means to organize the logic for all operations on an HTTP resource. They also provide conveniences for handling these operations.
 ///
 /// This class must be subclassed. Its instance methods handle operations on an HTTP resource. For example, the following
 /// are operations: 'GET /employees', 'GET /employees/:id' and 'POST /employees'. An instance method is assigned to handle one of these operations. For example:
 ///
-///         class EmployeeController extends RESTController {
+///         class EmployeeController extends ResourceController {
 ///            @Operation.post()
 ///            Future<Response> createEmployee(...) async => new Response.ok(null);
 ///         }
@@ -27,7 +27,7 @@ import 'rest_controller_internal/internal.dart';
 /// For example, the route `/employees/[:id]` contains an optional route variable named `id`.
 /// A subclass can implement two operation methods, one for when `id` was present and the other for when it was not:
 ///
-///         class EmployeeController extends RESTController {
+///         class EmployeeController extends ResourceController {
 ///            // This method gets invoked when the path is '/employees'
 ///            @Operation.get()
 ///            Future<Response> getEmployees() async {
@@ -48,7 +48,7 @@ import 'rest_controller_internal/internal.dart';
 /// Values from a request may be bound to operation method parameters. Parameters must be annotated with [Bind.path], [Bind.query], [Bind.header], or [Bind.body].
 /// For example, the following binds an optional query string parameter 'name' to the 'name' argument:
 ///
-///         class EmployeeController extends RESTController {
+///         class EmployeeController extends ResourceController {
 ///           @Operation.get()
 ///           Future<Response> getEmployees({@Bind.query("name") String name}) async {
 ///             if (name == null) {
@@ -59,13 +59,13 @@ import 'rest_controller_internal/internal.dart';
 ///           }
 ///         }
 ///
-/// Bindings will automatically parse values into other types and validate that requests have the desired values. See [Bind] for all possible bindings and https://aqueduct.io/docs/http/rest_controller/ for more details.
+/// Bindings will automatically parse values into other types and validate that requests have the desired values. See [Bind] for all possible bindings and https://aqueduct.io/docs/http/resource_controller/ for more details.
 ///
 /// To access the request directly, use [request]. Note that the [Request.body] of [request] will be decoded prior to invoking an operation method.
-abstract class RESTController extends Controller {
-  /// The request being processed by this [RESTController].
+abstract class ResourceController extends Controller {
+  /// The request being processed by this [ResourceController].
   ///
-  /// It is this [RESTController]'s responsibility to return a [Response] object for this request. Operation methods
+  /// It is this [ResourceController]'s responsibility to return a [Response] object for this request. Operation methods
   /// may access this request to determine how to respond to it.
   Request request;
 
@@ -76,18 +76,18 @@ abstract class RESTController extends Controller {
   /// are the case-sensitive name of the path variables as defined by [Router.route].
   Map<String, String> get pathVariables => request.path?.variables;
 
-  /// Types of content this [RESTController] will accept.
+  /// Types of content this [ResourceController] will accept.
   ///
   /// If a request is sent to this instance and has an HTTP request body and the Content-Type of the body is in this list,
   /// the request will be accepted and the body will be decoded according to that Content-Type.
   ///
-  /// If the Content-Type of the request isn't within this list, the [RESTController]
+  /// If the Content-Type of the request isn't within this list, the [ResourceController]
   /// will automatically respond with an Unsupported Media Type response.
   ///
   /// By default, an instance will accept HTTP request bodies with 'application/json; charset=utf-8' encoding.
   List<ContentType> acceptedContentTypes = [ContentType.JSON];
 
-  /// The default content type of responses from this [RESTController].
+  /// The default content type of responses from this [ResourceController].
   ///
   /// If the [Response.contentType] has not explicitly been set by a operation method in this controller, the controller will set
   /// that property with this value. Defaults to "application/json".
@@ -116,22 +116,21 @@ abstract class RESTController extends Controller {
 
   @override
   void prepare() {
-    final binder = new RESTControllerBinder(reflect(this).type.reflectedType);
-    final conflictingOperations = binder.conflictingOperations;
+    final bound = new BoundController(reflect(this).type.reflectedType);
+    final conflictingOperations = bound.conflictingOperations;
     if (conflictingOperations.length > 0) {
       final opNames = conflictingOperations.map((s) => "'$s'").join(", ");
       throw new StateError("Invalid controller. Controller '${runtimeType
           .toString()}' has ambiguous operations. Offending operating methods: $opNames.");
     }
 
-    final unsatisfiableOperations = binder.unsatisfiableOperations;
+    final unsatisfiableOperations = bound.unsatisfiableOperations;
     if (unsatisfiableOperations.length > 0) {
       final opNames = unsatisfiableOperations.map((s) => "'$s'").join(", ");
       throw new StateError("Invalid controller. Controller '${runtimeType.toString()}' has operations where "
           "parameter is bound with @Bind.path(), but path variable is not declared in @Operation(). Offending operation methods: $opNames");
     }
 
-    RESTControllerBinder.addBinder(binder);
     super.prepare();
   }
 
@@ -157,18 +156,18 @@ abstract class RESTController extends Controller {
   /// this method. When overriding this method, call the superclass' implementation and add the additional parameters
   /// to the returned list before returning the combined list.
   List<APIParameter> documentOperationParameters(APIDocumentContext context, Operation operation) {
-    final binder = RESTControllerBinder.binderForType(runtimeType);
+    final bound = new BoundController(runtimeType);
 
     bool usesFormEncodedData = operation.method == "POST" &&
         acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
 
-    return binder
+    return bound
         .parametersForOperation(operation)
         .map((param) {
-          if (param.binding is HTTPBody) {
+          if (param.binding is BoundBody) {
             return null;
           }
-          if (usesFormEncodedData && param.binding is HTTPQuery) {
+          if (usesFormEncodedData && param.binding is BoundQueryParameter) {
             return null;
           }
 
@@ -200,11 +199,11 @@ abstract class RESTController extends Controller {
   /// that describes the bound body type. You may override this method to take an alternative approach or to augment the
   /// automatically generated request body documentation.
   APIRequestBody documentOperationRequestBody(APIDocumentContext context, Operation operation) {
-    final binder = _binderForOperation(operation);
+    final binder = _boundMethodForOperation(operation);
     final usesFormEncodedData = operation.method == "POST" &&
         acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
-    final boundBody = binder.positionalParameters.firstWhere((p) => p.binding is HTTPBody, orElse: () => null) ??
-        binder.optionalParameters.firstWhere((p) => p.binding is HTTPBody, orElse: () => null);
+    final boundBody = binder.positionalParameters.firstWhere((p) => p.binding is BoundBody, orElse: () => null) ??
+        binder.optionalParameters.firstWhere((p) => p.binding is BoundBody, orElse: () => null);
 
     if (boundBody != null) {
       final type = boundBody.boundValueType.reflectedType;
@@ -212,10 +211,10 @@ abstract class RESTController extends Controller {
           contentTypes: acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}"),
           required: boundBody.isRequired);
     } else if (usesFormEncodedData) {
-      final controller = RESTControllerBinder.binderForType(runtimeType);
-      final props = controller
+      final boundController = new BoundController(runtimeType);
+      final props = boundController
           .parametersForOperation(operation)
-          .where((p) => p.binding is HTTPQuery)
+          .where((p) => p.binding is BoundQueryParameter)
           .map((param) => _documentParameter(context, operation, param))
           .fold(<String, APISchemaObject>{}, (prev, elem) {
         prev[elem.name] = elem.schema;
@@ -251,9 +250,8 @@ abstract class RESTController extends Controller {
 
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
-    final operations = RESTControllerBinder
-        .binderForType(runtimeType)
-        .methodBinders
+    final operations = new BoundController(runtimeType)
+        .methods
         .where((method) => path.containsPathParameters(method.pathVariables));
 
     return operations.fold(<String, APIOperation>{}, (prev, method) {
@@ -269,7 +267,7 @@ abstract class RESTController extends Controller {
 
       if (op.summary == null) {
         context.defer(() async {
-          final binder = _binderForOperation(operation);
+          final binder = _boundMethodForOperation(operation);
 
           final type = await DocumentedElement.get(this.runtimeType);
           op.summary = type[binder.methodSymbol].summary;
@@ -278,7 +276,7 @@ abstract class RESTController extends Controller {
 
       if (op.description == null) {
         context.defer(() async {
-          final binder = _binderForOperation(operation);
+          final binder = _boundMethodForOperation(operation);
           final type = await DocumentedElement.get(this.runtimeType);
           op.description = type[binder.methodSymbol].description;
         });
@@ -291,11 +289,11 @@ abstract class RESTController extends Controller {
 
   @override
   void documentComponents(APIDocumentContext context) {
-    final binders = RESTControllerBinder.binderForType(runtimeType).methodBinders;
+    final binders = new BoundController(runtimeType).methods;
     binders.forEach((b) {
       [b.positionalParameters, b.optionalParameters]
           .expand((b) => b)
-          .where((b) => b.binding is HTTPBody)
+          .where((b) => b.binding is BoundBody)
           .map((b) => b.boundValueType)
           .forEach((b) {
             final type = b.reflectedType;
@@ -307,14 +305,14 @@ abstract class RESTController extends Controller {
   }
 
   APIParameter _documentParameter(
-      APIDocumentContext context, Operation operation, RESTControllerParameterBinder param) {
+      APIDocumentContext context, Operation operation, BoundParameter param) {
     final schema = APIComponentDocumenter.documentType(context, param.boundValueType);
     final documentedParameter = new APIParameter(param.name, param.binding.location,
         schema: schema, required: param.isRequired, allowEmptyValue: schema.type == APIType.boolean);
 
     context.defer(() async {
       final controllerDocs = await DocumentedElement.get(runtimeType);
-      final operationDocs = controllerDocs[_binderForOperation(operation).methodSymbol];
+      final operationDocs = controllerDocs[_boundMethodForOperation(operation).methodSymbol];
       final documentation = controllerDocs[param.symbol] ?? operationDocs[param.symbol];
       if (documentation != null) {
         documentedParameter.description = "${documentation.summary ?? ""} ${documentation.description ?? ""}";
@@ -324,8 +322,8 @@ abstract class RESTController extends Controller {
     return documentedParameter;
   }
 
-  RESTControllerMethodBinder _binderForOperation(Operation operation) {
-    return RESTControllerBinder.binderForType(runtimeType).methodBinders.firstWhere((m) {
+  BoundMethod _boundMethodForOperation(Operation operation) {
+    return new BoundController(runtimeType).methods.firstWhere((m) {
       if (m.httpMethod != operation.method) {
         return false;
       }
@@ -357,7 +355,7 @@ abstract class RESTController extends Controller {
       }
     }
 
-    var binding = await RESTControllerBinder.bindRequest(this, request);
+    var binding = await BoundController.bindRequestToOperation(this, request);
     var response = await binding.invoke(reflect(this));
     if (!response.hasExplicitlySetContentType) {
       response.contentType = responseContentType;

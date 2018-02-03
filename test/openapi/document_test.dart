@@ -5,7 +5,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 
 /*
-These tests handle the core behavior of document generation. Types that extend doc-gen behavior, e.g. AuthServer, RESTController, etc.
+These tests handle the core behavior of document generation. Types that extend doc-gen behavior, e.g. AuthServer, ResourceController, etc.
 will have their own tests. It does test Router, though.
  */
 

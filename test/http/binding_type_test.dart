@@ -112,91 +112,91 @@ void main() {
   });
 }
 
-class StandardSet extends RESTController {
+class StandardSet extends ResourceController {
   @Operation.get('id')
   Future<Response> get1(@Bind.header("foo") String a, @Bind.path("id") String b, @Bind.query("c") String c) async {
     return new Response.ok(null);
   }
 }
 
-class ParseSet extends RESTController {
+class ParseSet extends ResourceController {
   @Operation.get('id')
   Future<Response> get1(@Bind.header("foo") int a, @Bind.path("id") DateTime b, @Bind.query("c") num c) async {
     return new Response.ok(null);
   }
 }
 
-class BoolBind extends RESTController {
+class BoolBind extends ResourceController {
   @Operation.get('id')
   Future<Response> get1(@Bind.query("foo") bool a) async {
     return new Response.ok(null);
   }
 }
 
-class BodyBind extends RESTController {
+class BodyBind extends ResourceController {
   @Operation.post()
   Future<Response> get1(@Bind.body() Serial a) async {
     return new Response.ok(null);
   }
 }
 
-class StandardListSet extends RESTController {
+class StandardListSet extends ResourceController {
   @Operation.get('id')
   Future<Response> get1(@Bind.header("foo") List<String> a, @Bind.path("id") List<String> b, @Bind.query("c") List<String> c) async {
     return new Response.ok(null);
   }
 }
 
-class ParseListSet extends RESTController {
+class ParseListSet extends ResourceController {
   @Operation.get('id')
   Future<Response> get1(@Bind.header("foo") List<int> a, @Bind.path("id") List<DateTime> b, @Bind.query("c") List<num> c) async {
     return new Response.ok(null);
   }
 }
 
-class BoolListBind extends RESTController {
+class BoolListBind extends ResourceController {
   @Operation.get('id')
   Future<Response> get1(@Bind.query("foo") List<bool> a) async {
     return new Response.ok(null);
   }
 }
 
-class BodyListBind extends RESTController {
+class BodyListBind extends ResourceController {
   @Operation.post()
   Future<Response> get1(@Bind.body() List<Serial> a) async {
     return new Response.ok(null);
   }
 }
 
-class ErrorDynamic extends RESTController {
+class ErrorDynamic extends ResourceController {
   @Operation.get()
   Future<Response> get1(@Bind.header("foo") dynamic x) async {
     return new Response.ok(null);
   }
 }
 
-class ErrorDefault extends RESTController {
+class ErrorDefault extends ResourceController {
   @Operation.get()
   Future<Response> get1(@Bind.header("foo") HttpHeaders x) async {
     return new Response.ok(null);
   }
 }
 
-class ErrorDefaultBool extends RESTController {
+class ErrorDefaultBool extends ResourceController {
   @Operation.get()
   Future<Response> get1(@Bind.header("foo") bool x) async {
     return new Response.ok(null);
   }
 }
 
-class ErrorBody extends RESTController {
+class ErrorBody extends ResourceController {
   @Operation.get()
   Future<Response> get1(@Bind.body() HttpHeaders x) async {
     return new Response.ok(null);
   }
 }
 
-class ErrorDefaultBody extends RESTController {
+class ErrorDefaultBody extends ResourceController {
   @Operation.get()
   Future<Response> get1(@Bind.body() String x) async {
     return new Response.ok(null);

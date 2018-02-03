@@ -17,7 +17,7 @@ class TestChannel extends ApplicationChannel {
   }
 }
 
-class FailingController extends RESTController {
+class FailingController extends ResourceController {
   @Operation.get()
   Future<Response> get() async {
     return new Response.ok(null);

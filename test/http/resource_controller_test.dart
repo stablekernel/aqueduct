@@ -526,7 +526,7 @@ void main() {
   });
 }
 
-class FilteringController extends RESTController {
+class FilteringController extends ResourceController {
   @Operation.get()
   Future<Response> getAll() async {
     return new Response.ok(null);
@@ -541,7 +541,7 @@ class FilteringController extends RESTController {
   }
 }
 
-class TController extends RESTController {
+class TController extends ResourceController {
   @Operation.get()
   Future<Response> getAll() async {
     return new Response.ok("getAll");
@@ -571,7 +571,7 @@ class TController extends RESTController {
   }
 }
 
-class QController extends RESTController {
+class QController extends ResourceController {
   @Operation.get()
   Future<Response> getAll({@Bind.query("opt") String opt}) async {
     if (opt == null) {
@@ -592,7 +592,7 @@ class QController extends RESTController {
   }
 }
 
-class IntController extends RESTController {
+class IntController extends ResourceController {
   IntController() {
     acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
   }
@@ -612,7 +612,7 @@ class IntController extends RESTController {
   }
 }
 
-class DateTimeController extends RESTController {
+class DateTimeController extends ResourceController {
   @Operation.get("time")
   Future<Response> getOne(@Bind.path("time") DateTime time) async {
     return new Response.ok("${time.add(new Duration(seconds: 5))}");
@@ -624,21 +624,21 @@ class DateTimeController extends RESTController {
   }
 }
 
-class MultiQueryParamController extends RESTController {
+class MultiQueryParamController extends ResourceController {
   @Operation.get()
   Future<Response> get({@Bind.query("params") List<String> params}) async {
     return new Response.ok(params.join(","));
   }
 }
 
-class BooleanQueryParamController extends RESTController {
+class BooleanQueryParamController extends ResourceController {
   @Operation.get()
   Future<Response> get({@Bind.query("param") bool param: false}) async {
     return new Response.ok(param ? "true" : "false");
   }
 }
 
-class HTTPParameterController extends RESTController {
+class HTTPParameterController extends ResourceController {
   @requiredHTTPParameter
   @Bind.header("X-Request-id")
   String requestId;
@@ -668,7 +668,7 @@ class HTTPParameterController extends RESTController {
   }
 }
 
-class ModelEncodeController extends RESTController {
+class ModelEncodeController extends ResourceController {
   @Operation.get("thing")
   Future<Response> getThings(@Bind.path("thing") String thing) async {
     if (thing == "list") {
@@ -704,7 +704,7 @@ class ModelEncodeController extends RESTController {
   }
 }
 
-class ContentTypeController extends RESTController {
+class ContentTypeController extends ResourceController {
   @Operation.get()
   Future<Response> getThing(@Bind.query("opt") String opt) async {
     if (opt == "responseContentType") {
@@ -719,7 +719,7 @@ class ContentTypeController extends RESTController {
   }
 }
 
-class DuplicateParamController extends RESTController {
+class DuplicateParamController extends ResourceController {
   @Operation.get()
   Future<Response> getThing(@Bind.query("list") List<String> list,
       @Bind.query("single") String single) async {
@@ -727,7 +727,7 @@ class DuplicateParamController extends RESTController {
   }
 }
 
-class DecodeCallbackController extends RESTController {
+class DecodeCallbackController extends ResourceController {
   bool didDecode = false;
 
   @Operation.get()
@@ -746,7 +746,7 @@ class DecodeCallbackController extends RESTController {
   }
 }
 
-class AmbiguousController extends RESTController {
+class AmbiguousController extends ResourceController {
   @Operation.get("id")
   Future<Response> get1(@Bind.path("id") int id) async {
     return new Response.ok(null);
@@ -758,14 +758,14 @@ class AmbiguousController extends RESTController {
   }
 }
 
-class NoBindController extends RESTController {
+class NoBindController extends ResourceController {
   @Operation.get("id")
   Future<Response> getOne() async {
     return new Response.ok({"id": request.path.variables["id"]});
   }
 }
 
-class UnboundController extends RESTController {
+class UnboundController extends ResourceController {
   @Operation.get()
   Future<Response> getOne(@Bind.path("id") int id) async {
     return new Response.ok(null);

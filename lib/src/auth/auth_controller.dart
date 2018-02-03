@@ -19,7 +19,7 @@ import 'auth.dart';
 ///         .route("/auth/token")
 ///         .link(() => new AuthController(authServer));
 ///
-class AuthController extends RESTController {
+class AuthController extends ResourceController {
   /// Creates a new instance of an [AuthController].
   ///
   /// [authServer] is the required authorization server that grants tokens.

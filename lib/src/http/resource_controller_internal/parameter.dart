@@ -1,11 +1,11 @@
 import 'dart:mirrors';
 
 import '../request.dart';
-import '../rest_controller_binding.dart';
+import '../resource_controller_bindings.dart';
 import 'internal.dart';
 
-class RESTControllerParameterBinder {
-  RESTControllerParameterBinder(VariableMirror mirror, {this.isRequired: false}) : symbol = mirror.simpleName {
+class BoundParameter {
+  BoundParameter(VariableMirror mirror, {this.isRequired: false}) : symbol = mirror.simpleName {
     Bind b = mirror.metadata.firstWhere((im) => im.reflectee is Bind, orElse: () => null)?.reflectee;
     if (b == null) {
       throw new StateError("Invalid operation method parameter '${MirrorSystem.getName(symbol)}' on '${_methodErrorName(
@@ -24,7 +24,7 @@ class RESTControllerParameterBinder {
   final Symbol symbol;
   String get name => binding.externalName;
   ClassMirror boundValueType;
-  HTTPBinding binding;
+  BoundInput binding;
   final bool isRequired;
 
   dynamic parse(Request request) {

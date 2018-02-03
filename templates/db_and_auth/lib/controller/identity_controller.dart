@@ -1,7 +1,7 @@
 import '../wildfire.dart';
 import '../model/user.dart';
 
-class IdentityController extends RESTController {
+class IdentityController extends ResourceController {
   @Operation.get()
   Future<Response> getIdentity() async {
     var q = new Query<User>()

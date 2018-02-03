@@ -1,8 +1,8 @@
 import 'dart:mirrors';
 import 'internal.dart';
 
-class RESTControllerMethodBinder {
-  RESTControllerMethodBinder(MethodMirror mirror) {
+class BoundMethod {
+  BoundMethod(MethodMirror mirror) {
     final operation = getMethodOperationMetadata(mirror);
     httpMethod = operation.method.toUpperCase();
     pathVariables = operation.pathVariables;
@@ -10,19 +10,19 @@ class RESTControllerMethodBinder {
 
     positionalParameters = mirror.parameters
         .where((pm) => !pm.isOptional)
-        .map((pm) => new RESTControllerParameterBinder(pm, isRequired: true))
+        .map((pm) => new BoundParameter(pm, isRequired: true))
         .toList();
     optionalParameters = mirror.parameters
         .where((pm) => pm.isOptional)
-        .map((pm) => new RESTControllerParameterBinder(pm, isRequired: false))
+        .map((pm) => new BoundParameter(pm, isRequired: false))
         .toList();
   }
 
   Symbol methodSymbol;
   String httpMethod;
   List<String> pathVariables;
-  List<RESTControllerParameterBinder> positionalParameters = [];
-  List<RESTControllerParameterBinder> optionalParameters = [];
+  List<BoundParameter> positionalParameters = [];
+  List<BoundParameter> optionalParameters = [];
 
   /// Checks if a request's method and path variables will select this binder.
   ///

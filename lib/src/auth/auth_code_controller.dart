@@ -41,7 +41,7 @@ abstract class AuthCodeControllerDelegate {
 ///         .route("/auth/code")
 ///         .link(() => new AuthCodeController(authServer));
 ///
-class AuthCodeController extends RESTController {
+class AuthCodeController extends ResourceController {
   /// Creates a new instance of an [AuthCodeController].
   ///
   /// [authServer] is the required authorization server. If [delegate] is provided, this controller will return a login page for all GET requests.

@@ -22,7 +22,7 @@ void main() {
   });
 }
 
-class TestController extends RESTController {
+class TestController extends ResourceController {
   @Operation.get()
   Future<Response> get() async {
     return new Response.ok([

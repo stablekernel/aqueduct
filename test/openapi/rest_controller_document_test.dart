@@ -96,7 +96,7 @@ void main() {
   });
 }
 
-class A extends RESTController {
+class A extends ResourceController {
   /// 1
   @Bind.query("optionalQueryProperty")
   int propQ;

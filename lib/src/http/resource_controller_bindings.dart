@@ -1,9 +1,22 @@
-import 'rest_controller_internal/internal.dart';
-import 'rest_controller.dart';
+import 'resource_controller_internal/internal.dart';
+import 'resource_controller.dart';
 import 'request_path.dart';
 import 'serializable.dart';
 import '../db/managed/managed.dart';
 
+/// Binds an instance method in [ResourceController] to an operation.
+///
+/// An operation is a request method (e.g., GET, POST) and a list of path variables. A [ResourceController] implements
+/// an operation method for each operation it handles (e.g., GET /users/:id, POST /users). A method with this annotation
+/// will be invoked when a [ResourceController] handles a request where [method] matches the request's method and
+/// *all* [pathVariables] are present in the request's path. For example:
+///
+///         class MyController extends ResourceController {
+///           @Operation.get('id')
+///           Future<Response> getOne(@Bind.path('id') int id) async {
+///             return new Response.ok(objects[id]);
+///           }
+///         }
 class Operation {
   const Operation(this.method, [String pathVariable1, String pathVariable2, String pathVariable3, String pathVariable4])
       : _pathVariable1 = pathVariable1,
@@ -45,16 +58,17 @@ class Operation {
   final String _pathVariable3;
   final String _pathVariable4;
 
+  /// Returns a list of all path variables required for this operation.
   List<String> get pathVariables {
     return [_pathVariable1, _pathVariable2, _pathVariable3, _pathVariable4].where((s) => s != null).toList();
   }
 }
 
-/// Binds elements of an HTTP request to a [RESTController]'s operation method arguments and properties.
+/// Binds elements of an HTTP request to a [ResourceController]'s operation method arguments and properties.
 ///
-/// See individual constructors and [RESTController] for more details.
+/// See individual constructors and [ResourceController] for more details.
 class Bind {
-  /// Binds an HTTP query parameter to an [RESTController] property or operation method argument.
+  /// Binds an HTTP query parameter to an [ResourceController] property or operation method argument.
   ///
   /// When the incoming request's [Uri]
   /// has a query key that matches [name], the argument or property value is set to the query parameter's value. For example,
@@ -77,11 +91,11 @@ class Bind {
   /// If a declaration with this metadata is an optional argument in a operation method, it is optional for that method. The value of
   /// the bound property will be null if it was not present in the request.
   ///
-  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [RESTController].
-  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [RESTController].
+  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [ResourceController].
+  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [ResourceController].
   const Bind.query(this.name) : _type = _BindType.query;
 
-  /// Binds an HTTP request header to an [RESTController] property or operation method argument.
+  /// Binds an HTTP request header to an [ResourceController] property or operation method argument.
   ///
   /// When the incoming request has a header with the name [name],
   /// the argument or property is set to the headers's value. For example,
@@ -100,11 +114,11 @@ class Bind {
   /// If a declaration with this metadata is an optional argument in a operation method, it is optional for that method. The value of
   /// the bound property will be null if it was not present in the request.
   ///
-  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [RESTController].
-  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [RESTController].
+  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [ResourceController].
+  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [ResourceController].
   const Bind.header(this.name) : _type = _BindType.header;
 
-  /// Binds an HTTP request body to an [RESTController] property or operation method argument.
+  /// Binds an HTTP request body to an [ResourceController] property or operation method argument.
   ///
   /// The body of an incoming
   /// request is decoded into the bound argument or property. The argument or property *must* implement [HTTPSerializable] or be
@@ -117,7 +131,7 @@ class Bind {
   /// to the properties of `User`:
   ///
   ///
-  ///       class UserController extends RESTController {
+  ///       class UserController extends ResourceController {
   ///         @Operation.post()
   ///         Future<Response> createUser(@Bind.body() User user) async {
   ///           var query = new Query<User>()..values = user;
@@ -128,8 +142,8 @@ class Bind {
   ///
   /// If a declaration with this metadata is a positional argument in a operation method, it is required for that method.
   /// If a declaration with this metadata is an optional argument in a operation method, it is optional for that method.
-  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [RESTController].
-  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [RESTController].
+  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [ResourceController].
+  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [ResourceController].
   ///
   /// Requirements that are not met will be evoke a 400 Bad Request response with the name of the missing header in the JSON error body.
   /// No operation method will be called in this case.
@@ -139,7 +153,7 @@ class Bind {
       : name = null,
         _type = _BindType.body;
 
-  /// Binds a route variable from [HTTPRequestPath.variables] to an [RESTController] operation method argument.
+  /// Binds a route variable from [HTTPRequestPath.variables] to an [ResourceController] operation method argument.
   ///
   /// Routes may have path variables, e.g., a route declared as follows has an optional path variable named 'id':
   ///
@@ -149,7 +163,7 @@ class Bind {
   /// method is invoked if it has exactly the same path bindings as the incoming request's path variables. For example,
   /// consider the above route and a controller with the following operation methods:
   ///
-  ///         class UserController extends RESTController {
+  ///         class UserController extends ResourceController {
   ///           @Operation.get()
   ///           Future<Response> getUsers() async => new Response.ok(getAllUsers());
   ///           @Operation.get('id')
@@ -164,16 +178,16 @@ class Bind {
   final _BindType _type;
 
   /// Used internally
-  HTTPBinding get binding {
+  BoundInput get binding {
     switch (_type) {
       case _BindType.query:
-        return new HTTPQuery(name);
+        return new BoundQueryParameter(name);
       case _BindType.header:
-        return new HTTPHeader(name);
+        return new BoundHeader(name);
       case _BindType.body:
-        return new HTTPBody();
+        return new BoundBody();
       case _BindType.path:
-        return new HTTPPath(name);
+        return new BoundPath(name);
     }
     throw new StateError("Invalid controller. Operation parameter binding '$_type' on '$name' is unknown.");
   }
@@ -181,7 +195,7 @@ class Bind {
 
 enum _BindType { query, header, body, path }
 
-/// Marks an [RESTController] property binding as required.
+/// Marks an [ResourceController] property binding as required.
 ///
 /// Bindings are often applied to operation method arguments, in which required vs. optional
 /// is determined by whether or not the argument is in required or optional in the method signature.
@@ -191,7 +205,7 @@ enum _BindType { query, header, body, path }
 ///
 /// For example, the following controller requires the header 'X-Request-ID' for both of its operation methods:
 ///
-///         class UserController extends RESTController {
+///         class UserController extends ResourceController {
 ///           @requiredHTTPParameter
 ///           @Bind.header("x-request-id")
 ///           String requestID;
