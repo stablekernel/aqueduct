@@ -3,16 +3,21 @@ import 'query.dart';
 import '../persistent_store/persistent_store.dart';
 import '../managed/managed.dart';
 
-/// Matcher for exactly matching a column value when using [Query.where].
+/// Query matcher that tests that a column is equal to [value].
 ///
-/// See [Query.where]. Example:
+/// When assigned to a [Query.where] property, only rows where that property
+/// is equal to [value] are returned. [value] must be the same type as the property
+/// being assigned.
 ///
-///       var query = new Query<User>()
+/// This matcher can be used on [int], [String], [bool], [double] and [DateTime] types.
+///
+/// If [value] is [String], the flag [caseSensitive] controls whether or not equality is case-sensitively compared.
+///
+/// Example:
+///
+///       final query = new Query<User>()
 ///         ..where.id = whereEqualTo(1);
 ///
-/// If matching a [String] value, [caseSensitive] is will toggle
-/// if [value] is to be case sensitive equal to matched values.
-/// Otherwise, this flag is ignored.
 dynamic whereEqualTo(dynamic value, {bool caseSensitive: true}) {
   if (value is String) {
     return new StringMatcherExpression(
@@ -21,16 +26,21 @@ dynamic whereEqualTo(dynamic value, {bool caseSensitive: true}) {
   return new ComparisonMatcherExpression(value, MatcherOperator.equalTo);
 }
 
-/// Matcher for matching all column values other than argument when using [Query.where].
+/// Query matcher that tests that a column is not equal to [value].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where that property
+/// is *not equal* to [value] are returned. [value] must be the same type as the property
+/// being assigned.
 ///
-///       var query = new Query<Employee>()
+/// This matcher can be used on [int], [String], [bool], [double] and [DateTime] types.
+///
+/// If [value] is [String], the flag [caseSensitive] controls whether or not equality is case-sensitively compared.
+///
+/// Example:
+///
+///       final query = new Query<Employee>()
 ///         ..where.id = whereNotEqual(60000);
 ///
-/// If matching a [String] value, [caseSensitive] is will toggle
-/// if [value] is to be case sensitive equal to matched values.
-/// Otherwise, this flag is ignored.
 dynamic whereNotEqualTo(dynamic value, {bool caseSensitive: true}) {
   if (value is String) {
     return new StringMatcherExpression(
@@ -42,9 +52,17 @@ dynamic whereNotEqualTo(dynamic value, {bool caseSensitive: true}) {
 }
 
 
-/// Matcher for matching a column value greater than the argument when using [Query.where].
+/// Query matcher that tests that a column is greater than [value].
 ///
-/// See [Query.where]. Example:
+/// When assigned to a [Query.where] property, only rows where that property
+/// is greater than (exclusive) [value] are returned. [value] must be the same type as the property
+/// being assigned.
+///
+/// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+/// this matcher selects rows where the assigned property is 'later than' [value]. For [String] properties,
+/// rows are selected if the value is alphabetically 'after' [value].
+///
+/// Example:
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereGreaterThan(60000);
@@ -52,9 +70,16 @@ dynamic whereGreaterThan(dynamic value) {
   return new ComparisonMatcherExpression(value, MatcherOperator.greaterThan);
 }
 
-/// Matcher for matching a column value greater than or equal to the argument when using [Query.where].
+/// Query matcher that tests that a column is greater than or equal to [value].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where that property
+/// is greater than or equal to [value] are returned. [value] must be the same type as the property
+/// being assigned.
+///
+/// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+/// this matcher selects rows where the assigned property is 'later than or the same time as' [value]. For [String] properties,
+/// rows are selected if the value is alphabetically 'after or the same as' [value].
+/// Example:
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereGreaterThanEqualTo(60000);
@@ -63,9 +88,16 @@ dynamic whereGreaterThanEqualTo(dynamic value) {
       value, MatcherOperator.greaterThanEqualTo);
 }
 
-/// Matcher for matching a column value less than the argument when using [Query.where].
+/// Query matcher that tests that a column is less than [value].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where that property
+/// is less than (exclusive) [value] are returned. [value] must be the same type as the property
+/// being assigned.
+///
+/// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+/// this matcher selects rows where the assigned property is 'earlier than' [value]. For [String] properties,
+/// rows are selected if the value is alphabetically 'before' [value].
+/// Example:
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereLessThan(60000);
@@ -73,9 +105,16 @@ dynamic whereLessThan(dynamic value) {
   return new ComparisonMatcherExpression(value, MatcherOperator.lessThan);
 }
 
-/// Matcher for matching a column value less than or equal to the argument when using [Query.where].
+/// Query matcher that tests that a column is less than [value].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where that property
+/// is less than or equal to [value] are returned. [value] must be the same type as the property
+/// being assigned.
+///
+/// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+/// this matcher selects rows where the assigned property is 'earlier than or the same time as' [value]. For [String] properties,
+/// rows are selected if the value is alphabetically 'before or the same as' [value].
+/// Example:
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereLessThanEqualTo(60000);
@@ -84,41 +123,49 @@ dynamic whereLessThanEqualTo(dynamic value) {
       value, MatcherOperator.lessThanEqualTo);
 }
 
-/// Matcher for matching string properties that contain [value] when using [Query.where].
+/// Query matcher that tests that a column contains [value].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where that property
+/// contains [value] are returned. [value] must be the same type as the property
+/// being assigned.
+///
+/// This matcher can be used on [String] types. The substring [value] must be found in the stored string.
+/// When matching [String] types, the flag [caseSensitive] controls whether strings are compared case-sensitively.
+///
+/// Example:
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.title = whereContains("Director");
 ///
-/// [caseSensitive] is will toggle
-/// if [value] is to be case sensitive equal to matched values.
-dynamic whereContainsString(String value, {bool caseSensitive: true}) {
+dynamic whereContains(dynamic value, {bool caseSensitive: true}) {
   return new StringMatcherExpression(value, StringMatcherOperator.contains, caseSensitive: caseSensitive);
 }
-
-/// Matcher for matching string properties that start with [value] when using [Query.where].
+/// Query matcher that tests that a column begins with [value].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where that property
+/// is a [String] that begins with [value] are returned.
+///
+/// This matcher can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
+///
+/// Example:Example:
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.name = whereBeginsWith("B");
-///
-/// [caseSensitive] is will toggle
-/// if [value] is to be case sensitive equal to matched values.
 dynamic whereBeginsWith(String value, {bool caseSensitive: true}) {
   return new StringMatcherExpression(value, StringMatcherOperator.beginsWith, caseSensitive: caseSensitive);
 }
 
-/// Matcher for matching string properties that do not end with [value] when using [Query.where].
+/// Query matcher that tests that a column does not end with [value].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where that [String]
+/// does not end with [value] are returned.
+///
+/// This matcher can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
+///
+/// Example:
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.name = whereDoesNotEndWith("son");
-///
-/// [caseSensitive] is will toggle
-/// if [value] is to be case sensitive equal to matched values.
 dynamic whereDoesNotEndWith(String value, {bool caseSensitive: true}) {
   return new StringMatcherExpression(
       value, StringMatcherOperator.endsWith,
@@ -126,15 +173,20 @@ dynamic whereDoesNotEndWith(String value, {bool caseSensitive: true}) {
       invertOperator: true);
 }
 
-/// Matcher for matching string properties that do not contain [value] when using [Query.where].
+/// Query matcher that tests that a column does not contains [value].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where that property
+/// does not contains [value] are returned. [value] must be the same type as the property
+/// being assigned.
+///
+/// This matcher can be used on [String] types. The substring [value] must be found in the stored string.
+/// When matching [String] types, the flag [caseSensitive] controls whether strings are compared case-sensitively.
+///
+/// Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..where.title = whereDoesNotContain("Director");
+///         ..where.title = whereDoesNotContains("Director");
 ///
-/// [caseSensitive] is will toggle
-/// if [value] is to be case sensitive equal to matched values.
 dynamic whereDoesNotContain(String value, {bool caseSensitive: true}) {
   return new StringMatcherExpression(
       value, StringMatcherOperator.contains,
@@ -142,15 +194,17 @@ dynamic whereDoesNotContain(String value, {bool caseSensitive: true}) {
       invertOperator: true);
 }
 
-/// Matcher for matching string properties that do not start with [value] when using [Query.where].
+/// Query matcher that tests that a column does not begins with [value].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where that property
+/// is a [String] that does not begins with [value] are returned.
+///
+/// This matcher can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
+///
+/// Example:Example:
 ///
 ///       var query = new Query<Employee>()
-///         ..where.name = whereDoesNotBeginWith("B");
-///
-/// [caseSensitive] is will toggle
-/// if [value] is to be case sensitive equal to matched values.
+///         ..where.name = whereDoesNotBeginsWith("B");
 dynamic whereDoesNotBeginWith(String value, {bool caseSensitive: true}) {
   return new StringMatcherExpression(
       value, StringMatcherOperator.beginsWith,
@@ -158,22 +212,29 @@ dynamic whereDoesNotBeginWith(String value, {bool caseSensitive: true}) {
       invertOperator: true);
 }
 
-/// Matcher for matching string properties that end with [value] when using [Query.where].
+/// Query matcher that tests that a column ends with [value].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where that [String]
+/// ends with [value] are returned.
+///
+/// This matcher can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
+///
+/// Example:
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.name = whereEndsWith("son");
-///
-/// [caseSensitive] is will toggle
-/// if [value] is to be case sensitive equal to matched values.
 dynamic whereEndsWith(String value, {bool caseSensitive: true}) {
   return new StringMatcherExpression(value, StringMatcherOperator.endsWith, caseSensitive: caseSensitive);
 }
 
-/// Matcher for matching values that are within the list of [values] when using [Query.where].
+/// Query matcher that tests that a column's value is in [values].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where where the property
+/// value is one of [values] are returned.
+///
+/// This matcher can be used on [String], [int], [double], [bool] and [DateTime] types.
+///
+/// Example:
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.department = whereIn(["Engineering", "HR"]);
@@ -181,9 +242,17 @@ dynamic whereIn(Iterable<dynamic> values) {
   return new SetMembershipMatcherExpression(values.toList());
 }
 
-/// Matcher for matching column values where [lhs] <= value <= [rhs] when using [Query.where].
+/// Query matcher that tests that a column is between [lhs] and [rhs].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where that property
+/// is between [lhs] and [rhs] are returned. [lhs] and [rhs] must be the same type as the property
+/// being assigned.
+///
+/// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+/// this matcher selects rows where the assigned property is 'later than' [lhs] and 'earlier than' [rhs]. For [String] properties,
+/// rows are selected if the value is alphabetically 'after' [lhs] and 'before' [rhs].
+///
+/// Example:
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereBetween(80000, 100000);
@@ -191,9 +260,17 @@ dynamic whereBetween(dynamic lhs, dynamic rhs) {
   return new RangeMatcherExpression(lhs, rhs, true);
 }
 
-/// Matcher for matching column values where matched value is less than [lhs] or greater than [rhs] when using [Query.where].
+/// Query matcher that tests that a column is not between [lhs] and [rhs].
 ///
-/// See [Query.where].  Example:
+/// When assigned to a [Query.where] property, only rows where that property
+/// is not between [lhs] and [rhs] are returned. [lhs] and [rhs] must be the same type as the property
+/// being assigned.
+///
+/// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+/// this matcher selects rows where the assigned property is 'later than' [rhs] and 'earlier than' [lhs]. For [String] properties,
+/// rows are selected if the value is alphabetically 'before' [lhs] and 'after' [rhs].
+///
+/// Example:
 ///
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereOutsideOf(80000, 100000);
@@ -201,28 +278,30 @@ dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
   return new RangeMatcherExpression(lhs, rhs, false);
 }
 
-/// Matcher for matching [Relate] property when using [Query.where].
+/// Query matcher that tests that a relationship is related by [foreignKeyValue].
 ///
-/// This matcher can be assigned to a [Relate] property. The underlying
-/// [PersistentStore] will determine the name of the foreign key column to build
-/// the query. See [Query.where].
+/// When assigned to a [Query.where] relationship property, only rows where that relationship
+/// property's primary key is equal to [foreignKeyValue] will be returned. [foreignKeyValue]
+/// must be the same type as the assigned property's primary key.
 ///
-/// Example:
+/// This matcher can be used on [ManagedObject] types that have [Relate] metadata; i.e., properties that are backed by a foreign key.
 ///
-///       var q = new Query<SomethingUserHas>()
-///         ..where.user = whereRelatedByValue(userPrimaryKey);
+///       var q = new Query<Employee>()
+///         ..where.manager = whereRelatedByValue(managerID);
 dynamic whereRelatedByValue(dynamic foreignKeyValue) {
   return new ComparisonMatcherExpression(
       foreignKeyValue, MatcherOperator.equalTo);
 }
 
-/// Inverts a [Query.where] matcher.
+/// Query matcher that inverts another query matcher.
 ///
-/// Creates a matcher that inverts [expression]. For whatever results would be filtered
-/// by [expression], the inverted expression both:
+/// Creates a matcher that inverts [matcher]. For whatever results would be filtered
+/// by [matcher], the inverted expression both:
 ///
 /// - includes the results that would have been excluded
 /// - excludes the results that would have been included
+///
+/// This inversion will not change control flags like checking for case-insensitivity.
 ///
 /// For example, the following find's all users not named 'Bob'.
 ///
@@ -232,21 +311,34 @@ dynamic whereRelatedByValue(dynamic foreignKeyValue) {
 /// Note: null values are not evaluated. In the previous example, if name
 /// were 'null' for some user, it would *not* be returned by the query.
 ///
-dynamic whereNot(MatcherExpression expression) {
-  return expression.inverse;
+dynamic whereNot(dynamic matcher) {
+  if (matcher is! MatcherExpression) {
+    throw new ArgumentError("Invalid argument to 'whereNot'. Must be another matcher, e.g. 'whereEqualTo'.");
+  }
+  return (matcher as MatcherExpression).inverse;
 }
 
-/// Matcher for matching null value when using [Query.where].
+/// Query matcher that tests whether a column value is null.
 ///
-/// See [Query.where]. Example:
+/// When assigned to a [Query.where] property, only rows where that
+/// property is null will be returned.
+///
+/// This matcher can be applied to any property type.
+///
+/// Example:
 ///
 ///       var q = new Query<Employee>()
 ///         ..where.manager = whereNull;
 const dynamic whereNull = const NullMatcherExpression(true);
 
-/// Matcher for matching everything but null when using [Query.where].
+/// Query matcher that tests whether a column value is not null.
 ///
-/// See [Query.where]. Example:
+/// When assigned to a [Query.where] property, only rows where that
+/// property is not null will be returned.
+///
+/// This matcher can be applied to any property type.
+///
+/// Example:
 ///
 ///       var q = new Query<Employee>()
 ///         ..where.manager = whereNotNull;

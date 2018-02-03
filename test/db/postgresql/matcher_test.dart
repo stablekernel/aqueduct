@@ -266,13 +266,13 @@ void main() {
 
   group("whereContains matcher", () {
     test("Case sensitive, default", () async {
-      var q = new Query<TestModel>()..where["name"] = whereContainsString("y");
+      var q = new Query<TestModel>()..where["name"] = whereContains("y");
       var results = await q.fetch();
       expect(results.length, 2);
       expect(results.first.name, "Sally");
       expect(results.last.name, "Kanye");
 
-      q = new Query<TestModel>()..where["name"] = whereNot(whereContainsString("y"));
+      q = new Query<TestModel>()..where["name"] = whereNot(whereContains("y"));
       results = await q.fetch();
       expect(results.length, 4);
       expect(results.any((tm) => tm.name == "Sally"), false);
@@ -280,13 +280,13 @@ void main() {
     });
 
     test("Case insensitive", () async {
-      var q = new Query<TestModel>()..where["name"] = whereContainsString("Y", caseSensitive: false);
+      var q = new Query<TestModel>()..where["name"] = whereContains("Y", caseSensitive: false);
       var results = await q.fetch();
       expect(results.length, 2);
       expect(results.first.name, "Sally");
       expect(results.last.name, "Kanye");
 
-      q = new Query<TestModel>()..where["name"] = whereNot(whereContainsString("Y", caseSensitive: false));
+      q = new Query<TestModel>()..where["name"] = whereNot(whereContains("Y", caseSensitive: false));
       results = await q.fetch();
       expect(results.length, 4);
       expect(results.any((tm) => tm.name == "Sally"), false);

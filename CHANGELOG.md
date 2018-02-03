@@ -22,6 +22,7 @@
     - Adds concrete implementations of `AuthorizationParser<T>`, `AuthorizationBearerParser` and `AuthorizationBasicParser`.
 - Removes `AuthValidator.fromBearerToken` and `AuthValidator.fromBasicCredentials` and replaces with `AuthValidator.validate<T>`.    
 - Renames the following:
+    - `whereContainsString` -> `whereContains`
     - `AuthStorage` -> `AuthServerDelegate`
     - `AuthServer.storage` -> `AuthServer.delegate`
     - `ApplicationConfiguration` -> `ApplicationOptions`

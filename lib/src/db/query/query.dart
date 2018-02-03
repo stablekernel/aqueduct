@@ -165,7 +165,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   /// Use this property instead of providing a [predicate] to filter the rows this query manipulates or fetches. This property
   /// is an instance of [InstanceType] with special [ManagedObject.backingMap] behavior. When you set properties of this property using
-  /// matchers (see examples such as [whereEqualTo] and [whereContainsString]), the underlying database will generate a [QueryPredicate] to
+  /// matchers (see examples such as [whereEqualTo] and [whereContains]), the underlying database will generate a [QueryPredicate] to
   /// match the behavior of these matches. For example, the following query will generate a predicate that only operates on rows
   /// where 'id' is greater than 1:
   ///
