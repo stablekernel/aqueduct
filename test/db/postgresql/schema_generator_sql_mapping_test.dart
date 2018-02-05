@@ -17,7 +17,7 @@ void main() {
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
       expect(commands[0],
-          "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
+          "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL,document JSONB NOT NULL)");
       expect(commands.length, 1);
     });
 
@@ -27,7 +27,7 @@ void main() {
       var commands = schema.tables.map((t) => psc.createTable(t, isTemporary: true)).expand((l) => l).toList();
 
       expect(commands[0],
-          "CREATE TEMPORARY TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
+          "CREATE TEMPORARY TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL,document JSONB NOT NULL)");
       expect(commands.length, 1);
     });
 
@@ -49,7 +49,7 @@ void main() {
       var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
 
       expect(commands[0],
-          "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL)");
+          "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL,document JSONB NOT NULL)");
       expect(commands[1], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY)");
     });
 
@@ -215,7 +215,7 @@ void main() {
     test("Delete column", () {
       var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
-      var cmds = psc.deleteColumn(schema.tables.first, schema.tables.first.columns.last);
+      var cmds = psc.deleteColumn(schema.tables.first, schema.tables.first.columns.firstWhere((s) => s.name == "validDate"));
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 DROP COLUMN validDate RESTRICT");
     });
 
@@ -229,14 +229,14 @@ void main() {
     test("Add index to column", () {
       var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
-      var cmds = psc.addIndexToColumn(schema.tables.first, schema.tables.first.columns.last);
+      var cmds = psc.addIndexToColumn(schema.tables.first, schema.tables.first.columns.firstWhere((s) => s.name == "validDate"));
       expect(cmds.first, "CREATE INDEX _GeneratorModel1_validDate_idx ON _GeneratorModel1 (validDate)");
     });
 
     test("Remove index from column", () {
       var dm = new ManagedDataModel([GeneratorModel1]);
       var schema = new Schema.fromDataModel(dm);
-      var cmds = psc.deleteIndexFromColumn(schema.tables.first, schema.tables.first.columns.last);
+      var cmds = psc.deleteIndexFromColumn(schema.tables.first, schema.tables.first.columns.firstWhere((s) => s.name == "validDate"));
       expect(cmds.first, "DROP INDEX _GeneratorModel1_validDate_idx");
     });
 
@@ -374,6 +374,8 @@ class _GeneratorModel1 {
 
   @Column(nullable: true)
   DateTime validDate;
+
+  Document document;
 }
 
 class GeneratorModel2 extends ManagedObject<_GeneratorModel2> implements _GeneratorModel2 {}

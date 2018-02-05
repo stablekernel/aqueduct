@@ -14,7 +14,8 @@ void main() {
       PrivateField,
       EnumObject,
       TransientBelongsTo,
-      TransientOwner
+      TransientOwner,
+      DocumentTest
     ]);
     var _ = new ManagedContext(dm, ps);
   });
@@ -518,6 +519,38 @@ void main() {
       expect(p._private, isNull);
     });
   });
+
+  group("Document data type", () {
+    test("Can read object into document data type from map", () {
+      final o = new DocumentTest();
+      o.readFromMap({"document": {"key": "value"}});
+
+      expect(o.document.data, {"key": "value"});
+    });
+
+    test("Can read array into document data type from list", () {
+      final o = new DocumentTest();
+      o.readFromMap({"document": [{"key": "value"}, 1]});
+
+      expect(o.document.data, [{"key": "value"}, 1]);
+    });
+
+    test("Can emit object into map from object document data type", () {
+      final o = new DocumentTest()
+        ..document = new Document.from({"key": "value"});
+      expect(o.asMap(), {
+        "document": {"key": "value"}
+      });
+    });
+
+    test("Can emit array into map from array document data type", () {
+      final o = new DocumentTest()
+        ..document = new Document.from([{"key": "value"}, 1]);
+      expect(o.asMap(), {
+        "document": [{"key": "value"}, 1]
+      });
+    });
+  });
 }
 
 class User extends ManagedObject<_User> implements _User {
@@ -771,4 +804,12 @@ class _TransientBelongsTo {
 
 void expectError(ValidationException exception, Matcher matcher) {
   expect(exception.response.body["error"], matcher);
+}
+
+class DocumentTest extends ManagedObject<_DocumentTest> implements _DocumentTest {}
+class _DocumentTest {
+  @primaryKey
+  int id;
+
+  Document document;
 }

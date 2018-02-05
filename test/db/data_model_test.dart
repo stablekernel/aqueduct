@@ -8,7 +8,7 @@ void main() {
   group("Valid data model", () {
     ManagedDataModel dataModel;
     setUp(() {
-      dataModel = new ManagedDataModel([User, Item, Manager, EnumObject]);
+      dataModel = new ManagedDataModel([User, Item, Manager, EnumObject, DocumentObject]);
       ManagedContext.defaultContext =
           new ManagedContext(dataModel, new DefaultPersistentStore());
     });
@@ -42,7 +42,7 @@ void main() {
     });
 
     test("All attributes/relationships are in properties", () {
-      [User, Manager, Item].forEach((t) {
+      [User, Manager, Item, EnumObject, DocumentObject].forEach((t) {
         var entity = dataModel.entityForType(t);
 
         entity.attributes.forEach((key, attr) {
@@ -175,6 +175,11 @@ void main() {
     test("Enums are string attributes in persistent type", () {
       var entity = dataModel.entityForType(EnumObject);
       expect(entity.attributes["enumValues"].type.kind, ManagedPropertyType.string);
+    });
+
+    test("Document properties are .document", () {
+      final entity = dataModel.entityForType(DocumentObject);
+      expect(entity.attributes["document"].type.kind, ManagedPropertyType.document);
     });
   });
 
@@ -1027,4 +1032,12 @@ class _MultiUniqueHasA {
   int id;
 
   MultiUniqueBelongsTo a;
+}
+
+class DocumentObject extends ManagedObject<_DocumentObject> {}
+class _DocumentObject {
+  @primaryKey
+  int id;
+
+  Document document;
 }

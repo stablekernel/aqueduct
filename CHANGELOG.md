@@ -1,5 +1,6 @@
 ## 3.0.0
 
+- Adds support for storing PostgreSQL JSONB data with `Document` data type.
 - Adds support for OpenAPI 3.0.0 documentation generation.
     - Adds `APIComponentDocumenter`, `APIOperationDocumenter`, `APIDocumentContext`.
     - Removes `PackagePathResolver`, `ApplicationOptions.isDocumenting` and `APIDocumentable`.    
@@ -12,7 +13,6 @@
 - Adds `MockHTTPServer.queueHandler` and `MockHTTPServer.queueOutage`.
 - Binding metadata - `HTTPPath`, `HTTPBody`, `HTTPQuery` and `HTTPHeader` - have been changed to `Bind.path`, `Bind.body`, `Bind.query` and `Bind.header`, respectively.
 - Remove `@httpGet` (and other `HTTPMethod` annotations) constants. Behavior replaced by`@Operation`.
-- Renames `Request.innerRequest` to `Request.raw`.
 - Removes `runOnMainIsolate` from `Application.start()` and introduces `Application.test()` as replacement.
 - Renames `RequestSink` to `ApplicationChannel`.
     - Replace constructor and `willOpen` with `prepare`. 
@@ -22,6 +22,7 @@
     - Adds concrete implementations of `AuthorizationParser<T>`, `AuthorizationBearerParser` and `AuthorizationBasicParser`.
 - Removes `AuthValidator.fromBearerToken` and `AuthValidator.fromBasicCredentials` and replaces with `AuthValidator.validate<T>`.    
 - Renames the following:
+    - `Request.innerRequest` -> `Request.raw`
     - `whereContainsString` -> `whereContains`
     - `AuthStorage` -> `AuthServerDelegate`
     - `AuthServer.storage` -> `AuthServer.delegate`

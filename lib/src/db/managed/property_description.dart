@@ -106,6 +106,8 @@ abstract class ManagedPropertyDescription {
         return new APISchemaObject.array(ofSchema: _typedSchemaObject(type.elements));
       case ManagedPropertyType.map:
         return new APISchemaObject.map(ofSchema: _typedSchemaObject(type.elements));
+      case ManagedPropertyType.document:
+        return new APISchemaObject.freeForm();
     }
 
     throw new UnsupportedError("Unsupported type '$type' when documenting entity.");
@@ -258,6 +260,8 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
     } else if (isEnumeratedValue) {
       // todo: optimize?
       return value.toString().split(".").last;
+    } else if (type.kind == ManagedPropertyType.document && value is Document) {
+      return value.data;
     }
 
     return value;
@@ -274,6 +278,8 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
         throw new ValidationException(["invalid option for key '$name'"]);
       }
       return enumerationValueMap[value];
+    } else if (type.kind == ManagedPropertyType.document) {
+      return new Document.from(value);
     }
 
     // no need to check type here - gets checked by managed backing
