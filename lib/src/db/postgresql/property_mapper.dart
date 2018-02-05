@@ -53,7 +53,11 @@ abstract class PropertyMapper extends PostgresMapper {
       if ((property as ManagedAttributeDescription).isEnumeratedValue) {
         return property.convertToPrimitiveValue(value);
       } else if ((property as ManagedAttributeDescription).type.kind == ManagedPropertyType.document) {
-        return JSON.encode((value as Document).data);
+        if (value is Document) {
+          return JSON.encode(value.data);
+        } else if (value is Map || value is List) {
+          return JSON.encode(value);
+        }
       }
     }
 
