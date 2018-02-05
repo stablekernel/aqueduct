@@ -1,6 +1,7 @@
 export 'attributes.dart';
 export 'context.dart';
 export 'data_model.dart';
+export 'document.dart';
 export 'entity.dart';
 export 'exception.dart';
 export 'object.dart';

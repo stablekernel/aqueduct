@@ -50,7 +50,6 @@ abstract class QueryReduceOperation<T extends ManagedObject> {
   /// The property must be an attribute and its type must be [String], [int], [double], or [DateTime].
   Future<U> minimum<U>(U selector(T object));
 
-
   /// Finds the sum of some [ManagedObject] property.
   ///
   /// [selector] identifies the property being evaluated, e.g.

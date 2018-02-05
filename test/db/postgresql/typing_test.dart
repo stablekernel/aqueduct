@@ -23,7 +23,8 @@ void main() {
       ..where.t = whereEqualTo(new DateTime.now())
       ..where.l = whereEqualTo(1)
       ..where.b = whereEqualTo(true)
-      ..where.d = whereEqualTo(1.0);
+      ..where.d = whereEqualTo(1.0)
+      ..where.doc = whereEqualTo({"k":"v"});
 
     var mapper = (q as PostgresQuery).createFetchMapper();
     expect(mapper.finalizedPredicate.format, contains("id:int8"));
@@ -32,6 +33,7 @@ void main() {
     expect(mapper.finalizedPredicate.format, contains("l:int4"));
     expect(mapper.finalizedPredicate.format, contains("b:boolean"));
     expect(mapper.finalizedPredicate.format, contains("d:float8"));
+    expect(mapper.finalizedPredicate.format, contains("doc:jsonb"));
   });
 
   test("Values get typed when used as insertion values", () async {
@@ -43,7 +45,8 @@ void main() {
       ..values.t = new DateTime.now()
       ..values.l = 1
       ..values.b = true
-      ..values.d = 1.0;
+      ..values.d = 1.0
+      ..values.doc = new Document.from({"k":"v"});
 
     var builder = new PostgresQueryBuilder(context.entityForType(TestModel),
         returningProperties: ["id"], values: q.values.backingMap);
@@ -54,6 +57,7 @@ void main() {
     expect(insertString, contains("l:int4"));
     expect(insertString, contains("b:boolean"));
     expect(insertString, contains("d:float8"));
+    expect(insertString, contains("doc:jsonb"));
   });
 
   test("Have access to type args in Map", () {
@@ -102,6 +106,7 @@ class _TestModel {
   int l;
   bool b;
   double d;
+  Document doc;
 }
 
 class TypeRepo {

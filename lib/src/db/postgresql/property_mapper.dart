@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:postgres/postgres.dart';
 
 import '../db.dart';
@@ -19,7 +21,8 @@ abstract class PropertyMapper extends PostgresMapper {
     ManagedPropertyType.string: PostgreSQLDataType.text,
     ManagedPropertyType.datetime: PostgreSQLDataType.timestampWithoutTimezone,
     ManagedPropertyType.boolean: PostgreSQLDataType.boolean,
-    ManagedPropertyType.doublePrecision: PostgreSQLDataType.double
+    ManagedPropertyType.doublePrecision: PostgreSQLDataType.double,
+    ManagedPropertyType.document: PostgreSQLDataType.json
   };
 
   static Map<MatcherOperator, String> symbolTable = {
@@ -49,6 +52,8 @@ abstract class PropertyMapper extends PostgresMapper {
     if (property is ManagedAttributeDescription) {
       if ((property as ManagedAttributeDescription).isEnumeratedValue) {
         return property.convertToPrimitiveValue(value);
+      } else if ((property as ManagedAttributeDescription).type.kind == ManagedPropertyType.document) {
+        return JSON.encode((value as Document).data);
       }
     }
 
@@ -59,6 +64,8 @@ abstract class PropertyMapper extends PostgresMapper {
     if (property is ManagedAttributeDescription) {
       if ((property as ManagedAttributeDescription).isEnumeratedValue) {
         return property.convertFromPrimitiveValue(value);
+      } else if ((property as ManagedAttributeDescription).type.kind == ManagedPropertyType.document) {
+        return new Document.from(JSON.decode(value));
       }
     }
 

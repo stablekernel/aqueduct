@@ -421,6 +421,8 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
           return null;
         case ManagedPropertyType.map:
           return null;
+        case ManagedPropertyType.document:
+          return null;
       }
     } on FormatException {
       throw new Response.notFound();

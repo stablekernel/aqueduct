@@ -1,4 +1,6 @@
 import 'dart:mirrors';
+import 'package:aqueduct/src/db/managed/document.dart';
+
 import 'managed.dart';
 
 /// Possible data types for [ManagedEntity] attributes.
@@ -25,7 +27,10 @@ enum ManagedPropertyType {
   map,
 
   /// Represented by instances of [List].
-  list
+  list,
+
+  /// Represented by instances of [Document]
+  document
 }
 
 /// Complex type storage for [ManagedEntity] attributes.
@@ -53,6 +58,8 @@ class ManagedType {
     } else if (t.isSubtypeOf(reflectType(List))) {
       kind = ManagedPropertyType.list;
       elements = new ManagedType(t.typeArguments.first);
+    } else if (t.isAssignableTo(reflectType(Document))) {
+      kind = ManagedPropertyType.document;
     } else if (t.isEnum) {
       kind = ManagedPropertyType.string;
     } else {
@@ -101,6 +108,8 @@ class ManagedType {
         return dartValue is Map;
       case ManagedPropertyType.list:
         return dartValue is List;
+      case ManagedPropertyType.document:
+        return dartValue is Document;
     }
     return false;
   }
@@ -112,7 +121,7 @@ class ManagedType {
   }
 
   static List<Type> get supportedDartTypes {
-    return [String, DateTime, bool, int, double];
+    return [String, DateTime, bool, int, double, Document];
   }
 
   static ManagedPropertyType get integer => ManagedPropertyType.integer;
@@ -130,4 +139,6 @@ class ManagedType {
   static ManagedPropertyType get map => ManagedPropertyType.map;
 
   static ManagedPropertyType get list => ManagedPropertyType.list;
+
+  static ManagedPropertyType get document => ManagedPropertyType.document;
 }

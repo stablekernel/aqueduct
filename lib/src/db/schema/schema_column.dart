@@ -177,6 +177,8 @@ class SchemaColumn {
         return null;
       case ManagedPropertyType.map:
         return null;
+      case ManagedPropertyType.document:
+        return "document";
     }
     return null;
   }
@@ -196,6 +198,8 @@ class SchemaColumn {
         return ManagedPropertyType.datetime;
       case "string":
         return ManagedPropertyType.string;
+      case "document":
+        return ManagedPropertyType.document;
     }
     return null;
   }

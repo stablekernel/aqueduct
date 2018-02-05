@@ -240,6 +240,8 @@ class PostgreSQLSchemaGenerator {
         return "BOOLEAN";
       case "double":
         return "DOUBLE PRECISION";
+      case "document":
+        return "JSONB";
     }
 
     return null;
