@@ -67,7 +67,6 @@ void main() {
   });
 
   group("Sub-document selection", () {
-    justLogEverything();
     setUp(() async {
       final testData = [
         {"key": "value"}, // 1
@@ -76,7 +75,7 @@ void main() {
         [1, 2], // 4
         [{"1": "v1"}, {"2": "v2"}], // 5
         [{"1": []}, {"2": "v2"}, {"3": "v3"}], // 6
-        {"1": "v1", "2": "v2", "3": "v3"} // 7
+        {"1": "v1", "2": "v2", "3": "v3"}, // 7
       ];
 
       var counter = 1;
@@ -90,6 +89,7 @@ void main() {
     });
 
     test("Can subscript top-level object and return primitive", () async {
+      // {"key": "value"}
       var q = new Query<Obj>()
           ..where.id = whereEqualTo(1)
           ..returningProperties((obj) => [obj.id, obj.document["key"]]);
@@ -104,6 +104,7 @@ void main() {
     });
 
     test("Can subscript top-level object and return array", () async {
+      // {"key": [1, 2]},
       var q = new Query<Obj>()
         ..where.id = whereEqualTo(2)
         ..returningProperties((obj) => [obj.id, obj.document["key"]]);
@@ -112,6 +113,7 @@ void main() {
     });
 
     test("Can subscript top-level object and return object", () async {
+      // {"key": {"innerKey": "value"}}
       final q = new Query<Obj>()
         ..where.id = whereEqualTo(3)
         ..returningProperties((obj) => [obj.id, obj.document["key"]]);
@@ -120,6 +122,7 @@ void main() {
     });
 
     test("Can subscript top-level array and return indexed primitive", () async {
+      // [1, 2],
       var q = new Query<Obj>()
         ..where.id = whereEqualTo(4)
         ..returningProperties((obj) => [obj.id, obj.document[0]]);
@@ -146,6 +149,7 @@ void main() {
     });
 
     test("Can subscript object and inner array", () async {
+      // {"key": [1, 2]},
       var q = new Query<Obj>()
         ..where.id = whereEqualTo(2)
         ..returningProperties((obj) => [obj.id, obj.document["key"][0]]);
@@ -166,6 +170,7 @@ void main() {
     });
 
     test("Can subscript array and inner object", () async {
+      // [{"1": "v1"}, {"2": "v2"}]
       var q = new Query<Obj>()
         ..where.id = whereEqualTo(5)
         ..returningProperties((obj) => [obj.id, obj.document[0]["1"]]);
@@ -190,41 +195,6 @@ void main() {
       o = await q.fetchOne();
       expect(o.document, null);
     });
-
-    test("Multiple array subscripts return partial object coalesced into one", () async {
-      var q = new Query<Obj>()
-        ..where.id = whereEqualTo(6)
-        ..returningProperties((obj) => [obj.id, obj.document[0], obj.document[1]]);
-      var o = await q.fetchOne();
-      expect(o.document.data, [{"1": []}, {"2": "v2"}]);
-
-      q = new Query<Obj>()
-        ..where.id = whereEqualTo(6)
-        ..returningProperties((obj) => [obj.id, obj.document[0], obj.document[-1]]);
-      o = await q.fetchOne();
-      expect(o.document.data, [{"1": []}, {"3": "v3"}]);
-
-      q = new Query<Obj>()
-        ..where.id = whereEqualTo(6)
-        ..returningProperties((obj) => [obj.id, obj.document[0], obj.document[10]]);
-      o = await q.fetchOne();
-      expect(o.document.data, [{"1": []}]);
-    });
-
-    test("Multiple object subscripts return partial object coalesced into one", () async {
-      var q = new Query<Obj>()
-        ..where.id = whereEqualTo(7)
-        ..returningProperties((obj) => [obj.id, obj.document["1"], obj.document["3"]]);
-      var o = await q.fetchOne();
-      expect(o.document.data, {"1": "v1", "3": "v3"});
-
-      q = new Query<Obj>()
-        ..where.id = whereEqualTo(7)
-        ..returningProperties((obj) => [obj.id, obj.document["1"], obj.document["invalidKey"]]);
-      o = await q.fetchOne();
-      expect(o.document.data, {"1": "v1"});
-    });
-
   });
 }
 
