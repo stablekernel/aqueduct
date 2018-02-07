@@ -3,7 +3,7 @@ import 'dart:async';
 import '../db.dart';
 import '../query/mixin.dart';
 import '../query/sort_descriptor.dart';
-import 'property_mapper.dart';
+import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
 import 'query_builder.dart';
 import 'postgresql_query_reduce.dart';
 

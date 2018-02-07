@@ -1,6 +1,5 @@
 import 'matcher_internal.dart';
 import 'query.dart';
-import '../persistent_store/persistent_store.dart';
 import '../managed/managed.dart';
 
 /// Query matcher that tests that a column is equal to [value].

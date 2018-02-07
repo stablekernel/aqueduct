@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
@@ -13,54 +15,222 @@ void main() {
     context = null;
   });
 
-  test("Can insert document object", () async {
-    final q = new Query<Obj>()
+  group("Basic queries", () {
+    test("Can insert document object", () async {
+      final q = new Query<Obj>()
+        ..values.id = 1
         ..values.document = new Document.from({"k": "v"});
-    final o = await q.insert();
-    expect(o.document.data, {"k":"v"});
+      final o = await q.insert();
+      expect(o.document.data, {"k":"v"});
+    });
+
+    test("Can insert document array", () async {
+      final q = new Query<Obj>()
+        ..values.id = 1
+        ..values.document = new Document.from([{"k": "v"}, 1]);
+      final o = await q.insert();
+      expect(o.document.data, [{"k":"v"}, 1]);
+    });
+
+    test("Can fetch document object", () async {
+      final q = new Query<Obj>()
+        ..values.id = 1
+        ..values.document = new Document.from({"k": "v"});
+      await q.insert();
+
+      final o = await (new Query<Obj>()).fetch();
+      expect(o.first.document.data, {"k":"v"});
+    });
+
+    test("Can fetch array object", () async {
+      final q = new Query<Obj>()
+        ..values.id = 1
+        ..values.document = new Document.from([{"k": "v"}, 1]);
+      await q.insert();
+
+      final o = await (new Query<Obj>()).fetch();
+      expect(o.first.document.data, [{"k":"v"}, 1]);
+    });
+
+    test("Can update value of document property", () async {
+      final q = new Query<Obj>()
+        ..values.id = 1
+        ..values.document = new Document.from({"k": "v"});
+      final o = await q.insert();
+
+      final u = new Query<Obj>()
+        ..where.id = whereEqualTo(o.id)
+        ..values.document = new Document.from(["a"]);
+      final updated = await u.updateOne();
+      expect(updated.document.data, ["a"]);
+    });
   });
 
-  test("Can insert document array", () async {
-    final q = new Query<Obj>()
-      ..values.document = new Document.from([{"k": "v"}, 1]);
-    final o = await q.insert();
-    expect(o.document.data, [{"k":"v"}, 1]);
-  });
+  group("Sub-document selection", () {
+    justLogEverything();
+    setUp(() async {
+      final testData = [
+        {"key": "value"}, // 1
+        {"key": [1, 2]}, // 2
+        {"key": {"innerKey": "value"}}, // 3
+        [1, 2], // 4
+        [{"1": "v1"}, {"2": "v2"}], // 5
+        [{"1": []}, {"2": "v2"}, {"3": "v3"}], // 6
+        {"1": "v1", "2": "v2", "3": "v3"} // 7
+      ];
 
-  test("Can fetch document object", () async {
-    final q = new Query<Obj>()
-      ..values.document = new Document.from({"k": "v"});
-    await q.insert();
+      var counter = 1;
+      await Future.forEach(testData, (data) async {
+        final q = new Query<Obj>()
+          ..values.id = counter
+          ..values.document = new Document.from(data);
+        await q.insert();
+        counter ++;
+      });
+    });
 
-    final o = await (new Query<Obj>()).fetch();
-    expect(o.first.document.data, {"k":"v"});
-  });
+    test("Can subscript top-level object and return primitive", () async {
+      var q = new Query<Obj>()
+          ..where.id = whereEqualTo(1)
+          ..returningProperties((obj) => [obj.id, obj.document["key"]]);
+      var o = await q.fetchOne();
+      expect(o.document.data, "value");
 
-  test("Can fetch array object", () async {
-    final q = new Query<Obj>()
-      ..values.document = new Document.from([{"k": "v"}, 1]);
-    await q.insert();
+      q = new Query<Obj>()
+        ..where.id = whereEqualTo(1)
+        ..returningProperties((obj) => [obj.id, obj.document["unknownKey"]]);
+      o = await q.fetchOne();
+      expect(o.document, null);
+    });
 
-    final o = await (new Query<Obj>()).fetch();
-    expect(o.first.document.data, [{"k":"v"}, 1]);
-  });
+    test("Can subscript top-level object and return array", () async {
+      var q = new Query<Obj>()
+        ..where.id = whereEqualTo(2)
+        ..returningProperties((obj) => [obj.id, obj.document["key"]]);
+      var o = await q.fetchOne();
+      expect(o.document.data, [1, 2]);
+    });
 
-  test("Can update value of document property", () async {
-    final q = new Query<Obj>()
-      ..values.document = new Document.from({"k": "v"});
-    final o = await q.insert();
+    test("Can subscript top-level object and return object", () async {
+      final q = new Query<Obj>()
+        ..where.id = whereEqualTo(3)
+        ..returningProperties((obj) => [obj.id, obj.document["key"]]);
+      final o = await q.fetchOne();
+      expect(o.document.data, {"innerKey": "value"});
+    });
 
-    final u = new Query<Obj>()
-      ..where.id = whereEqualTo(o.id)
-      ..values.document = new Document.from(["a"]);
-    final updated = await u.updateOne();
-    expect(updated.document.data, ["a"]);
+    test("Can subscript top-level array and return indexed primitive", () async {
+      var q = new Query<Obj>()
+        ..where.id = whereEqualTo(4)
+        ..returningProperties((obj) => [obj.id, obj.document[0]]);
+      var o = await q.fetchOne();
+      expect(o.document.data, 1);
+
+      q = new Query<Obj>()
+        ..where.id = whereEqualTo(4)
+        ..returningProperties((obj) => [obj.id, obj.document[1]]);
+      o = await q.fetchOne();
+      expect(o.document.data, 2);
+
+      q = new Query<Obj>()
+        ..where.id = whereEqualTo(4)
+        ..returningProperties((obj) => [obj.id, obj.document[-1]]);
+      o = await q.fetchOne();
+      expect(o.document.data, 2);
+
+      q = new Query<Obj>()
+        ..where.id = whereEqualTo(4)
+        ..returningProperties((obj) => [obj.id, obj.document[3]]);
+      o = await q.fetchOne();
+      expect(o.document, null);
+    });
+
+    test("Can subscript object and inner array", () async {
+      var q = new Query<Obj>()
+        ..where.id = whereEqualTo(2)
+        ..returningProperties((obj) => [obj.id, obj.document["key"][0]]);
+      var o = await q.fetchOne();
+      expect(o.document.data, 1);
+
+      q = new Query<Obj>()
+        ..where.id = whereEqualTo(2)
+        ..returningProperties((obj) => [obj.id, obj.document["foo"][0]]);
+      o = await q.fetchOne();
+      expect(o.document, null);
+
+      q = new Query<Obj>()
+        ..where.id = whereEqualTo(2)
+        ..returningProperties((obj) => [obj.id, obj.document["key"][3]]);
+      o = await q.fetchOne();
+      expect(o.document, null);
+    });
+
+    test("Can subscript array and inner object", () async {
+      var q = new Query<Obj>()
+        ..where.id = whereEqualTo(5)
+        ..returningProperties((obj) => [obj.id, obj.document[0]["1"]]);
+      var o = await q.fetchOne();
+      expect(o.document.data, "v1");
+
+      q = new Query<Obj>()
+        ..where.id = whereEqualTo(5)
+        ..returningProperties((obj) => [obj.id, obj.document[1]["2"]]);
+      o = await q.fetchOne();
+      expect(o.document.data, "v2");
+
+      q = new Query<Obj>()
+        ..where.id = whereEqualTo(5)
+        ..returningProperties((obj) => [obj.id, obj.document[3]["2"]]);
+      o = await q.fetchOne();
+      expect(o.document, null);
+
+      q = new Query<Obj>()
+        ..where.id = whereEqualTo(5)
+        ..returningProperties((obj) => [obj.id, obj.document[0]["foo"]]);
+      o = await q.fetchOne();
+      expect(o.document, null);
+    });
+
+    test("Multiple array subscripts return partial object coalesced into one", () async {
+      var q = new Query<Obj>()
+        ..where.id = whereEqualTo(6)
+        ..returningProperties((obj) => [obj.id, obj.document[0], obj.document[1]]);
+      var o = await q.fetchOne();
+      expect(o.document.data, [{"1": []}, {"2": "v2"}]);
+
+      q = new Query<Obj>()
+        ..where.id = whereEqualTo(6)
+        ..returningProperties((obj) => [obj.id, obj.document[0], obj.document[-1]]);
+      o = await q.fetchOne();
+      expect(o.document.data, [{"1": []}, {"3": "v3"}]);
+
+      q = new Query<Obj>()
+        ..where.id = whereEqualTo(6)
+        ..returningProperties((obj) => [obj.id, obj.document[0], obj.document[10]]);
+      o = await q.fetchOne();
+      expect(o.document.data, [{"1": []}]);
+    });
+
+    test("Multiple object subscripts return partial object coalesced into one", () async {
+      var q = new Query<Obj>()
+        ..where.id = whereEqualTo(7)
+        ..returningProperties((obj) => [obj.id, obj.document["1"], obj.document["3"]]);
+      var o = await q.fetchOne();
+      expect(o.document.data, {"1": "v1", "3": "v3"});
+
+      q = new Query<Obj>()
+        ..where.id = whereEqualTo(7)
+        ..returningProperties((obj) => [obj.id, obj.document["1"], obj.document["invalidKey"]]);
+      o = await q.fetchOne();
+      expect(o.document.data, {"1": "v1"});
+    });
+
   });
 }
 
 class Obj extends ManagedObject<_Obj> implements _Obj {}
 class _Obj {
-  @primaryKey
+  @Column(primaryKey: true)
   int id;
 
   Document document;

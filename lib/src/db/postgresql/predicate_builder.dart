@@ -1,15 +1,15 @@
 import '../db.dart';
-import 'entity_table.dart';
-import 'property_expression.dart';
-import 'property_mapper.dart';
-import 'row_mapper.dart';
+import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
+import 'package:aqueduct/src/db/postgresql/mappers/expression.dart';
+import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
+import 'package:aqueduct/src/db/postgresql/mappers/row.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 abstract class PredicateBuilder implements EntityTableMapper {
   @override
   ManagedEntity get entity;
 
-  List<PropertyExpression> propertyExpressionsFromObject(
+  List<ExpressionMapper> propertyExpressionsFromObject(
       ManagedObject obj, List<RowMapper> createdImplicitRowMappers,
       {bool disambiguateVariableNames: false}) {
     if (obj == null) {
@@ -25,7 +25,7 @@ abstract class PredicateBuilder implements EntityTableMapper {
 
           if (desc is ManagedAttributeDescription) {
             return [
-              new PropertyExpression(
+              new ExpressionMapper(
                   this, desc, innerMatcher, additionalVariablePrefix: prefix)
             ];
           }
@@ -41,7 +41,7 @@ abstract class PredicateBuilder implements EntityTableMapper {
             if (innerMatcherObject.backingMap.length == 1 &&
                 nestedMatcherPrimaryKeyMatcher != null) {
               return [
-                new PropertyExpression(
+                new ExpressionMapper(
                     this, desc, nestedMatcherPrimaryKeyMatcher,
                     additionalVariablePrefix: prefix)
               ];

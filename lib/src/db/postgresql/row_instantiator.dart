@@ -1,6 +1,6 @@
 import '../db.dart';
-import 'property_mapper.dart';
-import 'entity_table.dart';
+import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
+import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
 
 abstract class RowInstantiator {
   List<PostgresMapper> get returningOrderedMappers;
@@ -21,7 +21,7 @@ abstract class RowInstantiator {
   }
 
   InstanceWrapper instanceFromRow(
-      Iterator<dynamic> rowIterator, Iterator<PropertyMapper> mappingIterator,
+      Iterator<dynamic> rowIterator, Iterator<ColumnMapper> mappingIterator,
       {EntityTableMapper forTableMapper}) {
     forTableMapper ??= rootTableMapper;
 
@@ -116,14 +116,14 @@ abstract class RowInstantiator {
   }
 
   void applyColumnValueToProperty(
-      ManagedObject instance, PropertyToColumnMapper mapper, dynamic value) {
+      ManagedObject instance, ColumnMapper mapper, dynamic value) {
     var desc = mapper.property;
 
     if (desc is ManagedRelationshipDescription) {
       // This is a belongsTo relationship (otherwise it wouldn't be a column), keep the foreign key.
       // However, if we are later going to get these values and more from a join,
       // we need ignore it here.
-      if (!mapper.isForeignKeyColumnAndWillBePopulatedByJoin) {
+      if (!mapper.fetchAsForeignKey) {
         if (value != null) {
           var innerInstance = desc.destinationEntity.newInstance();
           innerInstance[desc.destinationEntity.primaryKey] = value;
@@ -139,7 +139,7 @@ abstract class RowInstantiator {
   }
 
   void exhaustNullInstanceIterator(
-      Iterator<dynamic> rowIterator, Iterator<PropertyMapper> mappingIterator) {
+      Iterator<dynamic> rowIterator, Iterator<ColumnMapper> mappingIterator) {
     while (mappingIterator.moveNext()) {
       var mapper = mappingIterator.current;
       if (mapper is RowMapper) {

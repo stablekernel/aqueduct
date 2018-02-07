@@ -31,4 +31,12 @@ class Document {
   ///
   /// This value must be JSON-encodable.
   dynamic data;
+
+  dynamic operator [](dynamic keyOrIndex) {
+    return data[keyOrIndex];
+  }
+
+  void operator []=(dynamic keyOrIndex, dynamic value) {
+    data[keyOrIndex] = value;
+  }
 }
