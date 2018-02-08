@@ -97,11 +97,12 @@ class ManagedAccessTrackingBacking extends ManagedBacking {
   @override
   dynamic valueForProperty(ManagedEntity entity, String propertyName) {
     final prop = entity.properties[propertyName];
-    if (prop.type.kind != ManagedPropertyType.document) {
-      return propertyName;
+
+    if (prop?.type?.kind == ManagedPropertyType.document) {
+      return new KeyPath(propertyName);
     }
 
-    return new KeyPath(propertyName);
+    return propertyName;
   }
 
   @override
