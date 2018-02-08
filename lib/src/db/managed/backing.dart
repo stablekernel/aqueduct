@@ -1,4 +1,6 @@
 import 'dart:mirrors';
+import 'package:aqueduct/src/db/managed/key_path.dart';
+
 import 'managed.dart';
 import '../query/matcher_internal.dart';
 import 'relationship_type.dart';
@@ -93,8 +95,15 @@ class ManagedAccessTrackingBacking extends ManagedBacking {
   Map<String, dynamic> get valueMap => null;
 
   @override
-  dynamic valueForProperty(ManagedEntity entity, String propertyName) =>
-      propertyName;
+  dynamic valueForProperty(ManagedEntity entity, String propertyName) {
+    final prop = entity.properties[propertyName];
+
+    if (prop?.type?.kind == ManagedPropertyType.document) {
+      return new KeyPath(propertyName);
+    }
+
+    return propertyName;
+  }
 
   @override
   void setValueForProperty(
