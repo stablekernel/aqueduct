@@ -88,16 +88,17 @@ class Authorizer extends Controller {
       return new Response.unauthorized();
     }
 
-    var value;
     try {
-      value = parser.parse(authData);
+      final value = parser.parse(authData);
+      req.authorization = await validator.validate(parser, value, requiredScope: scopes);
     } on AuthorizationParserException catch (e) {
       return _responseFromParseException(e);
-    }
+    } on AuthServerException catch (e) {
+      if (e.reason == AuthRequestError.invalidScope) {
+        return new Response.forbidden(
+            body: {"error": "insufficient_scope", "scope": scopes.map((s) => s.toString()).join(" ")});
+      }
 
-    req.authorization = await validator.validate(parser, value, requiredScope: scopes);
-
-    if (req.authorization == null) {
       return new Response.unauthorized();
     }
 

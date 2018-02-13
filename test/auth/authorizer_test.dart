@@ -324,7 +324,11 @@ void main() {
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION: "Bearer $userReadOnlyScopedAccessToken"
       });
-      expect(res.statusCode, 401);
+      expect(res.statusCode, 403);
+      expect(JSON.decode(res.body), {
+        "error": "insufficient_scope",
+        "scope": "user"
+      });
     });
 
     test("Singled scoped authorized requiring different privileges does not pass authorizer", () async {
@@ -334,7 +338,12 @@ void main() {
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
       });
-      expect(res.statusCode, 401);
+      expect(res.statusCode, 403);
+      expect(JSON.decode(res.body), {
+        "error": "insufficient_scope",
+        "scope": "other_scope"
+      });
+
     });
 
     test("Multi-scoped authorizer, single scoped token do not pass authorizer", () async {
@@ -344,7 +353,12 @@ void main() {
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
       });
-      expect(res.statusCode, 401);
+      expect(res.statusCode, 403);
+      expect(JSON.decode(res.body), {
+        "error": "insufficient_scope",
+        "scope": "user other_scope"
+      });
+
     });
 
     test("Multi-scoped authorizer, multi-scoped token but with different scopes do not pass authorzer", () async {
@@ -354,7 +368,12 @@ void main() {
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
       });
-      expect(res.statusCode, 401);
+      expect(res.statusCode, 403);
+      expect(JSON.decode(res.body), {
+        "error": "insufficient_scope",
+        "scope": "other something_else"
+      });
+
     });
 
     test("Multi-scoped authorizer, multi-scoped token but with less privileges on one scope do not pass authorizer", () async {
@@ -364,7 +383,12 @@ void main() {
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION: "Bearer $userAndOtherReadOnlyScopedAccessToken"
       });
-      expect(res.statusCode, 401);
+      expect(res.statusCode, 403);
+      expect(JSON.decode(res.body), {
+        "error": "insufficient_scope",
+        "scope": "user other_scope"
+      });
+
     });
   });
 

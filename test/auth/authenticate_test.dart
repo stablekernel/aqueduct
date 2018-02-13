@@ -197,7 +197,12 @@ void main() {
     });
 
     test("Cannot verify token that doesn't exist", () async {
-      expect(await auth.verify("nonsense"), isNull);
+      try {
+        await auth.verify("nonsense");
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
     });
 
     test("Expired token cannot be verified", () async {
@@ -210,7 +215,12 @@ void main() {
 
       sleep(new Duration(seconds: 1));
 
-      expect(await auth.verify(token.accessToken), isNull);
+      try {
+        await auth.verify(token.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
     });
   });
 
@@ -264,7 +274,13 @@ void main() {
     test("After refresh, the previous token cannot be used", () async {
       await auth.refresh(
           initialToken.refreshToken, "com.stablekernel.app1", "kilimanjaro");
-      expect(await auth.verify(initialToken.accessToken), isNull);
+
+      try {
+        await auth.verify(initialToken.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
     });
 
     test("Cannot refresh token that has not been issued", () async {
@@ -480,7 +496,12 @@ void main() {
       } on AuthServerException {}
 
       // Can no longer use issued token
-      expect(await auth.verify(issuedToken.accessToken), isNull);
+      try {
+        await auth.verify(issuedToken.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
     });
 
     test(
@@ -498,8 +519,19 @@ void main() {
       } on AuthServerException {}
 
       // Can no longer use issued token
-      expect(await auth.verify(issuedToken.accessToken), null);
-      expect(await auth.verify(refreshedToken.accessToken), null);
+      try {
+        await auth.verify(issuedToken.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
+
+      try {
+        await auth.verify(refreshedToken.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
     });
 
     test("Null client ID fails", () async {

@@ -209,7 +209,12 @@ void main() {
     });
 
     test("Cannot verify token that doesn't exist", () async {
-      expect(await auth.verify("nonsense"), isNull);
+      try {
+        await auth.verify("nonsense");
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
     });
 
     test("Expired token cannot be verified", () async {
@@ -219,7 +224,12 @@ void main() {
 
       sleep(new Duration(seconds: 1));
 
-      expect(await auth.verify(token.accessToken), isNull);
+      try {
+        await auth.verify(token.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
     });
 
     test("Cannot verify token if owner authentcatable is 'revoked'", () async {
@@ -227,7 +237,12 @@ void main() {
           User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
       await auth.revokeAuthenticatableAccessForIdentifier(createdUser.id);
 
-      expect(await auth.verify(token.accessToken), isNull);
+      try {
+        await auth.verify(token.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
     });
   });
 
@@ -282,7 +297,12 @@ void main() {
     test("After refresh, the previous token cannot be used", () async {
       await auth.refresh(
           initialToken.refreshToken, "com.stablekernel.app1", "kilimanjaro");
-      expect(await auth.verify(initialToken.accessToken), isNull);
+      try {
+        await auth.verify(initialToken.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
 
       // Make sure we don't have duplicates in the db
       var q = new Query<ManagedAuthToken>();
@@ -523,7 +543,12 @@ void main() {
       } on AuthServerException {}
 
       // Can no longer use issued token
-      expect(await auth.verify(issuedToken.accessToken), isNull);
+      try {
+        await auth.verify(issuedToken.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
 
       // Ensure that the associated auth code is also destroyed
       var authCodeQuery = new Query<ManagedAuthToken>();
@@ -545,10 +570,20 @@ void main() {
       } on AuthServerException {}
 
       // Can no longer use issued token
-      expect(await auth.verify(issuedToken.accessToken), isNull);
+      try {
+        await auth.verify(issuedToken.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
 
       // Can no longer use refreshed token
-      expect(await auth.verify(refreshedToken.accessToken), isNull);
+      try {
+        await auth.verify(refreshedToken.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
 
       // Ensure that the associated auth code is also destroyed
       var authCodeQuery = new Query<ManagedAuthToken>();
@@ -632,8 +667,18 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
-      expect(await auth.verify(exchangedToken.accessToken), isNull);
-      expect(await auth.verify(issuedToken.accessToken), isNull);
+      try {
+        await auth.verify(exchangedToken.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
+      try {
+        await auth.verify(issuedToken.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
 
       var tokenQuery = new Query<ManagedAuthToken>();
       expect(await tokenQuery.fetch(), isEmpty);
@@ -742,8 +787,19 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
-      expect(await auth.verify(exchangedToken.accessToken), isNull);
-      expect(await auth.verify(issuedToken.accessToken), isNull);
+
+      try {
+        await auth.verify(exchangedToken.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
+      try {
+        await auth.verify(issuedToken.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
 
       var tokenQuery = new Query<ManagedAuthToken>();
       expect(await tokenQuery.fetch(), isEmpty);
@@ -942,7 +998,12 @@ void main() {
       await auth.revokeAuthenticatableAccessForIdentifier(createdUsers[0].id);
       expect(await auth.verify(t2.accessToken), isNotNull);
 
-      expect(await auth.verify(t1.accessToken), isNull);
+      try {
+        await auth.verify(t1.accessToken);
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
     });
   });
 
