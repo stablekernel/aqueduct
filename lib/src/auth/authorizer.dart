@@ -147,6 +147,9 @@ class Authorizer extends Controller {
 
     final requirements = validator.documentRequirementsForAuthorizer(context, this, scopes: scopes);
     operations.forEach((_, op) {
+      op.addResponse(400, context.responses["MalformedAuthorizationHeader"]);
+      op.addResponse(401, context.responses["InsufficientAccess"]);
+      op.addResponse(403, context.responses["InsufficientScope"]);
       requirements.forEach((req) {
         op.addSecurityRequirement(req);
       });

@@ -269,6 +269,10 @@ class APIComponentCollection<T extends APIObject> {
   /// provide that type as [representation]. This allows objects to reference
   /// a component by its Dart type, instead of its [name].
   void register(String name, T component, {Type representation}) {
+    if (_componentMap.containsKey(name)) {
+      return;
+    }
+
     _componentMap[name] = component;
 
     if (representation != null) {

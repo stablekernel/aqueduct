@@ -57,14 +57,14 @@ void main() {
     });
 
     test("Authorizer does not prevent linked controllers from registering components", () {
-      expect(doc.components.schemas["verifyComponents"].description, isNotNull);
+      expect(doc.components.schemas["verifyComponents"].type, APIType.string);
     });
 
     test("Authorizer adds Forbidden and Unauthorized to response components", () {
       expect(doc.components.responses["InsufficientScope"].description, isNotNull);
       expect(doc.components.responses["InsufficientScope"].content["application/json"].schema.type, APIType.object);
-      expect(doc.components.responses["InsufficientScope"].content["application/json"].schema.properties["error"], APIType.string);
-      expect(doc.components.responses["InsufficientScope"].content["application/json"].schema.properties["scope"], APIType.string);
+      expect(doc.components.responses["InsufficientScope"].content["application/json"].schema.properties["error"].type, APIType.string);
+      expect(doc.components.responses["InsufficientScope"].content["application/json"].schema.properties["scope"].type, APIType.string);
 
       expect(doc.components.responses["InsufficientAccess"].description, isNotNull);
 
@@ -73,19 +73,19 @@ void main() {
 
     test("Bearer Authorizer adds 401 and 403 response to operations", () {
       final noVarPath = doc.paths["/bearer-no-scope"];
-      expect(noVarPath.operations["get"].responses["403"].referenceURI, "#/responses/InsufficientScope");
-      expect(noVarPath.operations["get"].responses["401"].referenceURI, "#/responses/InsufficientAccess");
-      expect(noVarPath.operations["get"].responses["400"].referenceURI, "#/responses/MalformedAuthorizationHeader");
+      expect(noVarPath.operations["get"].responses["403"].referenceURI, "#/components/responses/InsufficientScope");
+      expect(noVarPath.operations["get"].responses["401"].referenceURI, "#/components/responses/InsufficientAccess");
+      expect(noVarPath.operations["get"].responses["400"].referenceURI, "#/components/responses/MalformedAuthorizationHeader");
     });
 
     test("Basic Authorizer adds 401 and 403 response to operations", () {
       final noVarPath = doc.paths["/basic"];
-      expect(noVarPath.operations["get"].responses["403"].referenceURI, "#/responses/InsufficientScope");
-      expect(noVarPath.operations["get"].responses["401"].referenceURI, "#/responses/InsufficientAccess");
+      expect(noVarPath.operations["get"].responses["403"].referenceURI, "#/components/responses/InsufficientScope");
+      expect(noVarPath.operations["get"].responses["401"].referenceURI, "#/components/responses/InsufficientAccess");
 
       final varPath = doc.paths["/basic/{id}"];
-      expect(varPath .operations["get"].responses["403"].referenceURI, "#/responses/InsufficientScope");
-      expect(varPath .operations["get"].responses["401"].referenceURI, "#/responses/InsufficientAccess");
+      expect(varPath .operations["get"].responses["403"].referenceURI, "#/components/responses/InsufficientScope");
+      expect(varPath .operations["get"].responses["401"].referenceURI, "#/components/responses/InsufficientAccess");
     });
   });
 
