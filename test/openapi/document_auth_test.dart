@@ -55,6 +55,38 @@ void main() {
         "oauth2": ["scope"]
       });
     });
+
+    test("Authorizer does not prevent linked controllers from registering components", () {
+      expect(doc.components.schemas["verifyComponents"].description, isNotNull);
+    });
+
+    test("Authorizer adds Forbidden and Unauthorized to response components", () {
+      expect(doc.components.responses["InsufficientScope"].description, isNotNull);
+      expect(doc.components.responses["InsufficientScope"].content["application/json"].schema.type, APIType.object);
+      expect(doc.components.responses["InsufficientScope"].content["application/json"].schema.properties["error"], APIType.string);
+      expect(doc.components.responses["InsufficientScope"].content["application/json"].schema.properties["scope"], APIType.string);
+
+      expect(doc.components.responses["InsufficientAccess"].description, isNotNull);
+
+      expect(doc.components.responses["MalformedAuthorizationHeader"].description, isNotNull);
+    });
+
+    test("Bearer Authorizer adds 401 and 403 response to operations", () {
+      final noVarPath = doc.paths["/bearer-no-scope"];
+      expect(noVarPath.operations["get"].responses["403"].referenceURI, "#/responses/InsufficientScope");
+      expect(noVarPath.operations["get"].responses["401"].referenceURI, "#/responses/InsufficientAccess");
+      expect(noVarPath.operations["get"].responses["400"].referenceURI, "#/responses/MalformedAuthorizationHeader");
+    });
+
+    test("Basic Authorizer adds 401 and 403 response to operations", () {
+      final noVarPath = doc.paths["/basic"];
+      expect(noVarPath.operations["get"].responses["403"].referenceURI, "#/responses/InsufficientScope");
+      expect(noVarPath.operations["get"].responses["401"].referenceURI, "#/responses/InsufficientAccess");
+
+      final varPath = doc.paths["/basic/{id}"];
+      expect(varPath .operations["get"].responses["403"].referenceURI, "#/responses/InsufficientScope");
+      expect(varPath .operations["get"].responses["401"].referenceURI, "#/responses/InsufficientAccess");
+    });
   });
 
   group("Controller Registration and Scopes", () {
@@ -88,7 +120,6 @@ void main() {
       expect(doc.components.securitySchemes["oauth2"].flows["authorizationCode"].scopes, {"scope1": "", "scope2": ""});
     });
   });
-
 }
 
 class TestChannel extends ApplicationChannel {
@@ -113,12 +144,16 @@ class TestChannel extends ApplicationChannel {
     router
         .route("/bearer-scope")
         .link(() => new Authorizer.bearer(authServer, scopes: ["scope"]))
-        .link(() => new DocumentedController());
+        .link(() => new DocumentedController(tag: "verifyComponents"));
     return router;
   }
 }
 
 class DocumentedController extends Controller {
+  DocumentedController({this.tag});
+
+  String tag;
+
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) {
     if (path.containsPathParameters([])) {
@@ -137,6 +172,14 @@ class DocumentedController extends Controller {
         "200": new APIResponse("get/1-200", content: {"application/json": new APIMediaType(schema: new APISchemaObject.string())})
       })
     };
+  }
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    super.documentComponents(context);
+    if (tag != null) {
+      context.schema.register(tag, new APISchemaObject.string());
+    }
   }
 }
 
