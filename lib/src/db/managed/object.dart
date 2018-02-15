@@ -64,6 +64,7 @@ abstract class ManagedBacking {
 ///
 /// See more documentation on defining a data model at http://aqueduct.io/docs/db/modeling_data/
 class ManagedObject<PersistentType> implements HTTPSerializable {
+  /// Creates a new instance of [entity] with [backing].
   static ManagedObject instantiateDynamic(ManagedEntity entity, {ManagedBacking backing}) {
     ManagedObject object = entity.instanceType.newInstance(const Symbol(""), []).reflectee as ManagedObject;
     if (backing != null) {

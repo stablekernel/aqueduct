@@ -1,5 +1,4 @@
 import 'dart:mirrors';
-import 'package:aqueduct/src/db/managed/backing.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
@@ -164,12 +163,13 @@ class ManagedEntity implements APIComponentDocumenter {
   }
 
   /// Creates a new instance of this entity's instance type.
-  ManagedObject newInstance({bool forMatching: false, bool forPropertyIdentification: false}) {
-    if (forMatching) {
-      return ManagedObject.instantiateDynamic(this, backing: new ManagedMatcherBacking());
-    } else if (forPropertyIdentification) {
-      return ManagedObject.instantiateDynamic(this, backing: new ManagedAccessTrackingBacking());
+  ///
+  /// By default, the returned object will use a normal value backing map. 
+  ManagedObject newInstance({ManagedBacking backing}) {
+    if (backing != null) {
+      return ManagedObject.instantiateDynamic(this, backing: backing);
     }
+
     return ManagedObject.instantiateDynamic(this);
   }
 

@@ -42,7 +42,7 @@ class ManagedMatcherBacking extends ManagedBacking {
             ..entity = property.destinationEntity;
         } else if (property.relationshipType == ManagedRelationshipType.hasOne ||
             property.relationshipType == ManagedRelationshipType.belongsTo) {
-          valueMap[property.name] = property.destinationEntity.newInstance(forMatching: true);
+          valueMap[property.name] = property.destinationEntity.newInstance(backing: new ManagedMatcherBacking());
         }
       }
     }
