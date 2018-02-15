@@ -201,13 +201,7 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
     }
 
     if (scopesRequired != null) {
-      var hasAllRequiredScopes = scopesRequired.every((requiredScope) {
-        var tokenHasValidScope = t.scopes?.any((tokenScope) => requiredScope.allowsScope(tokenScope));
-
-        return tokenHasValidScope ?? false;
-      });
-
-      if (!hasAllRequiredScopes) {
+      if (!AuthScope.verify(scopesRequired, t.scopes)) {
         throw new AuthServerException(AuthRequestError.invalidScope, new AuthClient(t.clientID, null, null));
       }
     }

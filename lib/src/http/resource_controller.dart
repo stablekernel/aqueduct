@@ -250,9 +250,8 @@ abstract class ResourceController extends Controller {
 
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
-    final operations = new BoundController(runtimeType)
-        .methods
-        .where((method) => path.containsPathParameters(method.pathVariables));
+    final operations =
+        new BoundController(runtimeType).methods.where((method) => path.containsPathParameters(method.pathVariables));
 
     return operations.fold(<String, APIOperation>{}, (prev, method) {
       final operation = firstMetadataOfType(Operation, reflect(this).type.instanceMembers[method.methodSymbol]);
@@ -282,6 +281,19 @@ abstract class ResourceController extends Controller {
         });
       }
 
+      if (method.scopes != null) {
+        context.defer(() {
+          op.security?.forEach((sec) {
+            sec.requirements.forEach((name, scopes) {
+              final secType = context.document.components.securitySchemes[name];
+              if (secType?.type == APISecuritySchemeType.oauth2 || secType?.type == APISecuritySchemeType.openID) {
+                scopes.addAll(method.scopes.map((s) => s.toString()).where((s) => !scopes.contains(s)));
+              }
+            });
+          });
+        });
+      }
+
       prev[method.httpMethod.toLowerCase()] = op;
       return prev;
     });
@@ -296,16 +308,16 @@ abstract class ResourceController extends Controller {
           .where((b) => b.binding is BoundBody)
           .map((b) => b.boundValueType)
           .forEach((b) {
-            final type = b.reflectedType;
-            if (!context.schema.hasRegisteredType(type)) {
-              context.schema.register(MirrorSystem.getName(b.simpleName), HTTPSerializable.document(context, type), representation: type);
-            }
+        final type = b.reflectedType;
+        if (!context.schema.hasRegisteredType(type)) {
+          context.schema.register(MirrorSystem.getName(b.simpleName), HTTPSerializable.document(context, type),
+              representation: type);
+        }
       });
     });
   }
 
-  APIParameter _documentParameter(
-      APIDocumentContext context, Operation operation, BoundParameter param) {
+  APIParameter _documentParameter(APIDocumentContext context, Operation operation, BoundParameter param) {
     final schema = APIComponentDocumenter.documentType(context, param.boundValueType);
     final documentedParameter = new APIParameter(param.name, param.binding.location,
         schema: schema, required: param.isRequired, allowEmptyValue: schema.type == APIType.boolean);

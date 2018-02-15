@@ -1,6 +1,9 @@
 import 'dart:async';
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/auth/auth.dart';
+import 'package:logging/logging.dart';
+
 import '../response.dart';
 import '../resource_controller.dart';
 import '../resource_controller_bindings.dart';
@@ -118,6 +121,21 @@ class BoundController {
     if (boundMethod == null) {
       throw new Response(405,
           {"Allow": boundController.allowedMethodsForPathVariables(request.path.variables.keys).join(", ")}, null);
+    }
+
+    if (boundMethod.scopes != null) {
+      if (request.authorization == null) {
+        new Logger("aqueduct").warning("Operation method has 'Scope' annotation, but is controller is not preceded by an 'Authorizer'. This "
+            "method will always return a 500 Server Error.");
+        throw new Response.serverError();
+      }
+
+      if (!AuthScope.verify(boundMethod.scopes, request.authorization.scopes)) {
+        throw new Response.forbidden(body: {
+          "error": "insufficient_scope",
+          "scope": boundMethod.scopes.map((s) => s.toString()).join(" ")
+        });
+      }
     }
 
     final parseWith = (BoundParameter binder) {
