@@ -15,9 +15,15 @@ void main() {
       EnumObject,
       TransientBelongsTo,
       TransientOwner,
-      DocumentTest
+      DocumentTest,
+      ConstructorOverride
     ]);
     var _ = new ManagedContext(dm, ps);
+  });
+
+  test("Can set properties in constructor", () {
+    final obj = new ConstructorOverride();
+    expect(obj.value, "foo");
   });
 
   test("NoSuchMethod still throws", () {
@@ -74,7 +80,7 @@ void main() {
       reflect(user).setField(#foo, "hey");
       expect(true, false);
     } on ArgumentError catch (e) {
-      expect(e.toString(), contains("Property 'foo' does not exist on 'User'"));
+      expect(e.toString(), contains("Property 'foo=' does not exist on 'User'"));
     }
   });
 
@@ -476,7 +482,7 @@ void main() {
       }
 
       try {
-        e.backing.setValueForProperty(e.entity, "enumValues", "foobar");
+        e["enumValues"] = "foobar";
         expect(true, false);
       } on ValidationException catch (e) {
         expectError(e, contains("invalid input value for 'enumValues'"));
@@ -812,4 +818,16 @@ class _DocumentTest {
   int id;
 
   Document document;
+}
+
+class ConstructorOverride extends ManagedObject<_ConstructorOverride> implements _ConstructorOverride {
+  ConstructorOverride() {
+    value = "foo";
+  }
+}
+class _ConstructorOverride {
+  @primaryKey
+  int id;
+
+  String value;
 }

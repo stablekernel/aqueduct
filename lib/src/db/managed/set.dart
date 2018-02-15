@@ -1,6 +1,5 @@
 import 'dart:collection';
 
-import 'backing.dart';
 import 'managed.dart';
 import '../query/query.dart';
 
@@ -50,8 +49,7 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   /// constrain the values returned from the [Query].
   InstanceType get haveAtLeastOneWhere {
     if (_whereBuider == null) {
-      _whereBuider = entity.newInstance() as InstanceType;
-      _whereBuider.backing = new ManagedMatcherBacking();
+      _whereBuider = entity.newInstance(forMatching: true) as InstanceType;
     }
     return _whereBuider;
   }

@@ -11,31 +11,19 @@ class ManagedValueBacking extends ManagedBacking {
   Map<String, dynamic> valueMap = {};
 
   @override
-  dynamic valueForProperty(ManagedEntity entity, String propertyName) {
-    if (entity.properties[propertyName] == null) {
-      throw new ArgumentError("Invalid property access for 'ManagedObject'. "
-          "Property '$propertyName' does not exist on '${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
-    }
-
-    return valueMap[propertyName];
+  dynamic valueForProperty(ManagedPropertyDescription property) {
+    return valueMap[property.name];
   }
 
   @override
-  void setValueForProperty(
-      ManagedEntity entity, String propertyName, dynamic value) {
-    var property = entity.properties[propertyName];
-    if (property == null) {
-      throw new ArgumentError("Invalid property access for 'ManagedObject'. "
-          "Property '$propertyName' does not exist on '${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
-    }
-
+  void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
     if (value != null) {
       if (!property.isAssignableWith(value)) {
-        throw new ValidationException(["invalid input value for '${propertyName}'"]);
+        throw new ValidationException(["invalid input value for '${property.name}'"]);
       }
     }
 
-    valueMap[propertyName] = value;
+    valueMap[property.name] = value;
   }
 }
 
@@ -44,35 +32,34 @@ class ManagedMatcherBacking extends ManagedBacking {
   Map<String, dynamic> valueMap = {};
 
   @override
-  dynamic valueForProperty(ManagedEntity entity, String propertyName) {
-    if (!valueMap.containsKey(propertyName)) {
-      var relDesc = entity.relationships[propertyName];
-      if (relDesc?.relationshipType == ManagedRelationshipType.hasMany) {
-        valueMap[propertyName] = new ManagedSet()
-          ..entity = relDesc.destinationEntity;
-      } else if (relDesc?.relationshipType == ManagedRelationshipType.hasOne ||
-          relDesc?.relationshipType == ManagedRelationshipType.belongsTo) {
-        valueMap[propertyName] = relDesc.destinationEntity.newInstance()
-          ..backing = new ManagedMatcherBacking();
+  dynamic valueForProperty(ManagedPropertyDescription property) {
+    if (!valueMap.containsKey(property.name)) {
+      // For any relationships, automatically insert them into valueMap
+      // so that their properties can be accessed when building queries.
+      if (property is ManagedRelationshipDescription) {
+        if (property.relationshipType == ManagedRelationshipType.hasMany) {
+          valueMap[property.name] = new ManagedSet()
+            ..entity = property.destinationEntity;
+        } else if (property.relationshipType == ManagedRelationshipType.hasOne ||
+            property.relationshipType == ManagedRelationshipType.belongsTo) {
+          valueMap[property.name] = property.destinationEntity.newInstance(forMatching: true);
+        }
       }
     }
 
-    return valueMap[propertyName];
+    return valueMap[property.name];
   }
 
   @override
-  void setValueForProperty(
-      ManagedEntity entity, String propertyName, dynamic value) {
+  void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
     if (value == null) {
-      valueMap.remove(propertyName);
+      valueMap.remove(property.name);
       return;
     }
 
     if (value is MatcherExpression) {
-      var property = entity.properties[propertyName];
-
       if (property is ManagedRelationshipDescription) {
-        var innerObject = valueForProperty(entity, propertyName);
+        var innerObject = valueForProperty(property);
         if (innerObject is ManagedObject) {
           innerObject[innerObject.entity.primaryKey] = value;
         } else if (innerObject is ManagedSet) {
@@ -80,12 +67,12 @@ class ManagedMatcherBacking extends ManagedBacking {
               value;
         }
       } else {
-        valueMap[propertyName] = value;
+        valueMap[property.name] = value;
       }
     } else {
-      final typeName = MirrorSystem.getName(entity.instanceType.simpleName);
+      final typeName = MirrorSystem.getName(property.entity.instanceType.simpleName);
 
-      throw new ArgumentError("Invalid query matcher assignment. Tried assigning value to 'Query<$typeName>.where.$propertyName'. Wrap value in 'whereEqualTo()'.");
+      throw new ArgumentError("Invalid query matcher assignment. Tried assigning value to 'Query<$typeName>.where.${property.name}'. Wrap value in 'whereEqualTo()'.");
     }
   }
 }
@@ -95,19 +82,16 @@ class ManagedAccessTrackingBacking extends ManagedBacking {
   Map<String, dynamic> get valueMap => null;
 
   @override
-  dynamic valueForProperty(ManagedEntity entity, String propertyName) {
-    final prop = entity.properties[propertyName];
-
-    if (prop?.type?.kind == ManagedPropertyType.document) {
-      return new KeyPath(propertyName);
+  dynamic valueForProperty(ManagedPropertyDescription property) {
+    if (property?.type?.kind == ManagedPropertyType.document) {
+      return new KeyPath(property.name);
     }
 
-    return propertyName;
+    return property.name;
   }
 
   @override
-  void setValueForProperty(
-      ManagedEntity entity, String propertyName, dynamic value) {
+  void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
     // no-op
   }
 }
