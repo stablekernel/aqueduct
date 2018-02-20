@@ -116,12 +116,40 @@ class Authorizer extends Controller {
     }
   }
 
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    super.documentComponents(context);
+
+    context.responses.register("InsufficientScope", new APIResponse("The provided credentials or bearer token have insufficient permission to access this route.", content: {
+      "application/json": new APIMediaType(schema: new APISchemaObject.object({
+        "error": new APISchemaObject.string(),
+        "scope": new APISchemaObject.string()..description = "The required scope for this operation."
+      }))
+    }));
+
+    context.responses.register("InsufficientAccess", new APIResponse("The provided credentials or bearer token are not authorized for this request.", content: {
+      "application/json": new APIMediaType(schema: new APISchemaObject.object({
+        "error": new APISchemaObject.string()
+      }))
+    }));
+
+    context.responses.register("MalformedAuthorizationHeader", new APIResponse("The provided Authorization header was malformed.", content: {
+      "application/json": new APIMediaType(schema: new APISchemaObject.object({
+        "error": new APISchemaObject.string()
+      }))
+    }));
+  }
+
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
     final operations = super.documentOperations(context, route, path);
 
     final requirements = validator.documentRequirementsForAuthorizer(context, this, scopes: scopes);
     operations.forEach((_, op) {
+      op.addResponse(400, context.responses["MalformedAuthorizationHeader"]);
+      op.addResponse(401, context.responses["InsufficientAccess"]);
+      op.addResponse(403, context.responses["InsufficientScope"]);
       requirements.forEach((req) {
         op.addSecurityRequirement(req);
       });
