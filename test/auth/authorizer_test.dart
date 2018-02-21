@@ -457,7 +457,7 @@ Future<RequestOrResponse> respond(Request req) async {
   };
 
   if ((req.authorization.scopes?.length ?? 0) > 0) {
-    map["scopes"] = req.authorization.scopes;
+    map["scopes"] = req.authorization.scopes.map((s) => s.toString()).toList();
   }
 
   return new Response.ok(map);

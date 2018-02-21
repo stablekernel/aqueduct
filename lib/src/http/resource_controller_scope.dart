@@ -6,18 +6,19 @@ import 'package:aqueduct/src/auth/auth.dart';
 /// This type is used as an annotation to an operation method declared in a [ResourceController].
 ///
 /// If an operation method has this annotation, an incoming [Request.authorization] must have sufficient
-/// scope for the method to be executed. If not, a 403 Forbidden response is sent.
+/// scope for the method to be executed. If not, a 403 Forbidden response is sent. Sufficient scope
+/// requires that *every* listed scope is met by the request.
 ///
 /// The typical use case is to require more scope for an editing action than a viewing action. Example:
 ///
 ///         class NoteController extends ResourceController {
-///           @Scope('notes.readonly');
+///           @Scope(['notes.readonly']);
 ///           @Operation.get('id')
 ///           Future<Response> getNote(@Bind.path('id') int id) async {
 ///             ...
 ///           }
 ///
-///           @Scope('notes');
+///           @Scope(['notes']);
 ///           @Operation.post()
 ///           Future<Response> createNote() async {
 ///             ...

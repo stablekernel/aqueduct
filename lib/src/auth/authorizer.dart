@@ -91,6 +91,9 @@ class Authorizer extends Controller {
     try {
       final value = parser.parse(authData);
       req.authorization = await validator.validate(parser, value, requiredScope: scopes);
+      if (req.authorization == null) {
+        return new Response.unauthorized();
+      }
 
       _addScopeRequirementModifier(req);
     } on AuthorizationParserException catch (e) {
@@ -127,7 +130,7 @@ class Authorizer extends Controller {
           Map<String, dynamic> body = resp.body;
           if (body.containsKey("scope")) {
             final declaredScopes = (body["scope"] as String).split(" ");
-            final scopesToAdd = scopes.where((s) => !declaredScopes.contains(s.toString()));
+            final scopesToAdd = scopes.map((s) => s.toString()).where((s) => !declaredScopes.contains(s));
             body["scope"] = [scopesToAdd, declaredScopes].expand((i) => i).join(" ");
           }
         }
