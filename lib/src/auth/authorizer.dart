@@ -91,6 +91,8 @@ class Authorizer extends Controller {
     try {
       final value = parser.parse(authData);
       req.authorization = await validator.validate(parser, value, requiredScope: scopes);
+
+      _addScopeRequirementModifier(req);
     } on AuthorizationParserException catch (e) {
       return _responseFromParseException(e);
     } on AuthServerException catch (e) {
@@ -116,40 +118,63 @@ class Authorizer extends Controller {
     }
   }
 
+  void _addScopeRequirementModifier(Request request) {
+    // If a controller returns a 403 because of invalid scope,
+    // this Authorizer adds its required scope as well.
+    if (scopes != null) {
+      request.addResponseModifier((resp) {
+        if (resp.statusCode == 403 && resp.body is Map) {
+          Map<String, dynamic> body = resp.body;
+          if (body.containsKey("scope")) {
+            final declaredScopes = (body["scope"] as String).split(" ");
+            final scopesToAdd = scopes.where((s) => !declaredScopes.contains(s.toString()));
+            body["scope"] = [scopesToAdd, declaredScopes].expand((i) => i).join(" ");
+          }
+        }
+      });
+    }
+  }
 
   @override
   void documentComponents(APIDocumentContext context) {
     super.documentComponents(context);
 
-    context.responses.register("InsufficientScope", new APIResponse("The provided credentials or bearer token have insufficient permission to access this route.", content: {
-      "application/json": new APIMediaType(schema: new APISchemaObject.object({
-        "error": new APISchemaObject.string(),
-        "scope": new APISchemaObject.string()..description = "The required scope for this operation."
-      }))
-    }));
+    context.responses.register(
+        "InsufficientScope",
+        new APIResponse("The provided credentials or bearer token have insufficient permission to access this route.",
+            content: {
+              "application/json": new APIMediaType(
+                  schema: new APISchemaObject.object({
+                "error": new APISchemaObject.string(),
+                "scope": new APISchemaObject.string()..description = "The required scope for this operation."
+              }))
+            }));
 
-    context.responses.register("InsufficientAccess", new APIResponse("The provided credentials or bearer token are not authorized for this request.", content: {
-      "application/json": new APIMediaType(schema: new APISchemaObject.object({
-        "error": new APISchemaObject.string()
-      }))
-    }));
+    context.responses.register(
+        "InsufficientAccess",
+        new APIResponse("The provided credentials or bearer token are not authorized for this request.", content: {
+          "application/json":
+              new APIMediaType(schema: new APISchemaObject.object({"error": new APISchemaObject.string()}))
+        }));
 
-    context.responses.register("MalformedAuthorizationHeader", new APIResponse("The provided Authorization header was malformed.", content: {
-      "application/json": new APIMediaType(schema: new APISchemaObject.object({
-        "error": new APISchemaObject.string()
-      }))
-    }));
+    context.responses.register(
+        "MalformedAuthorizationHeader",
+        new APIResponse("The provided Authorization header was malformed.", content: {
+          "application/json":
+              new APIMediaType(schema: new APISchemaObject.object({"error": new APISchemaObject.string()}))
+        }));
   }
 
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
     final operations = super.documentOperations(context, route, path);
 
-    final requirements = validator.documentRequirementsForAuthorizer(context, this, scopes: scopes);
-    operations.forEach((_, op) {
+    operations.forEach((x, op) {
       op.addResponse(400, context.responses["MalformedAuthorizationHeader"]);
       op.addResponse(401, context.responses["InsufficientAccess"]);
       op.addResponse(403, context.responses["InsufficientScope"]);
+
+      final requirements = validator.documentRequirementsForAuthorizer(context, this, scopes: scopes);
       requirements.forEach((req) {
         op.addSecurityRequirement(req);
       });

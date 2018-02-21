@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/auth/objects.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
@@ -264,35 +265,29 @@ abstract class ResourceController extends Controller {
           requestBody: documentOperationRequestBody(context, operation),
           tags: documentOperationTags(context, operation));
 
-      if (op.summary == null) {
-        context.defer(() async {
-          final binder = _boundMethodForOperation(operation);
+      final binder = _boundMethodForOperation(operation);
 
+      context.defer(() async {
+        if (op.summary == null) {
           final type = await DocumentedElement.get(this.runtimeType);
           op.summary = type[binder.methodSymbol].summary;
-        });
-      }
+        }
 
-      if (op.description == null) {
-        context.defer(() async {
-          final binder = _boundMethodForOperation(operation);
+        if (op.description == null) {
           final type = await DocumentedElement.get(this.runtimeType);
           op.description = type[binder.methodSymbol].description;
-        });
-      }
-
-      if (method.scopes != null) {
-        context.defer(() {
+        }
+        if (method.scopes != null) {
           op.security?.forEach((sec) {
-            sec.requirements.forEach((name, scopes) {
+            sec.requirements.forEach((name, operationScopes) {
               final secType = context.document.components.securitySchemes[name];
               if (secType?.type == APISecuritySchemeType.oauth2 || secType?.type == APISecuritySchemeType.openID) {
-                scopes.addAll(method.scopes.map((s) => s.toString()).where((s) => !scopes.contains(s)));
+                _mergeScopes(operationScopes, method.scopes);
               }
             });
           });
-        });
-      }
+        }
+      });
 
       prev[method.httpMethod.toLowerCase()] = op;
       return prev;
@@ -314,6 +309,24 @@ abstract class ResourceController extends Controller {
               representation: type);
         }
       });
+    });
+  }
+
+  /// Adds [methodScopes] to [operationScopes] if they do not exist.
+  ///
+  /// If [methodScopes] has a more demanding scope than one in [operationScopes],
+  /// that scope is replaced in [operationScopes] by the one in [methodScopes].
+  void _mergeScopes(List<String> operationScopes, List<AuthScope> methodScopes) {
+    final existingScopes = operationScopes.map((s) => new AuthScope(s)).toList();
+
+    methodScopes.forEach((methodScope) {
+      for (var existingScope in existingScopes) {
+        if (existingScope.isSubsetOrEqualTo(methodScope)) {
+          operationScopes.remove(existingScope.toString());
+        }
+      }
+
+      operationScopes.add(methodScope.toString());
     });
   }
 

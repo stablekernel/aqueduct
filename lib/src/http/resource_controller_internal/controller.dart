@@ -125,8 +125,8 @@ class BoundController {
 
     if (boundMethod.scopes != null) {
       if (request.authorization == null) {
-        new Logger("aqueduct").warning("Operation method has 'Scope' annotation, but is controller is not preceded by an 'Authorizer'. This "
-            "method will always return a 500 Server Error.");
+        new Logger("aqueduct").warning("'${controller.runtimeType}' must be linked to channel that contains an 'Authorizer', because "
+            "it uses 'Scope' annotation for one or more of its operation methods.");
         throw new Response.serverError();
       }
 

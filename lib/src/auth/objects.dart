@@ -303,8 +303,13 @@ class AuthScope {
   /// Returns true if that [providedScopes] fulfills [requiredScopes].
   ///
   /// For all [requiredScopes], there must be a scope in [requiredScopes] that meets or exceeds
-  /// that scope for this method to return true.
+  /// that scope for this method to return true. If [requiredScopes] is null, this method
+  /// return true regardless of [providedScopes].
   static bool verify(List<AuthScope> requiredScopes, List<AuthScope> providedScopes) {
+    if (requiredScopes == null) {
+      return true;
+    }
+
     return requiredScopes.every((requiredScope) {
       var tokenHasValidScope = providedScopes?.any((tokenScope) => requiredScope.allowsScope(tokenScope));
 

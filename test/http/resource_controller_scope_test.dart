@@ -19,6 +19,18 @@ void main() {
     await app.stop();
   });
 
+  /*
+    Following combos show required scopes:
+
+    /level1-authorizer: ["level1"]
+    /level1-subscope-authorizer: ["level1:subscope"]
+
+    GET: []
+    PUT: ["level1"]
+    POST: ["level2"]
+    DELETE: ["level1", "level2"]
+ */
+
   test("If method has no scope restrictions (but Authorizer does), allow request if passes authorizer", () async {
     expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1").get(), 200);
   });
@@ -32,45 +44,33 @@ void main() {
     expectResponse(await client.authenticatedRequest("/no-authorizer", accessToken: "level1").get(), 200);
   });
 
-  group("Exact scope match", () {
-    test("If token has sufficient scope for method, allow it", () async {
-      expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1").put(), 200);
-    });
-
-    test("If token does not have sufficient scope for method, return 403 and include required scope in body", () async {
-      expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1").post(), 403, body: {
-        "error": "insufficient_scope",
-        "scope": "level2"
-      });
-    });
-
-    test("If token has sufficient scope for method requiring multiple scopes, allow it", () async {
-      expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1 level2").delete(), 200);
-    });
-
-    test("If token has sufficient scope for only ONE of required scopes, do not allow it", () async {
-      expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1").delete(), 403, body: {
-        "error": "insufficient_scope",
-        "scope": "level1 level2"
-      });
-    });
-
-    test("If token does not have any sufficient scopes for method requiring multiple scopes, do not allow it", () async {
-      expectResponse(await client.authenticatedRequest("/authorizer", accessToken: "no-scope").delete(), 403, body: {
-        "error": "insufficient_scope",
-        "scope": "level1 level2"
-      });
-    });
+  test("If token has sufficient scope for method, allow it", () async {
+    expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1").put(), 200);
   });
 
+  test("If token does not have sufficient scope for method, return 403 and include required scope in body", () async {
+    expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1").post(), 403,
+        body: {"error": "insufficient_scope", "scope": "level1 level2"});
+  });
+
+  test("If token has sufficient scope for method requiring multiple scopes, allow it", () async {
+    expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1 level2").delete(), 200);
+  });
+
+  test("If token has sufficient scope for only ONE of required scopes, do not allow it", () async {
+    expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1").delete(), 403,
+        body: {"error": "insufficient_scope", "scope": "level1 level2"});
+  });
+
+  test("If token does not have any sufficient scopes for method requiring multiple scopes, do not allow it", () async {
+    expectResponse(await client.authenticatedRequest("/authorizer", accessToken: "no-scope").delete(), 403,
+        body: {"error": "insufficient_scope", "scope": "level1 level2"});
+  });
 
   group("OpenAPI", () {
     APIDocument doc;
     setUpAll(() async {
-      doc = await Application.document(Channel, new ApplicationOptions(), {
-        "version": "1.0",
-        "name": "desc"
-      });
+      doc = await Application.document(Channel, new ApplicationOptions(), {"version": "1.0", "name": "desc"});
     });
 
     test("If method has scopes, add them to list of scopes if does not exist in Authorizer", () {
@@ -80,34 +80,39 @@ void main() {
 
       expect(doc.paths["/level1-authorizer"].operations["post"].security.length, 1);
       expect(doc.paths["/level1-authorizer"].operations["post"].security.first.requirements.length, 1);
-      expect(doc.paths["/level1-authorizer"].operations["post"].security.first.requirements["oauth2"], ["level1", "level2"]);
+      expect(doc.paths["/level1-authorizer"].operations["post"].security.first.requirements["oauth2"],
+          ["level1", "level2"]);
 
       expect(doc.paths["/level1-authorizer"].operations["delete"].security.length, 1);
       expect(doc.paths["/level1-authorizer"].operations["delete"].security.first.requirements.length, 1);
-      expect(doc.paths["/level1-authorizer"].operations["delete"].security.first.requirements["oauth2"], ["level1", "level2"]);
+      expect(doc.paths["/level1-authorizer"].operations["delete"].security.first.requirements["oauth2"],
+          ["level1", "level2"]);
 
       expect(doc.paths["/level1-authorizer"].operations["put"].security.length, 1);
       expect(doc.paths["/level1-authorizer"].operations["put"].security.first.requirements.length, 1);
       expect(doc.paths["/level1-authorizer"].operations["put"].security.first.requirements["oauth2"], ["level1"]);
     });
 
-    test("If authorizer has less scope than method scope, scope is overridden", () {
+    test("If authorizer has less scope than method scope, method scope is used", () {
       expect(doc.paths["/level1-subscope-authorizer"].operations["get"].security.length, 1);
       expect(doc.paths["/level1-subscope-authorizer"].operations["get"].security.first.requirements.length, 1);
-      expect(doc.paths["/level1-subscope-authorizer"].operations["get"].security.first.requirements["oauth2"], ["level1:subscope"]);
+      expect(doc.paths["/level1-subscope-authorizer"].operations["get"].security.first.requirements["oauth2"],
+          ["level1:subscope"]);
 
       expect(doc.paths["/level1-subscope-authorizer"].operations["post"].security.length, 1);
       expect(doc.paths["/level1-subscope-authorizer"].operations["post"].security.first.requirements.length, 1);
-      expect(doc.paths["/level1-subscope-authorizer"].operations["post"].security.first.requirements["oauth2"], ["level1", "level2"]);
+      expect(doc.paths["/level1-subscope-authorizer"].operations["post"].security.first.requirements["oauth2"],
+          ["level1:subscope", "level2"]);
 
       expect(doc.paths["/level1-subscope-authorizer"].operations["put"].security.length, 1);
       expect(doc.paths["/level1-subscope-authorizer"].operations["put"].security.first.requirements.length, 1);
-      expect(doc.paths["/level1-subscope-authorizer"].operations["put"].security.first.requirements["oauth2"], ["level1"]);
+      expect(
+          doc.paths["/level1-subscope-authorizer"].operations["put"].security.first.requirements["oauth2"], ["level1"]);
 
       expect(doc.paths["/level1-subscope-authorizer"].operations["delete"].security.length, 1);
       expect(doc.paths["/level1-subscope-authorizer"].operations["delete"].security.first.requirements.length, 1);
-      expect(doc.paths["/level1-subscope-authorizer"].operations["delete"].security.first.requirements["oauth2"], ["level1", "level2"]);
-
+      expect(doc.paths["/level1-subscope-authorizer"].operations["delete"].security.first.requirements["oauth2"],
+          ["level1", "level2"]);
     });
   });
 }
@@ -120,8 +125,14 @@ class Channel extends ApplicationChannel {
     final router = new Router();
 
     router.route("/no-authorizer").link(() => new C1());
-    router.route("/level1-authorizer").link(() => new Authorizer.bearer(authServer, scopes: ["level1"])).link(() => new C1());
-    router.route("/level1-subscope-authorizer").link(() => new Authorizer.bearer(authServer, scopes: ["level1:subscope"])).link(() => new C1());
+    router
+        .route("/level1-authorizer")
+        .link(() => new Authorizer.bearer(authServer, scopes: ["level1"]))
+        .link(() => new C1());
+    router
+        .route("/level1-subscope-authorizer")
+        .link(() => new Authorizer.bearer(authServer, scopes: ["level1:subscope"]))
+        .link(() => new C1());
     router.route("/authorizer").link(() => new Authorizer.bearer(authServer)).link(() => new C1());
 
     return router;
@@ -177,3 +188,4 @@ class C1 extends ResourceController {
   @Scope(const ["level1", "level2"])
   Future<Response> bothScopes() async => new Response.ok(null);
 }
+
