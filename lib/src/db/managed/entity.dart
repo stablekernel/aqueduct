@@ -54,7 +54,10 @@ class ManagedEntity implements APIComponentDocumenter {
 
   set attributes(Map<String, ManagedAttributeDescription> m) {
     _attributes = m;
-    _primaryKey = m.values.firstWhere((attrDesc) => attrDesc.isPrimaryKey, orElse: () => null)?.name;
+    _primaryKey = m.values
+        .firstWhere((attrDesc) => attrDesc.isPrimaryKey,
+            orElse: () => throw new ManagedDataModelError.noPrimaryKey(this))
+        ?.name;
   }
 
   /// All relationship values of this entity.
@@ -130,6 +133,11 @@ class ManagedEntity implements APIComponentDocumenter {
     return properties[primaryKey];
   }
 
+  /// A map from accessor symbol name to property name.
+  ///
+  /// This map should not be modified.
+  Map<Symbol, String> symbolMap;
+
   /// Name of table in database this entity maps to.
   ///
   /// By default, the table will be named by the persistent type, e.g., a managed object declared as so will have a [tableName] of '_User'.
@@ -155,10 +163,14 @@ class ManagedEntity implements APIComponentDocumenter {
   }
 
   /// Creates a new instance of this entity's instance type.
-  ManagedObject newInstance() {
-    var model = instanceType.newInstance(new Symbol(""), []).reflectee as ManagedObject;
-    model.entity = this;
-    return model;
+  ///
+  /// By default, the returned object will use a normal value backing map. 
+  ManagedObject newInstance({ManagedBacking backing}) {
+    if (backing != null) {
+      return ManagedObject.instantiateDynamic(this, backing: backing);
+    }
+
+    return ManagedObject.instantiateDynamic(this);
   }
 
   /// Two entities are considered equal if they have the same [tableName].

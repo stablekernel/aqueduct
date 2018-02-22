@@ -1,8 +1,9 @@
 import 'dart:async';
 
+import 'package:aqueduct/src/db/managed/backing.dart';
+
 import '../query/query.dart';
 import '../managed/object.dart';
-import '../managed/backing.dart';
 import 'postgresql_query.dart';
 import 'postgresql_persistent_store.dart';
 import 'query_builder.dart';
@@ -38,8 +39,7 @@ class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<
   }
 
   String _columnName(dynamic selector(T object)) {
-    var tracker = new ManagedAccessTrackingBacking();
-    var obj = query.entity.newInstance()..backing = tracker;
+    var obj = query.entity.newInstance(backing: new ManagedAccessTrackingBacking());
     return selector(obj as T) as String;
   }
 

@@ -122,9 +122,9 @@ void main() {
       expect(true, false);
     } on ArgumentError catch (e) {
       expect(e.toString(), allOf([
-        contains("does not exist on table"),
+        contains("does not exist on"),
         contains("'nonexisting'"),
-        contains("'simple'"),
+        contains("'TestModel'"),
       ]));
     }
   });
@@ -202,14 +202,14 @@ void main() {
     var req = new Query<TestModel>()..values = m;
     await req.insert();
 
-    req = new Query<TestModel>()
-      ..returningProperties((t) => [t.id, t["badkey"]]);
 
     try {
-      await req.fetch();
-      expect(true, false);
+      req = new Query<TestModel>()
+        ..returningProperties((t) => [t.id, t["badkey"]]);
+
+      fail("unreachable");
     } on ArgumentError catch (e) {
-      expect(e.toString(), contains("Column 'badkey' does not exist for table 'simple'"));
+      expect(e.toString(), contains("Property 'badkey' does not exist on 'TestModel'"));
     }
   });
 
@@ -329,23 +329,23 @@ void main() {
     expect(result.owner.id, 1);
     expect(result.owner.backingMap.length, 1);
 
-    q = new Query<GenPost>()..returningProperties((p) => [p.id, p["owner_id"]]);
+
     try {
-      await q.fetchOne();
+      q = new Query<GenPost>()..returningProperties((p) => [p.id, p["owner_id"]]);
       expect(true, false);
     } on ArgumentError catch (e) {
       expect(e.toString(),
-          contains("Column 'owner_id' does not exist for table '_GenPost'"));
+          contains("Property 'owner_id' does not exist on 'GenPost'"));
     }
   });
 
-  test("Can use public accessor to private property in where", () async {
+  test("Can use public accessor to private property", () async {
     context = await contextWithModels([PrivateField]);
 
     await (new Query<PrivateField>()).insert();
     var q = new Query<PrivateField>();
-    var result = await q.fetch();
-    expect(result.first.public, "x");
+    var result = await q.fetchOne();
+    expect(result.public, "x");
   });
 
   test("When fetching valid enum value from db, is available as enum value and in where", () async {
