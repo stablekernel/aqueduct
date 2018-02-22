@@ -67,7 +67,7 @@ Controller get entryPoint {
 
 ### Controllers
 
-[ResourceController](http/resource_controller.md) are the controller that most often fulfill a request. An `ResourceController` subclass handles all operations for resource, e.g. `POST /users`, `GET /users` and `GET /users/1`.
+[ResourceControllers](http/resource_controller.md) are the controller that most often fulfill a request. An `ResourceController` subclass handles all operations for resource, e.g. `POST /users`, `GET /users` and `GET /users/1`.
 
 Subclasses implement a *operation method* for each operation:
 

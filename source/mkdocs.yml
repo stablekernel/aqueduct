@@ -11,6 +11,7 @@ site_description: Documentation for Aqueduct, a Dart server-side framework.
 copyright: Built by stable|kernel
 pages:
 - Home: 'index.md'
+- Core Concepts: 'core_concepts.md'
 - Getting Started: 'getting_started.md'
 - Tour: 'tour.md'
 - IntelliJ IDEA Templates: 'intellij.md'
@@ -48,6 +49,7 @@ pages:
     - 'Advanced Queries': 'db/advanced_queries.md'
     - 'Validations': 'db/validations.md'
     - 'Migration and Tooling': 'db/db_tools.md'
+    - 'JSON Document Storage': 'db/json_columns.md'
   - Authorization and OAuth 2.0:
     - 'Overview': 'auth/overview.md'
     - 'Setting up Authorization': 'auth/server.md'
