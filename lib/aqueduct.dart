@@ -11,32 +11,19 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/// Core libraries for Aqueduct applications.
+/// The core libraries of the Aqueduct framework.
 ///
-/// The library contains behavior for building REST server applications.
-/// Some of the functionality includes routing requests to controllers, OAuth 2.0 and an ORM.
+/// Exports the following libraries:
 ///
-/// Please see documentation guides at https://aqueduct.io/docs/.
+/// - 'logging'
+/// - 'safe_config'
+/// - 'aqueduct/application'
+/// - 'aqueduct/auth'
+/// - 'aqueduct/db'
+/// - 'aqueduct/http'
+/// - 'aqueduct/openapi'
 ///
-/// See the tutorial at https://aqueduct.io/docs/tut/getting-started/.
-///
-/// An example Aqueduct application:
-///
-///       class Channel extends ApplicationChannel {
-///
-///         @override
-///         Controller get entryPoint {
-///           final router = new Router();
-///
-///           router
-///             .route("/ok")
-///             .listen((req) async {
-///               return new Response.ok(null);
-///             });
-///
-///           return router;
-///         }
-///       }
+/// See documentation guides at https://aqueduct.io/docs/.
 library aqueduct;
 
 export 'package:logging/logging.dart';
