@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/executable.dart';
+import 'package:aqueduct/src/executable.dart';
 import 'dart:async';
 import 'dart:io';
 import 'cli_helpers.dart';

@@ -53,16 +53,14 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   @override
   InstanceType get where {
     if (_whereBuilder == null) {
-      _whereBuilder = entity.newInstance() as InstanceType;
-      _whereBuilder.backing = new ManagedMatcherBacking();
+      _whereBuilder = entity.newInstance(backing: new ManagedMatcherBacking()) as InstanceType;
     }
     return _whereBuilder;
   }
 
   @override
   Query<T> join<T extends ManagedObject>({T object(InstanceType x), ManagedSet<T> set(InstanceType x)}) {
-    var tracker = new ManagedAccessTrackingBacking();
-    var obj = entity.newInstance()..backing = tracker;
+    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
     var matchingKey;
     if (object != null) {
       matchingKey = object(obj as InstanceType) as String;
@@ -91,8 +89,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
   @override
   void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order, {T boundingValue}) {
-    var tracker = new ManagedAccessTrackingBacking();
-    var obj = entity.newInstance()..backing = tracker;
+    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
     var propertyName = propertyIdentifier(obj as InstanceType) as String;
 
     var attribute = entity.attributes[propertyName];
@@ -112,8 +109,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
   @override
   void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order) {
-    var tracker = new ManagedAccessTrackingBacking();
-    var obj = entity.newInstance()..backing = tracker;
+    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
     var propertyName = propertyIdentifier(obj as InstanceType) as String;
 
     var attribute = entity.attributes[propertyName];
@@ -134,8 +130,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
   @override
   void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x)) {
-    var tracker = new ManagedAccessTrackingBacking();
-    var obj = entity.newInstance()..backing = tracker;
+    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
     var propertyNames = propertyIdentifiers(obj as InstanceType) as List<String>;
 
     _propertiesToFetch = propertyNames;

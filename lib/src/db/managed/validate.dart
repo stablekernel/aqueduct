@@ -1,4 +1,5 @@
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/openapi/openapi.dart';
 
 /// Types of operations [ManagedValidator]s will be triggered for.
 enum ValidateOperation { update, insert }

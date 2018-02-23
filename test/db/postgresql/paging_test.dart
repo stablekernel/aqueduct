@@ -314,7 +314,7 @@ void main() {
 
         expect(true, false);
       } on ArgumentError catch (e) {
-        expect(e.toString(), contains("Column 'foobar' does not exist on table '_PageableTestModel'"));
+        expect(e.toString(), contains("Property 'foobar' does not exist on 'PageableTestModel'"));
       }
     });
 

@@ -92,7 +92,7 @@ class ApplicationIsolateSupervisor {
       var stacktrace = new StackTrace.fromString(message.last);
       _handleIsolateException(message.first, stacktrace);
     } else if (message is MessageHubMessage) {
-      if (!supervisingApplication.hasFinishedLaunching) {
+      if (!supervisingApplication.isRunning) {
         _pendingMessageQueue.add(message);
       } else {
         _sendMessageToOtherSupervisors(message);

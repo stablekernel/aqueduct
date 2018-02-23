@@ -95,15 +95,15 @@ void main() {
 
     test("didFinishLaunching is false before launch, true after, false after stop", () async {
       app = new Application<TestChannel>();
-      expect(app.hasFinishedLaunching, false);
+      expect(app.isRunning, false);
 
       var future = app.start(numberOfInstances: 2, consoleLogging: true);
-      expect(app.hasFinishedLaunching, false);
+      expect(app.isRunning, false);
       await future;
-      expect(app.hasFinishedLaunching, true);
+      expect(app.isRunning, true);
 
       await app.stop();
-      expect(app.hasFinishedLaunching, false);
+      expect(app.isRunning, false);
     });
   });
 }

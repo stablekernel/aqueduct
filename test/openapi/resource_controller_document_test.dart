@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:test/test.dart';
 
 void main() {

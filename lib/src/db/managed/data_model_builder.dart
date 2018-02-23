@@ -22,10 +22,6 @@ class DataModelBuilder {
       persistentTypeToEntityMap[entity.persistentType.reflectedType] = entity;
 
       entity.attributes = attributesForEntity(entity);
-      if (entity.primaryKey == null) {
-        throw new ManagedDataModelError.noPrimaryKey(entity);
-      }
-
       entity.validators = entity.attributes.values
           .map((desc) => desc.validators.map((v) => new ManagedValidator(desc, v)))
           .expand((e) => e)
@@ -51,6 +47,16 @@ class DataModelBuilder {
       });
 
       entity.uniquePropertySet = instanceUniquePropertiesForEntity(entity);
+
+      entity.symbolMap = {};
+      entity.attributes.forEach((name, _) {
+        entity.symbolMap[new Symbol(name)] = name;
+        entity.symbolMap[new Symbol("$name=")] = name;
+      });
+      entity.relationships.forEach((name, _) {
+        entity.symbolMap[new Symbol(name)] = name;
+        entity.symbolMap[new Symbol("$name=")] = name;
+      });
     });
   }
 
