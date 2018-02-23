@@ -416,22 +416,22 @@ void main() {
   group("Authorization objects", () {
     test("Authorization has scope for exact scope", () {
       var auth = new Authorization("id", 1, null, scopes: [new AuthScope("a")]);
-      expect(auth.authorizedForScope("a"), true);
+      expect(auth.isAuthorizedForScope("a"), true);
     });
 
     test("Authorization has scope for scope with more privileges", () {
       var auth = new Authorization("id", 1, null, scopes: [new AuthScope("a")]);
-      expect(auth.authorizedForScope("a:foo"), true);
+      expect(auth.isAuthorizedForScope("a:foo"), true);
     });
 
     test("Authorization does not have access to different scope", () {
       var auth = new Authorization("id", 1, null, scopes: [new AuthScope("a")]);
-      expect(auth.authorizedForScope("b"), false);
+      expect(auth.isAuthorizedForScope("b"), false);
     });
 
     test("Authorization does not have access to higher privileged scope", () async {
       var auth = new Authorization("id", 1, null, scopes: [new AuthScope("a:foo")]);
-      expect(auth.authorizedForScope("a"), false);
+      expect(auth.isAuthorizedForScope("a"), false);
     });
   });
 }

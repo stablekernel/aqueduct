@@ -172,7 +172,7 @@ class Authorizer extends Controller {
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
     final operations = super.documentOperations(context, route, path);
 
-    operations.forEach((x, op) {
+    operations.forEach((_, op) {
       op.addResponse(400, context.responses["MalformedAuthorizationHeader"]);
       op.addResponse(401, context.responses["InsufficientAccess"]);
       op.addResponse(403, context.responses["InsufficientScope"]);

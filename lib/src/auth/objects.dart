@@ -236,7 +236,7 @@ class Authorization {
   ///
   /// This method checks each element in [scopes] for any that gives privileges
   /// to access [scope].
-  bool authorizedForScope(String scope) {
+  bool isAuthorizedForScope(String scope) {
     var asScope = new AuthScope(scope);
     return scopes?.any((s) => asScope.allowsScope(s)) ?? false;
   }

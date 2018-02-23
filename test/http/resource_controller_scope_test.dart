@@ -114,6 +114,17 @@ void main() {
       expect(doc.paths["/level1-subscope-authorizer"].operations["delete"].security.first.requirements["oauth2"],
           ["level1", "level2"]);
     });
+
+    test("Scopes are available in securityScheme object", () {
+      final flows = doc.components.securitySchemes["oauth2"].flows;
+      expect(flows.length, 1);
+
+      final flow = flows.values.first;
+      expect(flow.scopes.length, 3);
+      expect(flow.scopes.containsKey("level1"), true);
+      expect(flow.scopes.containsKey("level2"), true);
+      expect(flow.scopes.containsKey("level1:subscope"), true);
+    });
   });
 }
 
@@ -123,6 +134,8 @@ class Channel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
+
+    router.route("/auth/token").link(() => new AuthController(authServer));
 
     router.route("/no-authorizer").link(() => new C1());
     router

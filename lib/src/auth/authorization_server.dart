@@ -428,14 +428,6 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
         new APISecurityRequirement({"oauth2-client-authentication": []})
       ];
     } else if (authorizer.parser is AuthorizationBearerParser) {
-      // Add scopes to our registered security scheme flows
-      final knownScopes = context.document.components.securitySchemes["oauth2"].flows.values.first.scopes.keys;
-      scopes?.map((scope) => scope.toString())?.where((scope) => !knownScopes.contains(scope))?.forEach((scope) {
-        context.document.components.securitySchemes["oauth2"].flows.values.forEach((flow) {
-          flow.scopes[scope] = "";
-        });
-      });
-
       return [
         new APISecurityRequirement({"oauth2": scopes?.map((s) => s.toString())?.toList() ?? []})
       ];
