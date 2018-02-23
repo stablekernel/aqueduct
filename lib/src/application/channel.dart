@@ -4,75 +4,60 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import '../http/http.dart';
 import 'application.dart';
 import 'package:aqueduct/src/application/service_registry.dart';
 
-/// Subclasses of this type initialize an application's routes and services.
+/// An object that defines the behavior specific to your application.
 ///
-/// The behavior of an Aqueduct application is defined by subclassing this type and overriding its lifecycle callback methods. An
-/// Aqueduct application may have exactly one subclass of this type declared in its `lib/` directory.
+/// You create a subclass of [ApplicationChannel] to initialize your application's services and define how HTTP requests are handled by your application.
+/// There *must* only be one subclass in an application and it must be visible to your application library file, e.g., 'package:my_app/my_app.dart'.
 ///
-/// At minimum, a subclass must override [entryPoint] to return the first instance of [Controller] that receives a new HTTP request.
-/// This instance is typically a [Router]. An example minimum application follows:
+/// You must implement [entryPoint] to define the controllers that comprise your application channel. Most applications will
+/// also override [prepare] to read configuration values and initialize services. Some applications will provide an [initializeApplication]
+/// method to do global startup tasks.
 ///
-///       class MyChannel extends ApplicationChannel {
-///         Controller get entryPoint {
-///           final router = new Router();
-///           router.route("/endpoint").linkFunction((req) => new Response.ok('Hello, world!'));
-///           return router;
-///         }
-///       }
-///
-/// [entryPoint] is the root of the application channel. It receives an HTTP request that flows through the channel until it is responded to.
-///
-/// Other forms of initialization, e.g. creating a service that interact with a database, should be initialized in [prepare]. This method is invoked
-/// prior to [entryPoint] so that any services it creates can be injected into the [Controller]s in the channel.
-///
-/// An instance of this type is created for each isolate the running application spawns. The number of isolates spawned is determined by an argument to [Application.start]
-/// (which often comes from the command-line tool `aqueduct serve`). Any initialization that occurs in subclasses of this type will be called for each instance.
-///
-/// For initialization that must occur only once per application, you may implement the *static* method [initializeApplication] in a subclass of this type.
-/// The signature of this method is ([ApplicationOptions]) -> [Future], for example:
-///
-///         class Channel extends ApplicationChannel {
-///           static Future initializeApplication(ApplicationOptions config) async {
-///             // Do one-time setup here
-///           }
-///           ...
-///         }
-///
-/// This method is executed in the main isolate of the application, prior to any [ApplicationChannel]s being instantiated. Its values cannot directly be accessed by the isolates that are spawned
-/// to serve requests through their [entryPoint]. See the documentation for [initializeApplication] for passing values computed in this method to each instance
-/// of [ApplicationChannel].
-///
-/// [ApplicationChannel] instances may pass values to each other through [messageHub].
+/// When your application is started, an instance of your application channel is created for each isolate (see [Application.start]). Each instance
+/// is a replica of your application that runs in its own memory isolated thread.
 abstract class ApplicationChannel implements APIComponentDocumenter {
-  /// One-time setup method for an application.
+  /// You implement this method to provide global initialization for your application.
   ///
-  /// This method is invoked as the first step during application startup. It is only invoked once per application, whereas other initialization
-  /// methods are invoked once per isolate. Implement this method in an application's [ApplicationChannel] subclass. If you are sharing some resource
-  /// across isolates, it must be instantiated in this method.
+  /// Most of your application initialization code is written in [prepare], which is invoked for each isolate. For initialization that
+  /// needs to occur once per application start, you must provide an implementation for this method. This method is invoked prior
+  /// to any isolates being spawned.
+  ///
+  /// You may alter [options] in this method and those changes will be available in each instance's [options]. To pass arbitrary data
+  /// to each of your isolates at startup, add that data to [ApplicationOptions.context].
+  ///
+  /// Example:
   ///
   ///         class MyChannel extends ApplicationChannel {
-  ///           static Future initializeApplication(ApplicationOptions config) async {
-  ///
+  ///           static Future initializeApplication(ApplicationOptions options) async {
+  ///             options.context["runtimeOption"] = "foo";
   ///           }
   ///
-  /// Any modifications to [config] will be available in each [ApplicationChannel] and therefore must be isolate-safe data. Do not configure
-  /// types like [HTTPCodecRepository], [CORSPolicy.defaultPolicy] or any other value that isn't explicitly passed through [config].
+  ///           Future prepare() async {
+  ///             if (options.context["runtimeOption"] == "foo") {
+  ///               // do something
+  ///             }
+  ///           }
+  ///         }
+  ///
+  ///
+  /// Do not configure objects like [HTTPCodecRepository], [CORSPolicy.defaultPolicy] or any other value that isn't explicitly passed through [options].
   ///
   /// * Note that static methods are not inherited in Dart and therefore you are not overriding this method. The declaration of this method in the base [ApplicationChannel] class
   /// is for documentation purposes.
-  static Future initializeApplication(ApplicationOptions config) async {}
+  static Future initializeApplication(ApplicationOptions options) async {}
 
-  /// The logger of this instance
+  /// The logger that this object will write messages to.
+  ///
+  /// This logger's name appears as 'aqueduct'.
   Logger get logger => new Logger("aqueduct");
 
-  /// This instance's owning server.
-  ///
-  /// Reference back to the owning server that adds requests into this channel.
+  /// The [ApplicationServer] that sends HTTP requests to this object.
   ApplicationServer get server => _server;
 
   set server(ApplicationServer server) {
@@ -81,22 +66,19 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
     server.hubSink = messageHub._inboundController.sink;
   }
 
-  ApplicationServer _server;
-
-  /// Sends and receives messages to other isolates running a [ApplicationChannel].
+  /// Use this object to send data to channels running on other isolates.
   ///
-  /// Messages may be sent to other instances of this type via [ApplicationMessageHub.add]. An instance of this type
-  /// may listen for those messages via [ApplicationMessageHub.listen]. See [ApplicationMessageHub] for more details.
+  /// You use this object to synchronize state across the isolates of an application. Any data sent
+  /// through this object will be received by every other channel in your application (except the one that sent it).
   final ApplicationMessageHub messageHub = new ApplicationMessageHub();
 
   /// The context used for setting up HTTPS in an application.
   ///
-  /// By default, this value is null. When null, an [Application] using this instance will listen over HTTP, and not HTTPS.
-  /// If this instance [options] has non-null values for both [ApplicationOptions.certificateFilePath] and [ApplicationOptions.privateKeyFilePath],
-  /// this value is a valid [SecurityContext] configured to use the certificate chain and private key as indicated by the configuration. The listening server
-  /// will allow connections over HTTPS only. This getter is only invoked once per instance, after [entryPoint] is invoked.
+  /// If this value is non-null, the [server] receiving HTTP requests will only accept requests over HTTPS.
   ///
-  /// You may override this getter to provide a customized [SecurityContext].
+  /// By default, this value is null. If the [ApplicationOptions] provided to the application are configured to
+  /// reference a private key and certificate file, this value is derived from that information. You may override
+  /// this method to provide an alternative means to creating a [SecurityContext].
   SecurityContext get securityContext {
     if (options?.certificateFilePath == null || options?.privateKeyFilePath == null) {
       return null;
@@ -107,50 +89,62 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
       ..usePrivateKey(options.privateKeyFilePath);
   }
 
-  /// Configuration options from the application.
+  /// The configuration options used to start the application this channel belongs to.
   ///
-  /// Options allow passing of application-specific information - like database connection information -
-  /// from configuration data. This property is set in the constructor.
+  /// These options are set when starting the application. Changes to this object have no effect
+  /// on other isolates.
   ApplicationOptions options;
 
-  /// The first [Controller] to receive HTTP requests.
+  /// You implement this accessor to define how HTTP requests are handled by your application.
   ///
-  /// Subclasses must override this getter to provide the first controller in the application channel to handle an HTTP request.
-  /// This property is most often a configured [Router], but could be any type of [Controller].
+  /// You must implement this method to return the first controller that will handle an HTTP request. Additional controllers
+  /// are linked to the first controller to create the entire flow of your application's request handling logic. This method
+  /// is invoked during startup and controllers cannot be changed after it is invoked. This method is always invoked after
+  /// [prepare].
   ///
-  /// This method is invoked exactly once for each instance, and the result is stored throughout the remainder of the application's lifetime.
-  /// This method must fully configure the entire application channel; no controllers may be added to the channel after this method completes.
+  /// In most applications, the first controller is a [Router]. Example:
   ///
-  /// This method is always invoked after [prepare].
+  ///         @override
+  ///         Controller get entryPoint {
+  ///           final router = new Router();
+  ///           router.route("/path").link(() => new PathController());
+  ///           return router;
+  ///         }
   Controller get entryPoint;
 
-  /// Initialization callback.
+  ApplicationServer _server;
+
+  /// You override this method to perform initialization tasks.
   ///
   /// This method allows this instance to perform any initialization (other than setting up the [entryPoint]). This method
   /// is often used to set up services that [Controller]s use to fulfill their duties. This method is invoked
   /// prior to [entryPoint], so that the services it creates can be injected into [Controller]s.
+  ///
+  /// By default, this method does nothing.
   Future prepare() async {}
 
-  /// Executed after the instance has been initialized, but right before it will start receiving requests.
+  /// You override this method to perform initialization tasks that occur after [entryPoint] has been established.
   ///
   /// Override this method to take action just before [entryPoint] starts receiving requests. By default, does nothing.
   void willStartReceivingRequests() {}
 
-  /// Closes this instance.
+  /// You override this method to release any resources created in [prepare].
   ///
-  /// Tell the channel that no further requests will be added, and it may release any resources it is using. Prefer using [ApplicationServiceRegistry]
-  /// to overriding this method.
+  /// This method is invoked when the owning [Application] is stopped. It closes open ports
+  /// that this channel was using so that the application can be properly shut down.
   ///
-  /// If you do override this method, you must call the super implementation. The default behavior of this method removes
-  /// any listeners from [logger], so it is advantageous to invoke the super implementation at the end of the override.
+  /// Prefer to use [ApplicationServiceRegistry] instead of overriding this method.
+  ///
+  /// If you do override this method, you must call the super implementation.
+  @mustCallSuper
   Future close() async {
     logger.fine("ApplicationChannel(${server.identifier}).close: closing messageHub");
     await messageHub.close();
   }
 
-  /// Returns an OpenAPI document for the components and paths defined by this channel and its properties.
+  /// Creates an OpenAPI document for the components and paths in this channel.
   ///
-  /// This method invokes [entryPoint] and [prepare] on the entry point before starting the documentation process.
+  /// This method invokes [entryPoint] and [prepare] before starting the documentation process.
   ///
   /// The documentation process first invokes [documentComponents] on this channel. Every controller in the channel will have its
   /// [documentComponents] methods invoked. Any declared property
@@ -216,13 +210,12 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   }
 }
 
-/// Sends and receives messages from other isolates started by an [Application].
+/// An object that sends and receives messages between [ApplicationChannel]s.
 ///
-/// Messages added to an instance of this type - through [add] - are broadcast to every isolate running a [ApplicationChannel].
-/// These messages are be received by [listen]ing to an instance of this type. A hub only receives messages from other isolates - it will not
-/// receive messages that it sent.
+/// You use this object to share information between isolates. Each [ApplicationChannel] has a property of this type. A message sent through this object
+/// is received by every other channel through its hub.
 ///
-/// This type implements both [Stream] (for receiving events from other isolates) and [Sink] (for sending events to other isolates).
+/// To receive messages in a hub, add a listener via [listen]. To send messages, use [add].
 ///
 /// For example, an application may want to send data to every connected websocket. A reference to each websocket
 /// is only known to the isolate it established a connection on. This data must be sent to each isolate so that each websocket
@@ -245,11 +238,12 @@ class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
   StreamController<dynamic> _outboundController = new StreamController<dynamic>();
   StreamController<dynamic> _inboundController = new StreamController<dynamic>.broadcast();
 
-  /// Adds a listener for data events from other isolates.
+  /// Adds a listener for messages from other hubs.
   ///
-  /// When an isolate invokes [add], all other isolates receive that data in [onData].
+  /// You use this method to add listeners for messages from other hubs.
+  /// When another hub [add]s a message, this hub will receive it on [onData].
   ///
-  /// [onError], if provided, will be invoked when an isolate tries to [add] bad data. Only the isolate
+  /// [onError], if provided, will be invoked when this isolate tries to [add] invalid data. Only the isolate
   /// that failed to send the data will receive [onError] events.
   @override
   StreamSubscription<dynamic> listen(void onData(dynamic event),
@@ -259,7 +253,7 @@ class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
           onDone: onDone,
           cancelOnError: cancelOnError);
 
-  /// Sends a message to all other isolates.
+  /// Sends a message to all other hubs.
   ///
   /// [event] will be delivered to all other isolates that have set up a callback for [listen].
   ///

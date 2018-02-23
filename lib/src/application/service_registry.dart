@@ -2,13 +2,14 @@ import 'dart:async';
 import '../application/application.dart';
 import '../db/persistent_store/persistent_store.dart';
 
-/// Mechanism to release port-consuming resources like database connections and streams.
+/// An object that manages the cleanup of service objects when an application is stopped.
 ///
-/// Aqueduct applications may open many streams as part of their operation. During testing, an application
-/// must be shut down gracefully to complete the tests - this includes shutting down open streams like database
-/// connections so that the isolate can complete. This class allows closable instances to be registered for shutdown.
-/// When shutdown of an application occurs, the registered objects are closed, thus releasing the resource they consume
-/// that prevent the isolate from shutting down.
+/// You register objects with the registry to provide automatic cleanup of service objects.
+/// When an application is stopped (typically during testing), all registered objects are
+/// destroyed in an object-specific way.
+///
+/// Services that open ports will stop an application from stopping gracefully, so it is important
+/// that your application releases them when stopping.
 ///
 /// There is one registry per isolate. The order in which registrations are shut down is undefined. [close] triggers shutdown
 /// and is automatically invoked by [Application.stop].
@@ -21,9 +22,11 @@ class ApplicationServiceRegistry {
 
   List<_ServiceRegistration> _registrations = [];
 
-  /// Registers [object] to be closed when the application is stopped.
+  /// Register [object] to be destroyed when your application is stopped.
   ///
-  /// When [close] is invoked on this instance, [onClose] will be invoked with [object] and [object] will be removed.
+  /// When [close] is invoked on this instance, [onClose] will be invoked with [object]. The registered
+  /// object is removed so that subsequent invocations of [close] do not attempt to release a resource again.
+  ///
   /// This method returns [object]. This allows for concise registration and allocation:
   ///
   /// Example:
@@ -40,15 +43,17 @@ class ApplicationServiceRegistry {
   }
 
   /// Removes an object from the registry.
+  ///
+  /// You must clean up [object] manually.
   void unregister(dynamic object) {
     _registrations.removeWhere((r) => identical(r.object, object));
   }
 
-  /// Closes all registered resources.
+  /// Cleans up all registered objects.
   ///
-  /// Invokes the closing method for each object that has been [register]ed.
+  /// This method invokes the 'onClose' method for each object that has been [register]ed.
   ///
-  /// Clears all objects from the registry.
+  /// Registered objects are removed so that subsequent invocations of this method have no effect.
   Future close() async {
     await Future.wait(_registrations.map((r) => r.close()));
     _registrations = [];

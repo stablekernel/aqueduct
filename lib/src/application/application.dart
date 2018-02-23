@@ -17,64 +17,61 @@ export 'application_server.dart';
 export 'options.dart';
 export 'service_registry.dart';
 
-/// A container for web server applications.
+/// This object starts and stops instances of your [ApplicationChannel].
 ///
-/// Applications are responsible for managing starting and stopping of HTTP server instances across multiple isolates.
-/// An application implements does not implement any request handling logic. Instead, it instantiates instances of [T]
-/// that have a [ApplicationChannel.entryPoint] that HTTP requests are sent to to be handled.
-///
-/// Instances of this class are created by the command like `aqueduct serve` tool and rarely used by an Aqueduct developer directly.
+/// An application object opens HTTP listeners that forward requests to instances of your [ApplicationChannel].
+/// It is unlikely that you need to use this class directly - the `aqueduct serve` command creates an application object
+/// on your behalf.
 class Application<T extends ApplicationChannel> {
-  /// Isolate supervisors for application started with [start].
-  ///
-  /// Each spawned isolated is managed by the instances in this property.
+  /// A list of isolates that this application supervises.
   List<ApplicationIsolateSupervisor> supervisors = [];
 
-  /// The [ApplicationServer] managing delivering HTTP requests into this application.
+  /// The [ApplicationServer] listening for HTTP requests while under test.
   ///
-  /// This property is only valid if this application is started with runOnMainIsolate set to true in [start].
-  /// Tests may access this property to examine or directly use resources of a [ApplicationChannel].
+  /// This property is only valid when an application is started via [test].
   ApplicationServer server;
 
-  /// The [ApplicationChannel] when running via [test].
+  /// The [ApplicationChannel] handling requests while under test.
   ///
-  /// Applications run during testing are run on the main isolate. When running in this way,
-  /// an application will only have one [T] receiving HTTP requests. This property is that instance.
-  /// If an application is running across multiple isolates, this property is null. See [start] for more details.
+  /// This property is only valid when an application is started via [test]. You use
+  /// this value to access elements of your application channel during testing.
   T get channel => server?.channel as T;
 
-  /// A reference to a logger.
+  /// The logger that this application will write messages to.
   ///
-  /// This [Logger] will be named the same as the loggers used on each channel.
+  /// This logger's name will appear as 'aqueduct'.
   Logger logger = new Logger("aqueduct");
 
-  /// The configuration for the HTTP server this application is running.
+  /// The options used to configure this application.
   ///
-  /// This must be configured prior to [start]ing the [Application].
+  /// Changing these values once the application has started will have no effect.
   ApplicationOptions options = new ApplicationOptions();
 
-  /// Duration to wait for each isolate during startup before considered failure.
+  /// The duration to wait for each isolate during startup before failing.
+  ///
+  /// A [TimeoutException] is thrown if an isolate fails to startup in this time period.
   ///
   /// Defaults to 30 seconds.
   Duration isolateStartupTimeout = new Duration(seconds: 30);
 
-  /// Whether or not this application has finished [start] successfully.
+  /// Whether or not this application is running.
   ///
-  /// This will return true if [start] has been invoked and completed; i.e. this is the synchronous version of the [Future] returned by [start].
+  /// This will return true if [start]/[test] have been invoked and completed; i.e. this is the synchronous version of the [Future] returned by [start]/[test].
   ///
   /// This value will return to false after [stop] has completed.
-  bool get hasFinishedLaunching => _hasFinishedLaunching;
+  bool get isRunning => _hasFinishedLaunching;
   bool _hasFinishedLaunching = false;
 
-  /// Starts the application by spawning Isolates that listen for HTTP requests.
+  /// Starts this application, allowing it to handle HTTP requests.
   ///
-  /// Returns a [Future] that completes when all [Isolate]s have started listening for requests.
-  /// The [numberOfInstances] defines how many [Isolate]s are spawned.
+  /// This method spawns [numberOfInstances] isolates, instantiates your application channel
+  /// for each of these isolates, and opens an HTTP listener that sends requests to these instances.
   ///
-  /// Each isolate creates a channel defined by [T]'s [ApplicationChannel.entryPoint] that requests are sent to.
+  /// The [Future] returned from this method will complete once all isolates have successfully started
+  /// and are available to handle requests.
   ///
-  /// If [T] implements `initializeApplication` (see [ApplicationChannel] for more details),
-  /// that one-time initialization method will be executed prior to the spawning of isolates and instantiations of [ApplicationChannel].
+  /// If your application channel implements [ApplicationChannel.initializeApplication],
+  /// it will be invoked prior to any isolate being spawned.
   ///
   /// See also [test] for starting an application when running automated tests.
   Future start({int numberOfInstances: 1, bool consoleLogging: false}) async {
@@ -136,7 +133,8 @@ class Application<T extends ApplicationChannel> {
 
   /// Stops the application from running.
   ///
-  /// Closes down every channel and stops listening for HTTP requests.
+  /// Closes every isolate and their channel and stops listening for HTTP requests.
+  /// The [ApplicationServiceRegistry] will close any of its resources.
   Future stop() async {
     _hasFinishedLaunching = false;
     await Future.wait(supervisors.map((s) => s.stop()));

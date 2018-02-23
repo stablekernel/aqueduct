@@ -2,17 +2,14 @@ import 'dart:io';
 import 'application.dart';
 import 'package:aqueduct/src/application/channel.dart';
 
-/// A set of values to configure an instance of [Application].
+/// An object that contains configuration values for an [Application].
 ///
-/// Instances of this type are configured by the command-line arguments for `aqueduct serve` and passed to [ApplicationChannel] instances in their constructor.
-/// Instances of this type are also passed to to a [ApplicationChannel] subclass's `initializeApplication` method before it is instantiated. This allows
-/// values to be modified prior to starting the server. See [ApplicationChannel] for example usage.
+/// You use this object in an [ApplicationChannel] to manage external configuration data for your application.
 class ApplicationOptions {
   /// The absolute path of the configuration file for this application.
   ///
-  /// This value is used by [ApplicationChannel] subclasses to read a configuration file. A [ApplicationChannel] can choose
-  /// to read values from this file at different initialization points. This value is set automatically
-  /// when using `aqueduct serve`.
+  /// This path is provided when an application is started by the `--config-path` option to `aqueduct serve`.
+  /// You may load the file at this path in [ApplicationChannel] to use configuration values.
   String configurationFilePath;
 
   /// The address to listen for HTTP requests on.
@@ -52,7 +49,7 @@ class ApplicationOptions {
   /// over how HTTPS is configured for an application, see [ApplicationChannel.securityContext].
   String privateKeyFilePath;
 
-  /// Contextual values for each [ApplicationChannel] provided by [ApplicationChannel.initializeApplication]
+  /// Contextual configuration values for each [ApplicationChannel].
   ///
   /// This is a user-specific set of configuration options provided by [ApplicationChannel.initializeApplication].
   /// Each instance of [ApplicationChannel] has access to these values if set.
