@@ -1,5 +1,8 @@
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/auth/auth.dart';
+import 'package:aqueduct/src/http/resource_controller_scope.dart';
+
 import '../resource_controller_bindings.dart';
 import '../request.dart';
 import 'bindings.dart';
@@ -23,6 +26,17 @@ Map<Symbol, dynamic> toSymbolMap(Iterable<BoundValue> boundValues) {
 
 bool isOperation(DeclarationMirror m) {
   return getMethodOperationMetadata(m) != null;
+}
+
+List<AuthScope> getMethodScopes(DeclarationMirror m) {
+  if (!isOperation(m)) {
+    return null;
+  }
+
+  MethodMirror method = m;
+  Scope metadata = method.metadata.firstWhere((im) => im.reflectee is Scope, orElse: () => null)?.reflectee;
+
+  return metadata?.scopes?.map((scope) => new AuthScope(scope))?.toList();
 }
 
 Operation getMethodOperationMetadata(DeclarationMirror m) {

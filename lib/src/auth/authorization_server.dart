@@ -189,26 +189,20 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   /// Returns a [Authorization] for [accessToken].
   ///
   /// This method obtains an [AuthToken] for [accessToken] from [delegate] and then verifies that the token is valid.
-  /// If the token is valid, an [Authorization] object is returned. Otherwise, null is returned.
+  /// If the token is valid, an [Authorization] object is returned. Otherwise, an [AuthServerException] is thrown.
   Future<Authorization> verify(String accessToken, {List<AuthScope> scopesRequired}) async {
     if (accessToken == null) {
-      return null;
+      throw new AuthServerException(AuthRequestError.invalidRequest, null);
     }
 
     AuthToken t = await delegate.fetchTokenByAccessToken(this, accessToken);
     if (t == null || t.isExpired) {
-      return null;
+      throw new AuthServerException(AuthRequestError.invalidGrant, new AuthClient(t?.clientID, null, null));
     }
 
     if (scopesRequired != null) {
-      var hasAllRequiredScopes = scopesRequired.every((requiredScope) {
-        var tokenHasValidScope = t.scopes?.any((tokenScope) => requiredScope.allowsScope(tokenScope));
-
-        return tokenHasValidScope ?? false;
-      });
-
-      if (!hasAllRequiredScopes) {
-        return null;
+      if (!AuthScope.verify(scopesRequired, t.scopes)) {
+        throw new AuthServerException(AuthRequestError.invalidScope, new AuthClient(t.clientID, null, null));
       }
     }
 
@@ -434,14 +428,6 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
         new APISecurityRequirement({"oauth2-client-authentication": []})
       ];
     } else if (authorizer.parser is AuthorizationBearerParser) {
-      // Add scopes to our registered security scheme flows
-      final knownScopes = context.document.components.securitySchemes["oauth2"].flows.values.first.scopes.keys;
-      scopes?.map((scope) => scope.toString())?.where((scope) => !knownScopes.contains(scope))?.forEach((scope) {
-        context.document.components.securitySchemes["oauth2"].flows.values.forEach((flow) {
-          flow.scopes[scope] = "";
-        });
-      });
-
       return [
         new APISecurityRequirement({"oauth2": scopes?.map((s) => s.toString())?.toList() ?? []})
       ];
@@ -470,7 +456,7 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
     var client = await clientForID(username);
 
     if (client == null) {
-      return null;
+      throw new AuthServerException(AuthRequestError.invalidClient, null);
     }
 
     if (client.hashedSecret == null) {
@@ -478,11 +464,11 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
         return new Authorization(client.id, null, this, credentials: credentials);
       }
 
-      return null;
+      throw new AuthServerException(AuthRequestError.invalidClient, client);
     }
 
     if (client.hashedSecret != hashPassword(password, client.salt)) {
-      return null;
+      throw new AuthServerException(AuthRequestError.invalidClient, client);
     }
 
     return new Authorization(client.id, null, this, credentials: credentials);

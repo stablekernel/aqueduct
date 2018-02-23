@@ -324,7 +324,11 @@ void main() {
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION: "Bearer $userReadOnlyScopedAccessToken"
       });
-      expect(res.statusCode, 401);
+      expect(res.statusCode, 403);
+      expect(JSON.decode(res.body), {
+        "error": "insufficient_scope",
+        "scope": "user"
+      });
     });
 
     test("Singled scoped authorized requiring different privileges does not pass authorizer", () async {
@@ -334,7 +338,12 @@ void main() {
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
       });
-      expect(res.statusCode, 401);
+      expect(res.statusCode, 403);
+      expect(JSON.decode(res.body), {
+        "error": "insufficient_scope",
+        "scope": "other_scope"
+      });
+
     });
 
     test("Multi-scoped authorizer, single scoped token do not pass authorizer", () async {
@@ -344,7 +353,12 @@ void main() {
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
       });
-      expect(res.statusCode, 401);
+      expect(res.statusCode, 403);
+      expect(JSON.decode(res.body), {
+        "error": "insufficient_scope",
+        "scope": "user other_scope"
+      });
+
     });
 
     test("Multi-scoped authorizer, multi-scoped token but with different scopes do not pass authorzer", () async {
@@ -354,7 +368,12 @@ void main() {
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
       });
-      expect(res.statusCode, 401);
+      expect(res.statusCode, 403);
+      expect(JSON.decode(res.body), {
+        "error": "insufficient_scope",
+        "scope": "other something_else"
+      });
+
     });
 
     test("Multi-scoped authorizer, multi-scoped token but with less privileges on one scope do not pass authorizer", () async {
@@ -364,7 +383,12 @@ void main() {
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.AUTHORIZATION: "Bearer $userAndOtherReadOnlyScopedAccessToken"
       });
-      expect(res.statusCode, 401);
+      expect(res.statusCode, 403);
+      expect(JSON.decode(res.body), {
+        "error": "insufficient_scope",
+        "scope": "user other_scope"
+      });
+
     });
   });
 
@@ -392,22 +416,22 @@ void main() {
   group("Authorization objects", () {
     test("Authorization has scope for exact scope", () {
       var auth = new Authorization("id", 1, null, scopes: [new AuthScope("a")]);
-      expect(auth.authorizedForScope("a"), true);
+      expect(auth.isAuthorizedForScope("a"), true);
     });
 
     test("Authorization has scope for scope with more privileges", () {
       var auth = new Authorization("id", 1, null, scopes: [new AuthScope("a")]);
-      expect(auth.authorizedForScope("a:foo"), true);
+      expect(auth.isAuthorizedForScope("a:foo"), true);
     });
 
     test("Authorization does not have access to different scope", () {
       var auth = new Authorization("id", 1, null, scopes: [new AuthScope("a")]);
-      expect(auth.authorizedForScope("b"), false);
+      expect(auth.isAuthorizedForScope("b"), false);
     });
 
     test("Authorization does not have access to higher privileged scope", () async {
       var auth = new Authorization("id", 1, null, scopes: [new AuthScope("a:foo")]);
-      expect(auth.authorizedForScope("a"), false);
+      expect(auth.isAuthorizedForScope("a"), false);
     });
   });
 }
@@ -433,7 +457,7 @@ Future<RequestOrResponse> respond(Request req) async {
   };
 
   if ((req.authorization.scopes?.length ?? 0) > 0) {
-    map["scopes"] = req.authorization.scopes;
+    map["scopes"] = req.authorization.scopes.map((s) => s.toString()).toList();
   }
 
   return new Response.ok(map);

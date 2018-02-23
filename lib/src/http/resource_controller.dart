@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/auth/objects.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
@@ -250,9 +251,8 @@ abstract class ResourceController extends Controller {
 
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
-    final operations = new BoundController(runtimeType)
-        .methods
-        .where((method) => path.containsPathParameters(method.pathVariables));
+    final operations =
+        new BoundController(runtimeType).methods.where((method) => path.containsPathParameters(method.pathVariables));
 
     return operations.fold(<String, APIOperation>{}, (prev, method) {
       final operation = firstMetadataOfType(Operation, reflect(this).type.instanceMembers[method.methodSymbol]);
@@ -265,22 +265,29 @@ abstract class ResourceController extends Controller {
           requestBody: documentOperationRequestBody(context, operation),
           tags: documentOperationTags(context, operation));
 
-      if (op.summary == null) {
-        context.defer(() async {
-          final binder = _boundMethodForOperation(operation);
+      final binder = _boundMethodForOperation(operation);
 
+      context.defer(() async {
+        if (op.summary == null) {
           final type = await DocumentedElement.get(this.runtimeType);
           op.summary = type[binder.methodSymbol].summary;
-        });
-      }
+        }
 
-      if (op.description == null) {
-        context.defer(() async {
-          final binder = _boundMethodForOperation(operation);
+        if (op.description == null) {
           final type = await DocumentedElement.get(this.runtimeType);
           op.description = type[binder.methodSymbol].description;
-        });
-      }
+        }
+        if (method.scopes != null) {
+          op.security?.forEach((sec) {
+            sec.requirements.forEach((name, operationScopes) {
+              final secType = context.document.components.securitySchemes[name];
+              if (secType?.type == APISecuritySchemeType.oauth2 || secType?.type == APISecuritySchemeType.openID) {
+                _mergeScopes(operationScopes, method.scopes);
+              }
+            });
+          });
+        }
+      });
 
       prev[method.httpMethod.toLowerCase()] = op;
       return prev;
@@ -296,16 +303,34 @@ abstract class ResourceController extends Controller {
           .where((b) => b.binding is BoundBody)
           .map((b) => b.boundValueType)
           .forEach((b) {
-            final type = b.reflectedType;
-            if (!context.schema.hasRegisteredType(type)) {
-              context.schema.register(MirrorSystem.getName(b.simpleName), HTTPSerializable.document(context, type), representation: type);
-            }
+        final type = b.reflectedType;
+        if (!context.schema.hasRegisteredType(type)) {
+          context.schema.register(MirrorSystem.getName(b.simpleName), HTTPSerializable.document(context, type),
+              representation: type);
+        }
       });
     });
   }
 
-  APIParameter _documentParameter(
-      APIDocumentContext context, Operation operation, BoundParameter param) {
+  /// Adds [methodScopes] to [operationScopes] if they do not exist.
+  ///
+  /// If [methodScopes] has a more demanding scope than one in [operationScopes],
+  /// that scope is replaced in [operationScopes] by the one in [methodScopes].
+  void _mergeScopes(List<String> operationScopes, List<AuthScope> methodScopes) {
+    final existingScopes = operationScopes.map((s) => new AuthScope(s)).toList();
+
+    methodScopes.forEach((methodScope) {
+      for (var existingScope in existingScopes) {
+        if (existingScope.isSubsetOrEqualTo(methodScope)) {
+          operationScopes.remove(existingScope.toString());
+        }
+      }
+
+      operationScopes.add(methodScope.toString());
+    });
+  }
+
+  APIParameter _documentParameter(APIDocumentContext context, Operation operation, BoundParameter param) {
     final schema = APIComponentDocumenter.documentType(context, param.boundValueType);
     final documentedParameter = new APIParameter(param.name, param.binding.location,
         schema: schema, required: param.isRequired, allowEmptyValue: schema.type == APIType.boolean);

@@ -263,6 +263,16 @@ void main() {
         expect(resolved.type, APIType.object);
         expect(resolved.properties["key"].type, APIType.string);
       });
+
+      test("Add component more than once does not replace it", () {
+        final doc = new APIDocument()..components = new APIComponents();
+        final ctx = new APIDocumentContext(doc);
+        ctx.schema.register("a", new APISchemaObject.string(format: "original"), representation: String);
+        ctx.schema.register("a", new APISchemaObject.string(format: "replacement"));
+
+        expect(doc.components.schemas["a"].format, "original");
+        expect(ctx.schema.getObjectWithType(String), isNotNull);
+      });
     });
   });
 

@@ -6,6 +6,7 @@ export 'file_controller.dart';
 export 'http_codec_repository.dart';
 export 'resource_controller.dart';
 export 'resource_controller_bindings.dart';
+export 'resource_controller_scope.dart';
 export 'handler_exception.dart';
 export 'query_controller.dart';
 export 'request.dart';
