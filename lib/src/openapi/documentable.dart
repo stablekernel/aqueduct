@@ -165,7 +165,8 @@ class APIDocumentContext {
       : schema = new APIComponentCollection<APISchemaObject>._("schemas", document.components.schemas),
         responses = new APIComponentCollection<APIResponse>._("responses", document.components.responses),
         parameters = new APIComponentCollection<APIParameter>._("parameters", document.components.parameters),
-        requestBodies = new APIComponentCollection<APIRequestBody>._("requestBodies", document.components.requestBodies),
+        requestBodies =
+            new APIComponentCollection<APIRequestBody>._("requestBodies", document.components.requestBodies),
         headers = new APIComponentCollection<APIHeader>._("headers", document.components.headers),
         securitySchemes =
             new APIComponentCollection<APISecurityScheme>._("securitySchemes", document.components.securitySchemes),
@@ -214,6 +215,25 @@ class APIDocumentContext {
     _deferredOperations = [];
     await Future.forEach(ops, (op) => op());
 
+    document.paths.values
+        .expand((p) => p.operations.values)
+        .where((op) => op.security != null)
+        .expand((op) => op.security)
+        .forEach((req) {
+      req.requirements.forEach((schemeName, scopes) {
+        final scheme = document.components.securitySchemes[schemeName];
+        if (scheme.type == APISecuritySchemeType.oauth2) {
+          scheme.flows.values.forEach((flow) {
+            scopes.forEach((scope) {
+              if (!flow.scopes.containsKey(scope)) {
+                flow.scopes[scope] = scope;
+              }
+            });
+          });
+        }
+      });
+    });
+
     _validateReferences(document.asMap());
   }
 
@@ -224,7 +244,10 @@ class APIDocumentContext {
       if (resolved == null) {
         if (refUri.contains("aqueduct-typeref:")) {
           final segments = refUri.split("/");
-          throw new StateError("Unresolved OpenAPI reference. No component was registered in '${segments[2]}' for type '${segments.last.split(":").last}'.");
+          throw new StateError(
+              "Unresolved OpenAPI reference. No component was registered in '${segments[2]}' for type '${segments.last
+                  .split(":")
+                  .last}'.");
         }
         throw new StateError("Unresolved OpenAPI reference. No component was registered for '$refUri'.");
       }
@@ -236,8 +259,6 @@ class APIDocumentContext {
       }
     });
   }
-
-
 }
 
 /// A collection of reusable OpenAPI objects.
@@ -324,5 +345,4 @@ class APIComponentCollection<T extends APIObject> {
   bool hasRegisteredType(Type type) {
     return _typeReferenceMap.containsKey(type);
   }
-
 }
