@@ -226,7 +226,7 @@ class APIDocumentContext {
           scheme.flows.values.forEach((flow) {
             scopes.forEach((scope) {
               if (!flow.scopes.containsKey(scope)) {
-                flow.scopes[scope] = scope;
+                flow.scopes[scope] = "";
               }
             });
           });
