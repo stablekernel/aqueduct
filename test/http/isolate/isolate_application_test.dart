@@ -48,7 +48,7 @@ void main() {
 
     test("Application handles a bunch of requests", () async {
       var reqs = <Future>[];
-      var responses = [];
+      var responses = <http.Response>[];
       for (int i = 0; i < 20; i++) {
         var req = http.get("http://localhost:8888/t");
         req.then((resp) {

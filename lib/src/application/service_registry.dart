@@ -38,7 +38,7 @@ class ApplicationServiceRegistry {
     if (_registrations.any((r) => identical(r.object, object))) {
       return object;
     }
-    _registrations.add(new _ServiceRegistration(object, onClose));
+    _registrations.add(new _ServiceRegistration<T>(object, onClose));
     return object;
   }
 
@@ -66,7 +66,7 @@ class _ServiceRegistration<T> {
   _ServiceRegistration(this.object, this.onClose);
 
   T object;
-  _CloseFunction onClose;
+  _CloseFunction<T> onClose;
 
   Future close() {
     return onClose(object);
