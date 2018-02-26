@@ -9,7 +9,7 @@ environment:
   sdk: ^2.0.0-dev
 
 dependencies:
-  analyzer: ^0.30.0
+  analyzer: '>=0.30.0 <0.32.0'
   safe_config: ^1.1.0
   yaml: ^2.1.9
   crypto: ^2.0.0
