@@ -20,7 +20,7 @@ bool requestHasFormData(Request request) {
 
 Map<Symbol, dynamic> toSymbolMap(Iterable<BoundValue> boundValues) {
   return new Map.fromIterable(boundValues.where((v) => v.value != null),
-      key: (BoundValue v) => v.symbol, value: (BoundValue v) => v.value);
+      key: (v) => (v as BoundValue).symbol, value: (v) => (v as BoundValue).value);
 }
 
 

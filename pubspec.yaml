@@ -9,24 +9,24 @@ environment:
   sdk: ^2.0.0-dev
 
 dependencies:
-  analyzer: ^0.30.0
-  safe_config: ^1.1.0
-  yaml: ^2.1.9
+  analyzer: '>=0.30.0 <0.32.0'
+  args: ^1.0.0
   crypto: ^2.0.0
   logging: ^0.11.3
-  postgres: ^0.9.6
-  args: ^1.0.0
-  stack_trace: ^1.0.0
-  pub_semver: ^1.0.0
-  path: ^1.4.1
-  password_hash: ^1.0.0
   matcher: ^0.12.0+2
-  pub_cache: ^0.1.0
-  test: ^0.12.28
   open_api: ^1.0.2
+  password_hash: ^1.0.0
+  path: ^1.4.1
+  postgres: ^0.9.6
+  pub_cache: ^0.1.0
+  pub_semver: ^1.0.0
+  safe_config: ^1.1.0
+  stack_trace: ^1.0.0
+  test: ^0.12.28
+  yaml: ^2.1.9
 
 dev_dependencies:
-  http: ">=0.11.3+7 <0.12.0"
+  http: ^0.11.3+7
 
 executables:
   aqueduct: aqueduct

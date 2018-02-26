@@ -151,7 +151,7 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   }
 
   @override
-  FutureOr revokeAuthenticatableWithIdentifier(
+  void revokeAuthenticatableWithIdentifier(
       AuthServer server, dynamic identifier) {
     return tokens.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
   }
@@ -186,7 +186,7 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   }
 
   @override
-  FutureOr revokeTokenIssuedFromCode(AuthServer server, AuthCode code) =>
+  void revokeTokenIssuedFromCode(AuthServer server, AuthCode code) =>
     tokens.removeWhere((t) => t.code == code.code);
 
   @override
@@ -236,7 +236,7 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   }
 
   @override
-  FutureOr storeAuthCode(AuthServer server, AuthCode code) =>
+  void storeAuthCode(AuthServer server, AuthCode code) =>
     tokens.add(new TestToken.from(code));
 
   @override
@@ -249,7 +249,7 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   }
 
   @override
-  FutureOr revokeAuthCodeWithCode(AuthServer server, String code) =>
+  void revokeAuthCodeWithCode(AuthServer server, String code) =>
     tokens.removeWhere((c) => c.code == code);
 
   @override
