@@ -72,6 +72,12 @@ pages:
     - 'Deploy on Heroku': 'deploy/deploy_heroku.md'
     - 'Deploy on AWS': 'deploy/deploy_aws.md'
     - 'Deploying without aqueduct serve': 'deploy/script.md'
+  - OpenAPI Documentation:
+    - 'Overview': 'openapi/overview.md'
+    - 'Creating an OpenAPI Document': 'openapi/cli.md'
+    - 'Documenting Components': 'openapi/components.md'
+    - 'Documenting Endpoint Controllers': 'openapi/endpoint.md'
+    - 'Documenting Middleware Controllers': 'openapi/middleware.md'
   - Command-line Tooling:
     - 'Overview': 'cli/overview.md'
     - 'Creating Applications': 'cli/create.md'
