@@ -46,7 +46,7 @@ void main() {
       ..values.l = 1
       ..values.b = true
       ..values.d = 1.0
-      ..values.doc = new Document.from({"k":"v"});
+      ..values.doc = new Document({"k":"v"});
 
     var builder = new PostgresQueryBuilder(context.entityForType(TestModel),
         returningProperties: ["id"], values: q.values.backingMap);

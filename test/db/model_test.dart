@@ -543,7 +543,7 @@ void main() {
 
     test("Can emit object into map from object document data type", () {
       final o = new DocumentTest()
-        ..document = new Document.from({"key": "value"});
+        ..document = new Document({"key": "value"});
       expect(o.asMap(), {
         "document": {"key": "value"}
       });
@@ -551,7 +551,7 @@ void main() {
 
     test("Can emit array into map from array document data type", () {
       final o = new DocumentTest()
-        ..document = new Document.from([{"key": "value"}, 1]);
+        ..document = new Document([{"key": "value"}, 1]);
       expect(o.asMap(), {
         "document": [{"key": "value"}, 1]
       });
