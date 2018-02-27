@@ -279,7 +279,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       }
       return enumerationValueMap[value];
     } else if (type.kind == ManagedPropertyType.document) {
-      return new Document.from(value);
+      return new Document(value);
     }
 
     // no need to check type here - gets checked by managed backing

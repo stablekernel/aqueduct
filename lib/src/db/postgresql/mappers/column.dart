@@ -114,7 +114,7 @@ class ColumnMapper extends PostgresMapper {
       if (p.isEnumeratedValue) {
         return property.convertFromPrimitiveValue(value);
       } else if (p.type.kind == ManagedPropertyType.document) {
-        return new Document.from(value);
+        return new Document(value);
       }
     }
 
