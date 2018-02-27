@@ -78,22 +78,54 @@ class ManagedMatcherBacking extends ManagedBacking {
 }
 
 class ManagedAccessTrackingBacking extends ManagedBacking {
-  List<String> accessedProperties = [];
+  List<KeyPath> keyPaths;
+  KeyPath workingKeyPath;
 
   @override
   Map<String, dynamic> get valueMap => null;
 
   @override
   dynamic valueForProperty(ManagedPropertyDescription property) {
-    if (property?.type?.kind == ManagedPropertyType.document) {
-      return new KeyPath(property.name);
+    if (workingKeyPath != null) {
+      workingKeyPath.add(property);
+
+      return forward(property, workingKeyPath);
     }
 
-    return property.name;
+
+    keyPaths ??= [];
+    final keyPath = new KeyPath(property);
+    keyPaths.add(keyPath);
+
+    return forward(property, keyPath);
   }
 
   @override
   void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
     // no-op
+  }
+
+  dynamic forward(ManagedPropertyDescription property, KeyPath keyPath) {
+    if (property is ManagedRelationshipDescription) {
+      final tracker = new ManagedAccessTrackingBacking()
+        ..workingKeyPath = keyPath;
+      return property.inverse.entity.newInstance(backing: tracker);
+    } else if (property is ManagedAttributeDescription && property.type.kind == ManagedPropertyType.document) {
+      return new DocumentAccessTracker(keyPath);
+    }
+
+    return null;
+  }
+}
+
+class DocumentAccessTracker extends Document {
+  DocumentAccessTracker(this.owner);
+
+  final KeyPath owner;
+
+  @override
+  dynamic operator [](dynamic keyOrIndex) {
+    owner.addDynamicElement(keyOrIndex);
+    return this;
   }
 }

@@ -1,5 +1,6 @@
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
 import 'package:aqueduct/src/db/postgresql/mappers/row.dart';
 import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
@@ -14,7 +15,7 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
   static const String valueKeyPrefix = "v_";
 
   PostgresQueryBuilder(this.entity,
-      {List<String> returningProperties,
+      {List<KeyPath> returningProperties,
       Map<String, dynamic> values,
       ManagedObject whereBuilder,
       QueryPredicate predicate,

@@ -1,5 +1,7 @@
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/db/managed/key_path.dart';
+
 import '../managed/backing.dart';
 import '../managed/managed.dart';
 import 'page.dart';
@@ -35,9 +37,9 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
   bool get hasWhereBuilder => _whereBuilder?.backingMap?.isNotEmpty ?? false;
 
-  List<String> _propertiesToFetch;
+  List<KeyPath> _propertiesToFetch;
 
-  List<String> get propertiesToFetch => _propertiesToFetch ?? entity.defaultProperties;
+  List<KeyPath> get propertiesToFetch => _propertiesToFetch ?? entity.defaultProperties.map((k) => new KeyPath(entity.properties[k])).toList();
 
   @override
   InstanceType get values {
@@ -62,20 +64,20 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
   @override
   Query<T> join<T extends ManagedObject>({T object(InstanceType x), ManagedSet<T> set(InstanceType x)}) {
-    final desc = _selectRelationship(object ?? set);
+    final desc = identifyRelationship(entity, object ?? set);
 
     return _createSubquery(desc);
   }
 
   @override
   void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order, {T boundingValue}) {
-    final attribute = _selectAttribute(propertyIdentifier);
+    final attribute = identifyAttribute(entity, propertyIdentifier);
     pageDescriptor = new QueryPage(order, attribute.name, boundingValue: boundingValue);
   }
 
   @override
   void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order) {
-    final attribute = _selectAttribute(propertyIdentifier);
+    final attribute = identifyAttribute(entity, propertyIdentifier);
 
     sortDescriptors ??= <QuerySortDescriptor>[];
     sortDescriptors.add(new QuerySortDescriptor(attribute.name, order));
@@ -83,7 +85,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
   @override
   void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x)) {
-    _propertiesToFetch = _selectProperties(propertyIdentifiers).map((p) => p.name).toList();
+    _propertiesToFetch = identifyProperties(entity, propertyIdentifiers);
   }
 
   void validateInput(ValidateOperation op) {
@@ -131,10 +133,12 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     return subquery;
   }
 
-  ManagedAttributeDescription _selectAttribute<T>(T propertyIdentifier(InstanceType x)) {
-    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
-    var propertyName = propertyIdentifier(obj as InstanceType) as String;
+  static ManagedAttributeDescription identifyAttribute<T>(ManagedEntity entity, T propertyIdentifier(ManagedObject x)) {
+    final tracker = new ManagedAccessTrackingBacking();
+    final obj = entity.newInstance(backing: tracker);
+    propertyIdentifier(obj);
 
+    final propertyName = tracker.keyPaths.first.path.first.name;
     var attribute = entity.attributes[propertyName];
     if (attribute == null) {
       if (entity.relationships.containsKey(propertyName)) {
@@ -152,30 +156,36 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     return attribute;
   }
 
-  ManagedRelationshipDescription _selectRelationship<T>(T propertyIdentifier(InstanceType x)) {
-    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
-    var matchingKey = propertyIdentifier(obj as InstanceType) as String;
+  static ManagedRelationshipDescription identifyRelationship<T>(ManagedEntity entity, T propertyIdentifier(ManagedObject x)) {
+    final tracker = new ManagedAccessTrackingBacking();
+    final obj = entity.newInstance(backing: tracker);
+    propertyIdentifier(obj);
 
-    var desc = entity.relationships[matchingKey];
+    final propertyName = tracker.keyPaths.first.path.first.name;
+
+    var desc = entity.relationships[propertyName];
     if (desc == null) {
-      throw new ArgumentError("Invalid property selection. Relationship named '$matchingKey' on table '${entity
+      throw new ArgumentError("Invalid property selection. Relationship named '$propertyName' on table '${entity
           .tableName}' is not a relationship.");
     }
 
     return desc;
   }
 
-  List<ManagedPropertyDescription> _selectProperties<T>(T propertiesIdentifier(InstanceType x)) {
-    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
-    var propertyNames = propertiesIdentifier(obj as InstanceType) as List<String>;
+  static List<KeyPath> identifyProperties<T>(ManagedEntity entity, T propertiesIdentifier(ManagedObject x)) {
+    final tracker = new ManagedAccessTrackingBacking();
+    var obj = entity.newInstance(backing: tracker);
+    propertiesIdentifier(obj);
 
-    return propertyNames.map((name) {
-      final prop = entity.properties[name];
-      if (prop == null) {
-        throw new ArgumentError("Invalid property selection. The property '$name' does not exist on "
-            "'${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
-      }
-      return prop;
-    }).toList();
+    return tracker.keyPaths;
+
+//    return propertyNames.map((name) {
+//      final prop = entity.properties[name];
+//      if (prop == null) {
+//        throw new ArgumentError("Invalid property selection. The property '$name' does not exist on "
+//            "'${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
+//      }
+//      return prop;
+//    }).toList();
   }
 }

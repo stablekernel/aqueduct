@@ -4,13 +4,13 @@ class KeyPath {
   KeyPath(ManagedPropertyDescription root) : path = [root];
 
   final List<ManagedPropertyDescription> path;
-  List<String> dynamicElements;
+  List<dynamic> dynamicElements;
 
   void add(ManagedPropertyDescription element) {
     path.add(element);
   }
 
-  void addDynamicElement(String element) {
+  void addDynamicElement(dynamic element) {
     dynamicElements ??= [];
     dynamicElements.add(element);
   }

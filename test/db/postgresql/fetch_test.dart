@@ -139,8 +139,7 @@ void main() {
       expect(e.toString(), allOf([
         contains("'posts'"),
         contains("'GenUser'"),
-        contains("does not exist"),
-        contains("recognized as ORM relationship")
+        contains("is a relationship"),
       ]));
     }
   });

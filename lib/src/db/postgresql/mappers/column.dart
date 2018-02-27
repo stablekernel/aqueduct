@@ -14,23 +14,28 @@ enum PersistentJoinType { leftOuter }
 abstract class PostgresMapper {}
 
 class ColumnMapper extends PostgresMapper {
-  ColumnMapper(this.table, this.property, {this.keyPath});
+  ColumnMapper(this.table, this.property, {this.documentKeyPath});
 
-  static List<ColumnMapper> fromKeys(EntityTableMapper table, ManagedEntity entity, List<dynamic> keys) {
+  static List<ColumnMapper> fromKeys(EntityTableMapper table, ManagedEntity entity, List<KeyPath> keys) {
     // Ensure the primary key is always available and at 0th index.
-    var primaryKeyIndex = keys.indexOf(entity.primaryKey);
-    if (primaryKeyIndex == -1) {
-      keys.insert(0, entity.primaryKey);
+    var primaryKeyIndex;
+    for (var i = 0; i < keys.length; i++) {
+      final firstElement = keys[i].path.first;
+      if (firstElement is ManagedAttributeDescription && firstElement.isPrimaryKey) {
+        primaryKeyIndex = i;
+        break;
+      }
+    }
+
+    if (primaryKeyIndex == null) {
+      keys.insert(0, new KeyPath(entity.primaryKeyAttribute));
     } else if (primaryKeyIndex > 0) {
       keys.removeAt(primaryKeyIndex);
-      keys.insert(0, entity.primaryKey);
+      keys.insert(0, new KeyPath(entity.primaryKeyAttribute));
     }
 
     return keys.map((key) {
-      if (key is KeyPath) {
-        return new ColumnMapper(table, propertyForName(entity, key.propertyKey), keyPath: key.elements);
-      }
-      return new ColumnMapper(table, propertyForName(entity, key));
+      return new ColumnMapper(table, propertyForName(entity, key.path.first.name), documentKeyPath: key.dynamicElements);
     }).toList();
   }
 
@@ -72,7 +77,7 @@ class ColumnMapper extends PostgresMapper {
 
   final EntityTableMapper table;
   final ManagedPropertyDescription property;
-  final List<String> keyPath;
+  final List<String> documentKeyPath;
 
   bool fetchAsForeignKey = false;
 
@@ -127,8 +132,8 @@ class ColumnMapper extends PostgresMapper {
     if (property is ManagedRelationshipDescription) {
       var relatedPrimaryKey = (property as ManagedRelationshipDescription).destinationEntity.primaryKey;
       name = "${name}_$relatedPrimaryKey";
-    } else if (keyPath != null) {
-      final keys = keyPath.map((k) => k is String ? "'$k'" : k).join("->");
+    } else if (documentKeyPath != null) {
+      final keys = documentKeyPath.map((k) => k is String ? "'$k'" : k).join("->");
       name = "$name->$keys";
     }
 
