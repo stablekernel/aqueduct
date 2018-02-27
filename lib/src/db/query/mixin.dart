@@ -134,11 +134,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   }
 
   static ManagedAttributeDescription identifyAttribute<T>(ManagedEntity entity, T propertyIdentifier(ManagedObject x)) {
-    final tracker = new ManagedAccessTrackingBacking();
-    final obj = entity.newInstance(backing: tracker);
-    propertyIdentifier(obj);
-
-    final propertyName = tracker.keyPaths.first.path.first.name;
+    final propertyName = identifyProperties(entity, propertyIdentifier).first.path.first.name;
     var attribute = entity.attributes[propertyName];
     if (attribute == null) {
       if (entity.relationships.containsKey(propertyName)) {
@@ -157,11 +153,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   }
 
   static ManagedRelationshipDescription identifyRelationship<T>(ManagedEntity entity, T propertyIdentifier(ManagedObject x)) {
-    final tracker = new ManagedAccessTrackingBacking();
-    final obj = entity.newInstance(backing: tracker);
-    propertyIdentifier(obj);
-
-    final propertyName = tracker.keyPaths.first.path.first.name;
+    final propertyName = identifyProperties(entity, propertyIdentifier).first.path.first.name;
 
     var desc = entity.relationships[propertyName];
     if (desc == null) {
