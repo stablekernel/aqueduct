@@ -1,11 +1,17 @@
+import 'package:aqueduct/src/db/managed/managed.dart';
+
 class KeyPath {
-  KeyPath(this.propertyKey);
+  KeyPath(ManagedPropertyDescription root) : path = [root];
 
-  final String propertyKey;
-  final List<String> elements = [];
+  final List<ManagedPropertyDescription> path;
+  List<String> dynamicElements;
 
-  dynamic operator [](dynamic keyOrIndex) {
-    elements.add(keyOrIndex);
-    return this;
+  void add(ManagedPropertyDescription element) {
+    path.add(element);
+  }
+
+  void addDynamicElement(String element) {
+    dynamicElements ??= [];
+    dynamicElements.add(element);
   }
 }

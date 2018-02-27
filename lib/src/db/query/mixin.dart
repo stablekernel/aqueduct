@@ -1,3 +1,5 @@
+import 'dart:mirrors';
+
 import '../managed/backing.dart';
 import '../managed/managed.dart';
 import 'page.dart';
@@ -60,80 +62,28 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
   @override
   Query<T> join<T extends ManagedObject>({T object(InstanceType x), ManagedSet<T> set(InstanceType x)}) {
-    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
-    var matchingKey;
-    if (object != null) {
-      matchingKey = object(obj as InstanceType) as String;
-    } else if (set != null) {
-      matchingKey = set(obj as InstanceType) as String;
-    }
+    final desc = _selectRelationship(object ?? set);
 
-    var attr = entity.relationships[matchingKey];
-    if (attr == null) {
-      throw new ArgumentError("Invalid join query. Relationship named '$matchingKey' on table '${entity
-          .tableName}' is not a relationship.");
-    }
-
-    return _createSubquery(attr);
-  }
-
-  @override
-  Query<T> joinOne<T extends ManagedObject>(T m(InstanceType x)) {
-    return join(object: m);
-  }
-
-  @override
-  Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> m(InstanceType x)) {
-    return join(set: m);
+    return _createSubquery(desc);
   }
 
   @override
   void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order, {T boundingValue}) {
-    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
-    var propertyName = propertyIdentifier(obj as InstanceType) as String;
-
-    var attribute = entity.attributes[propertyName];
-    if (attribute == null) {
-      if (entity.relationships[propertyName] != null) {
-        throw new ArgumentError(
-            "Invalid query pageBy. Column '$propertyName' does not exist on table '${entity.tableName}'. "
-            "'$propertyName' recognized as ORM relationship and is therefore are not pageable.");
-      } else {
-        throw new ArgumentError(
-            "Invalid query pageBy. Column '$propertyName' does not exist on table '${entity.tableName}'.");
-      }
-    }
-
-    pageDescriptor = new QueryPage(order, propertyName, boundingValue: boundingValue);
+    final attribute = _selectAttribute(propertyIdentifier);
+    pageDescriptor = new QueryPage(order, attribute.name, boundingValue: boundingValue);
   }
 
   @override
   void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order) {
-    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
-    var propertyName = propertyIdentifier(obj as InstanceType) as String;
-
-    var attribute = entity.attributes[propertyName];
-    if (attribute == null) {
-      if (entity.relationships[propertyName] != null) {
-        throw new ArgumentError(
-            "Invalid query sortBy. Column '$propertyName' does not exist on table '${entity.tableName}'. "
-            "'$propertyName' recognized as ORM relationship and is therefore are not pageable.");
-      } else {
-        throw new ArgumentError(
-            "Invalid query sortBy. Column '$propertyName' does not exist on table '${entity.tableName}'.");
-      }
-    }
+    final attribute = _selectAttribute(propertyIdentifier);
 
     sortDescriptors ??= <QuerySortDescriptor>[];
-    sortDescriptors.add(new QuerySortDescriptor(propertyName, order));
+    sortDescriptors.add(new QuerySortDescriptor(attribute.name, order));
   }
 
   @override
   void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x)) {
-    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
-    var propertyNames = propertyIdentifiers(obj as InstanceType) as List<String>;
-
-    _propertiesToFetch = propertyNames;
+    _propertiesToFetch = _selectProperties(propertyIdentifiers).map((p) => p.name).toList();
   }
 
   void validateInput(ValidateOperation op) {
@@ -179,5 +129,53 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     subQueries[fromRelationship] = subquery;
 
     return subquery;
+  }
+
+  ManagedAttributeDescription _selectAttribute<T>(T propertyIdentifier(InstanceType x)) {
+    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
+    var propertyName = propertyIdentifier(obj as InstanceType) as String;
+
+    var attribute = entity.attributes[propertyName];
+    if (attribute == null) {
+      if (entity.relationships.containsKey(propertyName)) {
+        throw new ArgumentError(
+            "Invalid property selection. Property '$propertyName' on "
+                "'${MirrorSystem.getName(entity.instanceType.simpleName)}' "
+                "is a relationship and cannot be selected for this operation.");
+      } else {
+        throw new ArgumentError(
+            "Invalid property selection. Column '$propertyName' does not "
+                "exist on table '${entity.tableName}'.");
+      }
+    }
+
+    return attribute;
+  }
+
+  ManagedRelationshipDescription _selectRelationship<T>(T propertyIdentifier(InstanceType x)) {
+    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
+    var matchingKey = propertyIdentifier(obj as InstanceType) as String;
+
+    var desc = entity.relationships[matchingKey];
+    if (desc == null) {
+      throw new ArgumentError("Invalid property selection. Relationship named '$matchingKey' on table '${entity
+          .tableName}' is not a relationship.");
+    }
+
+    return desc;
+  }
+
+  List<ManagedPropertyDescription> _selectProperties<T>(T propertiesIdentifier(InstanceType x)) {
+    var obj = entity.newInstance(backing: new ManagedAccessTrackingBacking());
+    var propertyNames = propertiesIdentifier(obj as InstanceType) as List<String>;
+
+    return propertyNames.map((name) {
+      final prop = entity.properties[name];
+      if (prop == null) {
+        throw new ArgumentError("Invalid property selection. The property '$name' does not exist on "
+            "'${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
+      }
+      return prop;
+    }).toList();
   }
 }

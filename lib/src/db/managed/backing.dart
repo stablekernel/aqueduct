@@ -78,6 +78,8 @@ class ManagedMatcherBacking extends ManagedBacking {
 }
 
 class ManagedAccessTrackingBacking extends ManagedBacking {
+  List<String> accessedProperties = [];
+
   @override
   Map<String, dynamic> get valueMap => null;
 
