@@ -62,6 +62,27 @@ void main() {
     expect(item.email, isNull);
   });
 
+  test("Returning properties for undefined attributes fails", () async {
+    context = await contextWithModels([TestModel]);
+
+    var m = new TestModel(name: "Joe", email: "b@a.com");
+    var req = new Query<TestModel>()..values = m;
+
+    await req.insert();
+
+    try {
+      req = new Query<TestModel>()
+        ..returningProperties((t) => [t.id, t["foobar"]]);
+      fail("unreachable");
+    } on ArgumentError catch (e) {
+      print(e);
+      expect(e.toString(), allOf([
+        contains("'foobar'"),
+        contains("'TestModel'"),
+      ]));
+    }
+  });
+
   test("Ascending sort descriptors work", () async {
     context = await contextWithModels([TestModel]);
 

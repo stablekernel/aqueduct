@@ -178,14 +178,5 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     propertiesIdentifier(obj);
 
     return tracker.keyPaths;
-
-//    return propertyNames.map((name) {
-//      final prop = entity.properties[name];
-//      if (prop == null) {
-//        throw new ArgumentError("Invalid property selection. The property '$name' does not exist on "
-//            "'${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
-//      }
-//      return prop;
-//    }).toList();
   }
 }
