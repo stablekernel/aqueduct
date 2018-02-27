@@ -36,7 +36,7 @@ A `Document` property is first set when inserting with a `Query<T>`. The `values
 ```dart
 final query = new Query<Event>()
   ..values.timestamp = new DateTime.now()
-  ..values.contents = new Document.from({
+  ..values.contents = new Document({
     "type": "push",
     "user": "bob",
     "tags": ["v1"]
@@ -44,7 +44,7 @@ final query = new Query<Event>()
 final event = await query.insert();  
 ```
 
-In the above, the argument to `Document.from` will be JSON-encoded and stored in the database for column `contents`. If the object can't be encoded as JSON, an exception will be thrown.
+In the above, the argument to `Document` will be JSON-encoded and stored in the database for column `contents`. If the object can't be encoded as JSON, an exception will be thrown.
 
 ### Fetching Rows with Document Properties
 
@@ -70,7 +70,7 @@ Updating a row with `Document` properties works the same as inserting rows.
 ```dart
 final query = new Query<Event>()
   ..where.id = whereEqualTo(1)
-  ..values.contents = new Document.from({
+  ..values.contents = new Document({
     "type": "push",
     "user": "bob",
     "tags": ["v1", "new"]
@@ -86,18 +86,18 @@ The type of `Document.data` is `dynamic` - it can be any valid JSON type and may
 
 ```dart
 // Object Access by key
-final doc = new Document.from({"key": "value"});
+final doc = new Document({"key": "value"});
 final value = doc["key"] == "value";
 
 // List Access by index
-final doc = new Document.from(["v1", "v2"]);
+final doc = new Document(["v1", "v2"]);
 final value = doc[0] == "v1";
 ```
 
 You can access nested elements with the same syntax:
 
 ```dart
-final doc = new Document.from([
+final doc = new Document([
   {"id": 1},
   {"id": 2}
 ]);
