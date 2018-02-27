@@ -19,7 +19,7 @@ void main() {
     test("Can insert document object", () async {
       final q = new Query<Obj>()
         ..values.id = 1
-        ..values.document = new Document.from({"k": "v"});
+        ..values.document = new Document({"k": "v"});
       final o = await q.insert();
       expect(o.document.data, {"k":"v"});
     });
@@ -27,7 +27,7 @@ void main() {
     test("Can insert document array", () async {
       final q = new Query<Obj>()
         ..values.id = 1
-        ..values.document = new Document.from([{"k": "v"}, 1]);
+        ..values.document = new Document([{"k": "v"}, 1]);
       final o = await q.insert();
       expect(o.document.data, [{"k":"v"}, 1]);
     });
@@ -35,7 +35,7 @@ void main() {
     test("Can fetch document object", () async {
       final q = new Query<Obj>()
         ..values.id = 1
-        ..values.document = new Document.from({"k": "v"});
+        ..values.document = new Document({"k": "v"});
       await q.insert();
 
       final o = await (new Query<Obj>()).fetch();
@@ -45,7 +45,7 @@ void main() {
     test("Can fetch array object", () async {
       final q = new Query<Obj>()
         ..values.id = 1
-        ..values.document = new Document.from([{"k": "v"}, 1]);
+        ..values.document = new Document([{"k": "v"}, 1]);
       await q.insert();
 
       final o = await (new Query<Obj>()).fetch();
@@ -55,12 +55,12 @@ void main() {
     test("Can update value of document property", () async {
       final q = new Query<Obj>()
         ..values.id = 1
-        ..values.document = new Document.from({"k": "v"});
+        ..values.document = new Document({"k": "v"});
       final o = await q.insert();
 
       final u = new Query<Obj>()
         ..where.id = whereEqualTo(o.id)
-        ..values.document = new Document.from(["a"]);
+        ..values.document = new Document(["a"]);
       final updated = await u.updateOne();
       expect(updated.document.data, ["a"]);
     });
@@ -82,7 +82,7 @@ void main() {
       await Future.forEach(testData, (data) async {
         final q = new Query<Obj>()
           ..values.id = counter
-          ..values.document = new Document.from(data);
+          ..values.document = new Document(data);
         await q.insert();
         counter ++;
       });

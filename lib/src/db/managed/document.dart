@@ -18,14 +18,10 @@ import 'package:aqueduct/src/db/managed/managed.dart';
 ///           Document details;
 ///         }
 class Document {
-  /// Creates an empty instance where [data] is null.
-  Document();
-
-  /// Creates a new instance containing [data].
+  /// Creates an instance with an optional initial [data].
   ///
-  /// [data] must be a JSON-encodable [Map] or [List].
-  Document.from(this.data);
-
+  /// If no argument is passed, [data] is null. Otherwise, it is the first argument.
+  Document([this.data]);
 
   /// The JSON-encodable data contained by this instance.
   ///
