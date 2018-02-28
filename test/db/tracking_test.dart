@@ -164,7 +164,7 @@ void main() {
           ..returningProperties((p) => [p.children]);
         fail("unreachable");
       } on ArgumentError catch (e) {
-        expect(e.toString(), contains("Cannot select relationship properties")) ;
+        expect(e.toString(), contains("Cannot select has-many or has-one relationship properties")) ;
       }
     });
 
