@@ -75,7 +75,6 @@ void main() {
         ..returningProperties((t) => [t.id, t["foobar"]]);
       fail("unreachable");
     } on ArgumentError catch (e) {
-      print(e);
       expect(e.toString(), allOf([
         contains("'foobar'"),
         contains("'TestModel'"),

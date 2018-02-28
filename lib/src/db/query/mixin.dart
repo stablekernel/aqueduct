@@ -1,6 +1,7 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/key_path.dart';
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 import '../managed/backing.dart';
 import '../managed/managed.dart';
@@ -87,8 +88,8 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x)) {
     final properties = identifyProperties(propertyIdentifiers);
 
-    if (properties.any((kp) => kp.path.any((p) => p is ManagedRelationshipDescription))) {
-      throw new ArgumentError("Invalid property selector. Cannot select relationship properties. Use join instead.");
+    if (properties.any((kp) => kp.path.any((p) => p is ManagedRelationshipDescription && p.relationshipType != ManagedRelationshipType.belongsTo))) {
+      throw new ArgumentError("Invalid property selector. Cannot select has-many or has-one relationship properties. Use join instead.");
     }
 
     _propertiesToFetch = identifyProperties(propertyIdentifiers);

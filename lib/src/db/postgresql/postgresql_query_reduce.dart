@@ -1,8 +1,5 @@
 import 'dart:async';
 
-import 'package:aqueduct/src/db/managed/backing.dart';
-import 'package:aqueduct/src/db/query/mixin.dart';
-
 import '../query/query.dart';
 import '../managed/object.dart';
 import 'postgresql_query.dart';
