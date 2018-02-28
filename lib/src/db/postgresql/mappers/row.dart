@@ -1,3 +1,4 @@
+import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/postgresql/predicate_builder.dart';
 import 'package:aqueduct/src/db/query/query.dart';
@@ -8,7 +9,7 @@ import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper {
-  RowMapper(this.type, this.joiningProperty, List<String> propertiesToFetch,
+  RowMapper(this.type, this.joiningProperty, List<KeyPath> propertiesToFetch,
       {this.predicate, this.whereBuilder, List<QuerySortDescriptor> sortDescriptors}) {
     returningOrderedMappers = ColumnMapper.fromKeys(this, entity, propertiesToFetch);
     _sortMappers = sortDescriptors?.map((s) => new SortMapper(this, entity.properties[s.key], s.order))?.toList();

@@ -427,32 +427,31 @@ void main() {
 
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()
-        ..returningProperties((p) => [p.pid, p.children]);
       try {
-        await q.fetchOne();
+        new Query<Parent>()
+          ..returningProperties((p) => [p.pid, p.children]);
       } on ArgumentError catch (e) {
         expect(
             e.toString(),
             contains(
-                "Column 'children' does not exist for table '_Parent'. 'children' recognized as ORM relationship, use 'Query.join' instead"));
+                "Cannot select has-many or has-one relationship properties"));
       }
     });
 
     test("Trying to fetch nested hasMany relationship through resultProperties fails",
         () async {
-      final q = new Query<Parent>();
-      q.join(set: (p) => p.children)
-        ..returningProperties((p) => [p.cid, p.vaccinations]);
 
       try {
-        await q.fetchOne();
+        final q = new Query<Parent>();
+        q.join(set: (p) => p.children)
+          ..returningProperties((p) => [p.cid, p.vaccinations]);
+
         expect(true, false);
       } on ArgumentError catch (e) {
         expect(
             e.toString(),
             contains(
-                "Column 'vaccinations' does not exist for table '_Child'. 'vaccinations' recognized as ORM relationship, use 'Query.join' instead"));
+                "Cannot select has-many or has-one relationship properties"));
       }
     });
   });

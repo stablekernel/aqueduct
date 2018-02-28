@@ -381,28 +381,25 @@ void main() {
 
     test("Trying to fetch hasOne relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..returningProperties((p) => [p.pid, p.child]);
       try {
-        await q.fetchOne();
+        new Query<Parent>()..returningProperties((p) => [p.pid, p.child]);
         expect(true, false);
       } on ArgumentError catch (e) {
         expect(
             e.toString(),
             contains(
-                "Column 'child' does not exist for table '_Parent'. 'child' recognized as ORM relationship, use 'Query.join' instead"));
+                "Cannot select has-many or has-one relationship properties"));
       }
 
-      q = new Query<Parent>();
-      q.join(object: (p) => p.child)..returningProperties((c) => [c.cid, c.toy]);
-
       try {
-        await q.fetchOne();
+        var q = new Query<Parent>();
+        q.join(object: (p) => p.child)..returningProperties((c) => [c.cid, c.toy]);
         expect(true, false);
       } on ArgumentError catch (e) {
         expect(
             e.toString(),
             contains(
-                "Column \'toy\' does not exist for table \'_Child\'. \'toy\' recognized as ORM relationship, use \'Query.join\' instead."));
+                "Cannot select has-many or has-one relationship properties"));
       }
     });
 

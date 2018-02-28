@@ -92,16 +92,6 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// This mechanism only works on [fetch] and [fetchOne] execution methods. You *must not* execute a subquery created by this method.
   Query<T> join<T extends ManagedObject>({T object(InstanceType x), ManagedSet<T> set(InstanceType x)});
 
-  /// Deprecated: see [join].
-  @Deprecated("3.0, use join(object:set:) instead")
-  Query<T> joinOne<T extends ManagedObject>(
-      T propertyIdentifier(InstanceType x));
-
-  /// Deprecated: see [join].
-  @Deprecated("3.0, use join(object:set:) instead")
-  Query<T> joinMany<T extends ManagedObject>(
-      ManagedSet<T> propertyIdentifier(InstanceType x));
-
   /// Configures this instance to fetch a section of a larger result set.
   ///
   /// This method provides an effective mechanism for paging a result set by ordering rows
