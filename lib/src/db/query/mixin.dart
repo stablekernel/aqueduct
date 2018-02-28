@@ -64,20 +64,20 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
   @override
   Query<T> join<T extends ManagedObject>({T object(InstanceType x), ManagedSet<T> set(InstanceType x)}) {
-    final desc = identifyRelationship(entity, object ?? set);
+    final desc = identifyRelationship(object ?? set);
 
     return _createSubquery(desc);
   }
 
   @override
   void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order, {T boundingValue}) {
-    final attribute = identifyAttribute(entity, propertyIdentifier);
+    final attribute = identifyAttribute(propertyIdentifier);
     pageDescriptor = new QueryPage(order, attribute.name, boundingValue: boundingValue);
   }
 
   @override
   void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order) {
-    final attribute = identifyAttribute(entity, propertyIdentifier);
+    final attribute = identifyAttribute(propertyIdentifier);
 
     sortDescriptors ??= <QuerySortDescriptor>[];
     sortDescriptors.add(new QuerySortDescriptor(attribute.name, order));
@@ -85,7 +85,13 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
   @override
   void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x)) {
-    _propertiesToFetch = identifyProperties(entity, propertyIdentifiers);
+    final properties = identifyProperties(propertyIdentifiers);
+
+    if (properties.any((kp) => kp.path.any((p) => p is ManagedRelationshipDescription))) {
+      throw new ArgumentError("Invalid property selector. Cannot select relationship properties. Use join instead.");
+    }
+
+    _propertiesToFetch = identifyProperties(propertyIdentifiers);
   }
 
   void validateInput(ValidateOperation op) {
@@ -133,8 +139,23 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     return subquery;
   }
 
-  static ManagedAttributeDescription identifyAttribute<T>(ManagedEntity entity, T propertyIdentifier(ManagedObject x)) {
-    final propertyName = identifyProperties(entity, propertyIdentifier).first.path.first.name;
+  ManagedAttributeDescription identifyAttribute<T>(T propertyIdentifier(InstanceType x)) {
+    final keyPaths = identifyProperties(propertyIdentifier);
+    if (keyPaths.length != 1) {
+      throw new ArgumentError("Invalid property selector. Cannot access more than one property for this operation.");
+    }
+
+    final firstKeyPath = keyPaths.first;
+    if (firstKeyPath.dynamicElements != null) {
+      throw new ArgumentError("Invalid property selector. Cannot access subdocuments for this operation.");
+    }
+
+    final elements = firstKeyPath.path;
+    if (elements.length > 1) {
+      throw new ArgumentError("Invalid property selector. Cannot use relationships for this operation.");
+    }
+
+    final propertyName = elements.first.name;
     var attribute = entity.attributes[propertyName];
     if (attribute == null) {
       if (entity.relationships.containsKey(propertyName)) {
@@ -152,9 +173,23 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     return attribute;
   }
 
-  static ManagedRelationshipDescription identifyRelationship<T>(ManagedEntity entity, T propertyIdentifier(ManagedObject x)) {
-    final propertyName = identifyProperties(entity, propertyIdentifier).first.path.first.name;
+  ManagedRelationshipDescription identifyRelationship<T>(T propertyIdentifier(InstanceType x)) {
+    final keyPaths = identifyProperties(propertyIdentifier);
+    if (keyPaths.length != 1) {
+      throw new ArgumentError("Invalid property selector. Cannot access more than one property for this operation.");
+    }
 
+    final firstKeyPath = keyPaths.first;
+    if (firstKeyPath.dynamicElements != null) {
+      throw new ArgumentError("Invalid property selector. Cannot access subdocuments for this operation.");
+    }
+
+    final elements = firstKeyPath.path;
+    if (elements.length > 1) {
+      throw new ArgumentError("Invalid property selector. Cannot identify a nested relationship for this operation.");
+    }
+
+    final propertyName = elements.first.name;
     var desc = entity.relationships[propertyName];
     if (desc == null) {
       throw new ArgumentError("Invalid property selection. Relationship named '$propertyName' on table '${entity
@@ -164,7 +199,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     return desc;
   }
 
-  static List<KeyPath> identifyProperties<T>(ManagedEntity entity, T propertiesIdentifier(ManagedObject x)) {
+  List<KeyPath> identifyProperties<T>(T propertiesIdentifier(InstanceType x)) {
     final tracker = new ManagedAccessTrackingBacking();
     var obj = entity.newInstance(backing: tracker);
     propertiesIdentifier(obj);
