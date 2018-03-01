@@ -92,8 +92,8 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    ComparisonMatcherExpression comparisonMatcher = query.where["id"];
-    if (comparisonMatcher.operator != MatcherOperator.equalTo ||
+    ComparisonExpression comparisonMatcher = query.where["id"];
+    if (comparisonMatcher.operator != PredicateOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
     }
@@ -119,8 +119,8 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    ComparisonMatcherExpression comparisonMatcher = query.where["id"];
-    if (comparisonMatcher.operator != MatcherOperator.equalTo ||
+    ComparisonExpression comparisonMatcher = query.where["id"];
+    if (comparisonMatcher.operator != PredicateOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
     }
@@ -171,7 +171,7 @@ class _TestModel {
 class StringController extends QueryController<StringModel> {
   @Operation.get("id")
   Future<Response> get(@Bind.path("id") String id) async {
-    StringMatcherExpression comparisonMatcher = query.where["foo"];
+    StringExpression comparisonMatcher = query.where["foo"];
     return new Response.ok(comparisonMatcher.value);
   }
 }

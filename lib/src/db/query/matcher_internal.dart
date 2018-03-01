@@ -1,5 +1,5 @@
 /// The operator in a comparison matcher.
-enum MatcherOperator {
+enum PredicateOperator {
   lessThan,
   greaterThan,
   notEqual,
@@ -9,7 +9,7 @@ enum MatcherOperator {
 }
 
 /// The operator in a string matcher.
-enum StringMatcherOperator {
+enum PredicateStringOperator {
   beginsWith,
   contains,
   endsWith,
@@ -17,35 +17,35 @@ enum StringMatcherOperator {
 }
 
 
-abstract class MatcherExpression {
-  MatcherExpression get inverse;
+abstract class PredicateExpression {
+  PredicateExpression get inverse;
 }
 
-class ComparisonMatcherExpression implements MatcherExpression {
-  const ComparisonMatcherExpression(this.value, this.operator);
+class ComparisonExpression implements PredicateExpression {
+  const ComparisonExpression(this.value, this.operator);
 
   final dynamic value;
-  final MatcherOperator operator;
+  final PredicateOperator operator;
 
   @override
-  MatcherExpression get inverse {
-    return new ComparisonMatcherExpression(value, inverseOperator);
+  PredicateExpression get inverse {
+    return new ComparisonExpression(value, inverseOperator);
   }
 
-  MatcherOperator get inverseOperator {
+  PredicateOperator get inverseOperator {
     switch (operator) {
-      case MatcherOperator.lessThan:
-        return MatcherOperator.greaterThanEqualTo;
-      case MatcherOperator.greaterThan:
-        return MatcherOperator.lessThanEqualTo;
-      case MatcherOperator.notEqual:
-        return MatcherOperator.equalTo;
-      case MatcherOperator.lessThanEqualTo:
-        return MatcherOperator.greaterThan;
-      case MatcherOperator.greaterThanEqualTo:
-        return MatcherOperator.lessThan;
-      case MatcherOperator.equalTo:
-        return MatcherOperator.notEqual;
+      case PredicateOperator.lessThan:
+        return PredicateOperator.greaterThanEqualTo;
+      case PredicateOperator.greaterThan:
+        return PredicateOperator.lessThanEqualTo;
+      case PredicateOperator.notEqual:
+        return PredicateOperator.equalTo;
+      case PredicateOperator.lessThanEqualTo:
+        return PredicateOperator.greaterThan;
+      case PredicateOperator.greaterThanEqualTo:
+        return PredicateOperator.lessThan;
+      case PredicateOperator.equalTo:
+        return PredicateOperator.notEqual;
     }
 
     // this line just shuts up the analyzer
@@ -53,51 +53,51 @@ class ComparisonMatcherExpression implements MatcherExpression {
   }
 }
 
-class RangeMatcherExpression implements MatcherExpression {
-  const RangeMatcherExpression(this.lhs, this.rhs, this.within);
+class RangeExpression implements PredicateExpression {
+  const RangeExpression(this.lhs, this.rhs, this.within);
 
   final bool within;
   final dynamic lhs, rhs;
 
   @override
-  MatcherExpression get inverse {
-    return new RangeMatcherExpression(lhs, rhs, !within);
+  PredicateExpression get inverse {
+    return new RangeExpression(lhs, rhs, !within);
   }
 }
 
-class NullMatcherExpression implements MatcherExpression {
-  const NullMatcherExpression(this.shouldBeNull);
+class NullCheckExpression implements PredicateExpression {
+  const NullCheckExpression(this.shouldBeNull);
 
   final bool shouldBeNull;
 
   @override
-  MatcherExpression get inverse {
-    return new NullMatcherExpression(!shouldBeNull);
+  PredicateExpression get inverse {
+    return new NullCheckExpression(!shouldBeNull);
   }
 }
 
-class SetMembershipMatcherExpression implements MatcherExpression {
-  const SetMembershipMatcherExpression(this.values, {this.within: true});
+class SetMembershipExpression implements PredicateExpression {
+  const SetMembershipExpression(this.values, {this.within: true});
 
   final List<dynamic> values;
   final bool within;
 
   @override
-  MatcherExpression get inverse {
-    return new SetMembershipMatcherExpression(values, within: !within);
+  PredicateExpression get inverse {
+    return new SetMembershipExpression(values, within: !within);
   }
 }
 
-class StringMatcherExpression implements MatcherExpression {
-  const StringMatcherExpression(this.value, this.operator, {this.caseSensitive: true, this.invertOperator: false});
+class StringExpression implements PredicateExpression {
+  const StringExpression(this.value, this.operator, {this.caseSensitive: true, this.invertOperator: false});
 
-  final StringMatcherOperator operator;
+  final PredicateStringOperator operator;
   final bool invertOperator;
   final bool caseSensitive;
   final String value;
 
   @override
-  MatcherExpression get inverse {
-    return new StringMatcherExpression(value, operator, caseSensitive: caseSensitive, invertOperator: !invertOperator);
+  PredicateExpression get inverse {
+    return new StringExpression(value, operator, caseSensitive: caseSensitive, invertOperator: !invertOperator);
   }
 }

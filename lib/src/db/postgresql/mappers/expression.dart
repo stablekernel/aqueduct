@@ -10,21 +10,21 @@ class ExpressionMapper extends ColumnMapper {
       : super(table, property);
 
   String additionalVariablePrefix;
-  MatcherExpression expression;
+  PredicateExpression expression;
 
   String get defaultVariablePrefix => "$additionalVariablePrefix${table.tableReference}_";
 
   QueryPredicate get predicate {
     var expr = expression;
-    if (expr is ComparisonMatcherExpression) {
+    if (expr is ComparisonExpression) {
       return comparisonPredicate(expr.operator, expr.value);
-    } else if (expr is RangeMatcherExpression) {
+    } else if (expr is RangeExpression) {
       return rangePredicate(expr.lhs, expr.rhs, expr.within);
-    } else if (expr is NullMatcherExpression) {
+    } else if (expr is NullCheckExpression) {
       return nullPredicate(expr.shouldBeNull);
-    } else if (expr is SetMembershipMatcherExpression) {
+    } else if (expr is SetMembershipExpression) {
       return containsPredicate(expr.within, expr.values);
-    } else if (expr is StringMatcherExpression) {
+    } else if (expr is StringExpression) {
       return stringPredicate(expr.operator, expr.value, expr.caseSensitive, expr.invertOperator);
     }
 
@@ -32,7 +32,7 @@ class ExpressionMapper extends ColumnMapper {
         "Unknown expression applied to 'Query'. '${expr.runtimeType}' is not supported by 'PostgreSQL'.");
   }
 
-  QueryPredicate comparisonPredicate(MatcherOperator operator, dynamic value) {
+  QueryPredicate comparisonPredicate(PredicateOperator operator, dynamic value) {
     var name = columnName(withTableNamespace: true);
     var variableName = columnName(withPrefix: defaultVariablePrefix);
 
@@ -76,7 +76,7 @@ class ExpressionMapper extends ColumnMapper {
   }
 
   QueryPredicate stringPredicate(
-      StringMatcherOperator operator, dynamic value, bool caseSensitive, bool invertOperator) {
+      PredicateStringOperator operator, dynamic value, bool caseSensitive, bool invertOperator) {
     var n = columnName(withTableNamespace: true);
     var variableName = columnName(withPrefix: defaultVariablePrefix);
 
@@ -86,13 +86,13 @@ class ExpressionMapper extends ColumnMapper {
       operation = "NOT $operation";
     }
     switch (operator) {
-      case StringMatcherOperator.beginsWith:
+      case PredicateStringOperator.beginsWith:
         matchValue = "$value%";
         break;
-      case StringMatcherOperator.endsWith:
+      case PredicateStringOperator.endsWith:
         matchValue = "%$value";
         break;
-      case StringMatcherOperator.contains:
+      case PredicateStringOperator.contains:
         matchValue = "%$value%";
         break;
       default:

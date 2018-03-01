@@ -66,13 +66,13 @@ class ColumnMapper extends PostgresMapper {
     ManagedPropertyType.document: PostgreSQLDataType.json
   };
 
-  static Map<MatcherOperator, String> symbolTable = {
-    MatcherOperator.lessThan: "<",
-    MatcherOperator.greaterThan: ">",
-    MatcherOperator.notEqual: "!=",
-    MatcherOperator.lessThanEqualTo: "<=",
-    MatcherOperator.greaterThanEqualTo: ">=",
-    MatcherOperator.equalTo: "="
+  static Map<PredicateOperator, String> symbolTable = {
+    PredicateOperator.lessThan: "<",
+    PredicateOperator.greaterThan: ">",
+    PredicateOperator.notEqual: "!=",
+    PredicateOperator.lessThanEqualTo: "<=",
+    PredicateOperator.greaterThanEqualTo: ">=",
+    PredicateOperator.equalTo: "="
   };
 
   final EntityTableMapper table;
