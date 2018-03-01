@@ -527,7 +527,7 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
-      var q = new Query<ManagedAuthToken>()..where.code = whereEqualTo(code.code);
+      var q = new Query<ManagedAuthToken>()..where((o) => o.code).equalTo(code.code);
       expect(await q.fetch(), isEmpty);
     });
 
@@ -827,11 +827,11 @@ void main() {
           exchangedCode.code, "com.stablekernel.redirect", "mckinley");
 
       var codeQuery = new Query<ManagedAuthToken>()
-        ..where.code = whereEqualTo(exchangedCode.code);
+        ..where((o) => o.code).equalTo(exchangedCode.code);
       expect(await codeQuery.fetch(), hasLength(1));
 
       var tokenQuery = new Query<ManagedAuthToken>()
-        ..where.accessToken = whereEqualTo(exchangedToken.accessToken);
+        ..where((o) => o.accessToken).equalTo(exchangedToken.accessToken);
       await tokenQuery.delete();
 
       expect(await codeQuery.fetch(), isEmpty);
@@ -1275,7 +1275,7 @@ void main() {
           ]);
 
       var q = new Query<ManagedAuthClient>()
-        ..where.id = whereEqualTo("all.redirect")
+        ..where((o) => o.id).equalTo("all.redirect")
         ..values.allowedScope = "user location:add.readonly";
       await q.updateOne();
 

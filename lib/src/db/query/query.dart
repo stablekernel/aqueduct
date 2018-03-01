@@ -151,16 +151,23 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// result.
   QueryReduceOperation<InstanceType> get reduce;
 
-  /// A convenience for building [predicate] in a safe way.
+  /// Selects a property from the object being queried to add a filtering expression.
   ///
-  /// Use this property instead of providing a [predicate] to filter the rows this query manipulates or fetches. This property
-  /// is an instance of [InstanceType] with special [ManagedObject.backingMap] behavior. When you set properties of this property using
-  /// matchers (see examples such as [whereEqualTo] and [whereContains]), the underlying database will generate a [QueryPredicate] to
-  /// match the behavior of these matches. For example, the following query will generate a predicate that only operates on rows
-  /// where 'id' is greater than 1:
+  /// You use this property to add filtering expression to a query. The expressions are added to the SQL WHERE clause
+  /// of the generated query.
   ///
-  ///       var q = new Query<Employee>()
-  ///           ..where.employeeID = greaterThan(1);
+  /// You provide a closure for [propertyIdentifier] that returns a property of its argument. Its argument is always
+  /// an empty instance of the object being queried. You invoke methods like [QueryExpression.lessThan] on the
+  /// object returned from this method to add an expression to this query.
+  ///
+  ///         final query = new Query<Employee>()
+  ///           ..where((e) => e.name).equalTo("Bob");
+  ///
+  /// You may select properties of relationships using this method.
+  ///
+  ///         final query = new Query<Employee>()
+  ///           ..where((e) => e.manager.name).equalTo("Sally");
+  ///
   QueryExpression<T> where<T>(T propertyIdentifier(InstanceType x));
 
   /// Confirms that a query has no predicate before executing it.

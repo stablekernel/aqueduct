@@ -299,7 +299,7 @@ class RoleBasedAuthStorage extends ManagedAuthDelegate<User> {
   Future<User> fetchAuthenticatableByUsername(
       AuthServer server, String username) {
     var query = new Query<User>(context)
-      ..where.username = whereEqualTo(username)
+      ..where((o) => o.username).equalTo(username)
       ..returningProperties((t) => [t.id, t.hashedPassword, t.salt, t.username, t.role]);
 
     return query.fetchOne();

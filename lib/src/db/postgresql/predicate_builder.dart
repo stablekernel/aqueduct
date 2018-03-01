@@ -5,7 +5,6 @@ import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
 import 'package:aqueduct/src/db/postgresql/mappers/expression.dart';
 import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
 import 'package:aqueduct/src/db/postgresql/mappers/row.dart';
-import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 abstract class PredicateBuilder implements EntityTableMapper {
   @override

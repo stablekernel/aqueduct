@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
+import 'package:aqueduct/src/db/query/mixin.dart';
 import 'package:test/test.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -92,7 +93,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    ComparisonExpression comparisonMatcher = query.where["id"];
+    ComparisonExpression comparisonMatcher = (query as QueryMixin).expressions.firstWhere((expr) => expr.keyPath.path.first.name == "id").expression;
     if (comparisonMatcher.operator != PredicateOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
@@ -119,7 +120,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    ComparisonExpression comparisonMatcher = query.where["id"];
+    ComparisonExpression comparisonMatcher = (query as QueryMixin).expressions.firstWhere((expr) => expr.keyPath.path.first.name == "id").expression;
     if (comparisonMatcher.operator != PredicateOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
@@ -171,7 +172,7 @@ class _TestModel {
 class StringController extends QueryController<StringModel> {
   @Operation.get("id")
   Future<Response> get(@Bind.path("id") String id) async {
-    StringExpression comparisonMatcher = query.where["foo"];
+    StringExpression comparisonMatcher = (query as QueryMixin).expressions.firstWhere((expr) => expr.keyPath.path.first.name == "foo").expression;
     return new Response.ok(comparisonMatcher.value);
   }
 }

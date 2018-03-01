@@ -39,7 +39,7 @@ void main() {
       expect(results.length, 1);
       expect(results.first.id, 1);
 
-      q = new Query<TestModel>()..where((p) => p.id).equalTo(1).invert();
+      q = new Query<TestModel>()..where((p) => p.id).not.equalTo(1);
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.id == 1), false);
@@ -51,7 +51,7 @@ void main() {
       expect(results.length, 1);
       expect(results.first.id, 1);
 
-      q = new Query<TestModel>()..where((o) => o.email).equalTo("0@a.com").invert();
+      q = new Query<TestModel>()..where((o) => o.email).not.equalTo("0@a.com");
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.id == 1), false);
@@ -60,7 +60,7 @@ void main() {
       results = await q.fetch();
       expect(results.length, 0);
 
-      q = new Query<TestModel>()..where((o) => o.email).equalTo("0@A.com").invert();
+      q = new Query<TestModel>()..where((o) => o.email).not.equalTo("0@A.com");
       results = await q.fetch();
       expect(results.length, 6);
     });
@@ -71,7 +71,7 @@ void main() {
       expect(results.length, 1);
       expect(results.first.id, 1);
 
-      q = new Query<TestModel>()..where((o) => o.email).equalTo("0@A.com", caseSensitive: false).invert();
+      q = new Query<TestModel>()..where((o) => o.email).not.equalTo("0@A.com", caseSensitive: false);
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.email == "0@a.com"), false);
@@ -85,7 +85,7 @@ void main() {
     expect(results.first.id, 1);
     expect(results.last.id, 2);
 
-    q = new Query<TestModel>()..where((o) => o.id).lessThan(3).invert();
+    q = new Query<TestModel>()..where((o) => o.id).not.lessThan(3);
     results = await q.fetch();
     expect(results.length, 4);
     expect(results.every((tm) => tm.id >= 3), true);
@@ -99,7 +99,7 @@ void main() {
     expect(results[1].id, 2);
     expect(results[2].id, 3);
 
-    q = new Query<TestModel>()..where((o) => o.id).lessThanEqualTo(3).invert();
+    q = new Query<TestModel>()..where((o) => o.id).not.lessThanEqualTo(3);
     results = await q.fetch();
     expect(results.length, 3);
     expect(results.every((tm) => tm.id > 3), true);
@@ -112,7 +112,7 @@ void main() {
     expect(results[0].id, 5);
     expect(results[1].id, 6);
 
-    q = new Query<TestModel>()..where((o) => o.id).greaterThan(4).invert();
+    q = new Query<TestModel>()..where((o) => o.id).not.greaterThan(4);
     results = await q.fetch();
     expect(results.length, 4);
     expect(results.every((tm) => tm.id <= 4), true);
@@ -126,7 +126,7 @@ void main() {
     expect(results[1].id, 5);
     expect(results[2].id, 6);
 
-    q = new Query<TestModel>()..where((o) => o.id).greaterThanEqualTo(4).invert();
+    q = new Query<TestModel>()..where((o) => o.id).not.greaterThanEqualTo(4);
     results = await q.fetch();
     expect(results.length, 3);
     expect(results.every((tm) => tm.id < 4), true);
@@ -139,7 +139,7 @@ void main() {
       expect(results.length, 5);
       expect(results.any((t) => t.id == 1), false);
 
-      q = new Query<TestModel>()..where((o) => o.id).notEqualTo(1).invert();
+      q = new Query<TestModel>()..where((o) => o.id).not.notEqualTo(1);
       results = await q.fetch();
       expect(results.length, 1);
       expect(results.any((t) => t.id == 1), true);
@@ -151,7 +151,7 @@ void main() {
       expect(results.length, 5);
       expect(results.any((t) => t.id == 1), false);
 
-      q = new Query<TestModel>()..where((o) => o.email).notEqualTo("0@a.com").invert();
+      q = new Query<TestModel>()..where((o) => o.email).not.notEqualTo("0@a.com");
       results = await q.fetch();
       expect(results.length, 1);
       expect(results.any((t) => t.id == 1), true);
@@ -160,7 +160,7 @@ void main() {
       results = await q.fetch();
       expect(results.length, 6);
 
-      q = new Query<TestModel>()..where((o) => o.email).notEqualTo("0@A.com").invert();
+      q = new Query<TestModel>()..where((o) => o.email).not.notEqualTo("0@A.com");
       results = await q.fetch();
       expect(results.length, 0);
     });
@@ -171,7 +171,7 @@ void main() {
       expect(results.length, 5);
       expect(results.any((t) => t.id == 1), false);
 
-      q = new Query<TestModel>()..where((o) => o.email).notEqualTo("0@A.com", caseSensitive: false).invert();
+      q = new Query<TestModel>()..where((o) => o.email).not.notEqualTo("0@A.com", caseSensitive: false);
       results = await q.fetch();
       expect(results.length, 1);
       expect(results.any((t) => t.id == 1), true);
@@ -185,7 +185,7 @@ void main() {
     expect(results[0].id, 1);
     expect(results[1].id, 2);
 
-    q = new Query<TestModel>()..where((o) => o.id).oneOf([1, 2]).invert();
+    q = new Query<TestModel>()..where((o) => o.id).not.oneOf([1, 2]);
     results = await q.fetch();
     expect(results.length, 4);
     expect(results.any((t) => t.id == 1), false);
@@ -200,7 +200,7 @@ void main() {
     expect(results[1].id, 3);
     expect(results[2].id, 4);
 
-    q = new Query<TestModel>()..where((o) => o.id).between(2, 4).invert();
+    q = new Query<TestModel>()..where((o) => o.id).not.between(2, 4);
     results = await q.fetch();
     expect(results.length, 3);
 
@@ -218,7 +218,7 @@ void main() {
     expect(results[1].id, 5);
     expect(results[2].id, 6);
 
-    q = new Query<TestModel>()..where((o) => o.id).outsideOf(2, 4).invert();
+    q = new Query<TestModel>()..where((o) => o.id).not.outsideOf(2, 4);
     results = await q.fetch();
     expect(results.length, 3);
 
@@ -235,7 +235,7 @@ void main() {
     expect(results.first.owner.id, 1);
 
     // Does not include null values; this is intentional.
-    q = new Query<InnerModel>()..where((o) => o.owner).relatedByValue(1).invert();
+    q = new Query<InnerModel>()..where((o) => o.owner).not.relatedByValue(1);
     results = await q.fetch();
     expect(results.length, 0);
   });
@@ -246,7 +246,7 @@ void main() {
     expect(results.length, 1);
     expect(results.first.name, "No one's");
 
-    q = new Query<InnerModel>()..where((o) => o.owner).isNull().invert();
+    q = new Query<InnerModel>()..where((o) => o.owner).not.isNull();
     results = await q.fetch();
     expect(results.length, 1);
     expect(results.first.name, "Bob's");
@@ -258,7 +258,7 @@ void main() {
     expect(results.length, 1);
     expect(results.first.name, "Bob's");
 
-    q = new Query<InnerModel>()..where((o) => o.owner).isNotNull().invert();
+    q = new Query<InnerModel>()..where((o) => o.owner).not.isNotNull();
     results = await q.fetch();
     expect(results.length, 1);
     expect(results.first.name, "No one's");
@@ -272,7 +272,7 @@ void main() {
       expect(results.first.name, "Sally");
       expect(results.last.name, "Kanye");
 
-      q = new Query<TestModel>()..where((o) => o.name).contains("y").invert();
+      q = new Query<TestModel>()..where((o) => o.name).not.contains("y");
       results = await q.fetch();
       expect(results.length, 4);
       expect(results.any((tm) => tm.name == "Sally"), false);
@@ -286,7 +286,7 @@ void main() {
       expect(results.first.name, "Sally");
       expect(results.last.name, "Kanye");
 
-      q = new Query<TestModel>()..where((o) => o.name).contains("Y", caseSensitive: false).invert();
+      q = new Query<TestModel>()..where((o) => o.name).not.contains("Y", caseSensitive: false);
       results = await q.fetch();
       expect(results.length, 4);
       expect(results.any((tm) => tm.name == "Sally"), false);
@@ -301,7 +301,7 @@ void main() {
       expect(results.length, 1);
       expect(results.first.name, "Bob");
 
-      q = new Query<TestModel>()..where((o) => o.name).beginsWith("B").invert();
+      q = new Query<TestModel>()..where((o) => o.name).not.beginsWith("B");
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.name == "Bob"), false);
@@ -313,7 +313,7 @@ void main() {
       expect(results.length, 1);
       expect(results.first.name, "Bob");
 
-      q = new Query<TestModel>()..where((o) => o.name).beginsWith("b", caseSensitive: false).invert();
+      q = new Query<TestModel>()..where((o) => o.name).not.beginsWith("b", caseSensitive: false);
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.name == "Bob"), false);
@@ -327,7 +327,7 @@ void main() {
       expect(results.length, 1);
       expect(results.first.name, "Tim");
 
-      q = new Query<TestModel>()..where((o) => o.name).endsWith("m").invert();
+      q = new Query<TestModel>()..where((o) => o.name).not.endsWith("m");
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.name == "Tim"), false);
@@ -339,7 +339,7 @@ void main() {
       expect(results.length, 1);
       expect(results.first.name, "Tim");
 
-      q = new Query<TestModel>()..where((o) => o.name).endsWith("M", caseSensitive: false).invert();
+      q = new Query<TestModel>()..where((o) => o.name).not.endsWith("M", caseSensitive: false);
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.name == "Tim"), false);
