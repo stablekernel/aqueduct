@@ -43,7 +43,7 @@ class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<
   Future<U> _execute<U>(String function) async {
     var builder = new PostgresQueryBuilder(query.entity,
         predicate: query.predicate,
-        whereBuilder: query.hasWhereBuilder ? query.where : null);
+        expressions: query.expressions);
     var buffer = new StringBuffer();
     buffer.write("SELECT $function ");
     buffer.write("FROM ${builder.primaryTableDefinition} ");

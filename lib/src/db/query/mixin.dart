@@ -33,10 +33,8 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   Map<ManagedRelationshipDescription, Query> subQueries;
 
   QueryMixin _parentQuery;
-  InstanceType _whereBuilder;
+  List<QueryExpression<dynamic>> expressions = [];
   InstanceType _valueObject;
-
-  bool get hasWhereBuilder => _whereBuilder?.backingMap?.isNotEmpty ?? false;
 
   List<KeyPath> _propertiesToFetch;
 
@@ -56,11 +54,20 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   }
 
   @override
-  InstanceType get where {
-    if (_whereBuilder == null) {
-      _whereBuilder = entity.newInstance(backing: new ManagedMatcherBacking()) as InstanceType;
+  QueryExpression<T> where<T>(T propertyIdentifier(InstanceType x)) {
+    final properties = identifyProperties(propertyIdentifier);
+    if (properties.length != 1) {
+      throw new ArgumentError("Invalid property selector. Must reference a single property only.");
     }
-    return _whereBuilder;
+
+    final targetProperty = properties.first.path.last;
+    if (targetProperty is ManagedRelationshipDescription && targetProperty.relationshipType != ManagedRelationshipType.belongsTo) {
+      throw new ArgumentError("Invalid property selector. Cannot select has-one or has-many relationship property directly for 'Query.where'.");
+    }
+
+    final expr = new QueryExpression<T>(properties.first);
+    expressions.add(expr);
+    return expr;
   }
 
   @override

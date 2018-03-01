@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:aqueduct/src/db/managed/key_path.dart';
+
 import '../db.dart';
 import '../query/mixin.dart';
 import '../query/sort_descriptor.dart';
@@ -63,7 +65,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
         values: valueMap ?? values?.backingMap,
-        whereBuilder: (hasWhereBuilder ? where : null),
+        expressions: expressions,
         predicate: predicate);
 
     var buffer = new StringBuffer();
@@ -102,7 +104,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<int> delete() async {
-    var builder = new PostgresQueryBuilder(entity, predicate: predicate, whereBuilder: hasWhereBuilder ? where : null);
+    var builder = new PostgresQueryBuilder(entity, predicate: predicate, expressions: expressions);
 
     var buffer = new StringBuffer();
     buffer.write("DELETE FROM ${builder.primaryTableDefinition} ");
@@ -152,10 +154,11 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       allSortDescriptors.insert(0, pageSortDescriptor);
 
       if (pageDescriptor.boundingValue != null) {
+        final prop = entity.properties[pageDescriptor.propertyName];
         if (pageDescriptor.order == QuerySortOrder.ascending) {
-          where[pageDescriptor.propertyName] = whereGreaterThan(pageDescriptor.boundingValue);
+          expressions.add(new QueryExpression(new KeyPath(prop)).greaterThan(pageDescriptor.boundingValue));
         } else {
-          where[pageDescriptor.propertyName] = whereLessThan(pageDescriptor.boundingValue);
+          expressions.add(new QueryExpression(new KeyPath(prop)).lessThan(pageDescriptor.boundingValue));
         }
       }
     }
@@ -163,7 +166,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
         predicate: predicate,
-        whereBuilder: hasWhereBuilder ? where : null,
+        expressions: expressions,
         nestedRowMappers: rowMappersFromSubqueries,
         sortDescriptors: allSortDescriptors,
         aliasTables: true);
@@ -221,7 +224,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
           var joinElement = new RowMapper(PersistentJoinType.leftOuter, relationshipDesc, subQuery.propertiesToFetch,
               predicate: subQuery.predicate,
               sortDescriptors: subQuery.sortDescriptors,
-              whereBuilder: subQuery.hasWhereBuilder ? subQuery.where : null);
+              expressions: subQuery.expressions);
           joinElement.addRowMappers(subQuery.rowMappersFromSubqueries);
 
           return joinElement;

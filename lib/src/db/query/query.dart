@@ -161,7 +161,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   ///       var q = new Query<Employee>()
   ///           ..where.employeeID = greaterThan(1);
-  InstanceType get where;
+  QueryExpression<T> where<T>(T propertyIdentifier(InstanceType x));
 
   /// Confirms that a query has no predicate before executing it.
   ///

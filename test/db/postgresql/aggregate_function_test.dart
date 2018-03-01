@@ -36,7 +36,7 @@ void main() {
 
     test("Average with predicate", () async {
       var q = new Query<Test>()
-        ..where.id = whereLessThanEqualTo(5);
+        ..where((p) => p.id).lessThanEqualTo(5);
       var result = await q.reduce.average((t) => t.i);
       expect(result, objects.sublist(0, 5).fold(0, (p, n) => p + n.i) / 5);
     });
@@ -58,7 +58,7 @@ void main() {
 
     test("Count with predicate", () async {
       var q = new Query<Test>()
-        ..where.id = whereLessThanEqualTo(5);
+        ..where((p) => p.id).lessThanEqualTo(5);
       var result = await q.reduce.count();
       expect(result, 5);
     });
@@ -98,7 +98,7 @@ void main() {
 
     test("Maximum with predicate", () async {
       var q = new Query<Test>()
-        ..where.id = whereLessThanEqualTo(5);
+        ..where((p) => p.id).lessThanEqualTo(5);
       var result = await q.reduce.maximum((t) => t.i);
       expect(result, objects[4].i);
     });
@@ -138,7 +138,7 @@ void main() {
 
     test("Minimum with predicate", () async {
       var q = new Query<Test>()
-        ..where.id = whereGreaterThan(5);
+        ..where((p) => p.id).greaterThan(5);
       var result = await q.reduce.minimum((t) => t.i);
       expect(result, objects[5].i);
     });
@@ -166,7 +166,7 @@ void main() {
 
     test("Sum with predicate", () async {
       var q = new Query<Test>()
-        ..where.id = whereLessThanEqualTo(5);
+        ..where((p) => p.id).lessThanEqualTo(5);
       var result = await q.reduce.sum((t) => t.i);
       expect(result, objects.sublist(0, 5).fold(0, (p, a) => p + a.i));
     });
