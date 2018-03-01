@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:aqueduct/src/db/managed/key_path.dart';
+import 'package:aqueduct/src/db/query/matcher_internal.dart';
 
 import '../db.dart';
 import '../query/mixin.dart';
@@ -155,11 +156,15 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
       if (pageDescriptor.boundingValue != null) {
         final prop = entity.properties[pageDescriptor.propertyName];
+        final expr = new QueryExpression(new KeyPath(prop));
+
         if (pageDescriptor.order == QuerySortOrder.ascending) {
-          expressions.add(new QueryExpression(new KeyPath(prop)).greaterThan(pageDescriptor.boundingValue));
+          expr.expression = new ComparisonExpression(pageDescriptor.boundingValue, PredicateOperator.greaterThan);
         } else {
-          expressions.add(new QueryExpression(new KeyPath(prop)).lessThan(pageDescriptor.boundingValue));
+          expr.expression = new ComparisonExpression(pageDescriptor.boundingValue, PredicateOperator.lessThan);
         }
+
+        expressions.add(expr);
       }
     }
 

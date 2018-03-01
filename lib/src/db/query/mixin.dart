@@ -60,11 +60,6 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
       throw new ArgumentError("Invalid property selector. Must reference a single property only.");
     }
 
-    final targetProperty = properties.first.path.last;
-    if (targetProperty is ManagedRelationshipDescription && targetProperty.relationshipType != ManagedRelationshipType.belongsTo) {
-      throw new ArgumentError("Invalid property selector. Cannot select has-one or has-many relationship property directly for 'Query.where'.");
-    }
-
     final expr = new QueryExpression<T>(properties.first);
     expressions.add(expr);
     return expr;

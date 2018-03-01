@@ -59,7 +59,7 @@ void main() {
       final o = await q.insert();
 
       final u = new Query<Obj>()
-        ..where.id = whereEqualTo(o.id)
+        ..where((o) => o.id).equalTo(o.id)
         ..values.document = new Document(["a"]);
       final updated = await u.updateOne();
       expect(updated.document.data, ["a"]);
@@ -91,13 +91,13 @@ void main() {
     test("Can subscript top-level object and return primitive", () async {
       // {"key": "value"}
       var q = new Query<Obj>()
-          ..where.id = whereEqualTo(1)
+          ..where((o) => o.id).equalTo(1)
           ..returningProperties((obj) => [obj.id, obj.document["key"]]);
       var o = await q.fetchOne();
       expect(o.document.data, "value");
 
       q = new Query<Obj>()
-        ..where.id = whereEqualTo(1)
+        ..where((o) => o.id).equalTo(1)
         ..returningProperties((obj) => [obj.id, obj.document["unknownKey"]]);
       o = await q.fetchOne();
       expect(o.document, null);
@@ -106,7 +106,7 @@ void main() {
     test("Can subscript top-level object and return array", () async {
       // {"key": [1, 2]},
       var q = new Query<Obj>()
-        ..where.id = whereEqualTo(2)
+        ..where((o) => o.id).equalTo(2)
         ..returningProperties((obj) => [obj.id, obj.document["key"]]);
       var o = await q.fetchOne();
       expect(o.document.data, [1, 2]);
@@ -115,7 +115,7 @@ void main() {
     test("Can subscript top-level object and return object", () async {
       // {"key": {"innerKey": "value"}}
       final q = new Query<Obj>()
-        ..where.id = whereEqualTo(3)
+        ..where((o) => o.id).equalTo(3)
         ..returningProperties((obj) => [obj.id, obj.document["key"]]);
       final o = await q.fetchOne();
       expect(o.document.data, {"innerKey": "value"});
@@ -124,25 +124,25 @@ void main() {
     test("Can subscript top-level array and return indexed primitive", () async {
       // [1, 2],
       var q = new Query<Obj>()
-        ..where.id = whereEqualTo(4)
+        ..where((o) => o.id).equalTo(4)
         ..returningProperties((obj) => [obj.id, obj.document[0]]);
       var o = await q.fetchOne();
       expect(o.document.data, 1);
 
       q = new Query<Obj>()
-        ..where.id = whereEqualTo(4)
+        ..where((o) => o.id).equalTo(4)
         ..returningProperties((obj) => [obj.id, obj.document[1]]);
       o = await q.fetchOne();
       expect(o.document.data, 2);
 
       q = new Query<Obj>()
-        ..where.id = whereEqualTo(4)
+        ..where((o) => o.id).equalTo(4)
         ..returningProperties((obj) => [obj.id, obj.document[-1]]);
       o = await q.fetchOne();
       expect(o.document.data, 2);
 
       q = new Query<Obj>()
-        ..where.id = whereEqualTo(4)
+        ..where((o) => o.id).equalTo(4)
         ..returningProperties((obj) => [obj.id, obj.document[3]]);
       o = await q.fetchOne();
       expect(o.document, null);
@@ -151,19 +151,19 @@ void main() {
     test("Can subscript object and inner array", () async {
       // {"key": [1, 2]},
       var q = new Query<Obj>()
-        ..where.id = whereEqualTo(2)
+        ..where((o) => o.id).equalTo(2)
         ..returningProperties((obj) => [obj.id, obj.document["key"][0]]);
       var o = await q.fetchOne();
       expect(o.document.data, 1);
 
       q = new Query<Obj>()
-        ..where.id = whereEqualTo(2)
+        ..where((o) => o.id).equalTo(2)
         ..returningProperties((obj) => [obj.id, obj.document["foo"][0]]);
       o = await q.fetchOne();
       expect(o.document, null);
 
       q = new Query<Obj>()
-        ..where.id = whereEqualTo(2)
+        ..where((o) => o.id).equalTo(2)
         ..returningProperties((obj) => [obj.id, obj.document["key"][3]]);
       o = await q.fetchOne();
       expect(o.document, null);
@@ -172,25 +172,25 @@ void main() {
     test("Can subscript array and inner object", () async {
       // [{"1": "v1"}, {"2": "v2"}]
       var q = new Query<Obj>()
-        ..where.id = whereEqualTo(5)
+        ..where((o) => o.id).equalTo(5)
         ..returningProperties((obj) => [obj.id, obj.document[0]["1"]]);
       var o = await q.fetchOne();
       expect(o.document.data, "v1");
 
       q = new Query<Obj>()
-        ..where.id = whereEqualTo(5)
+        ..where((o) => o.id).equalTo(5)
         ..returningProperties((obj) => [obj.id, obj.document[1]["2"]]);
       o = await q.fetchOne();
       expect(o.document.data, "v2");
 
       q = new Query<Obj>()
-        ..where.id = whereEqualTo(5)
+        ..where((o) => o.id).equalTo(5)
         ..returningProperties((obj) => [obj.id, obj.document[3]["2"]]);
       o = await q.fetchOne();
       expect(o.document, null);
 
       q = new Query<Obj>()
-        ..where.id = whereEqualTo(5)
+        ..where((o) => o.id).equalTo(5)
         ..returningProperties((obj) => [obj.id, obj.document[0]["foo"]]);
       o = await q.fetchOne();
       expect(o.document, null);

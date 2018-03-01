@@ -18,14 +18,14 @@ void main() {
     var objectID = (await q.insert()).id;
 
     q = new Query<T>()
-      ..where.id = whereEqualTo(objectID)
+      ..where((o) => o.id).equalTo(objectID)
       ..values.equalTo2OnUpdate = 2;
     var o = (await q.update()).first;
     expect(o.aOrb, "a");
     expect(o.equalTo2OnUpdate, 2);
 
     q = new Query<T>()
-      ..where.id = whereEqualTo(objectID)
+      ..where((o) => o.id).equalTo(objectID)
       ..values.aOrb = "c"
       ..values.equalTo2OnUpdate = 2;
     try {
@@ -36,7 +36,7 @@ void main() {
     }
 
     q = new Query<T>()
-      ..where.id = whereEqualTo(objectID)
+      ..where((o) => o.id).equalTo(objectID)
       ..values.aOrb = "b"
       ..values.equalTo2OnUpdate = 1;
     try {
@@ -47,7 +47,7 @@ void main() {
     }
 
     q = new Query<T>()
-      ..where.id = whereEqualTo(objectID)
+      ..where((o) => o.id).equalTo(objectID)
       ..values.aOrb = "b"
       ..values.equalTo1OnInsert = 2
       ..values.equalTo2OnUpdate = 2;
@@ -59,7 +59,7 @@ void main() {
 
   test("updateOne runs update validations", () async {
     var q = new Query<T>()
-      ..where.id = whereEqualTo(1)
+      ..where((o) => o.id).equalTo(1)
       ..values.equalTo2OnUpdate = 3;
     try {
       await q.updateOne();
@@ -121,7 +121,7 @@ void main() {
   test("willUpdate runs prior to update", () async {
     var q = new Query<U>();
     var o = await q.insert();
-    q = new Query<U>()..where.id = whereEqualTo(o.id);
+    q = new Query<U>()..where((o) => o.id).equalTo(o.id);
     o = (await q.update()).first;
     expect(o.q, "willUpdate");
   });
@@ -138,7 +138,7 @@ void main() {
     var q = new Query<V>();
     var o = await q.insert();
 
-    q = new Query<V>()..where.id = whereEqualTo(o.id);
+    q = new Query<V>()..where((o) => o.id).equalTo(o.id);
     try {
       await q.update();
       expect(true, false);

@@ -15,7 +15,7 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
     _sortMappers = sortDescriptors?.map((s) => new SortMapper(this, entity.properties[s.key], s.order))?.toList();
   }
 
-  RowMapper.implicit(this.type, this.joiningProperty) {
+  RowMapper.implicit(this.type, this.joiningProperty, this.originatingTable) {
     returningOrderedMappers = [];
   }
 

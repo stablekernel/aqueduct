@@ -30,7 +30,7 @@ void main() {
         () async {
       var q = new Query<Parent>()
         ..join(object: (p) => p.child)
-        ..where.name = whereEqualTo("D");
+        ..where((o) => o.name).equalTo("D");
 
       var verifier = (Parent p) {
         expect(p.name, "D");
@@ -45,7 +45,7 @@ void main() {
     test(
         "Fetch has-one relationship that is null returns null for property, and more nested has relationships are ignored",
         () async {
-      var q = new Query<Parent>()..where.name = whereEqualTo("D");
+      var q = new Query<Parent>()..where((o) => o.name).equalTo("D");
 
       q.join(object: (p) => p.child)
         ..join(object: (c) => c.toy)
@@ -61,7 +61,7 @@ void main() {
       verifier((await q.fetch()).first);
 
       var dynQuery = new Query.forEntity(context.dataModel.entityForType(Parent))
-        ..where["name"] = whereEqualTo("D");
+        ..where((o) => o["name"]).equalTo("D");
 
       dynQuery.join<ManagedObject>(object: (p) => p["child"])
         ..join<ManagedObject>(object: (c) => c["toy"])
@@ -75,7 +75,7 @@ void main() {
         () async {
       var q = new Query<Parent>()
         ..join(object: (p) => p.child)
-        ..where.name = whereEqualTo("C");
+        ..where((o) => o.name).equalTo("C");
 
       var verifier = (Parent p) {
         expect(p.name, "C");
@@ -92,7 +92,7 @@ void main() {
     test(
         "Fetch has-one relationship, include has-one and has-many in that has-one, where bottom of graph has valid object for hasmany but not for hasone",
         () async {
-      var q = new Query<Parent>()..where.name = whereEqualTo("B");
+      var q = new Query<Parent>()..where((o) => o.name).equalTo("B");
 
       q.join(object: (p) => p.child)
         ..join(object: (c) => c.toy)
@@ -117,7 +117,7 @@ void main() {
     test(
         "Fetch has-one relationship, include has-one and has-many in that has-one, where bottom of graph is all null/empty",
         () async {
-      var q = new Query<Parent>()..where.name = whereEqualTo("C");
+      var q = new Query<Parent>()..where((o) => o.name).equalTo("C");
 
       q.join(object: (p) => p.child)
         ..join(object: (c) => c.toy)
@@ -142,7 +142,7 @@ void main() {
         () async {
       var q = new Query<Parent>()
         ..join(object: (p) => p.child)
-        ..where.name = whereIn(["C", "D"]);
+        ..where((o) => o.name).oneOf(["C", "D"]);
 
       var results = await q.fetch();
       expect(results.first.pid, isNotNull);
@@ -200,7 +200,7 @@ void main() {
 
     test("Predicate impacts top-level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>()..where.name = whereEqualTo("A");
+      var q = new Query<Parent>()..where((o) => o.name).equalTo("A");
       q.join(object: (p) => p.child)
         ..join(object: (c) => c.toy)
         ..join(set: (c) => c.vaccinations)
@@ -222,7 +222,7 @@ void main() {
         () async {
       var q = new Query<Parent>();
       q.join(object: (p) => p.child)
-        ..where.name = whereEqualTo("C1")
+        ..where((o) => o.name).equalTo("C1")
         ..join(object: (c) => c.toy)
         ..join(set: (c) => c.vaccinations)
             .sortBy((v) => v.vid, QuerySortOrder.ascending);
@@ -248,7 +248,7 @@ void main() {
         () async {
       var q = new Query<Parent>();
       var childJoin = q.join(object: (p) => p.child)..join(object: (c) => c.toy);
-      childJoin.join(set: (c) => c.vaccinations)..where.kind = whereEqualTo("V1");
+      childJoin.join(set: (c) => c.vaccinations)..where((o) => o.kind).equalTo("V1");
 
       var results = await q.fetch();
 
@@ -269,10 +269,10 @@ void main() {
     test(
         "Predicate that omits top-level objects but would include lower level object return no results",
         () async {
-      var q = new Query<Parent>()..where.pid = whereEqualTo(5);
+      var q = new Query<Parent>()..where((o) => o.pid).equalTo(5);
 
       var childJoin = q.join(object: (p) => p.child)..join(object: (c) => c.toy);
-      childJoin.join(set: (c) => c.vaccinations)..where.kind = whereEqualTo("V1");
+      childJoin.join(set: (c) => c.vaccinations)..where((o) => o.kind).equalTo("V1");
       var results = await q.fetch();
       expect(results.length, 0);
     });
@@ -359,7 +359,7 @@ void main() {
 
     test("Objects returned in join are not the same instance", () async {
       var q = new Query<Parent>()
-        ..where.pid = whereEqualTo(1)
+        ..where((o) => o.pid).equalTo(1)
         ..join(object: (p) => p.child);
 
       var o = await q.fetchOne();

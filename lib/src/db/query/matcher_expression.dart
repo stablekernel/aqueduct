@@ -36,14 +36,21 @@ class QueryExpressionJunction<T> {
 
 class QueryExpression<T> {
   QueryExpression(this.keyPath);
-  QueryExpression.from(QueryExpression<T> original, int offset) :
-      keyPath = new KeyPath.from(original.keyPath, offset),
-      expression = original.expression;
+
+  QueryExpression.forNestedProperty(QueryExpression<T> original, int offset)
+      : keyPath = new KeyPath.byRemovingFirstNKeys(original.keyPath, 1),
+        expression = original.expression;
+
+  QueryExpression.byAddingKey(QueryExpression<T> original, ManagedPropertyDescription byAdding)
+      : keyPath = new KeyPath.byAddingKey(original.keyPath, byAdding),
+        expression = original.expression;
 
   final KeyPath keyPath;
 
   // todo: This needs to be extended to an expr tree
-  MatcherExpression expression;
+  PredicateExpression expression;
+
+  QueryExpressionJunction<T> createJunction() => new QueryExpressionJunction<T>._(this);
 
   /// Query matcher that tests that a column is equal to [value].
   ///
@@ -62,13 +69,12 @@ class QueryExpression<T> {
   ///
   QueryExpressionJunction<T> equalTo(T value, {bool caseSensitive: true}) {
     if (value is String) {
-      expression = new StringMatcherExpression(
-          value, StringMatcherOperator.equals, caseSensitive: caseSensitive);
+      expression = new StringExpression(value, PredicateStringOperator.equals, caseSensitive: caseSensitive);
     } else {
-      expression = new ComparisonMatcherExpression(value, MatcherOperator.equalTo);
+      expression = new ComparisonExpression(value, PredicateOperator.equalTo);
     }
 
-    return this;
+    return createJunction();
   }
 
   /// Query matcher that tests that a column is not equal to [value].
@@ -88,17 +94,14 @@ class QueryExpression<T> {
   ///
   QueryExpressionJunction<T> notEqualTo(T value, {bool caseSensitive: true}) {
     if (value is String) {
-      expression = new StringMatcherExpression(
-          value, StringMatcherOperator.equals,
-          caseSensitive: caseSensitive,
-          invertOperator: true);
+      expression = new StringExpression(value, PredicateStringOperator.equals,
+          caseSensitive: caseSensitive, invertOperator: true);
     } else {
-      expression = new ComparisonMatcherExpression(value, MatcherOperator.notEqual);
+      expression = new ComparisonExpression(value, PredicateOperator.notEqual);
     }
 
-    return this;
+    return createJunction();
   }
-
 
   /// Query matcher that tests that a column is greater than [value].
   ///
@@ -115,8 +118,9 @@ class QueryExpression<T> {
   ///       var query = new Query<Employee>()
   ///         ..where.salary = whereGreaterThan(60000);
   QueryExpressionJunction<T> greaterThan(T value) {
-    expression = new ComparisonMatcherExpression(value, MatcherOperator.greaterThan);
-    return this;
+    expression = new ComparisonExpression(value, PredicateOperator.greaterThan);
+
+    return createJunction();
   }
 
   /// Query matcher that tests that a column is greater than or equal to [value].
@@ -133,9 +137,9 @@ class QueryExpression<T> {
   ///       var query = new Query<Employee>()
   ///         ..where.salary = whereGreaterThanEqualTo(60000);
   QueryExpressionJunction<T> greaterThanEqualTo(T value) {
-    expression = new ComparisonMatcherExpression(
-        value, MatcherOperator.greaterThanEqualTo);
-    return this;
+    expression = new ComparisonExpression(value, PredicateOperator.greaterThanEqualTo);
+
+    return createJunction();
   }
 
   /// Query matcher that tests that a column is less than [value].
@@ -152,8 +156,9 @@ class QueryExpression<T> {
   ///       var query = new Query<Employee>()
   ///         ..where.salary = whereLessThan(60000);
   QueryExpressionJunction<T> lessThan(T value) {
-    expression = new ComparisonMatcherExpression(value, MatcherOperator.lessThan);
-    return this;
+    expression = new ComparisonExpression(value, PredicateOperator.lessThan);
+
+    return createJunction();
   }
 
   /// Query matcher that tests that a column is less than [value].
@@ -170,9 +175,9 @@ class QueryExpression<T> {
   ///       var query = new Query<Employee>()
   ///         ..where.salary = whereLessThanEqualTo(60000);
   QueryExpressionJunction<T> lessThanEqualTo(T value) {
-    expression = new ComparisonMatcherExpression(
-        value, MatcherOperator.lessThanEqualTo);
-    return this;
+    expression = new ComparisonExpression(value, PredicateOperator.lessThanEqualTo);
+
+    return createJunction();
   }
 
   /// Query matcher that tests that a column contains [value].
@@ -190,9 +195,11 @@ class QueryExpression<T> {
   ///         ..where.title = whereContains("Director");
   ///
   QueryExpressionJunction<T> contains(String value, {bool caseSensitive: true}) {
-    expression = new StringMatcherExpression(value, StringMatcherOperator.contains, caseSensitive: caseSensitive);
-    return this;
+    expression = new StringExpression(value, PredicateStringOperator.contains, caseSensitive: caseSensitive);
+
+    return createJunction();
   }
+
   /// Query matcher that tests that a column begins with [value].
   ///
   /// When assigned to a [Query.where] property, only rows where that property
@@ -205,8 +212,9 @@ class QueryExpression<T> {
   ///       var query = new Query<Employee>()
   ///         ..where.name = whereBeginsWith("B");
   QueryExpressionJunction<T> beginsWith(String value, {bool caseSensitive: true}) {
-    expression = new StringMatcherExpression(value, StringMatcherOperator.beginsWith, caseSensitive: caseSensitive);
-    return this;
+    expression = new StringExpression(value, PredicateStringOperator.beginsWith, caseSensitive: caseSensitive);
+
+    return createJunction();
   }
 
   /// Query matcher that tests that a column ends with [value].
@@ -221,8 +229,9 @@ class QueryExpression<T> {
   ///       var query = new Query<Employee>()
   ///         ..where.name = whereEndsWith("son");
   QueryExpressionJunction<T> endsWith(String value, {bool caseSensitive: true}) {
-    expression = new StringMatcherExpression(value, StringMatcherOperator.endsWith, caseSensitive: caseSensitive);
-    return this;
+    expression = new StringExpression(value, PredicateStringOperator.endsWith, caseSensitive: caseSensitive);
+
+    return createJunction();
   }
 
   /// Query matcher that tests that a column's value is in [values].
@@ -237,8 +246,9 @@ class QueryExpression<T> {
   ///       var query = new Query<Employee>()
   ///         ..where.department = whereIn(["Engineering", "HR"]);
   QueryExpressionJunction<T> oneOf(Iterable<T> values) {
-    expression = new SetMembershipMatcherExpression(values.toList());
-    return this;
+    expression = new SetMembershipExpression(values.toList());
+
+    return createJunction();
   }
 
   /// Query matcher that tests that a column is between [lhs] and [rhs].
@@ -256,8 +266,9 @@ class QueryExpression<T> {
   ///       var query = new Query<Employee>()
   ///         ..where.salary = whereBetween(80000, 100000);
   QueryExpressionJunction<T> between(T lhs, T rhs) {
-    expression = new RangeMatcherExpression(lhs, rhs, true);
-    return this;
+    expression = new RangeExpression(lhs, rhs, true);
+
+    return createJunction();
   }
 
   /// Query matcher that tests that a column is not between [lhs] and [rhs].
@@ -275,8 +286,9 @@ class QueryExpression<T> {
   ///       var query = new Query<Employee>()
   ///         ..where.salary = whereOutsideOf(80000, 100000);
   QueryExpressionJunction<T> outsideOf(T lhs, T rhs) {
-    expression = new RangeMatcherExpression(lhs, rhs, false);
-    return this;
+    expression = new RangeExpression(lhs, rhs, false);
+
+    return createJunction();
   }
 
   /// Query matcher that tests that a relationship is related by [foreignKeyValue].
@@ -290,9 +302,9 @@ class QueryExpression<T> {
   ///       var q = new Query<Employee>()
   ///         ..where.manager = whereRelatedByValue(managerID);
   QueryExpressionJunction<T> relatedByValue(dynamic foreignKeyValue) {
-    expression = new ComparisonMatcherExpression(
-        foreignKeyValue, MatcherOperator.equalTo);
-    return this;
+    expression = new ComparisonExpression(foreignKeyValue, PredicateOperator.equalTo);
+
+    return createJunction();
   }
 
   /// Query matcher that tests whether a column value is null.
@@ -307,8 +319,9 @@ class QueryExpression<T> {
   ///       var q = new Query<Employee>()
   ///         ..where.manager = whereNull;
   QueryExpressionJunction<T> isNull() {
-    expression = const NullMatcherExpression(true);
-    return this;
+    expression = const NullCheckExpression(true);
+
+    return createJunction();
   }
 
   /// Query matcher that tests whether a column value is not null.
@@ -323,7 +336,8 @@ class QueryExpression<T> {
   ///       var q = new Query<Employee>()
   ///         ..where.manager = whereNotNull;
   QueryExpressionJunction<T> isNotNull() {
-    expression = const NullMatcherExpression(false);
-    return this;
+    expression = const NullCheckExpression(false);
+
+    return createJunction();
   }
 }

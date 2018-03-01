@@ -19,13 +19,13 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     final q = new Query<TestModel>()
-      ..where.id = whereEqualTo(1)
-      ..where.n = whereEqualTo("a")
-      ..where.t = whereEqualTo(new DateTime.now())
-      ..where.l = whereEqualTo(1)
-      ..where.b = whereEqualTo(true)
-      ..where.d = whereEqualTo(1.0)
-      ..where.doc = whereEqualTo({"k":"v"});
+      ..where((o) => o.id).equalTo(1)
+      ..where((o) => o.n).equalTo("a")
+      ..where((o) => o.t).equalTo(new DateTime.now())
+      ..where((o) => o.l).equalTo(1)
+      ..where((o) => o.b).equalTo(true)
+      ..where((o) => o.d).equalTo(1.0)
+      ..where((o) => o.doc).equalTo(new Document({"k":"v"}));
 
     var mapper = (q as PostgresQuery).createFetchMapper();
     expect(mapper.finalizedPredicate.format, contains("id:int8"));

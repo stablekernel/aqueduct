@@ -130,20 +130,20 @@ void main() {
     test("Can use implicit matcher across many to many table", () async {
       var q = new Query<RootObject>()
         ..sortBy((r) => r.rid, QuerySortOrder.ascending)
-        ..where.join.haveAtLeastOneWhere.other.value1 = whereLessThan(4);
+        ..where((o) => o.join.haveAtLeastOneWhere.other.value1).lessThan(4);
 
       var results = await q.fetch();
       expect(results.map((r) => r.asMap()).toList(),
           equals([fullObjectMap(RootObject, 1), fullObjectMap(RootObject, 2)]));
 
-      q.where.join.haveAtLeastOneWhere.other.value1 = whereEqualTo(3);
+      q.where((o) => o.join.haveAtLeastOneWhere.other.value1).equalTo(3);
       results = await q.fetch();
       expect(
           results.map((r) => r.asMap()).toList(), equals([fullObjectMap(RootObject, 2)]));
     });
 
     test("Can use implicit join with join table to one side", () async {
-      var q = new Query<RootJoinObject>()..where.root.value1 = whereEqualTo(1);
+      var q = new Query<RootJoinObject>()..where((o) => o.root.value1).equalTo(1);
       var results = await q.fetch();
       expect(
           results.map((r) => r.asMap()).toList(),
@@ -163,8 +163,8 @@ void main() {
 
     test("Can use implicit join with join table to both sides", () async {
       var q = new Query<RootJoinObject>()
-        ..where.root.value1 = whereEqualTo(1)
-        ..where.other.value1 = whereEqualTo(1);
+        ..where((o) => o.root.value1).equalTo(1)
+        ..where((o) => o.other.value1).equalTo(1);
       var results = await q.fetch();
       expect(
           results.map((r) => r.asMap()).toList(),
@@ -177,8 +177,8 @@ void main() {
           ]));
 
       q = new Query<RootJoinObject>()
-        ..where.root.value1 = whereEqualTo(1)
-        ..where.other.value1 = whereEqualTo(2);
+        ..where((o) => o.root.value1).equalTo(1)
+        ..where((o) => o.other.value1).equalTo(2);
       results = await q.fetch();
       expect(
           results.map((r) => r.asMap()).toList(),
@@ -191,8 +191,8 @@ void main() {
           ]));
 
       q = new Query<RootJoinObject>()
-        ..where.root.value1 = whereEqualTo(2)
-        ..where.other.value1 = whereEqualTo(2);
+        ..where((o) => o.root.value1).equalTo(2)
+        ..where((o) => o.other.value1).equalTo(2);
       results = await q.fetch();
       expect(results.map((r) => r.asMap()).toList(), equals([]));
     });
@@ -344,8 +344,7 @@ void main() {
       // 'Teams that have played at Minnesota'
       var q = new Query<Team>()
         ..sortBy((t) => t.id, QuerySortOrder.ascending)
-        ..where.awayGames.haveAtLeastOneWhere.homeTeam.name =
-            whereContains("Minn");
+        ..where((o) => o.awayGames.haveAtLeastOneWhere.homeTeam.name).contains("Minn");
       var results = await q.fetch();
       expect(
           results.map((t) => t.asMap()).toList(),
@@ -356,15 +355,14 @@ void main() {
       // 'Teams that have played at Iowa'
       q = new Query<Team>()
         ..sortBy((t) => t.id, QuerySortOrder.ascending)
-        ..where.awayGames.haveAtLeastOneWhere.homeTeam.name =
-            whereContains("Iowa");
+        ..where((o) => o.awayGames.haveAtLeastOneWhere.homeTeam.name).contains("Iowa");
       results = await q.fetch();
       expect(results.map((t) => t.asMap()).toList(), equals([]));
     });
 
     test("Can implicit join from join table - one side", () async {
       // 'Games where Iowa was away'
-      var q = new Query<Game>()..where.awayTeam.name = whereContains("Iowa");
+      var q = new Query<Game>()..where((o) => o.awayTeam.name).contains("Iowa");
       var results = await q.fetch();
       expect(
           results.map((g) => g.asMap()).toList(),
@@ -389,8 +387,8 @@ void main() {
     test("Can implicit join from join table - both sides", () async {
       // 'Games where Iowa played Wisconsin at home'
       var q = new Query<Game>()
-        ..where.homeTeam.name = whereContains("Wisco")
-        ..where.awayTeam.name = whereContains("Iowa");
+        ..where((o) => o.homeTeam.name).contains("Wisco")
+        ..where((o) => o.awayTeam.name).contains("Iowa");
       var results = await q.fetch();
       expect(
           results.map((g) => g.asMap()).toList(),
@@ -411,7 +409,7 @@ void main() {
       try {
         var q = new Query<Team>();
         q.join(set: (t) => t.awayGames)
-          ..where.awayTeam.name = whereContains("Minn");
+          ..where((o) => o.awayTeam.name).contains("Minn");
         await q.fetch();
 
         expect(true, false);
@@ -426,7 +424,7 @@ void main() {
       // 'All teams and the games they've played at Minnesota'
       var q = new Query<Team>();
       q.join(set: (t) => t.awayGames)
-        ..where.homeTeam.name = whereContains("Minn");
+        ..where((o) => o.homeTeam.name).contains("Minn");
       var results = await q.fetch();
 
       expect(

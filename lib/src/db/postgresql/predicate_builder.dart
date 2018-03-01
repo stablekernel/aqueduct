@@ -1,3 +1,5 @@
+import 'package:aqueduct/src/db/managed/key_path.dart';
+
 import '../db.dart';
 import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
 import 'package:aqueduct/src/db/postgresql/mappers/expression.dart';
@@ -28,56 +30,65 @@ abstract class PredicateBuilder implements EntityTableMapper {
 
     return expressions
         .map((expression) {
+          final firstElement = expression.keyPath.path.first;
           final lastElement = expression.keyPath.path.last;
-          if (lastElement is ManagedRelationshipDescription && lastElement.relationshipType != ManagedRelationshipType.belongsTo) {
-            throw new StateError("Attempting to add expression directly to a has-one or has-many relationship property.");
+
+          bool isPropertyOnThisEntity = expression.keyPath.length == 1;
+          bool isForeignKey =
+              expression.keyPath.length == 2 && lastElement is ManagedAttributeDescription && lastElement.isPrimaryKey
+                  && firstElement is ManagedRelationshipDescription && firstElement.isBelongsTo;
+
+          if (isPropertyOnThisEntity) {
+            bool isBelongsTo = lastElement is ManagedRelationshipDescription && lastElement.isBelongsTo;
+            bool isColumn = lastElement is ManagedAttributeDescription || isBelongsTo;
+
+            if (isColumn) {
+              return [new ExpressionMapper(this, lastElement, expression.expression, additionalVariablePrefix: prefix)];
+            }
+          } else if (isForeignKey) {
+            return [
+              new ExpressionMapper(this, expression.keyPath.path.first, expression.expression,
+                  additionalVariablePrefix: prefix)
+            ];
           }
 
-          // We're guaranteed that the last element is represented by a column
+          // If we fall thru to here, then we're either referencing a has-a relationship property
+          // directly or we have a key-path that we need to further traverse.
+          // We'll either create an implicit join on the table, or if we're already joining on that table,
+          // we'll make sure to use that joined table.
 
-          bool isColumnInThisTable = expression.keyPath.length == 1;
-          bool isForeignKeyInThisTable = expression.keyPath.length == 2 && lastElement is ManagedAttributeDescription && lastElement.isPrimaryKey;
+          bool disambiguate = true;
 
-          if (isColumnInThisTable) {
-            return [
-              new ExpressionMapper(
-                  this, lastElement, expression.expression, additionalVariablePrefix: prefix)
-            ];
-          } else if (isForeignKeyInThisTable) {
-            return [new ExpressionMapper(
-                this, expression.keyPath.path.first, expression.expression, additionalVariablePrefix: prefix)];
-          } else {
-            // We're referencing a column on another table. We'll either create an implicit join on
-            // the table, or if we're already joining on that table, we'll make sure to use that joined table.
+          // Let's see if we already have a join for this relationship
+          // and if not, create an implicit one.
+          RowMapper rowMapper = returningOrderedMappers
+              .where((m) => m is RowMapper)
+              .firstWhere((m) => (m as RowMapper).isJoinOnProperty(firstElement), orElse: () {
+            disambiguate = false;
 
-            final thisTablesRelationshipProperty = expression.keyPath.path.first;
-            bool disambiguate = true;
+            final m = new RowMapper.implicit(PersistentJoinType.leftOuter, firstElement, this);
+            implicitRowMappers.add(m);
+            return m;
+          });
 
-            // Let's see if we already have a join for this relationship
-            RowMapper rowMapper = returningOrderedMappers
-                .where((m) => m is RowMapper)
-                .firstWhere((m) => (m as RowMapper).isJoinOnProperty(thisTablesRelationshipProperty),
-                orElse: () => null);
-
-            // If not, create an implicit join on this relationship
-            if (rowMapper == null) {
-              rowMapper = new RowMapper.implicit(PersistentJoinType.leftOuter, thisTablesRelationshipProperty);
-              rowMapper.originatingTable = this;
-              implicitRowMappers.add(rowMapper);
-              disambiguate = false;
-            }
 //
 //            if (innerMatcher is ManagedSet) {
 //              innerMatcher = (innerMatcher as ManagedSet).haveAtLeastOneWhere;
 //            }
 //
-            // Then build the expression relative to the joined table
-            // We'll duplicate the expression object and lop off the key path
-            // so that it can be resolved relative to the joined table.
-            return rowMapper.propertyExpressionsFromObject(
-                [new QueryExpression.from(expression, 1)], implicitRowMappers,
+          // Then build the expression relative to the joined table
+          // If we have accessed a property of this property, we'll duplicate the expression object and lop off the key path
+          // so that it can be resolved relative to the joined table. Otherwise, do the same but add a primary key instead of remove it.
+          if (isPropertyOnThisEntity) {
+            final inversePrimaryKey = (lastElement as ManagedRelationshipDescription).inverse.entity.primaryKeyAttribute;
+            final expr = new QueryExpression(new KeyPath(inversePrimaryKey))
+              ..expression = expression.expression;
+            return rowMapper.propertyExpressionsFromObject([expr], implicitRowMappers,
                 disambiguateVariableNames: disambiguate);
           }
+
+          return rowMapper.propertyExpressionsFromObject([new QueryExpression.forNestedProperty(expression, 1)], implicitRowMappers,
+              disambiguateVariableNames: disambiguate);
         })
         .expand((expressions) => expressions)
         .toList();

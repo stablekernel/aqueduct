@@ -345,15 +345,6 @@ void main() {
       expect(results.any((tm) => tm.name == "Tim"), false);
     });
   });
-
-  test("Apply expression directly to relationship fails", () {
-    try {
-      new Query<TestModel>()..where((t) => t.inner);
-      fail("unreachable");
-    } on ArgumentError catch (e) {
-      expect(e.toString(), contains("Cannot select has-one or has-many"));
-    }
-  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}

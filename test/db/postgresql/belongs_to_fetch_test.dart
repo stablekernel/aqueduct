@@ -446,13 +446,5 @@ void main() {
             }),
           ]));
     });
-    test("", () {
-      final q = new Query<ChildObject>()
-        ..where((_) => _.value1).equalTo(0)
-            .or((_) => _.id).equalTo(4)
-            .and((_) => _.id);
-
-      value1 == 0 || id == 4 && id == 1
-    });
   });
 }
