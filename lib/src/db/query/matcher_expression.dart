@@ -19,10 +19,10 @@ import '../managed/managed.dart';
 ///
 dynamic whereEqualTo(dynamic value, {bool caseSensitive: true}) {
   if (value is String) {
-    return new StringMatcherExpression(
-        value, StringMatcherOperator.equals, caseSensitive: caseSensitive);
+    return new StringExpression(
+        value, PredicateStringOperator.equals, caseSensitive: caseSensitive);
   }
-  return new ComparisonMatcherExpression(value, MatcherOperator.equalTo);
+  return new ComparisonExpression(value, PredicateOperator.equalTo);
 }
 
 /// Query matcher that tests that a column is not equal to [value].
@@ -42,12 +42,12 @@ dynamic whereEqualTo(dynamic value, {bool caseSensitive: true}) {
 ///
 dynamic whereNotEqualTo(dynamic value, {bool caseSensitive: true}) {
   if (value is String) {
-    return new StringMatcherExpression(
-        value, StringMatcherOperator.equals,
+    return new StringExpression(
+        value, PredicateStringOperator.equals,
         caseSensitive: caseSensitive,
         invertOperator: true);
   }
-  return new ComparisonMatcherExpression(value, MatcherOperator.notEqual);
+  return new ComparisonExpression(value, PredicateOperator.notEqual);
 }
 
 
@@ -66,7 +66,7 @@ dynamic whereNotEqualTo(dynamic value, {bool caseSensitive: true}) {
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereGreaterThan(60000);
 dynamic whereGreaterThan(dynamic value) {
-  return new ComparisonMatcherExpression(value, MatcherOperator.greaterThan);
+  return new ComparisonExpression(value, PredicateOperator.greaterThan);
 }
 
 /// Query matcher that tests that a column is greater than or equal to [value].
@@ -83,8 +83,8 @@ dynamic whereGreaterThan(dynamic value) {
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereGreaterThanEqualTo(60000);
 dynamic whereGreaterThanEqualTo(dynamic value) {
-  return new ComparisonMatcherExpression(
-      value, MatcherOperator.greaterThanEqualTo);
+  return new ComparisonExpression(
+      value, PredicateOperator.greaterThanEqualTo);
 }
 
 /// Query matcher that tests that a column is less than [value].
@@ -101,7 +101,7 @@ dynamic whereGreaterThanEqualTo(dynamic value) {
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereLessThan(60000);
 dynamic whereLessThan(dynamic value) {
-  return new ComparisonMatcherExpression(value, MatcherOperator.lessThan);
+  return new ComparisonExpression(value, PredicateOperator.lessThan);
 }
 
 /// Query matcher that tests that a column is less than [value].
@@ -118,8 +118,8 @@ dynamic whereLessThan(dynamic value) {
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereLessThanEqualTo(60000);
 dynamic whereLessThanEqualTo(dynamic value) {
-  return new ComparisonMatcherExpression(
-      value, MatcherOperator.lessThanEqualTo);
+  return new ComparisonExpression(
+      value, PredicateOperator.lessThanEqualTo);
 }
 
 /// Query matcher that tests that a column contains [value].
@@ -137,7 +137,7 @@ dynamic whereLessThanEqualTo(dynamic value) {
 ///         ..where.title = whereContains("Director");
 ///
 dynamic whereContains(dynamic value, {bool caseSensitive: true}) {
-  return new StringMatcherExpression(value, StringMatcherOperator.contains, caseSensitive: caseSensitive);
+  return new StringExpression(value, PredicateStringOperator.contains, caseSensitive: caseSensitive);
 }
 /// Query matcher that tests that a column begins with [value].
 ///
@@ -151,7 +151,7 @@ dynamic whereContains(dynamic value, {bool caseSensitive: true}) {
 ///       var query = new Query<Employee>()
 ///         ..where.name = whereBeginsWith("B");
 dynamic whereBeginsWith(String value, {bool caseSensitive: true}) {
-  return new StringMatcherExpression(value, StringMatcherOperator.beginsWith, caseSensitive: caseSensitive);
+  return new StringExpression(value, PredicateStringOperator.beginsWith, caseSensitive: caseSensitive);
 }
 
 /// Query matcher that tests that a column does not end with [value].
@@ -166,8 +166,8 @@ dynamic whereBeginsWith(String value, {bool caseSensitive: true}) {
 ///       var query = new Query<Employee>()
 ///         ..where.name = whereDoesNotEndWith("son");
 dynamic whereDoesNotEndWith(String value, {bool caseSensitive: true}) {
-  return new StringMatcherExpression(
-      value, StringMatcherOperator.endsWith,
+  return new StringExpression(
+      value, PredicateStringOperator.endsWith,
       caseSensitive: caseSensitive,
       invertOperator: true);
 }
@@ -187,8 +187,8 @@ dynamic whereDoesNotEndWith(String value, {bool caseSensitive: true}) {
 ///         ..where.title = whereDoesNotContains("Director");
 ///
 dynamic whereDoesNotContain(String value, {bool caseSensitive: true}) {
-  return new StringMatcherExpression(
-      value, StringMatcherOperator.contains,
+  return new StringExpression(
+      value, PredicateStringOperator.contains,
       caseSensitive: caseSensitive,
       invertOperator: true);
 }
@@ -205,8 +205,8 @@ dynamic whereDoesNotContain(String value, {bool caseSensitive: true}) {
 ///       var query = new Query<Employee>()
 ///         ..where.name = whereDoesNotBeginsWith("B");
 dynamic whereDoesNotBeginWith(String value, {bool caseSensitive: true}) {
-  return new StringMatcherExpression(
-      value, StringMatcherOperator.beginsWith,
+  return new StringExpression(
+      value, PredicateStringOperator.beginsWith,
       caseSensitive: caseSensitive,
       invertOperator: true);
 }
@@ -223,7 +223,7 @@ dynamic whereDoesNotBeginWith(String value, {bool caseSensitive: true}) {
 ///       var query = new Query<Employee>()
 ///         ..where.name = whereEndsWith("son");
 dynamic whereEndsWith(String value, {bool caseSensitive: true}) {
-  return new StringMatcherExpression(value, StringMatcherOperator.endsWith, caseSensitive: caseSensitive);
+  return new StringExpression(value, PredicateStringOperator.endsWith, caseSensitive: caseSensitive);
 }
 
 /// Query matcher that tests that a column's value is in [values].
@@ -238,7 +238,7 @@ dynamic whereEndsWith(String value, {bool caseSensitive: true}) {
 ///       var query = new Query<Employee>()
 ///         ..where.department = whereIn(["Engineering", "HR"]);
 dynamic whereIn(Iterable<dynamic> values) {
-  return new SetMembershipMatcherExpression(values.toList());
+  return new SetMembershipExpression(values.toList());
 }
 
 /// Query matcher that tests that a column is between [lhs] and [rhs].
@@ -256,7 +256,7 @@ dynamic whereIn(Iterable<dynamic> values) {
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereBetween(80000, 100000);
 dynamic whereBetween(dynamic lhs, dynamic rhs) {
-  return new RangeMatcherExpression(lhs, rhs, true);
+  return new RangeExpression(lhs, rhs, true);
 }
 
 /// Query matcher that tests that a column is not between [lhs] and [rhs].
@@ -274,7 +274,7 @@ dynamic whereBetween(dynamic lhs, dynamic rhs) {
 ///       var query = new Query<Employee>()
 ///         ..where.salary = whereOutsideOf(80000, 100000);
 dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
-  return new RangeMatcherExpression(lhs, rhs, false);
+  return new RangeExpression(lhs, rhs, false);
 }
 
 /// Query matcher that tests that a relationship is related by [foreignKeyValue].
@@ -288,8 +288,8 @@ dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
 ///       var q = new Query<Employee>()
 ///         ..where.manager = whereRelatedByValue(managerID);
 dynamic whereRelatedByValue(dynamic foreignKeyValue) {
-  return new ComparisonMatcherExpression(
-      foreignKeyValue, MatcherOperator.equalTo);
+  return new ComparisonExpression(
+      foreignKeyValue, PredicateOperator.equalTo);
 }
 
 /// Query matcher that inverts another query matcher.
@@ -311,10 +311,10 @@ dynamic whereRelatedByValue(dynamic foreignKeyValue) {
 /// were 'null' for some user, it would *not* be returned by the query.
 ///
 dynamic whereNot(dynamic matcher) {
-  if (matcher is! MatcherExpression) {
+  if (matcher is! PredicateExpression) {
     throw new ArgumentError("Invalid argument to 'whereNot'. Must be another matcher, e.g. 'whereEqualTo'.");
   }
-  return (matcher as MatcherExpression).inverse;
+  return (matcher as PredicateExpression).inverse;
 }
 
 /// Query matcher that tests whether a column value is null.
@@ -328,7 +328,7 @@ dynamic whereNot(dynamic matcher) {
 ///
 ///       var q = new Query<Employee>()
 ///         ..where.manager = whereNull;
-const dynamic whereNull = const NullMatcherExpression(true);
+const dynamic whereNull = const NullCheckExpression(true);
 
 /// Query matcher that tests whether a column value is not null.
 ///
@@ -341,4 +341,4 @@ const dynamic whereNull = const NullMatcherExpression(true);
 ///
 ///       var q = new Query<Employee>()
 ///         ..where.manager = whereNotNull;
-const dynamic whereNotNull = const NullMatcherExpression(false);
+const dynamic whereNotNull = const NullCheckExpression(false);

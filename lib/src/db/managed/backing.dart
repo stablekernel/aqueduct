@@ -57,7 +57,7 @@ class ManagedMatcherBacking extends ManagedBacking {
       return;
     }
 
-    if (value is MatcherExpression) {
+    if (value is PredicateExpression) {
       if (property is ManagedRelationshipDescription) {
         var innerObject = valueForProperty(property);
         if (innerObject is ManagedObject) {
