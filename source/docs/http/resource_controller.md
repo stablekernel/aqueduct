@@ -407,7 +407,7 @@ A `QueryController<T>` builds a `Query<T>` based on the incoming request. If the
 @Operation.put('id')
 Future<Response> updateUser(@Bind.path('id') int id, @Bind.body() User user) async {
   var query = new Query<User>()
-    ..where.id = whereEqualTo(id)
+    ..where((u) => u.id).equalTo(id)
     ..values = user;
 
   return new Response.ok(await query.updateOne());

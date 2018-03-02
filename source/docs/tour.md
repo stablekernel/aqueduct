@@ -218,8 +218,8 @@ The results can be filtered by the `Query.where` property, which has the same pr
 
 ```dart
 var query = new Query<Employee>()
-  ..where.name = whereStartsWith("Sa")
-  ..where.salary = whereGreaterThan(50000);
+  ..where((e) => e.name).startsWith("Sa")
+  ..where((e) => e.salary).greaterThan(50000);
 var results = await query.fetch();
 ```
 
@@ -233,7 +233,7 @@ var query = new Query<Employee>()
 var bob = await query.insert();  
 
 var updateQuery = new Query<Employee>()
-  ..where.id = whereEqualTo(bob.id)
+  ..where((e) => e.id).equalTo(bob.id)
   ..values.name = "Bobby";
 bob = await updateQuery.updateOne();  
 ```
@@ -242,7 +242,7 @@ bob = await updateQuery.updateOne();
 
 ```dart
 var query = new Query<Employee>()
-  ..where.name = whereEqualTo("Sue Gallagher")
+  ..where((e) => e.name).equalTo("Sue Gallagher")
   ..join(object: (e) => e.manager)
   ..join(set: (e) => e.directReports);
 
@@ -298,7 +298,7 @@ class UserController extends ResourceController {
   @Operation.put('id')
   Future<Response> updateUser(@Bind.path("id") int id, @Bind.body() User user) async {
     var query = new Query<User>()
-      ..where.id = whereEqualTo(id)
+      ..where((u) => e.id).equalTo(id)
       ..values = user;
 
     var updatedUser = await query.updateOne();

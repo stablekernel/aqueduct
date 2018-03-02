@@ -121,7 +121,7 @@
             </div>
             <div class="col-sm-6">
                 <pre class="feature-box"><code class="language-dart">var query = new Query&lt;Team&gt;()
-  ..where.skills = whereContainsString('aqueduct')
+  ..where((t)=> t.skills).contains('aqueduct')
   ..join(object: (t) => t.manager)
   ..join(set: (t) => t.developers);
 

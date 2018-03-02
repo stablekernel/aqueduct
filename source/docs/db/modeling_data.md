@@ -116,7 +116,7 @@ var query = new Query<User>()
 var bob = await query.insert();
 
 query = new Query<User>()
-  ..where.type = whereEqualTo(UserType.admin);
+  ..where((u) => u.type).equalTo(UserType.admin);
 var allAdmins = await query.fetch();
 ```
 

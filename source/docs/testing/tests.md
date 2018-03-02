@@ -233,7 +233,7 @@ test("Starting an upload creates a pending record in the database", () async {
   expect(response, hasStatus(202));
 
   var query = new Query<Upload>()
-    ..where.pending = whereEqualTo(true);
+    ..where((u) => u.pending).equalTo(true);
   var pendingUpload = await query.fetchOne();
 
   expect(response.headers.value(HttpHeaders.LOCATION), pendingUpload.path);

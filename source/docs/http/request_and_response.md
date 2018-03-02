@@ -107,7 +107,7 @@ var response = new Response.ok(person);
 `ManagedObject<T>`, part of the Aqueduct ORM, implements `HTTPSerializable` so results from `Query<T>` may be body objects:
 
 ```dart
-var query = new Query<Person>()..where.id = whereEqualTo(1);
+var query = new Query<Person>()..where((p) => p.id).equalTo(1);
 var person = await query.fetchOne();
 var response = new Response.ok(person);
 

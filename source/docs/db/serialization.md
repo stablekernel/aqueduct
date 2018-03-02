@@ -96,8 +96,8 @@ var user2 = new User()..readFromMap({
 });
 
 var query = new Query<User>()
-  ..where.id = whereEqualTo(3)
-  ..where.name = whereNull;
+  ..where((u) => u.id).equalTo(3)
+  ..where((u) => u.name).isNull();
 var user3 = await query.fetchOne();
 ```
 

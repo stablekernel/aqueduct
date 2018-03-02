@@ -98,7 +98,7 @@ An update query can - and likely should - be restricted to a single row or subse
 // A Query that will change any user's whose name is 'Bob' to 'Fred'
 var query = new Query<User>()
   ..values.name = "Fred"
-  ..where.name = whereEqualTo("Bob");
+  ..where((u) => u.name).equalTo("Bob");
 
 List<User> bobsThatAreNowFreds = await query.update();
 ```
@@ -117,7 +117,7 @@ Like `insert()`, only the values set in the `values` property of a query get upd
 // A Query that will remove names from anyone currently named Bob.
 var query = new Query<User>()
   ..values.name = null
-  ..where.name = whereEqualTo("Bob");
+  ..where((u) => u.name).equalTo("Bob");
 ```
 
 
@@ -129,7 +129,7 @@ There is a variant to `Query<T>.update` named `updateOne`. The `updateOne` metho
 // Update user with id = 1 to have the name 'Fred'
 var query = new Query<User>()
   ..values.name = "Fred"
-  ..where.id = whereEqualTo(1);
+  ..where((u) => u.id).equalTo(1);
 
 var updatedUser = await query.updateOne();
 ```
@@ -144,7 +144,7 @@ A `Query<T>` will delete rows from a database when using `delete()`. Like update
 
 ```dart
 var query = new Query<User>()
-  ..where.id = whereEqualTo(1);
+  ..where((u) => u.id).equalTo(1);
 
 int usersDeleted = await query.delete();
 ```
@@ -167,49 +167,12 @@ A fetch `Query<T>` uses its `where` property to filter the result set, just like
 
 ```dart
 var query = new Query<User>()
-  ..where.id = whereEqualTo(1);
+  ..where((u) => u.id).equalTo(1);
 
 User oneUser = await query.fetchOne();
 ```
 
 Fetch queries can be limited to a number of instances with the `fetchLimit` property. You may also set the `offset` of a `Query<T>` to skip the first `offset` number of rows. Between `fetchLimit` and `offset`, you can implement naive paging. However, this type of paging suffers from a number of problems and so there is another paging mechanism covered in later sections.
-
-Many of the other fantastic things you can do with fetch queries - like joins, sorting and complex predicates - all deserve their own section and are covered later.
-
-### Specifying Result Properties
-
-When executing queries that return managed objects (i.e., `insert()`, `update()` and `fetch()`), the default properties for each object are fetched. The default properties of a managed object are properties that correspond to a database column - attributes declared in the persistent type. A managed object's default properties can be modified when declaring its persistent type:
-
-```dart
-class _User {
-  @Column(omitByDefault: true)
-  String hashedPassword;
-}
-```
-
-Any property with `omitByDefault` set to true will not be fetched by default.
-
-A property that is `omitByDefault` can still be fetched. Likewise, a property that is in the defaults can still be omitted. Each `Query<T>` has a `returningProperties` method to adjust which properties do get returned from the query. Its usage looks like this:
-
-```dart
-var query = new Query<User>()
-  ..returningProperties((user) => [user.id, user.name]);
-```
-
-The method `returningProperties` takes a closure with one argument - an instance of the type being queried. The closure must return a `List` of properties to be fetched. Here, both `user.id` and `user.name` are returned and this `Query<T>` will fetch a user's `id` and `name` properties only. (The SQL would be something like `SELECT id, name FROM _User`.) Note that the properties returned from this closure *are not* added to the list of default properties - the list is an exact set of properties to be returned.
-
-The way `returningProperties` is constructed is a little interesting. The benefit of this approach is best explained by comparing it to another approach:
-
-```dart
-var query = new Query<User>()
-  ..returningProperties = ["id", "name"]; // This code is not valid!
-```
-
-In the above approach - which is not valid code - the names of the properties are `String`s. The drawback here is that there is no way for the analyzer to tell us if `id` and `name` are actually properties of a `User` or if we misspelled one of the properties. We'd only find out at runtime. Additionally, we get the benefit of code completion and refactoring tools when using the closure approach. Many other features of `Query<T>` like joins, paging and sorting use a similar construct to identify which properties are being used in the query.
-
-You may not add a 'has-many' or 'has-one' relationship to `returningProperties`, as this mechanism is achieved by `Query.join`. If you do add a 'has-one' or 'has-many' relationship property name to the list of `returningProperties`, an exception will be thrown when the query is executed.
-
-Note that if you omit the primary key of a managed object from `returningProperties`, it will automatically be added. The primary key is necessary to transform the rows into instances of their `ManagedObject<T>` subclass.
 
 ### Sorting
 
@@ -231,6 +194,42 @@ var q = new Query<User>()
 ```
 
 Thus, the following three names would be ordered like so: 'Sally Smith', 'John Wu', 'Sally Wu'.
+
+### Property Selectors
+
+In the section on sorting, you saw the use of a *property selector* to select the property of the user to sort by. This syntax is used for many other query manipulations, like filtering and joining. A property selector is a closure that gives you an object of the type you are querying and must return a property of that object. The selector `(u) => u.lastName` in the previous section is a property selector that selects the last name of a user.
+
+The Dart analyzer will infer that the argument of a property selector, and it is always the same type as the object being queried. This enables IDE auto-completion, static error checking, and other tools like project-wide renaming.
+
+!!! tip "Live Templates"
+    To speed up query building, create a Live Template in IntelliJ that generates a property selector when typing 'ps'. The source of the template is `(o) => o.$END$`.
+
+
+## Specifying Result Properties
+
+When executing queries that return managed objects (i.e., `insert()`, `update()` and `fetch()`), the default properties for each object are fetched. The default properties of a managed object are properties that correspond to a database column - attributes declared in the persistent type. A managed object's default properties can be modified when declaring its persistent type:
+
+```dart
+class _User {
+  @Column(omitByDefault: true)
+  String hashedPassword;
+}
+```
+
+Any property with `omitByDefault` set to true will not be fetched by default.
+
+A property that is `omitByDefault` can still be fetched. Likewise, a property that is in the defaults can still be omitted. Each `Query<T>` has a `returningProperties` method to adjust which properties do get returned from the query. Its usage looks like this:
+
+```dart
+var query = new Query<User>()
+  ..returningProperties((user) => [user.id, user.name]);
+```
+
+`returningProperties` is a multiple property selector - instead of returning just one property, it returns a list of properties.
+
+You may include 'belongs-to' relationships in `returningProperties`, but you may not include 'has-many' or 'has-one' relationships. An exception will be thrown if you attempt to. To include properties from relationships like these, see [join in Advanced Queries](advanced_queries.md).
+
+Note that if you omit the primary key of a managed object from `returningProperties`, it will automatically be added. The primary key is necessary to transform the rows into instances of their `ManagedObject<T>` subclass.
 
 ### Exceptions and Errors
 

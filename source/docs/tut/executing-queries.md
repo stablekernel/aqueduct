@@ -159,7 +159,7 @@ Now, let's update `getHeroByID` to fetch a single hero from the database.
 @Operation.get('id')
 Future<Response> getHeroByID(@Bind.path('id') int id) async {
   final heroQuery = new Query<Hero>(context)
-    ..where.id = whereEqualTo(id);    
+    ..where((h) => h.id).equalTo(id);    
 
   final hero = await heroQuery.fetchOne();
 
@@ -283,7 +283,7 @@ Our Aqueduct application can use this value to return a list of heroes that cont
 Future<Response> getAllHeroes({@Bind.query('name') String name}) async {
   final heroQuery = new Query<Hero>(context);
   if (name != null) {
-    heroQuery.where.name = whereContainsString(name, caseSensitive: false);
+    heroQuery.where((h) => h.name).contains(name, caseSensitive: false);
   }
   final heroes = await heroQuery.fetch();
 

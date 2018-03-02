@@ -52,7 +52,7 @@ When fetching an object with `Document` properties with a `Query<T>`, you access
 
 ```dart
 final query = new Query<Event>()
-  ..where.id = whereEqualTo(1);
+  ..where((e) => e.id).equalTo(1);
 final event1 = await query.fetchOne();
 event1.contents.data == {
   "type": "push",
@@ -69,7 +69,7 @@ Updating a row with `Document` properties works the same as inserting rows.
 
 ```dart
 final query = new Query<Event>()
-  ..where.id = whereEqualTo(1)
+  ..where((e) => e.id).equalTo(1)
   ..values.contents = new Document({
     "type": "push",
     "user": "bob",
@@ -182,7 +182,7 @@ The values stored in a `Document` column can be used to filter the results retur
 
 ```dart
 final query = new Query<Event>()
-  ..where.contents["user"] = whereEqualTo("bob");
+  ..where((e) => e.contents["user"]).equalTo("bob");
 final events = await query.fetch();
 ```
 
@@ -194,7 +194,7 @@ The matcher `whereContains` is the only matcher that can be also applied directl
 
 ```dart
 final query = new Query<Event>()
-  ..where.contents = whereContains("type");
+  ..where((e) => e.contents).contains("type");
 final eventsWithAnyType = await query.fetch();
 ```
 

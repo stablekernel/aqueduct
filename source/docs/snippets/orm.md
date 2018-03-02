@@ -4,7 +4,7 @@
 
 ```dart
 var query = new Query<Employee>()
-  ..where.title = whereEqualTo("Programmer");
+  ..where((e) => e.title).equalTo("Programmer");
 var employees = await query.fetch();
 ```
 
@@ -28,7 +28,7 @@ var employees = await query.fetch();
 
 ```dart
 var query = new Query<Employee>()
-  ..where.id = whereEqualTo(1);
+  ..where((e) => e.id).equalTo(1);
 var employee = await query.fetchOne();
 ```
 
@@ -54,7 +54,7 @@ var teamsAndTheirPlayers = await query.fetch();
 var query = new Query<Team>();
 
 var subquery = query.join(set: (e) => e.players)
-  ..where.yearsPlayed = whereLessThanOrEqualTo(1);
+  ..where((p) => p.yearsPlayed).lessThanOrEqualTo(1);
 
 var teamsAndTheirRookiePlayers = await query.fetch();
 ```
@@ -63,7 +63,7 @@ var teamsAndTheirRookiePlayers = await query.fetch();
 
 ```dart
 var query = new Query<Team>()
-  ..where.players.haveAtLeastOneWhere.yearsPlayed = whereLessThanOrEqualTo(1);
+  ..where((t) => t.players.haveAtLeastOneWhere.yearsPlayed).lessThanOrEqualTo(1);
 
 var teamsWithRookies = await query.fetch();
 ```
@@ -84,7 +84,7 @@ var badgerAndGopherTeams = await query.fetch();
 
 ```dart
 var query = new Query<Team>()
-  ..where.id = whereEqualTo(10)
+  ..where((t) => t.id).equalTo(10)
   ..values.name = "Badgers";
 
 var team = await query.updateOne();
