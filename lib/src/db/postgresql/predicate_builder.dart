@@ -70,11 +70,6 @@ abstract class PredicateBuilder implements EntityTableMapper {
             return m;
           });
 
-//
-//            if (innerMatcher is ManagedSet) {
-//              innerMatcher = (innerMatcher as ManagedSet).haveAtLeastOneWhere;
-//            }
-//
           // Then build the expression relative to the joined table
           // If we have accessed a property of this property, we'll duplicate the expression object and lop off the key path
           // so that it can be resolved relative to the joined table. Otherwise, do the same but add a primary key instead of remove it.

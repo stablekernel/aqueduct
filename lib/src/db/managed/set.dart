@@ -43,9 +43,8 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
 
   /// Filters [Query] results based on the criteria of the objects in this collection.
   ///
-  /// You use this accessor to add an [Query.where]] expression to has-many relationships.
-  /// This property returns an empty object of [InstanceType]. A property of the returned object
-  /// is selected so that an expression may be applied to it.
+  /// You use this method when building a query expression for has-many relationships.
+  /// This property returns an empty instance of [InstanceType], for which you may select properties from.
   ///
   /// For example, the following query will only return 'Parents' that have at least one child
   /// named 'Sally'.

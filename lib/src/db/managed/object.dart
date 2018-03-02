@@ -207,7 +207,6 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   String _getPropertyNameFromInvocation(Invocation invocation) {
     // It memberName is not in symbolMap, it may be because that property doesn't exist for this object's entity.
     // But it also may occur for private ivars, in which case, we reconstruct the symbol and try that.
-    // It also may occur for haveAtLeastOneWhere when building a query
 
     var name = entity.symbolMap[invocation.memberName] ??
         entity.symbolMap[new Symbol(MirrorSystem.getName(invocation.memberName))];

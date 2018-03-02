@@ -202,7 +202,7 @@ class QueryExpression<T> {
   ///
   /// This method can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
   ///
-  /// Example:Example:
+  /// Example:
   ///
   ///       var query = new Query<Employee>()
   ///         ..where((s) => s.name).beginsWith("B");

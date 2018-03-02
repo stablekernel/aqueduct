@@ -126,7 +126,7 @@ class ColumnMapper extends PostgresMapper {
     return value;
   }
 
-  String columnName({bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix, bool asForeignKey: true}) {
+  String columnName({bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix}) {
     var name = property.name;
 
     if (property is ManagedRelationshipDescription) {
