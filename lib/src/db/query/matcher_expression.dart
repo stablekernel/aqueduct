@@ -14,7 +14,7 @@ class QueryExpressionJunction<T> {
 /// Contains methods for adding logical expressions to properties when building a [Query].
 ///
 /// You do not create instances of this type directly, but instead are returned an instance when selecting a property
-/// of an object in a [Query.where]. You invoke methods from this type to add an expression to the query for the selected property.
+/// of an object in [Query.where]. You invoke methods from this type to add an expression to the query for the selected property.
 /// Example:
 ///
 ///         final query = new Query<Employee>()
@@ -66,7 +66,7 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is equal to [value].
   ///
-  /// This matcher can be used on [int], [String], [bool], [double] and [DateTime] types.
+  /// This method can be used on [int], [String], [bool], [double] and [DateTime] types.
   ///
   /// If [value] is [String], the flag [caseSensitive] controls whether or not equality is case-sensitively compared.
   ///
@@ -89,7 +89,7 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is *not* equal to [value].
   ///
-  /// This matcher can be used on [int], [String], [bool], [double] and [DateTime] types.
+  /// This method can be used on [int], [String], [bool], [double] and [DateTime] types.
   ///
   /// If [value] is [String], the flag [caseSensitive] controls whether or not equality is case-sensitively compared.
   ///
@@ -113,8 +113,8 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is greater than [value].
   ///
-  /// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
-  /// this matcher selects rows where the assigned property is 'later than' [value]. For [String] properties,
+  /// This method can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+  /// this method selects rows where the assigned property is 'later than' [value]. For [String] properties,
   /// rows are selected if the value is alphabetically 'after' [value].
   ///
   /// Example:
@@ -131,8 +131,8 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is greater than [value].
   ///
-  /// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
-  /// this matcher selects rows where the assigned property is 'later than or the same time as' [value]. For [String] properties,
+  /// This method can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+  /// this method selects rows where the assigned property is 'later than or the same time as' [value]. For [String] properties,
   /// rows are selected if the value is alphabetically 'after or the same as' [value].
   /// Example:
   ///
@@ -148,8 +148,8 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is less than [value].
   ///
-  /// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
-  /// this matcher selects rows where the assigned property is 'earlier than' [value]. For [String] properties,
+  /// This method can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+  /// this method selects rows where the assigned property is 'earlier than' [value]. For [String] properties,
   /// rows are selected if the value is alphabetically 'before' [value].
   /// Example:
   ///
@@ -165,8 +165,8 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is less than or equal to [value].
   ///
-  /// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
-  /// this matcher selects rows where the assigned property is 'earlier than or the same time as' [value]. For [String] properties,
+  /// This method can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+  /// this method selects rows where the assigned property is 'earlier than or the same time as' [value]. For [String] properties,
   /// rows are selected if the value is alphabetically 'before or the same as' [value].
   /// Example:
   ///
@@ -182,7 +182,7 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property contains the string [value].
   ///
-  /// This matcher can be used on [String] types. The substring [value] must be found in the stored string.
+  /// This method can be used on [String] types. The substring [value] must be found in the stored string.
   /// The flag [caseSensitive] controls whether strings are compared case-sensitively.
   ///
   /// Example:
@@ -200,7 +200,7 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is begins with the string [value].
   ///
-  /// This matcher can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
+  /// This method can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
   ///
   /// Example:Example:
   ///
@@ -216,7 +216,7 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is ends with the string [value].
   ///
-  /// This matcher can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
+  /// This method can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
   ///
   /// Example:
   ///
@@ -232,7 +232,7 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is equal to one of the [values].
   ///
-  /// This matcher can be used on [String], [int], [double], [bool] and [DateTime] types.
+  /// This method can be used on [String], [int], [double], [bool] and [DateTime] types.
   ///
   /// Example:
   ///
@@ -248,8 +248,8 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is between than [lhs] and [rhs].
   ///
-  /// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
-  /// this matcher selects rows where the assigned property is 'later than' [lhs] and 'earlier than' [rhs]. For [String] properties,
+  /// This method can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+  /// this method selects rows where the assigned property is 'later than' [lhs] and 'earlier than' [rhs]. For [String] properties,
   /// rows are selected if the value is alphabetically 'after' [lhs] and 'before' [rhs].
   ///
   /// Example:
@@ -266,8 +266,8 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is not within the range established by [lhs] to [rhs].
   ///
-  /// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
-  /// this matcher selects rows where the assigned property is 'later than' [rhs] and 'earlier than' [lhs]. For [String] properties,
+  /// This method can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+  /// this method selects rows where the assigned property is 'later than' [rhs] and 'earlier than' [lhs]. For [String] properties,
   /// rows are selected if the value is alphabetically 'before' [lhs] and 'after' [rhs].
   ///
   /// Example:
@@ -280,17 +280,17 @@ class QueryExpression<T> {
     return _createJunction();
   }
 
-  /// Convenience method for adding an equal expression on a foreign key column.
+  /// Adds an equality expression for foreign key columns to a query.
   ///
-  /// A query will only return objects where the selected relationship object primary key is equal to [foreignKeyValue].
+  /// A query will only return objects where the selected object's primary key is equal to [identifier].
   ///
-  /// This matcher can be used on [ManagedObject] types that have a [Relate] annotation; i.e., properties that are backed by a foreign key.
-  /// The type of [foreignKeyValue] must match the primary key type of the selected object this expression is being applied to.
+  /// This method may only be used on belongs-to relationships; i.e., those that have a [Relate] annotation.
+  /// The type of [identifier] must match the primary key type of the selected object this expression is being applied to.
   ///
   ///       var q = new Query<Employee>()
-  ///         ..where((e) => e.manager).relatedByValue(5);
-  QueryExpressionJunction<T> relatedByValue(dynamic foreignKeyValue) {
-    expression = new ComparisonExpression(foreignKeyValue, PredicateOperator.equalTo);
+  ///         ..where((e) => e.manager).identifiedBy(5);
+  QueryExpressionJunction<T> identifiedBy(dynamic identifier) {
+    expression = new ComparisonExpression(identifier, PredicateOperator.equalTo);
 
     return _createJunction();
   }
@@ -299,7 +299,7 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is null.
   ///
-  /// This matcher can be applied to any property type.
+  /// This method can be applied to any property type.
   ///
   /// Example:
   ///
@@ -315,7 +315,7 @@ class QueryExpression<T> {
   ///
   /// A query will only return objects where the selected property is not null.
   ///
-  /// This matcher can be applied to any property type.
+  /// This method can be applied to any property type.
   ///
   /// Example:
   ///

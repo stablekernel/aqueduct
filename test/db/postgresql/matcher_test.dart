@@ -40,6 +40,7 @@ void main() {
       expect(results.first.id, 1);
 
       q = new Query<TestModel>()..where((p) => p.id).not.equalTo(1);
+
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.id == 1), false);
@@ -228,14 +229,14 @@ void main() {
     expect(results[2].id, 4);
   });
 
-  test("whereRelatedByValue matcher", () async {
-    var q = new Query<InnerModel>()..where((o) => o.owner).relatedByValue(1);
+  test("identifiedBy matcher", () async {
+    var q = new Query<InnerModel>()..where((o) => o.owner).identifiedBy(1);
     var results = await q.fetch();
     expect(results.length, 1);
     expect(results.first.owner.id, 1);
 
     // Does not include null values; this is intentional.
-    q = new Query<InnerModel>()..where((o) => o.owner).not.relatedByValue(1);
+    q = new Query<InnerModel>()..where((o) => o.owner).not.identifiedBy(1);
     results = await q.fetch();
     expect(results.length, 0);
   });

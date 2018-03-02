@@ -257,7 +257,7 @@ void main() {
         5);
 
     var query = new Query<GenPost>();
-    query.where((o) => o.owner).relatedByValue(u1.id);
+    query.where((o) => o.owner).identifiedBy(u1.id);
     res = await query.fetch();
 
     GenUser user = res.first.owner;

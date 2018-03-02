@@ -307,7 +307,7 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
   Future revokeAuthenticatableWithIdentifier(
       AuthServer server, dynamic identifier) {
     var tokenQuery = new Query<ManagedAuthToken>(context)
-      ..where((o) => o.resourceOwner).relatedByValue(identifier);
+      ..where((o) => o.resourceOwner).identifiedBy(identifier);
 
     return tokenQuery.delete();
   }
@@ -427,7 +427,7 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
 
   Future pruneTokens(dynamic resourceOwnerIdentifier) async {
     var oldTokenQuery = new Query<ManagedAuthToken>(context)
-      ..where((o) => o.resourceOwner).relatedByValue(resourceOwnerIdentifier)
+      ..where((o) => o.resourceOwner).identifiedBy(resourceOwnerIdentifier)
       ..sortBy((t) => t.expirationDate, QuerySortOrder.descending)
       ..offset = tokenLimit
       ..fetchLimit = 1
@@ -436,7 +436,7 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
     var results = await oldTokenQuery.fetch();
     if (results.length == 1) {
       var deleteQ = new Query<ManagedAuthToken>()
-        ..where((o) => o.resourceOwner).relatedByValue(resourceOwnerIdentifier)
+        ..where((o) => o.resourceOwner).identifiedBy(resourceOwnerIdentifier)
         ..where((o) => o.expirationDate).lessThanEqualTo(results.first.expirationDate);
 
       return deleteQ.delete();

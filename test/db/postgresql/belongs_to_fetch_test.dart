@@ -21,8 +21,8 @@ void main() {
   });
 
   group("Assign non-join matchers to belongsToProperty", () {
-    test("Can use whereRelatedByValue", () async {
-      var q = new Query<ChildObject>()..where((o) => o.parents).relatedByValue(1);
+    test("Can use identifiedBy", () async {
+      var q = new Query<ChildObject>()..where((o) => o.parents).identifiedBy(1);
       var results = await q.fetch();
 
       expect(results.length, rootObjects.firstWhere((r) => r.rid == 1).children.length);
@@ -406,7 +406,7 @@ void main() {
           ]));
 
       q = new Query<GrandChildObject>()
-        ..where((o) => o.parents.parents).relatedByValue(1)
+        ..where((o) => o.parents.parents).identifiedBy(1)
         ..sortBy((g) => g.gid, QuerySortOrder.ascending);
       results = await q.fetch();
 
