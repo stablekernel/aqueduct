@@ -23,7 +23,7 @@ When making requests to client authenticated endpoints (those protected with `Au
 
 ```
 var clientID = "com.foobar.xyz";
-var clientCredentials = new Base64Encoder().convert("$clientID:".codeUnits);
+var clientCredentials = Base64Encoder().convert("$clientID:".codeUnits);
 var header = "Basic $clientCredentials";
 ```
 

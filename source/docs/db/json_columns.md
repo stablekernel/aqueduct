@@ -34,9 +34,9 @@ In PostgreSQL, a `Document` column data type is `jsonb`.
 A `Document` property is first set when inserting with a `Query<T>`. The `values` property of the query is set to a `Document` object initialized with a JSON-encodable value.
 
 ```dart
-final query = new Query<Event>()
-  ..values.timestamp = new DateTime.now()
-  ..values.contents = new Document({
+final query = Query<Event>()
+  ..values.timestamp = DateTime.now()
+  ..values.contents = Document({
     "type": "push",
     "user": "bob",
     "tags": ["v1"]
@@ -51,7 +51,7 @@ In the above, the argument to `Document` will be JSON-encoded and stored in the 
 When fetching an object with `Document` properties with a `Query<T>`, you access the column's value through the document's `data` property.
 
 ```dart
-final query = new Query<Event>()
+final query = Query<Event>()
   ..where((e) => e.id).equalTo(1);
 final event1 = await query.fetchOne();
 event1.contents.data == {
@@ -68,9 +68,9 @@ When fetching `Document` properties, the JSON data is decoded into the appropria
 Updating a row with `Document` properties works the same as inserting rows.
 
 ```dart
-final query = new Query<Event>()
+final query = Query<Event>()
   ..where((e) => e.id).equalTo(1)
-  ..values.contents = new Document({
+  ..values.contents = Document({
     "type": "push",
     "user": "bob",
     "tags": ["v1", "new"]
@@ -86,18 +86,18 @@ The type of `Document.data` is `dynamic` - it can be any valid JSON type and may
 
 ```dart
 // Object Access by key
-final doc = new Document({"key": "value"});
+final doc = Document({"key": "value"});
 final value = doc["key"] == "value";
 
 // List Access by index
-final doc = new Document(["v1", "v2"]);
+final doc = Document(["v1", "v2"]);
 final value = doc[0] == "v1";
 ```
 
 You can access nested elements with the same syntax:
 
 ```dart
-final doc = new Document([
+final doc = Document([
   {"id": 1},
   {"id": 2}
 ]);
@@ -113,7 +113,7 @@ Note that using the subscript operator on a `Document` simply invokes it on its 
 When fetching a `Document` property, the default behavior is to return the entire JSON document as it is stored in the database column. You may fetch parts of the document you need by using `Query.returningProperties` and the subscript operator.
 
 ```dart
-final query = new Query<Event>()
+final query = Query<Event>()
   ..returningProperties((e) => [e.id, e.contents["tags"]]);
 final eventsWithTags = query.fetch();
 ```
@@ -137,7 +137,7 @@ The value of `Event.contents` would only contain the array for the key "tags":
 You may also index arrays in a JSON column using the same subscript operator, and the subscript operator can also be nested. For example, the following query would fetch the "tags" array, and then fetch the string at index 0 from it:
 
 ```dart
-final query = new Query<Event>()
+final query = Query<Event>()
   ..returningProperties((e) => [e.id, e.contents["tags"][0]]);
 final eventsWithFirstTag = await query.fetchOne();
 eventsWithFirstTag.contents.data == "v1";
@@ -146,7 +146,7 @@ eventsWithFirstTag.contents.data == "v1";
 If a key or index does not exist in the JSON document, the value of the returned property will be null. For this reason, you should use null-aware operators when accessing `Document.data`:
 
 ```dart
-final query = new Query<Event>()
+final query = Query<Event>()
   ..returningProperties((e) => [e.id, e.contents["tags"][7]]); // 7 is out of bounds
 final eventsWithFirstTag = await query.fetchOne();
 if (eventsWithFirstTag.contents?.data == "v1") {
@@ -157,7 +157,7 @@ if (eventsWithFirstTag.contents?.data == "v1") {
 When fetching elements from a JSON array, you may use negative indices to specify a index from the end of the array.
 
 ```dart
-final query = new Query<Event>()
+final query = Query<Event>()
   ..returningProperties((e) => [e.id, e.contents["tags"][-1]]);
 final eventsWithLastTag = await query.fetchOne();
 ```
@@ -166,7 +166,7 @@ Note that you can only fetch a single sub-structure from a `Document` column per
 
 ```dart
 // Invalid
-final query = new Query<Event>()
+final query = Query<Event>()
   ..returningProperties((e) => [e.id, e.contents["type"], e.contents["user"]]);
 ```
 
@@ -181,7 +181,7 @@ final eventTagCounts = await context.query("SELECT jsonb_array_length(contents->
 The values stored in a `Document` column can be used to filter the results returned from a query. The following example will return objects that have the value 'bob' for the key 'user' in their `contents` property.
 
 ```dart
-final query = new Query<Event>()
+final query = Query<Event>()
   ..where((e) => e.contents["user"]).equalTo("bob");
 final events = await query.fetch();
 ```
@@ -193,7 +193,7 @@ When matching a value stored in a document property, you must subscript the `Doc
 The matcher `whereContains` is the only matcher that can be also applied directly to a `Document` property. It tests whether the top-level object or array contains an element. For objects, it tests whether the key exists in the object. For arrays, it tests whether the the argument is contained in that array. The following would only fetch events that have a 'type' key.
 
 ```dart
-final query = new Query<Event>()
+final query = Query<Event>()
   ..where((e) => e.contents).contains("type");
 final eventsWithAnyType = await query.fetch();
 ```
@@ -207,7 +207,7 @@ Typically when updating a `Document` property, you fetch it, modify it in memory
 Existing values in a JSON document can be modified using the subscript operator with an update query's `values`. The following query sets the 'status' of every event's contents to 'complete'.
 
 ```dart
-final query = new Query<Event>()
+final query = Query<Event>()
   ..values.contents["status"] = "complete";
 final events = await query.update();
 ```
@@ -217,7 +217,7 @@ If 'status' did not exist in `contents`, it would be added to the object.
 You may also modify nested values, as well as modify objects in an array. For example, the following query sets the value of the first 'items' to 'flashlight'.
 
 ```dart
-final query = new Query<Event>()
+final query = Query<Event>()
   ..values.contents["items"][0] = "flashlight";
 final events = await query.update();
 ```

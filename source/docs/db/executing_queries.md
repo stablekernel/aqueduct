@@ -3,7 +3,7 @@
 To send commands to a database - whether to fetch, insert, delete or update objects - you will create, configure and execute instances of `Query<T>`. The type argument must be a subclass of `ManagedObject<T>`. This tells the `Query<T>` which table it will operate on. Here's an example of a `Query<T>` that fetches all instances of `User`:
 
 ```dart
-var query = new Query<User>();
+var query = Query<User>();
 var allUsers = await query.fetch();
 ```
 
@@ -36,7 +36,7 @@ class _User {
 To insert a new row into the `_User` table, a `Query<T>` is constructed and executed:
 
 ```dart
-var query = new Query<User>()
+var query = Query<User>()
   ..values.name = "Bob"
   ..values.email = "bob@stablekernel.com";  
 
@@ -61,7 +61,7 @@ Properties that are not set in the `values` property will not be sent to the dat
 Values that are explicitly set to `null` will be sent as `NULL`. For example, consider the following `Query<T>`:
 
 ```dart
-var query = new Query<User>()
+var query = Query<User>()
   ..values.name = null;
 await query.insert();
 ```
@@ -77,10 +77,10 @@ If a property is not nullable (its `Column` has `nullable: false`) and its value
 You may also set `Query.values` with an instance of a managed object. This is valuable when reading an object from a JSON HTTP request body:
 
 ```dart
-var user = new User()
+var user = User()
   ..readFromMap(requestBody);
 
-var query = new Query<User>()
+var query = Query<User>()
   ..values = user;
 ```
 
@@ -96,7 +96,7 @@ An update query can - and likely should - be restricted to a single row or subse
 
 ```dart
 // A Query that will change any user's whose name is 'Bob' to 'Fred'
-var query = new Query<User>()
+var query = Query<User>()
   ..values.name = "Fred"
   ..where((u) => u.name).equalTo("Bob");
 
@@ -115,7 +115,7 @@ Like `insert()`, only the values set in the `values` property of a query get upd
 
 ```dart
 // A Query that will remove names from anyone currently named Bob.
-var query = new Query<User>()
+var query = Query<User>()
   ..values.name = null
   ..where((u) => u.name).equalTo("Bob");
 ```
@@ -127,7 +127,7 @@ There is a variant to `Query<T>.update` named `updateOne`. The `updateOne` metho
 
 ```dart
 // Update user with id = 1 to have the name 'Fred'
-var query = new Query<User>()
+var query = Query<User>()
   ..values.name = "Fred"
   ..where((u) => u.id).equalTo(1);
 
@@ -143,7 +143,7 @@ Update queries have a safety feature that prevents you from accidentally updatin
 A `Query<T>` will delete rows from a database when using `delete()`. Like update queries, you should specify a row or rows using `where` properties of the `Query<T>`. The result of a delete operation will be a `Future<int>` with the number of rows deleted.
 
 ```dart
-var query = new Query<User>()
+var query = Query<User>()
   ..where((u) => u.id).equalTo(1);
 
 int usersDeleted = await query.delete();
@@ -158,7 +158,7 @@ Any properties set in the query's `values` are ignored when executing a delete.
 Of the four basic operations of a `Query<T>`, fetching data is the most configurable. A simple `Query<T>` that would fetch every instance of some entity looks like this:
 
 ```dart
-var query = new Query<User>();
+var query = Query<User>();
 
 List<User> allUsers = await query.fetch();
 ```
@@ -166,7 +166,7 @@ List<User> allUsers = await query.fetch();
 A fetch `Query<T>` uses its `where` property to filter the result set, just like delete and update queries. Any properties set in the query's `values` are ignored when executing a fetch, since there is no need for them. In addition to fetching a list of instances from a database, you may also fetch a single instance with `fetchOne`. If no instance is found, `null` is returned.
 
 ```dart
-var query = new Query<User>()
+var query = Query<User>()
   ..where((u) => u.id).equalTo(1);
 
 User oneUser = await query.fetchOne();
@@ -179,7 +179,7 @@ Fetch queries can be limited to a number of instances with the `fetchLimit` prop
 Results of a fetch can be sorted using the `sortBy` method of a `Query<T>`. Here's an example:
 
 ```dart
-var q = new Query<User>()
+var q = Query<User>()
   ..sortBy((u) => u.dateCreated, QuerySortOrder.ascending);
 ```
 
@@ -188,7 +188,7 @@ var q = new Query<User>()
 A `Query<T>` results can be sorted by multiple properties. When multiple `sortBy`s are invoked on a `Query<T>`, later `sortBy`s are used to break ties in previous `sortBy`s. For example, the following query will sort by last name, then by first name:
 
 ```dart
-var q = new Query<User>()
+var q = Query<User>()
   ..sortBy((u) => u.lastName, QuerySortOrder.ascending)
   ..sortBy((u) => u.firstName, QuerySortOrder.ascending);
 ```
@@ -221,7 +221,7 @@ Any property with `omitByDefault` set to true will not be fetched by default.
 A property that is `omitByDefault` can still be fetched. Likewise, a property that is in the defaults can still be omitted. Each `Query<T>` has a `returningProperties` method to adjust which properties do get returned from the query. Its usage looks like this:
 
 ```dart
-var query = new Query<User>()
+var query = Query<User>()
   ..returningProperties((user) => [user.id, user.name]);
 ```
 

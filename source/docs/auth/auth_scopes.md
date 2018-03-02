@@ -25,10 +25,10 @@ class NoteController extends Controller {
   @override
   Future<RequestOrResponse> handle(Request request) async {
     if (!request.authorization.authorizedForScope("notes")) {
-      return new Response.forbidden();
+      return Response.forbidden();
     }
 
-    return new Response.ok(await getAllNotes());
+    return Response.ok(await getAllNotes());
   }
 }
 ```
@@ -41,8 +41,8 @@ An `Authorizer` may also validate the scope of a request before letting it pass 
 ```dart
 router
   .route('/notes')
-  .link(() => new Authorizer.bearer(authServer, scopes: ['notes']))
-  .link(() => new NoteController());
+  .link(() => Authorizer.bearer(authServer, scopes: ['notes']))
+  .link(() => NoteController());
 ```
 
 In the above, the `NoteController` will only be reached if the request's bearer token has 'notes' scope. If there is insufficient scope, a 403 Forbidden response is sent. This applies to all operations of the `NoteController`.
@@ -106,7 +106,7 @@ class DomainBasedAuthDelegate extends ManagedAuthDelegate<User> {
     } else if (user.username.endsWith("@hotmail.com")) {
       return [];
     } else {
-      return [new AuthScope("user")];
+      return [AuthScope("user")];
     }
   }      
 }
@@ -124,7 +124,7 @@ class RoleBasedAuthDelegate extends ManagedAuthDelegate<User> {
   @override
   Future<User> fetchAuthenticatableByUsername(
       AuthServer server, String username) {
-    var query = new Query<User>(context)
+    var query = Query<User>(context)
       ..where((u) => u.username).equalTo(username)
       ..returningProperties((t) =>
         [t.id, t.username, t.hashedPassword, t.salt, t.role]);
@@ -141,7 +141,7 @@ class RoleBasedAuthDelegate extends ManagedAuthDelegate<User> {
       scopeStrings = ["user:email"];
     }
 
-    return scopeStrings.map((str) => new AuthScope(str)).toList();
+    return scopeStrings.map((str) => AuthScope(str)).toList();
   }
 }
 ```

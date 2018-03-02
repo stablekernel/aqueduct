@@ -11,11 +11,11 @@ A `ManagedContext` uses these two objects to coordinate moving data to and from 
 class MyApplicationChannel extends ApplicationChannel {
   @override
   Future prepare() async {
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+    var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    var psc = PostgreSQLPersistentStore.fromConnectionInfo(
         "username", "password", "host", 5432, "databaseName");
 
-    ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
+    ManagedContext.defaultContext = ManagedContext(dataModel, psc);
   }
 }
 ```
@@ -23,7 +23,7 @@ class MyApplicationChannel extends ApplicationChannel {
 A `ManagedDataModel` should be instantiated with its `fromCurrentMirrorSystem` convenience constructor. You may optionally pass a list of `ManagedObject<T>` subclasses to its default constructor.
 
 ```dart
-var dataModel = new ManagedDataModel([User, Post, Friendship]);
+var dataModel = ManagedDataModel([User, Post, Friendship]);
 ```
 
 There is one `defaultContext` in an application. When executing a `Query<T>`, the default context is chosen if no other context is provided to its constructor. A default context must be instantiated before using any Aqueduct ORM objects or behavior.
@@ -40,17 +40,17 @@ class MyConfigurationItem extends ConfigurationItem {
 class MyApplicationChannel extends ApplicationChannel {
   @override
   Future prepare() async {
-    var config = new MyConfigurationItem(options.configurationFilePath);
+    var config = MyConfigurationItem(options.configurationFilePath);
 
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+    var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    var psc = PostgreSQLPersistentStore.fromConnectionInfo(
         config.database.username,
         config.database.password,
         config.database.host,
         config.database.port,
         config.database.databaseName);        
 
-    ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
+    ManagedContext.defaultContext = ManagedContext(dataModel, psc);
   }
 }
 ```

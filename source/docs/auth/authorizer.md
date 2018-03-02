@@ -5,17 +5,17 @@ Instances of `Authorizer` are added to an application channel to verify HTTP req
 ```dart
 @override
 Controller get entryPoint {
-  final router = new Router();
+  final router = Router();
 
   router
     .route("/protected")
-    .link(() => new Authorizer.bearer(authServer))
-    .link(() => new ProtectedController());
+    .link(() => Authorizer.bearer(authServer))
+    .link(() => ProtectedController());
 
   router
     .route("/other")
-    .link(() => new Authorizer.basic(authServer))
-    .link(() => new OtherProtectedController());
+    .link(() => Authorizer.basic(authServer))
+    .link(() => OtherProtectedController());
 
   return router;
 }
@@ -49,8 +49,8 @@ An `Authorizer` may restrict access to controllers based on the scope of the req
 ```dart
 router
   .route("/checkin")
-  .link(() => new Authorizer.bearer(authServer, scopes: ["user:posts", "location"]))
-  .link(() => new CheckInController());
+  .link(() => Authorizer.bearer(authServer, scopes: ["user:posts", "location"]))
+  .link(() => CheckInController());
 ```
 
 Note that you don't have to use an `Authorizer` to restrict access based on scope. A controller has access to scope information after the request has passed through an `Authorizer`, so it can use the scope to make more granular authorization decisions.
@@ -67,10 +67,10 @@ class NewsFeedController extends ResourceController {
   Future<Response> getNewsFeed() async {
     var forUserID = request.authorization.resourceOwnerIdentifier;
 
-    var query = new Query<Post>()
+    var query = Query<Post>()
       ..where((p) => p.author).relatedByValue(forUserID);
 
-    return new Response.ok(await query.fetch());
+    return Response.ok(await query.fetch());
   }
 }
 ```
@@ -84,15 +84,15 @@ class NewsFeedController extends ResourceController {
   @Operation.get()
   Future<Response> getNewsFeed() async {
     if (!request.authorization.authorizedForScope("user:feed")) {
-      return new Response.unauthorized();
+      return Response.unauthorized();
     }
 
     var forUserID = request.authorization.resourceOwnerIdentifier;
 
-    var query = new Query<Post>()
+    var query = Query<Post>()
       ..where((p) => p.author).relatedByValue(forUserID);
 
-    return new Response.ok(await query.fetch());
+    return Response.ok(await query.fetch());
   }
 }
 ```
@@ -109,7 +109,7 @@ class BasicValidator implements AuthValidator {
   FutureOr<Authorization> validate<T>(AuthorizationParser<T> parser, T authorizationData, {List<AuthScope> requiredScope}) {}
     var user = await userForName(usernameAndPassword.username);
     if (user.password == hash(usernameAndPassword.password, user.salt)) {
-      return new Authorization(...);
+      return Authorization(...);
     }
 
     // Will end up creating a 401 Not Authorized Response

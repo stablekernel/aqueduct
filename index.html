@@ -110,8 +110,8 @@
             <div class="col-sm-6">
                 <pre class="feature-box"><code class="language-dart">router
   .route('/teams/[:id]')
-  .link(() => new Authorizer(validator))
-  .link(() => new TeamController(databaseContext));</code></pre>
+  .link(() => Authorizer(validator))
+  .link(() => TeamController(databaseContext));</code></pre>
             </div>
         </div>
         <div class="row feature-row">
@@ -120,8 +120,8 @@
                 <p>Powerful, statically typed queries enable code-completion and refactoring tools while minimizing error. Tested command-line tooling for database migrations makes data management a breeze.</p>
             </div>
             <div class="col-sm-6">
-                <pre class="feature-box"><code class="language-dart">var query = new Query&lt;Team&gt;()
-  ..where((t)=> t.skills).contains('aqueduct')
+                <pre class="feature-box"><code class="language-dart">var query = Query&lt;Team&gt;()
+  ..where((t) => t.skills).contains('aqueduct')
   ..join(object: (t) => t.manager)
   ..join(set: (t) => t.developers);
 
@@ -134,16 +134,16 @@ var teams = await query.fetch();</code></pre>
                 <p>A rigorously tested OAuth 2.0 server in just a few lines of code. A layered implementation allows you to store tokens and client identifiers anywhere without rewriting the logic.</p>
             </div>
             <div class="col-sm-6">
-                <pre class="feature-box"><code class="language-dart">var delegate = new ManagedAuthDelegate&lt;User&gt;(dbCtx);
-var auth = new AuthServer(delegate);
+                <pre class="feature-box"><code class="language-dart">var delegate = ManagedAuthDelegate&lt;User&gt;(dbCtx);
+var auth = AuthServer(delegate);
 
 router
   .route('/auth/token')
-  .link(() => new AuthController(auth));
+  .link(() => AuthController(auth));
 
 router
   .route('/auth/code')
-  .link(() => new AuthCodeController(auth));</code></pre>
+  .link(() => AuthCodeController(auth));</code></pre>
             </div>
         </div>
         <div class="row feature-row">
@@ -158,7 +158,7 @@ Future&lt;Response&gt; updateTeam(
     @Bind.body() Team team,
     @Bind.header('x-required-header'"') String requiredHeader,
     {@Bind.query('optional_timestamp') DateTime timestamp}) {
-  return new Response.ok(team);
+  return Response.ok(team);
 }</code></pre>
             </div>
         </div>

@@ -23,9 +23,9 @@ class MyApplicationChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    final context = new ManagedContext(...);
-    final delegate = new ManagedAuthDelegate<User>(context);
-    authServer = new AuthServer(delegate);
+    final context = ManagedContext(...);
+    final delegate = ManagedAuthDelegate<User>(context);
+    authServer = AuthServer(delegate);
   }
 
   ...
@@ -48,26 +48,26 @@ class MyApplicationChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    context = new ManagedContext(...);
-    final delegate = new ManagedAuthDelegate<User>(context);
-    authServer = new AuthServer(delegate);
+    context = ManagedContext(...);
+    final delegate = ManagedAuthDelegate<User>(context);
+    authServer = AuthServer(delegate);
   }
 
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     // Set up auth token route- this grants and refresh tokens
-    router.route("/auth/token").link(() => new AuthController(authServer));
+    router.route("/auth/token").link(() => AuthController(authServer));
 
     // Set up auth code route- this grants temporary access codes that can be exchanged for token
-    router.route("/auth/code").link(() => new AuthCodeController(authServer));
+    router.route("/auth/code").link(() => AuthCodeController(authServer));
 
     // Set up protected route
     router
       .route("/protected")
-      .link(() => new Authorizer.bearer(authServer))
-      .link(() => new ProtectedController());
+      .link(() => Authorizer.bearer(authServer))
+      .link(() => ProtectedController());
 
     return router;
   }
@@ -113,7 +113,7 @@ The `managed_auth` library also declares two `ManagedObject<T>` subclasses. `Man
 `ManagedAuthDelegate<T>` will delete authorization tokens and codes when they are no longer in use. This is determined by how many tokens a resource owner has and the tokens expiration dates. Once a resource owner acquires more than 40 tokens/codes, the oldest tokens/codes (determined by expiration date) are deleted. Effectively, the resource owner is limited to 40 tokens. This number can be changed when instantiating `ManagedAuthDelegate<T>`:
 
 ```dart
-final delegate = new ManagedAuthDelegate(context, tokenLimit: 20);
+final delegate = ManagedAuthDelegate(context, tokenLimit: 20);
 ```
 
 ## Configuring the Database

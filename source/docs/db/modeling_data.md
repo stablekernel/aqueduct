@@ -110,12 +110,12 @@ class _User {
 Your code works be assigning valid enumeration cases to the `User.type` property:
 
 ```dart
-var query = new Query<User>()
+var query = Query<User>()
   ..values.name = "Bob"
   ..values.type = UserType.admin;
 var bob = await query.insert();
 
-query = new Query<User>()
+query = Query<User>()
   ..where((u) => u.type).equalTo(UserType.admin);
 var allAdmins = await query.fetch();
 ```
@@ -132,14 +132,14 @@ Managed objects can be inserted into and fetched from a database. They can be us
 @Operation.post()
 Future<Response> createThing(@Bind.body() User user) async {
   // Construct Query for inserting the user, using values from the request body.
-  var insertQuery = new Query<User>()
+  var insertQuery = Query<User>()
     ..values = user;
 
   // Execute insert, get User back from database
   var insertedUser = await insertQuery.insert();
 
   // Return response with inserted User serialized as JSON HTTP response body.
-  return new Response.ok(insertedUser);
+  return Response.ok(insertedUser);
 }
 ```
 
@@ -154,11 +154,11 @@ If this entire table were fetched, you'd get a `List<User>` as though you had wr
 
 ```dart
 var users = [
-  new User()
+  User()
     ..id = 1
     ..name = "Bob",
 
-  new User()
+  User()
     ..id = 2
     ..name = "Fred"
 ];
@@ -168,7 +168,7 @@ Managed objects may also declare additional properties and methods beyond those 
 
 ```dart
 class Video extends ManagedObject<_Video> implements _Video {
-  bool get isRecent => return new DateTime.now().difference(uploadDate).inDays < 7;
+  bool get isRecent => return DateTime.now().difference(uploadDate).inDays < 7;
 }
 
 class _Video {
@@ -190,7 +190,7 @@ You may also override a `ManagedObject<T>`s `asMap()` method to get to similar b
 class Video extends ManagedObject<_Video> implements _Video {
   Map<String, dynamic> asMap() {
     var m = super.asMap();
-    m["isRecent"] = new DateTime.now().difference(uploadDate).inDays < 7;
+    m["isRecent"] = DateTime.now().difference(uploadDate).inDays < 7;
     return m;
   }
 }
@@ -284,7 +284,7 @@ By default, the delete rule is `DeleteRule.nullify` (it is the least destructive
 When fetching managed objects from a database, there are rules on which relationship properties are fetched. By default, any 'has-one' or 'has-many' relationships are *not* fetched from the database:
 
 ```dart
-var query = new Query<User>();
+var query = Query<User>();
 var user = await query.fetchOne();
 
 var userMap = user.asMap();
@@ -299,7 +299,7 @@ In order to fetch these types of relationships, you must explicitly configure a 
 The `Relate` property, however, will be fetched by default. But, the entire object is not fetched - only its primary key value:
 
 ```dart
-var query = new Query<Job>();
+var query = Query<Job>();
 var job = await query.fetchOne();
 
 var jobMap = job.asMap();

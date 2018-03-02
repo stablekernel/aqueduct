@@ -11,11 +11,11 @@ Using an `AuthController` in an application is straightforward - hook it up to a
 ```dart
 @override
 Controller get entryPoint {
-  final router = new Router();
+  final router = Router();
 
   router
     .route("/auth/token")
-    .link(() => new AuthController(authServer));
+    .link(() => AuthController(authServer));
 
   return router;
 }
@@ -32,7 +32,7 @@ The body must also contain the key-value pair `grant_type=password`. For example
 var clientID = "com.app.demo";
 var clientSecret = "mySecret";
 var body = "username=bob@stablekernel.com&password=foobar&grant_type=password";
-var clientCredentials = new Base64Encoder().convert("$clientID:$clientSecret".codeUnits);
+var clientCredentials = Base64Encoder().convert("$clientID:$clientSecret".codeUnits);
 
 var response = await http.post(
   "https://stablekernel.com/auth/token",
@@ -47,7 +47,7 @@ If the OAuth 2.0 client ID is public - that is, it does not have a client secret
 
 ```dart
 // Notice that the separating colon (:) is still present.
-var clientCredentials = new Base64Encoder().convert("$clientID:".codeUnits);
+var clientCredentials = Base64Encoder().convert("$clientID:".codeUnits);
 ```
 
 The response to a password token request is a JSON body that follows the OAuth 2.0 specification:
@@ -97,11 +97,11 @@ Setting up an `AuthCodeController` is nearly as simple as setting up an `AuthCon
 ```dart
 @override
 Controller get entryPoint {
-  final router = new Router();
+  final router = Router();
 
   router
     .route("/auth/code")
-    .link(() => new AuthCodeController(
+    .link(() => AuthCodeController(
       authServer, renderAuthorizationPageHTML: renderLogin));
 
   return router;

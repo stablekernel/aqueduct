@@ -8,10 +8,10 @@ In the previous chapter, you have seen that `ManagedObject<T>`s subclasses are r
 class UserController extends ResourceController {
   @Operation.post()
   Future<Response> createUser(@Bind.body() User user) async {
-    var query = new Query<User>()
+    var query = Query<User>()
       ..values = user;
 
-    return new Response.ok(await query.insert());
+    return Response.ok(await query.insert());
   }
 }
 ```
@@ -40,7 +40,7 @@ var userMap = {
   "name" : "Bob"
 };
 
-var user = new User()..readFromMap(userMap);
+var user = User()..readFromMap(userMap);
 
 user.id == null; // yup
 user.name == "Bob"; // yup
@@ -59,7 +59,7 @@ var userMap = {
   "name" : "Bob"
 };
 
-var user = new User()..readFromMap(userMap);
+var user = User()..readFromMap(userMap);
 
 user.id == null; // yup
 user.name == "Bob"; // yup
@@ -74,7 +74,7 @@ outUserMap == {
 A `ManagedObject<T>` like `User` makes the distinction between a value that is `null` and a value that it *doesn't have enough information for*. A property of a `ManagedObject<T>` can get set in three ways: it is read from a map, its setter is invoked or it is read from the database. In all three of these situations, not every property is available. This is no more obvious than when  creating a brand new instance:
 
 ```dart
-var user = new User();
+var user = User();
 user.id == null; // yup
 user.name == null; // yup
 
@@ -86,16 +86,16 @@ A `ManagedObject<T>` will not include keys in its `asMap()` if it doesn't have a
 So what about values that are actually `null`? A property with the value `null` will be included in `asMap()` if its been read from the database, read using `readFromMap()` or explicitly assigned with a setter. The following three user objects will all have `{"name": null}`:
 
 ```dart
-var user1 = new User()
+var user1 = User()
   ..id = 1
   ..name = null;
 
-var user2 = new User()..readFromMap({
+var user2 = User()..readFromMap({
   "id": 2
   "name": null
 });
 
-var query = new Query<User>()
+var query = Query<User>()
   ..where((u) => u.id).equalTo(3)
   ..where((u) => u.name).isNull();
 var user3 = await query.fetchOne();
@@ -124,7 +124,7 @@ class _User {
   ...
 }
 
-var user = new User()
+var user = User()
   ..firstName = "Bob"
   ..lastName = "Boberson";
 
@@ -156,7 +156,7 @@ class _User {
 var map = {
   'password' : 'mypassword'
 };
-var user = new User()..readFromMap(map);
+var user = User()..readFromMap(map);
 var salt = user.salt; // 'somerandomstring'
 var hashedPassword = user.hashedPassword; // 'somehashedstring'
 
@@ -209,9 +209,9 @@ Relationship properties - references to other `ManagedObject<T>` subclasses - ca
 If a relationship property has been set or read from the database, its `asMap()` will contain the nested `Map` produced by the related objects `asMap()`. For example, recall the `User` with a `job`:
 
 ```dart
-var job = new Job()
+var job = Job()
   ..title = "Programmer";
-var user = new User()
+var user = User()
   ..name = "Bob"
   ..job = job;
 
@@ -231,7 +231,7 @@ Notice that the names of the keys - including relationship properties and proper
 It's important to note that "belongs to" relationships - those with `Relate` metadata - are always returned in `asMap()` when fetching an object from the database. However, the full object is not returned - only its primary key. Therefore, you will get the following result:
 
 ```dart
-var jobQuery = new Query<Job>();
+var jobQuery = Query<Job>();
 var job = await jobQuery.fetchOne();
 
 job.asMap() == {
@@ -258,11 +258,11 @@ Aqueduct treats relationships consistently and chooses not to expose any of the 
 "Has-many" relationships, which are represented as `ManagedSet<T>`s, are written as `List<Map>`s in `asMap()`.
 
 ```dart
-var user = new User()
+var user = User()
   ..id = 1;
-  ..posts = new ManagedSet.from([
-      new Post()..id = 2,
-      new Post()..id = 3
+  ..posts = ManagedSet.from([
+      Post()..id = 2,
+      Post()..id = 3
   ]);
 
 var userMap = user.asMap();
@@ -298,13 +298,13 @@ While managed objects from a database will not have cyclic references, managed o
 
 ```dart
 // do:
-var user = new User();
+var user = User();
 posts.forEach((p) {
-  p.user = new User()..id = user.id;
+  p.user = User()..id = user.id;
 });
 
 // do not:
-var user = new User();
+var user = User();
 posts.forEach((p) {
   p.user = user;
 });
@@ -321,9 +321,9 @@ var userMap = {
   ]
 };
 
-var user = new User()..readFromMap(userMap);
-user.posts == new ManagedSet<Post>[
-  new Post()
+var user = User()..readFromMap(userMap);
+user.posts == ManagedSet<Post>[
+  Post()
     ..id = 1
     ..text = "hello"
 ]; // yup, other Post doesn't implement == to check property equality
