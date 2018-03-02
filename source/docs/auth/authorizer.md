@@ -68,7 +68,7 @@ class NewsFeedController extends ResourceController {
     var forUserID = request.authorization.resourceOwnerIdentifier;
 
     var query = Query<Post>()
-      ..where((p) => p.author).relatedByValue(forUserID);
+      ..where((p) => p.author).identifiedBy(forUserID);
 
     return Response.ok(await query.fetch());
   }
@@ -90,7 +90,7 @@ class NewsFeedController extends ResourceController {
     var forUserID = request.authorization.resourceOwnerIdentifier;
 
     var query = Query<Post>()
-      ..where((p) => p.author).relatedByValue(forUserID);
+      ..where((p) => p.author).identifiedBy(forUserID);
 
     return Response.ok(await query.fetch());
   }
