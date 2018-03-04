@@ -458,6 +458,7 @@ class DefaultChannel extends ApplicationChannel {
 
   @override
   Future close() async {
+    await super.close();
     channelClosed?.complete();
   }
 }

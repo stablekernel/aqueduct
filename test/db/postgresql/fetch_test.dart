@@ -22,12 +22,6 @@ void main() {
 
     expect(item.name, "Joe");
     expect(item.email, "a@a.com");
-
-    var dynQuery = new Query.forEntity(context.dataModel.entityForType(TestModel))
-      ..where["id"] = whereEqualTo(item.id);
-    item = await dynQuery.fetchOne();
-    expect(item.name, "Joe");
-    expect(item.email, "a@a.com");
   });
 
   test("Query with dynamic entity and mis-matched context throws exception", () async {
@@ -263,7 +257,7 @@ void main() {
         5);
 
     var query = new Query<GenPost>();
-    query.where["owner"] = whereRelatedByValue(u1.id);
+    query.where((o) => o.owner).identifiedBy(u1.id);
     res = await query.fetch();
 
     GenUser user = res.first.owner;
@@ -381,12 +375,12 @@ void main() {
     expect(result.asMap()["enumValues"], "abcd");
 
     q = new Query<EnumObject>()
-      ..where.enumValues = whereEqualTo(EnumValues.abcd);
+      ..where((o) => o.enumValues).equalTo(EnumValues.abcd);
     result = await q.fetchOne();
     expect(result, isNotNull);
 
     q = new Query<EnumObject>()
-      ..where.enumValues = whereEqualTo(EnumValues.efgh);
+      ..where((o) => o.enumValues).equalTo(EnumValues.efgh);
     result = await q.fetchOne();
     expect(result, isNull);
   });

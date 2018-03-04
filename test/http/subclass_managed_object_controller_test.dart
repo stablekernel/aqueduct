@@ -146,7 +146,7 @@ class Subclass extends ManagedObjectController<TestModel> {
   @override
   Future<Query<TestModel>> willFindObjectWithQuery(
       Query<TestModel> query) async {
-    query.where.name = whereIn(["1", "2", "3"]);
+    query.where((o) => o.name).oneOf(["1", "2", "3"]);
     return query;
   }
 
@@ -211,7 +211,7 @@ class Subclass extends ManagedObjectController<TestModel> {
   @override
   Future<Query<TestModel>> willFindObjectsWithQuery(
       Query<TestModel> query) async {
-    query.where.id = whereGreaterThan(1);
+    query.where((o) => o.id).greaterThan(1);
     return query;
   }
 

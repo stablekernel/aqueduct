@@ -250,7 +250,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   String toString() {
-    return "[Attribute]    ${entity.tableName}.$name ($type)";
+    return "${MirrorSystem.getName(entity.instanceType.simpleName)}.$name";
   }
 
   @override
@@ -313,6 +313,9 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
 
   /// The [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
   ManagedRelationshipDescription get inverse => destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
+
+  /// Whether or not this relationship is on the belonging side.
+  bool get isBelongsTo => relationshipType == ManagedRelationshipType.belongsTo;
 
   /// Whether or not a the argument can be assigned to this property.
   @override
@@ -402,7 +405,14 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
 
   @override
   String toString() {
-    return "[Relationship] ${entity.tableName}.$name $relationshipType ${destinationEntity.tableName}.${MirrorSystem
-        .getName(inverseKey)}";
+    var relTypeString = "has-one";
+    switch (relationshipType) {
+      case ManagedRelationshipType.belongsTo: relTypeString = "belongs to"; break;
+      case ManagedRelationshipType.hasMany: relTypeString = "has-many"; break;
+      case ManagedRelationshipType.hasOne: relTypeString = "has-a"; break;
+    }
+    return "${MirrorSystem.getName(entity.instanceType.simpleName)}.$name - "
+        "$relTypeString '${MirrorSystem.getName(destinationEntity.instanceType.simpleName)}' "
+        "(inverse: ${MirrorSystem.getName(inverseKey)})";
   }
 }

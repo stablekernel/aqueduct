@@ -190,6 +190,10 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   @override
   dynamic noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
+      if (invocation.memberName == #haveAtLeastOneWhere) {
+        return this;
+      }
+
       return this[_getPropertyNameFromInvocation(invocation)];
     } else if (invocation.isSetter) {
       this[_getPropertyNameFromInvocation(invocation)] = invocation.positionalArguments.first;

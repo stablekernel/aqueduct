@@ -83,7 +83,7 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
     var scopingClient = new AuthClient.public(clientID, allowedScopes: scopes?.map((s) => new AuthScope(s))?.toList());
 
     var query = new Query<ManagedAuthClient>()
-      ..where.id = whereEqualTo(clientID)
+      ..where((o) => o.id).equalTo(clientID)
       ..values.allowedScope = scopingClient.allowedScopes?.map((s) => s.toString())?.join(" ");
 
     var result = await query.updateOne();

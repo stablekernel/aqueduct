@@ -1,344 +1,329 @@
+import 'package:aqueduct/src/db/managed/key_path.dart';
+
 import 'matcher_internal.dart';
 import 'query.dart';
 import '../managed/managed.dart';
 
-/// Query matcher that tests that a column is equal to [value].
+/// Contains binary logic operations to be applied to a [QueryExpression].
+class QueryExpressionJunction<T> {
+  QueryExpressionJunction._(this.lhs);
+
+  final QueryExpression<T> lhs;
+}
+
+/// Contains methods for adding logical expressions to properties when building a [Query].
 ///
-/// When assigned to a [Query.where] property, only rows where that property
-/// is equal to [value] are returned. [value] must be the same type as the property
-/// being assigned.
-///
-/// This matcher can be used on [int], [String], [bool], [double] and [DateTime] types.
-///
-/// If [value] is [String], the flag [caseSensitive] controls whether or not equality is case-sensitively compared.
-///
+/// You do not create instances of this type directly, but instead are returned an instance when selecting a property
+/// of an object in [Query.where]. You invoke methods from this type to add an expression to the query for the selected property.
 /// Example:
 ///
-///       final query = new Query<User>()
-///         ..where.id = whereEqualTo(1);
+///         final query = new Query<Employee>()
+///           ..where((e) => e.name).equalTo("Bob");
 ///
-dynamic whereEqualTo(dynamic value, {bool caseSensitive: true}) {
-  if (value is String) {
-    return new StringExpression(
-        value, PredicateStringOperator.equals, caseSensitive: caseSensitive);
+class QueryExpression<T> {
+  QueryExpression(this.keyPath);
+
+  QueryExpression.forNestedProperty(QueryExpression<T> original, int offset)
+      : keyPath = new KeyPath.byRemovingFirstNKeys(original.keyPath, 1),
+        _expression = original.expression;
+
+  QueryExpression.byAddingKey(QueryExpression<T> original, ManagedPropertyDescription byAdding)
+      : keyPath = new KeyPath.byAddingKey(original.keyPath, byAdding),
+        _expression = original.expression;
+
+  final KeyPath keyPath;
+
+  // todo: This needs to be extended to an expr tree
+  PredicateExpression get expression =>_expression;
+
+  set expression(PredicateExpression expr) {
+    if (_invertNext) {
+      _expression = expr.inverse;
+      _invertNext = false;
+    } else {
+      _expression = expr;
+    }
   }
-  return new ComparisonExpression(value, PredicateOperator.equalTo);
-}
 
-/// Query matcher that tests that a column is not equal to [value].
-///
-/// When assigned to a [Query.where] property, only rows where that property
-/// is *not equal* to [value] are returned. [value] must be the same type as the property
-/// being assigned.
-///
-/// This matcher can be used on [int], [String], [bool], [double] and [DateTime] types.
-///
-/// If [value] is [String], the flag [caseSensitive] controls whether or not equality is case-sensitively compared.
-///
-/// Example:
-///
-///       final query = new Query<Employee>()
-///         ..where.id = whereNotEqual(60000);
-///
-dynamic whereNotEqualTo(dynamic value, {bool caseSensitive: true}) {
-  if (value is String) {
-    return new StringExpression(
-        value, PredicateStringOperator.equals,
-        caseSensitive: caseSensitive,
-        invertOperator: true);
+  bool _invertNext = false;
+  PredicateExpression _expression;
+
+  QueryExpressionJunction<T> _createJunction() => new QueryExpressionJunction<T>._(this);
+
+  /// Inverts the next expression.
+  ///
+  /// You use this method to apply an inversion to the expression that follows. For example,
+  /// the following example would only return objects where the 'id' is  *not* equal to '5'.
+  ///
+  ///         final query = new Query<Employee>()
+  ///           ..where((e) => e.name).not.equalTo("Bob");
+  QueryExpression<T> get not {
+    _invertNext = true;
+
+    return this;
   }
-  return new ComparisonExpression(value, PredicateOperator.notEqual);
-}
+  /// Adds an equality expression to a query.
+  ///
+  /// A query will only return objects where the selected property is equal to [value].
+  ///
+  /// This method can be used on [int], [String], [bool], [double] and [DateTime] types.
+  ///
+  /// If [value] is [String], the flag [caseSensitive] controls whether or not equality is case-sensitively compared.
+  ///
+  /// Example:
+  ///
+  ///       final query = new Query<User>()
+  ///         ..where((u) => u.id ).equalTo(1);
+  ///
+  QueryExpressionJunction<T> equalTo(T value, {bool caseSensitive: true}) {
+    if (value is String) {
+      expression = new StringExpression(value, PredicateStringOperator.equals, caseSensitive: caseSensitive);
+    } else {
+      expression = new ComparisonExpression(value, PredicateOperator.equalTo);
+    }
 
-
-/// Query matcher that tests that a column is greater than [value].
-///
-/// When assigned to a [Query.where] property, only rows where that property
-/// is greater than (exclusive) [value] are returned. [value] must be the same type as the property
-/// being assigned.
-///
-/// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
-/// this matcher selects rows where the assigned property is 'later than' [value]. For [String] properties,
-/// rows are selected if the value is alphabetically 'after' [value].
-///
-/// Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.salary = whereGreaterThan(60000);
-dynamic whereGreaterThan(dynamic value) {
-  return new ComparisonExpression(value, PredicateOperator.greaterThan);
-}
-
-/// Query matcher that tests that a column is greater than or equal to [value].
-///
-/// When assigned to a [Query.where] property, only rows where that property
-/// is greater than or equal to [value] are returned. [value] must be the same type as the property
-/// being assigned.
-///
-/// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
-/// this matcher selects rows where the assigned property is 'later than or the same time as' [value]. For [String] properties,
-/// rows are selected if the value is alphabetically 'after or the same as' [value].
-/// Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.salary = whereGreaterThanEqualTo(60000);
-dynamic whereGreaterThanEqualTo(dynamic value) {
-  return new ComparisonExpression(
-      value, PredicateOperator.greaterThanEqualTo);
-}
-
-/// Query matcher that tests that a column is less than [value].
-///
-/// When assigned to a [Query.where] property, only rows where that property
-/// is less than (exclusive) [value] are returned. [value] must be the same type as the property
-/// being assigned.
-///
-/// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
-/// this matcher selects rows where the assigned property is 'earlier than' [value]. For [String] properties,
-/// rows are selected if the value is alphabetically 'before' [value].
-/// Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.salary = whereLessThan(60000);
-dynamic whereLessThan(dynamic value) {
-  return new ComparisonExpression(value, PredicateOperator.lessThan);
-}
-
-/// Query matcher that tests that a column is less than [value].
-///
-/// When assigned to a [Query.where] property, only rows where that property
-/// is less than or equal to [value] are returned. [value] must be the same type as the property
-/// being assigned.
-///
-/// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
-/// this matcher selects rows where the assigned property is 'earlier than or the same time as' [value]. For [String] properties,
-/// rows are selected if the value is alphabetically 'before or the same as' [value].
-/// Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.salary = whereLessThanEqualTo(60000);
-dynamic whereLessThanEqualTo(dynamic value) {
-  return new ComparisonExpression(
-      value, PredicateOperator.lessThanEqualTo);
-}
-
-/// Query matcher that tests that a column contains [value].
-///
-/// When assigned to a [Query.where] property, only rows where that property
-/// contains [value] are returned. [value] must be the same type as the property
-/// being assigned.
-///
-/// This matcher can be used on [String] types. The substring [value] must be found in the stored string.
-/// When matching [String] types, the flag [caseSensitive] controls whether strings are compared case-sensitively.
-///
-/// Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.title = whereContains("Director");
-///
-dynamic whereContains(dynamic value, {bool caseSensitive: true}) {
-  return new StringExpression(value, PredicateStringOperator.contains, caseSensitive: caseSensitive);
-}
-/// Query matcher that tests that a column begins with [value].
-///
-/// When assigned to a [Query.where] property, only rows where that property
-/// is a [String] that begins with [value] are returned.
-///
-/// This matcher can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
-///
-/// Example:Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.name = whereBeginsWith("B");
-dynamic whereBeginsWith(String value, {bool caseSensitive: true}) {
-  return new StringExpression(value, PredicateStringOperator.beginsWith, caseSensitive: caseSensitive);
-}
-
-/// Query matcher that tests that a column does not end with [value].
-///
-/// When assigned to a [Query.where] property, only rows where that [String]
-/// does not end with [value] are returned.
-///
-/// This matcher can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
-///
-/// Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.name = whereDoesNotEndWith("son");
-dynamic whereDoesNotEndWith(String value, {bool caseSensitive: true}) {
-  return new StringExpression(
-      value, PredicateStringOperator.endsWith,
-      caseSensitive: caseSensitive,
-      invertOperator: true);
-}
-
-/// Query matcher that tests that a column does not contains [value].
-///
-/// When assigned to a [Query.where] property, only rows where that property
-/// does not contains [value] are returned. [value] must be the same type as the property
-/// being assigned.
-///
-/// This matcher can be used on [String] types. The substring [value] must be found in the stored string.
-/// When matching [String] types, the flag [caseSensitive] controls whether strings are compared case-sensitively.
-///
-/// Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.title = whereDoesNotContains("Director");
-///
-dynamic whereDoesNotContain(String value, {bool caseSensitive: true}) {
-  return new StringExpression(
-      value, PredicateStringOperator.contains,
-      caseSensitive: caseSensitive,
-      invertOperator: true);
-}
-
-/// Query matcher that tests that a column does not begins with [value].
-///
-/// When assigned to a [Query.where] property, only rows where that property
-/// is a [String] that does not begins with [value] are returned.
-///
-/// This matcher can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
-///
-/// Example:Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.name = whereDoesNotBeginsWith("B");
-dynamic whereDoesNotBeginWith(String value, {bool caseSensitive: true}) {
-  return new StringExpression(
-      value, PredicateStringOperator.beginsWith,
-      caseSensitive: caseSensitive,
-      invertOperator: true);
-}
-
-/// Query matcher that tests that a column ends with [value].
-///
-/// When assigned to a [Query.where] property, only rows where that [String]
-/// ends with [value] are returned.
-///
-/// This matcher can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
-///
-/// Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.name = whereEndsWith("son");
-dynamic whereEndsWith(String value, {bool caseSensitive: true}) {
-  return new StringExpression(value, PredicateStringOperator.endsWith, caseSensitive: caseSensitive);
-}
-
-/// Query matcher that tests that a column's value is in [values].
-///
-/// When assigned to a [Query.where] property, only rows where where the property
-/// value is one of [values] are returned.
-///
-/// This matcher can be used on [String], [int], [double], [bool] and [DateTime] types.
-///
-/// Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.department = whereIn(["Engineering", "HR"]);
-dynamic whereIn(Iterable<dynamic> values) {
-  return new SetMembershipExpression(values.toList());
-}
-
-/// Query matcher that tests that a column is between [lhs] and [rhs].
-///
-/// When assigned to a [Query.where] property, only rows where that property
-/// is between [lhs] and [rhs] are returned. [lhs] and [rhs] must be the same type as the property
-/// being assigned.
-///
-/// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
-/// this matcher selects rows where the assigned property is 'later than' [lhs] and 'earlier than' [rhs]. For [String] properties,
-/// rows are selected if the value is alphabetically 'after' [lhs] and 'before' [rhs].
-///
-/// Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.salary = whereBetween(80000, 100000);
-dynamic whereBetween(dynamic lhs, dynamic rhs) {
-  return new RangeExpression(lhs, rhs, true);
-}
-
-/// Query matcher that tests that a column is not between [lhs] and [rhs].
-///
-/// When assigned to a [Query.where] property, only rows where that property
-/// is not between [lhs] and [rhs] are returned. [lhs] and [rhs] must be the same type as the property
-/// being assigned.
-///
-/// This matcher can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
-/// this matcher selects rows where the assigned property is 'later than' [rhs] and 'earlier than' [lhs]. For [String] properties,
-/// rows are selected if the value is alphabetically 'before' [lhs] and 'after' [rhs].
-///
-/// Example:
-///
-///       var query = new Query<Employee>()
-///         ..where.salary = whereOutsideOf(80000, 100000);
-dynamic whereOutsideOf(dynamic lhs, dynamic rhs) {
-  return new RangeExpression(lhs, rhs, false);
-}
-
-/// Query matcher that tests that a relationship is related by [foreignKeyValue].
-///
-/// When assigned to a [Query.where] relationship property, only rows where that relationship
-/// property's primary key is equal to [foreignKeyValue] will be returned. [foreignKeyValue]
-/// must be the same type as the assigned property's primary key.
-///
-/// This matcher can be used on [ManagedObject] types that have [Relate] metadata; i.e., properties that are backed by a foreign key.
-///
-///       var q = new Query<Employee>()
-///         ..where.manager = whereRelatedByValue(managerID);
-dynamic whereRelatedByValue(dynamic foreignKeyValue) {
-  return new ComparisonExpression(
-      foreignKeyValue, PredicateOperator.equalTo);
-}
-
-/// Query matcher that inverts another query matcher.
-///
-/// Creates a matcher that inverts [matcher]. For whatever results would be filtered
-/// by [matcher], the inverted expression both:
-///
-/// - includes the results that would have been excluded
-/// - excludes the results that would have been included
-///
-/// This inversion will not change control flags like checking for case-insensitivity.
-///
-/// For example, the following find's all users not named 'Bob'.
-///
-///       var q = new Query<User>()
-///         ..where.name = whereNot(whereEqualTo("Bob"));
-///
-/// Note: null values are not evaluated. In the previous example, if name
-/// were 'null' for some user, it would *not* be returned by the query.
-///
-dynamic whereNot(dynamic matcher) {
-  if (matcher is! PredicateExpression) {
-    throw new ArgumentError("Invalid argument to 'whereNot'. Must be another matcher, e.g. 'whereEqualTo'.");
+    return _createJunction();
   }
-  return (matcher as PredicateExpression).inverse;
+
+  /// Adds an 'not equal' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is *not* equal to [value].
+  ///
+  /// This method can be used on [int], [String], [bool], [double] and [DateTime] types.
+  ///
+  /// If [value] is [String], the flag [caseSensitive] controls whether or not equality is case-sensitively compared.
+  ///
+  /// Example:
+  ///
+  ///       final query = new Query<Employee>()
+  ///         ..where((e) => e.id).notEqualTo(60000);
+  ///
+  QueryExpressionJunction<T> notEqualTo(T value, {bool caseSensitive: true}) {
+    if (value is String) {
+      expression = new StringExpression(value, PredicateStringOperator.equals,
+          caseSensitive: caseSensitive, invertOperator: true);
+    } else {
+      expression = new ComparisonExpression(value, PredicateOperator.notEqual);
+    }
+
+    return _createJunction();
+  }
+
+  /// Adds a 'greater than' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is greater than [value].
+  ///
+  /// This method can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+  /// this method selects rows where the assigned property is 'later than' [value]. For [String] properties,
+  /// rows are selected if the value is alphabetically 'after' [value].
+  ///
+  /// Example:
+  ///
+  ///       var query = new Query<Employee>()
+  ///         ..where((e) => e.salary).greaterThan(60000);
+  QueryExpressionJunction<T> greaterThan(T value) {
+    expression = new ComparisonExpression(value, PredicateOperator.greaterThan);
+
+    return _createJunction();
+  }
+
+  /// Adds a 'greater than or equal to' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is greater than [value].
+  ///
+  /// This method can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+  /// this method selects rows where the assigned property is 'later than or the same time as' [value]. For [String] properties,
+  /// rows are selected if the value is alphabetically 'after or the same as' [value].
+  /// Example:
+  ///
+  ///       var query = new Query<Employee>()
+  ///         ..where((e) => e.salary).greaterThanEqualTo(60000);
+  QueryExpressionJunction<T> greaterThanEqualTo(T value) {
+    expression = new ComparisonExpression(value, PredicateOperator.greaterThanEqualTo);
+
+    return _createJunction();
+  }
+
+  /// Adds a 'less than' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is less than [value].
+  ///
+  /// This method can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+  /// this method selects rows where the assigned property is 'earlier than' [value]. For [String] properties,
+  /// rows are selected if the value is alphabetically 'before' [value].
+  /// Example:
+  ///
+  ///       var query = new Query<Employee>()
+  ///         ..where((e) => e.salary).lessThan(60000);
+  QueryExpressionJunction<T> lessThan(T value) {
+    expression = new ComparisonExpression(value, PredicateOperator.lessThan);
+
+    return _createJunction();
+  }
+
+  /// Adds a 'less than or equal to' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is less than or equal to [value].
+  ///
+  /// This method can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+  /// this method selects rows where the assigned property is 'earlier than or the same time as' [value]. For [String] properties,
+  /// rows are selected if the value is alphabetically 'before or the same as' [value].
+  /// Example:
+  ///
+  ///       var query = new Query<Employee>()
+  ///         ..where((e) => e.salary).lessThanEqualTo(60000);
+  QueryExpressionJunction<T> lessThanEqualTo(T value) {
+    expression = new ComparisonExpression(value, PredicateOperator.lessThanEqualTo);
+
+    return _createJunction();
+  }
+
+  /// Adds a 'contains string' expression to a query.
+  ///
+  /// A query will only return objects where the selected property contains the string [value].
+  ///
+  /// This method can be used on [String] types. The substring [value] must be found in the stored string.
+  /// The flag [caseSensitive] controls whether strings are compared case-sensitively.
+  ///
+  /// Example:
+  ///
+  ///       var query = new Query<Employee>()
+  ///         ..where((s) => s.title).contains("Director");
+  ///
+  QueryExpressionJunction<T> contains(String value, {bool caseSensitive: true}) {
+    expression = new StringExpression(value, PredicateStringOperator.contains, caseSensitive: caseSensitive);
+
+    return _createJunction();
+  }
+
+  /// Adds a 'begins with string' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is begins with the string [value].
+  ///
+  /// This method can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
+  ///
+  /// Example:
+  ///
+  ///       var query = new Query<Employee>()
+  ///         ..where((s) => s.name).beginsWith("B");
+  QueryExpressionJunction<T> beginsWith(String value, {bool caseSensitive: true}) {
+    expression = new StringExpression(value, PredicateStringOperator.beginsWith, caseSensitive: caseSensitive);
+
+    return _createJunction();
+  }
+
+  /// Adds a 'ends with string' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is ends with the string [value].
+  ///
+  /// This method can be used on [String] types. The flag [caseSensitive] controls whether strings are compared case-sensitively.
+  ///
+  /// Example:
+  ///
+  ///       var query = new Query<Employee>()
+  ///         ..where((e) => e.name).endsWith("son");
+  QueryExpressionJunction<T> endsWith(String value, {bool caseSensitive: true}) {
+    expression = new StringExpression(value, PredicateStringOperator.endsWith, caseSensitive: caseSensitive);
+
+    return _createJunction();
+  }
+
+  /// Adds a 'equal to one of' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is equal to one of the [values].
+  ///
+  /// This method can be used on [String], [int], [double], [bool] and [DateTime] types.
+  ///
+  /// Example:
+  ///
+  ///       var query = new Query<Employee>()
+  ///         ..where((e) => e.department).oneOf(["Engineering", "HR"]);
+  QueryExpressionJunction<T> oneOf(Iterable<T> values) {
+    expression = new SetMembershipExpression(values.toList());
+
+    return _createJunction();
+  }
+
+  /// Adds a 'between two values' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is between than [lhs] and [rhs].
+  ///
+  /// This method can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+  /// this method selects rows where the assigned property is 'later than' [lhs] and 'earlier than' [rhs]. For [String] properties,
+  /// rows are selected if the value is alphabetically 'after' [lhs] and 'before' [rhs].
+  ///
+  /// Example:
+  ///
+  ///       var query = new Query<Employee>()
+  ///         ..where((e) => e.salary).between(80000, 100000);
+  QueryExpressionJunction<T> between(T lhs, T rhs) {
+    expression = new RangeExpression(lhs, rhs, true);
+
+    return _createJunction();
+  }
+
+  /// Adds a 'outside of the range crated by two values' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is not within the range established by [lhs] to [rhs].
+  ///
+  /// This method can be used on [int], [String], [double] and [DateTime] types. For [DateTime] properties,
+  /// this method selects rows where the assigned property is 'later than' [rhs] and 'earlier than' [lhs]. For [String] properties,
+  /// rows are selected if the value is alphabetically 'before' [lhs] and 'after' [rhs].
+  ///
+  /// Example:
+  ///
+  ///       var query = new Query<Employee>()
+  ///         ..where((e) => e.salary).outsideOf(80000, 100000);
+  QueryExpressionJunction<T> outsideOf(T lhs, T rhs) {
+    expression = new RangeExpression(lhs, rhs, false);
+
+    return _createJunction();
+  }
+
+  /// Adds an equality expression for foreign key columns to a query.
+  ///
+  /// A query will only return objects where the selected object's primary key is equal to [identifier].
+  ///
+  /// This method may only be used on belongs-to relationships; i.e., those that have a [Relate] annotation.
+  /// The type of [identifier] must match the primary key type of the selected object this expression is being applied to.
+  ///
+  ///       var q = new Query<Employee>()
+  ///         ..where((e) => e.manager).identifiedBy(5);
+  QueryExpressionJunction<T> identifiedBy(dynamic identifier) {
+    expression = new ComparisonExpression(identifier, PredicateOperator.equalTo);
+
+    return _createJunction();
+  }
+
+  /// Adds a 'null check' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is null.
+  ///
+  /// This method can be applied to any property type.
+  ///
+  /// Example:
+  ///
+  ///       var q = new Query<Employee>()
+  ///         ..where((e) => e.manager).isNull();
+  QueryExpressionJunction<T> isNull() {
+    expression = const NullCheckExpression(true);
+
+    return _createJunction();
+  }
+
+  /// Adds a 'not null check' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is not null.
+  ///
+  /// This method can be applied to any property type.
+  ///
+  /// Example:
+  ///
+  ///       var q = new Query<Employee>()
+  ///         ..where((e) => e.manager).isNotNull();
+  QueryExpressionJunction<T> isNotNull() {
+    expression = const NullCheckExpression(false);
+
+    return _createJunction();
+  }
 }
-
-/// Query matcher that tests whether a column value is null.
-///
-/// When assigned to a [Query.where] property, only rows where that
-/// property is null will be returned.
-///
-/// This matcher can be applied to any property type.
-///
-/// Example:
-///
-///       var q = new Query<Employee>()
-///         ..where.manager = whereNull;
-const dynamic whereNull = const NullCheckExpression(true);
-
-/// Query matcher that tests whether a column value is not null.
-///
-/// When assigned to a [Query.where] property, only rows where that
-/// property is not null will be returned.
-///
-/// This matcher can be applied to any property type.
-///
-/// Example:
-///
-///       var q = new Query<Employee>()
-///         ..where.manager = whereNotNull;
-const dynamic whereNotNull = const NullCheckExpression(false);

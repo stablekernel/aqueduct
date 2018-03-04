@@ -17,7 +17,7 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
   PostgresQueryBuilder(this.entity,
       {List<KeyPath> returningProperties,
       Map<String, dynamic> values,
-      ManagedObject whereBuilder,
+      List<QueryExpression<dynamic>> expressions,
       QueryPredicate predicate,
       List<RowMapper> nestedRowMappers,
       List<QuerySortDescriptor> sortDescriptors,
@@ -59,7 +59,7 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
         values?.keys?.map((key) => validatedColumnValueMapper(values, key))?.where((v) => v != null)?.toList() ?? [];
 
     var implicitJoins = <RowMapper>[];
-    finalizedPredicate = predicateFrom(whereBuilder, [predicate], implicitJoins);
+    finalizedPredicate = predicateFrom(expressions, [predicate], implicitJoins);
     returningOrderedMappers.addAll(implicitJoins);
   }
 
@@ -174,8 +174,8 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
   }
 
   QueryPredicate predicateFrom(
-      ManagedObject matcherObject, List<QueryPredicate> predicates, List<RowMapper> createdImplicitRowMappers) {
-    var matchers = propertyExpressionsFromObject(matcherObject, createdImplicitRowMappers);
+      List<QueryExpression<dynamic>> expressions, List<QueryPredicate> predicates, List<RowMapper> createdImplicitRowMappers) {
+    var matchers = propertyExpressionsFromObject(expressions, createdImplicitRowMappers);
     var allPredicates = matchers.expand((p) => [p.predicate]).toList();
     allPredicates.addAll(predicates.where((p) => p != null));
     return QueryPredicate.andPredicates(allPredicates);

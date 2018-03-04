@@ -10,19 +10,19 @@ import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper {
   RowMapper(this.type, this.joiningProperty, List<KeyPath> propertiesToFetch,
-      {this.predicate, this.whereBuilder, List<QuerySortDescriptor> sortDescriptors}) {
+      {this.predicate, this.expressions, List<QuerySortDescriptor> sortDescriptors}) {
     returningOrderedMappers = ColumnMapper.fromKeys(this, entity, propertiesToFetch);
     _sortMappers = sortDescriptors?.map((s) => new SortMapper(this, entity.properties[s.key], s.order))?.toList();
   }
 
-  RowMapper.implicit(this.type, this.joiningProperty) {
+  RowMapper.implicit(this.type, this.joiningProperty, this.originatingTable) {
     returningOrderedMappers = [];
   }
 
   ManagedRelationshipDescription joiningProperty;
   EntityTableMapper originatingTable;
   PersistentJoinType type;
-  ManagedObject whereBuilder;
+  List<QueryExpression<dynamic>> expressions;
   QueryPredicate predicate;
   QueryPredicate _joinCondition;
   List<SortMapper> _sortMappers;
@@ -68,7 +68,7 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
 
   void _buildMatcher() {
     var rowMappers = <RowMapper>[];
-    _matcherExpressions = propertyExpressionsFromObject(whereBuilder, rowMappers);
+    _matcherExpressions = propertyExpressionsFromObject(expressions, rowMappers);
 
     addRowMappers(rowMappers, areImplicit: true);
   }
@@ -207,7 +207,7 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
     return joiningProperty.relationshipType == ManagedRelationshipType.hasMany;
   }
 
-  bool representsRelationship(ManagedRelationshipDescription relationship) {
+  bool isJoinOnProperty(ManagedRelationshipDescription relationship) {
     return joiningProperty.destinationEntity == relationship.destinationEntity &&
         joiningProperty.entity == relationship.entity &&
         joiningProperty.name == relationship.name;

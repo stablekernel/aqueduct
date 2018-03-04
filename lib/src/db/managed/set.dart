@@ -1,7 +1,5 @@
 import 'dart:collection';
 
-import 'package:aqueduct/src/db/managed/backing.dart';
-
 import 'managed.dart';
 import '../query/query.dart';
 
@@ -39,22 +37,25 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   }
 
   List<InstanceType> _innerValues;
-  InstanceType _whereBuider;
 
   /// The [ManagedEntity] that represents the [InstanceType].
   ManagedEntity entity;
 
-  /// When building a [Query], apply filters to a property of this type.
+  /// Filters [Query] results based on the criteria of the objects in this collection.
   ///
-  /// See [Query.where] for more details. When constructing a [Query.where] that includes
-  /// instances from this [ManagedSet], you may add matchers (such as [whereEqualTo]) to this property's properties to further
-  /// constrain the values returned from the [Query].
-  InstanceType get haveAtLeastOneWhere {
-    if (_whereBuider == null) {
-      _whereBuider = entity.newInstance(backing: new ManagedMatcherBacking()) as InstanceType;
-    }
-    return _whereBuider;
-  }
+  /// You use this method when building a query expression for has-many relationships.
+  /// This property returns an empty instance of [InstanceType], for which you may select properties from.
+  ///
+  /// For example, the following query will only return 'Parents' that have at least one child
+  /// named 'Sally'.
+  ///
+  ///         final query = new Query<Parent>()
+  ///           ..where((p) => p.children.haveAtLeastOneWhere.name).equals("Sally");
+  ///
+  /// A query that uses this property will not include the values of the related objects in the result.
+  /// Using this property in a property selector triggers the query to perform a SQL JOIN. No
+  /// values from the related object are returned in the query.
+  InstanceType get haveAtLeastOneWhere => null;
 
   /// The number of elements in this set.
   @override
