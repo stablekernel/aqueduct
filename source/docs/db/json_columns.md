@@ -188,9 +188,10 @@ final events = await query.fetch();
 
 If an `event.contents` has another value for 'user' or does not have a 'user' key at all, that event will not be fetched.
 
-When matching a value stored in a document property, you must subscript the `Document` property. The matcher is applied to the subscripted key path. You may also use index arrays to match array elements, and use nested subscript operators to match values deeper in the object structure. All comparison matchers may be used in this way.
+When matching a value stored in a document property, you must subscript the `Document` property. The expression is applied to the subscripted key path. You may also use index arrays to match array elements, and use nested subscript operators to match values deeper in the object structure. All comparison expressions may be used in this way.
 
-The matcher `whereContains` is the only matcher that can be also applied directly to a `Document` property. It tests whether the top-level object or array contains an element. For objects, it tests whether the key exists in the object. For arrays, it tests whether the the argument is contained in that array. The following would only fetch events that have a 'type' key.
+// fixme
+The expression `whereContains` is the only matcher that can be also applied directly to a `Document` property. It tests whether the top-level object or array contains an element. For objects, it tests whether the key exists in the object. For arrays, it tests whether the the argument is contained in that array. The following would only fetch events that have a 'type' key.
 
 ```dart
 final query = Query<Event>()

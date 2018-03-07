@@ -185,9 +185,7 @@ As another example, an access token with `user:documents` scope can access all o
 
 Scope is often used to indicate read vs. write access. At first glance, it might sound like a good idea to use the hierarchy operator, e.g. `user:email:read` and `user:email:write`. However, an access token with `user:email:write` *does not* have permission to read email and this is likely unintended.
 
-This is where *scope modifiers* come in. A scope modifier adds a
-
-A scope modifier is added after a `.` at the end of a scope string. For example, `user:email.readonly` grants readonly access to a user's email whereas `user:email` grants read and write access.
+This is where *scope modifiers* come in. A scope modifier is added after a `.` at the end of a scope string. For example, `user:email.readonly` grants readonly access to a user's email whereas `user:email` grants read and write access.
 
 An access token without a modifier has permission *any* modifier. Thus, `user` and `user:email` can both access `user:email.readonly` protected resources and actions, but `user:email.readonly` cannot access resources protected by `user:email`.
 

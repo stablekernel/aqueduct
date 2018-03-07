@@ -202,7 +202,7 @@ In the section on sorting, you saw the use of a *property selector* to select th
 The Dart analyzer will infer that the argument of a property selector, and it is always the same type as the object being queried. This enables IDE auto-completion, static error checking, and other tools like project-wide renaming.
 
 !!! tip "Live Templates"
-    To speed up query building, create a Live Template in IntelliJ that generates a property selector when typing 'ps'. The source of the template is `(o) => o.$END$`.
+    To speed up query building, create a Live Template in IntelliJ that generates a property selector when typing 'ps'. The source of the template is `(o) => o.$END$`. A downloadable settings configuration for IntelliJ exists [here](../intellij.md) that includes this shortcut.
 
 
 ## Specifying Result Properties

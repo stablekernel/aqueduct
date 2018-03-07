@@ -351,7 +351,7 @@ If a request is made with a content type other than the accepted content types, 
 
 The body of an HTTP request is decoded if the content type is accepted and there exists a operation method to handle the request. This means two things. First, the body is not decoded if the request is going to be discarded because no operation method was found.
 
-Second, methods on `HTTPRequestBody` have two flavors: those that return the contents as a `Future` or those that return the already decoded body. Operation methods can access the already decoded body without awaiting on the `Future`-flavored variants of `HTTPRequestBody`:
+Second, methods on `RequestBody` have two flavors: those that return the contents as a `Future` or those that return the already decoded body. Operation methods can access the already decoded body without awaiting on the `Future`-flavored variants of `RequestBody`:
 
 ```dart
 @Operation.post()
@@ -401,7 +401,7 @@ class UserController extends ResourceController {
 
 Many `ResourceController` subclasses will execute [queries](../db/executing_queries.md). There are helpful `ResourceController` subclasses for reducing boilerplate code.
 
-A `QueryController<T>` builds a `Query<T>` based on the incoming request. If the request has a body, this `Query<T>`'s `values` property is read from that body. If the request has a path variable, the `Query<T>` assigns a matcher to the primary key value of its `where`. For example, in a normal `ResourceController` that responds to a PUT request, you might write the following:
+A `QueryController<T>` builds a `Query<T>` based on the incoming request. If the request has a body, this `Query<T>`'s `values` property is read from that body. If the request has a path variable, the `Query<T>` assigns an expression to the primary key value. For example, in a normal `ResourceController` that responds to a PUT request, you might write the following:
 
 ```dart
 @Operation.put('id')

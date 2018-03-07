@@ -151,7 +151,7 @@ class HeroesController extends ResourceController {
 ...
 ```
 
-Here, we create an instance of `Query<Hero>` and then execute its `fetch()` method. The type argument to `Query<T>` is an instance type; it lets the query know which table to fetch rows from. The context argument tells it which database to fetch it from. The `fetch()` execution method returns a `List<Hero>`. We write that list to the body of the response.
+Here, we create an instance of `Query<Hero>` and then execute its `fetch()` method. The type argument to `Query<T>` is an instance type; it lets the query know which table to fetch rows from and the type of objects that are returned by the query. The context argument tells it which database to fetch it from. The `fetch()` execution method returns a `List<Hero>`. We write that list to the body of the response.
 
 Now, let's update `getHeroByID` to fetch a single hero from the database.
 
@@ -170,23 +170,23 @@ Future<Response> getHeroByID(@Bind.path('id') int id) async {
 }
 ```
 
-This query does two interesting things. First, it uses the `where` property to filter heroes that have the same `id` as the path variable. For example, `/heroes/1` will fetch a hero with an `id` of `1`. This works because `Query.where` adds a SQL WHERE clause to the query. We'd get the following SQL:
+This query does two interesting things. First, it uses the `where` method to filter heroes that have the same `id` as the path variable. For example, `/heroes/1` will fetch a hero with an `id` of `1`. This works because `Query.where` adds a SQL WHERE clause to the query. We'd get the following SQL:
 
 ```sql
 SELECT id, name FROM _question WHERE id = 1;
 ```
 
-The `where` property is actually an instance of `Hero`, so it will have an `id` and `name` property. We apply *matchers* to those properties. A matcher is a function or constant that starts with the word `where` - like `whereEqualTo()`. By applying matchers, we specify which values and operators are used in the WHERE clause.
+The `where` method uses the *property selector* syntax. This syntax is a closure that takes an argument of the type being queried, and must return a property of that object. This creates an expression object that targets the selected property. By invoking methods like `equalTo` on this expression object, a boolean expression is added to the query.
 
-!!! tip "Matching All the Things"
-    There are a lot of matchers available to build different queries. All matchers start with the word `where` and can be found by searching the [API reference](https://www.dartdocs.org/documentation/aqueduct/latest/).
+!!! tip "Property Selectors"
+    Many query configuration methods use the property selector syntax. Setting up a keyboard shortcut (called a Live Template in IntelliJ) to enter the syntax is beneficial. A downloadable settings configuration for IntelliJ exists [here](../intellij.md) that includes this shortcut.
 
-The `fetchOne()` execution method will return a single object that fulfills all of the matchers applied to the query's `where`. If no database row meets the criteria, `null` is returned. Our controller returns a 404 Not Found response in that scenario.
+The `fetchOne()` execution method will fetch a single object that fulfills all of the expressions applied to the query. If no database row meets the criteria, `null` is returned. Our controller returns a 404 Not Found response in that scenario.
 
 We have now written code that fetches heroes from a database instead of from in memory, but we don't have a database - yet.
 
 !!! tip "Use fetchOne() on Unique Properties"
-    If more than one object meets the criteria of a `fetchOne()`, an exception is thrown. It's only safe to use `fetchOne()` when applying a matcher to a unique property, like a primary key.
+    If more than one database row meets the criteria of a `fetchOne()`, an exception is thrown. It's only safe to use `fetchOne()` when applying an expression to a unique property, like a primary key.
 
 Setting Up a Database
 ---

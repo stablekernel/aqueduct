@@ -3,7 +3,7 @@
 By the end of this tutorial, you will have created an Aqueduct application that serves fictional heroes from a PostgreSQL database. You will learn the following:
 
 - Run an Aqueduct application
-- Route HTTP requests to the appropriate handler
+- Route HTTP requests to the appropriate handler in your code
 - Store and retrieve database data
 - Write automated tests for each endpoint
 
@@ -45,39 +45,47 @@ In IntelliJ's project view, locate the `lib` directory; this is where your proje
 In your browser, navigate to [http://aqueduct-tutorial.stablekernel.io](http://aqueduct-tutorial.stablekernel.io). This browser application is a 'Hero Manager' - it allows a user to view, create, delete and update heroes. (It is a slightly modified version of the [AngularDart Tour of Heroes Tutorial](https://webdev.dartlang.org/angular/tutorial).) It will make HTTP requests to `http://localhost:8888` to fetch and manipulate hero data. The application you will build in this tutorial respond to those requests.
 
 !!! warning "Running the Browser Application Locally"
-    The browser application is served over HTTP so that it can access your Aqueduct application when it runs locally on your machine. Your browser may warn you about navigating to an insecure webpage, because it is in fact insecure. You can view the code for this browser application [here](https://github.com/stablekernel/tour-of-heroes-dart) so that you can run the browser application from your local machine if you prefer.
+    The browser application is served over HTTP so that it can access your Aqueduct application when it runs locally on your machine. Your browser may warn you about navigating to an insecure webpage, because it is in fact insecure. You can run this application locally by grabbing the source code from [here](https://github.com/stablekernel/tour-of-heroes-dart).
 
 In this first chapter, you will write code to handle two requests: one to get a list of heroes, and the other to get a single hero by its identifier. These two requests take the following form:
 
-1. `GET http://localhost:8888/heroes` to the list of heroes
-2. `GET http://localhost:8888/heroes/:id` to get an individual hero
+1. `GET /heroes` to the list of heroes
+2. `GET /heroes/:id` to get an individual hero
 
-Requests are handled by *controller objects*. A controller object evaluates a request and takes some action on it. This might be responding to the request, validating it in some way, or any number of other tasks. Controllers are linked together, such that each of their actions are applied to a single request. This allows applications to construct powerful request handling logic from a few building blocks.
+!!! tip "HTTP Operation Shorthand"
+      An HTTP request always contains an HTTP method (e.g., `GET`, `POST`) and a URL (e.g., `http://localhost:8888/heroes`). Since you can host an application on another server and `http` is implied, we can reference requests by their method and path alone. The above two requests are an example of this shorthand reference. The ':id' segment is a variable: it can be 1, 2, 3, and so on.
 
-Our application will use two controllers: a `Router` and a `HeroesController`. A `Router` chooses another controller to handle a request based on the request's path. In our application, a `Router` will choose a `HeroesController` if the path is `/heroes`. A `HeroesController` will send a response with a list of heroes for every request. By linking together a `Router` and a `HeroesController`, our application will return a list of heroes when the request's path is `/heroes`.
+### Controller Objects Handle Requests
+
+Requests are handled by *controller objects*. A controller object evaluates a request and takes some action on it. This might be responding to the request, validating it in some way, or any number of other tasks. Controllers are linked together, such that each of their actions are applied to a single request. This allows applications to construct powerful request handling logic from a few building blocks. A series of linked together controllers is called a *channel*.
+
+Our application will link two controllers:
+
+- a `Router` that makes sure the request path is `/heroes` or `/heroes/:id`
+- a `HeroesControllers` that construct a response with hero information in the body
 
 Controllers are linked together in an *application channel*. An application channel is an object that is created when your application first starts up. It handles the initialization of your application, including linking controllers.
 
 ![ApplicationChannel entryPoint](../img/entrypoint.png)
 
-Application channels are defined by creating a subclass of `ApplicationChannel`. This subclass is declared in `lib/channel.dart`. Navigate to that file and note the current implementation of `ApplicationChannel.entryPoint`:
+You create an application channel by subclassing `ApplicationChannel`. This subclass is declared in `lib/channel.dart` by the template. Navigate to that file and note the current implementation of `ApplicationChannel.entryPoint`:
 
 ```dart
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     router
       .route('/example')
       .linkFunction((request) async {
-        return new Response.ok({'key': 'value'});
+        return Response.ok({'key': 'value'});
       });
 
     return router;
   }
 ```
 
-The `entryPoint` of a channel is the first controller to receive every request in an application. In our case, the entry point is a `Router` (because we return it from this method). Controllers are linked to the router; the template has one linked function controller that is called when a request's path is `/example`. We need to link a yet-to-be-created `HeroesController` to the router when the path is `/heroes`.
+The controller returned from `entryPoint` is the first controller to receive every request in an application - in our case, this is a `Router`. Controllers are linked to the router; the template has one linked function controller that is called when a request's path is `/example`. We need to link a yet-to-be-created `HeroesController` to the router when the path is `/heroes`.
 
 First, we need to define `HeroesController` and how it handles requests. Create a new file in `lib/controller/heroes_controller.dart` and add the following code (you may need to create the subdirectory `lib/controller/`):
 
@@ -96,7 +104,7 @@ class HeroesController extends Controller {
 
   @override
   Future<RequestOrResponse> handle(Request request) async {
-    return new Response.ok(heroes);
+    return Response.ok(heroes);
   }
 }
 ```
@@ -114,11 +122,11 @@ Then link this `HeroesController` to the `Router` for the request's with the pat
 ```dart
 @override
 Controller get entryPoint {
-  final router = new Router();
+  final router = Router();
 
   router
     .route('/heroes')
-    .link(() => new HeroesController());
+    .link(() => HeroesController());
 
   router
     .route('/example')
@@ -164,27 +172,27 @@ You'll also see this request logged in the shell that you started `aqueduct serv
 
 ## Linking Controllers
 
-When a controller handles a request, it can either send a response or let one of its linked controllers handle the request. By default, a `Router` will send a 404 Not Found response for any request. By adding routes, the `Router` will pass requests with a matching path to controller linked to that route. In our application, `HeroesController` is linked to the route `/heroes`.
+When a controller handles a request, it can either send a response or let one of its linked controllers handle the request. By default, a `Router` will send a 404 Not Found response for any request. Adding a route to a `Router` creates an entry point to a new channel that controllers can be linked to. In our application, `HeroesController` is linked to the route `/heroes`.
 
-Controllers come in two different flavors: endpoint and middleware. Endpoint controllers, like `HeroesController`, always send a response. They implement the behavior that a request is seeking. Middleware controllers, like `Router`, handles requests before they reaches an endpoint controller. A router, for example, handles a request by directing it to the right controller. Controllers like `Authorizer` verify the authorization of the request. You can create all kinds of controllers to provide any behavior you like.
+Controllers come in two different flavors: endpoint and middleware. Endpoint controllers, like `HeroesController`, always send a response. They implement the behavior that a request is seeking. Middleware controllers, like `Router`, handles requests before they reach an endpoint controller. A router, for example, handles a request by directing it to the right controller. Controllers like `Authorizer` verify the authorization of the request. You can create all kinds of controllers to provide any behavior you like.
 
-Many middleware controllers can be linked together, but each series of linked controllers must end in an endpoint controller. Most controllers can only have one linked controller, but a `Router` allows for many. For example, a larger application might look like this:
+A channel can have zero or many middleware controllers, but must end in an endpoint controller. Most controllers can only have one linked controller, but a `Router` allows for many. For example, a larger application might look like this:
 
 ```dart
 @override
 Controller get entryPoint {
-  final router = new Router();
+  final router = Router();
 
   router
     .route('/users')
-    .link(() => new APIKeyValidator())
-    .link(() => new Authorizer.bearer())
-    .link(() => new UsersController());
+    .link(() => APIKeyValidator())
+    .link(() => Authorizer.bearer())
+    .link(() => UsersController());
 
   router
     .route('/posts')
-    .link(() => new APIKeyValidator())
-    .link(() => new PostsController());
+    .link(() => APIKeyValidator())
+    .link(() => PostsController());
 
   return router;
 }
@@ -192,18 +200,18 @@ Controller get entryPoint {
 
 Each of these objects is a subclass of `Controller`, giving them the ability to be linked together to handle requests. A request goes through controllers in the order they are linked. A request for the path `/users` will go through an `APIKeyValidator`, an `Authorizer` and finally a `UsersController`. Each of these controllers has an opportunity to respond, preventing the next controller from receiving the request.
 
-!!! tip "Controller Instances"
+!!! tip "Controller Creation"
     Controllers are linked by providing a closure to another controller's `link` method. These closures create a new instance of a `Controller` for each request. It's possible to reuse the same controller instance each time, but it's rare and usually not a great idea for reasons that won't make sense quite yet.
 
 ## Advanced Routing
 
 Right now, our application handles `GET /heroes` requests. The browser application uses the this list to populate its hero dashboard. If we click on an individual hero, the browser application will display an individual hero. When navigating to this page, the browser application makes a request to our server for an individual hero. This request contains the unique id of the selected hero in the path, e.g. `/heroes/11` or `/heroes/13`.
 
-Our server doesn't handle this request yet - it only handles requests that have exactly the path `/heroes`. A route like `/heroes` looks for an exact match in a request's path before sending it to its linked controller. Since a request for individual heroes will have a path that changes depending on the hero, we need our route to include a *path variable*.
+Our server doesn't handle this request yet - it only handles requests that have exactly the path `/heroes`. Since a request for individual heroes will have a path that changes depending on the hero, we need our route to include a *path variable*.
 
-A path variable is a segment of route that matches as long as there is a value for the same segment in the path. A path variable is prefixed with a colon (`:`) in a route. For example, the route `/heroes/:id` contains a path variable named `id`. If the request path is `/heroes/1`, `/heroes/2`, and so on, the request will be sent to our `HeroesController`. The `HeroesController` will have access to the value of the path variable to determine which hero to return.
+A path variable is a segment of route that matches a value for the same segment in the incoming request path. A path variable is a segment prefixed with a colon (`:`). For example, the route `/heroes/:id` contains a path variable named `id`. If the request path is `/heroes/1`, `/heroes/2`, and so on, the request will be sent to our `HeroesController`. The `HeroesController` will have access to the value of the path variable to determine which hero to return.
 
-There's one hiccup. The route `/heroes/:id` no longer matches the path `/heroes`. It'd be a lot easier to organize our code if both `/heroes` and `/heroes/:id` went to our `HeroesController`; it does heroic stuff. For this reason, we can declare segments of a route as optional by wrapping it in square brackets. In `channel.dart`, modify the `/heroes` route:
+There's one hiccup. The route `/heroes/:id` no longer matches the path `/heroes`. It'd be a lot easier to organize our code if both `/heroes` and `/heroes/:id` went to our `HeroesController`; it does heroic stuff. For this reason, we can declare the `:id` portion of our route to be optional by wrapping it in square brackets. In `channel.dart`, modify the `/heroes` route:
 
 ```dart
 router
@@ -214,6 +222,8 @@ router
 Since the second segment of the path is optional, the path `/heroes` still matches the route. If the path contains a second segment, the value of that segment is bound to the path variable named `id`. We can access path variables through the `Request` object. In `heroes_controller.dart`, modify `handle`:
 
 ```dart
+// In just a moment, we'll replace this code with something even better,
+// but it's important to understand where this information comes from first!
 @override
 Future<RequestOrResponse> handle(Request request) async {
   if (request.path.variables.containsKey('id')) {
@@ -240,7 +250,7 @@ You can verify that your server is responding correctly by executing `curl -X GE
 
 Our `HeroesController` is OK right now, but it'll soon run into a problem: what happens when we want to create a new hero? Or update an existing hero's name? Our `handle` method will start to get unmanageable, quickly.
 
-That's where `ResourceController` comes in. With a `ResourceController`, we can create a distinct method for each operation that we can perform on our heroes. One method will handle getting a list of heroes, another will handle getting a single hero, and so on. Each method has an annotation that identifies the HTTP method and path variables the request must have to trigger it.
+That's where `ResourceController` comes in. A `ResourceController` allows you to create a distinct method for each operation that we can perform on our heroes. One method will handle getting a list of heroes, another will handle getting a single hero, and so on. Each method has an annotation that identifies the HTTP method and path variables the request must have to trigger it.
 
 In `heroes_controller.dart`, change the superclass of `HeroesController` to `ResourceController` and then split the request handling logic into two methods.
 
@@ -272,8 +282,7 @@ class HeroesController extends ResourceController {
 }
 ```
 
-Notice that we didn't have to override `handle` - `ResourceController` already overrides that method to pick the appropriate method for the request.
-These methods are called *operation methods*. The method - `getAllHeroes` and `getHeroByID` - both have an `Operation` annotation. The named constructor `Operation.get` means these methods get called when the request's method is GET.
+Notice that we didn't have to override `handle` in `ResourceController`. A `ResourceController` implements this method to call one of our *operation methods*. An operation method - like `getAllHeroes` and `getHeroByID` - must have an `Operation` annotation. The named constructor `Operation.get` means these methods get called when the request's method is GET. An operation method must also return a `Future<Response>`.
 
 `getHeroByID`'s annotation also has an argument - the name of our path variable `id`. If that path variable exists in the request's path, `getHeroByID` will be called. If it doesn't exist, `getAllHeroes` will be called.
 
@@ -284,9 +293,9 @@ Reload the application by hitting Ctrl-C in the terminal that ran `aqueduct serv
 
 ## Request Binding
 
-In our `getHeroByID` method, we make a dangerous assumption that the path variable 'id' can be parsed into an integer. If 'id' were something else, like the string 'foo', `int.parse` would throw an exception. When exceptions are thrown in operation methods, the controller catches it and sends a 500 Server Error response. 500s are bad, they don't tell the client what's wrong. A 404 Not Found is a better response here, but writing the code to catch that exception and create this response is cumbersome.
+In our `getHeroByID` method, we make a dangerous assumption that the path variable 'id' can be parsed into an integer. If 'id' were something else, like a string, `int.parse` would throw an exception. When exceptions are thrown in operation methods, the controller catches it and sends a 500 Server Error response. 500s are bad, they don't tell the client what's wrong. A 404 Not Found is a better response here, but writing the code to catch that exception and create this response is cumbersome.
 
-Instead, we can rely on a feature of operation methods - *request binding*. An operation method can declare parameters and *bind* them to properties of the request. When our operation method gets called, it will be passed values from the request as arguments. Request bindings automatically parse values into the type of the parameter (and return a better error response if parsing fails). Change the method `getHeroByID()`:
+Instead, we can rely on a feature of operation methods called *request binding*. An operation method can declare parameters and *bind* them to properties of the request. When our operation method gets called, it will be passed values from the request as arguments. Request bindings automatically parse values into the type of the parameter (and return a better error response if parsing fails). Change the method `getHeroByID()`:
 
 ```dart
 @Operation.get('id')
@@ -301,7 +310,7 @@ Future<Response> getHeroByID(@Bind.path('id') int id) async {
 }
 ```
 
-The value of the path variable `id` will be parsed as an integer and passed to this method in the `id` argument. The `@Bind` annotation on an operation method parameter tells Aqueduct the value from the request we want bound. Using the named constructor `Bind.path` binds a path variable, and the name of that variable is indicated in the argument to this constructor.
+The value of the path variable `id` will be parsed as an integer and be available to this method in the `id` parameter. The `@Bind` annotation on an operation method parameter tells Aqueduct the value from the request we want bound. Using the named constructor `Bind.path` binds a path variable, and the name of that variable is indicated in the argument to this constructor.
 
 You can bind path variables, headers, query parameters and bodies. When binding path variables, we have to specify which path variable with the argument to `@Bind.path(pathVariableName)`.
 

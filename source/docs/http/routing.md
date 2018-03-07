@@ -106,9 +106,9 @@ This token is used when another medium is going to interpret the URL. For exampl
 
 ## Accessing Path Variables
 
-Information that a router parses from a request path - like path variables - are stored in a `Request`'s `path`. As a `Request` passes through a `Router`, its `path` is set to an instance of this type. Later controllers access the `path` of a `Request` to help determine which resource the request is referring to. The `path` is an instance of `HTTPRequestPath`.
+Information that a router parses from a request path - like path variables - are stored in a `Request`'s `path`. As a `Request` passes through a `Router`, its `path` is set to an instance of this type. Later controllers access the `path` of a `Request` to help determine which resource the request is referring to. The `path` is an instance of `RequestPath`.
 
-The `variables` of an `HTTPRequestPath` are a `Map<String, String>`, where the key is the name of the variable in the route specification and the value is the matching path segment in an incoming request. For example, consider a route specification `/users/:id`. When a request with path `/users/1` is routed, this specification will match. So, a controller would access it like so:
+The `variables` of `RequestPath` are a `Map<String, String>`, where the key is the name of the variable in the route specification and the value is the matching path segment in an incoming request. For example, consider a route specification `/users/:id`. When a request with path `/users/1` is routed, this specification will match. So, a controller would access it like so:
 
 ```dart
 var identifier = request.path.variables["id"];
