@@ -741,7 +741,7 @@ class DecodeCallbackController extends ResourceController {
   }
 
   @override
-  void didDecodeRequestBody(HTTPRequestBody decodedObject) {
+  void didDecodeRequestBody(RequestBody decodedObject) {
     didDecode = true;
   }
 }

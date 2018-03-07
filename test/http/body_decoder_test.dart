@@ -8,10 +8,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
-  var defaultSize = HTTPRequestBody.maxSize;
+  var defaultSize = RequestBody.maxSize;
   setUp(() {
     // Revert back to default before each test
-    HTTPRequestBody.maxSize = defaultSize;
+    RequestBody.maxSize = defaultSize;
   });
 
   group("Default decoders", () {
@@ -40,7 +40,7 @@ void main() {
       test("Empty body shows as isEmpty", () async {
         http.get("http://localhost:8123").catchError((err) => null);
         var request = await server.first;
-        var body = new HTTPRequestBody(request);
+        var body = new RequestBody(request);
         expect(body.isEmpty, true);
       });
 
@@ -54,7 +54,7 @@ void main() {
 
         var request = await server.first;
         expect(request.headers.value(HttpHeaders.CONTENT_LENGTH), "${json.length}");
-        var body = new HTTPRequestBody(request);
+        var body = new RequestBody(request);
         expect(body.isEmpty, false);
 
         request.response.close();
@@ -71,7 +71,7 @@ void main() {
         var request = await server.first;
         expect(request.headers.value(HttpHeaders.CONTENT_LENGTH), isNull);
         expect(request.headers.value(HttpHeaders.TRANSFER_ENCODING), "chunked");
-        var body = new HTTPRequestBody(request);
+        var body = new RequestBody(request);
         expect(body.isEmpty, false);
 
         request.response.close();
@@ -266,20 +266,20 @@ void main() {
 
     test("Decode valid decodeAsMap", () async {
       postJSON({"a" : "val"});
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       expect(await body.decodeAsMap(), {"a": "val"});
     });
 
     test("Return valid asMap from already decoded body", () async {
       postJSON({"a" : "val"});
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       await body.decodedData;
       expect(body.asMap(), {"a": "val"});
     });
 
     test("Call asMap prior to decode throws error", () async {
       postJSON({"a" : "val"});
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
 
       try {
         body.asMap();
@@ -289,7 +289,7 @@ void main() {
 
     test("decodeAsMap with non-map returns 422", () async {
       postJSON("a");
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
 
       try {
         await body.decodeAsMap();
@@ -304,7 +304,7 @@ void main() {
           .post("http://localhost:8123",
           headers: {"Content-Type": "application/json"})
           .catchError((err) => null);
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
 
       expect(await body.decodeAsMap(), null);
       expect(body.hasBeenDecoded, true);
@@ -316,7 +316,7 @@ void main() {
           headers: {"Content-Type": "application/json"})
           .catchError((err) => null);
 
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       await body.decodedData;
       expect(body.asMap(), null);
     });
@@ -335,20 +335,20 @@ void main() {
 
     test("Decode valid decodeAsList", () async {
       postJSON([{"a": "val"}]);
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       expect(await body.decodeAsList(), [{"a": "val"}]);
     });
 
     test("Return valid asList from already decoded body", () async {
       postJSON([{"a" : "val"}]);
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       await body.decodedData;
       expect(body.asList(), [{"a": "val"}]);
     });
 
     test("Call asList prior to decode throws exception", () async {
       postJSON([{"a" : "val"}]);
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
 
       try {
         body.asList();
@@ -358,7 +358,7 @@ void main() {
 
     test("decodeAsList with non-list returns HTTPBodyException", () async {
       postJSON("a");
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
 
       try {
         await body.decodeAsList();
@@ -373,7 +373,7 @@ void main() {
           .post("http://localhost:8123",
           headers: {"Content-Type": "application/json"})
           .catchError((err) => null);
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
 
       expect(await body.decodeAsList(), null);
       expect(body.hasBeenDecoded, true);
@@ -385,7 +385,7 @@ void main() {
           headers: {"Content-Type": "application/json"})
           .catchError((err) => null);
 
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       await body.decodedData;
       expect(body.asList(), null);
     });
@@ -404,7 +404,7 @@ void main() {
 
     test("Decode valid decodeAsString", () async {
       postString("abcdef");
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       expect(await body.decodeAsString(), "abcdef");
     });
 
@@ -413,20 +413,20 @@ void main() {
               (c) => "${c % 10 + 48}".codeUnitAt(0)).join("");
 
       postString(largeString);
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       expect(await body.decodeAsString(), largeString);
     });
 
     test("Return valid asString from already decoded body", () async {
       postString("abcdef");
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       await body.decodedData;
       expect(body.asString(), "abcdef");
     });
 
     test("Call asString prior to decode throws exception", () async {
       postString("abcdef");
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
 
       try {
         body.asString();
@@ -436,7 +436,7 @@ void main() {
 
     test("Call asString with non-string data throws exception", () async {
       postJSON({"k": "v"});
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
 
       try {
         await body.decodeAsString();
@@ -451,7 +451,7 @@ void main() {
           .post("http://localhost:8123",
           headers: {"Content-Type": "text/plain; charset=utf-8"})
           .catchError((err) => null);
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
 
       expect(await body.decodeAsString(), null);
       expect(body.hasBeenDecoded, true);
@@ -463,7 +463,7 @@ void main() {
           headers: {"Content-Type": "text/plain; charset=utf-8"})
           .catchError((err) => null);
 
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       await body.decodedData;
       expect(body.asString(), null);
     });
@@ -482,13 +482,13 @@ void main() {
 
     test("Decode valid decodeAsBytes", () async {
       postBytes([1, 2, 3, 4]);
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       expect(await body.decodeAsBytes(), [1, 2, 3, 4]);
     });
 
     test("Return valid asBytes from already decoded body", () async {
       postBytes([1, 2, 3, 4]);
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       await body.decodedData;
       expect(body.asBytes(), [1, 2, 3, 4]);
     });
@@ -496,7 +496,7 @@ void main() {
     test("Call asBytes prior to decode throws error", () async {
       postBytes([1, 2, 3, 4]);
 
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       try {
         body.asBytes();
         expect(true, false);
@@ -508,7 +508,7 @@ void main() {
           .post("http://localhost:8123",
           headers: {"Content-Type": "application/octet-stream"})
           .catchError((err) => null);
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
 
       expect(await body.decodeAsBytes(), null);
       expect(body.hasBeenDecoded, true);
@@ -520,14 +520,14 @@ void main() {
           headers: {"Content-Type": "application/octet-stream"})
           .catchError((err) => null);
 
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       await body.decodedData;
       expect(body.asBytes(), null);
     });
 
     test("Throw exception if not retaining bytes and body was decoded", () async {
       postJSON({"k": "v"});
-      var body = new HTTPRequestBody(await server.first);
+      var body = new RequestBody(await server.first);
       try {
         await body.decodeAsBytes();
         expect(true, false);
@@ -537,7 +537,7 @@ void main() {
     test("Retain bytes when codec is used", () async {
       postJSON({"k": "v"});
 
-      var body = new HTTPRequestBody(await server.first)..retainOriginalBytes = true;
+      var body = new RequestBody(await server.first)..retainOriginalBytes = true;
       await body.decodedData;
       expect(body.asMap(), {"k": "v"});
       expect(body.asBytes(), UTF8.encode(JSON.encode({"k":"v"})));
@@ -546,7 +546,7 @@ void main() {
     test("Retain bytes when no codec is used", () async {
       postBytes([1, 2, 3, 4]);
 
-      var body = new HTTPRequestBody(await server.first)..retainOriginalBytes = true;
+      var body = new RequestBody(await server.first)..retainOriginalBytes = true;
       await body.decodedData;
       expect(body.asBytes(), [1, 2, 3, 4]);
     });
@@ -632,7 +632,7 @@ void main() {
     });
 
     test("Entity with known content-type that is too large is rejected, specified length", () async {
-      HTTPRequestBody.maxSize = 8193;
+      RequestBody.maxSize = 8193;
 
       var controller = new Controller()
         ..linkFunction((req) async {
@@ -666,7 +666,7 @@ void main() {
     });
 
     test("Entity with unknown content-type that is too large is rejected, specified length", () async {
-      HTTPRequestBody.maxSize = 8193;
+      RequestBody.maxSize = 8193;
 
       var controller = new Controller()
         ..linkFunction((req) async {

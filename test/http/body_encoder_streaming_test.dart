@@ -7,10 +7,10 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
-  var defaultSize = HTTPRequestBody.maxSize;
+  var defaultSize = RequestBody.maxSize;
   setUp(() {
     // Revert back to default before each test
-    HTTPRequestBody.maxSize = defaultSize;
+    RequestBody.maxSize = defaultSize;
   });
 
   group("Unencoded list of bytes", () {
@@ -305,7 +305,7 @@ void main() {
      */
 
     test("Entity with known content-type that is too large is rejected, chunked", () async {
-      HTTPRequestBody.maxSize = 8193;
+      RequestBody.maxSize = 8193;
 
       var controller = new Controller()
         ..linkFunction((req) async {
@@ -350,7 +350,7 @@ void main() {
     });
 
     test("Entity with unknown content-type that is too large is rejected, chunked", () async {
-      HTTPRequestBody.maxSize = 8193;
+      RequestBody.maxSize = 8193;
 
       var controller = new Controller()
         ..linkFunction((req) async {
