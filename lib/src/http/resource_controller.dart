@@ -106,14 +106,14 @@ abstract class ResourceController extends Controller {
   /// Callback invoked prior to decoding a request body.
   ///
   /// This method is invoked prior to decoding the request body.
-  void willDecodeRequestBody(HTTPRequestBody body) {}
+  void willDecodeRequestBody(RequestBody body) {}
 
   /// Callback to indicate when a request body has been processed.
   ///
   /// This method is called after the body has been processed by the decoder, but prior to the request being
   /// handled by the selected operation method. If there is no HTTP request body,
   /// this method is not called.
-  void didDecodeRequestBody(HTTPRequestBody decodedObject) {}
+  void didDecodeRequestBody(RequestBody decodedObject) {}
 
   @override
   void prepare() {

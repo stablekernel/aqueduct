@@ -10,7 +10,7 @@ import 'body_decoder.dart';
 /// or one of the typed methods ([asList], [asMap], [decodeAsMap], [decodeAsList]) to decode HTTP body data.
 ///
 /// Default decoders are available for 'application/json', 'application/x-www-form-urlencoded' and 'text/*' content types.
-class HTTPRequestBody extends HTTPBodyDecoder {
+class RequestBody extends BodyDecoder {
   /// Creates a new instance of this type.
   ///
   /// Instances of this type decode [request]'s body based on its content-type.
@@ -18,7 +18,7 @@ class HTTPRequestBody extends HTTPBodyDecoder {
   /// See [HTTPCodecRepository] for more information about how data is decoded.
   ///
   /// Decoded data is cached the after it is decoded.
-  HTTPRequestBody(HttpRequest request)
+  RequestBody(HttpRequest request)
       : this._request = request,
         this._originalByteStream = request,
         super(request);

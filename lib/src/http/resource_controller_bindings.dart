@@ -153,7 +153,7 @@ class Bind {
       : name = null,
         _type = _BindType.body;
 
-  /// Binds a route variable from [HTTPRequestPath.variables] to an [ResourceController] operation method argument.
+  /// Binds a route variable from [RequestPath.variables] to an [ResourceController] operation method argument.
   ///
   /// Routes may have path variables, e.g., a route declared as follows has an optional path variable named 'id':
   ///

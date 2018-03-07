@@ -4,9 +4,9 @@ import 'http.dart';
 
 /// Decodes [bytes] according to [contentType].
 ///
-/// See [HTTPRequestBody] for a concrete implementation.
-abstract class HTTPBodyDecoder {
-  HTTPBodyDecoder(Stream<List<int>> bodyByteStream)
+/// See [RequestBody] for a concrete implementation.
+abstract class BodyDecoder {
+  BodyDecoder(Stream<List<int>> bodyByteStream)
     : _originalByteStream = bodyByteStream;
 
   /// The stream of bytes to decode.

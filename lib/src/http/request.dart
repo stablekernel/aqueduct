@@ -14,8 +14,8 @@ typedef void _ResponseModifier(Response resp);
 /// directly to the [HttpRequest], as [Controller]s take that responsibility.
 class Request implements RequestOrResponse {
   /// Creates an instance of [Request], no need to do so manually.
-  Request(this.raw) : path = new HTTPRequestPath(raw.uri.pathSegments),
-    body = new HTTPRequestBody(raw);
+  Request(this.raw) : path = new RequestPath(raw.uri.pathSegments),
+    body = new RequestBody(raw);
 
   /// The underlying [HttpRequest] of this instance.
   ///
@@ -44,16 +44,16 @@ class Request implements RequestOrResponse {
   ///
   /// Provides convenient access to the request URI path. Also provides path variables and wildcard path values
   /// after this instance is handled by a [Router].
-  final HTTPRequestPath path;
+  final RequestPath path;
 
   /// The request body object.
   ///
   /// This object contains the request body if one exists and behavior for decoding it according
-  /// to this instance's content-type. See [HTTPRequestBody] for details on decoding the body into
+  /// to this instance's content-type. See [RequestBody] for details on decoding the body into
   /// an object (or objects).
   ///
-  /// This value is is always non-null. If there is no request body, [HTTPRequestBody.isEmpty] is true.
-  final HTTPRequestBody body;
+  /// This value is is always non-null. If there is no request body, [RequestBody.isEmpty] is true.
+  final RequestBody body;
 
   /// Information about the client connection.
   ///
