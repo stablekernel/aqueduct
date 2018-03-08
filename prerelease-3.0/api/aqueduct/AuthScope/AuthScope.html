@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the AuthScope constructor from the Class AuthScope class from the aqueduct library, for the Dart programming language.">
+  <title>AuthScope constructor - AuthScope class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/AuthScope-class.html">AuthScope</a></li>
+    <li class="self-crumb">AuthScope factory constructor</li>
+  </ol>
+  <div class="self-name">AuthScope</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>AuthScope class</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/AuthScope-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/AuthScope/AuthScope.html">AuthScope</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/AuthScope-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/AuthScope/modifier.html">modifier</a></li>
+      <li><a href="aqueduct/AuthScope/segments.html">segments</a></li>
+      <li class="inherited"><a href="aqueduct/AuthScope/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/AuthScope/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/AuthScope-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/AuthScope/allows.html">allows</a></li>
+      <li><a href="aqueduct/AuthScope/allowsScope.html">allowsScope</a></li>
+      <li><a href="aqueduct/AuthScope/isExactly.html">isExactly</a></li>
+      <li><a href="aqueduct/AuthScope/isExactlyScope.html">isExactlyScope</a></li>
+      <li><a href="aqueduct/AuthScope/isSubsetOrEqualTo.html">isSubsetOrEqualTo</a></li>
+      <li><a href="aqueduct/AuthScope/toString.html">toString</a></li>
+      <li class="inherited"><a href="aqueduct/AuthScope/noSuchMethod.html">noSuchMethod</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/AuthScope-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/AuthScope/operator_equals.html">operator ==</a></li>
+    
+    
+      <li class="section-title"><a href="aqueduct/AuthScope-class.html#static-methods">Static methods</a></li>
+      <li><a href="aqueduct/AuthScope/verify.html">verify</a></li>
+    
+      <li class="section-title"><a href="aqueduct/AuthScope-class.html#constants">Constants</a></li>
+      <li><a href="aqueduct/AuthScope/Any-constant.html">Any</a></li>
+    </ol>
+  </div><!--/.sidebar-offcanvas-left-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>AuthScope constructor</h1>
+
+    <section class="multi-line-signature">
+      
+      <span class="name ">AuthScope</span>(<wbr><span class="parameter" id="-param-scopeString"><span class="type-annotation">String</span> <span class="parameter-name">scopeString</span></span>)
+    </section>
+
+    <section class="desc markdown">
+      <p>Creates an instance of this type from <code>scopeString</code>.</p>
+<p>A simple authorization scope string is a single keyword. Valid characters are</p>
+<pre class="language-dart"><code>    A-Za-z0-9!#\$%&amp;'`()*+,./:;&lt;=&gt;?@[]^_{|}-.
+</code></pre>
+<p>For example, 'account' is a valid scope. An <a href="aqueduct/Authorizer-class.html">Authorizer</a> can require an access token to have
+the 'account' scope to pass through it. Access tokens without the 'account' scope are unauthorized.</p>
+<p>More advanced scopes may contain multiple segments and a modifier. For example, the following are valid scopes:</p>
+<pre class="language-dart"><code>user
+user:settings
+user:posts
+user:posts.readonly
+</code></pre>
+<p>Segments are delimited by the colon character (<code>:</code>). Segments allow more granular scoping options. Each segment adds a
+restriction to the segment prior to it. For example, the scope <code>user</code>
+would allow all user actions, whereas <code>user:settings</code> would only allow access to a user's settings. Routes that are secured
+to either <code>user:settings</code> or <code>user:posts.readonly</code> are accessible by an access token with <code>user</code> scope. A token with <code>user:settings</code>
+would not be able to access a route limited to <code>user:posts</code>.</p>
+<p>A modifier is an additional restrictive measure and follows scope segments and the dot character (<code>.</code>). A scope may only
+have one modifier at the very end of the scope. A modifier can be any string, as long as its characters are in the above
+list of valid characters. A modifier adds an additional restriction to a scope, without having to make up a new segment.
+An example is the 'readonly' modifier above. A route that requires <code>user:posts.readonly</code> would allow passage when the token
+has <code>user</code>, <code>user:posts</code> or <code>user:posts.readonly</code>. A route that required <code>user:posts</code> would not allow <code>user:posts.readonly</code>.</p>
+    </section>
+    
+    <section class="summary source-code" id="source">
+      <h2><span>Implementation</span> </h2>
+      <pre class="language-dart"><code class="language-dart">factory AuthScope(String scopeString) {
+  var cached = _cache[scopeString];
+  if (cached != null) {
+    return cached;
+  }
+
+  var scope = _parse(scopeString);
+  _cache[scopeString] = scope;
+  return scope;
+}</code></pre>
+    </section>
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

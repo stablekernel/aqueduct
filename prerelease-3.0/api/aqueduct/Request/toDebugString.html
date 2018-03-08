@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the toDebugString method from the Request class, for the Dart programming language.">
+  <title>toDebugString method - Request class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/Request-class.html">Request</a></li>
+    <li class="self-crumb">toDebugString method</li>
+  </ol>
+  <div class="self-name">toDebugString</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>Request class</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/Request-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/Request/Request.html">Request</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/Request-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/Request/acceptableContentTypes.html">acceptableContentTypes</a></li>
+      <li><a href="aqueduct/Request/attachments.html">attachments</a></li>
+      <li><a href="aqueduct/Request/authorization.html">authorization</a></li>
+      <li><a href="aqueduct/Request/body.html">body</a></li>
+      <li><a href="aqueduct/Request/connectionInfo.html">connectionInfo</a></li>
+      <li><a href="aqueduct/Request/isCORSRequest.html">isCORSRequest</a></li>
+      <li><a href="aqueduct/Request/isPreflightRequest.html">isPreflightRequest</a></li>
+      <li><a href="aqueduct/Request/method.html">method</a></li>
+      <li><a href="aqueduct/Request/path.html">path</a></li>
+      <li><a href="aqueduct/Request/raw.html">raw</a></li>
+      <li><a href="aqueduct/Request/receivedDate.html">receivedDate</a></li>
+      <li><a href="aqueduct/Request/respondDate.html">respondDate</a></li>
+      <li><a href="aqueduct/Request/response.html">response</a></li>
+      <li class="inherited"><a href="aqueduct/RequestOrResponse/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/RequestOrResponse/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/Request-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/Request/acceptsContentType.html">acceptsContentType</a></li>
+      <li><a href="aqueduct/Request/addResponseModifier.html">addResponseModifier</a></li>
+      <li><a href="aqueduct/Request/respond.html">respond</a></li>
+      <li><a href="aqueduct/Request/toDebugString.html">toDebugString</a></li>
+      <li><a href="aqueduct/Request/toString.html">toString</a></li>
+      <li class="inherited"><a href="aqueduct/RequestOrResponse/noSuchMethod.html">noSuchMethod</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/Request-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/RequestOrResponse/operator_equals.html">operator ==</a></li>
+    
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>toDebugString method</h1>
+
+    <section class="multi-line-signature">
+      <span class="returntype">String</span>
+      <span class="name ">toDebugString</span>
+(<wbr>{<span class="parameter" id="toDebugString-param-includeElapsedTime"><span class="type-annotation">bool</span> <span class="parameter-name">includeElapsedTime</span>: <span class="default-value">true</span>, </span> <span class="parameter" id="toDebugString-param-includeRequestIP"><span class="type-annotation">bool</span> <span class="parameter-name">includeRequestIP</span>: <span class="default-value">false</span>, </span> <span class="parameter" id="toDebugString-param-includeMethod"><span class="type-annotation">bool</span> <span class="parameter-name">includeMethod</span>: <span class="default-value">true</span>, </span> <span class="parameter" id="toDebugString-param-includeResource"><span class="type-annotation">bool</span> <span class="parameter-name">includeResource</span>: <span class="default-value">true</span>, </span> <span class="parameter" id="toDebugString-param-includeStatusCode"><span class="type-annotation">bool</span> <span class="parameter-name">includeStatusCode</span>: <span class="default-value">true</span>, </span> <span class="parameter" id="toDebugString-param-includeContentSize"><span class="type-annotation">bool</span> <span class="parameter-name">includeContentSize</span>: <span class="default-value">false</span>, </span> <span class="parameter" id="toDebugString-param-includeHeaders"><span class="type-annotation">bool</span> <span class="parameter-name">includeHeaders</span>: <span class="default-value">false</span></span> })
+    </section>
+    <section class="desc markdown">
+      <p>A string that represents more details about the request, typically used for logging.</p>
+<p>Note: Setting includeRequestIP to true creates a significant performance penalty.</p>
+    </section>
+    
+    <section class="summary source-code" id="source">
+      <h2><span>Implementation</span> </h2>
+      <pre class="language-dart"><code class="language-dart">String toDebugString(
+    {bool includeElapsedTime: true,
+    bool includeRequestIP: false,
+    bool includeMethod: true,
+    bool includeResource: true,
+    bool includeStatusCode: true,
+    bool includeContentSize: false,
+    bool includeHeaders: false}) {
+  var builder = new StringBuffer();
+  if (includeRequestIP) {
+    builder.write(&quot;${raw.connectionInfo?.remoteAddress?.address} &quot;);
+  }
+  if (includeMethod) {
+    builder.write(&quot;${raw.method} &quot;);
+  }
+  if (includeResource) {
+    builder.write(&quot;${raw.uri} &quot;);
+  }
+  if (includeElapsedTime &amp;&amp; respondDate != null) {
+    builder
+        .write(&quot;${respondDate.difference(receivedDate).inMilliseconds}ms &quot;);
+  }
+  if (includeStatusCode) {
+    builder.write(&quot;${raw.response.statusCode} &quot;);
+  }
+  if (includeContentSize) {
+    builder.write(&quot;${raw.response.contentLength} &quot;);
+  }
+  if (includeHeaders) {
+    builder.write(&quot;$_sanitizedHeaders &quot;);
+  }
+
+  return builder.toString();
+}</code></pre>
+    </section>
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the addColumn method from the PostgreSQLPersistentStore class, for the Dart programming language.">
+  <title>addColumn method - PostgreSQLPersistentStore class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/PostgreSQLPersistentStore-class.html">PostgreSQLPersistentStore</a></li>
+    <li class="self-crumb">addColumn method</li>
+  </ol>
+  <div class="self-name">addColumn</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>PostgreSQLPersistentStore class</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/PostgreSQLPersistentStore-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/PostgreSQLPersistentStore.html">PostgreSQLPersistentStore</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/PostgreSQLPersistentStore.fromConnectionInfo.html">fromConnectionInfo</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/PostgreSQLPersistentStore-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/connectTimeout.html">connectTimeout</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/databaseName.html">databaseName</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/host.html">host</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/isConnected.html">isConnected</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/isSSLConnection.html">isSSLConnection</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/password.html">password</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/port.html">port</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/schemaVersion.html">schemaVersion</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/timeZone.html">timeZone</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/username.html">username</a></li>
+      <li class="inherited"><a href="aqueduct/PersistentStore/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/PersistentStore/runtimeType.html">runtimeType</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/versionTable.html">versionTable</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/versionTableName.html">versionTableName</a></li>
+    
+      <li class="section-title"><a href="aqueduct/PostgreSQLPersistentStore-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/close.html">close</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/execute.html">execute</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/executeQuery.html">executeQuery</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/getDatabaseConnection.html">getDatabaseConnection</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/newQuery.html">newQuery</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/upgrade.html">upgrade</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/addColumn.html">addColumn</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/addIndexToColumn.html">addIndexToColumn</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/addTableUniqueColumnSet.html">addTableUniqueColumnSet</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/alterColumnDefaultValue.html">alterColumnDefaultValue</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/alterColumnDeleteRule.html">alterColumnDeleteRule</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/alterColumnNullability.html">alterColumnNullability</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/alterColumnUniqueness.html">alterColumnUniqueness</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/createTable.html">createTable</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/deleteColumn.html">deleteColumn</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/deleteIndexFromColumn.html">deleteIndexFromColumn</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/deleteTable.html">deleteTable</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/deleteTableUniqueColumnSet.html">deleteTableUniqueColumnSet</a></li>
+      <li class="inherited"><a href="aqueduct/PersistentStore/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/renameColumn.html">renameColumn</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/renameIndex.html">renameIndex</a></li>
+      <li class="inherited"><a href="aqueduct/PostgreSQLPersistentStore/renameTable.html">renameTable</a></li>
+      <li class="inherited"><a href="aqueduct/PersistentStore/toString.html">toString</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/PostgreSQLPersistentStore-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/PersistentStore/operator_equals.html">operator ==</a></li>
+    
+      <li class="section-title"><a href="aqueduct/PostgreSQLPersistentStore-class.html#static-properties">Static properties</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore/logger.html">logger</a></li>
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>addColumn method</h1>
+
+    <section class="multi-line-signature">
+      <span class="returntype">List<span class="signature">&lt;String&gt;</span></span>
+      <span class="name ">addColumn</span>
+(<wbr><span class="parameter" id="addColumn-param-table"><span class="type-annotation"><a href="aqueduct/SchemaTable-class.html">SchemaTable</a></span> <span class="parameter-name">table</span>, </span> <span class="parameter" id="addColumn-param-column"><span class="type-annotation"><a href="aqueduct/SchemaColumn-class.html">SchemaColumn</a></span> <span class="parameter-name">column</span>, {</span> <span class="parameter" id="addColumn-param-unencodedInitialValue"><span class="type-annotation">String</span> <span class="parameter-name">unencodedInitialValue</span></span> })
+    </section>
+    
+    <section class="summary source-code" id="source">
+      <h2><span>Implementation</span> </h2>
+      <pre class="language-dart"><code class="language-dart">List&lt;String&gt; addColumn(SchemaTable table, SchemaColumn column, {String unencodedInitialValue}) {
+  var commands = &lt;String&gt;[];
+
+  if (!column.isNullable &amp;&amp; column.defaultValue == null) {
+    if (unencodedInitialValue == null) {
+      throw new SchemaException(
+          &quot;Attempting to addColumn to database that is not nullable, has no default value, and does not have unencodedInitialValue.&quot;);
+    }
+
+    column.defaultValue = unencodedInitialValue;
+    commands.addAll([
+      &quot;ALTER TABLE ${table.name} ADD COLUMN ${_columnStringForColumn(column)}&quot;,
+      &quot;ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP DEFAULT&quot;
+    ]);
+  } else {
+    commands.addAll([&quot;ALTER TABLE ${table.name} ADD COLUMN ${_columnStringForColumn(column)}&quot;]);
+  }
+
+  if (column.isIndexed) {
+    commands.addAll(addIndexToColumn(table, column));
+  }
+
+  if (column.isForeignKey) {
+    commands.addAll(_addConstraintsForColumn(table.name, column));
+  }
+
+  return commands;
+}</code></pre>
+    </section>
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the level property from the Logger class, for the Dart programming language.">
+  <title>level property - Logger class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/Logger-class.html">Logger</a></li>
+    <li class="self-crumb">level property</li>
+  </ol>
+  <div class="self-name">level</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>Logger class</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/Logger-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/Logger/Logger.html">Logger</a></li>
+      <li><a href="aqueduct/Logger/Logger.detached.html">detached</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/Logger-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/Logger/children.html">children</a></li>
+      <li><a href="aqueduct/Logger/fullName.html">fullName</a></li>
+      <li><a href="aqueduct/Logger/level.html">level</a></li>
+      <li><a href="aqueduct/Logger/name.html">name</a></li>
+      <li><a href="aqueduct/Logger/onRecord.html">onRecord</a></li>
+      <li><a href="aqueduct/Logger/parent.html">parent</a></li>
+      <li class="inherited"><a href="aqueduct/Logger/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/Logger/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/Logger-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/Logger/clearListeners.html">clearListeners</a></li>
+      <li><a href="aqueduct/Logger/config.html">config</a></li>
+      <li><a href="aqueduct/Logger/fine.html">fine</a></li>
+      <li><a href="aqueduct/Logger/finer.html">finer</a></li>
+      <li><a href="aqueduct/Logger/finest.html">finest</a></li>
+      <li><a href="aqueduct/Logger/info.html">info</a></li>
+      <li><a href="aqueduct/Logger/isLoggable.html">isLoggable</a></li>
+      <li><a href="aqueduct/Logger/log.html">log</a></li>
+      <li><a href="aqueduct/Logger/severe.html">severe</a></li>
+      <li><a href="aqueduct/Logger/shout.html">shout</a></li>
+      <li><a href="aqueduct/Logger/warning.html">warning</a></li>
+      <li class="inherited"><a href="aqueduct/Logger/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/Logger/toString.html">toString</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/Logger-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/Logger/operator_equals.html">operator ==</a></li>
+    
+      <li class="section-title"><a href="aqueduct/Logger-class.html#static-properties">Static properties</a></li>
+      <li><a href="aqueduct/Logger/root.html">root</a></li>
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>level property</h1>
+
+
+        <section id="getter">
+        
+        <section class="multi-line-signature">
+          <span class="returntype"><a href="aqueduct/Level-class.html">Level</a></span>
+          <span class="name ">level</span>
+  
+</section>
+        
+        <section class="desc markdown">
+  <p>Effective level considering the levels established in this logger's parents
+(when <a href="aqueduct/hierarchicalLoggingEnabled.html">hierarchicalLoggingEnabled</a> is true).</p>
+</section>
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span> </h2>
+  <pre class="language-dart"><code class="language-dart">Level get level {
+  if (hierarchicalLoggingEnabled) {
+    if (_level != null) return _level;
+    if (parent != null) return parent.level;
+  }
+  return _rootLevel;
+}</code></pre>
+</section>
+</section>
+        
+        <section id="setter">
+        
+        <section class="multi-line-signature">
+          <span class="returntype">void</span>
+            <span class="name ">level=</span>
+<span class="signature">(<wbr><span class="parameter" id="level=-param-value"><span class="type-annotation"><a href="aqueduct/Level-class.html">Level</a></span> <span class="parameter-name">value</span></span>)</span>
+          
+</section>
+        
+        <section class="desc markdown">
+  <p>Override the level for this particular <a href="aqueduct/Logger-class.html">Logger</a> and its children.</p>
+</section>
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span> </h2>
+  <pre class="language-dart"><code class="language-dart">void set level(Level value) {
+  if (hierarchicalLoggingEnabled &amp;&amp; parent != null) {
+    _level = value;
+  } else {
+    if (parent != null) {
+      throw new UnsupportedError(
+          &#39;Please set &quot;hierarchicalLoggingEnabled&quot; to true if you want to &#39;
+          &#39;change the level on a non-root logger.&#39;);
+    }
+    _rootLevel = value;
+  }
+}</code></pre>
+</section>
+</section>
+          </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

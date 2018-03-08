@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the ManagedSet class from the aqueduct library, for the Dart programming language.">
+  <title>ManagedSet class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li class="self-crumb">ManagedSet<span class="signature">&lt;InstanceType extends <a href="aqueduct/ManagedObject-class.html">ManagedObject</a>&gt;</span> class</li>
+  </ol>
+  <div class="self-name">ManagedSet</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>aqueduct library</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#classes">Classes</a></li>
+      <li><a href="aqueduct/APICallback-class.html">APICallback</a></li>
+      <li><a href="aqueduct/APIComponentCollection-class.html">APIComponentCollection</a></li>
+      <li><a href="aqueduct/APIComponentDocumenter-class.html">APIComponentDocumenter</a></li>
+      <li><a href="aqueduct/APIComponents-class.html">APIComponents</a></li>
+      <li><a href="aqueduct/APIConfiguration-class.html">APIConfiguration</a></li>
+      <li><a href="aqueduct/APIContact-class.html">APIContact</a></li>
+      <li><a href="aqueduct/APIDocument-class.html">APIDocument</a></li>
+      <li><a href="aqueduct/APIDocumentContext-class.html">APIDocumentContext</a></li>
+      <li><a href="aqueduct/APIEncoding-class.html">APIEncoding</a></li>
+      <li><a href="aqueduct/APIHeader-class.html">APIHeader</a></li>
+      <li><a href="aqueduct/APIInfo-class.html">APIInfo</a></li>
+      <li><a href="aqueduct/APILicense-class.html">APILicense</a></li>
+      <li><a href="aqueduct/APIMediaType-class.html">APIMediaType</a></li>
+      <li><a href="aqueduct/APIObject-class.html">APIObject</a></li>
+      <li><a href="aqueduct/APIOperation-class.html">APIOperation</a></li>
+      <li><a href="aqueduct/APIOperationDocumenter-class.html">APIOperationDocumenter</a></li>
+      <li><a href="aqueduct/APIParameter-class.html">APIParameter</a></li>
+      <li><a href="aqueduct/APIParameterLocationCodec-class.html">APIParameterLocationCodec</a></li>
+      <li><a href="aqueduct/APIPath-class.html">APIPath</a></li>
+      <li><a href="aqueduct/APIRequestBody-class.html">APIRequestBody</a></li>
+      <li><a href="aqueduct/APIResponse-class.html">APIResponse</a></li>
+      <li><a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a></li>
+      <li><a href="aqueduct/APISecurityRequirement-class.html">APISecurityRequirement</a></li>
+      <li><a href="aqueduct/APISecurityScheme-class.html">APISecurityScheme</a></li>
+      <li><a href="aqueduct/APISecuritySchemeOAuth2Flow-class.html">APISecuritySchemeOAuth2Flow</a></li>
+      <li><a href="aqueduct/APISecuritySchemeTypeCodec-class.html">APISecuritySchemeTypeCodec</a></li>
+      <li><a href="aqueduct/APIServerDescription-class.html">APIServerDescription</a></li>
+      <li><a href="aqueduct/APIServerVariable-class.html">APIServerVariable</a></li>
+      <li><a href="aqueduct/APITag-class.html">APITag</a></li>
+      <li><a href="aqueduct/APITypeCodec-class.html">APITypeCodec</a></li>
+      <li><a href="aqueduct/Application-class.html">Application</a></li>
+      <li><a href="aqueduct/ApplicationChannel-class.html">ApplicationChannel</a></li>
+      <li><a href="aqueduct/ApplicationMessageHub-class.html">ApplicationMessageHub</a></li>
+      <li><a href="aqueduct/ApplicationOptions-class.html">ApplicationOptions</a></li>
+      <li><a href="aqueduct/ApplicationServer-class.html">ApplicationServer</a></li>
+      <li><a href="aqueduct/ApplicationServiceRegistry-class.html">ApplicationServiceRegistry</a></li>
+      <li><a href="aqueduct/AuthBasicCredentials-class.html">AuthBasicCredentials</a></li>
+      <li><a href="aqueduct/AuthClient-class.html">AuthClient</a></li>
+      <li><a href="aqueduct/AuthCode-class.html">AuthCode</a></li>
+      <li><a href="aqueduct/AuthCodeController-class.html">AuthCodeController</a></li>
+      <li><a href="aqueduct/AuthCodeControllerDelegate-class.html">AuthCodeControllerDelegate</a></li>
+      <li><a href="aqueduct/AuthController-class.html">AuthController</a></li>
+      <li><a href="aqueduct/Authenticatable-class.html">Authenticatable</a></li>
+      <li><a href="aqueduct/Authorization-class.html">Authorization</a></li>
+      <li><a href="aqueduct/AuthorizationBasicParser-class.html">AuthorizationBasicParser</a></li>
+      <li><a href="aqueduct/AuthorizationBearerParser-class.html">AuthorizationBearerParser</a></li>
+      <li><a href="aqueduct/AuthorizationParser-class.html">AuthorizationParser</a></li>
+      <li><a href="aqueduct/Authorizer-class.html">Authorizer</a></li>
+      <li><a href="aqueduct/AuthScope-class.html">AuthScope</a></li>
+      <li><a href="aqueduct/AuthServer-class.html">AuthServer</a></li>
+      <li><a href="aqueduct/AuthServerDelegate-class.html">AuthServerDelegate</a></li>
+      <li><a href="aqueduct/AuthToken-class.html">AuthToken</a></li>
+      <li><a href="aqueduct/AuthUtility-class.html">AuthUtility</a></li>
+      <li><a href="aqueduct/AuthValidator-class.html">AuthValidator</a></li>
+      <li><a href="aqueduct/Bind-class.html">Bind</a></li>
+      <li><a href="aqueduct/BodyDecoder-class.html">BodyDecoder</a></li>
+      <li><a href="aqueduct/Column-class.html">Column</a></li>
+      <li><a href="aqueduct/ConfigurationException-class.html">ConfigurationException</a></li>
+      <li><a href="aqueduct/ConfigurationItem-class.html">ConfigurationItem</a></li>
+      <li><a href="aqueduct/ConfigurationItemAttribute-class.html">ConfigurationItemAttribute</a></li>
+      <li><a href="aqueduct/Controller-class.html">Controller</a></li>
+      <li><a href="aqueduct/CORSPolicy-class.html">CORSPolicy</a></li>
+      <li><a href="aqueduct/DatabaseConnectionConfiguration-class.html">DatabaseConnectionConfiguration</a></li>
+      <li><a href="aqueduct/Document-class.html">Document</a></li>
+      <li><a href="aqueduct/HTTPCachePolicy-class.html">HTTPCachePolicy</a></li>
+      <li><a href="aqueduct/HTTPCodecRepository-class.html">HTTPCodecRepository</a></li>
+      <li><a href="aqueduct/HTTPFileController-class.html">HTTPFileController</a></li>
+      <li><a href="aqueduct/HTTPRequiredParameter-class.html">HTTPRequiredParameter</a></li>
+      <li><a href="aqueduct/HTTPSerializable-class.html">HTTPSerializable</a></li>
+      <li><a href="aqueduct/Level-class.html">Level</a></li>
+      <li><a href="aqueduct/Logger-class.html">Logger</a></li>
+      <li><a href="aqueduct/LogRecord-class.html">LogRecord</a></li>
+      <li><a href="aqueduct/ManagedAttributeDescription-class.html">ManagedAttributeDescription</a></li>
+      <li><a href="aqueduct/ManagedBacking-class.html">ManagedBacking</a></li>
+      <li><a href="aqueduct/ManagedContext-class.html">ManagedContext</a></li>
+      <li><a href="aqueduct/ManagedDataModel-class.html">ManagedDataModel</a></li>
+      <li><a href="aqueduct/ManagedEntity-class.html">ManagedEntity</a></li>
+      <li><a href="aqueduct/ManagedObject-class.html">ManagedObject</a></li>
+      <li><a href="aqueduct/ManagedObjectController-class.html">ManagedObjectController</a></li>
+      <li><a href="aqueduct/ManagedPropertyDescription-class.html">ManagedPropertyDescription</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription-class.html">ManagedRelationshipDescription</a></li>
+      <li><a href="aqueduct/ManagedSet-class.html">ManagedSet</a></li>
+      <li><a href="aqueduct/ManagedType-class.html">ManagedType</a></li>
+      <li><a href="aqueduct/ManagedValidator-class.html">ManagedValidator</a></li>
+      <li><a href="aqueduct/Migration-class.html">Migration</a></li>
+      <li><a href="aqueduct/MigrationBuilder-class.html">MigrationBuilder</a></li>
+      <li><a href="aqueduct/Operation-class.html">Operation</a></li>
+      <li><a href="aqueduct/PersistentStore-class.html">PersistentStore</a></li>
+      <li><a href="aqueduct/PostgreSQLErrorCode-class.html">PostgreSQLErrorCode</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore-class.html">PostgreSQLPersistentStore</a></li>
+      <li><a href="aqueduct/Query-class.html">Query</a></li>
+      <li><a href="aqueduct/QueryController-class.html">QueryController</a></li>
+      <li><a href="aqueduct/QueryExpression-class.html">QueryExpression</a></li>
+      <li><a href="aqueduct/QueryExpressionJunction-class.html">QueryExpressionJunction</a></li>
+      <li><a href="aqueduct/QueryPredicate-class.html">QueryPredicate</a></li>
+      <li><a href="aqueduct/QueryReduceOperation-class.html">QueryReduceOperation</a></li>
+      <li><a href="aqueduct/Relate-class.html">Relate</a></li>
+      <li><a href="aqueduct/Request-class.html">Request</a></li>
+      <li><a href="aqueduct/RequestBody-class.html">RequestBody</a></li>
+      <li><a href="aqueduct/RequestOrResponse-class.html">RequestOrResponse</a></li>
+      <li><a href="aqueduct/RequestPath-class.html">RequestPath</a></li>
+      <li><a href="aqueduct/ResourceController-class.html">ResourceController</a></li>
+      <li><a href="aqueduct/Response-class.html">Response</a></li>
+      <li><a href="aqueduct/Router-class.html">Router</a></li>
+      <li><a href="aqueduct/Schema-class.html">Schema</a></li>
+      <li><a href="aqueduct/SchemaBuilder-class.html">SchemaBuilder</a></li>
+      <li><a href="aqueduct/SchemaColumn-class.html">SchemaColumn</a></li>
+      <li><a href="aqueduct/SchemaColumnDifference-class.html">SchemaColumnDifference</a></li>
+      <li><a href="aqueduct/SchemaDifference-class.html">SchemaDifference</a></li>
+      <li><a href="aqueduct/SchemaTable-class.html">SchemaTable</a></li>
+      <li><a href="aqueduct/SchemaTableDifference-class.html">SchemaTableDifference</a></li>
+      <li><a href="aqueduct/SchemaTableUniqueSetDifference-class.html">SchemaTableUniqueSetDifference</a></li>
+      <li><a href="aqueduct/Scope-class.html">Scope</a></li>
+      <li><a href="aqueduct/Serialize-class.html">Serialize</a></li>
+      <li><a href="aqueduct/Table-class.html">Table</a></li>
+      <li><a href="aqueduct/Validate-class.html">Validate</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#constants">Constants</a></li>
+      <li><a href="aqueduct/optionalConfiguration-constant.html">optionalConfiguration</a></li>
+      <li><a href="aqueduct/primaryKey-constant.html">primaryKey</a></li>
+      <li><a href="aqueduct/requiredConfiguration-constant.html">requiredConfiguration</a></li>
+      <li><a href="aqueduct/requiredHTTPParameter-constant.html">requiredHTTPParameter</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#properties">Properties</a></li>
+      <li><a href="aqueduct/hierarchicalLoggingEnabled.html">hierarchicalLoggingEnabled</a></li>
+      <li><a href="aqueduct/recordStackTraceAtLevel.html">recordStackTraceAtLevel</a></li>
+    
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#enums">Enums</a></li>
+      <li><a href="aqueduct/APIParameterLocation-class.html">APIParameterLocation</a></li>
+      <li><a href="aqueduct/APISecuritySchemeType-class.html">APISecuritySchemeType</a></li>
+      <li><a href="aqueduct/APIType-class.html">APIType</a></li>
+      <li><a href="aqueduct/AuthorizationParserExceptionReason-class.html">AuthorizationParserExceptionReason</a></li>
+      <li><a href="aqueduct/AuthRequestError-class.html">AuthRequestError</a></li>
+      <li><a href="aqueduct/ConfigurationItemAttributeType-class.html">ConfigurationItemAttributeType</a></li>
+      <li><a href="aqueduct/DeleteRule-class.html">DeleteRule</a></li>
+      <li><a href="aqueduct/ManagedPropertyType-class.html">ManagedPropertyType</a></li>
+      <li><a href="aqueduct/PersistentStoreQueryReturnType-class.html">PersistentStoreQueryReturnType</a></li>
+      <li><a href="aqueduct/QueryExceptionEvent-class.html">QueryExceptionEvent</a></li>
+      <li><a href="aqueduct/QuerySortOrder-class.html">QuerySortOrder</a></li>
+      <li><a href="aqueduct/ValidateOperation-class.html">ValidateOperation</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#typedefs">Typedefs</a></li>
+      <li><a href="aqueduct/LoggerHandler.html">LoggerHandler</a></li>
+      <li><a href="aqueduct/PostgreSQLConnectionFunction.html">PostgreSQLConnectionFunction</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#exceptions">Exceptions</a></li>
+      <li><a href="aqueduct/APIException-class.html">APIException</a></li>
+      <li><a href="aqueduct/ApplicationStartupException-class.html">ApplicationStartupException</a></li>
+      <li><a href="aqueduct/AuthorizationParserException-class.html">AuthorizationParserException</a></li>
+      <li><a href="aqueduct/AuthServerException-class.html">AuthServerException</a></li>
+      <li><a href="aqueduct/AuthUtilityException-class.html">AuthUtilityException</a></li>
+      <li><a href="aqueduct/ControllerException-class.html">ControllerException</a></li>
+      <li><a href="aqueduct/HandlerException-class.html">HandlerException</a></li>
+      <li><a href="aqueduct/HTTPStreamingException-class.html">HTTPStreamingException</a></li>
+      <li><a href="aqueduct/ManagedDataModelError-class.html">ManagedDataModelError</a></li>
+      <li><a href="aqueduct/MigrationException-class.html">MigrationException</a></li>
+      <li><a href="aqueduct/QueryException-class.html">QueryException</a></li>
+      <li><a href="aqueduct/SchemaException-class.html">SchemaException</a></li>
+      <li><a href="aqueduct/ValidationException-class.html">ValidationException</a></li>
+    </ol>
+  </div>
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>ManagedSet&lt;InstanceType extends ManagedObject&gt; class</h1>
+
+    <section class="desc markdown">
+      <p>Instances of this type contain zero or more instances of <a href="aqueduct/ManagedObject-class.html">ManagedObject</a> and represent has-many relationships.</p>
+<p>'Has many' relationship properties in <a href="aqueduct/ManagedObject-class.html">ManagedObject</a>s are represented by this type. <a href="aqueduct/ManagedSet-class.html">ManagedSet</a>s properties may only be declared in the persistent
+type of a <a href="aqueduct/ManagedObject-class.html">ManagedObject</a>. Example usage:</p>
+<pre class="language-dart"><code>   class User extends ManagedObject&lt;_User&gt; implements _User {}
+   class _User {
+      ...
+      ManagedSet&lt;Post&gt; posts;
+   }
+
+   class Post extends ManagedObject&lt;_Post&gt; implements _Post {}
+   class _Post {
+     ...
+     @Relate(#posts)
+     User user;
+   }
+</code></pre>
+    </section>
+    
+    <section>
+      <dl class="dl-horizontal">
+
+
+        <dt>Mixes-in</dt>
+        <dd><ul class="comma-separated clazz-relationships">
+          <li>ListMixin<span class="signature">&lt;InstanceType&gt;</span></li>
+        </ul></dd>
+
+
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="constructors">
+      <h2>Constructors</h2>
+
+      <dl class="constructor-summary-list">
+        <dt id="ManagedSet" class="callable">
+          <span class="name"><a href="aqueduct/ManagedSet/ManagedSet.html">ManagedSet</a></span><span class="signature">()</span>
+        </dt>
+        <dd>
+          Creates an empty <a href="aqueduct/ManagedSet-class.html">ManagedSet</a>.
+        </dd>
+        <dt id="ManagedSet.from" class="callable">
+          <span class="name"><a href="aqueduct/ManagedSet/ManagedSet.from.html">ManagedSet.from</a></span><span class="signature">(<span class="parameter" id="from-param-items"><span class="type-annotation">Iterable<span class="signature">&lt;InstanceType&gt;</span></span> <span class="parameter-name">items</span></span>)</span>
+        </dt>
+        <dd>
+          Creates a <a href="aqueduct/ManagedSet-class.html">ManagedSet</a> from an <code>Iterable</code> of <code>InstanceType</code>s.
+        </dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="instance-properties">
+      <h2>Properties</h2>
+
+      <dl class="properties">
+        <dt id="entity" class="property">
+          <span class="name"><a href="aqueduct/ManagedSet/entity.html">entity</a></span>
+          <span class="signature">&#8596; <a href="aqueduct/ManagedEntity-class.html">ManagedEntity</a></span>
+        </dt>
+        <dd>
+          The <code>ManagedEntity</code> that represents the <code>InstanceType</code>.
+          <div class="features">read / write</div>
+</dd>
+        <dt id="haveAtLeastOneWhere" class="property">
+          <span class="name"><a href="aqueduct/ManagedSet/haveAtLeastOneWhere.html">haveAtLeastOneWhere</a></span>
+          <span class="signature">&#8594; InstanceType</span>
+        </dt>
+        <dd>
+          Filters <a href="aqueduct/Query-class.html">Query</a> results based on the criteria of the objects in this collection. <a href="aqueduct/ManagedSet/haveAtLeastOneWhere.html">[...]</a>
+          <div class="features">read-only</div>
+</dd>
+        <dt id="length" class="property">
+          <span class="name"><a href="aqueduct/ManagedSet/length.html">length</a></span>
+          <span class="signature">&#8596; int</span>
+        </dt>
+        <dd>
+          The number of elements in this set.
+          <div class="features">read / write</div>
+</dd>
+        <dt id="first" class="property inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/first.html">first</a></span>
+          <span class="signature">&#8596; InstanceType</span>
+        </dt>
+        <dd class="inherited">
+          Returns the first element. <a href="aqueduct/ManagedSet/first.html">[...]</a>
+          <div class="features">read / write, inherited</div>
+</dd>
+        <dt id="hashCode" class="property inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/hashCode.html">hashCode</a></span>
+          <span class="signature">&#8594; int</span>
+        </dt>
+        <dd class="inherited">
+          The hash code for this object. <a href="aqueduct/ManagedSet/hashCode.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="isEmpty" class="property inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/isEmpty.html">isEmpty</a></span>
+          <span class="signature">&#8594; bool</span>
+        </dt>
+        <dd class="inherited">
+          Returns <code>true</code> if there are no elements in this collection. <a href="aqueduct/ManagedSet/isEmpty.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="isNotEmpty" class="property inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/isNotEmpty.html">isNotEmpty</a></span>
+          <span class="signature">&#8594; bool</span>
+        </dt>
+        <dd class="inherited">
+          Returns true if there is at least one element in this collection. <a href="aqueduct/ManagedSet/isNotEmpty.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="iterator" class="property inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/iterator.html">iterator</a></span>
+          <span class="signature">&#8594; Iterator<span class="signature">&lt;InstanceType&gt;</span></span>
+        </dt>
+        <dd class="inherited">
+          Returns a new <code>Iterator</code> that allows iterating the elements of this
+<code>Iterable</code>. <a href="aqueduct/ManagedSet/iterator.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="last" class="property inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/last.html">last</a></span>
+          <span class="signature">&#8596; InstanceType</span>
+        </dt>
+        <dd class="inherited">
+          Returns the last element. <a href="aqueduct/ManagedSet/last.html">[...]</a>
+          <div class="features">read / write, inherited</div>
+</dd>
+        <dt id="reversed" class="property inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/reversed.html">reversed</a></span>
+          <span class="signature">&#8594; Iterable<span class="signature">&lt;InstanceType&gt;</span></span>
+        </dt>
+        <dd class="inherited">
+          Returns an <code>Iterable</code> of the objects in this list in reverse order.
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="runtimeType" class="property inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/runtimeType.html">runtimeType</a></span>
+          <span class="signature">&#8594; Type</span>
+        </dt>
+        <dd class="inherited">
+          A representation of the runtime type of the object.
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="single" class="property inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/single.html">single</a></span>
+          <span class="signature">&#8594; InstanceType</span>
+        </dt>
+        <dd class="inherited">
+          Checks that this iterable has only one element, and returns that element. <a href="aqueduct/ManagedSet/single.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="instance-methods">
+      <h2>Methods</h2>
+      <dl class="callables">
+        <dt id="add" class="callable">
+          <span class="name"><a href="aqueduct/ManagedSet/add.html">add</a></span><span class="signature">(<wbr><span class="parameter" id="add-param-item"><span class="type-annotation">InstanceType</span> <span class="parameter-name">item</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          Adds an <code>InstanceType</code> to this set.
+          
+</dd>
+        <dt id="addAll" class="callable">
+          <span class="name"><a href="aqueduct/ManagedSet/addAll.html">addAll</a></span><span class="signature">(<wbr><span class="parameter" id="addAll-param-items"><span class="type-annotation">Iterable<span class="signature">&lt;InstanceType&gt;</span></span> <span class="parameter-name">items</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          Adds an <code>Iterable</code> of <code>InstanceType</code> to this set.
+          
+</dd>
+        <dt id="any" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/any.html">any</a></span><span class="signature">(<wbr><span class="parameter" id="any-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; bool</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Checks whether any element of this iterable satisfies <code>test</code>. <a href="aqueduct/ManagedSet/any.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="asMap" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/asMap.html">asMap</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; Map<span class="signature">&lt;int, InstanceType&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns an unmodifiable <code>Map</code> view of <code>this</code>. <a href="aqueduct/ManagedSet/asMap.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="cast" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/cast.html">cast</a></span><span class="signature">&lt;R&gt;</span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; List<span class="signature">&lt;R&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a view of this list as a list of <code>R</code> instances, if necessary. <a href="aqueduct/ManagedSet/cast.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="clear" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/clear.html">clear</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Removes all objects from this list;
+the length of the list becomes zero. <a href="aqueduct/ManagedSet/clear.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="contains" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/contains.html">contains</a></span><span class="signature">(<wbr><span class="parameter" id="contains-param-element"><span class="type-annotation">Object</span> <span class="parameter-name">element</span></span>)
+            <span class="returntype parameter">&#8594; bool</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns true if the collection contains an element equal to <code>element</code>. <a href="aqueduct/ManagedSet/contains.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="elementAt" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/elementAt.html">elementAt</a></span><span class="signature">(<wbr><span class="parameter" id="elementAt-param-index"><span class="type-annotation">int</span> <span class="parameter-name">index</span></span>)
+            <span class="returntype parameter">&#8594; InstanceType</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns the <code>index</code>th element. <a href="aqueduct/ManagedSet/elementAt.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="every" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/every.html">every</a></span><span class="signature">(<wbr><span class="parameter" id="every-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; bool</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Checks whether every element of this iterable satisfies <code>test</code>. <a href="aqueduct/ManagedSet/every.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="expand" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/expand.html">expand</a></span><span class="signature">&lt;T&gt;</span><span class="signature">(<wbr><span class="parameter" id="expand-param-f"><span class="type-annotation">Iterable<span class="signature">&lt;T&gt;</span></span> <span class="parameter-name">f</span>(<span class="parameter" id="f-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Iterable<span class="signature">&lt;T&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Expands each element of this <code>Iterable</code> into zero or more elements. <a href="aqueduct/ManagedSet/expand.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="fillRange" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/fillRange.html">fillRange</a></span><span class="signature">(<wbr><span class="parameter" id="fillRange-param-start"><span class="type-annotation">int</span> <span class="parameter-name">start</span>, </span> <span class="parameter" id="fillRange-param-end"><span class="type-annotation">int</span> <span class="parameter-name">end</span>, [</span> <span class="parameter" id="fillRange-param-fill"><span class="type-annotation">InstanceType</span> <span class="parameter-name">fill</span></span> ])
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Sets the objects in the range <code>start</code> inclusive to <code>end</code> exclusive
+to the given <code>fillValue</code>. <a href="aqueduct/ManagedSet/fillRange.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="firstWhere" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/firstWhere.html">firstWhere</a></span><span class="signature">(<wbr><span class="parameter" id="firstWhere-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>), {</span> <span class="parameter" id="firstWhere-param-orElse"><span class="type-annotation">InstanceType</span> <span class="parameter-name">orElse</span>()</span> })
+            <span class="returntype parameter">&#8594; InstanceType</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns the first element that satisfies the given predicate <code>test</code>. <a href="aqueduct/ManagedSet/firstWhere.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="fold" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/fold.html">fold</a></span><span class="signature">&lt;T&gt;</span><span class="signature">(<wbr><span class="parameter" id="fold-param-initialValue"><span class="type-annotation">T</span> <span class="parameter-name">initialValue</span>, </span> <span class="parameter" id="fold-param-combine"><span class="type-annotation">T</span> <span class="parameter-name">combine</span>(<span class="parameter" id="combine-param-previousValue"><span class="type-annotation">T</span> <span class="parameter-name">previousValue</span>, </span> <span class="parameter" id="combine-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; T</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Reduces a collection to a single value by iteratively combining each
+element of the collection with an existing value <a href="aqueduct/ManagedSet/fold.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="followedBy" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/followedBy.html">followedBy</a></span><span class="signature">(<wbr><span class="parameter" id="followedBy-param-other"><span class="type-annotation">Iterable<span class="signature">&lt;InstanceType&gt;</span></span> <span class="parameter-name">other</span></span>)
+            <span class="returntype parameter">&#8594; Iterable<span class="signature">&lt;InstanceType&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns the lazy concatentation of this iterable and <code>other</code>. <a href="aqueduct/ManagedSet/followedBy.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="forEach" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/forEach.html">forEach</a></span><span class="signature">(<wbr><span class="parameter" id="forEach-param-action"><span class="type-annotation">void</span> <span class="parameter-name">action</span>(<span class="parameter" id="action-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Applies the function <code>f</code> to each element of this collection in iteration
+order.
+          <div class="features">inherited</div>
+</dd>
+        <dt id="getRange" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/getRange.html">getRange</a></span><span class="signature">(<wbr><span class="parameter" id="getRange-param-start"><span class="type-annotation">int</span> <span class="parameter-name">start</span>, </span> <span class="parameter" id="getRange-param-end"><span class="type-annotation">int</span> <span class="parameter-name">end</span></span>)
+            <span class="returntype parameter">&#8594; Iterable<span class="signature">&lt;InstanceType&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns an <code>Iterable</code> that iterates over the objects in the range
+<code>start</code> inclusive to <code>end</code> exclusive. <a href="aqueduct/ManagedSet/getRange.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="indexOf" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/indexOf.html">indexOf</a></span><span class="signature">(<wbr><span class="parameter" id="indexOf-param-element"><span class="type-annotation">Object</span> <span class="parameter-name">element</span>, [</span> <span class="parameter" id="indexOf-param-start"><span class="type-annotation">int</span> <span class="parameter-name">start</span> = <span class="default-value">0</span></span> ])
+            <span class="returntype parameter">&#8594; int</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns the first index of <code>element</code> in this list. <a href="aqueduct/ManagedSet/indexOf.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="indexWhere" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/indexWhere.html">indexWhere</a></span><span class="signature">(<wbr><span class="parameter" id="indexWhere-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>), [</span> <span class="parameter" id="indexWhere-param-start"><span class="type-annotation">int</span> <span class="parameter-name">start</span> = <span class="default-value">0</span></span> ])
+            <span class="returntype parameter">&#8594; int</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns the first index in the list that satisfies the provided <code>test</code>. <a href="aqueduct/ManagedSet/indexWhere.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="insert" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/insert.html">insert</a></span><span class="signature">(<wbr><span class="parameter" id="insert-param-index"><span class="type-annotation">int</span> <span class="parameter-name">index</span>, </span> <span class="parameter" id="insert-param-element"><span class="type-annotation">InstanceType</span> <span class="parameter-name">element</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Inserts the object at position <code>index</code> in this list. <a href="aqueduct/ManagedSet/insert.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="insertAll" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/insertAll.html">insertAll</a></span><span class="signature">(<wbr><span class="parameter" id="insertAll-param-index"><span class="type-annotation">int</span> <span class="parameter-name">index</span>, </span> <span class="parameter" id="insertAll-param-iterable"><span class="type-annotation">Iterable<span class="signature">&lt;InstanceType&gt;</span></span> <span class="parameter-name">iterable</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Inserts all objects of <code>iterable</code> at position <code>index</code> in this list. <a href="aqueduct/ManagedSet/insertAll.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="join" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/join.html">join</a></span><span class="signature">(<wbr>[<span class="parameter" id="join-param-separator"><span class="type-annotation">String</span> <span class="parameter-name">separator</span> = <span class="default-value">""</span></span> ])
+            <span class="returntype parameter">&#8594; String</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Converts each element to a <code>String</code> and concatenates the strings. <a href="aqueduct/ManagedSet/join.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="lastIndexOf" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/lastIndexOf.html">lastIndexOf</a></span><span class="signature">(<wbr><span class="parameter" id="lastIndexOf-param-element"><span class="type-annotation">Object</span> <span class="parameter-name">element</span>, [</span> <span class="parameter" id="lastIndexOf-param-start"><span class="type-annotation">int</span> <span class="parameter-name">start</span></span> ])
+            <span class="returntype parameter">&#8594; int</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns the last index of <code>element</code> in this list. <a href="aqueduct/ManagedSet/lastIndexOf.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="lastIndexWhere" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/lastIndexWhere.html">lastIndexWhere</a></span><span class="signature">(<wbr><span class="parameter" id="lastIndexWhere-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>), [</span> <span class="parameter" id="lastIndexWhere-param-start"><span class="type-annotation">int</span> <span class="parameter-name">start</span></span> ])
+            <span class="returntype parameter">&#8594; int</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns the last index in the list that satisfies the provided <code>test</code>. <a href="aqueduct/ManagedSet/lastIndexWhere.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="lastWhere" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/lastWhere.html">lastWhere</a></span><span class="signature">(<wbr><span class="parameter" id="lastWhere-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>), {</span> <span class="parameter" id="lastWhere-param-orElse"><span class="type-annotation">InstanceType</span> <span class="parameter-name">orElse</span>()</span> })
+            <span class="returntype parameter">&#8594; InstanceType</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns the last element that satisfies the given predicate <code>test</code>. <a href="aqueduct/ManagedSet/lastWhere.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="map" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/map.html">map</a></span><span class="signature">&lt;T&gt;</span><span class="signature">(<wbr><span class="parameter" id="map-param-f"><span class="type-annotation">T</span> <span class="parameter-name">f</span>(<span class="parameter" id="f-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Iterable<span class="signature">&lt;T&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a new lazy <code>Iterable</code> with elements that are created by
+calling <code>f</code> on each element of this <code>Iterable</code> in iteration order. <a href="aqueduct/ManagedSet/map.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="noSuchMethod" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation">Invocation</span> <span class="parameter-name">invocation</span></span>)
+            <span class="returntype parameter">&#8594; dynamic</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Invoked when a non-existent method or property is accessed. <a href="aqueduct/ManagedSet/noSuchMethod.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="reduce" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/reduce.html">reduce</a></span><span class="signature">(<wbr><span class="parameter" id="reduce-param-combine"><span class="type-annotation">InstanceType</span> <span class="parameter-name">combine</span>(<span class="parameter" id="combine-param-previousValue"><span class="type-annotation">E</span> <span class="parameter-name">previousValue</span>, </span> <span class="parameter" id="combine-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; InstanceType</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Reduces a collection to a single value by iteratively combining elements
+of the collection using the provided function. <a href="aqueduct/ManagedSet/reduce.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="remove" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/remove.html">remove</a></span><span class="signature">(<wbr><span class="parameter" id="remove-param-element"><span class="type-annotation">Object</span> <span class="parameter-name">element</span></span>)
+            <span class="returntype parameter">&#8594; bool</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Removes the first occurrence of <code>value</code> from this list. <a href="aqueduct/ManagedSet/remove.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="removeAt" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/removeAt.html">removeAt</a></span><span class="signature">(<wbr><span class="parameter" id="removeAt-param-index"><span class="type-annotation">int</span> <span class="parameter-name">index</span></span>)
+            <span class="returntype parameter">&#8594; InstanceType</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Removes the object at position <code>index</code> from this list. <a href="aqueduct/ManagedSet/removeAt.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="removeLast" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/removeLast.html">removeLast</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; InstanceType</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Pops and returns the last object in this list. <a href="aqueduct/ManagedSet/removeLast.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="removeRange" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/removeRange.html">removeRange</a></span><span class="signature">(<wbr><span class="parameter" id="removeRange-param-start"><span class="type-annotation">int</span> <span class="parameter-name">start</span>, </span> <span class="parameter" id="removeRange-param-end"><span class="type-annotation">int</span> <span class="parameter-name">end</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Removes the objects in the range <code>start</code> inclusive to <code>end</code> exclusive. <a href="aqueduct/ManagedSet/removeRange.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="removeWhere" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/removeWhere.html">removeWhere</a></span><span class="signature">(<wbr><span class="parameter" id="removeWhere-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Removes all objects from this list that satisfy <code>test</code>. <a href="aqueduct/ManagedSet/removeWhere.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="replaceRange" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/replaceRange.html">replaceRange</a></span><span class="signature">(<wbr><span class="parameter" id="replaceRange-param-start"><span class="type-annotation">int</span> <span class="parameter-name">start</span>, </span> <span class="parameter" id="replaceRange-param-end"><span class="type-annotation">int</span> <span class="parameter-name">end</span>, </span> <span class="parameter" id="replaceRange-param-newContents"><span class="type-annotation">Iterable<span class="signature">&lt;InstanceType&gt;</span></span> <span class="parameter-name">newContents</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Removes the objects in the range <code>start</code> inclusive to <code>end</code> exclusive
+and inserts the contents of <code>replacement</code> in its place. <a href="aqueduct/ManagedSet/replaceRange.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="retainWhere" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/retainWhere.html">retainWhere</a></span><span class="signature">(<wbr><span class="parameter" id="retainWhere-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Removes all objects from this list that fail to satisfy <code>test</code>. <a href="aqueduct/ManagedSet/retainWhere.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="retype" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/retype.html">retype</a></span><span class="signature">&lt;R&gt;</span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; List<span class="signature">&lt;R&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a view of this list as a list of <code>R</code> instances. <a href="aqueduct/ManagedSet/retype.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="setAll" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/setAll.html">setAll</a></span><span class="signature">(<wbr><span class="parameter" id="setAll-param-index"><span class="type-annotation">int</span> <span class="parameter-name">index</span>, </span> <span class="parameter" id="setAll-param-iterable"><span class="type-annotation">Iterable<span class="signature">&lt;InstanceType&gt;</span></span> <span class="parameter-name">iterable</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Overwrites objects of <code>this</code> with the objects of <code>iterable</code>, starting
+at position <code>index</code> in this list. <a href="aqueduct/ManagedSet/setAll.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="setRange" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/setRange.html">setRange</a></span><span class="signature">(<wbr><span class="parameter" id="setRange-param-start"><span class="type-annotation">int</span> <span class="parameter-name">start</span>, </span> <span class="parameter" id="setRange-param-end"><span class="type-annotation">int</span> <span class="parameter-name">end</span>, </span> <span class="parameter" id="setRange-param-iterable"><span class="type-annotation">Iterable<span class="signature">&lt;InstanceType&gt;</span></span> <span class="parameter-name">iterable</span>, [</span> <span class="parameter" id="setRange-param-skipCount"><span class="type-annotation">int</span> <span class="parameter-name">skipCount</span> = <span class="default-value">0</span></span> ])
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Copies the objects of <code>iterable</code>, skipping <code>skipCount</code> objects first,
+into the range <code>start</code>, inclusive, to <code>end</code>, exclusive, of the list. <a href="aqueduct/ManagedSet/setRange.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="shuffle" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/shuffle.html">shuffle</a></span><span class="signature">(<wbr>[<span class="parameter" id="shuffle-param-random"><span class="type-annotation">Random</span> <span class="parameter-name">random</span></span> ])
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Shuffles the elements of this list randomly.
+          <div class="features">inherited</div>
+</dd>
+        <dt id="singleWhere" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/singleWhere.html">singleWhere</a></span><span class="signature">(<wbr><span class="parameter" id="singleWhere-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>), {</span> <span class="parameter" id="singleWhere-param-orElse"><span class="type-annotation">InstanceType</span> <span class="parameter-name">orElse</span>()</span> })
+            <span class="returntype parameter">&#8594; InstanceType</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns the single element that satisfies <code>test</code>. <a href="aqueduct/ManagedSet/singleWhere.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="skip" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/skip.html">skip</a></span><span class="signature">(<wbr><span class="parameter" id="skip-param-count"><span class="type-annotation">int</span> <span class="parameter-name">count</span></span>)
+            <span class="returntype parameter">&#8594; Iterable<span class="signature">&lt;InstanceType&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns an <code>Iterable</code> that provides all but the first <code>count</code> elements. <a href="aqueduct/ManagedSet/skip.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="skipWhile" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/skipWhile.html">skipWhile</a></span><span class="signature">(<wbr><span class="parameter" id="skipWhile-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Iterable<span class="signature">&lt;InstanceType&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns an <code>Iterable</code> that skips leading elements while <code>test</code> is satisfied. <a href="aqueduct/ManagedSet/skipWhile.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="sort" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/sort.html">sort</a></span><span class="signature">(<wbr>[<span class="parameter" id="sort-param-compare"><span class="type-annotation">int</span> <span class="parameter-name">compare</span>(<span class="parameter" id="compare-param-a"><span class="type-annotation">E</span> <span class="parameter-name">a</span>, </span> <span class="parameter" id="compare-param-b"><span class="type-annotation">E</span> <span class="parameter-name">b</span></span>)</span> ])
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Sorts this list according to the order specified by the <code>compare</code> function. <a href="aqueduct/ManagedSet/sort.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="sublist" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/sublist.html">sublist</a></span><span class="signature">(<wbr><span class="parameter" id="sublist-param-start"><span class="type-annotation">int</span> <span class="parameter-name">start</span>, [</span> <span class="parameter" id="sublist-param-end"><span class="type-annotation">int</span> <span class="parameter-name">end</span></span> ])
+            <span class="returntype parameter">&#8594; List<span class="signature">&lt;InstanceType&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a new list containing the objects from <code>start</code> inclusive to <code>end</code>
+exclusive. <a href="aqueduct/ManagedSet/sublist.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="take" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/take.html">take</a></span><span class="signature">(<wbr><span class="parameter" id="take-param-count"><span class="type-annotation">int</span> <span class="parameter-name">count</span></span>)
+            <span class="returntype parameter">&#8594; Iterable<span class="signature">&lt;InstanceType&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a lazy iterable of the <code>count</code> first elements of this iterable. <a href="aqueduct/ManagedSet/take.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="takeWhile" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/takeWhile.html">takeWhile</a></span><span class="signature">(<wbr><span class="parameter" id="takeWhile-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Iterable<span class="signature">&lt;InstanceType&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a lazy iterable of the leading elements satisfying <code>test</code>. <a href="aqueduct/ManagedSet/takeWhile.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="toList" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/toList.html">toList</a></span><span class="signature">(<wbr>{<span class="parameter" id="toList-param-growable"><span class="type-annotation">bool</span> <span class="parameter-name">growable</span>: <span class="default-value">true</span></span> })
+            <span class="returntype parameter">&#8594; List<span class="signature">&lt;InstanceType&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Creates a <code>List</code> containing the elements of this <code>Iterable</code>. <a href="aqueduct/ManagedSet/toList.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="toSet" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/toSet.html">toSet</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; Set<span class="signature">&lt;InstanceType&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Creates a <code>Set</code> containing the same elements as this iterable. <a href="aqueduct/ManagedSet/toSet.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="toString" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/toString.html">toString</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; String</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a string representation of this object.
+          <div class="features">inherited</div>
+</dd>
+        <dt id="where" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/where.html">where</a></span><span class="signature">(<wbr><span class="parameter" id="where-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">E</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Iterable<span class="signature">&lt;InstanceType&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a new lazy <code>Iterable</code> with all elements that satisfy the
+predicate <code>test</code>. <a href="aqueduct/ManagedSet/where.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="whereType" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/whereType.html">whereType</a></span><span class="signature">&lt;T&gt;</span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; Iterable<span class="signature">&lt;T&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a new lazy <code>Iterable</code> with all elements that have type <code>T</code>. <a href="aqueduct/ManagedSet/whereType.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="operators">
+      <h2>Operators</h2>
+      <dl class="callables">
+        <dt id="operator []" class="callable">
+          <span class="name"><a href="aqueduct/ManagedSet/operator_get.html">operator []</a></span><span class="signature">(<wbr><span class="parameter" id="[]-param-index"><span class="type-annotation">int</span> <span class="parameter-name">index</span></span>)
+            <span class="returntype parameter">&#8594; InstanceType</span>
+          </span>
+        </dt>
+        <dd>
+          Retrieves an <code>InstanceType</code> from this set by an index.
+          
+</dd>
+        <dt id="operator []=" class="callable">
+          <span class="name"><a href="aqueduct/ManagedSet/operator_put.html">operator []=</a></span><span class="signature">(<wbr><span class="parameter" id="[]=-param-index"><span class="type-annotation">int</span> <span class="parameter-name">index</span>, </span> <span class="parameter" id="[]=-param-value"><span class="type-annotation">InstanceType</span> <span class="parameter-name">value</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          Set an <code>InstanceType</code> in this set by an index.
+          
+</dd>
+        <dt id="operator +" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/operator_plus.html">operator +</a></span><span class="signature">(<wbr><span class="parameter" id="+-param-other"><span class="type-annotation">List<span class="signature">&lt;InstanceType&gt;</span></span> <span class="parameter-name">other</span></span>)
+            <span class="returntype parameter">&#8594; List<span class="signature">&lt;InstanceType&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns the concatenation of this list and <code>other</code>. <a href="aqueduct/ManagedSet/operator_plus.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="operator ==" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedSet/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="parameter-name">other</span></span>)
+            <span class="returntype parameter">&#8594; bool</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          The equality operator. <a href="aqueduct/ManagedSet/operator_equals.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+      </dl>
+    </section>
+
+
+
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+    <ol>
+      <li class="section-title"><a href="aqueduct/ManagedSet-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/ManagedSet/ManagedSet.html">ManagedSet</a></li>
+      <li><a href="aqueduct/ManagedSet/ManagedSet.from.html">from</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/ManagedSet-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/ManagedSet/entity.html">entity</a></li>
+      <li><a href="aqueduct/ManagedSet/haveAtLeastOneWhere.html">haveAtLeastOneWhere</a></li>
+      <li><a href="aqueduct/ManagedSet/length.html">length</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/first.html">first</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/isEmpty.html">isEmpty</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/isNotEmpty.html">isNotEmpty</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/iterator.html">iterator</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/last.html">last</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/reversed.html">reversed</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/runtimeType.html">runtimeType</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/single.html">single</a></li>
+    
+      <li class="section-title"><a href="aqueduct/ManagedSet-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/ManagedSet/add.html">add</a></li>
+      <li><a href="aqueduct/ManagedSet/addAll.html">addAll</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/any.html">any</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/asMap.html">asMap</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/cast.html">cast</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/clear.html">clear</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/contains.html">contains</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/elementAt.html">elementAt</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/every.html">every</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/expand.html">expand</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/fillRange.html">fillRange</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/firstWhere.html">firstWhere</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/fold.html">fold</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/followedBy.html">followedBy</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/forEach.html">forEach</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/getRange.html">getRange</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/indexOf.html">indexOf</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/indexWhere.html">indexWhere</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/insert.html">insert</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/insertAll.html">insertAll</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/join.html">join</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/lastIndexOf.html">lastIndexOf</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/lastIndexWhere.html">lastIndexWhere</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/lastWhere.html">lastWhere</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/map.html">map</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/reduce.html">reduce</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/remove.html">remove</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/removeAt.html">removeAt</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/removeLast.html">removeLast</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/removeRange.html">removeRange</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/removeWhere.html">removeWhere</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/replaceRange.html">replaceRange</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/retainWhere.html">retainWhere</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/retype.html">retype</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/setAll.html">setAll</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/setRange.html">setRange</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/shuffle.html">shuffle</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/singleWhere.html">singleWhere</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/skip.html">skip</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/skipWhile.html">skipWhile</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/sort.html">sort</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/sublist.html">sublist</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/take.html">take</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/takeWhile.html">takeWhile</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/toList.html">toList</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/toSet.html">toSet</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/toString.html">toString</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/where.html">where</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/whereType.html">whereType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/ManagedSet-class.html#operators">Operators</a></li>
+      <li><a href="aqueduct/ManagedSet/operator_get.html">operator []</a></li>
+      <li><a href="aqueduct/ManagedSet/operator_put.html">operator []=</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/operator_plus.html">operator +</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedSet/operator_equals.html">operator ==</a></li>
+    
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

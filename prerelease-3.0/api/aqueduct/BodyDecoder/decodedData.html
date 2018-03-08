@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the decodedData property from the BodyDecoder class, for the Dart programming language.">
+  <title>decodedData property - BodyDecoder class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/BodyDecoder-class.html">BodyDecoder</a></li>
+    <li class="self-crumb">decodedData property</li>
+  </ol>
+  <div class="self-name">decodedData</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>BodyDecoder class</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/BodyDecoder-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/BodyDecoder/BodyDecoder.html">BodyDecoder</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/BodyDecoder-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/BodyDecoder/bytes.html">bytes</a></li>
+      <li><a href="aqueduct/BodyDecoder/contentType.html">contentType</a></li>
+      <li><a href="aqueduct/BodyDecoder/decodedData.html">decodedData</a></li>
+      <li><a href="aqueduct/BodyDecoder/decodedType.html">decodedType</a></li>
+      <li><a href="aqueduct/BodyDecoder/hasBeenDecoded.html">hasBeenDecoded</a></li>
+      <li><a href="aqueduct/BodyDecoder/isEmpty.html">isEmpty</a></li>
+      <li><a href="aqueduct/BodyDecoder/retainOriginalBytes.html">retainOriginalBytes</a></li>
+      <li class="inherited"><a href="aqueduct/BodyDecoder/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/BodyDecoder/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/BodyDecoder-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/BodyDecoder/asBytes.html">asBytes</a></li>
+      <li><a href="aqueduct/BodyDecoder/asList.html">asList</a></li>
+      <li><a href="aqueduct/BodyDecoder/asMap.html">asMap</a></li>
+      <li><a href="aqueduct/BodyDecoder/asString.html">asString</a></li>
+      <li><a href="aqueduct/BodyDecoder/decodeAsBytes.html">decodeAsBytes</a></li>
+      <li><a href="aqueduct/BodyDecoder/decodeAsList.html">decodeAsList</a></li>
+      <li><a href="aqueduct/BodyDecoder/decodeAsMap.html">decodeAsMap</a></li>
+      <li><a href="aqueduct/BodyDecoder/decodeAsString.html">decodeAsString</a></li>
+      <li class="inherited"><a href="aqueduct/BodyDecoder/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/BodyDecoder/toString.html">toString</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/BodyDecoder-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/BodyDecoder/operator_equals.html">operator ==</a></li>
+    
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>decodedData property</h1>
+
+
+        <section id="getter">
+        
+        <section class="multi-line-signature">
+          <span class="returntype">Future<span class="signature">&lt;List&gt;</span></span>
+          <span class="name ">decodedData</span>
+  
+</section>
+        
+        <section class="desc markdown">
+  <p>Returns decoded data, decoding it if not already decoded.</p>
+<p>This is the raw access method to an HTTP body's decoded data. It is preferable
+to use methods such as <a href="aqueduct/BodyDecoder/decodeAsMap.html">decodeAsMap</a>, <a href="aqueduct/BodyDecoder/decodeAsList.html">decodeAsList</a>, and <a href="aqueduct/BodyDecoder/decodeAsString.html">decodeAsString</a>, all of which
+invoke this method.</p>
+<p>The first time this method is invoked, <a href="aqueduct/BodyDecoder/bytes.html">bytes</a> is read in full and decoded according to <a href="aqueduct/BodyDecoder/contentType.html">contentType</a>.
+The decoded data is stored in this instance so that subsequent access will
+return the cached decoded data instead of decoding it again.</p>
+<p>If the body is empty, this method will return null and no decoding is attempted.</p>
+<p>The elements of the return value depend on the codec selected from <a href="aqueduct/HTTPCodecRepository-class.html">HTTPCodecRepository</a>, determined
+by <a href="aqueduct/BodyDecoder/contentType.html">contentType</a>. There are effectively three different scenarios:</p>
+<p>If there is no codec in <a href="aqueduct/HTTPCodecRepository-class.html">HTTPCodecRepository</a> for the content type of the
+request body being decoded, this method returns the flattened list of bytes directly
+from the request body as <code>List&lt;int&gt;</code>.</p>
+<p>If the selected codec produces <code>String</code> data (for example, any <code>text</code> content-type), the return value
+is a list of strings that, when concatenated, are the full <code>String</code> body. It is preferable to use
+<a href="aqueduct/BodyDecoder/decodeAsString.html">decodeAsString</a> which automatically does this concatenation.</p>
+<p>For most <a href="aqueduct/BodyDecoder/contentType.html">contentType</a>s, the return value is a single element <code>List</code> containing the decoded body object. For example,
+this method return a <code>List</code> with a single <code>Map</code> when the body is a JSON object. If the body is a list of JSON objects,
+this method returns a <code>List</code> with a single <code>List</code> element that contains the JSON objects. It is preferable to use
+<a href="aqueduct/BodyDecoder/decodeAsMap.html">decodeAsMap</a> or <a href="aqueduct/BodyDecoder/decodeAsList.html">decodeAsList</a> which unboxes the outer <code>List</code> returned by this method.</p>
+</section>
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span> </h2>
+  <pre class="language-dart"><code class="language-dart">Future&lt;List&lt;dynamic&gt;&gt; get decodedData async {
+  if (!hasBeenDecoded) {
+    if (_decodedData == null) {
+      if (contentType != null) {
+        var codec = HTTPCodecRepository.defaultInstance
+            .codecForContentType(contentType);
+        if (codec != null) {
+          Stream&lt;List&lt;int&gt;&gt; stream = bytes;
+          if (retainOriginalBytes) {
+            _bytes = await _readBytes(bytes);
+            stream = new Stream.fromIterable([_bytes]);
+          }
+
+          _decodedData = await codec.decoder.bind(stream).handleError((err) {
+            if (err is Response) {
+              throw err;
+            }
+            throw new Response.badRequest(body: {&quot;error&quot;: &quot;request entity could not be decoded&quot;});
+          }).toList();
+        } else {
+          _decodedData = await _readBytes(bytes);
+        }
+      } else {
+        _decodedData = await _readBytes(bytes);
+      }
+    }
+  }
+
+  return _decodedData;
+}</code></pre>
+</section>
+</section>
+        
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

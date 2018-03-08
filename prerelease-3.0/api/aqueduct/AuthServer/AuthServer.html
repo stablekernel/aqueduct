@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the AuthServer constructor from the Class AuthServer class from the aqueduct library, for the Dart programming language.">
+  <title>AuthServer constructor - AuthServer class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/AuthServer-class.html">AuthServer</a></li>
+    <li class="self-crumb">AuthServer constructor</li>
+  </ol>
+  <div class="self-name">AuthServer</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>AuthServer class</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/AuthServer-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/AuthServer/AuthServer.html">AuthServer</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/AuthServer-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/AuthServer/delegate.html">delegate</a></li>
+      <li><a href="aqueduct/AuthServer/documentedAuthorizationCodeFlow.html">documentedAuthorizationCodeFlow</a></li>
+      <li><a href="aqueduct/AuthServer/documentedPasswordFlow.html">documentedPasswordFlow</a></li>
+      <li><a href="aqueduct/AuthServer/hashFunction.html">hashFunction</a></li>
+      <li><a href="aqueduct/AuthServer/hashLength.html">hashLength</a></li>
+      <li><a href="aqueduct/AuthServer/hashRounds.html">hashRounds</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/AuthServer-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/AuthServer/authenticate.html">authenticate</a></li>
+      <li><a href="aqueduct/AuthServer/authenticateForCode.html">authenticateForCode</a></li>
+      <li><a href="aqueduct/AuthServer/clientForID.html">clientForID</a></li>
+      <li><a href="aqueduct/AuthServer/documentComponents.html">documentComponents</a></li>
+      <li><a href="aqueduct/AuthServer/documentRequirementsForAuthorizer.html">documentRequirementsForAuthorizer</a></li>
+      <li><a href="aqueduct/AuthServer/exchange.html">exchange</a></li>
+      <li><a href="aqueduct/AuthServer/hashPassword.html">hashPassword</a></li>
+      <li><a href="aqueduct/AuthServer/refresh.html">refresh</a></li>
+      <li><a href="aqueduct/AuthServer/revokeAuthenticatableAccessForIdentifier.html">revokeAuthenticatableAccessForIdentifier</a></li>
+      <li><a href="aqueduct/AuthServer/revokeClientID.html">revokeClientID</a></li>
+      <li><a href="aqueduct/AuthServer/validate.html">validate</a></li>
+      <li><a href="aqueduct/AuthServer/verify.html">verify</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/toString.html">toString</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/AuthServer-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/operator_equals.html">operator ==</a></li>
+    
+    
+    
+      <li class="section-title"><a href="aqueduct/AuthServer-class.html#constants">Constants</a></li>
+      <li><a href="aqueduct/AuthServer/TokenTypeBearer-constant.html">TokenTypeBearer</a></li>
+    </ol>
+  </div><!--/.sidebar-offcanvas-left-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>AuthServer constructor</h1>
+
+    <section class="multi-line-signature">
+      
+      <span class="name ">AuthServer</span>(<wbr><span class="parameter" id="-param-delegate"><span class="type-annotation"><a href="aqueduct/AuthServerDelegate-class.html">AuthServerDelegate</a></span> <span class="parameter-name">delegate</span>, {</span> <span class="parameter" id="-param-hashRounds"><span class="type-annotation">int</span> <span class="parameter-name">hashRounds</span>: <span class="default-value">1000</span>, </span> <span class="parameter" id="-param-hashLength"><span class="type-annotation">int</span> <span class="parameter-name">hashLength</span>: <span class="default-value">32</span>, </span> <span class="parameter" id="-param-hashFunction"><span class="type-annotation">Hash</span> <span class="parameter-name">hashFunction</span></span> })
+    </section>
+
+    <section class="desc markdown">
+      <p>Creates a new instance of an <a href="aqueduct/AuthServer-class.html">AuthServer</a> with a <code>delegate</code>.</p>
+<p><code>hashFunction</code> defaults to <code>sha256</code>.</p>
+    </section>
+    
+    <section class="summary source-code" id="source">
+      <h2><span>Implementation</span> </h2>
+      <pre class="language-dart"><code class="language-dart">AuthServer(this.delegate, {this.hashRounds: 1000, this.hashLength: 32, Hash hashFunction})
+    : this.hashFunction = hashFunction ?? sha256;</code></pre>
+    </section>
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

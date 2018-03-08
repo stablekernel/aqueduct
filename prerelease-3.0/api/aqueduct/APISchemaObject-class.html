@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the APISchemaObject class from the aqueduct library, for the Dart programming language.">
+  <title>APISchemaObject class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li class="self-crumb">APISchemaObject class</li>
+  </ol>
+  <div class="self-name">APISchemaObject</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>aqueduct library</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#classes">Classes</a></li>
+      <li><a href="aqueduct/APICallback-class.html">APICallback</a></li>
+      <li><a href="aqueduct/APIComponentCollection-class.html">APIComponentCollection</a></li>
+      <li><a href="aqueduct/APIComponentDocumenter-class.html">APIComponentDocumenter</a></li>
+      <li><a href="aqueduct/APIComponents-class.html">APIComponents</a></li>
+      <li><a href="aqueduct/APIConfiguration-class.html">APIConfiguration</a></li>
+      <li><a href="aqueduct/APIContact-class.html">APIContact</a></li>
+      <li><a href="aqueduct/APIDocument-class.html">APIDocument</a></li>
+      <li><a href="aqueduct/APIDocumentContext-class.html">APIDocumentContext</a></li>
+      <li><a href="aqueduct/APIEncoding-class.html">APIEncoding</a></li>
+      <li><a href="aqueduct/APIHeader-class.html">APIHeader</a></li>
+      <li><a href="aqueduct/APIInfo-class.html">APIInfo</a></li>
+      <li><a href="aqueduct/APILicense-class.html">APILicense</a></li>
+      <li><a href="aqueduct/APIMediaType-class.html">APIMediaType</a></li>
+      <li><a href="aqueduct/APIObject-class.html">APIObject</a></li>
+      <li><a href="aqueduct/APIOperation-class.html">APIOperation</a></li>
+      <li><a href="aqueduct/APIOperationDocumenter-class.html">APIOperationDocumenter</a></li>
+      <li><a href="aqueduct/APIParameter-class.html">APIParameter</a></li>
+      <li><a href="aqueduct/APIParameterLocationCodec-class.html">APIParameterLocationCodec</a></li>
+      <li><a href="aqueduct/APIPath-class.html">APIPath</a></li>
+      <li><a href="aqueduct/APIRequestBody-class.html">APIRequestBody</a></li>
+      <li><a href="aqueduct/APIResponse-class.html">APIResponse</a></li>
+      <li><a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a></li>
+      <li><a href="aqueduct/APISecurityRequirement-class.html">APISecurityRequirement</a></li>
+      <li><a href="aqueduct/APISecurityScheme-class.html">APISecurityScheme</a></li>
+      <li><a href="aqueduct/APISecuritySchemeOAuth2Flow-class.html">APISecuritySchemeOAuth2Flow</a></li>
+      <li><a href="aqueduct/APISecuritySchemeTypeCodec-class.html">APISecuritySchemeTypeCodec</a></li>
+      <li><a href="aqueduct/APIServerDescription-class.html">APIServerDescription</a></li>
+      <li><a href="aqueduct/APIServerVariable-class.html">APIServerVariable</a></li>
+      <li><a href="aqueduct/APITag-class.html">APITag</a></li>
+      <li><a href="aqueduct/APITypeCodec-class.html">APITypeCodec</a></li>
+      <li><a href="aqueduct/Application-class.html">Application</a></li>
+      <li><a href="aqueduct/ApplicationChannel-class.html">ApplicationChannel</a></li>
+      <li><a href="aqueduct/ApplicationMessageHub-class.html">ApplicationMessageHub</a></li>
+      <li><a href="aqueduct/ApplicationOptions-class.html">ApplicationOptions</a></li>
+      <li><a href="aqueduct/ApplicationServer-class.html">ApplicationServer</a></li>
+      <li><a href="aqueduct/ApplicationServiceRegistry-class.html">ApplicationServiceRegistry</a></li>
+      <li><a href="aqueduct/AuthBasicCredentials-class.html">AuthBasicCredentials</a></li>
+      <li><a href="aqueduct/AuthClient-class.html">AuthClient</a></li>
+      <li><a href="aqueduct/AuthCode-class.html">AuthCode</a></li>
+      <li><a href="aqueduct/AuthCodeController-class.html">AuthCodeController</a></li>
+      <li><a href="aqueduct/AuthCodeControllerDelegate-class.html">AuthCodeControllerDelegate</a></li>
+      <li><a href="aqueduct/AuthController-class.html">AuthController</a></li>
+      <li><a href="aqueduct/Authenticatable-class.html">Authenticatable</a></li>
+      <li><a href="aqueduct/Authorization-class.html">Authorization</a></li>
+      <li><a href="aqueduct/AuthorizationBasicParser-class.html">AuthorizationBasicParser</a></li>
+      <li><a href="aqueduct/AuthorizationBearerParser-class.html">AuthorizationBearerParser</a></li>
+      <li><a href="aqueduct/AuthorizationParser-class.html">AuthorizationParser</a></li>
+      <li><a href="aqueduct/Authorizer-class.html">Authorizer</a></li>
+      <li><a href="aqueduct/AuthScope-class.html">AuthScope</a></li>
+      <li><a href="aqueduct/AuthServer-class.html">AuthServer</a></li>
+      <li><a href="aqueduct/AuthServerDelegate-class.html">AuthServerDelegate</a></li>
+      <li><a href="aqueduct/AuthToken-class.html">AuthToken</a></li>
+      <li><a href="aqueduct/AuthUtility-class.html">AuthUtility</a></li>
+      <li><a href="aqueduct/AuthValidator-class.html">AuthValidator</a></li>
+      <li><a href="aqueduct/Bind-class.html">Bind</a></li>
+      <li><a href="aqueduct/BodyDecoder-class.html">BodyDecoder</a></li>
+      <li><a href="aqueduct/Column-class.html">Column</a></li>
+      <li><a href="aqueduct/ConfigurationException-class.html">ConfigurationException</a></li>
+      <li><a href="aqueduct/ConfigurationItem-class.html">ConfigurationItem</a></li>
+      <li><a href="aqueduct/ConfigurationItemAttribute-class.html">ConfigurationItemAttribute</a></li>
+      <li><a href="aqueduct/Controller-class.html">Controller</a></li>
+      <li><a href="aqueduct/CORSPolicy-class.html">CORSPolicy</a></li>
+      <li><a href="aqueduct/DatabaseConnectionConfiguration-class.html">DatabaseConnectionConfiguration</a></li>
+      <li><a href="aqueduct/Document-class.html">Document</a></li>
+      <li><a href="aqueduct/HTTPCachePolicy-class.html">HTTPCachePolicy</a></li>
+      <li><a href="aqueduct/HTTPCodecRepository-class.html">HTTPCodecRepository</a></li>
+      <li><a href="aqueduct/HTTPFileController-class.html">HTTPFileController</a></li>
+      <li><a href="aqueduct/HTTPRequiredParameter-class.html">HTTPRequiredParameter</a></li>
+      <li><a href="aqueduct/HTTPSerializable-class.html">HTTPSerializable</a></li>
+      <li><a href="aqueduct/Level-class.html">Level</a></li>
+      <li><a href="aqueduct/Logger-class.html">Logger</a></li>
+      <li><a href="aqueduct/LogRecord-class.html">LogRecord</a></li>
+      <li><a href="aqueduct/ManagedAttributeDescription-class.html">ManagedAttributeDescription</a></li>
+      <li><a href="aqueduct/ManagedBacking-class.html">ManagedBacking</a></li>
+      <li><a href="aqueduct/ManagedContext-class.html">ManagedContext</a></li>
+      <li><a href="aqueduct/ManagedDataModel-class.html">ManagedDataModel</a></li>
+      <li><a href="aqueduct/ManagedEntity-class.html">ManagedEntity</a></li>
+      <li><a href="aqueduct/ManagedObject-class.html">ManagedObject</a></li>
+      <li><a href="aqueduct/ManagedObjectController-class.html">ManagedObjectController</a></li>
+      <li><a href="aqueduct/ManagedPropertyDescription-class.html">ManagedPropertyDescription</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription-class.html">ManagedRelationshipDescription</a></li>
+      <li><a href="aqueduct/ManagedSet-class.html">ManagedSet</a></li>
+      <li><a href="aqueduct/ManagedType-class.html">ManagedType</a></li>
+      <li><a href="aqueduct/ManagedValidator-class.html">ManagedValidator</a></li>
+      <li><a href="aqueduct/Migration-class.html">Migration</a></li>
+      <li><a href="aqueduct/MigrationBuilder-class.html">MigrationBuilder</a></li>
+      <li><a href="aqueduct/Operation-class.html">Operation</a></li>
+      <li><a href="aqueduct/PersistentStore-class.html">PersistentStore</a></li>
+      <li><a href="aqueduct/PostgreSQLErrorCode-class.html">PostgreSQLErrorCode</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore-class.html">PostgreSQLPersistentStore</a></li>
+      <li><a href="aqueduct/Query-class.html">Query</a></li>
+      <li><a href="aqueduct/QueryController-class.html">QueryController</a></li>
+      <li><a href="aqueduct/QueryExpression-class.html">QueryExpression</a></li>
+      <li><a href="aqueduct/QueryExpressionJunction-class.html">QueryExpressionJunction</a></li>
+      <li><a href="aqueduct/QueryPredicate-class.html">QueryPredicate</a></li>
+      <li><a href="aqueduct/QueryReduceOperation-class.html">QueryReduceOperation</a></li>
+      <li><a href="aqueduct/Relate-class.html">Relate</a></li>
+      <li><a href="aqueduct/Request-class.html">Request</a></li>
+      <li><a href="aqueduct/RequestBody-class.html">RequestBody</a></li>
+      <li><a href="aqueduct/RequestOrResponse-class.html">RequestOrResponse</a></li>
+      <li><a href="aqueduct/RequestPath-class.html">RequestPath</a></li>
+      <li><a href="aqueduct/ResourceController-class.html">ResourceController</a></li>
+      <li><a href="aqueduct/Response-class.html">Response</a></li>
+      <li><a href="aqueduct/Router-class.html">Router</a></li>
+      <li><a href="aqueduct/Schema-class.html">Schema</a></li>
+      <li><a href="aqueduct/SchemaBuilder-class.html">SchemaBuilder</a></li>
+      <li><a href="aqueduct/SchemaColumn-class.html">SchemaColumn</a></li>
+      <li><a href="aqueduct/SchemaColumnDifference-class.html">SchemaColumnDifference</a></li>
+      <li><a href="aqueduct/SchemaDifference-class.html">SchemaDifference</a></li>
+      <li><a href="aqueduct/SchemaTable-class.html">SchemaTable</a></li>
+      <li><a href="aqueduct/SchemaTableDifference-class.html">SchemaTableDifference</a></li>
+      <li><a href="aqueduct/SchemaTableUniqueSetDifference-class.html">SchemaTableUniqueSetDifference</a></li>
+      <li><a href="aqueduct/Scope-class.html">Scope</a></li>
+      <li><a href="aqueduct/Serialize-class.html">Serialize</a></li>
+      <li><a href="aqueduct/Table-class.html">Table</a></li>
+      <li><a href="aqueduct/Validate-class.html">Validate</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#constants">Constants</a></li>
+      <li><a href="aqueduct/optionalConfiguration-constant.html">optionalConfiguration</a></li>
+      <li><a href="aqueduct/primaryKey-constant.html">primaryKey</a></li>
+      <li><a href="aqueduct/requiredConfiguration-constant.html">requiredConfiguration</a></li>
+      <li><a href="aqueduct/requiredHTTPParameter-constant.html">requiredHTTPParameter</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#properties">Properties</a></li>
+      <li><a href="aqueduct/hierarchicalLoggingEnabled.html">hierarchicalLoggingEnabled</a></li>
+      <li><a href="aqueduct/recordStackTraceAtLevel.html">recordStackTraceAtLevel</a></li>
+    
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#enums">Enums</a></li>
+      <li><a href="aqueduct/APIParameterLocation-class.html">APIParameterLocation</a></li>
+      <li><a href="aqueduct/APISecuritySchemeType-class.html">APISecuritySchemeType</a></li>
+      <li><a href="aqueduct/APIType-class.html">APIType</a></li>
+      <li><a href="aqueduct/AuthorizationParserExceptionReason-class.html">AuthorizationParserExceptionReason</a></li>
+      <li><a href="aqueduct/AuthRequestError-class.html">AuthRequestError</a></li>
+      <li><a href="aqueduct/ConfigurationItemAttributeType-class.html">ConfigurationItemAttributeType</a></li>
+      <li><a href="aqueduct/DeleteRule-class.html">DeleteRule</a></li>
+      <li><a href="aqueduct/ManagedPropertyType-class.html">ManagedPropertyType</a></li>
+      <li><a href="aqueduct/PersistentStoreQueryReturnType-class.html">PersistentStoreQueryReturnType</a></li>
+      <li><a href="aqueduct/QueryExceptionEvent-class.html">QueryExceptionEvent</a></li>
+      <li><a href="aqueduct/QuerySortOrder-class.html">QuerySortOrder</a></li>
+      <li><a href="aqueduct/ValidateOperation-class.html">ValidateOperation</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#typedefs">Typedefs</a></li>
+      <li><a href="aqueduct/LoggerHandler.html">LoggerHandler</a></li>
+      <li><a href="aqueduct/PostgreSQLConnectionFunction.html">PostgreSQLConnectionFunction</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#exceptions">Exceptions</a></li>
+      <li><a href="aqueduct/APIException-class.html">APIException</a></li>
+      <li><a href="aqueduct/ApplicationStartupException-class.html">ApplicationStartupException</a></li>
+      <li><a href="aqueduct/AuthorizationParserException-class.html">AuthorizationParserException</a></li>
+      <li><a href="aqueduct/AuthServerException-class.html">AuthServerException</a></li>
+      <li><a href="aqueduct/AuthUtilityException-class.html">AuthUtilityException</a></li>
+      <li><a href="aqueduct/ControllerException-class.html">ControllerException</a></li>
+      <li><a href="aqueduct/HandlerException-class.html">HandlerException</a></li>
+      <li><a href="aqueduct/HTTPStreamingException-class.html">HTTPStreamingException</a></li>
+      <li><a href="aqueduct/ManagedDataModelError-class.html">ManagedDataModelError</a></li>
+      <li><a href="aqueduct/MigrationException-class.html">MigrationException</a></li>
+      <li><a href="aqueduct/QueryException-class.html">QueryException</a></li>
+      <li><a href="aqueduct/SchemaException-class.html">SchemaException</a></li>
+      <li><a href="aqueduct/ValidationException-class.html">ValidationException</a></li>
+    </ol>
+  </div>
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>APISchemaObject class</h1>
+
+    <section class="desc markdown">
+      <p>Represents a schema object in the OpenAPI specification.</p>
+    </section>
+    
+    <section>
+      <dl class="dl-horizontal">
+        <dt>Inheritance</dt>
+        <dd><ul class="gt-separated dark clazz-relationships">
+          <li>Object</li>
+          <li><a href="aqueduct/APIObject-class.html">APIObject</a></li>
+          <li>APISchemaObject</li>
+        </ul></dd>
+
+
+
+
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="constructors">
+      <h2>Constructors</h2>
+
+      <dl class="constructor-summary-list">
+        <dt id="APISchemaObject" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/APISchemaObject.html">APISchemaObject</a></span><span class="signature">()</span>
+        </dt>
+        <dd>
+          
+        </dd>
+        <dt id="APISchemaObject.array" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/APISchemaObject.array.html">APISchemaObject.array</a></span><span class="signature">({<span class="parameter" id="array-param-ofType"><span class="type-annotation"><a href="aqueduct/APIType-class.html">APIType</a></span> <span class="parameter-name">ofType</span>, </span> <span class="parameter" id="array-param-ofSchema"><span class="type-annotation"><a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a></span> <span class="parameter-name">ofSchema</span></span> })</span>
+        </dt>
+        <dd>
+          
+        </dd>
+        <dt id="APISchemaObject.boolean" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/APISchemaObject.boolean.html">APISchemaObject.boolean</a></span><span class="signature">()</span>
+        </dt>
+        <dd>
+          
+        </dd>
+        <dt id="APISchemaObject.empty" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/APISchemaObject.empty.html">APISchemaObject.empty</a></span><span class="signature">()</span>
+        </dt>
+        <dd>
+          
+        </dd>
+        <dt id="APISchemaObject.file" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/APISchemaObject.file.html">APISchemaObject.file</a></span><span class="signature">({<span class="parameter" id="file-param-isBase64Encoded"><span class="type-annotation">bool</span> <span class="parameter-name">isBase64Encoded</span>: <span class="default-value">false</span></span> })</span>
+        </dt>
+        <dd>
+          
+        </dd>
+        <dt id="APISchemaObject.freeForm" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/APISchemaObject.freeForm.html">APISchemaObject.freeForm</a></span><span class="signature">()</span>
+        </dt>
+        <dd>
+          
+        </dd>
+        <dt id="APISchemaObject.integer" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/APISchemaObject.integer.html">APISchemaObject.integer</a></span><span class="signature">()</span>
+        </dt>
+        <dd>
+          
+        </dd>
+        <dt id="APISchemaObject.map" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/APISchemaObject.map.html">APISchemaObject.map</a></span><span class="signature">({<span class="parameter" id="map-param-ofType"><span class="type-annotation"><a href="aqueduct/APIType-class.html">APIType</a></span> <span class="parameter-name">ofType</span>, </span> <span class="parameter" id="map-param-ofSchema"><span class="type-annotation"><a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a></span> <span class="parameter-name">ofSchema</span>, </span> <span class="parameter" id="map-param-any"><span class="type-annotation">bool</span> <span class="parameter-name">any</span>: <span class="default-value">false</span></span> })</span>
+        </dt>
+        <dd>
+          
+        </dd>
+        <dt id="APISchemaObject.number" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/APISchemaObject.number.html">APISchemaObject.number</a></span><span class="signature">()</span>
+        </dt>
+        <dd>
+          
+        </dd>
+        <dt id="APISchemaObject.object" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/APISchemaObject.object.html">APISchemaObject.object</a></span><span class="signature">(<span class="parameter" id="object-param-properties"><span class="type-annotation">Map<span class="signature">&lt;String, <a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a>&gt;</span></span> <span class="parameter-name">properties</span></span>)</span>
+        </dt>
+        <dd>
+          
+        </dd>
+        <dt id="APISchemaObject.string" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/APISchemaObject.string.html">APISchemaObject.string</a></span><span class="signature">({<span class="parameter" id="string-param-format"><span class="type-annotation">String</span> <span class="parameter-name">format</span></span> })</span>
+        </dt>
+        <dd>
+          
+        </dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="instance-properties">
+      <h2>Properties</h2>
+
+      <dl class="properties">
+        <dt id="additionalProperties" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/additionalProperties.html">additionalProperties</a></span>
+          <span class="signature">&#8596; <a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a></span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="allOf" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/allOf.html">allOf</a></span>
+          <span class="signature">&#8596; List<span class="signature">&lt;<a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a>&gt;</span></span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="anyOf" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/anyOf.html">anyOf</a></span>
+          <span class="signature">&#8596; List<span class="signature">&lt;<a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a>&gt;</span></span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="defaultValue" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/defaultValue.html">defaultValue</a></span>
+          <span class="signature">&#8596; dynamic</span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="description" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/description.html">description</a></span>
+          <span class="signature">&#8596; String</span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="enumerated" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/enumerated.html">enumerated</a></span>
+          <span class="signature">&#8596; List</span>
+        </dt>
+        <dd>
+          The value of this keyword MUST be an array.  This array SHOULD have
+at least one element.  Elements in the array SHOULD be unique. <a href="aqueduct/APISchemaObject/enumerated.html">[...]</a>
+          <div class="features">read / write</div>
+</dd>
+        <dt id="exclusiveMaximum" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/exclusiveMaximum.html">exclusiveMaximum</a></span>
+          <span class="signature">&#8596; bool</span>
+        </dt>
+        <dd>
+          The value of "exclusiveMaximum" MUST be a boolean, representing
+ whether the limit in "maximum" is exclusive or not. <a href="aqueduct/APISchemaObject/exclusiveMaximum.html">[...]</a>
+          <div class="features">read / write</div>
+</dd>
+        <dt id="exclusiveMinimum" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/exclusiveMinimum.html">exclusiveMinimum</a></span>
+          <span class="signature">&#8596; bool</span>
+        </dt>
+        <dd>
+          The value of "exclusiveMinimum" MUST be a boolean, representing
+whether the limit in "minimum" is exclusive or not.  An undefined
+value is the same as false.
+If "exclusiveMinimum" is true, then a numeric instance SHOULD NOT be
+equal to the value specified in "minimum".  If "exclusiveMinimum" is
+false (or not specified), then a numeric instance MAY be equal to the
+value of "minimum".
+          <div class="features">read / write</div>
+</dd>
+        <dt id="format" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/format.html">format</a></span>
+          <span class="signature">&#8596; String</span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="isDeprecated" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/isDeprecated.html">isDeprecated</a></span>
+          <span class="signature">&#8596; bool</span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="isFreeForm" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/isFreeForm.html">isFreeForm</a></span>
+          <span class="signature">&#8596; bool</span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="isNullable" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/isNullable.html">isNullable</a></span>
+          <span class="signature">&#8596; bool</span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="isReadOnly" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/isReadOnly.html">isReadOnly</a></span>
+          <span class="signature">&#8596; bool</span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="isWriteOnly" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/isWriteOnly.html">isWriteOnly</a></span>
+          <span class="signature">&#8596; bool</span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="items" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/items.html">items</a></span>
+          <span class="signature">&#8596; <a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a></span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="maximum" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/maximum.html">maximum</a></span>
+          <span class="signature">&#8596; num</span>
+        </dt>
+        <dd>
+          The value of "maximum" MUST be a number, representing an upper limit
+for a numeric instance. <a href="aqueduct/APISchemaObject/maximum.html">[...]</a>
+          <div class="features">read / write</div>
+</dd>
+        <dt id="maxItems" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/maxItems.html">maxItems</a></span>
+          <span class="signature">&#8596; int</span>
+        </dt>
+        <dd>
+          The value of this keyword MUST be an integer.  This integer MUST be
+greater than, or equal to, 0. <a href="aqueduct/APISchemaObject/maxItems.html">[...]</a>
+          <div class="features">read / write</div>
+</dd>
+        <dt id="maxLength" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/maxLength.html">maxLength</a></span>
+          <span class="signature">&#8596; int</span>
+        </dt>
+        <dd>
+          The value of this keyword MUST be a non-negative integer. <a href="aqueduct/APISchemaObject/maxLength.html">[...]</a>
+          <div class="features">read / write</div>
+</dd>
+        <dt id="maxProperties" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/maxProperties.html">maxProperties</a></span>
+          <span class="signature">&#8596; int</span>
+        </dt>
+        <dd>
+          The value of this keyword MUST be an integer.  This integer MUST be
+greater than, or equal to, 0. <a href="aqueduct/APISchemaObject/maxProperties.html">[...]</a>
+          <div class="features">read / write</div>
+</dd>
+        <dt id="minimum" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/minimum.html">minimum</a></span>
+          <span class="signature">&#8596; num</span>
+        </dt>
+        <dd>
+          The value of "minimum" MUST be a number, representing a lower limit
+for a numeric instance.
+If the instance is a number, then this keyword validates if
+"exclusiveMinimum" is true and instance is greater than the provided
+value, or else if the instance is greater than or exactly equal to
+the provided value.
+          <div class="features">read / write</div>
+</dd>
+        <dt id="minItems" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/minItems.html">minItems</a></span>
+          <span class="signature">&#8596; int</span>
+        </dt>
+        <dd>
+          The value of this keyword MUST be an integer.  This integer MUST be
+greater than, or equal to, 0. <a href="aqueduct/APISchemaObject/minItems.html">[...]</a>
+          <div class="features">read / write</div>
+</dd>
+        <dt id="minLength" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/minLength.html">minLength</a></span>
+          <span class="signature">&#8596; int</span>
+        </dt>
+        <dd>
+          A string instance is valid against this keyword if its length is
+greater than, or equal to, the value of this keyword. <a href="aqueduct/APISchemaObject/minLength.html">[...]</a>
+          <div class="features">read / write</div>
+</dd>
+        <dt id="minProperties" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/minProperties.html">minProperties</a></span>
+          <span class="signature">&#8596; int</span>
+        </dt>
+        <dd>
+          The value of this keyword MUST be an integer.  This integer MUST be
+greater than, or equal to, 0. <a href="aqueduct/APISchemaObject/minProperties.html">[...]</a>
+          <div class="features">read / write</div>
+</dd>
+        <dt id="multipleOf" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/multipleOf.html">multipleOf</a></span>
+          <span class="signature">&#8596; num</span>
+        </dt>
+        <dd>
+          The value of "multipleOf" MUST be a number, strictly greater than 0.
+A numeric instance is only valid if division by this keyword's value
+results in an integer.
+          <div class="features">read / write</div>
+</dd>
+        <dt id="not" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/not.html">not</a></span>
+          <span class="signature">&#8596; <a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a></span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="oneOf" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/oneOf.html">oneOf</a></span>
+          <span class="signature">&#8596; List<span class="signature">&lt;<a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a>&gt;</span></span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="pattern" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/pattern.html">pattern</a></span>
+          <span class="signature">&#8596; String</span>
+        </dt>
+        <dd>
+          The value of this keyword MUST be a string.  This string SHOULD be a
+valid regular expression, according to the ECMA 262 regular
+expression dialect. <a href="aqueduct/APISchemaObject/pattern.html">[...]</a>
+          <div class="features">read / write</div>
+</dd>
+        <dt id="properties" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/properties.html">properties</a></span>
+          <span class="signature">&#8596; Map<span class="signature">&lt;String, <a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a>&gt;</span></span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="required" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/required.html">required</a></span>
+          <span class="signature">&#8596; List<span class="signature">&lt;String&gt;</span></span>
+        </dt>
+        <dd>
+          The value of this keyword MUST be an array.  This array MUST have at
+least one element.  Elements of this array MUST be strings, and MUST
+be unique. <a href="aqueduct/APISchemaObject/required.html">[...]</a>
+          <div class="features">read / write</div>
+</dd>
+        <dt id="title" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/title.html">title</a></span>
+          <span class="signature">&#8596; String</span>
+        </dt>
+        <dd>
+          A title for the object.
+          <div class="features">read / write</div>
+</dd>
+        <dt id="type" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/type.html">type</a></span>
+          <span class="signature">&#8596; <a href="aqueduct/APIType-class.html">APIType</a></span>
+        </dt>
+        <dd>
+          
+          <div class="features">read / write</div>
+</dd>
+        <dt id="uniqueItems" class="property">
+          <span class="name"><a href="aqueduct/APISchemaObject/uniqueItems.html">uniqueItems</a></span>
+          <span class="signature">&#8596; bool</span>
+        </dt>
+        <dd>
+          The value of this keyword MUST be a boolean. <a href="aqueduct/APISchemaObject/uniqueItems.html">[...]</a>
+          <div class="features">read / write</div>
+</dd>
+        <dt id="extensions" class="property inherited">
+          <span class="name"><a href="aqueduct/APIObject/extensions.html">extensions</a></span>
+          <span class="signature">&#8596; Map<span class="signature">&lt;String, dynamic&gt;</span></span>
+        </dt>
+        <dd class="inherited">
+          
+          <div class="features">read / write, inherited</div>
+</dd>
+        <dt id="hashCode" class="property inherited">
+          <span class="name"><a href="aqueduct/APIObject/hashCode.html">hashCode</a></span>
+          <span class="signature">&#8594; int</span>
+        </dt>
+        <dd class="inherited">
+          The hash code for this object. <a href="aqueduct/APIObject/hashCode.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="referenceURI" class="property inherited">
+          <span class="name"><a href="aqueduct/APIObject/referenceURI.html">referenceURI</a></span>
+          <span class="signature">&#8596; String</span>
+        </dt>
+        <dd class="inherited">
+          
+          <div class="features">read / write, inherited</div>
+</dd>
+        <dt id="runtimeType" class="property inherited">
+          <span class="name"><a href="aqueduct/APIObject/runtimeType.html">runtimeType</a></span>
+          <span class="signature">&#8594; Type</span>
+        </dt>
+        <dd class="inherited">
+          A representation of the runtime type of the object.
+          <div class="features">read-only, inherited</div>
+</dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="instance-methods">
+      <h2>Methods</h2>
+      <dl class="callables">
+        <dt id="decode" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/decode.html">decode</a></span><span class="signature">(<wbr><span class="parameter" id="decode-param-object"><span class="type-annotation">JSONObject</span> <span class="parameter-name">object</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          
+          
+</dd>
+        <dt id="encode" class="callable">
+          <span class="name"><a href="aqueduct/APISchemaObject/encode.html">encode</a></span><span class="signature">(<wbr><span class="parameter" id="encode-param-object"><span class="type-annotation">JSONObject</span> <span class="parameter-name">object</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          
+          
+</dd>
+        <dt id="noSuchMethod" class="callable inherited">
+          <span class="name"><a href="aqueduct/APIObject/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation">Invocation</span> <span class="parameter-name">invocation</span></span>)
+            <span class="returntype parameter">&#8594; dynamic</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Invoked when a non-existent method or property is accessed. <a href="aqueduct/APIObject/noSuchMethod.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="toString" class="callable inherited">
+          <span class="name"><a href="aqueduct/APIObject/toString.html">toString</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; String</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a string representation of this object.
+          <div class="features">inherited</div>
+</dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor inherited" id="operators">
+      <h2>Operators</h2>
+      <dl class="callables">
+        <dt id="operator ==" class="callable inherited">
+          <span class="name"><a href="aqueduct/APIObject/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="parameter-name">other</span></span>)
+            <span class="returntype parameter">&#8594; bool</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          The equality operator. <a href="aqueduct/APIObject/operator_equals.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+      </dl>
+    </section>
+
+
+
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+    <ol>
+      <li class="section-title"><a href="aqueduct/APISchemaObject-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/APISchemaObject/APISchemaObject.html">APISchemaObject</a></li>
+      <li><a href="aqueduct/APISchemaObject/APISchemaObject.array.html">array</a></li>
+      <li><a href="aqueduct/APISchemaObject/APISchemaObject.boolean.html">boolean</a></li>
+      <li><a href="aqueduct/APISchemaObject/APISchemaObject.empty.html">empty</a></li>
+      <li><a href="aqueduct/APISchemaObject/APISchemaObject.file.html">file</a></li>
+      <li><a href="aqueduct/APISchemaObject/APISchemaObject.freeForm.html">freeForm</a></li>
+      <li><a href="aqueduct/APISchemaObject/APISchemaObject.integer.html">integer</a></li>
+      <li><a href="aqueduct/APISchemaObject/APISchemaObject.map.html">map</a></li>
+      <li><a href="aqueduct/APISchemaObject/APISchemaObject.number.html">number</a></li>
+      <li><a href="aqueduct/APISchemaObject/APISchemaObject.object.html">object</a></li>
+      <li><a href="aqueduct/APISchemaObject/APISchemaObject.string.html">string</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/APISchemaObject-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/APISchemaObject/additionalProperties.html">additionalProperties</a></li>
+      <li><a href="aqueduct/APISchemaObject/allOf.html">allOf</a></li>
+      <li><a href="aqueduct/APISchemaObject/anyOf.html">anyOf</a></li>
+      <li><a href="aqueduct/APISchemaObject/defaultValue.html">defaultValue</a></li>
+      <li><a href="aqueduct/APISchemaObject/description.html">description</a></li>
+      <li><a href="aqueduct/APISchemaObject/enumerated.html">enumerated</a></li>
+      <li><a href="aqueduct/APISchemaObject/exclusiveMaximum.html">exclusiveMaximum</a></li>
+      <li><a href="aqueduct/APISchemaObject/exclusiveMinimum.html">exclusiveMinimum</a></li>
+      <li><a href="aqueduct/APISchemaObject/format.html">format</a></li>
+      <li><a href="aqueduct/APISchemaObject/isDeprecated.html">isDeprecated</a></li>
+      <li><a href="aqueduct/APISchemaObject/isFreeForm.html">isFreeForm</a></li>
+      <li><a href="aqueduct/APISchemaObject/isNullable.html">isNullable</a></li>
+      <li><a href="aqueduct/APISchemaObject/isReadOnly.html">isReadOnly</a></li>
+      <li><a href="aqueduct/APISchemaObject/isWriteOnly.html">isWriteOnly</a></li>
+      <li><a href="aqueduct/APISchemaObject/items.html">items</a></li>
+      <li><a href="aqueduct/APISchemaObject/maximum.html">maximum</a></li>
+      <li><a href="aqueduct/APISchemaObject/maxItems.html">maxItems</a></li>
+      <li><a href="aqueduct/APISchemaObject/maxLength.html">maxLength</a></li>
+      <li><a href="aqueduct/APISchemaObject/maxProperties.html">maxProperties</a></li>
+      <li><a href="aqueduct/APISchemaObject/minimum.html">minimum</a></li>
+      <li><a href="aqueduct/APISchemaObject/minItems.html">minItems</a></li>
+      <li><a href="aqueduct/APISchemaObject/minLength.html">minLength</a></li>
+      <li><a href="aqueduct/APISchemaObject/minProperties.html">minProperties</a></li>
+      <li><a href="aqueduct/APISchemaObject/multipleOf.html">multipleOf</a></li>
+      <li><a href="aqueduct/APISchemaObject/not.html">not</a></li>
+      <li><a href="aqueduct/APISchemaObject/oneOf.html">oneOf</a></li>
+      <li><a href="aqueduct/APISchemaObject/pattern.html">pattern</a></li>
+      <li><a href="aqueduct/APISchemaObject/properties.html">properties</a></li>
+      <li><a href="aqueduct/APISchemaObject/required.html">required</a></li>
+      <li><a href="aqueduct/APISchemaObject/title.html">title</a></li>
+      <li><a href="aqueduct/APISchemaObject/type.html">type</a></li>
+      <li><a href="aqueduct/APISchemaObject/uniqueItems.html">uniqueItems</a></li>
+      <li class="inherited"><a href="aqueduct/APIObject/extensions.html">extensions</a></li>
+      <li class="inherited"><a href="aqueduct/APIObject/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/APIObject/referenceURI.html">referenceURI</a></li>
+      <li class="inherited"><a href="aqueduct/APIObject/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/APISchemaObject-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/APISchemaObject/decode.html">decode</a></li>
+      <li><a href="aqueduct/APISchemaObject/encode.html">encode</a></li>
+      <li class="inherited"><a href="aqueduct/APIObject/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/APIObject/toString.html">toString</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/APISchemaObject-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/APIObject/operator_equals.html">operator ==</a></li>
+    
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

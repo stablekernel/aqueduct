@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the asMap method from the BodyDecoder class, for the Dart programming language.">
+  <title>asMap method - BodyDecoder class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/BodyDecoder-class.html">BodyDecoder</a></li>
+    <li class="self-crumb">asMap method</li>
+  </ol>
+  <div class="self-name">asMap</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>BodyDecoder class</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/BodyDecoder-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/BodyDecoder/BodyDecoder.html">BodyDecoder</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/BodyDecoder-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/BodyDecoder/bytes.html">bytes</a></li>
+      <li><a href="aqueduct/BodyDecoder/contentType.html">contentType</a></li>
+      <li><a href="aqueduct/BodyDecoder/decodedData.html">decodedData</a></li>
+      <li><a href="aqueduct/BodyDecoder/decodedType.html">decodedType</a></li>
+      <li><a href="aqueduct/BodyDecoder/hasBeenDecoded.html">hasBeenDecoded</a></li>
+      <li><a href="aqueduct/BodyDecoder/isEmpty.html">isEmpty</a></li>
+      <li><a href="aqueduct/BodyDecoder/retainOriginalBytes.html">retainOriginalBytes</a></li>
+      <li class="inherited"><a href="aqueduct/BodyDecoder/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/BodyDecoder/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/BodyDecoder-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/BodyDecoder/asBytes.html">asBytes</a></li>
+      <li><a href="aqueduct/BodyDecoder/asList.html">asList</a></li>
+      <li><a href="aqueduct/BodyDecoder/asMap.html">asMap</a></li>
+      <li><a href="aqueduct/BodyDecoder/asString.html">asString</a></li>
+      <li><a href="aqueduct/BodyDecoder/decodeAsBytes.html">decodeAsBytes</a></li>
+      <li><a href="aqueduct/BodyDecoder/decodeAsList.html">decodeAsList</a></li>
+      <li><a href="aqueduct/BodyDecoder/decodeAsMap.html">decodeAsMap</a></li>
+      <li><a href="aqueduct/BodyDecoder/decodeAsString.html">decodeAsString</a></li>
+      <li class="inherited"><a href="aqueduct/BodyDecoder/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/BodyDecoder/toString.html">toString</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/BodyDecoder-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/BodyDecoder/operator_equals.html">operator ==</a></li>
+    
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>asMap method</h1>
+
+    <section class="multi-line-signature">
+      <span class="returntype">Map<span class="signature">&lt;String, dynamic&gt;</span></span>
+      <span class="name ">asMap</span>
+(<wbr>)
+    </section>
+    <section class="desc markdown">
+      <p>Returns decoded data as <code>Map</code> if decoding has already occurred.</p>
+<p>If decoding has not yet occurred, this method throws an error.</p>
+<p>If decoding as occurred, behavior is the same as <a href="aqueduct/BodyDecoder/decodeAsMap.html">decodeAsMap</a>, but the result is not wrapped in <code>Future</code>.</p>
+    </section>
+    
+    <section class="summary source-code" id="source">
+      <h2><span>Implementation</span> </h2>
+      <pre class="language-dart"><code class="language-dart">Map&lt;String, dynamic&gt; asMap() {
+  if (!hasBeenDecoded) {
+    throw new StateError(&quot;Invalid body decoding. Body must be decoded before &#39;asMap&#39; is invoked. Use &#39;decodeAsMap&#39;.&quot;);
+  }
+
+  if (_decodedData == null) {
+    return null;
+  }
+
+  var d = _decodedData as List&lt;Map&lt;String, dynamic&gt;&gt;;
+  if (d.length != 1) {
+
+    throw new Response(422, null, {&quot;error&quot;: &quot;unexpected request entity data type&quot;});
+  }
+
+  var firstObject = d.first;
+  if (firstObject is! Map&lt;String, dynamic&gt;) {
+    throw new Response(422, null, {&quot;error&quot;: &quot;unexpected request entity data type&quot;});
+  }
+
+  return firstObject;
+}</code></pre>
+    </section>
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

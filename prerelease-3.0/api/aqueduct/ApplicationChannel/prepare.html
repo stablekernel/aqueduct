@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the prepare method from the ApplicationChannel class, for the Dart programming language.">
+  <title>prepare method - ApplicationChannel class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/ApplicationChannel-class.html">ApplicationChannel</a></li>
+    <li class="self-crumb">prepare method</li>
+  </ol>
+  <div class="self-name">prepare</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>ApplicationChannel class</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/ApplicationChannel-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/ApplicationChannel/ApplicationChannel.html">ApplicationChannel</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/ApplicationChannel-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/ApplicationChannel/entryPoint.html">entryPoint</a></li>
+      <li><a href="aqueduct/ApplicationChannel/logger.html">logger</a></li>
+      <li><a href="aqueduct/ApplicationChannel/messageHub.html">messageHub</a></li>
+      <li><a href="aqueduct/ApplicationChannel/options.html">options</a></li>
+      <li><a href="aqueduct/ApplicationChannel/securityContext.html">securityContext</a></li>
+      <li><a href="aqueduct/ApplicationChannel/server.html">server</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/ApplicationChannel-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/ApplicationChannel/close.html">close</a></li>
+      <li><a href="aqueduct/ApplicationChannel/documentAPI.html">documentAPI</a></li>
+      <li><a href="aqueduct/ApplicationChannel/documentComponents.html">documentComponents</a></li>
+      <li><a href="aqueduct/ApplicationChannel/prepare.html">prepare</a></li>
+      <li><a href="aqueduct/ApplicationChannel/willStartReceivingRequests.html">willStartReceivingRequests</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/toString.html">toString</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/ApplicationChannel-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/operator_equals.html">operator ==</a></li>
+    
+      <li class="section-title"><a href="aqueduct/ApplicationChannel-class.html#static-properties">Static properties</a></li>
+      <li><a href="aqueduct/ApplicationChannel/defaultType.html">defaultType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/ApplicationChannel-class.html#static-methods">Static methods</a></li>
+      <li><a href="aqueduct/ApplicationChannel/initializeApplication.html">initializeApplication</a></li>
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>prepare method</h1>
+
+    <section class="multi-line-signature">
+      <span class="returntype">Future</span>
+      <span class="name ">prepare</span>
+(<wbr>)
+    </section>
+    <section class="desc markdown">
+      <p>You override this method to perform initialization tasks.</p>
+<p>This method allows this instance to perform any initialization (other than setting up the <a href="aqueduct/ApplicationChannel/entryPoint.html">entryPoint</a>). This method
+is often used to set up services that <a href="aqueduct/Controller-class.html">Controller</a>s use to fulfill their duties. This method is invoked
+prior to <a href="aqueduct/ApplicationChannel/entryPoint.html">entryPoint</a>, so that the services it creates can be injected into <a href="aqueduct/Controller-class.html">Controller</a>s.</p>
+<p>By default, this method does nothing.</p>
+    </section>
+    
+    <section class="summary source-code" id="source">
+      <h2><span>Implementation</span> </h2>
+      <pre class="language-dart"><code class="language-dart">Future prepare() async {}</code></pre>
+    </section>
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

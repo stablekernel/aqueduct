@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the Validate.compare constructor from the Class Validate class from the aqueduct library, for the Dart programming language.">
+  <title>Validate.compare constructor - Validate class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/Validate-class.html">Validate<span class="signature">&lt;T&gt;</span></a></li>
+    <li class="self-crumb">Validate.compare const constructor</li>
+  </ol>
+  <div class="self-name">Validate.compare</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>Validate class</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/Validate-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/Validate/Validate.html">Validate</a></li>
+      <li><a href="aqueduct/Validate/Validate.absent.html">absent</a></li>
+      <li><a href="aqueduct/Validate/Validate.compare.html">compare</a></li>
+      <li><a href="aqueduct/Validate/Validate.length.html">length</a></li>
+      <li><a href="aqueduct/Validate/Validate.matches.html">matches</a></li>
+      <li><a href="aqueduct/Validate/Validate.oneOf.html">oneOf</a></li>
+      <li><a href="aqueduct/Validate/Validate.present.html">present</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/Validate-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/Validate/runOnInsert.html">runOnInsert</a></li>
+      <li><a href="aqueduct/Validate/runOnUpdate.html">runOnUpdate</a></li>
+      <li class="inherited"><a href="aqueduct/Validate/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/Validate/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/Validate-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/Validate/constrainSchemaObject.html">constrainSchemaObject</a></li>
+      <li><a href="aqueduct/Validate/validate.html">validate</a></li>
+      <li class="inherited"><a href="aqueduct/Validate/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/Validate/toString.html">toString</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/Validate-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/Validate/operator_equals.html">operator ==</a></li>
+    
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-left-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>Validate&lt;T&gt;.compare constructor</h1>
+
+    <section class="multi-line-signature">
+      const
+      <span class="name ">Validate&lt;T&gt;.compare</span>(<wbr>{<span class="parameter" id="compare-param-lessThan"><span class="type-annotation">Comparable</span> <span class="parameter-name">lessThan</span>, </span> <span class="parameter" id="compare-param-greaterThan"><span class="type-annotation">Comparable</span> <span class="parameter-name">greaterThan</span>, </span> <span class="parameter" id="compare-param-equalTo"><span class="type-annotation">Comparable</span> <span class="parameter-name">equalTo</span>, </span> <span class="parameter" id="compare-param-greaterThanEqualTo"><span class="type-annotation">Comparable</span> <span class="parameter-name">greaterThanEqualTo</span>, </span> <span class="parameter" id="compare-param-lessThanEqualTo"><span class="type-annotation">Comparable</span> <span class="parameter-name">lessThanEqualTo</span>, </span> <span class="parameter" id="compare-param-onUpdate"><span class="type-annotation">bool</span> <span class="parameter-name">onUpdate</span>: <span class="default-value">true</span>, </span> <span class="parameter" id="compare-param-onInsert"><span class="parameter-name">onInsert</span>: <span class="default-value">true</span></span> })
+    </section>
+
+    <section class="desc markdown">
+      <p>A validator for comparing a value.</p>
+<p>Values passing through validators of this type must be <code>lessThan</code>,
+<code>greaterThan</code>, <code>lessThanEqualTo</code>, <code>equalTo</code>, or [greaterThanEqualTo
+to the value provided for each argument.</p>
+<p>Any argument not specified is not evaluated. A typical validator
+only uses one argument:</p>
+<pre class="language-dart"><code>    @Validate.compare(lessThan: 10.0)
+    double value;
+</code></pre>
+<p>All provided arguments are evaluated. Therefore, the following
+requires an input value to be between 6 and 10:</p>
+<pre class="language-dart"><code>    @Validate.compare(greaterThanEqualTo: 6, lessThanEqualTo: 10)
+    int value;
+</code></pre>
+<p>This validator can be used for <code>String</code>, <code>double</code>, <code>int</code> and <code>DateTime</code> properties.</p>
+<p>When creating a validator for <code>DateTime</code> properties, the value for an argument
+is a <code>String</code> that will be parsed by <code>DateTime.parse</code>.</p>
+<pre class="language-dart"><code>  @Validate.compare(greaterThan: "2017-02-11T00:30:00Z")
+  DateTime date;
+</code></pre>
+<p>If <code>onUpdate</code> is true (the default), this validation is run on update queries.
+If <code>onInsert</code> is true (the default), this validation is run on insert queries.</p>
+    </section>
+    
+    <section class="summary source-code" id="source">
+      <h2><span>Implementation</span> </h2>
+      <pre class="language-dart"><code class="language-dart">const Validate.compare(
+    {Comparable lessThan,
+    Comparable greaterThan,
+    Comparable equalTo,
+    Comparable greaterThanEqualTo,
+    Comparable lessThanEqualTo,
+    bool onUpdate: true,
+    onInsert: true})
+    : this._(
+          lessThan: lessThan,
+          lessThanEqualTo: lessThanEqualTo,
+          greaterThan: greaterThan,
+          greaterThanEqualTo: greaterThanEqualTo,
+          equalTo: equalTo,
+          onUpdate: onUpdate,
+          onInsert: onInsert,
+          validator: _BuiltinValidate.comparison);</code></pre>
+    </section>
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

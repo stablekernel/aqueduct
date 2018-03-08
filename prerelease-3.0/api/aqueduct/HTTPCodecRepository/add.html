@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the add method from the HTTPCodecRepository class, for the Dart programming language.">
+  <title>add method - HTTPCodecRepository class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/HTTPCodecRepository-class.html">HTTPCodecRepository</a></li>
+    <li class="self-crumb">add method</li>
+  </ol>
+  <div class="self-name">add</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>HTTPCodecRepository class</h5>
+    <ol>
+    
+      <li class="section-title inherited">
+        <a href="aqueduct/HTTPCodecRepository-class.html#instance-properties">Properties</a>
+      </li>
+      <li class="inherited"><a href="aqueduct/HTTPCodecRepository/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/HTTPCodecRepository/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/HTTPCodecRepository-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/HTTPCodecRepository/add.html">add</a></li>
+      <li><a href="aqueduct/HTTPCodecRepository/codecForContentType.html">codecForContentType</a></li>
+      <li><a href="aqueduct/HTTPCodecRepository/isContentTypeCompressable.html">isContentTypeCompressable</a></li>
+      <li><a href="aqueduct/HTTPCodecRepository/setAllowsCompression.html">setAllowsCompression</a></li>
+      <li class="inherited"><a href="aqueduct/HTTPCodecRepository/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/HTTPCodecRepository/toString.html">toString</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/HTTPCodecRepository-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/HTTPCodecRepository/operator_equals.html">operator ==</a></li>
+    
+      <li class="section-title"><a href="aqueduct/HTTPCodecRepository-class.html#static-properties">Static properties</a></li>
+      <li><a href="aqueduct/HTTPCodecRepository/defaultInstance.html">defaultInstance</a></li>
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>add method</h1>
+
+    <section class="multi-line-signature">
+      <span class="returntype">void</span>
+      <span class="name ">add</span>
+(<wbr><span class="parameter" id="add-param-contentType"><span class="type-annotation">ContentType</span> <span class="parameter-name">contentType</span>, </span> <span class="parameter" id="add-param-codec"><span class="type-annotation">Codec</span> <span class="parameter-name">codec</span>, {</span> <span class="parameter" id="add-param-allowCompression"><span class="type-annotation">bool</span> <span class="parameter-name">allowCompression</span>: <span class="default-value">true</span></span> })
+    </section>
+    <section class="desc markdown">
+      <p>Adds a custom <code>codec</code> for <code>contentType</code>.</p>
+<p>The body of a <a href="aqueduct/Response-class.html">Response</a> sent with <code>contentType</code> will be transformed by <code>codec</code>. A <a href="aqueduct/Request-class.html">Request</a> with <code>contentType</code> Content-Type
+will be decode its <a href="aqueduct/Request/body.html">Request.body</a> with <code>codec</code>.</p>
+<p><code>codec</code> must produce a <code>List&lt;int&gt;</code> (or used chunked conversion to create a <code>Stream&lt;List&lt;int&gt;&gt;</code>).</p>
+<p><code>contentType</code>'s subtype may be <code>*</code>; all Content-Type's with a matching <code>ContentType.primaryType</code> will be
+encoded or decoded by <code>codec</code>, regardless of <code>ContentType.subType</code>. For example, if <code>contentType</code> is <code>text/*</code>, then all
+<code>text/</code> (<code>text/html</code>, <code>text/plain</code>, etc.) content types are converted by <code>codec</code>.</p>
+<p>The most specific codec for a content type is chosen when converting an HTTP body. For example, if both <code>text/*</code>
+and <code>text/html</code> have been added through this method, a <a href="aqueduct/Response-class.html">Response</a> with content type <code>text/html</code> will select the codec
+associated with <code>text/html</code> and not <code>text/*</code>.</p>
+<p><code>allowCompression</code> chooses whether or not response bodies are compressed with <code>GZIP</code> when using <code>contentType</code>.
+Media types like images and audio files should avoid setting <code>allowCompression</code> because they are already compressed.</p>
+<p>A response with a content type not in this instance will be sent unchanged to the HTTP client (and therefore must be <code>List&lt;int&gt;</code></p>
+<p>The <code>ContentType.charset</code> is not evaluated when selecting the codec for a content type. However, a charset indicates the default
+used when a request's Content-Type header omits a charset. For example, in order to decode JSON data, the request body must first be decoded
+from a list of bytes into a <code>String</code>. If a request omits the charset, this first step is would not be applied and the JSON codec would attempt
+to decode a list of bytes instead of a <code>String</code> and would fail. Thus, <code>application/json</code> is added through the following:</p>
+<pre class="language-dart"><code>    HTTPCodecRepository.defaultInstance.add(
+      new ContentType("application", "json", charset: "utf-8"), const JsonCodec(), allowsCompression: true);
+</code></pre>
+<p>In the event that a request is sent without a charset, the codec will automatically apply a UTF8 decode step because of this default.</p>
+<p>Only use default charsets when the codec must first be decoded into a <code>String</code>.</p>
+    </section>
+    
+    <section class="summary source-code" id="source">
+      <h2><span>Implementation</span> </h2>
+      <pre class="language-dart"><code class="language-dart">void add(ContentType contentType, Codec codec, {bool allowCompression: true}) {
+  if (contentType.subType == &quot;*&quot;) {
+    _primaryTypeCodecs[contentType.primaryType] = codec;
+    _primaryTypeCompressionMap[contentType.primaryType] = allowCompression;
+  } else {
+    var innerCodecs = _fullySpecificedCodecs[contentType.primaryType] ?? {};
+    innerCodecs[contentType.subType] = codec;
+    _fullySpecificedCodecs[contentType.primaryType] = innerCodecs;
+
+    var innerCompress = _fullySpecifiedCompressionMap[contentType.primaryType] ?? {};
+    innerCompress[contentType.subType] = allowCompression;
+    _fullySpecifiedCompressionMap[contentType.primaryType] = innerCompress;
+  }
+
+  if (contentType.charset != null) {
+    var innerCodecs = _defaultCharsetMap[contentType.primaryType] ?? {};
+    innerCodecs[contentType.subType] = contentType.charset;
+    _defaultCharsetMap[contentType.primaryType] = innerCodecs;
+  }
+}</code></pre>
+    </section>
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

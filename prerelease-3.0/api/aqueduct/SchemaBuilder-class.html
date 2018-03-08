@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the SchemaBuilder class from the aqueduct library, for the Dart programming language.">
+  <title>SchemaBuilder class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li class="self-crumb">SchemaBuilder class</li>
+  </ol>
+  <div class="self-name">SchemaBuilder</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>aqueduct library</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#classes">Classes</a></li>
+      <li><a href="aqueduct/APICallback-class.html">APICallback</a></li>
+      <li><a href="aqueduct/APIComponentCollection-class.html">APIComponentCollection</a></li>
+      <li><a href="aqueduct/APIComponentDocumenter-class.html">APIComponentDocumenter</a></li>
+      <li><a href="aqueduct/APIComponents-class.html">APIComponents</a></li>
+      <li><a href="aqueduct/APIConfiguration-class.html">APIConfiguration</a></li>
+      <li><a href="aqueduct/APIContact-class.html">APIContact</a></li>
+      <li><a href="aqueduct/APIDocument-class.html">APIDocument</a></li>
+      <li><a href="aqueduct/APIDocumentContext-class.html">APIDocumentContext</a></li>
+      <li><a href="aqueduct/APIEncoding-class.html">APIEncoding</a></li>
+      <li><a href="aqueduct/APIHeader-class.html">APIHeader</a></li>
+      <li><a href="aqueduct/APIInfo-class.html">APIInfo</a></li>
+      <li><a href="aqueduct/APILicense-class.html">APILicense</a></li>
+      <li><a href="aqueduct/APIMediaType-class.html">APIMediaType</a></li>
+      <li><a href="aqueduct/APIObject-class.html">APIObject</a></li>
+      <li><a href="aqueduct/APIOperation-class.html">APIOperation</a></li>
+      <li><a href="aqueduct/APIOperationDocumenter-class.html">APIOperationDocumenter</a></li>
+      <li><a href="aqueduct/APIParameter-class.html">APIParameter</a></li>
+      <li><a href="aqueduct/APIParameterLocationCodec-class.html">APIParameterLocationCodec</a></li>
+      <li><a href="aqueduct/APIPath-class.html">APIPath</a></li>
+      <li><a href="aqueduct/APIRequestBody-class.html">APIRequestBody</a></li>
+      <li><a href="aqueduct/APIResponse-class.html">APIResponse</a></li>
+      <li><a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a></li>
+      <li><a href="aqueduct/APISecurityRequirement-class.html">APISecurityRequirement</a></li>
+      <li><a href="aqueduct/APISecurityScheme-class.html">APISecurityScheme</a></li>
+      <li><a href="aqueduct/APISecuritySchemeOAuth2Flow-class.html">APISecuritySchemeOAuth2Flow</a></li>
+      <li><a href="aqueduct/APISecuritySchemeTypeCodec-class.html">APISecuritySchemeTypeCodec</a></li>
+      <li><a href="aqueduct/APIServerDescription-class.html">APIServerDescription</a></li>
+      <li><a href="aqueduct/APIServerVariable-class.html">APIServerVariable</a></li>
+      <li><a href="aqueduct/APITag-class.html">APITag</a></li>
+      <li><a href="aqueduct/APITypeCodec-class.html">APITypeCodec</a></li>
+      <li><a href="aqueduct/Application-class.html">Application</a></li>
+      <li><a href="aqueduct/ApplicationChannel-class.html">ApplicationChannel</a></li>
+      <li><a href="aqueduct/ApplicationMessageHub-class.html">ApplicationMessageHub</a></li>
+      <li><a href="aqueduct/ApplicationOptions-class.html">ApplicationOptions</a></li>
+      <li><a href="aqueduct/ApplicationServer-class.html">ApplicationServer</a></li>
+      <li><a href="aqueduct/ApplicationServiceRegistry-class.html">ApplicationServiceRegistry</a></li>
+      <li><a href="aqueduct/AuthBasicCredentials-class.html">AuthBasicCredentials</a></li>
+      <li><a href="aqueduct/AuthClient-class.html">AuthClient</a></li>
+      <li><a href="aqueduct/AuthCode-class.html">AuthCode</a></li>
+      <li><a href="aqueduct/AuthCodeController-class.html">AuthCodeController</a></li>
+      <li><a href="aqueduct/AuthCodeControllerDelegate-class.html">AuthCodeControllerDelegate</a></li>
+      <li><a href="aqueduct/AuthController-class.html">AuthController</a></li>
+      <li><a href="aqueduct/Authenticatable-class.html">Authenticatable</a></li>
+      <li><a href="aqueduct/Authorization-class.html">Authorization</a></li>
+      <li><a href="aqueduct/AuthorizationBasicParser-class.html">AuthorizationBasicParser</a></li>
+      <li><a href="aqueduct/AuthorizationBearerParser-class.html">AuthorizationBearerParser</a></li>
+      <li><a href="aqueduct/AuthorizationParser-class.html">AuthorizationParser</a></li>
+      <li><a href="aqueduct/Authorizer-class.html">Authorizer</a></li>
+      <li><a href="aqueduct/AuthScope-class.html">AuthScope</a></li>
+      <li><a href="aqueduct/AuthServer-class.html">AuthServer</a></li>
+      <li><a href="aqueduct/AuthServerDelegate-class.html">AuthServerDelegate</a></li>
+      <li><a href="aqueduct/AuthToken-class.html">AuthToken</a></li>
+      <li><a href="aqueduct/AuthUtility-class.html">AuthUtility</a></li>
+      <li><a href="aqueduct/AuthValidator-class.html">AuthValidator</a></li>
+      <li><a href="aqueduct/Bind-class.html">Bind</a></li>
+      <li><a href="aqueduct/BodyDecoder-class.html">BodyDecoder</a></li>
+      <li><a href="aqueduct/Column-class.html">Column</a></li>
+      <li><a href="aqueduct/ConfigurationException-class.html">ConfigurationException</a></li>
+      <li><a href="aqueduct/ConfigurationItem-class.html">ConfigurationItem</a></li>
+      <li><a href="aqueduct/ConfigurationItemAttribute-class.html">ConfigurationItemAttribute</a></li>
+      <li><a href="aqueduct/Controller-class.html">Controller</a></li>
+      <li><a href="aqueduct/CORSPolicy-class.html">CORSPolicy</a></li>
+      <li><a href="aqueduct/DatabaseConnectionConfiguration-class.html">DatabaseConnectionConfiguration</a></li>
+      <li><a href="aqueduct/Document-class.html">Document</a></li>
+      <li><a href="aqueduct/HTTPCachePolicy-class.html">HTTPCachePolicy</a></li>
+      <li><a href="aqueduct/HTTPCodecRepository-class.html">HTTPCodecRepository</a></li>
+      <li><a href="aqueduct/HTTPFileController-class.html">HTTPFileController</a></li>
+      <li><a href="aqueduct/HTTPRequiredParameter-class.html">HTTPRequiredParameter</a></li>
+      <li><a href="aqueduct/HTTPSerializable-class.html">HTTPSerializable</a></li>
+      <li><a href="aqueduct/Level-class.html">Level</a></li>
+      <li><a href="aqueduct/Logger-class.html">Logger</a></li>
+      <li><a href="aqueduct/LogRecord-class.html">LogRecord</a></li>
+      <li><a href="aqueduct/ManagedAttributeDescription-class.html">ManagedAttributeDescription</a></li>
+      <li><a href="aqueduct/ManagedBacking-class.html">ManagedBacking</a></li>
+      <li><a href="aqueduct/ManagedContext-class.html">ManagedContext</a></li>
+      <li><a href="aqueduct/ManagedDataModel-class.html">ManagedDataModel</a></li>
+      <li><a href="aqueduct/ManagedEntity-class.html">ManagedEntity</a></li>
+      <li><a href="aqueduct/ManagedObject-class.html">ManagedObject</a></li>
+      <li><a href="aqueduct/ManagedObjectController-class.html">ManagedObjectController</a></li>
+      <li><a href="aqueduct/ManagedPropertyDescription-class.html">ManagedPropertyDescription</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription-class.html">ManagedRelationshipDescription</a></li>
+      <li><a href="aqueduct/ManagedSet-class.html">ManagedSet</a></li>
+      <li><a href="aqueduct/ManagedType-class.html">ManagedType</a></li>
+      <li><a href="aqueduct/ManagedValidator-class.html">ManagedValidator</a></li>
+      <li><a href="aqueduct/Migration-class.html">Migration</a></li>
+      <li><a href="aqueduct/MigrationBuilder-class.html">MigrationBuilder</a></li>
+      <li><a href="aqueduct/Operation-class.html">Operation</a></li>
+      <li><a href="aqueduct/PersistentStore-class.html">PersistentStore</a></li>
+      <li><a href="aqueduct/PostgreSQLErrorCode-class.html">PostgreSQLErrorCode</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore-class.html">PostgreSQLPersistentStore</a></li>
+      <li><a href="aqueduct/Query-class.html">Query</a></li>
+      <li><a href="aqueduct/QueryController-class.html">QueryController</a></li>
+      <li><a href="aqueduct/QueryExpression-class.html">QueryExpression</a></li>
+      <li><a href="aqueduct/QueryExpressionJunction-class.html">QueryExpressionJunction</a></li>
+      <li><a href="aqueduct/QueryPredicate-class.html">QueryPredicate</a></li>
+      <li><a href="aqueduct/QueryReduceOperation-class.html">QueryReduceOperation</a></li>
+      <li><a href="aqueduct/Relate-class.html">Relate</a></li>
+      <li><a href="aqueduct/Request-class.html">Request</a></li>
+      <li><a href="aqueduct/RequestBody-class.html">RequestBody</a></li>
+      <li><a href="aqueduct/RequestOrResponse-class.html">RequestOrResponse</a></li>
+      <li><a href="aqueduct/RequestPath-class.html">RequestPath</a></li>
+      <li><a href="aqueduct/ResourceController-class.html">ResourceController</a></li>
+      <li><a href="aqueduct/Response-class.html">Response</a></li>
+      <li><a href="aqueduct/Router-class.html">Router</a></li>
+      <li><a href="aqueduct/Schema-class.html">Schema</a></li>
+      <li><a href="aqueduct/SchemaBuilder-class.html">SchemaBuilder</a></li>
+      <li><a href="aqueduct/SchemaColumn-class.html">SchemaColumn</a></li>
+      <li><a href="aqueduct/SchemaColumnDifference-class.html">SchemaColumnDifference</a></li>
+      <li><a href="aqueduct/SchemaDifference-class.html">SchemaDifference</a></li>
+      <li><a href="aqueduct/SchemaTable-class.html">SchemaTable</a></li>
+      <li><a href="aqueduct/SchemaTableDifference-class.html">SchemaTableDifference</a></li>
+      <li><a href="aqueduct/SchemaTableUniqueSetDifference-class.html">SchemaTableUniqueSetDifference</a></li>
+      <li><a href="aqueduct/Scope-class.html">Scope</a></li>
+      <li><a href="aqueduct/Serialize-class.html">Serialize</a></li>
+      <li><a href="aqueduct/Table-class.html">Table</a></li>
+      <li><a href="aqueduct/Validate-class.html">Validate</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#constants">Constants</a></li>
+      <li><a href="aqueduct/optionalConfiguration-constant.html">optionalConfiguration</a></li>
+      <li><a href="aqueduct/primaryKey-constant.html">primaryKey</a></li>
+      <li><a href="aqueduct/requiredConfiguration-constant.html">requiredConfiguration</a></li>
+      <li><a href="aqueduct/requiredHTTPParameter-constant.html">requiredHTTPParameter</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#properties">Properties</a></li>
+      <li><a href="aqueduct/hierarchicalLoggingEnabled.html">hierarchicalLoggingEnabled</a></li>
+      <li><a href="aqueduct/recordStackTraceAtLevel.html">recordStackTraceAtLevel</a></li>
+    
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#enums">Enums</a></li>
+      <li><a href="aqueduct/APIParameterLocation-class.html">APIParameterLocation</a></li>
+      <li><a href="aqueduct/APISecuritySchemeType-class.html">APISecuritySchemeType</a></li>
+      <li><a href="aqueduct/APIType-class.html">APIType</a></li>
+      <li><a href="aqueduct/AuthorizationParserExceptionReason-class.html">AuthorizationParserExceptionReason</a></li>
+      <li><a href="aqueduct/AuthRequestError-class.html">AuthRequestError</a></li>
+      <li><a href="aqueduct/ConfigurationItemAttributeType-class.html">ConfigurationItemAttributeType</a></li>
+      <li><a href="aqueduct/DeleteRule-class.html">DeleteRule</a></li>
+      <li><a href="aqueduct/ManagedPropertyType-class.html">ManagedPropertyType</a></li>
+      <li><a href="aqueduct/PersistentStoreQueryReturnType-class.html">PersistentStoreQueryReturnType</a></li>
+      <li><a href="aqueduct/QueryExceptionEvent-class.html">QueryExceptionEvent</a></li>
+      <li><a href="aqueduct/QuerySortOrder-class.html">QuerySortOrder</a></li>
+      <li><a href="aqueduct/ValidateOperation-class.html">ValidateOperation</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#typedefs">Typedefs</a></li>
+      <li><a href="aqueduct/LoggerHandler.html">LoggerHandler</a></li>
+      <li><a href="aqueduct/PostgreSQLConnectionFunction.html">PostgreSQLConnectionFunction</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#exceptions">Exceptions</a></li>
+      <li><a href="aqueduct/APIException-class.html">APIException</a></li>
+      <li><a href="aqueduct/ApplicationStartupException-class.html">ApplicationStartupException</a></li>
+      <li><a href="aqueduct/AuthorizationParserException-class.html">AuthorizationParserException</a></li>
+      <li><a href="aqueduct/AuthServerException-class.html">AuthServerException</a></li>
+      <li><a href="aqueduct/AuthUtilityException-class.html">AuthUtilityException</a></li>
+      <li><a href="aqueduct/ControllerException-class.html">ControllerException</a></li>
+      <li><a href="aqueduct/HandlerException-class.html">HandlerException</a></li>
+      <li><a href="aqueduct/HTTPStreamingException-class.html">HTTPStreamingException</a></li>
+      <li><a href="aqueduct/ManagedDataModelError-class.html">ManagedDataModelError</a></li>
+      <li><a href="aqueduct/MigrationException-class.html">MigrationException</a></li>
+      <li><a href="aqueduct/QueryException-class.html">QueryException</a></li>
+      <li><a href="aqueduct/SchemaException-class.html">SchemaException</a></li>
+      <li><a href="aqueduct/ValidationException-class.html">ValidationException</a></li>
+    </ol>
+  </div>
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>SchemaBuilder class</h1>
+
+    <section class="desc markdown">
+      <p>Used during migration to modify a schema.</p>
+    </section>
+    
+
+    <section class="summary offset-anchor" id="constructors">
+      <h2>Constructors</h2>
+
+      <dl class="constructor-summary-list">
+        <dt id="SchemaBuilder" class="callable">
+          <span class="name"><a href="aqueduct/SchemaBuilder/SchemaBuilder.html">SchemaBuilder</a></span><span class="signature">(<span class="parameter" id="-param-store"><span class="type-annotation"><a href="aqueduct/PersistentStore-class.html">PersistentStore</a></span> <span class="parameter-name">store</span>, </span> <span class="parameter" id="-param-inputSchema"><span class="type-annotation"><a href="aqueduct/Schema-class.html">Schema</a></span> <span class="parameter-name">inputSchema</span>, {</span> <span class="parameter" id="-param-isTemporary"><span class="type-annotation">bool</span> <span class="parameter-name">isTemporary</span>: <span class="default-value">false</span></span> })</span>
+        </dt>
+        <dd>
+          Creates a builder starting from an existing schema.
+        </dd>
+        <dt id="SchemaBuilder.toSchema" class="callable">
+          <span class="name"><a href="aqueduct/SchemaBuilder/SchemaBuilder.toSchema.html">SchemaBuilder.toSchema</a></span><span class="signature">(<span class="parameter" id="toSchema-param-store"><span class="type-annotation"><a href="aqueduct/PersistentStore-class.html">PersistentStore</a></span> <span class="parameter-name">store</span>, </span> <span class="parameter" id="toSchema-param-targetSchema"><span class="type-annotation"><a href="aqueduct/Schema-class.html">Schema</a></span> <span class="parameter-name">targetSchema</span>, {</span> <span class="parameter" id="toSchema-param-isTemporary"><span class="type-annotation">bool</span> <span class="parameter-name">isTemporary</span>: <span class="default-value">false</span></span> })</span>
+        </dt>
+        <dd>
+          Creates a builder starting from the empty schema.
+        </dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="instance-properties">
+      <h2>Properties</h2>
+
+      <dl class="properties">
+        <dt id="commands" class="property">
+          <span class="name"><a href="aqueduct/SchemaBuilder/commands.html">commands</a></span>
+          <span class="signature">&#8596; List<span class="signature">&lt;String&gt;</span></span>
+        </dt>
+        <dd>
+          A list of SQL commands generated by operations performed on this builder.
+          <div class="features">read / write</div>
+</dd>
+        <dt id="inputSchema" class="property">
+          <span class="name"><a href="aqueduct/SchemaBuilder/inputSchema.html">inputSchema</a></span>
+          <span class="signature">&#8596; <a href="aqueduct/Schema-class.html">Schema</a></span>
+        </dt>
+        <dd>
+          The starting schema of this builder.
+          <div class="features">read / write</div>
+</dd>
+        <dt id="isTemporary" class="property">
+          <span class="name"><a href="aqueduct/SchemaBuilder/isTemporary.html">isTemporary</a></span>
+          <span class="signature">&#8596; bool</span>
+        </dt>
+        <dd>
+          Whether or not this builder should create temporary tables.
+          <div class="features">read / write</div>
+</dd>
+        <dt id="schema" class="property">
+          <span class="name"><a href="aqueduct/SchemaBuilder/schema.html">schema</a></span>
+          <span class="signature">&#8596; <a href="aqueduct/Schema-class.html">Schema</a></span>
+        </dt>
+        <dd>
+          The resulting schema of this builder as operations are applied to it.
+          <div class="features">read / write</div>
+</dd>
+        <dt id="store" class="property">
+          <span class="name"><a href="aqueduct/SchemaBuilder/store.html">store</a></span>
+          <span class="signature">&#8596; <a href="aqueduct/PersistentStore-class.html">PersistentStore</a></span>
+        </dt>
+        <dd>
+          The persistent store to validate and construct operations.
+          <div class="features">read / write</div>
+</dd>
+        <dt id="hashCode" class="property inherited">
+          <span class="name"><a href="aqueduct/SchemaBuilder/hashCode.html">hashCode</a></span>
+          <span class="signature">&#8594; int</span>
+        </dt>
+        <dd class="inherited">
+          The hash code for this object. <a href="aqueduct/SchemaBuilder/hashCode.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="runtimeType" class="property inherited">
+          <span class="name"><a href="aqueduct/SchemaBuilder/runtimeType.html">runtimeType</a></span>
+          <span class="signature">&#8594; Type</span>
+        </dt>
+        <dd class="inherited">
+          A representation of the runtime type of the object.
+          <div class="features">read-only, inherited</div>
+</dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="instance-methods">
+      <h2>Methods</h2>
+      <dl class="callables">
+        <dt id="addColumn" class="callable">
+          <span class="name"><a href="aqueduct/SchemaBuilder/addColumn.html">addColumn</a></span><span class="signature">(<wbr><span class="parameter" id="addColumn-param-tableName"><span class="type-annotation">String</span> <span class="parameter-name">tableName</span>, </span> <span class="parameter" id="addColumn-param-column"><span class="type-annotation"><a href="aqueduct/SchemaColumn-class.html">SchemaColumn</a></span> <span class="parameter-name">column</span>, {</span> <span class="parameter" id="addColumn-param-unencodedInitialValue"><span class="type-annotation">String</span> <span class="parameter-name">unencodedInitialValue</span></span> })
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          Validates and adds a column to a table in <a href="aqueduct/SchemaBuilder/schema.html">schema</a>.
+          
+</dd>
+        <dt id="alterColumn" class="callable">
+          <span class="name"><a href="aqueduct/SchemaBuilder/alterColumn.html">alterColumn</a></span><span class="signature">(<wbr><span class="parameter" id="alterColumn-param-tableName"><span class="type-annotation">String</span> <span class="parameter-name">tableName</span>, </span> <span class="parameter" id="alterColumn-param-columnName"><span class="type-annotation">String</span> <span class="parameter-name">columnName</span>, </span> <span class="parameter" id="alterColumn-param-modify"><span class="type-annotation">void</span> <span class="parameter-name">modify</span>(<span class="parameter" id="modify-param-targetColumn"><span class="type-annotation"><a href="aqueduct/SchemaColumn-class.html">SchemaColumn</a></span> <span class="parameter-name">targetColumn</span></span>), {</span> <span class="parameter" id="alterColumn-param-unencodedInitialValue"><span class="type-annotation">String</span> <span class="parameter-name">unencodedInitialValue</span></span> })
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          Validates and alters a column in a table in <a href="aqueduct/SchemaBuilder/schema.html">schema</a>. <a href="aqueduct/SchemaBuilder/alterColumn.html">[...]</a>
+          
+</dd>
+        <dt id="alterTable" class="callable">
+          <span class="name"><a href="aqueduct/SchemaBuilder/alterTable.html">alterTable</a></span><span class="signature">(<wbr><span class="parameter" id="alterTable-param-tableName"><span class="type-annotation">String</span> <span class="parameter-name">tableName</span>, </span> <span class="parameter" id="alterTable-param-modify"><span class="type-annotation">void</span> <span class="parameter-name">modify</span>(<span class="parameter" id="modify-param-targetTable"><span class="type-annotation"><a href="aqueduct/SchemaTable-class.html">SchemaTable</a></span> <span class="parameter-name">targetTable</span></span>)</span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          
+          
+</dd>
+        <dt id="createTable" class="callable">
+          <span class="name"><a href="aqueduct/SchemaBuilder/createTable.html">createTable</a></span><span class="signature">(<wbr><span class="parameter" id="createTable-param-table"><span class="type-annotation"><a href="aqueduct/SchemaTable-class.html">SchemaTable</a></span> <span class="parameter-name">table</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          Validates and adds a table to <a href="aqueduct/SchemaBuilder/schema.html">schema</a>.
+          
+</dd>
+        <dt id="deleteColumn" class="callable">
+          <span class="name"><a href="aqueduct/SchemaBuilder/deleteColumn.html">deleteColumn</a></span><span class="signature">(<wbr><span class="parameter" id="deleteColumn-param-tableName"><span class="type-annotation">String</span> <span class="parameter-name">tableName</span>, </span> <span class="parameter" id="deleteColumn-param-columnName"><span class="type-annotation">String</span> <span class="parameter-name">columnName</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          Validates and deletes a column in a table in <a href="aqueduct/SchemaBuilder/schema.html">schema</a>.
+          
+</dd>
+        <dt id="deleteTable" class="callable">
+          <span class="name"><a href="aqueduct/SchemaBuilder/deleteTable.html">deleteTable</a></span><span class="signature">(<wbr><span class="parameter" id="deleteTable-param-tableName"><span class="type-annotation">String</span> <span class="parameter-name">tableName</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          Validates and deletes a table in <a href="aqueduct/SchemaBuilder/schema.html">schema</a>.
+          
+</dd>
+        <dt id="renameColumn" class="callable">
+          <span class="name"><a href="aqueduct/SchemaBuilder/renameColumn.html">renameColumn</a></span><span class="signature">(<wbr><span class="parameter" id="renameColumn-param-tableName"><span class="type-annotation">String</span> <span class="parameter-name">tableName</span>, </span> <span class="parameter" id="renameColumn-param-columnName"><span class="type-annotation">String</span> <span class="parameter-name">columnName</span>, </span> <span class="parameter" id="renameColumn-param-newName"><span class="type-annotation">String</span> <span class="parameter-name">newName</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          Validates and renames a column in a table in <a href="aqueduct/SchemaBuilder/schema.html">schema</a>.
+          
+</dd>
+        <dt id="renameTable" class="callable">
+          <span class="name"><a href="aqueduct/SchemaBuilder/renameTable.html">renameTable</a></span><span class="signature">(<wbr><span class="parameter" id="renameTable-param-currentTableName"><span class="type-annotation">String</span> <span class="parameter-name">currentTableName</span>, </span> <span class="parameter" id="renameTable-param-newName"><span class="type-annotation">String</span> <span class="parameter-name">newName</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          Validates and renames a table in <a href="aqueduct/SchemaBuilder/schema.html">schema</a>.
+          
+</dd>
+        <dt id="noSuchMethod" class="callable inherited">
+          <span class="name"><a href="aqueduct/SchemaBuilder/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation">Invocation</span> <span class="parameter-name">invocation</span></span>)
+            <span class="returntype parameter">&#8594; dynamic</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Invoked when a non-existent method or property is accessed. <a href="aqueduct/SchemaBuilder/noSuchMethod.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="toString" class="callable inherited">
+          <span class="name"><a href="aqueduct/SchemaBuilder/toString.html">toString</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; String</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a string representation of this object.
+          <div class="features">inherited</div>
+</dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor inherited" id="operators">
+      <h2>Operators</h2>
+      <dl class="callables">
+        <dt id="operator ==" class="callable inherited">
+          <span class="name"><a href="aqueduct/SchemaBuilder/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="parameter-name">other</span></span>)
+            <span class="returntype parameter">&#8594; bool</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          The equality operator. <a href="aqueduct/SchemaBuilder/operator_equals.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+      </dl>
+    </section>
+
+
+    <section class="summary offset-anchor" id="static-methods">
+      <h2>Static Methods</h2>
+      <dl class="callables">
+        <dt id="sourceForSchemaUpgrade" class="callable">
+          <span class="name deprecated"><a class="deprecated" href="aqueduct/SchemaBuilder/sourceForSchemaUpgrade.html">sourceForSchemaUpgrade</a></span><span class="signature">(<wbr><span class="parameter" id="sourceForSchemaUpgrade-param-existingSchema"><span class="type-annotation"><a href="aqueduct/Schema-class.html">Schema</a></span> <span class="parameter-name">existingSchema</span>, </span> <span class="parameter" id="sourceForSchemaUpgrade-param-newSchema"><span class="type-annotation"><a href="aqueduct/Schema-class.html">Schema</a></span> <span class="parameter-name">newSchema</span>, </span> <span class="parameter" id="sourceForSchemaUpgrade-param-version"><span class="type-annotation">int</span> <span class="parameter-name">version</span></span>)
+            <span class="returntype parameter">&#8594; String</span>
+          </span>
+        </dt>
+        <dd>
+          
+          
+</dd>
+      </dl>
+    </section>
+
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+    <ol>
+      <li class="section-title"><a href="aqueduct/SchemaBuilder-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/SchemaBuilder/SchemaBuilder.html">SchemaBuilder</a></li>
+      <li><a href="aqueduct/SchemaBuilder/SchemaBuilder.toSchema.html">toSchema</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/SchemaBuilder-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/SchemaBuilder/commands.html">commands</a></li>
+      <li><a href="aqueduct/SchemaBuilder/inputSchema.html">inputSchema</a></li>
+      <li><a href="aqueduct/SchemaBuilder/isTemporary.html">isTemporary</a></li>
+      <li><a href="aqueduct/SchemaBuilder/schema.html">schema</a></li>
+      <li><a href="aqueduct/SchemaBuilder/store.html">store</a></li>
+      <li class="inherited"><a href="aqueduct/SchemaBuilder/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/SchemaBuilder/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/SchemaBuilder-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/SchemaBuilder/addColumn.html">addColumn</a></li>
+      <li><a href="aqueduct/SchemaBuilder/alterColumn.html">alterColumn</a></li>
+      <li><a href="aqueduct/SchemaBuilder/alterTable.html">alterTable</a></li>
+      <li><a href="aqueduct/SchemaBuilder/createTable.html">createTable</a></li>
+      <li><a href="aqueduct/SchemaBuilder/deleteColumn.html">deleteColumn</a></li>
+      <li><a href="aqueduct/SchemaBuilder/deleteTable.html">deleteTable</a></li>
+      <li><a href="aqueduct/SchemaBuilder/renameColumn.html">renameColumn</a></li>
+      <li><a href="aqueduct/SchemaBuilder/renameTable.html">renameTable</a></li>
+      <li class="inherited"><a href="aqueduct/SchemaBuilder/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/SchemaBuilder/toString.html">toString</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/SchemaBuilder-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/SchemaBuilder/operator_equals.html">operator ==</a></li>
+    
+    
+      <li class="section-title"><a href="aqueduct/SchemaBuilder-class.html#static-methods">Static methods</a></li>
+      <li><a class="deprecated" href="aqueduct/SchemaBuilder/sourceForSchemaUpgrade.html">sourceForSchemaUpgrade</a></li>
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

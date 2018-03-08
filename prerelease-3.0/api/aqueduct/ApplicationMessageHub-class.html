@@ -1,0 +1,769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the ApplicationMessageHub class from the aqueduct library, for the Dart programming language.">
+  <title>ApplicationMessageHub class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li class="self-crumb">ApplicationMessageHub class</li>
+  </ol>
+  <div class="self-name">ApplicationMessageHub</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>aqueduct library</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#classes">Classes</a></li>
+      <li><a href="aqueduct/APICallback-class.html">APICallback</a></li>
+      <li><a href="aqueduct/APIComponentCollection-class.html">APIComponentCollection</a></li>
+      <li><a href="aqueduct/APIComponentDocumenter-class.html">APIComponentDocumenter</a></li>
+      <li><a href="aqueduct/APIComponents-class.html">APIComponents</a></li>
+      <li><a href="aqueduct/APIConfiguration-class.html">APIConfiguration</a></li>
+      <li><a href="aqueduct/APIContact-class.html">APIContact</a></li>
+      <li><a href="aqueduct/APIDocument-class.html">APIDocument</a></li>
+      <li><a href="aqueduct/APIDocumentContext-class.html">APIDocumentContext</a></li>
+      <li><a href="aqueduct/APIEncoding-class.html">APIEncoding</a></li>
+      <li><a href="aqueduct/APIHeader-class.html">APIHeader</a></li>
+      <li><a href="aqueduct/APIInfo-class.html">APIInfo</a></li>
+      <li><a href="aqueduct/APILicense-class.html">APILicense</a></li>
+      <li><a href="aqueduct/APIMediaType-class.html">APIMediaType</a></li>
+      <li><a href="aqueduct/APIObject-class.html">APIObject</a></li>
+      <li><a href="aqueduct/APIOperation-class.html">APIOperation</a></li>
+      <li><a href="aqueduct/APIOperationDocumenter-class.html">APIOperationDocumenter</a></li>
+      <li><a href="aqueduct/APIParameter-class.html">APIParameter</a></li>
+      <li><a href="aqueduct/APIParameterLocationCodec-class.html">APIParameterLocationCodec</a></li>
+      <li><a href="aqueduct/APIPath-class.html">APIPath</a></li>
+      <li><a href="aqueduct/APIRequestBody-class.html">APIRequestBody</a></li>
+      <li><a href="aqueduct/APIResponse-class.html">APIResponse</a></li>
+      <li><a href="aqueduct/APISchemaObject-class.html">APISchemaObject</a></li>
+      <li><a href="aqueduct/APISecurityRequirement-class.html">APISecurityRequirement</a></li>
+      <li><a href="aqueduct/APISecurityScheme-class.html">APISecurityScheme</a></li>
+      <li><a href="aqueduct/APISecuritySchemeOAuth2Flow-class.html">APISecuritySchemeOAuth2Flow</a></li>
+      <li><a href="aqueduct/APISecuritySchemeTypeCodec-class.html">APISecuritySchemeTypeCodec</a></li>
+      <li><a href="aqueduct/APIServerDescription-class.html">APIServerDescription</a></li>
+      <li><a href="aqueduct/APIServerVariable-class.html">APIServerVariable</a></li>
+      <li><a href="aqueduct/APITag-class.html">APITag</a></li>
+      <li><a href="aqueduct/APITypeCodec-class.html">APITypeCodec</a></li>
+      <li><a href="aqueduct/Application-class.html">Application</a></li>
+      <li><a href="aqueduct/ApplicationChannel-class.html">ApplicationChannel</a></li>
+      <li><a href="aqueduct/ApplicationMessageHub-class.html">ApplicationMessageHub</a></li>
+      <li><a href="aqueduct/ApplicationOptions-class.html">ApplicationOptions</a></li>
+      <li><a href="aqueduct/ApplicationServer-class.html">ApplicationServer</a></li>
+      <li><a href="aqueduct/ApplicationServiceRegistry-class.html">ApplicationServiceRegistry</a></li>
+      <li><a href="aqueduct/AuthBasicCredentials-class.html">AuthBasicCredentials</a></li>
+      <li><a href="aqueduct/AuthClient-class.html">AuthClient</a></li>
+      <li><a href="aqueduct/AuthCode-class.html">AuthCode</a></li>
+      <li><a href="aqueduct/AuthCodeController-class.html">AuthCodeController</a></li>
+      <li><a href="aqueduct/AuthCodeControllerDelegate-class.html">AuthCodeControllerDelegate</a></li>
+      <li><a href="aqueduct/AuthController-class.html">AuthController</a></li>
+      <li><a href="aqueduct/Authenticatable-class.html">Authenticatable</a></li>
+      <li><a href="aqueduct/Authorization-class.html">Authorization</a></li>
+      <li><a href="aqueduct/AuthorizationBasicParser-class.html">AuthorizationBasicParser</a></li>
+      <li><a href="aqueduct/AuthorizationBearerParser-class.html">AuthorizationBearerParser</a></li>
+      <li><a href="aqueduct/AuthorizationParser-class.html">AuthorizationParser</a></li>
+      <li><a href="aqueduct/Authorizer-class.html">Authorizer</a></li>
+      <li><a href="aqueduct/AuthScope-class.html">AuthScope</a></li>
+      <li><a href="aqueduct/AuthServer-class.html">AuthServer</a></li>
+      <li><a href="aqueduct/AuthServerDelegate-class.html">AuthServerDelegate</a></li>
+      <li><a href="aqueduct/AuthToken-class.html">AuthToken</a></li>
+      <li><a href="aqueduct/AuthUtility-class.html">AuthUtility</a></li>
+      <li><a href="aqueduct/AuthValidator-class.html">AuthValidator</a></li>
+      <li><a href="aqueduct/Bind-class.html">Bind</a></li>
+      <li><a href="aqueduct/BodyDecoder-class.html">BodyDecoder</a></li>
+      <li><a href="aqueduct/Column-class.html">Column</a></li>
+      <li><a href="aqueduct/ConfigurationException-class.html">ConfigurationException</a></li>
+      <li><a href="aqueduct/ConfigurationItem-class.html">ConfigurationItem</a></li>
+      <li><a href="aqueduct/ConfigurationItemAttribute-class.html">ConfigurationItemAttribute</a></li>
+      <li><a href="aqueduct/Controller-class.html">Controller</a></li>
+      <li><a href="aqueduct/CORSPolicy-class.html">CORSPolicy</a></li>
+      <li><a href="aqueduct/DatabaseConnectionConfiguration-class.html">DatabaseConnectionConfiguration</a></li>
+      <li><a href="aqueduct/Document-class.html">Document</a></li>
+      <li><a href="aqueduct/HTTPCachePolicy-class.html">HTTPCachePolicy</a></li>
+      <li><a href="aqueduct/HTTPCodecRepository-class.html">HTTPCodecRepository</a></li>
+      <li><a href="aqueduct/HTTPFileController-class.html">HTTPFileController</a></li>
+      <li><a href="aqueduct/HTTPRequiredParameter-class.html">HTTPRequiredParameter</a></li>
+      <li><a href="aqueduct/HTTPSerializable-class.html">HTTPSerializable</a></li>
+      <li><a href="aqueduct/Level-class.html">Level</a></li>
+      <li><a href="aqueduct/Logger-class.html">Logger</a></li>
+      <li><a href="aqueduct/LogRecord-class.html">LogRecord</a></li>
+      <li><a href="aqueduct/ManagedAttributeDescription-class.html">ManagedAttributeDescription</a></li>
+      <li><a href="aqueduct/ManagedBacking-class.html">ManagedBacking</a></li>
+      <li><a href="aqueduct/ManagedContext-class.html">ManagedContext</a></li>
+      <li><a href="aqueduct/ManagedDataModel-class.html">ManagedDataModel</a></li>
+      <li><a href="aqueduct/ManagedEntity-class.html">ManagedEntity</a></li>
+      <li><a href="aqueduct/ManagedObject-class.html">ManagedObject</a></li>
+      <li><a href="aqueduct/ManagedObjectController-class.html">ManagedObjectController</a></li>
+      <li><a href="aqueduct/ManagedPropertyDescription-class.html">ManagedPropertyDescription</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription-class.html">ManagedRelationshipDescription</a></li>
+      <li><a href="aqueduct/ManagedSet-class.html">ManagedSet</a></li>
+      <li><a href="aqueduct/ManagedType-class.html">ManagedType</a></li>
+      <li><a href="aqueduct/ManagedValidator-class.html">ManagedValidator</a></li>
+      <li><a href="aqueduct/Migration-class.html">Migration</a></li>
+      <li><a href="aqueduct/MigrationBuilder-class.html">MigrationBuilder</a></li>
+      <li><a href="aqueduct/Operation-class.html">Operation</a></li>
+      <li><a href="aqueduct/PersistentStore-class.html">PersistentStore</a></li>
+      <li><a href="aqueduct/PostgreSQLErrorCode-class.html">PostgreSQLErrorCode</a></li>
+      <li><a href="aqueduct/PostgreSQLPersistentStore-class.html">PostgreSQLPersistentStore</a></li>
+      <li><a href="aqueduct/Query-class.html">Query</a></li>
+      <li><a href="aqueduct/QueryController-class.html">QueryController</a></li>
+      <li><a href="aqueduct/QueryExpression-class.html">QueryExpression</a></li>
+      <li><a href="aqueduct/QueryExpressionJunction-class.html">QueryExpressionJunction</a></li>
+      <li><a href="aqueduct/QueryPredicate-class.html">QueryPredicate</a></li>
+      <li><a href="aqueduct/QueryReduceOperation-class.html">QueryReduceOperation</a></li>
+      <li><a href="aqueduct/Relate-class.html">Relate</a></li>
+      <li><a href="aqueduct/Request-class.html">Request</a></li>
+      <li><a href="aqueduct/RequestBody-class.html">RequestBody</a></li>
+      <li><a href="aqueduct/RequestOrResponse-class.html">RequestOrResponse</a></li>
+      <li><a href="aqueduct/RequestPath-class.html">RequestPath</a></li>
+      <li><a href="aqueduct/ResourceController-class.html">ResourceController</a></li>
+      <li><a href="aqueduct/Response-class.html">Response</a></li>
+      <li><a href="aqueduct/Router-class.html">Router</a></li>
+      <li><a href="aqueduct/Schema-class.html">Schema</a></li>
+      <li><a href="aqueduct/SchemaBuilder-class.html">SchemaBuilder</a></li>
+      <li><a href="aqueduct/SchemaColumn-class.html">SchemaColumn</a></li>
+      <li><a href="aqueduct/SchemaColumnDifference-class.html">SchemaColumnDifference</a></li>
+      <li><a href="aqueduct/SchemaDifference-class.html">SchemaDifference</a></li>
+      <li><a href="aqueduct/SchemaTable-class.html">SchemaTable</a></li>
+      <li><a href="aqueduct/SchemaTableDifference-class.html">SchemaTableDifference</a></li>
+      <li><a href="aqueduct/SchemaTableUniqueSetDifference-class.html">SchemaTableUniqueSetDifference</a></li>
+      <li><a href="aqueduct/Scope-class.html">Scope</a></li>
+      <li><a href="aqueduct/Serialize-class.html">Serialize</a></li>
+      <li><a href="aqueduct/Table-class.html">Table</a></li>
+      <li><a href="aqueduct/Validate-class.html">Validate</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#constants">Constants</a></li>
+      <li><a href="aqueduct/optionalConfiguration-constant.html">optionalConfiguration</a></li>
+      <li><a href="aqueduct/primaryKey-constant.html">primaryKey</a></li>
+      <li><a href="aqueduct/requiredConfiguration-constant.html">requiredConfiguration</a></li>
+      <li><a href="aqueduct/requiredHTTPParameter-constant.html">requiredHTTPParameter</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#properties">Properties</a></li>
+      <li><a href="aqueduct/hierarchicalLoggingEnabled.html">hierarchicalLoggingEnabled</a></li>
+      <li><a href="aqueduct/recordStackTraceAtLevel.html">recordStackTraceAtLevel</a></li>
+    
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#enums">Enums</a></li>
+      <li><a href="aqueduct/APIParameterLocation-class.html">APIParameterLocation</a></li>
+      <li><a href="aqueduct/APISecuritySchemeType-class.html">APISecuritySchemeType</a></li>
+      <li><a href="aqueduct/APIType-class.html">APIType</a></li>
+      <li><a href="aqueduct/AuthorizationParserExceptionReason-class.html">AuthorizationParserExceptionReason</a></li>
+      <li><a href="aqueduct/AuthRequestError-class.html">AuthRequestError</a></li>
+      <li><a href="aqueduct/ConfigurationItemAttributeType-class.html">ConfigurationItemAttributeType</a></li>
+      <li><a href="aqueduct/DeleteRule-class.html">DeleteRule</a></li>
+      <li><a href="aqueduct/ManagedPropertyType-class.html">ManagedPropertyType</a></li>
+      <li><a href="aqueduct/PersistentStoreQueryReturnType-class.html">PersistentStoreQueryReturnType</a></li>
+      <li><a href="aqueduct/QueryExceptionEvent-class.html">QueryExceptionEvent</a></li>
+      <li><a href="aqueduct/QuerySortOrder-class.html">QuerySortOrder</a></li>
+      <li><a href="aqueduct/ValidateOperation-class.html">ValidateOperation</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#typedefs">Typedefs</a></li>
+      <li><a href="aqueduct/LoggerHandler.html">LoggerHandler</a></li>
+      <li><a href="aqueduct/PostgreSQLConnectionFunction.html">PostgreSQLConnectionFunction</a></li>
+    
+      <li class="section-title"><a href="aqueduct/aqueduct-library.html#exceptions">Exceptions</a></li>
+      <li><a href="aqueduct/APIException-class.html">APIException</a></li>
+      <li><a href="aqueduct/ApplicationStartupException-class.html">ApplicationStartupException</a></li>
+      <li><a href="aqueduct/AuthorizationParserException-class.html">AuthorizationParserException</a></li>
+      <li><a href="aqueduct/AuthServerException-class.html">AuthServerException</a></li>
+      <li><a href="aqueduct/AuthUtilityException-class.html">AuthUtilityException</a></li>
+      <li><a href="aqueduct/ControllerException-class.html">ControllerException</a></li>
+      <li><a href="aqueduct/HandlerException-class.html">HandlerException</a></li>
+      <li><a href="aqueduct/HTTPStreamingException-class.html">HTTPStreamingException</a></li>
+      <li><a href="aqueduct/ManagedDataModelError-class.html">ManagedDataModelError</a></li>
+      <li><a href="aqueduct/MigrationException-class.html">MigrationException</a></li>
+      <li><a href="aqueduct/QueryException-class.html">QueryException</a></li>
+      <li><a href="aqueduct/SchemaException-class.html">SchemaException</a></li>
+      <li><a href="aqueduct/ValidationException-class.html">ValidationException</a></li>
+    </ol>
+  </div>
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>ApplicationMessageHub class</h1>
+
+    <section class="desc markdown">
+      <p>An object that sends and receives messages between <a href="aqueduct/ApplicationChannel-class.html">ApplicationChannel</a>s.</p>
+<p>You use this object to share information between isolates. Each <a href="aqueduct/ApplicationChannel-class.html">ApplicationChannel</a> has a property of this type. A message sent through this object
+is received by every other channel through its hub.</p>
+<p>To receive messages in a hub, add a listener via <a href="aqueduct/ApplicationMessageHub/listen.html">listen</a>. To send messages, use <a href="aqueduct/ApplicationMessageHub/add.html">add</a>.</p>
+<p>For example, an application may want to send data to every connected websocket. A reference to each websocket
+is only known to the isolate it established a connection on. This data must be sent to each isolate so that each websocket
+connected to that isolate can send the data:</p>
+<pre class="language-dart"><code>    router.route("/broadcast").linkFunction((req) async {
+      var message = await req.body.decodeAsString();
+      websocketsOnThisIsolate.forEach((s) =&gt; s.add(message);
+      messageHub.add({"event": "broadcastMessage", "data": message});
+      return new Response.accepted();
+    });
+
+    messageHub.listen((event) {
+      if (event is Map &amp;&amp; event["event"] == "broadcastMessage") {
+        websocketsOnThisIsolate.forEach((s) =&gt; s.add(event["data"]);
+      }
+    });
+</code></pre>
+    </section>
+    
+    <section>
+      <dl class="dl-horizontal">
+        <dt>Inheritance</dt>
+        <dd><ul class="gt-separated dark clazz-relationships">
+          <li>Object</li>
+          <li>Stream</li>
+          <li>ApplicationMessageHub</li>
+        </ul></dd>
+
+        <dt>Implements</dt>
+        <dd>
+          <ul class="comma-separated clazz-relationships">
+            <li>Sink</li>
+          </ul>
+        </dd>
+
+
+
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="constructors">
+      <h2>Constructors</h2>
+
+      <dl class="constructor-summary-list">
+        <dt id="ApplicationMessageHub" class="callable">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/ApplicationMessageHub.html">ApplicationMessageHub</a></span><span class="signature">()</span>
+        </dt>
+        <dd>
+          
+        </dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor inherited" id="instance-properties">
+      <h2>Properties</h2>
+
+      <dl class="properties">
+        <dt id="first" class="property inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/first.html">first</a></span>
+          <span class="signature">&#8594; Future</span>
+        </dt>
+        <dd class="inherited">
+          The first element of the stream. <a href="aqueduct/ApplicationMessageHub/first.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="hashCode" class="property inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/hashCode.html">hashCode</a></span>
+          <span class="signature">&#8594; int</span>
+        </dt>
+        <dd class="inherited">
+          The hash code for this object. <a href="aqueduct/ApplicationMessageHub/hashCode.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="isBroadcast" class="property inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/isBroadcast.html">isBroadcast</a></span>
+          <span class="signature">&#8594; bool</span>
+        </dt>
+        <dd class="inherited">
+          Whether this stream is a broadcast stream.
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="isEmpty" class="property inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/isEmpty.html">isEmpty</a></span>
+          <span class="signature">&#8594; Future<span class="signature">&lt;bool&gt;</span></span>
+        </dt>
+        <dd class="inherited">
+          Whether this stream contains any elements. <a href="aqueduct/ApplicationMessageHub/isEmpty.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="last" class="property inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/last.html">last</a></span>
+          <span class="signature">&#8594; Future</span>
+        </dt>
+        <dd class="inherited">
+          The last element of this stream. <a href="aqueduct/ApplicationMessageHub/last.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="length" class="property inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/length.html">length</a></span>
+          <span class="signature">&#8594; Future<span class="signature">&lt;int&gt;</span></span>
+        </dt>
+        <dd class="inherited">
+          The number of elements in this stream. <a href="aqueduct/ApplicationMessageHub/length.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="runtimeType" class="property inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/runtimeType.html">runtimeType</a></span>
+          <span class="signature">&#8594; Type</span>
+        </dt>
+        <dd class="inherited">
+          A representation of the runtime type of the object.
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="single" class="property inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/single.html">single</a></span>
+          <span class="signature">&#8594; Future</span>
+        </dt>
+        <dd class="inherited">
+          The single element of this stream. <a href="aqueduct/ApplicationMessageHub/single.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="instance-methods">
+      <h2>Methods</h2>
+      <dl class="callables">
+        <dt id="add" class="callable">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/add.html">add</a></span><span class="signature">(<wbr><span class="parameter" id="add-param-event"><span class="parameter-name">event</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd>
+          Sends a message to all other hubs. <a href="aqueduct/ApplicationMessageHub/add.html">[...]</a>
+          
+</dd>
+        <dt id="close" class="callable">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/close.html">close</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; Future</span>
+          </span>
+        </dt>
+        <dd>
+          Closes the sink. <a href="aqueduct/ApplicationMessageHub/close.html">[...]</a>
+          
+</dd>
+        <dt id="listen" class="callable">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/listen.html">listen</a></span><span class="signature">(<wbr><span class="parameter" id="listen-param-onData"><span class="type-annotation">void</span> <span class="parameter-name">onData</span>(<span class="parameter" id="onData-param-event"><span class="parameter-name">event</span></span>), {</span> <span class="parameter" id="listen-param-onError"><span class="type-annotation">Function</span> <span class="parameter-name">onError</span>, </span> <span class="parameter" id="listen-param-onDone"><span class="type-annotation">void</span> <span class="parameter-name">onDone</span>(), </span> <span class="parameter" id="listen-param-cancelOnError"><span class="type-annotation">bool</span> <span class="parameter-name">cancelOnError</span>: <span class="default-value">false</span></span> })
+            <span class="returntype parameter">&#8594; StreamSubscription</span>
+          </span>
+        </dt>
+        <dd>
+          Adds a listener for messages from other hubs. <a href="aqueduct/ApplicationMessageHub/listen.html">[...]</a>
+          
+</dd>
+        <dt id="any" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/any.html">any</a></span><span class="signature">(<wbr><span class="parameter" id="any-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">T</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Future<span class="signature">&lt;bool&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Checks whether <code>test</code> accepts any element provided by this stream. <a href="aqueduct/ApplicationMessageHub/any.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="asBroadcastStream" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/asBroadcastStream.html">asBroadcastStream</a></span><span class="signature">(<wbr>{<span class="parameter" id="asBroadcastStream-param-onListen"><span class="type-annotation">void</span> <span class="parameter-name">onListen</span>(<span class="parameter" id="onListen-param-subscription"><span class="type-annotation">StreamSubscription<span class="signature">&lt;T&gt;</span></span> <span class="parameter-name">subscription</span></span>), </span> <span class="parameter" id="asBroadcastStream-param-onCancel"><span class="type-annotation">void</span> <span class="parameter-name">onCancel</span>(<span class="parameter" id="onCancel-param-subscription"><span class="type-annotation">StreamSubscription<span class="signature">&lt;T&gt;</span></span> <span class="parameter-name">subscription</span></span>)</span> })
+            <span class="returntype parameter">&#8594; Stream</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a multi-subscription stream that produces the same events as this. <a href="aqueduct/ApplicationMessageHub/asBroadcastStream.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="asyncExpand" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/asyncExpand.html">asyncExpand</a></span><span class="signature">&lt;E&gt;</span><span class="signature">(<wbr><span class="parameter" id="asyncExpand-param-convert"><span class="type-annotation">Stream<span class="signature">&lt;E&gt;</span></span> <span class="parameter-name">convert</span>(<span class="parameter" id="convert-param-event"><span class="type-annotation">T</span> <span class="parameter-name">event</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Stream<span class="signature">&lt;E&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Transforms each element into a sequence of asynchronous events. <a href="aqueduct/ApplicationMessageHub/asyncExpand.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="asyncMap" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/asyncMap.html">asyncMap</a></span><span class="signature">&lt;E&gt;</span><span class="signature">(<wbr><span class="parameter" id="asyncMap-param-convert"><span class="type-annotation">FutureOr<span class="signature">&lt;E&gt;</span></span> <span class="parameter-name">convert</span>(<span class="parameter" id="convert-param-event"><span class="type-annotation">T</span> <span class="parameter-name">event</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Stream<span class="signature">&lt;E&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Creates a new stream with each data event of this stream asynchronously
+mapped to a new event. <a href="aqueduct/ApplicationMessageHub/asyncMap.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="cast" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/cast.html">cast</a></span><span class="signature">&lt;R&gt;</span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; Stream<span class="signature">&lt;R&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Adapt this stream to be a <code>Stream&lt;R&gt;</code>. <a href="aqueduct/ApplicationMessageHub/cast.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="contains" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/contains.html">contains</a></span><span class="signature">(<wbr><span class="parameter" id="contains-param-needle"><span class="type-annotation">Object</span> <span class="parameter-name">needle</span></span>)
+            <span class="returntype parameter">&#8594; Future<span class="signature">&lt;bool&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns whether <code>needle</code> occurs in the elements provided by this stream. <a href="aqueduct/ApplicationMessageHub/contains.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="distinct" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/distinct.html">distinct</a></span><span class="signature">(<wbr>[<span class="parameter" id="distinct-param-equals"><span class="type-annotation">bool</span> <span class="parameter-name">equals</span>(<span class="parameter" id="equals-param-previous"><span class="type-annotation">T</span> <span class="parameter-name">previous</span>, </span> <span class="parameter" id="equals-param-next"><span class="type-annotation">T</span> <span class="parameter-name">next</span></span>)</span> ])
+            <span class="returntype parameter">&#8594; Stream</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Skips data events if they are equal to the previous data event. <a href="aqueduct/ApplicationMessageHub/distinct.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="drain" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/drain.html">drain</a></span><span class="signature">&lt;E&gt;</span><span class="signature">(<wbr>[<span class="parameter" id="drain-param-futureValue"><span class="type-annotation">E</span> <span class="parameter-name">futureValue</span></span> ])
+            <span class="returntype parameter">&#8594; Future<span class="signature">&lt;E&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Discards all data on the stream, but signals when it's done or an error
+occurred. <a href="aqueduct/ApplicationMessageHub/drain.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="elementAt" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/elementAt.html">elementAt</a></span><span class="signature">(<wbr><span class="parameter" id="elementAt-param-index"><span class="type-annotation">int</span> <span class="parameter-name">index</span></span>)
+            <span class="returntype parameter">&#8594; Future</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns the value of the <code>index</code>th data event of this stream. <a href="aqueduct/ApplicationMessageHub/elementAt.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="every" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/every.html">every</a></span><span class="signature">(<wbr><span class="parameter" id="every-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">T</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Future<span class="signature">&lt;bool&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Checks whether <code>test</code> accepts all elements provided by this stream. <a href="aqueduct/ApplicationMessageHub/every.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="expand" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/expand.html">expand</a></span><span class="signature">&lt;S&gt;</span><span class="signature">(<wbr><span class="parameter" id="expand-param-convert"><span class="type-annotation">Iterable<span class="signature">&lt;S&gt;</span></span> <span class="parameter-name">convert</span>(<span class="parameter" id="convert-param-element"><span class="type-annotation">T</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Stream<span class="signature">&lt;S&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Transforms each element of this stream into a sequence of elements. <a href="aqueduct/ApplicationMessageHub/expand.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="firstWhere" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/firstWhere.html">firstWhere</a></span><span class="signature">(<wbr><span class="parameter" id="firstWhere-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">T</span> <span class="parameter-name">element</span></span>), {</span> <span class="parameter" id="firstWhere-param-defaultValue"><span class="type-annotation">dynamic</span> <span class="parameter-name">defaultValue</span>(), </span> <span class="parameter" id="firstWhere-param-orElse"><span class="type-annotation">dynamic</span> <span class="parameter-name">orElse</span>()</span> })
+            <span class="returntype parameter">&#8594; Future</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Finds the first element of this stream matching <code>test</code>. <a href="aqueduct/ApplicationMessageHub/firstWhere.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="fold" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/fold.html">fold</a></span><span class="signature">&lt;S&gt;</span><span class="signature">(<wbr><span class="parameter" id="fold-param-initialValue"><span class="type-annotation">S</span> <span class="parameter-name">initialValue</span>, </span> <span class="parameter" id="fold-param-combine"><span class="type-annotation">S</span> <span class="parameter-name">combine</span>(<span class="parameter" id="combine-param-previous"><span class="type-annotation">S</span> <span class="parameter-name">previous</span>, </span> <span class="parameter" id="combine-param-element"><span class="type-annotation">T</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Future<span class="signature">&lt;S&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Combines a sequence of values by repeatedly applying <code>combine</code>. <a href="aqueduct/ApplicationMessageHub/fold.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="forEach" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/forEach.html">forEach</a></span><span class="signature">(<wbr><span class="parameter" id="forEach-param-action"><span class="type-annotation">void</span> <span class="parameter-name">action</span>(<span class="parameter" id="action-param-element"><span class="type-annotation">T</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Future</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Executes <code>action</code> on each element of the stream. <a href="aqueduct/ApplicationMessageHub/forEach.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="handleError" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/handleError.html">handleError</a></span><span class="signature">(<wbr><span class="parameter" id="handleError-param-onError"><span class="type-annotation">Function</span> <span class="parameter-name">onError</span>, {</span> <span class="parameter" id="handleError-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-error"><span class="parameter-name">error</span></span>)</span> })
+            <span class="returntype parameter">&#8594; Stream</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Creates a wrapper Stream that intercepts some errors from this stream. <a href="aqueduct/ApplicationMessageHub/handleError.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="join" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/join.html">join</a></span><span class="signature">(<wbr>[<span class="parameter" id="join-param-separator"><span class="type-annotation">String</span> <span class="parameter-name">separator</span> = <span class="default-value">""</span></span> ])
+            <span class="returntype parameter">&#8594; Future<span class="signature">&lt;String&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Combines the string representation of elements into a single string. <a href="aqueduct/ApplicationMessageHub/join.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="lastWhere" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/lastWhere.html">lastWhere</a></span><span class="signature">(<wbr><span class="parameter" id="lastWhere-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">T</span> <span class="parameter-name">element</span></span>), {</span> <span class="parameter" id="lastWhere-param-defaultValue"><span class="type-annotation">dynamic</span> <span class="parameter-name">defaultValue</span>(), </span> <span class="parameter" id="lastWhere-param-orElse"><span class="type-annotation">dynamic</span> <span class="parameter-name">orElse</span>()</span> })
+            <span class="returntype parameter">&#8594; Future</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Finds the last element in this stream matching <code>test</code>. <a href="aqueduct/ApplicationMessageHub/lastWhere.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="map" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/map.html">map</a></span><span class="signature">&lt;S&gt;</span><span class="signature">(<wbr><span class="parameter" id="map-param-convert"><span class="type-annotation">S</span> <span class="parameter-name">convert</span>(<span class="parameter" id="convert-param-event"><span class="type-annotation">T</span> <span class="parameter-name">event</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Stream<span class="signature">&lt;S&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Transforms each element of this stream into a new stream event. <a href="aqueduct/ApplicationMessageHub/map.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="noSuchMethod" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation">Invocation</span> <span class="parameter-name">invocation</span></span>)
+            <span class="returntype parameter">&#8594; dynamic</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Invoked when a non-existent method or property is accessed. <a href="aqueduct/ApplicationMessageHub/noSuchMethod.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="pipe" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/pipe.html">pipe</a></span><span class="signature">(<wbr><span class="parameter" id="pipe-param-streamConsumer"><span class="type-annotation">StreamConsumer</span> <span class="parameter-name">streamConsumer</span></span>)
+            <span class="returntype parameter">&#8594; Future</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Pipes the events of this stream into <code>streamConsumer</code>. <a href="aqueduct/ApplicationMessageHub/pipe.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="reduce" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/reduce.html">reduce</a></span><span class="signature">(<wbr><span class="parameter" id="reduce-param-combine"><span class="type-annotation">dynamic</span> <span class="parameter-name">combine</span>(<span class="parameter" id="combine-param-previous"><span class="type-annotation">T</span> <span class="parameter-name">previous</span>, </span> <span class="parameter" id="combine-param-element"><span class="type-annotation">T</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Future</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Combines a sequence of values by repeatedly applying <code>combine</code>. <a href="aqueduct/ApplicationMessageHub/reduce.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="retype" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/retype.html">retype</a></span><span class="signature">&lt;R&gt;</span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; Stream<span class="signature">&lt;R&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Adapt this stream to be a <code>Stream&lt;R&gt;</code>. <a href="aqueduct/ApplicationMessageHub/retype.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="singleWhere" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/singleWhere.html">singleWhere</a></span><span class="signature">(<wbr><span class="parameter" id="singleWhere-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">T</span> <span class="parameter-name">element</span></span>), {</span> <span class="parameter" id="singleWhere-param-orElse"><span class="type-annotation">dynamic</span> <span class="parameter-name">orElse</span>()</span> })
+            <span class="returntype parameter">&#8594; Future</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Finds the single element in this stream matching <code>test</code>. <a href="aqueduct/ApplicationMessageHub/singleWhere.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="skip" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/skip.html">skip</a></span><span class="signature">(<wbr><span class="parameter" id="skip-param-count"><span class="type-annotation">int</span> <span class="parameter-name">count</span></span>)
+            <span class="returntype parameter">&#8594; Stream</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Skips the first <code>count</code> data events from this stream. <a href="aqueduct/ApplicationMessageHub/skip.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="skipWhile" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/skipWhile.html">skipWhile</a></span><span class="signature">(<wbr><span class="parameter" id="skipWhile-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">T</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Stream</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Skip data events from this stream while they are matched by <code>test</code>. <a href="aqueduct/ApplicationMessageHub/skipWhile.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="take" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/take.html">take</a></span><span class="signature">(<wbr><span class="parameter" id="take-param-count"><span class="type-annotation">int</span> <span class="parameter-name">count</span></span>)
+            <span class="returntype parameter">&#8594; Stream</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Provides at most the first <code>count</code> data events of this stream. <a href="aqueduct/ApplicationMessageHub/take.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="takeWhile" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/takeWhile.html">takeWhile</a></span><span class="signature">(<wbr><span class="parameter" id="takeWhile-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-element"><span class="type-annotation">T</span> <span class="parameter-name">element</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Stream</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Forwards data events while <code>test</code> is successful. <a href="aqueduct/ApplicationMessageHub/takeWhile.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="timeout" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/timeout.html">timeout</a></span><span class="signature">(<wbr><span class="parameter" id="timeout-param-timeLimit"><span class="type-annotation">Duration</span> <span class="parameter-name">timeLimit</span>, {</span> <span class="parameter" id="timeout-param-onTimeout"><span class="type-annotation">void</span> <span class="parameter-name">onTimeout</span>(<span class="parameter" id="onTimeout-param-sink"><span class="type-annotation">EventSink<span class="signature">&lt;T&gt;</span></span> <span class="parameter-name">sink</span></span>)</span> })
+            <span class="returntype parameter">&#8594; Stream</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Creates a new stream with the same events as this stream. <a href="aqueduct/ApplicationMessageHub/timeout.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="toList" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/toList.html">toList</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; Future<span class="signature">&lt;List&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Collects all elements of this stream in a <code>List</code>. <a href="aqueduct/ApplicationMessageHub/toList.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="toSet" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/toSet.html">toSet</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; Future<span class="signature">&lt;Set&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Collects the data of this stream in a <code>Set</code>. <a href="aqueduct/ApplicationMessageHub/toSet.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="toString" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/toString.html">toString</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; String</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a string representation of this object.
+          <div class="features">inherited</div>
+</dd>
+        <dt id="transform" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/transform.html">transform</a></span><span class="signature">&lt;S&gt;</span><span class="signature">(<wbr><span class="parameter" id="transform-param-streamTransformer"><span class="type-annotation">StreamTransformer<span class="signature">&lt;dynamic, S&gt;</span></span> <span class="parameter-name">streamTransformer</span></span>)
+            <span class="returntype parameter">&#8594; Stream<span class="signature">&lt;S&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Applies a <code>StreamTransformer</code> to the current stream. <a href="aqueduct/ApplicationMessageHub/transform.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="where" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/where.html">where</a></span><span class="signature">(<wbr><span class="parameter" id="where-param-test"><span class="type-annotation">bool</span> <span class="parameter-name">test</span>(<span class="parameter" id="test-param-event"><span class="type-annotation">T</span> <span class="parameter-name">event</span></span>)</span>)
+            <span class="returntype parameter">&#8594; Stream</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Creates a new stream from this stream that discards some elements. <a href="aqueduct/ApplicationMessageHub/where.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor inherited" id="operators">
+      <h2>Operators</h2>
+      <dl class="callables">
+        <dt id="operator ==" class="callable inherited">
+          <span class="name"><a href="aqueduct/ApplicationMessageHub/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="parameter-name">other</span></span>)
+            <span class="returntype parameter">&#8594; bool</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          The equality operator. <a href="aqueduct/ApplicationMessageHub/operator_equals.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+      </dl>
+    </section>
+
+
+
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+    <ol>
+      <li class="section-title"><a href="aqueduct/ApplicationMessageHub-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/ApplicationMessageHub/ApplicationMessageHub.html">ApplicationMessageHub</a></li>
+    
+      <li class="section-title inherited">
+        <a href="aqueduct/ApplicationMessageHub-class.html#instance-properties">Properties</a>
+      </li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/first.html">first</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/isBroadcast.html">isBroadcast</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/isEmpty.html">isEmpty</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/last.html">last</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/length.html">length</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/runtimeType.html">runtimeType</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/single.html">single</a></li>
+    
+      <li class="section-title"><a href="aqueduct/ApplicationMessageHub-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/ApplicationMessageHub/add.html">add</a></li>
+      <li><a href="aqueduct/ApplicationMessageHub/close.html">close</a></li>
+      <li><a href="aqueduct/ApplicationMessageHub/listen.html">listen</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/any.html">any</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/asBroadcastStream.html">asBroadcastStream</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/asyncExpand.html">asyncExpand</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/asyncMap.html">asyncMap</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/cast.html">cast</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/contains.html">contains</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/distinct.html">distinct</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/drain.html">drain</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/elementAt.html">elementAt</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/every.html">every</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/expand.html">expand</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/firstWhere.html">firstWhere</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/fold.html">fold</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/forEach.html">forEach</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/handleError.html">handleError</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/join.html">join</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/lastWhere.html">lastWhere</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/map.html">map</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/pipe.html">pipe</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/reduce.html">reduce</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/retype.html">retype</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/singleWhere.html">singleWhere</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/skip.html">skip</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/skipWhile.html">skipWhile</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/take.html">take</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/takeWhile.html">takeWhile</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/timeout.html">timeout</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/toList.html">toList</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/toSet.html">toSet</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/toString.html">toString</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/transform.html">transform</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/where.html">where</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/ApplicationMessageHub-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/ApplicationMessageHub/operator_equals.html">operator ==</a></li>
+    
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

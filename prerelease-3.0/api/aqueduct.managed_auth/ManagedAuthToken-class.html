@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the ManagedAuthToken class from the aqueduct.managed_auth library, for the Dart programming language.">
+  <title>ManagedAuthToken class - aqueduct.managed_auth library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct.managed_auth/aqueduct.managed_auth-library.html">aqueduct.managed_auth</a></li>
+    <li class="self-crumb">ManagedAuthToken class</li>
+  </ol>
+  <div class="self-name">ManagedAuthToken</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>aqueduct.managed_auth library</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct.managed_auth/aqueduct.managed_auth-library.html#classes">Classes</a></li>
+      <li><a href="aqueduct.managed_auth/ManagedAuthClient-class.html">ManagedAuthClient</a></li>
+      <li><a href="aqueduct.managed_auth/ManagedAuthDelegate-class.html">ManagedAuthDelegate</a></li>
+      <li><a href="aqueduct.managed_auth/ManagedAuthenticatable-class.html">ManagedAuthenticatable</a></li>
+      <li><a href="aqueduct.managed_auth/ManagedAuthResourceOwner-class.html">ManagedAuthResourceOwner</a></li>
+      <li><a href="aqueduct.managed_auth/ManagedAuthToken-class.html">ManagedAuthToken</a></li>
+    
+    
+    
+    
+    
+    
+    </ol>
+  </div>
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>ManagedAuthToken class</h1>
+
+    <section class="desc markdown">
+      <p>Represent an OAuth 2.0 authorization token and authorization code.</p>
+<p>Instances of this type are created by <a href="aqueduct.managed_auth/ManagedAuthDelegate-class.html">ManagedAuthDelegate</a> to store
+authorization tokens and codes on behalf of an <a href="aqueduct/AuthServer-class.html">AuthServer</a>. There is no
+need to use this class directly.</p>
+    </section>
+    
+    <section>
+      <dl class="dl-horizontal">
+        <dt>Inheritance</dt>
+        <dd><ul class="gt-separated dark clazz-relationships">
+          <li>Object</li>
+          <li><a href="aqueduct/ManagedObject-class.html">ManagedObject</a><span class="signature">&lt;_ManagedAuthToken&gt;</span></li>
+          <li>ManagedAuthToken</li>
+        </ul></dd>
+
+
+
+
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="constructors">
+      <h2>Constructors</h2>
+
+      <dl class="constructor-summary-list">
+        <dt id="ManagedAuthToken" class="callable">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/ManagedAuthToken.html">ManagedAuthToken</a></span><span class="signature">()</span>
+        </dt>
+        <dd>
+          Empty instance.
+        </dd>
+        <dt id="ManagedAuthToken.fromCode" class="callable">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/ManagedAuthToken.fromCode.html">ManagedAuthToken.fromCode</a></span><span class="signature">(<span class="parameter" id="fromCode-param-code"><span class="type-annotation"><a href="aqueduct/AuthCode-class.html">AuthCode</a></span> <span class="parameter-name">code</span></span>)</span>
+        </dt>
+        <dd>
+          Instance from an <a href="aqueduct/AuthCode-class.html">AuthCode</a>.
+        </dd>
+        <dt id="ManagedAuthToken.fromToken" class="callable">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/ManagedAuthToken.fromToken.html">ManagedAuthToken.fromToken</a></span><span class="signature">(<span class="parameter" id="fromToken-param-t"><span class="type-annotation"><a href="aqueduct/AuthToken-class.html">AuthToken</a></span> <span class="parameter-name">t</span></span>)</span>
+        </dt>
+        <dd>
+          Instance from an <a href="aqueduct/AuthToken-class.html">AuthToken</a>.
+        </dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor inherited" id="instance-properties">
+      <h2>Properties</h2>
+
+      <dl class="properties">
+        <dt id="accessToken" class="property inherited">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/accessToken.html">accessToken</a></span>
+          <span class="signature">&#8596; String</span>
+        </dt>
+        <dd class="inherited">
+          The access token of an authorization token. <a href="aqueduct.managed_auth/ManagedAuthToken/accessToken.html">[...]</a>
+          <div class="features">@<a href="aqueduct/Column-class.html">Column</a>(indexed: true, unique: true, nullable: true), read / write, inherited</div>
+</dd>
+        <dt id="backingMap" class="property inherited">
+          <span class="name"><a href="aqueduct/ManagedObject/backingMap.html">backingMap</a></span>
+          <span class="signature">&#8594; Map<span class="signature">&lt;String, dynamic&gt;</span></span>
+        </dt>
+        <dd class="inherited">
+          The managed values of this instance. <a href="aqueduct/ManagedObject/backingMap.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="client" class="property inherited">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/client.html">client</a></span>
+          <span class="signature">&#8596; <a href="aqueduct.managed_auth/ManagedAuthClient-class.html">ManagedAuthClient</a></span>
+        </dt>
+        <dd class="inherited">
+          The client this token was issued for.
+          <div class="features">@<a href="aqueduct/Relate-class.html">Relate</a>(#tokens, onDelete: DeleteRule.cascade, isRequired: true), read / write, inherited</div>
+</dd>
+        <dt id="code" class="property inherited">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/code.html">code</a></span>
+          <span class="signature">&#8596; String</span>
+        </dt>
+        <dd class="inherited">
+          The authorization code of this token. <a href="aqueduct.managed_auth/ManagedAuthToken/code.html">[...]</a>
+          <div class="features">@<a href="aqueduct/Column-class.html">Column</a>(indexed: true, unique: true, nullable: true), read / write, inherited</div>
+</dd>
+        <dt id="entity" class="property inherited">
+          <span class="name"><a href="aqueduct/ManagedObject/entity.html">entity</a></span>
+          <span class="signature">&#8596; <a href="aqueduct/ManagedEntity-class.html">ManagedEntity</a></span>
+        </dt>
+        <dd class="inherited">
+          The <code>ManagedEntity</code> this instance is described by.
+          <div class="features">read / write, inherited</div>
+</dd>
+        <dt id="expirationDate" class="property inherited">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/expirationDate.html">expirationDate</a></span>
+          <span class="signature">&#8596; DateTime</span>
+        </dt>
+        <dd class="inherited">
+          When this token will expire.
+          <div class="features">@<a href="aqueduct/Column-class.html">Column</a>(indexed: true), read / write, inherited</div>
+</dd>
+        <dt id="hashCode" class="property inherited">
+          <span class="name"><a href="aqueduct/HTTPSerializable/hashCode.html">hashCode</a></span>
+          <span class="signature">&#8594; int</span>
+        </dt>
+        <dd class="inherited">
+          The hash code for this object. <a href="aqueduct/HTTPSerializable/hashCode.html">[...]</a>
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="id" class="property inherited">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/id.html">id</a></span>
+          <span class="signature">&#8596; int</span>
+        </dt>
+        <dd class="inherited">
+          A primary key identifier.
+          <div class="features">@primaryKey, read / write, inherited</div>
+</dd>
+        <dt id="issueDate" class="property inherited">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/issueDate.html">issueDate</a></span>
+          <span class="signature">&#8596; DateTime</span>
+        </dt>
+        <dd class="inherited">
+          When this token was last issued or refreshed.
+          <div class="features">read / write, inherited</div>
+</dd>
+        <dt id="refreshToken" class="property inherited">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/refreshToken.html">refreshToken</a></span>
+          <span class="signature">&#8596; String</span>
+        </dt>
+        <dd class="inherited">
+          The refresh token of an authorization token. <a href="aqueduct.managed_auth/ManagedAuthToken/refreshToken.html">[...]</a>
+          <div class="features">@<a href="aqueduct/Column-class.html">Column</a>(indexed: true, unique: true, nullable: true), read / write, inherited</div>
+</dd>
+        <dt id="resourceOwner" class="property inherited">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/resourceOwner.html">resourceOwner</a></span>
+          <span class="signature">&#8596; <a href="aqueduct.managed_auth/ManagedAuthenticatable-class.html">ManagedAuthenticatable</a></span>
+        </dt>
+        <dd class="inherited">
+          The resource owner of this token. <a href="aqueduct.managed_auth/ManagedAuthToken/resourceOwner.html">[...]</a>
+          <div class="features">@<a href="aqueduct/Relate-class.html">Relate</a>.deferred(DeleteRule.cascade, isRequired: true), read / write, inherited</div>
+</dd>
+        <dt id="runtimeType" class="property inherited">
+          <span class="name"><a href="aqueduct/HTTPSerializable/runtimeType.html">runtimeType</a></span>
+          <span class="signature">&#8594; Type</span>
+        </dt>
+        <dd class="inherited">
+          A representation of the runtime type of the object.
+          <div class="features">read-only, inherited</div>
+</dd>
+        <dt id="scope" class="property inherited">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/scope.html">scope</a></span>
+          <span class="signature">&#8596; String</span>
+        </dt>
+        <dd class="inherited">
+          Scopes for this token, delimited by the space character.
+          <div class="features">@<a href="aqueduct/Column-class.html">Column</a>(nullable: true), read / write, inherited</div>
+</dd>
+        <dt id="type" class="property inherited">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/type.html">type</a></span>
+          <span class="signature">&#8596; String</span>
+        </dt>
+        <dd class="inherited">
+          The value 'bearer'.
+          <div class="features">@<a href="aqueduct/Column-class.html">Column</a>(indexed: true, nullable: true), read / write, inherited</div>
+</dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor" id="instance-methods">
+      <h2>Methods</h2>
+      <dl class="callables">
+        <dt id="asAuthCode" class="callable">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/asAuthCode.html">asAuthCode</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; <a href="aqueduct/AuthCode-class.html">AuthCode</a></span>
+          </span>
+        </dt>
+        <dd>
+          As an <a href="aqueduct/AuthCode-class.html">AuthCode</a>.
+          
+</dd>
+        <dt id="asToken" class="callable">
+          <span class="name"><a href="aqueduct.managed_auth/ManagedAuthToken/asToken.html">asToken</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; <a href="aqueduct/AuthToken-class.html">AuthToken</a></span>
+          </span>
+        </dt>
+        <dd>
+          As an <a href="aqueduct/AuthToken-class.html">AuthToken</a>.
+          
+</dd>
+        <dt id="asMap" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedObject/asMap.html">asMap</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; Map<span class="signature">&lt;String, dynamic&gt;</span></span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Converts this instance into a serializable map. <a href="aqueduct/ManagedObject/asMap.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="hasValueForProperty" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedObject/hasValueForProperty.html">hasValueForProperty</a></span><span class="signature">(<wbr><span class="parameter" id="hasValueForProperty-param-propertyName"><span class="type-annotation">String</span> <span class="parameter-name">propertyName</span></span>)
+            <span class="returntype parameter">&#8594; bool</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Checks whether or not a property has been set in this instances' <a href="aqueduct/ManagedObject/backingMap.html">backingMap</a>.
+          <div class="features">inherited</div>
+</dd>
+        <dt id="noSuchMethod" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedObject/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation">Invocation</span> <span class="parameter-name">invocation</span></span>)
+            <span class="returntype parameter">&#8594; dynamic</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Invoked when a non-existent method or property is accessed. <a href="aqueduct/ManagedObject/noSuchMethod.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="readFromMap" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedObject/readFromMap.html">readFromMap</a></span><span class="signature">(<wbr><span class="parameter" id="readFromMap-param-keyValues"><span class="type-annotation">Map<span class="signature">&lt;String, dynamic&gt;</span></span> <span class="parameter-name">keyValues</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Populates the properties of a this instance from a map. <a href="aqueduct/ManagedObject/readFromMap.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="readMap" class="callable inherited">
+          <span class="name deprecated"><a class="deprecated" href="aqueduct/ManagedObject/readMap.html">readMap</a></span><span class="signature">(<wbr><span class="parameter" id="readMap-param-keyValues"><span class="type-annotation">Map<span class="signature">&lt;String, dynamic&gt;</span></span> <span class="parameter-name">keyValues</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          
+          <div class="features">@Deprecated(&quot;3.0, use readFromMap instead&quot;), inherited</div>
+</dd>
+        <dt id="removePropertyFromBackingMap" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedObject/removePropertyFromBackingMap.html">removePropertyFromBackingMap</a></span><span class="signature">(<wbr><span class="parameter" id="removePropertyFromBackingMap-param-propertyName"><span class="type-annotation">String</span> <span class="parameter-name">propertyName</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Removes a property from the <a href="aqueduct/ManagedObject/backingMap.html">backingMap</a>. <a href="aqueduct/ManagedObject/removePropertyFromBackingMap.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="toString" class="callable inherited">
+          <span class="name"><a href="aqueduct/HTTPSerializable/toString.html">toString</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; String</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Returns a string representation of this object.
+          <div class="features">inherited</div>
+</dd>
+        <dt id="validate" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedObject/validate.html">validate</a></span><span class="signature">(<wbr>{<span class="parameter" id="validate-param-forOperation"><span class="type-annotation"><a href="aqueduct/ValidateOperation-class.html">ValidateOperation</a></span> <span class="parameter-name">forOperation</span>: <span class="default-value">ValidateOperation.insert</span>, </span> <span class="parameter" id="validate-param-collectErrorsIn"><span class="type-annotation">List<span class="signature">&lt;String&gt;</span></span> <span class="parameter-name">collectErrorsIn</span></span> })
+            <span class="returntype parameter">&#8594; bool</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Validates an object according to its property <a href="aqueduct/Validate-class.html">Validate</a> metadata. <a href="aqueduct/ManagedObject/validate.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="willInsert" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedObject/willInsert.html">willInsert</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Callback to modify an object prior to inserting it with a <a href="aqueduct/Query-class.html">Query</a>. <a href="aqueduct/ManagedObject/willInsert.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="willUpdate" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedObject/willUpdate.html">willUpdate</a></span><span class="signature">(<wbr>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Callback to modify an object prior to updating it with a <a href="aqueduct/Query-class.html">Query</a>. <a href="aqueduct/ManagedObject/willUpdate.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+      </dl>
+    </section>
+
+    <section class="summary offset-anchor inherited" id="operators">
+      <h2>Operators</h2>
+      <dl class="callables">
+        <dt id="operator ==" class="callable inherited">
+          <span class="name"><a href="aqueduct/HTTPSerializable/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="parameter-name">other</span></span>)
+            <span class="returntype parameter">&#8594; bool</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          The equality operator. <a href="aqueduct/HTTPSerializable/operator_equals.html">[...]</a>
+          <div class="features">inherited</div>
+</dd>
+        <dt id="operator []" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedObject/operator_get.html">operator []</a></span><span class="signature">(<wbr><span class="parameter" id="[]-param-propertyName"><span class="type-annotation">String</span> <span class="parameter-name">propertyName</span></span>)
+            <span class="returntype parameter">&#8594; dynamic</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Retrieves a value by property name from the <a href="aqueduct/ManagedObject/backingMap.html">backingMap</a>.
+          <div class="features">inherited</div>
+</dd>
+        <dt id="operator []=" class="callable inherited">
+          <span class="name"><a href="aqueduct/ManagedObject/operator_put.html">operator []=</a></span><span class="signature">(<wbr><span class="parameter" id="[]=-param-propertyName"><span class="type-annotation">String</span> <span class="parameter-name">propertyName</span>, </span> <span class="parameter" id="[]=-param-value"><span class="parameter-name">value</span></span>)
+            <span class="returntype parameter">&#8594; void</span>
+          </span>
+        </dt>
+        <dd class="inherited">
+          Sets a value by property name in the <a href="aqueduct/ManagedObject/backingMap.html">backingMap</a>.
+          <div class="features">inherited</div>
+</dd>
+      </dl>
+    </section>
+
+
+
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+    <ol>
+      <li class="section-title"><a href="aqueduct.managed_auth/ManagedAuthToken-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct.managed_auth/ManagedAuthToken/ManagedAuthToken.html">ManagedAuthToken</a></li>
+      <li><a href="aqueduct.managed_auth/ManagedAuthToken/ManagedAuthToken.fromCode.html">fromCode</a></li>
+      <li><a href="aqueduct.managed_auth/ManagedAuthToken/ManagedAuthToken.fromToken.html">fromToken</a></li>
+    
+      <li class="section-title inherited">
+        <a href="aqueduct.managed_auth/ManagedAuthToken-class.html#instance-properties">Properties</a>
+      </li>
+      <li class="inherited"><a href="aqueduct.managed_auth/ManagedAuthToken/accessToken.html">accessToken</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedObject/backingMap.html">backingMap</a></li>
+      <li class="inherited"><a href="aqueduct.managed_auth/ManagedAuthToken/client.html">client</a></li>
+      <li class="inherited"><a href="aqueduct.managed_auth/ManagedAuthToken/code.html">code</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedObject/entity.html">entity</a></li>
+      <li class="inherited"><a href="aqueduct.managed_auth/ManagedAuthToken/expirationDate.html">expirationDate</a></li>
+      <li class="inherited"><a href="aqueduct/HTTPSerializable/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct.managed_auth/ManagedAuthToken/id.html">id</a></li>
+      <li class="inherited"><a href="aqueduct.managed_auth/ManagedAuthToken/issueDate.html">issueDate</a></li>
+      <li class="inherited"><a href="aqueduct.managed_auth/ManagedAuthToken/refreshToken.html">refreshToken</a></li>
+      <li class="inherited"><a href="aqueduct.managed_auth/ManagedAuthToken/resourceOwner.html">resourceOwner</a></li>
+      <li class="inherited"><a href="aqueduct/HTTPSerializable/runtimeType.html">runtimeType</a></li>
+      <li class="inherited"><a href="aqueduct.managed_auth/ManagedAuthToken/scope.html">scope</a></li>
+      <li class="inherited"><a href="aqueduct.managed_auth/ManagedAuthToken/type.html">type</a></li>
+    
+      <li class="section-title"><a href="aqueduct.managed_auth/ManagedAuthToken-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct.managed_auth/ManagedAuthToken/asAuthCode.html">asAuthCode</a></li>
+      <li><a href="aqueduct.managed_auth/ManagedAuthToken/asToken.html">asToken</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedObject/asMap.html">asMap</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedObject/hasValueForProperty.html">hasValueForProperty</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedObject/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedObject/readFromMap.html">readFromMap</a></li>
+      <li class="inherited"><a class="deprecated" href="aqueduct/ManagedObject/readMap.html">readMap</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedObject/removePropertyFromBackingMap.html">removePropertyFromBackingMap</a></li>
+      <li class="inherited"><a href="aqueduct/HTTPSerializable/toString.html">toString</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedObject/validate.html">validate</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedObject/willInsert.html">willInsert</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedObject/willUpdate.html">willUpdate</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct.managed_auth/ManagedAuthToken-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/HTTPSerializable/operator_equals.html">operator ==</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedObject/operator_get.html">operator []</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedObject/operator_put.html">operator []=</a></li>
+    
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

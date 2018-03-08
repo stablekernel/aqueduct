@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the convertFromPrimitiveValue method from the ManagedRelationshipDescription class, for the Dart programming language.">
+  <title>convertFromPrimitiveValue method - ManagedRelationshipDescription class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/ManagedRelationshipDescription-class.html">ManagedRelationshipDescription</a></li>
+    <li class="self-crumb">convertFromPrimitiveValue method</li>
+  </ol>
+  <div class="self-name">convertFromPrimitiveValue</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>ManagedRelationshipDescription class</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/ManagedRelationshipDescription-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription/ManagedRelationshipDescription.html">ManagedRelationshipDescription</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/ManagedRelationshipDescription-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/ManagedRelationshipDescription/deleteRule.html">deleteRule</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription/destinationEntity.html">destinationEntity</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription/inverse.html">inverse</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription/inverseKey.html">inverseKey</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription/isBelongsTo.html">isBelongsTo</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription/relationshipType.html">relationshipType</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedPropertyDescription/autoincrement.html">autoincrement</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedPropertyDescription/entity.html">entity</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedPropertyDescription/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedPropertyDescription/isIncludedInDefaultResultSet.html">isIncludedInDefaultResultSet</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedPropertyDescription/isIndexed.html">isIndexed</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedPropertyDescription/isNullable.html">isNullable</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedPropertyDescription/isUnique.html">isUnique</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedPropertyDescription/name.html">name</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedPropertyDescription/runtimeType.html">runtimeType</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedPropertyDescription/type.html">type</a></li>
+    
+      <li class="section-title"><a href="aqueduct/ManagedRelationshipDescription-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription/convertFromPrimitiveValue.html">convertFromPrimitiveValue</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription/convertToPrimitiveValue.html">convertToPrimitiveValue</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription/documentSchemaObject.html">documentSchemaObject</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription/isAssignableWith.html">isAssignableWith</a></li>
+      <li><a href="aqueduct/ManagedRelationshipDescription/toString.html">toString</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedPropertyDescription/noSuchMethod.html">noSuchMethod</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/ManagedRelationshipDescription-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/ManagedPropertyDescription/operator_equals.html">operator ==</a></li>
+    
+    
+    
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>convertFromPrimitiveValue method</h1>
+
+    <section class="multi-line-signature">
+      <div>
+        <ol class="annotation-list">
+          <li>@override</li>
+        </ol>
+      </div>
+      <span class="returntype">dynamic</span>
+      <span class="name ">convertFromPrimitiveValue</span>
+(<wbr><span class="parameter" id="convertFromPrimitiveValue-param-value"><span class="parameter-name">value</span></span>)
+    </section>
+    <section class="desc markdown">
+      <p>Converts a value to a more complex value from a primitive value according to this instance's definition.</p>
+<p>This method takes a non-Dart representation of a value (e.g. an HTTP body or database query)
+and turns it into a Dart representation . How this value is computed
+depends on this instance's definition.</p>
+    </section>
+    
+    <section class="summary source-code" id="source">
+      <h2><span>Implementation</span> </h2>
+      <pre class="language-dart"><code class="language-dart">@override
+dynamic convertFromPrimitiveValue(dynamic value) {
+  if (value == null) {
+    return null;
+  }
+
+  if (relationshipType == ManagedRelationshipType.belongsTo || relationshipType == ManagedRelationshipType.hasOne) {
+    if (value is! Map&lt;String, dynamic&gt;) {
+      throw new ValidationException([&quot;invalid input type for &#39;$name&#39;&quot;]);
+    }
+
+    ManagedObject instance = destinationEntity.instanceType.newInstance(new Symbol(&quot;&quot;), []).reflectee;
+    instance.readFromMap(value as Map&lt;String, dynamic&gt;);
+
+    return instance;
+  }
+
+  &#47;* else if (relationshipType == ManagedRelationshipType.hasMany) { *&#47;
+
+  if (value is! List&lt;Map&lt;String, dynamic&gt;&gt;) {
+    throw new ValidationException([&quot;invalid input type for &#39;$name&#39;&quot;]);
+  }
+
+  if (value.length &gt; 0 &amp;&amp; value.first is! Map) {
+    throw new ValidationException([&quot;invalid input type for &#39;$name&#39;&quot;]);
+  }
+
+  return new ManagedSet.from((value as List&lt;Map&lt;String, dynamic&gt;&gt;).map((v) {
+    ManagedObject instance = destinationEntity.instanceType.newInstance(new Symbol(&quot;&quot;), []).reflectee;
+    instance.readFromMap(v);
+    return instance;
+  }));
+}</code></pre>
+    </section>
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

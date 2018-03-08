@@ -1,0 +1,1529 @@
+
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+        <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
+      
+      
+      
+      
+        <link rel="shortcut icon" href="../../assets/images/favicon.png">
+      
+      <meta name="generator" content="mkdocs-0.16.3, mkdocs-material-1.9.0">
+    
+    
+      
+        <title>3. Storing Data in a Database - Aqueduct 3.0 Pre-release</title>
+      
+    
+    
+      <script src="../../assets/javascripts/modernizr-e826f8942a.js"></script>
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/application-0a3554af36.css">
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    
+      <link rel="stylesheet" href="../../style/css/override.css">
+    
+    
+  </head>
+  
+  
+  
+  
+    <body>
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="drawer">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
+    <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <a href="../.." title="Aqueduct 3.0 Pre-release" class="md-icon md-icon--home md-header-nav__button">
+          </a>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <span class="md-flex__ellipsis md-header-nav__title">
+          
+            
+              
+                <span class="md-header-nav__parent">
+                  Tutorial
+                </span>
+              
+            
+            3. Storing Data in a Database
+          
+        </span>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
+          
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="search"></label>
+  <div class="md-search__inner">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">&#xE5CD;</button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result" data-md-lang-search="" data-md-lang-tokenizer="[\s\-]+">
+          <div class="md-search-result__meta" data-md-lang-result-none="No matching documents" data-md-lang-result-one="1 matching document" data-md-lang-result-other="# matching documents">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+          </div>
+        </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="drawer">
+    
+      <i class="md-icon md-icon--home md-nav__button"></i>
+    
+    Aqueduct 3.0 Pre-release
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../.." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../core_concepts/" title="Core Concepts" class="md-nav__link">
+      Core Concepts
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../getting_started/" title="Getting Started" class="md-nav__link">
+      Getting Started
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../tour/" title="Tour" class="md-nav__link">
+      Tour
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../intellij/" title="IntelliJ IDEA Templates" class="md-nav__link">
+      IntelliJ IDEA Templates
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-6" type="checkbox" id="nav-6">
+    
+    <label class="md-nav__link" for="nav-6">
+      Snippets
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-6">
+        Snippets
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/http/" title="HTTP" class="md-nav__link">
+      HTTP
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/orm/" title="ORM" class="md-nav__link">
+      ORM
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/auth/" title="Authentication and Authorization" class="md-nav__link">
+      Authentication and Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/test/" title="Testing" class="md-nav__link">
+      Testing
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-7" type="checkbox" id="nav-7" checked>
+    
+    <label class="md-nav__link" for="nav-7">
+      Tutorial
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-7">
+        Tutorial
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../getting-started/" title="1. Getting Started" class="md-nav__link">
+      1. Getting Started
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../executing-queries/" title="2. Reading from a Database" class="md-nav__link">
+      2. Reading from a Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        3. Storing Data in a Database
+      </label>
+    
+    <a href="./" title="3. Storing Data in a Database" class="md-nav__link md-nav__link--active">
+      3. Storing Data in a Database
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#http-resources-and-methods" title="HTTP Resources and Methods" class="md-nav__link">
+    HTTP Resources and Methods
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inserting-data" title="Inserting Data" class="md-nav__link">
+    Inserting Data
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request-and-response-bodies" title="Request and Response Bodies" class="md-nav__link">
+    Request and Response Bodies
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#response-body-encoding" title="Response Body Encoding" class="md-nav__link">
+    Response Body Encoding
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#request-body-encoding" title="Request Body Encoding" class="md-nav__link">
+    Request Body Encoding
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      Guides
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        Guides
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8-1" type="checkbox" id="nav-8-1">
+    
+    <label class="md-nav__link" for="nav-8-1">
+      Serving HTTP Requests
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-8-1">
+        Serving HTTP Requests
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/structure/" title="Application Structure" class="md-nav__link">
+      Application Structure
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/controller/" title="Handling Requests: Fundamentals" class="md-nav__link">
+      Handling Requests: Fundamentals
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/routing/" title="Routing" class="md-nav__link">
+      Routing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/channel/" title="Initialization and the ApplicationChannel" class="md-nav__link">
+      Initialization and the ApplicationChannel
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/resource_controller/" title="Handling Requests: ResourceController" class="md-nav__link">
+      Handling Requests: ResourceController
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/configure/" title="Configuration" class="md-nav__link">
+      Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/threading/" title="Multi-threading" class="md-nav__link">
+      Multi-threading
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8-2" type="checkbox" id="nav-8-2">
+    
+    <label class="md-nav__link" for="nav-8-2">
+      Databases and ORM
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-8-2">
+        Databases and ORM
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/connecting/" title="Connecting to a Database" class="md-nav__link">
+      Connecting to a Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/modeling_data/" title="Modeling Data" class="md-nav__link">
+      Modeling Data
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
+      Storage, Serialization and Deserialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/executing_queries/" title="Executing Queries" class="md-nav__link">
+      Executing Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/advanced_queries/" title="Advanced Queries" class="md-nav__link">
+      Advanced Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/validations/" title="Validations" class="md-nav__link">
+      Validations
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/db_tools/" title="Migration and Tooling" class="md-nav__link">
+      Migration and Tooling
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/json_columns/" title="JSON Document Storage" class="md-nav__link">
+      JSON Document Storage
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8-3" type="checkbox" id="nav-8-3">
+    
+    <label class="md-nav__link" for="nav-8-3">
+      Authorization and OAuth 2.0
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-8-3">
+        Authorization and OAuth 2.0
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/server/" title="Setting up Authorization" class="md-nav__link">
+      Setting up Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/authorizer/" title="Protecting Routes" class="md-nav__link">
+      Protecting Routes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/controllers/" title="Issuing Access Tokens" class="md-nav__link">
+      Issuing Access Tokens
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/cli/" title="Managing OAuth 2.0 Clients" class="md-nav__link">
+      Managing OAuth 2.0 Clients
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/auth_scopes/" title="OAuth 2.0 Scoping" class="md-nav__link">
+      OAuth 2.0 Scoping
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/what_is_oauth/" title="What is OAuth 2.0?" class="md-nav__link">
+      What is OAuth 2.0?
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8-4" type="checkbox" id="nav-8-4">
+    
+    <label class="md-nav__link" for="nav-8-4">
+      Development and Testing
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-8-4">
+        Development and Testing
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/database/" title="Using a Local Database" class="md-nav__link">
+      Using a Local Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/debugger/" title="Using the Debugger" class="md-nav__link">
+      Using the Debugger
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/best_practices/" title="Development Best Practices" class="md-nav__link">
+      Development Best Practices
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/clients/" title="Developing Client Applications" class="md-nav__link">
+      Developing Client Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/tests/" title="Writing Tests" class="md-nav__link">
+      Writing Tests
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/mock/" title="Mocking Services" class="md-nav__link">
+      Mocking Services
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8-5" type="checkbox" id="nav-8-5">
+    
+    <label class="md-nav__link" for="nav-8-5">
+      Deployment
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-8-5">
+        Deployment
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_local/" title="Deploy Locally" class="md-nav__link">
+      Deploy Locally
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_heroku/" title="Deploy on Heroku" class="md-nav__link">
+      Deploy on Heroku
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_aws/" title="Deploy on AWS" class="md-nav__link">
+      Deploy on AWS
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/script/" title="Deploying without aqueduct serve" class="md-nav__link">
+      Deploying without aqueduct serve
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8-6" type="checkbox" id="nav-8-6">
+    
+    <label class="md-nav__link" for="nav-8-6">
+      OpenAPI Documentation
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-8-6">
+        OpenAPI Documentation
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/cli/" title="Creating an OpenAPI Document" class="md-nav__link">
+      Creating an OpenAPI Document
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/components/" title="Documenting Components" class="md-nav__link">
+      Documenting Components
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/endpoint/" title="Documenting Endpoint Controllers" class="md-nav__link">
+      Documenting Endpoint Controllers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/middleware/" title="Documenting Middleware Controllers" class="md-nav__link">
+      Documenting Middleware Controllers
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8-7" type="checkbox" id="nav-8-7">
+    
+    <label class="md-nav__link" for="nav-8-7">
+      Command-line Tooling
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-8-7">
+        Command-line Tooling
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/overview/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/create/" title="Creating Applications" class="md-nav__link">
+      Creating Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/running/" title="Running Applications" class="md-nav__link">
+      Running Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/document/" title="Generating an OpenAPI/Swagger Specification" class="md-nav__link">
+      Generating an OpenAPI/Swagger Specification
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/setup/" title="Other Tools" class="md-nav__link">
+      Other Tools
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#http-resources-and-methods" title="HTTP Resources and Methods" class="md-nav__link">
+    HTTP Resources and Methods
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inserting-data" title="Inserting Data" class="md-nav__link">
+    Inserting Data
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#request-and-response-bodies" title="Request and Response Bodies" class="md-nav__link">
+    Request and Response Bodies
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#response-body-encoding" title="Response Body Encoding" class="md-nav__link">
+    Response Body Encoding
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#request-body-encoding" title="Request Body Encoding" class="md-nav__link">
+    Request Body Encoding
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/tut/storing-data.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
+                
+                <h1 id="3-storing-data-in-a-database">3. Storing Data in a Database</h1>
+<p>In the previous exercise, we loaded some heroes into the database our application reads from. Now, we will allow our application to store, delete and modify heroes in the database. Before we embark on this part of the journey, it's important that we understand how an HTTP API is intended to work.</p>
+<h2 id="http-resources-and-methods">HTTP Resources and Methods</h2>
+<p>The <a href="https://tools.ietf.org/html/rfc7231">HTTP specification</a> defines the concept of a <em>resource</em>. A resource can be anything - a hero, a bank account, a light switch in your home, a temperature sensor in Antarctica, etc. Some of these things are physical objects (the light switch), and some are digital; they are all still resources. An HTTP server application is an interface to these resources; a client requests that something be done with a resource, and the server finds a way to get it done.</p>
+<p>Resources are identified with a URI. A URI <em>universally identifies</em> a resource: it has the address of a server to connect to, and a path that identifies the resource on that server. When writing Aqueduct applications, we don't care much about the server part of a URL - the internet figures out that part. What we do care about is the path of the URL - like <code>/heroes</code>.</p>
+<p>An application uses the URL path to determine which resource the request wants to work with. Right now, our application works with hero resources. A request with the path <code>/heroes/1</code> wants to do something with an individual hero (that is identified by the number <code>1</code>). A request with the path <code>/heroes</code> will act on the entire collection of heroes.</p>
+<p>These actions are primarily described by the request method (like GET, POST, OR DELETE). Each of these methods has a general meaning that describes an action that can be applied to a resource. For example, a <code>GET /heroes</code> means "get me all of the hero resources". The meaning for each of these methods are as follows:</p>
+<ul>
+<li>GET: returns a collection of some resource or an individual resource</li>
+<li>POST: inserts or appends a resource to a collection of some resource; a representation of the resource is in the request body</li>
+<li>PUT: replaces a resource with the contents of the request body (or in some cases, replaces the entire collection of some resource)</li>
+<li>DELETE: deletes a resource (or in some cases, deletes the entire collection of some resource)</li>
+</ul>
+<p>It turns out, we can create a lot of incredible behavior by just combining these methods and a request path. More importantly, by following these specifications, client applications can use generic libraries to access any HTTP API with very little effort. This allows us to create complex systems that are easily made available to a browser, mobile phone or any other internet-connected device.</p>
+<div class="admonition note">
+<p class="admonition-title">But is it REST?</p>
+<p>REST is a set of design patterns for HTTP 1.0 that made a lot of sense. Version 1.1 of HTTP - the one that we use today - codifies the  principles of REST. Therefore, HTTP 1.1 is effectively REST; just a lot easier to say. HTTP 2.0 doesn't change the semantics of HTTP 1.1, it just changes the transmission format.</p>
+</div>
+<h2 id="inserting-data">Inserting Data</h2>
+<p>We'll start by adding behavior that allows for new heroes to be inserted into the database. Following our previous discussion, the HTTP request must take the form <code>POST /heroes</code> - we are appending a new hero to the collection of heroes. This request will contain the JSON representation of a hero in its body, for example:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="nt">&quot;name&quot;</span><span class="p">:</span> <span class="s2">&quot;Master of Aqueducts&quot;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Our <code>HeroesController</code> will handle this operation. In general, a single endpoint controller should handle every operation on a resource collection and its individual resources. In <code>heroes_controller.dart</code>, add the following operation method:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">Operation</span><span class="p">.</span><span class="n">post</span><span class="p">()</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">createHero</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">final</span> <span class="n">body</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
+  <span class="kd">final</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Hero</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+    <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">body</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">];</span>
+
+  <span class="kd">final</span> <span class="n">insertedHero</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
+
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">insertedHero</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>This operation method grabs the hero from the request's body, constructs a query that inserts that hero, and then returns it in the response.</p>
+<p>Using a <code>Query&lt;Hero&gt;</code> to insert a row isn't very different than using one to fetch rows. When inserting a row, we execute <code>query.insert()</code> instead of <code>query.fetch()</code>. Instead of applying expressions with <code>where</code>, we set the properties of <code>values</code>. The <code>values</code> of a query is an empty instance of the type being inserted.</p>
+<p>Each property we set on <code>values</code> is sent in an <code>INSERT</code> command to the database. The generated SQL for the above would be something like:</p>
+<div class="codehilite"><pre><span></span><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">_Hero</span> <span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">&#39;Hero Name&#39;</span><span class="p">);</span>
+</pre></div>
+
+
+<p>The database automatically generates a value for the <code>id</code> property of a <code>Hero</code> (its <code>@primaryKey</code> annotation enables the "auto-incrementing" option). When the row has been successfully inserted, a new <code>Hero</code> object is returned - containing any values that were generated by the database. Most API endpoints return the created object in the response so that the client has the same information that the server has, and our application is no different.</p>
+<div class="admonition tip">
+<p class="admonition-title">Column Attributes</p>
+<p>See <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Column-class.html">the API reference for Column</a> for column options like auto-incrementing.</p>
+</div>
+<p>Re-run your application. In the browser application, click on <code>Heroes</code> near the top of the page. Then, enter a name into the <code>Hero name:</code> field and click <code>Add</code>. The new hero will appear. You can re-run the application and that hero will still be available, because it has been stored in the database on your machine.</p>
+<p><img alt="Insert Hero" src="../../img/run3.png" /></p>
+<div class="admonition tip">
+<p class="admonition-title">Sub-resources</p>
+<p>We mentioned that a single controller should handle every operation for a resource collection and its individual resources. Some resources are complex enough that they can have sub-resources. For example, an organization of heroes (like the X-Men or Fantastic Four) contains heroes, but it might also contain buildings and equipment owned by the organization. The heroes, buildings and equipment are sub-resources of an organization.  Each sub-resource should have its own route and controller instead of trying to shove everything into a single route and controller. See the following code snippet for an example.</p>
+</div>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">override</span>
+<span class="n">Controller</span> <span class="kd">get</span> <span class="n">entryPoint</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Router</span><span class="p">()</span>
+    <span class="p">..</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/organizations/[:orgName]&quot;</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">OrganizationController</span><span class="p">());</span>
+    <span class="p">..</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/organizations/:orgName/heroes/[:heroID]&quot;</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">OrgHeroesController</span><span class="p">());</span>
+    <span class="p">..</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/organizations/:orgName/buildings/[:buildingID]&quot;</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">OrgBuildingController</span><span class="p">());</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h2 id="request-and-response-bodies">Request and Response Bodies</h2>
+<p>So far, we've largely glossed over how request and response bodies are handled, and now is a good time to dig in to this topic.</p>
+<h3 id="response-body-encoding">Response Body Encoding</h3>
+<p>When we create a response, we specify its status code and optionally its headers and body. For example, the following creates a response with a status code of 200 OK with an empty list body:</p>
+<div class="codehilite"><pre><span></span><span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">([])</span>
+</pre></div>
+
+
+<p>The first argument to <code>Response.ok</code> is a <em>body object</em>. A body object is automatically encoded according to the <code>contentType</code> of its response. By default, the content type of a response is <code>application/json</code> - so by default, all of our response body objects are JSON-encoded in the response body.</p>
+<div class="admonition note">
+<p class="admonition-title">Other Response Constructors</p>
+<p>The default constructor for a <code>Response</code> takes a status code, map of headers and a body object: <code>Response(200, {}, "body")</code>. There are many named constructors for <code>Response</code>, like <code>Response.ok</code> or <code>Response.notFound</code>. These constructors set the status code and expose parameters that are intended for that type of response. For example, a 200 OK response should have a body, so <code>Response.ok</code> has a required body object argument. See <a href="https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html">the API reference for Response</a> for possible constructors and properties of a response.</p>
+</div>
+<p>To change the format a body object is encoded into, you set the <code>contentType</code> of the response. For example,</p>
+<div class="codehilite"><pre><span></span><span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">([])</span>
+  <span class="p">..</span><span class="n">contentType</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;application&quot;</span><span class="p">,</span> <span class="s2">&quot;xml&quot;</span><span class="p">);</span>
+</pre></div>
+
+
+<p>The default supported content types are JSON, <code>application/x-www-form-urlencoded</code> and all <code>text/*</code> types. To encode other content-types, you must register a <code>Codec</code> with <code>HTTPCodecRepository.</code> A body object is only valid if the codec selected by the response's content-type can encode it. If it can't, an error will be thrown and a 500 Server Error response is sent instead.</p>
+<p>Types that implement <code>HTTPSerializable</code> may also be body objects. Objects that implement this type provide an <code>asMap()</code> method that converts their properties into a <code>Map</code> before being passed to the encoder. This <code>Map</code> must be encodable for the response's content-type codec. You may also provide a <code>List</code> of <code>HTTPSerializable</code>, for which the list of each object's <code>asMap()</code> is passed to the encoder.</p>
+<p><code>ManagedObject</code> implements the <code>HTTPSerializable</code> interface, and therefore all managed objects (and lists of managed objects) can be body objects.</p>
+<h3 id="request-body-encoding">Request Body Encoding</h3>
+<p>You read the body of a request through a <code>RequestBody</code> object. A <code>RequestBody</code> object decodes the contents of the request body into Dart objects that you use in your application. This decoding is performed by a <code>Codec</code> that has been registered for the request's content-type. The decoded object is determined by the format of the data. For example, a JSON array decodes into a <code>List</code>, a JSON object into a <code>Map</code>.</p>
+<p>When you write code to read a request body, you are also writing code that validates the request body is in the expected format. For example, your <code>HeroesController</code> invokes <code>asMap</code>:</p>
+<div class="codehilite"><pre><span></span><span class="c1">// request.body is a RequestBody instance</span>
+<span class="kd">final</span> <span class="n">body</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
+</pre></div>
+
+
+<p>If the decoded body is not a <code>Map</code>, an exception is thrown that automatically sends an appropriate error response to the client.</p>
+<p>You may also bind the body of a request to an operation method parameter. This allows you to create types (or use existing types) in your application that the populated with data from a request body. Let's bind a <code>Hero</code> instance to a request body in our <code>HeroesController</code>. Update the code in that file to the following:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">Operation</span><span class="p">.</span><span class="n">post</span><span class="p">()</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">createHero</span><span class="p">(</span><span class="err">@</span><span class="n">Bind</span><span class="p">.</span><span class="n">body</span><span class="p">()</span> <span class="n">Hero</span> <span class="n">inputHero</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">final</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Hero</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+    <span class="p">..</span><span class="n">values</span> <span class="o">=</span> <span class="n">inputHero</span><span class="p">;</span>
+
+  <span class="kd">final</span> <span class="n">insertedHero</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+
+  <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">insertedHero</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Values in the request body object are decoded into a <code>Hero</code> object - each key in the request body maps to a property of our <code>Hero</code>. For example, the value for the key 'name' is stored in the <code>inputHero.name</code>. If decoding the request body into a <code>Hero</code> instance fails for any reason, a 400 Bad Request response is sent and the operation method is not called.</p>
+<p>An object can only be bound to a request body if it implements <code>HTTPSerializable</code> - the good news is all <code>ManagedObject</code>s implement this interface. You may create your own types that implement this interface, and you may also bind a <code>List&lt;T&gt;</code>, where <code>T</code> implements the interface.</p>
+<p>Re-run your <code>heroes</code> application. On <a href="http://aqueduct-tutorial.stablekernel.io">http://aqueduct-tutorial.stablekernel.io</a>, click on the <code>Heroes</code> button on the top of the screen. In the text field, enter a new hero name and click <code>Add</code>. You'll see your new hero added to the list! You can shutdown your application and run it again and you'll still be able to fetch your new hero.</p>
+<p><img alt="Aqueduct Tutorial Third Run" src="../../img/run3.png" /></p>
+<div class="admonition tip">
+<p class="admonition-title">Query Construction</p>
+<p>Properties like <code>values</code> and <code>where</code> prevent errors by type and name checking columns with the analyzer. They're also great for speeding up writing code because your IDE will autocomplete property names. There is <a href="../../db/advanced_queries/">specific behavior</a> a query uses to decide whether it should include a value from these two properties in the SQL it generates.</p>
+</div>
+                
+                  
+                
+              
+              
+                
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../executing-queries/" title="2. Reading from a Database" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                2. Reading from a Database
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../../http/overview/" title="Overview" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Overview
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Built by stable|kernel
+          </div>
+        
+        powered by
+        <a href="http://www.mkdocs.org" title="MkDocs">MkDocs</a>
+        and
+        <a href="http://squidfunk.github.io/mkdocs-material/" title="Material for MkDocs">
+          Material for MkDocs</a>
+      </div>
+      
+        
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../assets/javascripts/application-3700c4cc12.js"></script>
+      
+      
+      <script>app.initialize({url:{base:"../.."}})</script>
+      
+    
+    
+      
+      <script>!function(e,t,a,n,o,c,i){e.GoogleAnalyticsObject=o,e[o]=e[o]||function(){(e[o].q=e[o].q||[]).push(arguments)},e[o].l=1*new Date,c=t.createElement(a),i=t.getElementsByTagName(a)[0],c.async=1,c.src=n,i.parentNode.insertBefore(c,i)}(window,document,"script","https://www.google-analytics.com/analytics.js","ga"),ga("create","UA-41269877-2","aqueduct.io"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");Array.prototype.map.call(links,function(e){e.host!=document.location.host&&e.addEventListener("click",function(){var t=e.getAttribute("data-md-action")||"follow";ga("send","event","outbound",t,e.href)})});var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})</script>
+      
+    
+  </body>
+</html>

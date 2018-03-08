@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the refresh method from the AuthServer class, for the Dart programming language.">
+  <title>refresh method - AuthServer class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/AuthServer-class.html">AuthServer</a></li>
+    <li class="self-crumb">refresh method</li>
+  </ol>
+  <div class="self-name">refresh</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>AuthServer class</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/AuthServer-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/AuthServer/AuthServer.html">AuthServer</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/AuthServer-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/AuthServer/delegate.html">delegate</a></li>
+      <li><a href="aqueduct/AuthServer/documentedAuthorizationCodeFlow.html">documentedAuthorizationCodeFlow</a></li>
+      <li><a href="aqueduct/AuthServer/documentedPasswordFlow.html">documentedPasswordFlow</a></li>
+      <li><a href="aqueduct/AuthServer/hashFunction.html">hashFunction</a></li>
+      <li><a href="aqueduct/AuthServer/hashLength.html">hashLength</a></li>
+      <li><a href="aqueduct/AuthServer/hashRounds.html">hashRounds</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/AuthServer-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/AuthServer/authenticate.html">authenticate</a></li>
+      <li><a href="aqueduct/AuthServer/authenticateForCode.html">authenticateForCode</a></li>
+      <li><a href="aqueduct/AuthServer/clientForID.html">clientForID</a></li>
+      <li><a href="aqueduct/AuthServer/documentComponents.html">documentComponents</a></li>
+      <li><a href="aqueduct/AuthServer/documentRequirementsForAuthorizer.html">documentRequirementsForAuthorizer</a></li>
+      <li><a href="aqueduct/AuthServer/exchange.html">exchange</a></li>
+      <li><a href="aqueduct/AuthServer/hashPassword.html">hashPassword</a></li>
+      <li><a href="aqueduct/AuthServer/refresh.html">refresh</a></li>
+      <li><a href="aqueduct/AuthServer/revokeAuthenticatableAccessForIdentifier.html">revokeAuthenticatableAccessForIdentifier</a></li>
+      <li><a href="aqueduct/AuthServer/revokeClientID.html">revokeClientID</a></li>
+      <li><a href="aqueduct/AuthServer/validate.html">validate</a></li>
+      <li><a href="aqueduct/AuthServer/verify.html">verify</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/toString.html">toString</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/AuthServer-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/operator_equals.html">operator ==</a></li>
+    
+    
+    
+      <li class="section-title"><a href="aqueduct/AuthServer-class.html#constants">Constants</a></li>
+      <li><a href="aqueduct/AuthServer/TokenTypeBearer-constant.html">TokenTypeBearer</a></li>
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>refresh method</h1>
+
+    <section class="multi-line-signature">
+      <span class="returntype">Future<span class="signature">&lt;<a href="aqueduct/AuthToken-class.html">AuthToken</a>&gt;</span></span>
+      <span class="name ">refresh</span>
+(<wbr><span class="parameter" id="refresh-param-refreshToken"><span class="type-annotation">String</span> <span class="parameter-name">refreshToken</span>, </span> <span class="parameter" id="refresh-param-clientID"><span class="type-annotation">String</span> <span class="parameter-name">clientID</span>, </span> <span class="parameter" id="refresh-param-clientSecret"><span class="type-annotation">String</span> <span class="parameter-name">clientSecret</span>, {</span> <span class="parameter" id="refresh-param-requestedScopes"><span class="type-annotation">List<span class="signature">&lt;<a href="aqueduct/AuthScope-class.html">AuthScope</a>&gt;</span></span> <span class="parameter-name">requestedScopes</span></span> })
+    </section>
+    <section class="desc markdown">
+      <p>Refreshes a valid <a href="aqueduct/AuthToken-class.html">AuthToken</a> instance.</p>
+<p>This method will refresh a <a href="aqueduct/AuthToken-class.html">AuthToken</a> given the <a href="aqueduct/AuthToken-class.html">AuthToken</a>'s <code>refreshToken</code> for a given client ID.
+This method coordinates with this instance's <a href="aqueduct/AuthServer/delegate.html">delegate</a> to update the old token with a new access token and issue/expiration dates if successful.
+If not successful, it will throw an <a href="aqueduct/AuthRequestError-class.html">AuthRequestError</a>.</p>
+    </section>
+    
+    <section class="summary source-code" id="source">
+      <h2><span>Implementation</span> </h2>
+      <pre class="language-dart"><code class="language-dart">Future&lt;AuthToken&gt; refresh(String refreshToken, String clientID, String clientSecret,
+    {List&lt;AuthScope&gt; requestedScopes}) async {
+  if (clientID == null) {
+    throw new AuthServerException(AuthRequestError.invalidClient, null);
+  }
+
+  AuthClient client = await clientForID(clientID);
+  if (client == null) {
+    throw new AuthServerException(AuthRequestError.invalidClient, null);
+  }
+
+  if (refreshToken == null) {
+    throw new AuthServerException(AuthRequestError.invalidRequest, client);
+  }
+
+  var t = await delegate.fetchTokenByRefreshToken(this, refreshToken);
+  if (t == null || t.clientID != clientID) {
+    throw new AuthServerException(AuthRequestError.invalidGrant, client);
+  }
+
+  if (clientSecret == null) {
+    throw new AuthServerException(AuthRequestError.invalidClient, client);
+  }
+
+  if (client.hashedSecret != hashPassword(clientSecret, client.salt)) {
+    throw new AuthServerException(AuthRequestError.invalidClient, client);
+  }
+
+  var updatedScopes = t.scopes;
+  if ((requestedScopes?.length ?? 0) != 0) {
+    &#47;&#47; If we do specify scope
+    for (var incomingScope in requestedScopes) {
+      var hasExistingScopeOrSuperset =
+          t.scopes.any((existingScope) =&gt; incomingScope.isSubsetOrEqualTo(existingScope));
+
+      if (!hasExistingScopeOrSuperset) {
+        throw new AuthServerException(AuthRequestError.invalidScope, client);
+      }
+
+      if (!client.allowsScope(incomingScope)) {
+        throw new AuthServerException(AuthRequestError.invalidScope, client);
+      }
+    }
+
+    updatedScopes = requestedScopes;
+  } else if (client.supportsScopes) {
+    &#47;&#47; Ensure we still have access to same scopes if we didn&#39;t specify any
+    for (var incomingScope in t.scopes) {
+      if (!client.allowsScope(incomingScope)) {
+        throw new AuthServerException(AuthRequestError.invalidScope, client);
+      }
+    }
+  }
+
+  var diff = t.expirationDate.difference(t.issueDate);
+  var now = new DateTime.now().toUtc();
+  var newToken = new AuthToken()
+    ..accessToken = randomStringOfLength(32)
+    ..issueDate = now
+    ..expirationDate = now.add(new Duration(seconds: diff.inSeconds)).toUtc()
+    ..refreshToken = t.refreshToken
+    ..type = t.type
+    ..scopes = updatedScopes
+    ..resourceOwnerIdentifier = t.resourceOwnerIdentifier
+    ..clientID = t.clientID;
+
+  await delegate.refreshTokenWithAccessToken(
+      this, t.accessToken, newToken.accessToken, newToken.issueDate, newToken.expirationDate);
+
+  return newToken;
+}</code></pre>
+    </section>
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>

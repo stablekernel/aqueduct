@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="API docs for the validate method from the AuthServer class, for the Dart programming language.">
+  <title>validate method - AuthServer class - aqueduct library - Dart API</title>
+  <!-- required because all the links are pseudo-absolute -->
+  <base href="../..">
+
+  <link href="https://fonts.googleapis.com/css?family=Source+Code+Pro:500,400i,400,300|Source+Sans+Pro:400,300,700" rel="stylesheet">
+  <link rel="stylesheet" href="static-assets/github.css">
+  <link rel="stylesheet" href="static-assets/styles.css">
+  <link rel="icon" href="static-assets/favicon.png">
+
+</head>
+
+<body>
+
+<div id="overlay-under-drawer"></div>
+
+<header id="title">
+  <button id="sidenav-left-toggle" type="button">&nbsp;</button>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="index.html">aqueduct</a></li>
+    <li><a href="aqueduct/aqueduct-library.html">aqueduct</a></li>
+    <li><a href="aqueduct/AuthServer-class.html">AuthServer</a></li>
+    <li class="self-crumb">validate&lt;T&gt; method</li>
+  </ol>
+  <div class="self-name">validate</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+
+<main>
+
+  <div class="col-xs-6 col-sm-3 col-md-2 sidebar sidebar-offcanvas-left">
+    <h5>AuthServer class</h5>
+    <ol>
+      <li class="section-title"><a href="aqueduct/AuthServer-class.html#constructors">Constructors</a></li>
+      <li><a href="aqueduct/AuthServer/AuthServer.html">AuthServer</a></li>
+    
+      <li class="section-title">
+        <a href="aqueduct/AuthServer-class.html#instance-properties">Properties</a>
+      </li>
+      <li><a href="aqueduct/AuthServer/delegate.html">delegate</a></li>
+      <li><a href="aqueduct/AuthServer/documentedAuthorizationCodeFlow.html">documentedAuthorizationCodeFlow</a></li>
+      <li><a href="aqueduct/AuthServer/documentedPasswordFlow.html">documentedPasswordFlow</a></li>
+      <li><a href="aqueduct/AuthServer/hashFunction.html">hashFunction</a></li>
+      <li><a href="aqueduct/AuthServer/hashLength.html">hashLength</a></li>
+      <li><a href="aqueduct/AuthServer/hashRounds.html">hashRounds</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/hashCode.html">hashCode</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/runtimeType.html">runtimeType</a></li>
+    
+      <li class="section-title"><a href="aqueduct/AuthServer-class.html#instance-methods">Methods</a></li>
+      <li><a href="aqueduct/AuthServer/authenticate.html">authenticate</a></li>
+      <li><a href="aqueduct/AuthServer/authenticateForCode.html">authenticateForCode</a></li>
+      <li><a href="aqueduct/AuthServer/clientForID.html">clientForID</a></li>
+      <li><a href="aqueduct/AuthServer/documentComponents.html">documentComponents</a></li>
+      <li><a href="aqueduct/AuthServer/documentRequirementsForAuthorizer.html">documentRequirementsForAuthorizer</a></li>
+      <li><a href="aqueduct/AuthServer/exchange.html">exchange</a></li>
+      <li><a href="aqueduct/AuthServer/hashPassword.html">hashPassword</a></li>
+      <li><a href="aqueduct/AuthServer/refresh.html">refresh</a></li>
+      <li><a href="aqueduct/AuthServer/revokeAuthenticatableAccessForIdentifier.html">revokeAuthenticatableAccessForIdentifier</a></li>
+      <li><a href="aqueduct/AuthServer/revokeClientID.html">revokeClientID</a></li>
+      <li><a href="aqueduct/AuthServer/validate.html">validate</a></li>
+      <li><a href="aqueduct/AuthServer/verify.html">verify</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/noSuchMethod.html">noSuchMethod</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/toString.html">toString</a></li>
+    
+      <li class="section-title inherited"><a href="aqueduct/AuthServer-class.html#operators">Operators</a></li>
+      <li class="inherited"><a href="aqueduct/APIComponentDocumenter/operator_equals.html">operator ==</a></li>
+    
+    
+    
+      <li class="section-title"><a href="aqueduct/AuthServer-class.html#constants">Constants</a></li>
+      <li><a href="aqueduct/AuthServer/TokenTypeBearer-constant.html">TokenTypeBearer</a></li>
+    </ol>
+  </div><!--/.sidebar-offcanvas-->
+
+  <div class="col-xs-12 col-sm-9 col-md-8 main-content">
+    <h1>validate&lt;T&gt; method</h1>
+
+    <section class="multi-line-signature">
+      <div>
+        <ol class="annotation-list">
+          <li>@override</li>
+        </ol>
+      </div>
+      <span class="returntype">FutureOr<span class="signature">&lt;<a href="aqueduct/Authorization-class.html">Authorization</a>&gt;</span></span>
+      <span class="name ">validate</span>
+&lt;T&gt;(<wbr><span class="parameter" id="validate-param-parser"><span class="type-annotation"><a href="aqueduct/AuthorizationParser-class.html">AuthorizationParser</a><span class="signature">&lt;T&gt;</span></span> <span class="parameter-name">parser</span>, </span> <span class="parameter" id="validate-param-authorizationData"><span class="type-annotation">T</span> <span class="parameter-name">authorizationData</span>, {</span> <span class="parameter" id="validate-param-requiredScope"><span class="type-annotation">List<span class="signature">&lt;<a href="aqueduct/AuthScope-class.html">AuthScope</a>&gt;</span></span> <span class="parameter-name">requiredScope</span></span> })
+    </section>
+    <section class="desc markdown">
+      <p>Returns an <a href="aqueduct/Authorization-class.html">Authorization</a> if <code>authorizationData</code> is valid.</p>
+<p>This method is invoked by <a href="aqueduct/Authorizer-class.html">Authorizer</a> to validate the Authorization header of a request. <code>authorizationData</code>
+is the parsed contents of the Authorization header, while <code>parser</code> is the object that parsed the header.</p>
+<p>If this method returns null, an <a href="aqueduct/Authorizer-class.html">Authorizer</a> will send a 401 Unauthorized response.
+If this method throws an <a href="aqueduct/AuthorizationParserException-class.html">AuthorizationParserException</a>, a 400 Bad Request response is sent.
+If this method throws an <a href="aqueduct/AuthServerException-class.html">AuthServerException</a>, an appropriate status code is sent for the details of the exception.</p>
+<p>If <code>requiredScope</code> is provided, a request's authorization must have at least that much scope to pass the <a href="aqueduct/Authorizer-class.html">Authorizer</a>.</p>
+    </section>
+    
+    <section class="summary source-code" id="source">
+      <h2><span>Implementation</span> </h2>
+      <pre class="language-dart"><code class="language-dart">@override
+FutureOr&lt;Authorization&gt; validate&lt;T&gt;(AuthorizationParser&lt;T&gt; parser, T authorizationData,
+    {List&lt;AuthScope&gt; requiredScope}) {
+  if (parser is AuthorizationBasicParser) {
+    final creds = authorizationData as AuthBasicCredentials;
+    return _validateClientCredentials(creds);
+  } else if (parser is AuthorizationBearerParser) {
+    return verify(authorizationData as String, scopesRequired: requiredScope);
+  }
+
+  throw new ArgumentError(&quot;Invalid &#39;parser&#39; for &#39;AuthServer.validate&#39;. Use &#39;AuthorizationBasicParser&#39; or &#39;AuthorizationBearerHeader&#39;.&quot;);
+}</code></pre>
+    </section>
+
+  </div> <!-- /.main-content -->
+
+  <div class="col-xs-6 col-sm-6 col-md-2 sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+
+</main>
+
+<footer>
+  <span class="no-break">
+    aqueduct 3.0.0
+  </span>
+
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+<script src="static-assets/typeahead.bundle.min.js"></script>
+<script src="static-assets/highlight.pack.js"></script>
+<script src="static-assets/URI.js"></script>
+<script src="static-assets/script.js"></script>
+
+
+</body>
+
+</html>
