@@ -115,6 +115,10 @@ class HTTPCodecRepository {
   ///
   /// See [add].
   Codec codecForContentType(ContentType contentType) {
+    if (contentType == null) {
+      return null;
+    }
+
     Codec contentCodec;
     Codec charsetCodec;
 

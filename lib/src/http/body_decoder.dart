@@ -45,18 +45,18 @@ abstract class BodyDecoder {
       throw new StateError("Invalid body decoding. Must decode data prior to calling 'decodedType'.");
     }
 
-    return _decodedData.first.runtimeType;
+    return _decodedData.runtimeType;
   }
 
   final Stream<List<int>> _originalByteStream;
-  List<dynamic> _decodedData;
+  dynamic _decodedData;
   List<int> _bytes;
 
   /// Returns decoded data, decoding it if not already decoded.
   ///
-  /// This is the raw access method to an HTTP body's decoded data. It is preferable
+  /// This is the raw access method to an HTTP body's decoded value. It is preferable
   /// to use methods such as [decodeAsMap], [decodeAsList], and [decodeAsString], all of which
-  /// invoke this method.
+  /// invoke this method, but throw the appropriate [Response] if they are not the correct type.
   ///
   /// The first time this method is invoked, [bytes] is read in full and decoded according to [contentType].
   /// The decoded data is stored in this instance so that subsequent access will
@@ -65,46 +65,33 @@ abstract class BodyDecoder {
   /// If the body is empty, this method will return null and no decoding is attempted.
   ///
   /// The elements of the return value depend on the codec selected from [HTTPCodecRepository], determined
-  /// by [contentType]. There are effectively three different scenarios:
-  ///
-  /// If there is no codec in [HTTPCodecRepository] for the content type of the
+  /// by [contentType]. If there is no codec in [HTTPCodecRepository] for the content type of the
   /// request body being decoded, this method returns the flattened list of bytes directly
   /// from the request body as [List<int>].
-  ///
-  /// If the selected codec produces [String] data (for example, any `text` content-type), the return value
-  /// is a list of strings that, when concatenated, are the full [String] body. It is preferable to use
-  /// [decodeAsString] which automatically does this concatenation.
-  ///
-  /// For most [contentType]s, the return value is a single element [List] containing the decoded body object. For example,
-  /// this method return a [List] with a single [Map] when the body is a JSON object. If the body is a list of JSON objects,
-  /// this method returns a [List] with a single [List] element that contains the JSON objects. It is preferable to use
-  /// [decodeAsMap] or [decodeAsList] which unboxes the outer [List] returned by this method.
-  Future<List<dynamic>> get decodedData async {
-    if (!hasBeenDecoded) {
-      if (_decodedData == null) {
-        if (contentType != null) {
-          var codec = HTTPCodecRepository.defaultInstance
-              .codecForContentType(contentType);
-          if (codec != null) {
-            Stream<List<int>> stream = bytes;
-            if (retainOriginalBytes) {
-              _bytes = await _readBytes(bytes);
-              stream = new Stream.fromIterable([_bytes]);
-            }
+  Future<dynamic> get decodedData async {
+    if (hasBeenDecoded) {
+      return _decodedData;
+    }
 
-            _decodedData = await codec.decoder.bind(stream).handleError((err) {
-              if (err is Response) {
-                throw err;
-              }
-              throw new Response.badRequest(body: {"error": "request entity could not be decoded"});
-            }).toList();
-          } else {
-            _decodedData = await _readBytes(bytes);
-          }
-        } else {
-          _decodedData = await _readBytes(bytes);
-        }
-      }
+    final codec = HTTPCodecRepository.defaultInstance
+      .codecForContentType(contentType);
+    final originalBytes = await _readBytes(bytes);
+
+    if (retainOriginalBytes) {
+      _bytes = originalBytes;
+    }
+
+    if (codec == null) {
+      _decodedData = originalBytes;
+      return _decodedData;
+    }
+
+    try {
+      _decodedData = codec.decoder.convert(originalBytes);
+    } on Response {
+      rethrow;
+    } catch (_) {
+      throw new Response.badRequest(body: {"error": "request entity could not be decoded"});
     }
 
     return _decodedData;
@@ -116,7 +103,7 @@ abstract class BodyDecoder {
   ///
   /// If there is no body data, this method returns null.
   ///
-  /// If [decodedData] does not produce a [List] that contains a single [Map<String, dynamic>] this method throws an
+  /// If [decodedData] is not a [Map<String, dynamic>] this method throws an
   /// error [Response].
   ///
   /// For a non-[Future] variant, see [asMap].
@@ -134,7 +121,7 @@ abstract class BodyDecoder {
   ///
   /// If there is no body data, this method returns null.
   ///
-  /// If [decodedData] does not produce a [List] that contains a single [List] object, this method
+  /// If [decodedData] is not a [List] object, this method
   /// throws an error [Response].
   ///
   /// For a non-[Future] variant, see [asList].
@@ -151,7 +138,7 @@ abstract class BodyDecoder {
   ///
   /// If there is no body data, this method returns null.
   ///
-  /// If [decodedData] does not produce a [List<String>], this method
+  /// If [decodedData] is not a [String], this method
   /// throws an error [Response].
   ///
   /// For a non-[Future] variant, see [asString].
@@ -197,18 +184,11 @@ abstract class BodyDecoder {
       return null;
     }
 
-    var d = _decodedData as List<Map<String, dynamic>>;
-    if (d.length != 1) {
-
+    try {
+      return _decodedData as Map<String, dynamic>;
+    } on CastError {
       throw new Response(422, null, {"error": "unexpected request entity data type"});
     }
-
-    var firstObject = d.first;
-    if (firstObject is! Map<String, dynamic>) {
-      throw new Response(422, null, {"error": "unexpected request entity data type"});
-    }
-
-    return firstObject;
   }
 
   /// Returns decoded data as [List] if decoding has already occurred.
@@ -225,16 +205,11 @@ abstract class BodyDecoder {
       return null;
     }
 
-    if (_decodedData.length != 1) {
+    try {
+      return _decodedData as List<dynamic>;
+    } on CastError {
       throw new Response(422, null, {"error": "unexpected request entity data type"});
     }
-
-    var firstObject = _decodedData.first;
-    if (firstObject is! List) {
-      throw new Response(422, null, {"error": "unexpected request entity data type"});
-    }
-
-    return firstObject;
   }
 
   /// Returns decoded data as [String] if decoding as already occurred.
@@ -251,15 +226,11 @@ abstract class BodyDecoder {
       return null;
     }
 
-    var d = _decodedData as List<String>;
-    return d.fold(new StringBuffer(), (StringBuffer buf, value) {
-      if (value is! String) {
-        throw new Response(422, null, {"error": "unexpected request entity data type"});
-      }
-
-      buf.write(value);
-      return buf;
-    }).toString();
+    try {
+      return _decodedData as String;
+    } on CastError {
+      throw new Response(422, null, {"error": "unexpected request entity data type"});
+    }
   }
 
   /// Returns decoded data as a [List] of bytes if decoding has already been attempted.
@@ -280,11 +251,11 @@ abstract class BodyDecoder {
       return null;
     }
 
-    if (_decodedData.first is! int) {
+    try {
+      return _decodedData as List<int>;
+    } on CastError {
       throw new StateError("Invalid body decoding. Body was decoded into another type. Set 'retainOriginalBytes' to true. to retain original bytes.");
     }
-
-    return _decodedData as List<int>;
   }
 
   Future<List<int>> _readBytes(Stream<List<int>> stream) async {
