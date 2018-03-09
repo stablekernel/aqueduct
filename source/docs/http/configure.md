@@ -56,7 +56,7 @@ database: $DATABASE_CONNECTION_URL
 apiBaseURL: /api
 ```
 
-If the environment variable `DATABASE_CONNECTION_URL`'s value were `"postgres://user:password@localhost:5432/test"`, the value of `TodoConfigurationItem.database` will be that string at runtime. (Note that `DatabaseConnectionConfiguration` may either a YAML object for each connection attribute, or a database connection string.)
+If the environment variable `DATABASE_CONNECTION_URL`'s value were `"postgres://user:password@localhost:5432/test"`, the value of `TodoConfigurationItem.database` will be that string at runtime. (Note that `DatabaseConnectionConfiguration` may either have a YAML object for each connection attribute, or a database connection string.)
 
 The [safe_config package](https://pub.dartlang.org/packages/safe_config) has instructions for more additional usages.
 
@@ -107,7 +107,7 @@ var connection = ApplicationServiceRegistry.defaultInstance
   .register<ConnectionOfSomeKind>(
     new ConnectionOfSomeKind(), (c) => c.close());
 
-await connection.open();  
+await connection.open();
 ```
 
 ## Configuring CORS Headers

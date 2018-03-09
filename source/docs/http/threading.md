@@ -10,7 +10,7 @@ An isolated thread is very valuable. Many multi-threaded applications share memo
 
 An application is initialized by invoking a series of initialization methods in a `ApplicationChannel`. Once these methods are finished executing, the application starts sending HTTP requests through the channel created by the `ApplicationChannel`.
 
-Because a `ApplicationChannel` is a type - and can be instantiated - Aqueduct simply creates a number of isolates and instantiates `ApplicationChannel` for each. The initialization code is therefore identical for each isolate, which means that the ongoing behavior of each isolate is also identical.
+Because an `ApplicationChannel` is a type - and can be instantiated - Aqueduct simply creates a number of isolates and instantiates `ApplicationChannel` for each. The initialization code is therefore identical for each isolate, which means that the ongoing behavior of each isolate is also identical.
 
 More importantly, you - the programmer - have to do absolutely nothing to take advantage of Aqueduct's multi-threaded behavior. You simply have to pick the number of isolates you want to run the application on (see [this section](#how-many-isolates-should-i-use)).
 

@@ -26,7 +26,7 @@ Controller get entryPoint {
   final router = new Router();
 
   router
-    .route("/path")    
+    .route("/path")
     .link(() => new Authorizer())
     .link(() => new NoteController());
 
@@ -132,7 +132,7 @@ class WithdrawalException implements Exception {
 Controller code might catch this exception to return a different status code depending on the exact problem with a withdrawal. If this code has to be written in multiple places, it is useful for `WithdrawalException` to implement `HandlerException`. An implementor must provide an implementation for `response`:
 
 ```dart
-class WithdrawalException implements Exception {
+class WithdrawalException implements HandlerException {
   AccountException(this.problem);
 
   final WithdrawalProblem problem;
@@ -153,7 +153,7 @@ The Aqueduct ORM exceptions (`QueryException`) implement `HandlerException` to r
 
 ## Modifying a Response with Middleware
 
-A middleware controller can adding *response modifier* to a request. When an endpoint controller eventually creates a response, these modifiers are applied to it before it is sent. Modifiers are added by invoking `addResponseModifier` on a request.
+A middleware controller can add *response modifier* to a request. When an endpoint controller eventually creates a response, these modifiers are applied to it before it is sent. Modifiers are added by invoking `addResponseModifier` on a request.
 
 ```dart
 class Versioner extends Controller {

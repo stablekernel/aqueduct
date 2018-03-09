@@ -8,7 +8,7 @@ A `ResourceController` is a [controller](controller.md) that provide convenience
 - updating an individual user (`PUT /users/:id`)
 - deleting an individual user (`DELETE /users/:id`)
 
-A `ResourceController` subclass implements an *operation method* for each operation that it supports.
+A `ResourceController` subclass implements at least one *operation method* for each operation that it supports.
 
 ## Operation Methods
 
@@ -89,7 +89,7 @@ router
   .route("/cities/[:name]")
   .link(() => new CityController());
 
-router  
+router
   .route("/cities/:name/attractions/[:id]")
   .link(() => new CityAttractionController());
 ```
