@@ -233,7 +233,6 @@ class TestRequest {
 
     // Trigger body to be decoded
     await response.bodyDecoder.decodedData;
-
     return response;
   }
 

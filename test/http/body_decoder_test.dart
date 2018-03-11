@@ -88,7 +88,7 @@ void main() {
 
       request = new Request(await server.first);
       var body = await request.body.decodedData;
-      expect(body, [{"a": "val"}]);
+      expect(body, {"a": "val"});
     });
 
     test("Omit charset from known decoder defaults to charset added if exists", () async {
@@ -102,7 +102,7 @@ void main() {
       expect(request.raw.headers.contentType.charset, null);
 
       var body = await request.body.decodedData;
-      expect(body, [{"a": "val"}]);
+      expect(body, {"a": "val"});
     });
 
     test("application/x-form-url-encoded decoder works on valid form data",
@@ -115,10 +115,10 @@ void main() {
       var request = new Request(await server.first);
       request.body.retainOriginalBytes = true;
       var body = await request.body.decodedData;
-      expect(body, [{
+      expect(body, {
         "a": ["b"],
         "c": ["2/4"]
-      }]);
+      });
 
       expect(UTF8.decode(request.body.asBytes()), "a=b&c=2%2F4");
     });
@@ -131,7 +131,7 @@ void main() {
 
       var request = new Request(await server.first);
       var body = await request.body.decodedData;
-      expect(body.fold("", (p, v) => p + v), "foobar");
+      expect(body, "foobar");
     });
 
     test("No found decoder for primary type returns binary", () async {
@@ -201,7 +201,7 @@ void main() {
           .catchError((err) => null);
       var request = new Request(await server.first);
       var body = await request.body.decodedData;
-      expect(body, [{"key":"value"}]);
+      expect(body, {"key":"value"});
     });
 
     test("Added decoder that matches any subtype works", () async {
@@ -213,7 +213,7 @@ void main() {
 
       var request = new Request(await server.first);
       var body = await request.body.decodedData;
-      expect(body, [{"key":"value"}]);
+      expect(body, {"key":"value"});
     });
 
     test("Omit charset from added decoder with default charset and match-all subtype", () async {
@@ -227,7 +227,7 @@ void main() {
       expect(request.raw.headers.contentType.charset, null);
 
       var body = await request.body.decodedData;
-      expect(body, [{"a": "val"}]);
+      expect(body, {"a": "val"});
     });
 
     test("Omit charset from added decoder does not add charset decoded if not specified", () async {
