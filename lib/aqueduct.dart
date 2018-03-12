@@ -47,4 +47,4 @@ export 'src/auth/auth.dart';
 export 'src/db/db.dart';
 export 'src/http/http.dart';
 export 'src/openapi/openapi.dart';
-
+export 'src/db/managed/relationship_type.dart';
