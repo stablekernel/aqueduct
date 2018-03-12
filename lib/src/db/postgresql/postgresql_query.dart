@@ -37,7 +37,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     validateInput(ValidateOperation.insert);
 
     var builder = new PostgresQueryBuilder(entity,
-        returningProperties: propertiesToFetch, values: valueMap ?? values?.backingMap);
+        returningProperties: propertiesToFetch, values: valueMap ?? values?.backing?.contents);
 
     var buffer = new StringBuffer();
     buffer.write("INSERT INTO ${builder.primaryTableDefinition} ");
@@ -65,7 +65,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
-        values: valueMap ?? values?.backingMap,
+        values: valueMap ?? values?.backing?.contents,
         expressions: expressions,
         predicate: predicate);
 

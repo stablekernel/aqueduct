@@ -78,7 +78,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values.backingMap.length != 0) {
+    if (query.values.backing.contents.length != 0) {
       statusCode = 400;
     }
 
@@ -99,7 +99,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values.backingMap.length != 0) {
+    if (query.values.backing.contents.length != 0) {
       statusCode = 400;
     }
 

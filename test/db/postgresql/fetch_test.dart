@@ -290,14 +290,14 @@ void main() {
 
     var result = await iq.insert();
     expect(result.id, greaterThan(0));
-    expect(result.backingMap["text"], isNull);
+    expect(result.backing.contents["text"], isNull);
 
     var fq = new Query<Omit>()
       ..predicate = new QueryPredicate("id=@id", {"id": result.id});
 
     var fResult = await fq.fetchOne();
     expect(fResult.id, result.id);
-    expect(fResult.backingMap["text"], isNull);
+    expect(fResult.backing.contents["text"], isNull);
   });
 
   test(
@@ -340,7 +340,7 @@ void main() {
 
     var result = await q.fetchOne();
     expect(result.owner.id, 1);
-    expect(result.owner.backingMap.length, 1);
+    expect(result.owner.backing.contents.length, 1);
 
 
     try {

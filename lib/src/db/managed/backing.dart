@@ -8,11 +8,11 @@ import 'exception.dart';
 
 class ManagedValueBacking extends ManagedBacking {
   @override
-  Map<String, dynamic> valueMap = {};
+  Map<String, dynamic> contents = {};
 
   @override
   dynamic valueForProperty(ManagedPropertyDescription property) {
-    return valueMap[property.name];
+    return contents[property.name];
   }
 
   @override
@@ -23,17 +23,17 @@ class ManagedValueBacking extends ManagedBacking {
       }
     }
 
-    valueMap[property.name] = value;
+    contents[property.name] = value;
   }
 }
 
 class ManagedBuilderBacking extends ManagedBacking {
   @override
-  Map<String, dynamic> valueMap = {};
+  Map<String, dynamic> contents = {};
 
   @override
   dynamic valueForProperty(ManagedPropertyDescription property) {
-    return valueMap[property.name];
+    return contents[property.name];
   }
 
   @override
@@ -44,7 +44,7 @@ class ManagedBuilderBacking extends ManagedBacking {
       }
     }
 
-    valueMap[property.name] = value;
+    contents[property.name] = value;
   }
 }
 
@@ -53,7 +53,7 @@ class ManagedAccessTrackingBacking extends ManagedBacking {
   KeyPath workingKeyPath;
 
   @override
-  Map<String, dynamic> get valueMap => null;
+  Map<String, dynamic> get contents => null;
 
   @override
   dynamic valueForProperty(ManagedPropertyDescription property) {

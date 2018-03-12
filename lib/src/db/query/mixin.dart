@@ -43,13 +43,14 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   @override
   InstanceType get values {
     if (_valueObject == null) {
-      _valueObject = entity.newInstance() as InstanceType;
+      _valueObject = entity.newInstance(backing: new ManagedBuilderBacking()) as InstanceType;
     }
     return _valueObject;
   }
 
   @override
   set values(InstanceType obj) {
+
     _valueObject = obj;
   }
 

@@ -344,8 +344,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     } else if (value is ManagedObject) {
       // If we're only fetching the foreign key, don't do a full asMap
       if (relationshipType == ManagedRelationshipType.belongsTo &&
-          value.backingMap.length == 1 &&
-          value.backingMap.containsKey(destinationEntity.primaryKey)) {
+          value.backing.contents.length == 1 &&
+          value.backing.contents.containsKey(destinationEntity.primaryKey)) {
         return {destinationEntity.primaryKey: value[destinationEntity.primaryKey]};
       }
 
