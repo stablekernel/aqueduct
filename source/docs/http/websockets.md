@@ -75,7 +75,7 @@ router
 If we continue with the 'chat application' example, the code for `handleEvent` may be something like:
 
 ```dart
-void handleRequest(dynamic event, {int fromUserID}) {
+void handleEvent(dynamic event, {int fromUserID}) {
   var incoming = JSON.decode(UTF8.decode(event));
   var outgoing = UTF8.encode(JSON.encode({
     "text": incoming["text"],
@@ -87,7 +87,7 @@ void handleRequest(dynamic event, {int fromUserID}) {
     .forEach((userID) {
       var connection = connections[userID];
       connection.add(outgoing);
-    });        
+    });
 }
 ```
 

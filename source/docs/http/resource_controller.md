@@ -89,7 +89,7 @@ router
   .route("/cities/[:name]")
   .link(() => new CityController());
 
-router  
+router
   .route("/cities/:name/attractions/[:id]")
   .link(() => new CityAttractionController());
 ```
