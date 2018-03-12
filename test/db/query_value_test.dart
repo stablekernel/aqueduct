@@ -11,7 +11,7 @@ void main() {
   setUpAll(() async {
     ctx = await contextWithModels([Root, Child]);
   });
-  
+
   test("Can immediately access primary key of belongs-to relationship when building Query.values", () {
     final q = new Query<Child>();
     q.values.parent.id = 1;
@@ -69,6 +69,76 @@ void main() {
       expect(e.toString(), "?>>?");
     }
   });
+
+  group("Query.values assigned to default instance", () {
+    test("Can still create subobjects", () {
+      final q = new Query<Child>();
+      q.values = new Child();
+      q.values.parent.id = 1;
+      expect(q.values.parent.id, 1);
+    });
+
+    test("Replaced object retains all property values", () {
+      final q = new Query<Child>();
+      final r = new Child()
+        ..name = "bob";
+
+      q.values = r;
+      q.values.parent.id = 1;
+      expect(q.values.parent.id, 1);
+      expect(q.values.name, "bob");
+    });
+
+    test("If default instance holds ManagedSet, throw exception", () {
+      final q = new Query<Root>();
+      final r = new Root()
+        ..children = new ManagedSet();
+
+      try {
+        q.values = r;
+        fail('unreachable');
+      } on StateError catch (e) {
+        expect(e.toString(), "???");
+      }
+    });
+
+    test("If default instance holds has-one ManagedObject, throw exception", () {
+      final q = new Query<Root>();
+      final r = new Root()
+        ..child = new Child();
+
+      try {
+        q.values = r;
+        fail('unreachable');
+      } on StateError catch (e) {
+        expect(e.toString(), "???");
+      }
+    });
+
+    test("If default instance holds belongs-to ManagedObject with more than primary key, throw exception", () {
+      final q = new Query<Child>();
+      final r = new Child()
+        ..parent = (new Root()..name = "fred");
+
+      try {
+        q.values = r;
+        fail('unreachable');
+      } on StateError catch (e) {
+        expect(e.toString(), "???");
+      }
+    });
+
+    test("If default instance holds belongs-to ManagedObject with only primary key, retain value", () {
+      final q = new Query<Child>();
+      final r = new Child()
+        ..parent = (new Root()..id = 1);
+
+      q.values = r;
+
+      expect(q.values.parent.id, 1);
+    });
+  });
+
 }
 
 class _Root {

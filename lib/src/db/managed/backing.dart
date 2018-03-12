@@ -27,6 +27,27 @@ class ManagedValueBacking extends ManagedBacking {
   }
 }
 
+class ManagedBuilderBacking extends ManagedBacking {
+  @override
+  Map<String, dynamic> valueMap = {};
+
+  @override
+  dynamic valueForProperty(ManagedPropertyDescription property) {
+    return valueMap[property.name];
+  }
+
+  @override
+  void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
+    if (value != null) {
+      if (!property.isAssignableWith(value)) {
+        throw new ValidationException(["invalid input value for '${property.name}'"]);
+      }
+    }
+
+    valueMap[property.name] = value;
+  }
+}
+
 class ManagedAccessTrackingBacking extends ManagedBacking {
   List<KeyPath> keyPaths;
   KeyPath workingKeyPath;
