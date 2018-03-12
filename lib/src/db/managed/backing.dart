@@ -27,12 +27,48 @@ class ManagedValueBacking extends ManagedBacking {
   }
 }
 
+class ManagedForeignKeyBuilderBacking extends ManagedBacking {
+  @override
+  Map<String, dynamic> contents = {};
+
+  @override
+  dynamic valueForProperty(ManagedPropertyDescription property) {
+    if (property is ManagedAttributeDescription && property.isPrimaryKey) {
+      return contents[property.name];
+    }
+
+
+    throw new ArgumentError("Invalid property access. Object '${property.entity.name}'");
+  }
+
+  @override
+  void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
+    if (value != null) {
+      if (!property.isAssignableWith(value)) {
+        throw new ValidationException(["invalid input value for '${property.name}'"]);
+      }
+    }
+
+    contents[property.name] = value;
+  }
+}
+
 class ManagedBuilderBacking extends ManagedBacking {
   @override
   Map<String, dynamic> contents = {};
 
   @override
   dynamic valueForProperty(ManagedPropertyDescription property) {
+    if (property is ManagedRelationshipDescription) {
+      if (!property.isBelongsTo) {
+        throw new StateError("Invalid property access. Cannot access has-one or has-many relationship when building 'Query.values'.");
+      }
+
+      if(!contents.containsKey(property.name)) {
+        contents[property.name] = property.inverse.entity.newInstance(backing: new ManagedForeignKeyBuilderBacking());
+      }
+    }
+
     return contents[property.name];
   }
 

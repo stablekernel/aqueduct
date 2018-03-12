@@ -91,8 +91,8 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   dynamic operator [](String propertyName) {
     final prop = entity.properties[propertyName];
     if (prop == null) {
-      throw new ArgumentError("Invalid property access for '${MirrorSystem.getName(entity.instanceType.simpleName)}'. "
-          "Property '$propertyName' does not exist on '${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
+      throw new ArgumentError("Invalid property access for '${entity.name}'. "
+          "Property '$propertyName' does not exist on '${entity.name}'.");
     }
 
     return backing.valueForProperty(prop);
@@ -102,8 +102,8 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   void operator []=(String propertyName, dynamic value) {
     final prop = entity.properties[propertyName];
     if (prop == null) {
-      throw new ArgumentError("Invalid property access for '${MirrorSystem.getName(entity.instanceType.simpleName)}'. "
-          "Property '$propertyName' does not exist on '${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
+      throw new ArgumentError("Invalid property access for '${entity.name}'. "
+          "Property '$propertyName' does not exist on '${entity.name}'.");
     }
 
     backing.setValueForProperty(prop, value);
@@ -213,9 +213,8 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
         entity.symbolMap[new Symbol(MirrorSystem.getName(invocation.memberName))];
 
     if (name == null) {
-      throw new ArgumentError("Invalid property access for '${MirrorSystem.getName(entity.instanceType.simpleName)}'. "
-          "Property '${MirrorSystem.getName(invocation.memberName)}' does not exist on '${MirrorSystem.getName(
-          entity.instanceType.simpleName)}'.");
+      throw new ArgumentError("Invalid property access for '${entity.name}'. "
+          "Property '${MirrorSystem.getName(invocation.memberName)}' does not exist on '${entity.name}'.");
     }
 
     return name;

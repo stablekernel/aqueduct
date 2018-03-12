@@ -1,6 +1,3 @@
-import 'dart:async';
-import 'dart:isolate';
-
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
@@ -10,6 +7,9 @@ void main() {
   ManagedContext ctx;
   setUpAll(() async {
     ctx = await contextWithModels([Root, Child]);
+  });
+  tearDownAll(() async {
+    await ctx.persistentStore.close();
   });
 
   test("Can immediately access primary key of belongs-to relationship when building Query.values", () {

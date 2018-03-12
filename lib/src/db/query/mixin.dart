@@ -165,7 +165,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
       if (entity.relationships.containsKey(propertyName)) {
         throw new ArgumentError(
             "Invalid property selection. Property '$propertyName' on "
-                "'${MirrorSystem.getName(entity.instanceType.simpleName)}' "
+                "'${entity.name}' "
                 "is a relationship and cannot be selected for this operation.");
       } else {
         throw new ArgumentError(

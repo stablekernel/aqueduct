@@ -250,7 +250,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   String toString() {
-    return "${MirrorSystem.getName(entity.instanceType.simpleName)}.$name";
+    return "${entity.name}.$name";
   }
 
   @override
@@ -411,8 +411,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       case ManagedRelationshipType.hasMany: relTypeString = "has-many"; break;
       case ManagedRelationshipType.hasOne: relTypeString = "has-a"; break;
     }
-    return "${MirrorSystem.getName(entity.instanceType.simpleName)}.$name - "
-        "$relTypeString '${MirrorSystem.getName(destinationEntity.instanceType.simpleName)}' "
+    return "${entity.name}.$name - "
+        "$relTypeString '${destinationEntity.name}' "
         "(inverse: ${MirrorSystem.getName(inverseKey)})";
   }
 }

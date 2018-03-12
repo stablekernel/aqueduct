@@ -166,7 +166,7 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
 
         throw new ArgumentError("Invalid query. Column '$key' in '${entity.tableName}' does not exist. "
             "'$key' recognized as ORM relationship. Provided value must be 'Map' "
-            "or ${MirrorSystem.getName(property.destinationEntity.instanceType.simpleName)}.");
+            "or ${property.destinationEntity.name}.");
       }
     }
 
