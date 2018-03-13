@@ -50,7 +50,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
   @override
   set values(InstanceType obj) {
-
+    obj.backing = new ManagedBuilderBacking.from(entity, obj.backing);
     _valueObject = obj;
   }
 

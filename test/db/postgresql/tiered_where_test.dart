@@ -563,7 +563,7 @@ void main() {
       final result = await q.fetch();
       expect(result.length, 3);
       expect(result.map((g) => g.gid).toList(), [5, 6, 8]);
-      expect(result.any((g) => g.backing.contents["parents"].backingMap.keys.length != 1), false);
+      expect(result.any((g) => g.backing.contents["parents"].backing.contents.keys.length != 1), false);
     });
   });
 }

@@ -6,6 +6,12 @@ import '../query/matcher_internal.dart';
 import 'relationship_type.dart';
 import 'exception.dart';
 
+final ArgumentError _invalidValueConstruction = new ArgumentError("Invalid property access when building 'Query.values'. "
+    "May only assign values to properties backed by a column of the table being inserted into. "
+    "This prohibits 'ManagedObject' and 'ManagedSet' properties, except for 'ManagedObject' "
+    "properties with a 'Relate' annotation. For 'Relate' properties, you may only set their "
+    "primary key property.");
+
 class ManagedValueBacking extends ManagedBacking {
   @override
   Map<String, dynamic> contents = {};
@@ -37,25 +43,37 @@ class ManagedForeignKeyBuilderBacking extends ManagedBacking {
       return contents[property.name];
     }
 
-
-    throw new ArgumentError("Invalid property access. '${property.entity.name}' "
-        "is being used in 'Query.values' to build a foreign key column. "
-        "Only its primary key can be set.");
+    throw _invalidValueConstruction;
   }
 
   @override
   void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
     if (property is ManagedAttributeDescription && property.isPrimaryKey) {
       contents[property.name] = value;
+      return;
     }
 
-    throw new ArgumentError("Invalid property access. '${property.entity.name}' "
-        "is being used in 'Query.values' to build a foreign key column. "
-        "Only its primary key can be set.");
+    throw _invalidValueConstruction;
   }
 }
 
 class ManagedBuilderBacking extends ManagedBacking {
+  ManagedBuilderBacking();
+  ManagedBuilderBacking.from(ManagedEntity entity, ManagedBacking original) {
+    if (original is! ManagedValueBacking) {
+      throw new ArgumentError("Invalid 'ManagedObject' assignment to 'Query.values'. Object must be created through default constructor.");
+    }
+
+    original.contents.forEach((key, value) {
+      final prop = entity.properties[key];
+      if (prop == null) {
+        throw new ArgumentError("Invalid 'ManagedObject' assignment to 'Query.values'. Property '$key' does not exist for '${entity.name}'.");
+      }
+
+      setValueForProperty(prop, value);
+    });
+  }
+
   @override
   Map<String, dynamic> contents = {};
 
@@ -63,7 +81,7 @@ class ManagedBuilderBacking extends ManagedBacking {
   dynamic valueForProperty(ManagedPropertyDescription property) {
     if (property is ManagedRelationshipDescription) {
       if (!property.isBelongsTo) {
-        throw new StateError("Invalid property access. Cannot access has-one or has-many relationship when building 'Query.values'.");
+        throw _invalidValueConstruction;
       }
 
       if(!contents.containsKey(property.name)) {
@@ -78,10 +96,17 @@ class ManagedBuilderBacking extends ManagedBacking {
   void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
     if (property is ManagedRelationshipDescription) {
       if (!property.isBelongsTo) {
-        throw new StateError("Invalid property access. Cannot access has-one or has-many relationship when building 'Query.values'.");
+        throw _invalidValueConstruction;
       }
 
-
+      final obj = value as ManagedObject;
+      if (obj.backing.contents.length > 1) {
+        throw _invalidValueConstruction;
+      } else if (obj.backing.contents.length == 1) {
+        if (obj.backing.contents.keys.first != property.inverse.entity.primaryKey) {
+          throw _invalidValueConstruction;
+        }
+      }
     }
 
     contents[property.name] = value;

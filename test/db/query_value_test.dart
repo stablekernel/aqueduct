@@ -45,8 +45,8 @@ void main() {
     try {
       q.values.children = new ManagedSet<Child>();
       fail('unreachable');
-    } on StateError catch (e) {
-      expect(e.toString(), "?>>?");
+    } on ArgumentError catch (e) {
+      expect(e.toString(), contains("Invalid property access"));
     }
   });
 
@@ -55,22 +55,47 @@ void main() {
     try {
       q.values.parent.name = "ok";
       fail('unreachable');
-    } on StateError catch (e) {
-      expect(e.toString(), "?>>?");
+    } on ArgumentError catch (e) {
+      expect(e.toString(), contains("Invalid property access"));
     }
   });
 
   test("Accessing primary key of has-one property in Query.values throws error", () {
-    final q = new Query<Child>();
+    final q = new Query<Root>();
     try {
-      q.values.parentHasOne.id = 1;
+      q.values.child.id = 1;
       fail('unreachable');
-    } on StateError catch (e) {
-      expect(e.toString(), "?>>?");
+    } on ArgumentError catch (e) {
+      expect(e.toString(), contains("Invalid property access"));
     }
   });
 
-  group("Query.values assigned to default instance", () {
+  test("Can set belongs-to relationship with default constructed object if it is empty", () {
+    final q = new Query<Child>();
+    q.values.parent = new Root();
+    q.values.parent.id = 1;
+    expect(q.values.parent.id, 1);
+  });
+
+  test("Can set belongs-to relationship with default constructed object if it only contains primary key", () {
+    final q = new Query<Child>();
+    q.values.parent = new Root()..id = 1;
+    expect(q.values.parent.id, 1);
+
+  });
+
+  test("Cannot set belongs-to relationship with default constructed object if it contains properties other than primary key", () {
+    final q = new Query<Child>();
+    try {
+      q.values.parent = new Root()
+        ..name = "bob";
+      fail('unreachable');
+    } on ArgumentError catch (e) {
+      expect(e.toString(), contains("Invalid property access"));
+    }
+  });
+
+  group("Query.values assigned to instance created by default constroct", () {
     test("Can still create subobjects", () {
       final q = new Query<Child>();
       q.values = new Child();
@@ -97,8 +122,8 @@ void main() {
       try {
         q.values = r;
         fail('unreachable');
-      } on StateError catch (e) {
-        expect(e.toString(), "???");
+      } on ArgumentError catch (e) {
+        expect(e.toString(), contains("Invalid property access"));
       }
     });
 
@@ -110,8 +135,8 @@ void main() {
       try {
         q.values = r;
         fail('unreachable');
-      } on StateError catch (e) {
-        expect(e.toString(), "???");
+      } on ArgumentError catch (e) {
+        expect(e.toString(), contains("Invalid property access"));
       }
     });
 
@@ -123,8 +148,8 @@ void main() {
       try {
         q.values = r;
         fail('unreachable');
-      } on StateError catch (e) {
-        expect(e.toString(), "???");
+      } on ArgumentError catch (e) {
+        expect(e.toString(), contains("Invalid property access"));
       }
     });
 
