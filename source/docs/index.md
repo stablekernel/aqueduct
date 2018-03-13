@@ -4,6 +4,49 @@
 
 <a href="http://slackaqueductsignup.herokuapp.com/"><img src="https://slackaqueductsignup.herokuapp.com/badge.svg" alt="Slack"/></a><br/>
 
+# 3.0 Pre-release Note
+
+This documentation is the 3.0 pre-release documentation for Aqueduct. It has not been finalized and is subject to change.
+
+## Installing Pre-release Aqueduct
+
+You’ll need to upgrade to the developer release of Dart 2.0. On macOS, you install with Homebrew:
+
+```bash
+brew upgrade dart --devel
+```
+
+Once you have Dart 2.0, clone Aqueduct locally, switch to the 3.0 branch, and install the CLI from your local repository.
+
+```bash
+git clone git@github.com:stablekernel/aqueduct.git
+cd aqueduct
+git checkout 3.0
+
+# Don't forget the dot at the end of the next command
+pub global activate -spath .
+```
+
+Move to another directory and create a new project that targets Aqueduct 3.
+
+```bash
+# Make sure you aren't in the aqueduct directory
+aqueduct create my_app
+```
+
+Because your project was created from a local version of Aqueduct, it’s pubspec.yaml file will point at that directory on your filesystem. To stay up to date with 3.0 (or to build remotely), change your pubspec.yaml file to reference the 3.0 branch on GitHub:
+
+```yaml
+aqueduct:
+  git:
+    url: git@github.com:stablekernel/aqueduct.git
+    ref: “3.0”
+```
+
+You can access the pre-release API reference [here](https://aqueduct.io/prerelease-3.0/api/index.html).
+
+## Aqueduct
+
 Aqueduct is a server-side framework for building and deploying REST applications. It is written in Dart.
 
 ## Important Links

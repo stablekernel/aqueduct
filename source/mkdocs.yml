@@ -1,4 +1,4 @@
-site_name: Aqueduct
+site_name: Aqueduct 3.0 Pre-release
 theme: 'material'
 markdown_extensions:
   - codehilite
@@ -25,8 +25,6 @@ pages:
   - '1. Getting Started': 'tut/getting-started.md'
   - '2. Reading from a Database': 'tut/executing-queries.md'
   - '3. Storing Data in a Database': 'tut/storing-data.md'
-  - '4. Writing Tests': 'tut/writing-tests.md'
-  - '5. Deploying': 'tut/deploying-and-other-fun-things.md'
 - Guides:
   - Serving HTTP Requests:
     - 'Overview': 'http/overview.md'

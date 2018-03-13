@@ -42,6 +42,8 @@ For more details on injecting services, see the guide on the [Application Channe
 
 Isolates are memory-isolated threads; an object created on one isolate can't be referenced by another isolate. When an application starts, one or more isolates containing replicas of your application code are spawned. This behavior effectively 'load balances' your application across multiple threads.
 
+A benefit to this structure is that each isolate has its own set of services, like database connections. This eliminates the need for techniques like 'database connection pooling', because the entire application is effectively 'pooled'.
+
 ## Bindings
 
 A request might contain headers, query parameters, a body and path parameters that need to be parsed, validated and used in controller code. Bindings are annotations added to variables that perform this parsing and validation automatically. Appropriate error responses are sent when a bound value can't be parsed into expected type or validation fails.
@@ -52,7 +54,7 @@ Bindings cut down on boiler plate code and reduce testing surface, making develo
 
 Application store information in databases for persistence. Writing database queries by hand is error-prone and doesn't leverage static analysis tools that are so valuable in a Dart application. Aqueduct's ORM (Object-Relational Mapping) provides statically-typed queries that are easy to write and test.
 
-Your application's data model is defined by model object types. Aqueduct's command-line tool generates database migration files that detect changes in your data model that can be applied to a live, versioned database. A data model can also be represented as a JSON object to build tools on top of your application.
+Your application's data model is defined by creating Dart classes. Each class is mapped to a database table, and each property of that class is mapped to a column in that table. Aqueduct's command-line tool generates database migration files that detect changes in your data model that can be applied to a live, versioned database. A data model can also be represented as a JSON object to build tools on top of your application.
 
 For more details, see the guide on [Authorization](auth/overview.md).
 
