@@ -38,18 +38,20 @@ class ManagedForeignKeyBuilderBacking extends ManagedBacking {
     }
 
 
-    throw new ArgumentError("Invalid property access. Object '${property.entity.name}'");
+    throw new ArgumentError("Invalid property access. '${property.entity.name}' "
+        "is being used in 'Query.values' to build a foreign key column. "
+        "Only its primary key can be set.");
   }
 
   @override
   void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
-    if (value != null) {
-      if (!property.isAssignableWith(value)) {
-        throw new ValidationException(["invalid input value for '${property.name}'"]);
-      }
+    if (property is ManagedAttributeDescription && property.isPrimaryKey) {
+      contents[property.name] = value;
     }
 
-    contents[property.name] = value;
+    throw new ArgumentError("Invalid property access. '${property.entity.name}' "
+        "is being used in 'Query.values' to build a foreign key column. "
+        "Only its primary key can be set.");
   }
 }
 
@@ -74,10 +76,12 @@ class ManagedBuilderBacking extends ManagedBacking {
 
   @override
   void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
-    if (value != null) {
-      if (!property.isAssignableWith(value)) {
-        throw new ValidationException(["invalid input value for '${property.name}'"]);
+    if (property is ManagedRelationshipDescription) {
+      if (!property.isBelongsTo) {
+        throw new StateError("Invalid property access. Cannot access has-one or has-many relationship when building 'Query.values'.");
       }
+
+
     }
 
     contents[property.name] = value;
