@@ -34,6 +34,13 @@ class ManagedValueBacking extends ManagedBacking {
 }
 
 class ManagedForeignKeyBuilderBacking extends ManagedBacking {
+  ManagedForeignKeyBuilderBacking();
+  ManagedForeignKeyBuilderBacking.from(ManagedEntity entity, ManagedBacking backing) {
+    if (backing.contents.containsKey(entity.primaryKey)) {
+      contents[entity.primaryKey] = backing.contents[entity.primaryKey];
+    }
+  }
+
   @override
   Map<String, dynamic> contents = {};
 
@@ -70,6 +77,12 @@ class ManagedBuilderBacking extends ManagedBacking {
         throw new ArgumentError("Invalid 'ManagedObject' assignment to 'Query.values'. Property '$key' does not exist for '${entity.name}'.");
       }
 
+      if (prop is ManagedRelationshipDescription) {
+        if (!prop.isBelongsTo) {
+          return;
+        }
+      }
+
       setValueForProperty(prop, value);
     });
   }
@@ -100,13 +113,7 @@ class ManagedBuilderBacking extends ManagedBacking {
       }
 
       final obj = value as ManagedObject;
-      if (obj.backing.contents.length > 1) {
-        throw _invalidValueConstruction;
-      } else if (obj.backing.contents.length == 1) {
-        if (obj.backing.contents.keys.first != property.inverse.entity.primaryKey) {
-          throw _invalidValueConstruction;
-        }
-      }
+      obj.backing = new ManagedForeignKeyBuilderBacking.from(property.entity, obj.backing);
     }
 
     contents[property.name] = value;

@@ -84,11 +84,19 @@ void main() {
 
   });
 
-  test("Cannot set belongs-to relationship with default constructed object if it contains properties other than primary key", () {
+  test("Setting belongs-to relationship with default constructed object removes non-primary key values", () {
     final q = new Query<Child>();
+    q.values.parent = new Root()
+      ..id = 1
+      ..name = "bob";
+
+    expect(q.values.backing.contents.keys, ["parent"]);
+    expect(q.values.backing.contents["parent"].backing.contents, {
+      "id": 1
+    });
+
     try {
-      q.values.parent = new Root()
-        ..name = "bob";
+      q.values.parent.name = "bob";
       fail('unreachable');
     } on ArgumentError catch (e) {
       expect(e.toString(), contains("Invalid property access"));
@@ -114,43 +122,27 @@ void main() {
       expect(q.values.name, "bob");
     });
 
-    test("If default instance holds ManagedSet, throw exception", () {
+    test("If default instance holds ManagedSet, remove it", () {
       final q = new Query<Root>();
-      final r = new Root()
+      q.values = new Root()
         ..children = new ManagedSet();
 
-      try {
-        q.values = r;
-        fail('unreachable');
-      } on ArgumentError catch (e) {
-        expect(e.toString(), contains("Invalid property access"));
-      }
+      expect(q.values.backing.contents, {});
     });
 
-    test("If default instance holds has-one ManagedObject, throw exception", () {
+    test("If default instance holds has-one ManagedObject, remove it", () {
       final q = new Query<Root>();
-      final r = new Root()
+      q.values = new Root()
         ..child = new Child();
-
-      try {
-        q.values = r;
-        fail('unreachable');
-      } on ArgumentError catch (e) {
-        expect(e.toString(), contains("Invalid property access"));
-      }
+      expect(q.values.backing.contents, {});
     });
 
-    test("If default instance holds belongs-to ManagedObject with more than primary key, throw exception", () {
+    test("If default instance holds belongs-to ManagedObject with more than primary key, remove inner key", () {
       final q = new Query<Child>();
-      final r = new Child()
+      q.values = new Child()
         ..parent = (new Root()..name = "fred");
-
-      try {
-        q.values = r;
-        fail('unreachable');
-      } on ArgumentError catch (e) {
-        expect(e.toString(), contains("Invalid property access"));
-      }
+      expect(q.values.backing.contents.keys, ["parent"]);
+      expect(q.values.backing.contents["parent"].backing.contents, {});
     });
 
     test("If default instance holds belongs-to ManagedObject with only primary key, retain value", () {
@@ -161,6 +153,18 @@ void main() {
       q.values = r;
 
       expect(q.values.parent.id, 1);
+    });
+
+    test("If multiple values are set on assigned object, only remove those that need to be removed", () {
+      final q = new Query<Child>();
+      q.values = new Child()
+        ..parent = (new Root()..id = 1..name = "fred")
+        ..name = "fred";
+
+      expect(q.values.backing.contents.keys, ["parent", "name"]);
+      expect(q.values.backing.contents["parent"].backing.contents, {
+        "id" : 1
+      });
     });
   });
 
