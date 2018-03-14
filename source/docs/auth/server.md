@@ -1,18 +1,18 @@
 # Creating AuthServers to Authenticate and Authorize
 
-An instance of `AuthServer` handles creating, verifying and refreshing authorization tokens. They are created in a `ApplicationChannel` constructor and are used by instances of `Authorizer`, `AuthController` and `AuthCodeController`.
+An `AuthServer` is a service that handles creating, verifying and refreshing authorization tokens. You create an `AuthServer` in your application channel and inject into types that deal with authorization. This types include:
 
-An `AuthServer` must persist the data it uses and creates - like client identifiers and access tokens. Storage is often performed by a database, but it can be in memory, a cache or some files. For that reason, an `AuthServer` doesn't perform any storage itself - it relies on an instance of `AuthDelegate` specific to your use case.
+- `Authorizer`: middleware controller that protects endpoint controllers from unauthorized access
+- `AuthController`: endpoint controller that grants access tokens
+- `AuthCodeController`: endpoint controller that grants authorization codes to be exchanged for access tokens
 
-This allows storage to be independent of verification logic.
+An `AuthServer` must persist the data it uses and creates - like client identifiers and access tokens. Storage is often performed by a database, but it can be in memory, a cache or some other medium. Because of the many different storage mediums, an `AuthServer` doesn't perform any storage itself - it relies on an instance of `AuthDelegate` specific to your application. This allows storage to be independent of verification logic.
 
 ## Creating Instances of AuthServer and AuthDelegate
 
-An instance of `AuthServer` is created in a `ApplicationChannel`'s constructor along with its instance of `AuthDelegate`. `AuthDelegate` is just an interface - storage is implemented by providing an implementation for each of its methods.
+`AuthDelegate` is an interface that an `AuthServer` uses to handle storage of client identifiers, tokens and other authorization artifacts. An `AuthServer` must be created with a concrete implementation of `AuthDelegate`. Aqueduct contains a concrete implementation of `AuthDelegate` that uses the ORM. It is highly recommended to use this implementation instead of implementing your own storage because it has been thoroughly tested and handles cleaning up expired data correctly.
 
-Because storage can be quite complex and sensitive, the type `ManagedAuthDelegate<T>` implements storage with `ManagedObject<T>`s and `Query<T>`s. It is highly recommended to use this type instead of implementing your own storage because it has been thoroughly tested and handles cleaning up expired data correctly.
-
-`ManagedAuthDelegate<T>` is declared in a sub-library, `managed_auth`, that is part of the `aqueduct` package but not part of the `aqueduct` library. Therefore, it must be explicitly imported. Here's an example of creating an `AuthServer` and `ManagedAuthDelegate<T>`:
+This concrete implementation is named `ManagedAuthDelegate<T>`. It exists in a sub-package of Aqueduct and must be explicitly imported. Here's an example of creating an `AuthServer` and `ManagedAuthDelegate<T>`:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
@@ -34,9 +34,7 @@ class MyApplicationChannel extends ApplicationChannel {
 
 (Notice that `ManagedAuthDelegate` has a type argument - this will be covered in the next section.)
 
-While `AuthServer` has methods for handling authorization tasks, it is rarely used directly. Instead, `AuthCodeController` and `AuthController` are hooked up to routes to grant authorization tokens via the API. Instances of `Authorizer` secure routes in channels. All of these types invoke the appropriate methods on the `AuthServer`.
-
-Therefore, a full authorization implementation rarely extends past a `ApplicationChannel`. Here's an example `ApplicationChannel` subclass that sets up and uses authorization:
+While `AuthServer` has methods for handling authorization tasks, it is rarely used directly. Instead, `AuthCodeController` and `AuthController` are hooked up to routes to grant authorization tokens through your application's HTTP API. Instances of `Authorizer` secure routes in channels. All of these types invoke the appropriate methods on the `AuthServer`. Here's an example `ApplicationChannel` subclass that sets up and uses authorization:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
@@ -78,15 +76,13 @@ For more details on authorization controllers like `AuthController`, see [Author
 
 ## Using ManagedAuthDelegate
 
-`ManagedAuthDelegate<T>` is a concrete implementation of `AuthDelegate`, providing storage of authorization tokens and clients for `AuthServer`. Storage is accomplished by Aqueduct's ORM. `ManagedAuthDelegate<T>`, by default, is not part of the standard `aqueduct/aqueduct` library. To use this class, an application must import `package:aqueduct/managed_auth.dart`.
+`ManagedAuthDelegate<T>` is a concrete implementation of `AuthDelegate`, providing storage of authorization tokens and clients for an `AuthServer`. Storage is accomplished by Aqueduct's ORM. `ManagedAuthDelegate<T>`, by default, is not part of the standard `aqueduct` library. To use this class, an application must import `package:aqueduct/managed_auth.dart`.
 
-The type argument to `ManagedAuthDelegate<T>` represents the application's concept of a 'user' or 'account' - OAuth 2.0 terminology would refer to this type as a *resource owner*.
-
-The type argument must be a `ManagedObject<T>` subclass that is specific to your application. Its persistent type *must extend* `ManagedAuthenticatable` and the instance type must implement `ManagedAuthResourceOwner`. A basic definition may look like this:
+The type argument to `ManagedAuthDelegate<T>` represents the application's concept of a 'user' or 'account' - OAuth 2.0 terminology would refer to this type as a *resource owner*. A resource owner must be a `ManagedObject<T>` subclass that is specific to your application. Its persistent type *must extend* `ManagedAuthenticatable` and the instance type must implement `ManagedAuthResourceOwner<T>`, where `T` is the persistent type. A basic definition may look like this:
 
 ```dart
 class User extends ManagedObject<_User>
-    implements _User, ManagedAuthResourceOwner {
+    implements _User, ManagedAuthResourceOwner<_User> {
 }
 
 class _User extends ManagedAuthenticatable {
@@ -95,7 +91,7 @@ class _User extends ManagedAuthenticatable {
 }
 ```
 
-By extending `ManagedAuthenticatable`, the database table has the following four columns:
+By extending `ManagedAuthenticatable` in the persistent type, the database table has the following four columns:
 
 - an integer primary key named `id`
 - a unique string `username`
@@ -104,7 +100,7 @@ By extending `ManagedAuthenticatable`, the database table has the following four
 
 A `ManagedAuthenticatable` also has a `ManagedSet` of `tokens` for each token that has been granted on its behalf.
 
-The interface `ManagedAuthResourceOwner` is a requirement that ensures the type argument is both a `ManagedObject<T>` and `ManagedAuthenticatable`, and serves no other purpose than to restrict `ManagedAuthDelegate<T>`'s type parameter.
+The interface `ManagedAuthResourceOwner<T>` is a requirement that ensures the type argument is both a `ManagedObject<T>` and `ManagedAuthenticatable`, and serves no other purpose than to restrict `ManagedAuthDelegate<T>`'s type parameter.
 
 This structure allows an application to declare its own 'user' type while still enforcing the needs of Aqueduct's OAuth 2.0 implementation.
 
