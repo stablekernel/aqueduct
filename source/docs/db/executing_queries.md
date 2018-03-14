@@ -88,6 +88,9 @@ By default, the returned object from an `insert()` will have all of its properti
 
 If an insert query fails because of a unique constraint is violated, a `QueryException` will be thrown.  See a later section on how `QueryException`s are gracefully handled by `Controller`s. In short, it is unlikely that you have to handle `QueryException` directly - `Controller`s know how to turn them into the appropriate HTTP response.
 
+!!! warning "Setting Query.values"
+    By default, `Query.values` is an empty instance of the object being inserted. If you replace it with an object - that you got from a request body or instantiated yourself - the properties are *copied* into `Query.values`. Further modifications of the replacement object have no effect on `Query.values`.
+
 ### Updating Data with a Query
 
 Updating rows with a `Query<T>` is similar to inserting data: you set the `Query.values` for properties you want to change. The type parameter for the `Query<T>` indicates which database table will get updated when the query is executed.
