@@ -11,6 +11,7 @@ import '../../helpers.dart';
 void main() {
   List<RootObject> rootObjects;
   ManagedContext ctx;
+
   setUpAll(() async {
     ctx = await contextWithModels([RootObject, RootJoinObject, OtherRootObject, ChildObject, GrandChildObject]);
     rootObjects = await populateModelGraph(ctx);

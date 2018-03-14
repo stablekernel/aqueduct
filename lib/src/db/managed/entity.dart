@@ -29,6 +29,11 @@ class ManagedEntity implements APIComponentDocumenter {
   /// You should never call this method directly, it will be called by [ManagedDataModel].
   ManagedEntity(this.dataModel, this._tableName, this.instanceType, this.persistentType);
 
+  /// The name of this entity.
+  ///
+  /// This name will match the name of [instanceType].
+  String get name => MirrorSystem.getName(instanceType.simpleName);
+
   /// The type of instances represented by this entity.
   ///
   /// Managed objects are made up of two components, a persistent type and an instance type. Applications
@@ -188,7 +193,7 @@ class ManagedEntity implements APIComponentDocumenter {
   void documentComponents(APIDocumentContext context) {
     final schemaProperties = <String, APISchemaObject>{};
     final obj = new APISchemaObject.object(schemaProperties)
-      ..title = "${MirrorSystem.getName(instanceType.simpleName)}";
+      ..title = "${name}";
 
     // Documentation comments
     context.defer(() async {
@@ -228,6 +233,6 @@ class ManagedEntity implements APIComponentDocumenter {
     });
 
     context.schema
-        .register(MirrorSystem.getName(instanceType.simpleName), obj, representation: instanceType.reflectedType);
+        .register(name, obj, representation: instanceType.reflectedType);
   }
 }

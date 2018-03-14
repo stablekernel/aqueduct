@@ -44,13 +44,14 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   InstanceType get values {
     if (_valueObject == null) {
       _valueObject = entity.newInstance() as InstanceType;
+      _valueObject.backing = new ManagedBuilderBacking.from(_valueObject.entity, _valueObject.backing);
     }
     return _valueObject;
   }
 
   @override
   set values(InstanceType obj) {
-    _valueObject = obj;
+    _valueObject = entity.newInstance(backing: new ManagedBuilderBacking.from(entity, obj.backing));
   }
 
   @override
@@ -164,7 +165,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
       if (entity.relationships.containsKey(propertyName)) {
         throw new ArgumentError(
             "Invalid property selection. Property '$propertyName' on "
-                "'${MirrorSystem.getName(entity.instanceType.simpleName)}' "
+                "'${entity.name}' "
                 "is a relationship and cannot be selected for this operation.");
       } else {
         throw new ArgumentError(

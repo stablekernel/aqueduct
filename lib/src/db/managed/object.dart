@@ -32,11 +32,11 @@ abstract class ManagedBacking {
   ///
   /// Use this method to use any reference of a property from this instance.
   void removeProperty(String propertyName) {
-    valueMap.remove(propertyName);
+    contents.remove(propertyName);
   }
 
   /// A map of all set values of this instance.
-  Map<String, dynamic> get valueMap;
+  Map<String, dynamic> get contents;
 }
 
 /// An object that represents a database row.
@@ -68,7 +68,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   static ManagedObject instantiateDynamic(ManagedEntity entity, {ManagedBacking backing}) {
     ManagedObject object = entity.instanceType.newInstance(const Symbol(""), []).reflectee as ManagedObject;
     if (backing != null) {
-      object._backing = backing;
+      object.backing = backing;
     }
     object.entity = entity;
     return object;
@@ -77,47 +77,48 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   /// The [ManagedEntity] this instance is described by.
   ManagedEntity entity = ManagedContext.defaultContext.dataModel.entityForType(PersistentType);
 
-  /// The managed values of this instance.
+  /// The persistent values of this object.
   ///
-  /// Not all values are fetched or populated in a [ManagedObject] instance. This value contains
-  /// key-value pairs for the managed object that have been set, either manually
-  /// or when fetched from a database. When [ManagedObject] is instantiated, this map is empty.
-  Map<String, dynamic> get backingMap => _backing.valueMap;
+  /// Values stored by this object are stored in [backing]. A backing is a [Map], where each key
+  /// is a property name of this object. A backing adds some access logic to storing and retrieving
+  /// its key-value pairs.
+  ///
+  /// You rarely need to use [backing] directly. There are many implementations of [ManagedBacking]
+  /// for fulfilling the behavior of the ORM, so you cannot rely on its behavior.
+  ManagedBacking backing = new ManagedValueBacking();
 
-  ManagedBacking _backing = new ManagedValueBacking();
-
-  /// Retrieves a value by property name from the [backingMap].
+  /// Retrieves a value by property name from [backing].
   dynamic operator [](String propertyName) {
     final prop = entity.properties[propertyName];
     if (prop == null) {
-      throw new ArgumentError("Invalid property access for '${MirrorSystem.getName(entity.instanceType.simpleName)}'. "
-          "Property '$propertyName' does not exist on '${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
+      throw new ArgumentError("Invalid property access for '${entity.name}'. "
+          "Property '$propertyName' does not exist on '${entity.name}'.");
     }
 
-    return _backing.valueForProperty(prop);
+    return backing.valueForProperty(prop);
   }
 
-  /// Sets a value by property name in the [backingMap].
+  /// Sets a value by property name in [backing].
   void operator []=(String propertyName, dynamic value) {
     final prop = entity.properties[propertyName];
     if (prop == null) {
-      throw new ArgumentError("Invalid property access for '${MirrorSystem.getName(entity.instanceType.simpleName)}'. "
-          "Property '$propertyName' does not exist on '${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
+      throw new ArgumentError("Invalid property access for '${entity.name}'. "
+          "Property '$propertyName' does not exist on '${entity.name}'.");
     }
 
-    _backing.setValueForProperty(prop, value);
+    backing.setValueForProperty(prop, value);
   }
 
-  /// Removes a property from the [backingMap].
+  /// Removes a property from [backing].
   ///
   /// This will remove a value from the backing map.
   void removePropertyFromBackingMap(String propertyName) {
-    _backing.removeProperty(propertyName);
+    backing.removeProperty(propertyName);
   }
 
-  /// Checks whether or not a property has been set in this instances' [backingMap].
+  /// Checks whether or not a property has been set in this instances' [backing].
   bool hasValueForProperty(String propertyName) {
-    return backingMap.containsKey(propertyName);
+    return backing.contents.containsKey(propertyName);
   }
 
   /// Callback to modify an object prior to updating it with a [Query].
@@ -212,9 +213,8 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
         entity.symbolMap[new Symbol(MirrorSystem.getName(invocation.memberName))];
 
     if (name == null) {
-      throw new ArgumentError("Invalid property access for '${MirrorSystem.getName(entity.instanceType.simpleName)}'. "
-          "Property '${MirrorSystem.getName(invocation.memberName)}' does not exist on '${MirrorSystem.getName(
-          entity.instanceType.simpleName)}'.");
+      throw new ArgumentError("Invalid property access for '${entity.name}'. "
+          "Property '${MirrorSystem.getName(invocation.memberName)}' does not exist on '${entity.name}'.");
     }
 
     return name;
@@ -251,7 +251,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
 
       if (property is ManagedAttributeDescription) {
         if (!property.isTransient) {
-          _backing.setValueForProperty(property, property.convertFromPrimitiveValue(v));
+          backing.setValueForProperty(property, property.convertFromPrimitiveValue(v));
         } else {
           if (!property.transientStatus.isAvailableAsInput) {
             throw new ValidationException(["invalid input key '$k'"]);
@@ -265,7 +265,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
           mirror.setField(new Symbol(k), decodedValue);
         }
       } else {
-        _backing.setValueForProperty(property, property.convertFromPrimitiveValue(v));
+        backing.setValueForProperty(property, property.convertFromPrimitiveValue(v));
       }
     });
   }
@@ -274,7 +274,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   ///
   /// This method returns a map of the key-values pairs in this instance. This value is typically converted into a transmission format like JSON.
   ///
-  /// Only properties present in [backingMap] are serialized, otherwise, they are omitted from the map. If a property is present in [backingMap] and the value is null,
+  /// Only properties present in [backing] are serialized, otherwise, they are omitted from the map. If a property is present in [backing] and the value is null,
   /// the value null will be serialized for that property key.
   ///
   /// Usage:
@@ -283,7 +283,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   Map<String, dynamic> asMap() {
     var outputMap = <String, dynamic>{};
 
-    _backing.valueMap.forEach((k, v) {
+    backing.contents.forEach((k, v) {
       if (!_isPropertyPrivate(k)) {
         outputMap[k] = entity.properties[k].convertToPrimitiveValue(v);
       }

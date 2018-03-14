@@ -44,21 +44,21 @@ class ManagedValidator {
       }
 
       if (validator.definition._builtinValidate == _BuiltinValidate.absent) {
-        if (object.backingMap.containsKey(validator.attribute.name)) {
+        if (object.backing.contents.containsKey(validator.attribute.name)) {
           valid = false;
 
           errors.add("Value for '${validator.attribute.name}' may not be included "
               "for ${_errorStringForOperation(operation)}s.");
         }
       } else if (validator.definition._builtinValidate == _BuiltinValidate.present) {
-        if (!object.backingMap.containsKey(validator.attribute.name)) {
+        if (!object.backing.contents.containsKey(validator.attribute.name)) {
           valid = false;
 
           errors.add("Value for '${validator.attribute.name}' must be included "
               "for ${_errorStringForOperation(operation)}s.");
         }
       } else {
-        var value = object.backingMap[validator.attribute.name];
+        var value = object.backing.contents[validator.attribute.name];
         if (value != null) {
           if (!validator._isValidFor(operation, validator.attribute, value, errors)) {
             valid = false;

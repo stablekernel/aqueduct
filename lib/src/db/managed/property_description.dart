@@ -250,7 +250,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   String toString() {
-    return "${MirrorSystem.getName(entity.instanceType.simpleName)}.$name";
+    return "${entity.name}.$name";
   }
 
   @override
@@ -344,8 +344,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     } else if (value is ManagedObject) {
       // If we're only fetching the foreign key, don't do a full asMap
       if (relationshipType == ManagedRelationshipType.belongsTo &&
-          value.backingMap.length == 1 &&
-          value.backingMap.containsKey(destinationEntity.primaryKey)) {
+          value.backing.contents.length == 1 &&
+          value.backing.contents.containsKey(destinationEntity.primaryKey)) {
         return {destinationEntity.primaryKey: value[destinationEntity.primaryKey]};
       }
 
@@ -411,8 +411,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       case ManagedRelationshipType.hasMany: relTypeString = "has-many"; break;
       case ManagedRelationshipType.hasOne: relTypeString = "has-a"; break;
     }
-    return "${MirrorSystem.getName(entity.instanceType.simpleName)}.$name - "
-        "$relTypeString '${MirrorSystem.getName(destinationEntity.instanceType.simpleName)}' "
+    return "${entity.name}.$name - "
+        "$relTypeString '${destinationEntity.name}' "
         "(inverse: ${MirrorSystem.getName(inverseKey)})";
   }
 }

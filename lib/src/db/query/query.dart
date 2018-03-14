@@ -202,19 +202,54 @@ abstract class Query<InstanceType extends ManagedObject> {
 
   /// Values to be used when inserting or updating an object.
   ///
-  /// Keys must be the name of the property on the model object. Prefer to use [values] instead.
+  /// This method is an unsafe version of [values]. Prefer to use [values] instead.
+  /// Keys in this map must be the name of a property of [InstanceType], otherwise an exception
+  /// is thrown. Values provided in this map are not run through any [Validate] annotations
+  /// declared by the [InstanceType].
+  ///
+  /// Do not set this property and [values] on the same query. If both this property and [values] are set,
+  /// the behavior is undefined.
   Map<String, dynamic> valueMap;
 
-  /// Values to be used when inserting or updating an object.
+  /// Values to be sent to database during an [update] or [insert] query.
   ///
-  /// Will generate the [valueMap] for this [Query] using values from this object. This object is created
-  /// once accessed, so it is not necessary to create an instance and set this property, but instead,
-  /// set properties of this property.
+  /// You set values for the properties of this object to insert a row or update one or more rows.
+  /// This property is the same type as the type being inserted or updated. [values] is empty (but not null)
+  /// when a [Query] is first created, therefore, you do not have to assign an instance to it and may set
+  /// values for its properties immediately:
   ///
-  /// For example, the following code would generate the values map {'name' = 'Joe', 'job' = 'programmer'}:
-  ///     var q = new Query<User>()
-  ///       ..values.name = 'Joe
-  ///       ..values.job = 'programmer';
+  ///         var q = Query<User>()
+  ///           ..values.name = 'Joe'
+  ///           ..values.job = 'programmer';
+  ///         await q.insert();
+  ///
+  /// You may only set values for properties that are backed by a column. This includes most properties, except
+  /// all [ManagedSet] properties and [ManagedObject] properties that do not have a [Relate] annotation. If you attempt
+  /// to set a property that isn't allowed on [values], an error is thrown.
+  ///
+  /// If a property of [values] is a [ManagedObject] with a [Relate] annotation, you may provide a value for its primary key
+  /// property. This value will be stored in the foreign key column that backs the property. You may set properties
+  /// of this type immediately, without having to create an instance of the related type:
+  ///
+  ///         // Assumes that Employee is declared with the following property:
+  ///         // @Relate(#employees)
+  ///         // Manager manager;
+  ///
+  ///         final q = Query<Employee>()
+  ///           ..values.name = "Sally"
+  ///           ..values.manager.id = 10;
+  ///         await q.insert();
+  ///
+  /// WARNING: You may replace this property with a new instance of [InstanceType]. When doing so, a copy
+  /// of the object is created and assigned to this property.
+  ///
+  ///         final o = SomeObject()
+  ///           ..id = 1;
+  ///         final q = Query<SomeObject>()
+  ///           ..values = o;
+  ///
+  ///         o.id = 2;
+  ///         assert(q.values.id == 1); // true
   ///
   InstanceType values;
 

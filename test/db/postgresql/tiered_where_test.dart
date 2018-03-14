@@ -37,10 +37,10 @@ void main() {
       var results = await q.fetch();
 
       for (var r in results) {
-        expect(r.backingMap.containsKey("child"), false);
-        expect(r.backingMap.length, r.entity.defaultProperties.length);
+        expect(r.backing.contents.containsKey("child"), false);
+        expect(r.backing.contents.length, r.entity.defaultProperties.length);
         for (var property in r.entity.defaultProperties) {
-          expect(r.backingMap.containsKey(property), true);
+          expect(r.backing.contents.containsKey(property), true);
         }
       }
     });
@@ -51,20 +51,20 @@ void main() {
 
       for (var r in results) {
         expect(
-            r.backingMap.length,
+            r.backing.contents.length,
             r.entity.defaultProperties.length +
                 1); // +1 is for key containing 'child'
         for (var property in r.entity.defaultProperties) {
-          expect(r.backingMap.containsKey(property), true);
+          expect(r.backing.contents.containsKey(property), true);
         }
 
         // Child may be null, but even if it is the key must be in the map
-        expect(r.backingMap.containsKey("child"), true);
+        expect(r.backing.contents.containsKey("child"), true);
         if (r.child != null) {
-          expect(r.child.backingMap.length,
+          expect(r.child.backing.contents.length,
               r.child.entity.defaultProperties.length);
           for (var property in r.child.entity.defaultProperties) {
-            expect(r.child.backingMap.containsKey(property), true);
+            expect(r.child.backing.contents.containsKey(property), true);
           }
         }
       }
@@ -80,22 +80,22 @@ void main() {
 
       for (var r in results) {
         expect(
-            r.backingMap.length,
+            r.backing.contents.length,
             r.entity.defaultProperties.length +
                 1); // +1 is for key containing 'child'
         for (var property in r.entity.defaultProperties) {
-          expect(r.backingMap.containsKey(property), true);
+          expect(r.backing.contents.containsKey(property), true);
         }
 
         // Child may be null, but even if it is the key must be in the map
-        expect(r.backingMap.containsKey("child"), true);
+        expect(r.backing.contents.containsKey("child"), true);
         if (r.child != null) {
-          expect(r.child.backingMap.length,
+          expect(r.child.backing.contents.length,
               r.child.entity.defaultProperties.length);
           for (var property in r.child.entity.defaultProperties) {
-            expect(r.child.backingMap.containsKey(property), true);
+            expect(r.child.backing.contents.containsKey(property), true);
           }
-          expect(r.child.backingMap.containsKey("grandChild"), false);
+          expect(r.child.backing.contents.containsKey("grandChild"), false);
         }
       }
     });
@@ -108,29 +108,29 @@ void main() {
       var results = await q.fetch();
       for (var r in results) {
         expect(
-            r.backingMap.length,
+            r.backing.contents.length,
             r.entity.defaultProperties.length +
                 1); // +1 is for key containing 'child'
         for (var property in r.entity.defaultProperties) {
-          expect(r.backingMap.containsKey(property), true);
+          expect(r.backing.contents.containsKey(property), true);
         }
 
-        expect(r.backingMap.containsKey("child"), true);
+        expect(r.backing.contents.containsKey("child"), true);
         if (r.child != null) {
           expect(
-              r.child.backingMap.length,
+              r.child.backing.contents.length,
               r.child.entity.defaultProperties.length +
                   1); // +1 is for key containing 'grandchild
           for (var property in r.child.entity.defaultProperties) {
-            expect(r.child.backingMap.containsKey(property), true);
+            expect(r.child.backing.contents.containsKey(property), true);
           }
 
-          expect(r.child.backingMap.containsKey("grandChild"), true);
+          expect(r.child.backing.contents.containsKey("grandChild"), true);
           if (r.child.grandChild != null) {
-            expect(r.child.grandChild.backingMap.length,
+            expect(r.child.grandChild.backing.contents.length,
                 r.child.grandChild.entity.defaultProperties.length);
             for (var property in r.child.grandChild.entity.defaultProperties) {
-              expect(r.child.grandChild.backingMap.containsKey(property), true);
+              expect(r.child.grandChild.backing.contents.containsKey(property), true);
             }
           }
         }
@@ -147,13 +147,13 @@ void main() {
 
       var results = await q.fetch();
       for (var r in results) {
-        expect(r.backingMap.length, 2 /* id + child */);
-        expect(r.backingMap.containsKey("rid"), true);
-        expect(r.backingMap.containsKey("child"), true);
+        expect(r.backing.contents.length, 2 /* id + child */);
+        expect(r.backing.contents.containsKey("rid"), true);
+        expect(r.backing.contents.containsKey("child"), true);
 
         if (r.child != null) {
-          expect(r.child.backingMap.length, 1);
-          expect(r.child.backingMap.containsKey("cid"), true);
+          expect(r.child.backing.contents.length, 1);
+          expect(r.child.backing.contents.containsKey("cid"), true);
         }
       }
     });
@@ -169,18 +169,18 @@ void main() {
 
       var results = await q.fetch();
       for (var r in results) {
-        expect(r.backingMap.length, 2 /* id + child */);
-        expect(r.backingMap.containsKey("rid"), true);
-        expect(r.backingMap.containsKey("child"), true);
+        expect(r.backing.contents.length, 2 /* id + child */);
+        expect(r.backing.contents.containsKey("rid"), true);
+        expect(r.backing.contents.containsKey("child"), true);
 
         if (r.child != null) {
-          expect(r.child.backingMap.length, 2 /* id + grandchild */);
-          expect(r.child.backingMap.containsKey("cid"), true);
-          expect(r.child.backingMap.containsKey("grandChild"), true);
+          expect(r.child.backing.contents.length, 2 /* id + grandchild */);
+          expect(r.child.backing.contents.containsKey("cid"), true);
+          expect(r.child.backing.contents.containsKey("grandChild"), true);
 
           if (r.child?.grandChild != null) {
-            expect(r.child.grandChild.backingMap.length, 1);
-            expect(r.child.grandChild.backingMap.containsKey("gid"), true);
+            expect(r.child.grandChild.backing.contents.length, 1);
+            expect(r.child.grandChild.backing.contents.containsKey("gid"), true);
           }
         }
       }
@@ -267,7 +267,7 @@ void main() {
 
       expect(results.length, 1);
       expect(results.first.rid, 1);
-      expect(results.first.backingMap.containsKey("children"), false);
+      expect(results.first.backing.contents.containsKey("children"), false);
 
       q = new Query<RootObject>()
         ..where((o) => o.children.haveAtLeastOneWhere.cid).equalTo(2)
@@ -292,7 +292,7 @@ void main() {
       expect(results.firstWhere((r) => r.child?.cid == 1).child, isNotNull);
       expect(
           results.where((r) => r.rid != 1).every(
-              (r) => r.backingMap.containsKey("child") && r.child == null),
+              (r) => r.backing.contents.containsKey("child") && r.child == null),
           true);
     });
 
@@ -418,13 +418,13 @@ void main() {
 
       var results = await q.fetch();
       for (var r in results) {
-        expect(r.backingMap.length,
+        expect(r.backing.contents.length,
             r.entity.defaultProperties.length + 1); // +1 is for child
         for (var property in r.entity.defaultProperties) {
-          expect(r.backingMap.containsKey(property), true);
+          expect(r.backing.contents.containsKey(property), true);
         }
-        expect(r.child.backingMap.length, 1);
-        expect(r.child.backingMap.containsKey("cid"), true);
+        expect(r.child.backing.contents.length, 1);
+        expect(r.child.backing.contents.containsKey("cid"), true);
       }
     });
 
@@ -459,7 +459,7 @@ void main() {
       expect(results.any((r) => r.rid == 1), true);
       expect(results.any((r) => r.rid == 2), true);
       expect(results.any((r) => r.rid == 4), true);
-      expect(results.every((r) => r.backingMap["children"] == null), true);
+      expect(results.every((r) => r.backing.contents["children"] == null), true);
     });
 
     test("WhereNull on hasMany", () async {
@@ -469,7 +469,7 @@ void main() {
       expect(results.length, 2);
       expect(results.any((r) => r.rid == 3), true);
       expect(results.any((r) => r.rid == 5), true);
-      expect(results.every((r) => r.backingMap["children"] == null), true);
+      expect(results.every((r) => r.backing.contents["children"] == null), true);
     });
 
     test("WhereNotNull on hasOne", () async {
@@ -480,7 +480,7 @@ void main() {
       expect(results.any((r) => r.rid == 1), true);
       expect(results.any((r) => r.rid == 2), true);
       expect(results.any((r) => r.rid == 3), true);
-      expect(results.every((r) => r.backingMap["child"] == null), true);
+      expect(results.every((r) => r.backing.contents["child"] == null), true);
     });
 
     test("WhereNull on hasOne", () async {
@@ -490,7 +490,7 @@ void main() {
       expect(results.length, 2);
       expect(results.any((r) => r.rid == 4), true);
       expect(results.any((r) => r.rid == 5), true);
-      expect(results.every((r) => r.backingMap["child"] == null), true);
+      expect(results.every((r) => r.backing.contents["child"] == null), true);
     });
   });
 
@@ -542,7 +542,7 @@ void main() {
       final result = await q.fetch();
       expect(result.length, 1);
       expect(result.first.rid, 1);
-      expect(result.first.backingMap.containsKey("child"), false);
+      expect(result.first.backing.contents.containsKey("child"), false);
     });
 
     test("From belongs-to-one", () async {
@@ -552,7 +552,7 @@ void main() {
       final result = await q.fetch();
       expect(result.length, 1);
       expect(result.first.gid, 1);
-      expect(result.first.backingMap["parent"].backingMap.keys.length, 1);
+      expect(result.first.backing.contents["parent"].backing.contents.keys.length, 1);
     });
 
     test("From belongs-to-many", () async {
@@ -563,7 +563,7 @@ void main() {
       final result = await q.fetch();
       expect(result.length, 3);
       expect(result.map((g) => g.gid).toList(), [5, 6, 8]);
-      expect(result.any((g) => g.backingMap["parents"].backingMap.keys.length != 1), false);
+      expect(result.any((g) => g.backing.contents["parents"].backing.contents.keys.length != 1), false);
     });
   });
 }

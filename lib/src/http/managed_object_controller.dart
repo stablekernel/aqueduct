@@ -384,7 +384,7 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
     final ops = super.documentOperations(context, route, path);
 
-    final entityName = MirrorSystem.getName(_query.entity.instanceType.simpleName);
+    final entityName = _query.entity.name;
 
     if ((path.parameters?.where((p) => p.location == APIParameterLocation.path)?.length ?? 0) > 0) {
       ops["get"].id = "get$entityName";
