@@ -76,8 +76,8 @@ If we continue with the 'chat application' example, the code for `handleEvent` m
 
 ```dart
 void handleEvent(dynamic event, {int fromUserID}) {
-  var incoming = JSON.decode(UTF8.decode(event));
-  var outgoing = UTF8.encode(JSON.encode({
+  var incoming = json.decode(UTF8.decode(event));
+  var outgoing = utf8.encode(json.encode({
     "text": incoming["text"],
     ...
   }));
