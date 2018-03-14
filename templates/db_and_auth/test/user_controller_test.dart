@@ -21,7 +21,7 @@ Future main() async {
           "username": "bob+$i@stablekernel.com",
           "password": "foobaraxegrind$i%"
         }).post();
-      tokens.add(JSON.decode(response.body)["access_token"]);
+      tokens.add(json.decode(response.body)["access_token"]);
     }
   });
 

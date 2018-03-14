@@ -183,7 +183,7 @@ class Runner {
       throw "latestVersion failed with status code ${response.statusCode}. Reason: ${response.body}";
     }
 
-    String tag = JSON.decode(response.body)["tag_name"];
+    String tag = json.decode(response.body)["tag_name"];
     if (tag == null) {
       throw "latestVersion failed. Reason: no tag found";
     }
@@ -223,7 +223,7 @@ class Runner {
   }
 
   Future postGithubRelease(String version, String name, String description) async {
-    var body = JSON.encode({
+    var body = json.encode({
       "tag_name": version,
       "name": name,
       "body": description
@@ -283,7 +283,7 @@ class Runner {
 
     print("Building symbol map...");
     var indexFile = new File.fromUri(codeBranchDir.uri.resolve("doc/").resolve("api/").resolve("index.json"));
-    List<Map<String, dynamic>> indexJSON = JSON.decode(await indexFile.readAsString());
+    List<Map<String, dynamic>> indexJSON = json.decode(await indexFile.readAsString());
     var libraries = indexJSON
         .where((m) => m["type"] == "library")
         .map((lib) => lib["qualifiedName"])
@@ -444,7 +444,7 @@ class APIReferenceTransformer extends Transformer {
 
   @override
   Future<List<int>> transform(List<int> inputContents) async {
-    var contents = UTF8.decode(inputContents);
+    var contents = utf8.decode(inputContents);
 
     var matches = regex.allMatches(contents).toList().reversed;
 
@@ -460,7 +460,7 @@ class APIReferenceTransformer extends Transformer {
       }
     });
 
-    return UTF8.encode(contents);
+    return utf8.encode(contents);
   }
 
   SymbolResolution bestGuessForSymbol(String symbol) {

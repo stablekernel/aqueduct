@@ -146,7 +146,7 @@ Future<http.Response> postMessage(String message) async {
 Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages, {int butNeverReceiveIn}) async {
   final response = await http.get("http://localhost:8000/messages");
   final respondingIsolateID = isolateIdentifierFromResponse(response);
-  final List<Map<String, dynamic>> messages = JSON.decode(response.body);
+  final List<Map<String, dynamic>> messages = json.decode(response.body);
 
   if (expectedMessages.containsKey(respondingIsolateID)) {
     final remainingMessagesExpectedForIsolateID = expectedMessages[respondingIsolateID];
@@ -183,7 +183,7 @@ Future<Map<int, List<Map<String, dynamic>>>> getMessagesFromIsolates() async {
     var serverID = isolateIdentifierFromResponse(resp);
 
     if (!msgs.containsKey(serverID)) {
-      msgs[serverID] = JSON.decode(resp.body);
+      msgs[serverID] = json.decode(resp.body);
     }
   }
 
@@ -198,7 +198,7 @@ Future<Map<int, List<String>>> getErrorsFromIsolates() async {
     var serverID = isolateIdentifierFromResponse(resp);
 
     if (!msgs.containsKey(serverID)) {
-      msgs[serverID] = JSON.decode(resp.body);
+      msgs[serverID] = json.decode(resp.body);
     }
   }
 

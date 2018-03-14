@@ -52,14 +52,14 @@ void main() {
   test("Request with path parameter and body", () async {
     var response = await http.put("http://localhost:8888/users/2",
         headers: {"Content-Type": "application/json;charset=utf-8"},
-        body: JSON.encode({"name": "joe"}));
+        body: json.encode({"name": "joe"}));
     expect(response.statusCode, 200);
   });
 
   test("Request without path parameter and body", () async {
     var response = await http.post("http://localhost:8888/users",
         headers: {"Content-Type": "application/json;charset=utf-8"},
-        body: JSON.encode({"name": "joe"}));
+        body: json.encode({"name": "joe"}));
     expect(response.statusCode, 200);
   });
 

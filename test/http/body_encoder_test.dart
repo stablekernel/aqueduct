@@ -85,7 +85,7 @@ void main() {
     var resp = await http.get("http://localhost:8888");
     expect(resp.statusCode, 200);
     expect(resp.headers["content-type"], "a/specific; charset=utf-8");
-    expect(JSON.decode(resp.body), {"key":"value"});
+    expect(json.decode(resp.body), {"key":"value"});
   });
 
   test("Using an encoder that blows up during encoded returns 500 safely",
@@ -135,7 +135,7 @@ void main() {
         expect(resp.headers.contentType.toString(), equals(ContentType.JSON.toString()));
         expect(resp.headers.value("content-encoding"), "gzip", reason: acceptEncoding);
         expect(resp.headers.value("content-length"), isNotNull);
-        expect(JSON.decode(UTF8.decode(await resp.first)), {"a":"b"});
+        expect(json.decode(utf8.decode(await resp.first)), {"a":"b"});
       }
     });
 
@@ -151,7 +151,7 @@ void main() {
       expect(resp.headers.value("content-length"), isNotNull);
 
       expect(resp.statusCode, 200);
-      expect(JSON.decode(UTF8.decode(await resp.first)), {"a":"b"});
+      expect(json.decode(utf8.decode(await resp.first)), {"a":"b"});
     });
 
     test("Content-Type that can be gzipped and request has Accept-Encoding but not gzip", () async {
@@ -166,7 +166,7 @@ void main() {
       expect(resp.headers.value("content-encoding"), isNull);
 
       expect(resp.statusCode, 200);
-      expect(JSON.decode(UTF8.decode(await resp.first)), {"a":"b"});
+      expect(json.decode(utf8.decode(await resp.first)), {"a":"b"});
     });
 
     test("Unregistered content-type of List<int> does not get gzipped", () async {
@@ -213,7 +213,7 @@ void main() {
       expect(resp.headers.value("content-encoding"), isNull);
 
       expect(resp.statusCode, 200);
-      expect(JSON.decode(UTF8.decode(await resp.first)), {"a":"b"});
+      expect(json.decode(utf8.decode(await resp.first)), {"a":"b"});
     });
   });
 }
@@ -241,7 +241,7 @@ class ByteCodec extends Codec {
 class ByteEncoder extends Converter<String, List<int>> {
   const ByteEncoder();
   @override
-  List<int> convert(String object) => UTF8.encode(object);
+  List<int> convert(String object) => utf8.encode(object);
 }
 
 class CrashingCodec extends Codec {

@@ -219,7 +219,7 @@ class TestRequest {
       request.headers.contentType = contentType;
       var bytes;
       if (body is String) {
-        bytes = UTF8.encode(body);
+        bytes = utf8.encode(body);
       } else {
         bytes = _bodyBytes(body);
       }

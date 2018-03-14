@@ -56,7 +56,7 @@ void main() {
       var res = await http.get("http://localhost:8000",
           headers: {HttpHeaders.AUTHORIZATION: "Notbearer"});
       expect(res.statusCode, 400);
-      expect(JSON.decode(res.body), {"error": "invalid_authorization_header"});
+      expect(json.decode(res.body), {"error": "invalid_authorization_header"});
     });
 
     test(
@@ -68,7 +68,7 @@ void main() {
       var res = await http.get("http://localhost:8000",
           headers: {HttpHeaders.AUTHORIZATION: "Bearer "});
       expect(res.statusCode, 400);
-      expect(JSON.decode(res.body), {"error": "invalid_authorization_header"});
+      expect(json.decode(res.body), {"error": "invalid_authorization_header"});
     });
 
     test("Invalid bearer token returns 401", () async {
@@ -96,7 +96,7 @@ void main() {
       var res = await http.get("http://localhost:8000",
           headers: {HttpHeaders.AUTHORIZATION: "Bearer $accessToken"});
       expect(res.statusCode, 200);
-      expect(JSON.decode(res.body),
+      expect(json.decode(res.body),
           {"clientID": "com.stablekernel.app1", "resourceOwnerIdentifier": 1, "credentials": null});
     });
   });
@@ -118,7 +118,7 @@ void main() {
       var res = await http.get("http://localhost:8000",
           headers: {HttpHeaders.AUTHORIZATION: "Notright"});
       expect(res.statusCode, 400);
-      expect(JSON.decode(res.body), {"error": "invalid_authorization_header"});
+      expect(json.decode(res.body), {"error": "invalid_authorization_header"});
     });
 
     test("Basic authorization, but empty, header returns 400", () async {
@@ -128,7 +128,7 @@ void main() {
       var res = await http.get("http://localhost:8000",
           headers: {HttpHeaders.AUTHORIZATION: "Basic "});
       expect(res.statusCode, 400);
-      expect(JSON.decode(res.body), {"error": "invalid_authorization_header"});
+      expect(json.decode(res.body), {"error": "invalid_authorization_header"});
     });
 
     test(
@@ -140,7 +140,7 @@ void main() {
       var res = await http.get("http://localhost:8000",
           headers: {HttpHeaders.AUTHORIZATION: "Basic asasd"});
       expect(res.statusCode, 400);
-      expect(JSON.decode(res.body), {"error": "invalid_authorization_header"});
+      expect(json.decode(res.body), {"error": "invalid_authorization_header"});
     });
 
     test("Invalid client id returns 401", () async {
@@ -176,7 +176,7 @@ void main() {
             "Basic ${new Base64Encoder().convert("com.stablekernel.app1:kilimanjaro".codeUnits)}"
       });
       expect(res.statusCode, 200);
-      expect(JSON.decode(res.body), {
+      expect(json.decode(res.body), {
         "clientID": "com.stablekernel.app1",
         "resourceOwnerIdentifier": null,
         "credentials": "com.stablekernel.app1:kilimanjaro"
@@ -192,7 +192,7 @@ void main() {
             "Basic ${new Base64Encoder().convert("com.stablekernel.public:".codeUnits)}"
       });
       expect(res.statusCode, 200);
-      expect(JSON.decode(res.body), {
+      expect(json.decode(res.body), {
         "clientID": "com.stablekernel.public",
         "resourceOwnerIdentifier": null,
         "credentials": "com.stablekernel.public:"
@@ -268,7 +268,7 @@ void main() {
         HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
       });
       expect(res.statusCode, 200);
-      expect(JSON.decode(res.body)["scopes"], ["user"]);
+      expect(json.decode(res.body)["scopes"], ["user"]);
     });
 
     test("Single scoped authorizer requiring less privileges, valid higher privileged token pass authorizer", () async {
@@ -279,7 +279,7 @@ void main() {
         HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
       });
       expect(res.statusCode, 200);
-      expect(JSON.decode(res.body)["scopes"], ["user"]);
+      expect(json.decode(res.body)["scopes"], ["user"]);
     });
 
     test("Single scoped authorizer, multiple scoped valid token pass authorizer", () async {
@@ -290,7 +290,7 @@ void main() {
         HttpHeaders.AUTHORIZATION: "Bearer $userAndOtherScopedAccessToken"
       });
       expect(res.statusCode, 200);
-      expect(JSON.decode(res.body)["scopes"], ["user", "other_scope"]);
+      expect(json.decode(res.body)["scopes"], ["user", "other_scope"]);
     });
 
     test("Multi-scoped authorizer, multi-scoped valid token pass authorizer", () async {
@@ -301,7 +301,7 @@ void main() {
         HttpHeaders.AUTHORIZATION: "Bearer $userAndOtherScopedAccessToken"
       });
       expect(res.statusCode, 200);
-      expect(JSON.decode(res.body)["scopes"], ["user", "other_scope"]);
+      expect(json.decode(res.body)["scopes"], ["user", "other_scope"]);
     });
 
     test("Multi-scoped authorizer, multi-scoped valid token with more privilegs than necessary pass authorizer", () async {
@@ -312,7 +312,7 @@ void main() {
         HttpHeaders.AUTHORIZATION: "Bearer $userAndOtherScopedAccessToken"
       });
       expect(res.statusCode, 200);
-      expect(JSON.decode(res.body)["scopes"], ["user", "other_scope"]);
+      expect(json.decode(res.body)["scopes"], ["user", "other_scope"]);
     });
 
     // non-passing
@@ -325,7 +325,7 @@ void main() {
         HttpHeaders.AUTHORIZATION: "Bearer $userReadOnlyScopedAccessToken"
       });
       expect(res.statusCode, 403);
-      expect(JSON.decode(res.body), {
+      expect(json.decode(res.body), {
         "error": "insufficient_scope",
         "scope": "user"
       });
@@ -339,7 +339,7 @@ void main() {
         HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
       });
       expect(res.statusCode, 403);
-      expect(JSON.decode(res.body), {
+      expect(json.decode(res.body), {
         "error": "insufficient_scope",
         "scope": "other_scope"
       });
@@ -354,7 +354,7 @@ void main() {
         HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
       });
       expect(res.statusCode, 403);
-      expect(JSON.decode(res.body), {
+      expect(json.decode(res.body), {
         "error": "insufficient_scope",
         "scope": "user other_scope"
       });
@@ -369,7 +369,7 @@ void main() {
         HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
       });
       expect(res.statusCode, 403);
-      expect(JSON.decode(res.body), {
+      expect(json.decode(res.body), {
         "error": "insufficient_scope",
         "scope": "other something_else"
       });
@@ -384,7 +384,7 @@ void main() {
         HttpHeaders.AUTHORIZATION: "Bearer $userAndOtherReadOnlyScopedAccessToken"
       });
       expect(res.statusCode, 403);
-      expect(JSON.decode(res.body), {
+      expect(json.decode(res.body), {
         "error": "insufficient_scope",
         "scope": "user other_scope"
       });

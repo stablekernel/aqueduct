@@ -134,7 +134,7 @@ class HTTPCodecRepository {
     if ((contentType?.charset?.length ?? 0) > 0) {
       charsetCodec = _codecForCharset(contentType.charset);
     } else if (contentType.primaryType == "text" && contentCodec == null) {
-      charsetCodec = LATIN1;
+      charsetCodec = latin1;
     } else {
       charsetCodec = _defaultCharsetCodecForType(contentType);
     }

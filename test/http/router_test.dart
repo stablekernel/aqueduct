@@ -125,11 +125,11 @@ void main() {
 
       var response = await http.get("http://localhost:4040/api/a/1");
       expect(response.statusCode, 200);
-      expect(JSON.decode(response.body), {"id":"1"});
+      expect(json.decode(response.body), {"id":"1"});
 
       response = await http.get("http://localhost:4040/api/a");
       expect(response.statusCode, 200);
-      expect(JSON.decode(response.body), {});
+      expect(json.decode(response.body), {});
     });
 
   });
