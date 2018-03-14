@@ -253,7 +253,7 @@ void main() {
 }
 
 class User extends ManagedObject<_User>
-    implements _User {
+    implements _User, ManagedAuthResourceOwner {
   static const String DefaultPassword = "foobaraxegrind!%12";
 }
 

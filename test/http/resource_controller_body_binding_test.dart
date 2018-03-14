@@ -162,8 +162,8 @@ void main() {
   });
 }
 
-Future<http.Response> postJSON(dynamic json) {
-  if (json == null) {
+Future<http.Response> postJSON(dynamic body) {
+  if (body == null) {
     return http
         .post("http://localhost:4040",
         headers: {"Content-Type": "application/json"})
@@ -172,7 +172,7 @@ Future<http.Response> postJSON(dynamic json) {
   return http
       .post("http://localhost:4040",
       headers: {"Content-Type": "application/json"},
-      body: json.encode(json))
+      body: json.encode(body))
       .catchError((err) => null);
 }
 

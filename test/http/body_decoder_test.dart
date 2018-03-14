@@ -695,11 +695,11 @@ void main() {
   });
 }
 
-Future postJSON(dynamic json) {
+Future postJSON(dynamic body) {
   return http
       .post("http://localhost:8123",
         headers: {"Content-Type": "application/json"},
-        body: json.encode(json))
+        body: json.encode(body))
       .catchError((err) => null);
 }
 
