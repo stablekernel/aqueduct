@@ -112,11 +112,13 @@ class ManagedBuilderBacking extends ManagedBacking {
         throw _invalidValueConstruction;
       }
 
-      final obj = value as ManagedObject;
-      obj.backing = new ManagedForeignKeyBuilderBacking.from(property.entity, obj.backing);
+      final original = (value as ManagedObject);
+      final replacementBacking = new ManagedForeignKeyBuilderBacking.from(original.entity, original.backing);
+      final replacement = original.entity.newInstance(backing: replacementBacking);
+      contents[property.name] = replacement;
+    } else {
+      contents[property.name] = value;
     }
-
-    contents[property.name] = value;
   }
 }
 

@@ -219,7 +219,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// values for its properties immediately:
   ///
   ///         var q = Query<User>()
-  ///           ..values.name = 'Joe
+  ///           ..values.name = 'Joe'
   ///           ..values.job = 'programmer';
   ///         await q.insert();
   ///
@@ -240,8 +240,17 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///           ..values.manager.id = 10;
   ///         await q.insert();
   ///
-  /// You may replace this property with a new instance of [InstanceType]. When doing so, the provided instance's [ManagedObject.backing]
-  /// is altered and any properties that are not allowed to be set on [values] are stripped away.
+  /// WARNING: You may replace this property with a new instance of [InstanceType]. When doing so, a copy
+  /// of the object is created and assigned to this property.
+  ///
+  ///         final o = SomeObject()
+  ///           ..id = 1;
+  ///         final q = Query<SomeObject>()
+  ///           ..values = o;
+  ///
+  ///         o.id = 2;
+  ///         assert(q.values.id == 1); // true
+  ///
   InstanceType values;
 
   /// Configures the list of properties to be fetched for [InstanceType].
