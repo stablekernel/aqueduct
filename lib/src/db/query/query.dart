@@ -239,6 +239,9 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///           ..values.name = "Sally"
   ///           ..values.manager.id = 10;
   ///         await q.insert();
+  ///
+  /// You may replace this property with a new instance of [InstanceType]. When doing so, the provided instance's [ManagedObject.backing]
+  /// is altered and any properties that are not allowed to be set on [values] are stripped away.
   InstanceType values;
 
   /// Configures the list of properties to be fetched for [InstanceType].
