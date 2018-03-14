@@ -6,7 +6,7 @@ import '../context_helpers.dart';
 void main() {
   ManagedContext ctx;
   setUpAll(() async {
-    ctx = await contextWithModels([Root, Child]);
+    ctx = await contextWithModels([Root, Child, Constructor]);
   });
   tearDownAll(() async {
     await ctx.persistentStore.close();
@@ -16,6 +16,11 @@ void main() {
     final q = new Query<Child>();
     q.values.parent.id = 1;
     expect(q.values.parent.id, 1);
+  });
+
+  test("Values set in constructor are replicated in Query.values", () async {
+    final q = new Query<Constructor>();
+    expect(q.values.name, "Bob");
   });
 
 //todo: Deferring these until next PR
@@ -197,3 +202,16 @@ class _Child {
 
 }
 class Child extends ManagedObject<_Child> implements _Child {}
+
+class _Constructor {
+  @primaryKey
+  int id;
+
+  String name;
+}
+
+class Constructor extends ManagedObject<_Constructor> implements _Constructor {
+  Constructor() {
+    name = "Bob";
+  }
+}
