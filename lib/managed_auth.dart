@@ -271,7 +271,7 @@ class ManagedAuthenticatable implements Authenticatable {
 /// a persistent type that extends [ManagedAuthenticatable]. Since all [ManagedObject] subclasses
 /// extend their persistent type, this interface requirement is met.
 abstract class ManagedAuthResourceOwner
-    implements ManagedAuthenticatable, ManagedObject {}
+    implements ManagedAuthenticatable, ManagedObject<dynamic> {}
 
 /// [AuthServerDelegate] implementation for an [AuthServer] using [ManagedObject]s.
 ///

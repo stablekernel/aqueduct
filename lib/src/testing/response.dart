@@ -50,7 +50,7 @@ class TestResponse {
         .defaultInstance
         .codecForContentType(_innerResponse.headers.contentType);
 
-    return UTF8.decode(codec.encode(decodedBody));
+    return utf8.decode(codec.encode(decodedBody));
   }
 
   /// HTTP response headers.

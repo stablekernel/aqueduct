@@ -30,15 +30,15 @@ void main() {
     fileDirectory.createSync();
     subdir.createSync();
 
-    jsonFile.writeAsBytesSync(UTF8.encode(JSON.encode(jsonContents)));
-    htmlFile.writeAsBytesSync(UTF8.encode(htmlContents));
-    unknownFileExtension.writeAsBytesSync(UTF8.encode(htmlContents));
-    noFileExtension.writeAsBytesSync(UTF8.encode(htmlContents));
-    indexFile.writeAsBytesSync(UTF8.encode(htmlContents));
-    subdirFile.writeAsBytesSync(UTF8.encode(htmlContents));
-    sillyFileExtension.writeAsBytesSync(UTF8.encode(htmlContents));
-    cssFile.writeAsBytesSync(UTF8.encode(cssContents));
-    jsFile.writeAsBytesSync(UTF8.encode(jsContents));
+    jsonFile.writeAsBytesSync(utf8.encode(json.encode(jsonContents)));
+    htmlFile.writeAsBytesSync(utf8.encode(htmlContents));
+    unknownFileExtension.writeAsBytesSync(utf8.encode(htmlContents));
+    noFileExtension.writeAsBytesSync(utf8.encode(htmlContents));
+    indexFile.writeAsBytesSync(utf8.encode(htmlContents));
+    subdirFile.writeAsBytesSync(utf8.encode(htmlContents));
+    sillyFileExtension.writeAsBytesSync(utf8.encode(htmlContents));
+    cssFile.writeAsBytesSync(utf8.encode(cssContents));
+    jsFile.writeAsBytesSync(utf8.encode(jsContents));
 
     var cachingController = new HTTPFileController("temp_files")
       ..addCachePolicy(
@@ -81,7 +81,7 @@ void main() {
     expect(response.headers["transfer-encoding"], "chunked");
     expect(response.headers["cache-control"], isNull);
     expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
-    expect(JSON.decode(response.body), jsonContents);
+    expect(json.decode(response.body), jsonContents);
   });
 
   test("Can serve html file",  () async {
@@ -216,7 +216,7 @@ void main() {
   test("Provide onFileNotFound provides another response", () async {
     var response = await http.get("http://localhost:8888/redirect/jkasdjlkasjdksadj");
     expect(response.statusCode, 200);
-    expect(JSON.decode(response.body), {"k":"v"});
+    expect(json.decode(response.body), {"k":"v"});
   });
 
   group("Default caching", () {
@@ -228,7 +228,7 @@ void main() {
       expect(response.headers["transfer-encoding"], "chunked");
       expect(response.headers["cache-control"], isNull);
       expect(HttpDate.parse(response.headers["last-modified"]), isNotNull);
-      expect(JSON.decode(response.body), jsonContents);
+      expect(json.decode(response.body), jsonContents);
     });
 
     test("HTML file has no-cache", () async {

@@ -198,7 +198,7 @@ void main() {
     user.readFromMap(map);
 
     expect(
-        user.dateCreated.difference(DateTime.parse(dateString)), Duration.ZERO);
+        user.dateCreated.difference(DateTime.parse(dateString)), Duration.zero);
 
     var remap = user.asMap();
     expect(remap["dateCreated"], dateString);
@@ -410,7 +410,7 @@ void main() {
     expect(m["transientBigInt"], 123456789);
     expect(m["transientString"], "lowercase string");
     expect(m["transientDate"].difference(DateTime.parse(dateString)),
-        Duration.ZERO);
+        Duration.zero);
     expect(m["transientBool"], true);
     expect(m["transientDouble"], 30.5);
     expect(m["transientList"], [1, 2, 3, 4, 5]);

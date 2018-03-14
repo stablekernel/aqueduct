@@ -28,7 +28,7 @@ void main() {
     var res = await http.get("http://localhost:4040/a");
 
     expect(res.statusCode, 200);
-    expect(JSON.decode(res.body), "getAll");
+    expect(json.decode(res.body), "getAll");
   });
 
   test("Get w/ 1 param", () async {
@@ -36,7 +36,7 @@ void main() {
     var res = await http.get("http://localhost:4040/a/123");
 
     expect(res.statusCode, 200);
-    expect(JSON.decode(res.body), "123");
+    expect(json.decode(res.body), "123");
   });
 
   test("Get w/ 2 param", () async {
@@ -45,14 +45,14 @@ void main() {
     var res = await http.get("http://localhost:4040/a/123/active");
 
     expect(res.statusCode, 200);
-    expect(JSON.decode(res.body), "123active");
+    expect(json.decode(res.body), "123active");
   });
 
 
   test("Can get path variable without binding", () async {
     server = await enableController("/:id", NoBindController);
     var response = await http.get("http://localhost:4040/foo");
-    expect(JSON.decode(response.body), {"id": "foo"});
+    expect(json.decode(response.body), {"id": "foo"});
   });
 
 
@@ -105,17 +105,17 @@ void main() {
   test("Only respond to appropriate content types", () async {
     server = await enableController("/a", TController);
 
-    var body = JSON.encode({"a": "b"});
+    var body = json.encode({"a": "b"});
     var res = await http.post("http://localhost:4040/a",
         headers: {"Content-Type": "application/json"}, body: body);
     expect(res.statusCode, 200);
-    expect(JSON.decode(res.body), equals({"a": "b"}));
+    expect(json.decode(res.body), equals({"a": "b"}));
   });
 
   test("Return error when wrong content type", () async {
     server = await enableController("/a", TController);
 
-    var body = JSON.encode({"a": "b"});
+    var body = json.encode({"a": "b"});
     var res = await http.post("http://localhost:4040/a",
         headers: {"Content-Type": "application/somenonsense"}, body: body);
     expect(res.statusCode, 415);
@@ -213,16 +213,16 @@ void main() {
   test("Model and lists are encoded in response", () async {
     server = await enableController("/a/:thing", ModelEncodeController);
     var res = await http.get("http://localhost:4040/a/list");
-    expect(JSON.decode(res.body), [
+    expect(json.decode(res.body), [
       {"id": 1},
       {"id": 2}
     ]);
 
     res = await http.get("http://localhost:4040/a/model");
-    expect(JSON.decode(res.body), {"id": 1, "name": "Bob"});
+    expect(json.decode(res.body), {"id": 1, "name": "Bob"});
 
     res = await http.get("http://localhost:4040/a/modellist");
-    expect(JSON.decode(res.body), [
+    expect(json.decode(res.body), [
       {"id": 1, "name": "Bob"},
       {"id": 2, "name": "Fred"}
     ]);
@@ -310,14 +310,14 @@ void main() {
   test("didDecodeRequestBody invoked when there is a request body", () async {
     server = await enableController("/a", DecodeCallbackController);
     var resp = await http.get("http://localhost:4040/a");
-    expect(JSON.decode(resp.body), {"didDecode": false});
+    expect(json.decode(resp.body), {"didDecode": false});
 
     resp = await http.post("http://localhost:4040/a", headers: {
       HttpHeaders.CONTENT_TYPE: ContentType.JSON.toString()
-    }, body: JSON.encode({
+    }, body: json.encode({
       "k":"v"
     }));
-    expect(JSON.decode(resp.body), {"didDecode": true});
+    expect(json.decode(resp.body), {"didDecode": true});
   });
 
   test("Ambiguous methods throws exception", () async {
@@ -344,7 +344,7 @@ void main() {
           });
 
       expect(resp.statusCode, 200);
-      expect(JSON.decode(resp.body), {
+      expect(json.decode(resp.body), {
         "x-request-id": "3423423adfea90",
         "location": "Nowhere",
         "cookie": "Chips Ahoy",
@@ -365,7 +365,7 @@ void main() {
       });
 
       expect(resp.statusCode, 200);
-      expect(JSON.decode(resp.body), {
+      expect(json.decode(resp.body), {
         "x-request-id": "3423423adfea90",
         "location": null,
         "cookie": "Chips Ahoy",
@@ -385,7 +385,7 @@ void main() {
       });
 
       expect(resp.statusCode, 400);
-      expect(JSON.decode(resp.body),
+      expect(json.decode(resp.body),
           {"error": "missing required Header 'X-Request-id'"});
     });
 
@@ -397,7 +397,7 @@ void main() {
       });
 
       expect(resp.statusCode, 400);
-      expect(JSON.decode(resp.body),
+      expect(json.decode(resp.body),
           {"error": "missing required Query Parameter 'Shaqs'"});
     });
 
@@ -409,7 +409,7 @@ void main() {
       });
 
       expect(resp.statusCode, 400);
-      expect(JSON.decode(resp.body), {"error": "missing required Header 'Cookie'"});
+      expect(json.decode(resp.body), {"error": "missing required Header 'Cookie'"});
     });
 
     test("missing require method query param fails", () async {
@@ -420,7 +420,7 @@ void main() {
       });
 
       expect(resp.statusCode, 400);
-      expect(JSON.decode(resp.body),
+      expect(json.decode(resp.body),
           {"error": "missing required Query Parameter 'Table'"});
     });
 
@@ -429,7 +429,7 @@ void main() {
       var resp = await http.get("http://localhost:4040/a");
 
       expect(resp.statusCode, 400);
-      var errorMessage = JSON.decode(resp.body)["error"];
+      var errorMessage = json.decode(resp.body)["error"];
       expect(errorMessage, contains("'X-Request-id'"));
       expect(errorMessage, contains("'Shaqs'"));
       expect(errorMessage, contains("'Cookie'"));
@@ -448,7 +448,7 @@ void main() {
           });
 
       expect(resp.statusCode, 200);
-      expect(JSON.decode(resp.body), {
+      expect(json.decode(resp.body), {
         "x-request-id": "3423423adfea90",
         "location": "Nowhere",
         "cookie": "Chips Ahoy",
@@ -470,9 +470,9 @@ void main() {
 
       expect(resp.statusCode, 400);
 
-      expect(JSON.decode(resp.body)["error"], contains("missing required Query Parameter"));
-      expect(JSON.decode(resp.body)["error"], contains("Table"));
-      expect(JSON.decode(resp.body)["error"], contains("Shaqs"));
+      expect(json.decode(resp.body)["error"], contains("missing required Query Parameter"));
+      expect(json.decode(resp.body)["error"], contains("Table"));
+      expect(json.decode(resp.body)["error"], contains("Shaqs"));
     });
 
     test("May only be one query parameter if arg type is not List<T>",
@@ -483,7 +483,7 @@ void main() {
 
       expect(resp.statusCode, 400);
 
-      expect(JSON.decode(resp.body)["error"],
+      expect(json.decode(resp.body)["error"],
           "multiple values for 'single' not expected");
     });
 
@@ -495,7 +495,7 @@ void main() {
 
       expect(resp.statusCode, 200);
 
-      expect(JSON.decode(resp.body), {
+      expect(json.decode(resp.body), {
         "list": ["a", "b"],
         "single": "x"
       });
@@ -508,7 +508,7 @@ void main() {
 
       expect(resp.statusCode, 200);
 
-      expect(JSON.decode(resp.body), {
+      expect(json.decode(resp.body), {
         "list": ["a"],
         "single": "x"
       });
@@ -521,7 +521,7 @@ void main() {
 
       expect(resp.statusCode, 400);
 
-      expect(JSON.decode(resp.body)["error"], contains("list"));
+      expect(json.decode(resp.body)["error"], contains("list"));
     });
   });
 }

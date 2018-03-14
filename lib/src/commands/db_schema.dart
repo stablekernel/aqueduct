@@ -11,7 +11,7 @@ class CLIDatabaseSchema extends CLICommand with CLIDatabaseMigratable, CLIProjec
   Future<int> handle() async {
     var map = await getSchema();
     if (isMachineOutput) {
-      print("${JSON.encode(map)}");
+      print("${json.encode(map)}");
     } else {
       var encoder = new JsonEncoder.withIndent("  ");
       print("${encoder.convert(map)}");

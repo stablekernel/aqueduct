@@ -45,15 +45,15 @@ void main() {
       });
 
       test("Request with content-length header shows is not empty", () async {
-        var json = UTF8.encode(JSON.encode({"k": "v"}));
+        var bytes = utf8.encode(json.encode({"k": "v"}));
         var req = await client.openUrl("POST", Uri.parse("http://localhost:8123"));
         req.headers.add(HttpHeaders.CONTENT_TYPE, ContentType.JSON.toString());
-        req.headers.add(HttpHeaders.CONTENT_LENGTH, json.length);
-        req.add(json);
+        req.headers.add(HttpHeaders.CONTENT_LENGTH, bytes.length);
+        req.add(bytes);
         var f = req.close();
 
         var request = await server.first;
-        expect(request.headers.value(HttpHeaders.CONTENT_LENGTH), "${json.length}");
+        expect(request.headers.value(HttpHeaders.CONTENT_LENGTH), "${bytes.length}");
         var body = new RequestBody(request);
         expect(body.isEmpty, false);
 
@@ -62,10 +62,10 @@ void main() {
       });
 
       test("Request with chunked transfer encoding shows not empty", () async {
-        var json = UTF8.encode(JSON.encode({"k": "v"}));
+        var bytes = utf8.encode(json.encode({"k": "v"}));
         var req = await client.openUrl("POST", Uri.parse("http://localhost:8123"));
         req.headers.add(HttpHeaders.CONTENT_TYPE, ContentType.JSON.toString());
-        req.add(json);
+        req.add(bytes);
         var f = req.close();
 
         var request = await server.first;
@@ -83,7 +83,7 @@ void main() {
       http
           .post("http://localhost:8123",
               headers: {"Content-Type": "application/json"},
-              body: JSON.encode({"a": "val"}))
+              body: json.encode({"a": "val"}))
           .catchError((err) => null);
 
       request = new Request(await server.first);
@@ -95,7 +95,7 @@ void main() {
       var client = new HttpClient();
       var req = await client.postUrl(Uri.parse("http://localhost:8123"));
       req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
-      req.add(UTF8.encode(JSON.encode({"a": "val"})));
+      req.add(utf8.encode(json.encode({"a": "val"})));
       req.close().catchError((err) => null);
 
       request = new Request(await server.first);
@@ -120,7 +120,7 @@ void main() {
         "c": ["2/4"]
       });
 
-      expect(UTF8.decode(request.body.asBytes()), "a=b&c=2%2F4");
+      expect(utf8.decode(request.body.asBytes()), "a=b&c=2%2F4");
     });
 
     test("Any text decoder works on text with charset", () async {
@@ -197,7 +197,7 @@ void main() {
       http
           .post("http://localhost:8123",
               headers: {"Content-Type": "application/thingy"},
-              body: JSON.encode({"key":"value"}))
+              body: json.encode({"key":"value"}))
           .catchError((err) => null);
       var request = new Request(await server.first);
       var body = await request.body.decodedData;
@@ -208,7 +208,7 @@ void main() {
       http
           .post("http://localhost:8123",
               headers: {"Content-Type": "somethingelse/whatever"},
-              body: JSON.encode({"key":"value"}))
+              body: json.encode({"key":"value"}))
           .catchError((err) => null);
 
       var request = new Request(await server.first);
@@ -220,7 +220,7 @@ void main() {
       var client = new HttpClient();
       var req = await client.postUrl(Uri.parse("http://localhost:8123"));
       req.headers.add(HttpHeaders.CONTENT_TYPE, "somethingelse/foobar");
-      req.add(UTF8.encode(JSON.encode({"a": "val"})));
+      req.add(utf8.encode(json.encode({"a": "val"})));
       req.close().catchError((err) => null);
 
       var request = new Request(await server.first);
@@ -234,7 +234,7 @@ void main() {
       var client = new HttpClient();
       var req = await client.postUrl(Uri.parse("http://localhost:8123"));
       req.headers.add(HttpHeaders.CONTENT_TYPE, "application/thingy");
-      req.add(UTF8.encode(JSON.encode({"a": "val"})));
+      req.add(utf8.encode(json.encode({"a": "val"})));
       req.close().catchError((err) => null);
 
       var request = new Request(await server.first);
@@ -540,7 +540,7 @@ void main() {
       var body = new RequestBody(await server.first)..retainOriginalBytes = true;
       await body.decodedData;
       expect(body.asMap(), {"k": "v"});
-      expect(body.asBytes(), UTF8.encode(JSON.encode({"k":"v"})));
+      expect(body.asBytes(), utf8.encode(json.encode({"k":"v"})));
     });
 
     test("Retain bytes when no codec is used", () async {
@@ -567,7 +567,7 @@ void main() {
       http
           .post("http://localhost:8123",
               headers: {"Content-Type": "application/json"},
-              body: JSON.encode({"a": "val"}))
+              body: json.encode({"a": "val"}))
           .catchError((err) => null);
 
       var request = new Request(await server.first);
@@ -596,14 +596,14 @@ void main() {
       var result = await http
           .post("http://localhost:8123",
           headers: {"Content-Type": "application/json"},
-          body: UTF8.encode('{"key":'));
+          body: utf8.encode('{"key":'));
       expect(result.statusCode, 400);
 
       // Send it again just to make sure things have recovered.
       result = await http
           .post("http://localhost:8123",
           headers: {"Content-Type": "application/json"},
-          body: UTF8.encode('{"key":'));
+          body: utf8.encode('{"key":'));
       expect(result.statusCode, 400);
     });
   });
@@ -611,7 +611,7 @@ void main() {
   group("Form codec", () {
     test("Convert list of bytes with form codec", () {
       var codec = HTTPCodecRepository.defaultInstance.codecForContentType(new ContentType("application", "x-www-form-urlencoded"));
-      var bytes = UTF8.encode("a=b&c=d");
+      var bytes = utf8.encode("a=b&c=d");
 
       expect(codec.decode(bytes), {"a": ["b"], "c": ["d"]});
     });
@@ -648,7 +648,7 @@ void main() {
       var body = {
         "key": new List.generate(8192 * 50, (_) => "a").join(" ")
       };
-      var bytes = UTF8.encode(JSON.encode(body));
+      var bytes = utf8.encode(json.encode(body));
       req.headers.add(HttpHeaders.CONTENT_LENGTH, bytes.length);
       req.add(bytes);
 
@@ -660,9 +660,9 @@ void main() {
       body = {
         "key": "a"
       };
-      req.add(UTF8.encode(JSON.encode(body)));
+      req.add(utf8.encode(json.encode(body)));
       response = await req.close();
-      expect(JSON.decode(UTF8.decode(await response.first)), {"key": "a"});
+      expect(json.decode(utf8.decode(await response.first)), {"key": "a"});
     });
 
     test("Entity with unknown content-type that is too large is rejected, specified length", () async {
@@ -699,7 +699,7 @@ Future postJSON(dynamic json) {
   return http
       .post("http://localhost:8123",
         headers: {"Content-Type": "application/json"},
-        body: JSON.encode(json))
+        body: json.encode(json))
       .catchError((err) => null);
 }
 

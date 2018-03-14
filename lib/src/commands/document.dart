@@ -162,7 +162,7 @@ class CLIDocument extends CLICommand with CLIProject, CLIDocumentOptions {
   Future<int> handle() async {
     var documentMap = await documentProject(projectDirectory.uri, libraryName, projectSpecificationFile);
 
-    outputSink.writeln("${JSON.encode(documentMap)}");
+    outputSink.writeln("${json.encode(documentMap)}");
 
     return 0;
   }

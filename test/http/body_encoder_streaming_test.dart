@@ -168,7 +168,7 @@ void main() {
 
       expect(resp.statusCode, 200);
       var allBody = (await resp.toList()).expand((i) => i).toList();
-      expect(UTF8.decode(allBody), "abcdefgh");
+      expect(utf8.decode(allBody), "abcdefgh");
     });
 
     test("Content-Type that can be gzipped and request has Accept-Encoding but not gzip doesn't get gzipped", () async {
@@ -193,7 +193,7 @@ void main() {
 
       expect(resp.statusCode, 200);
       var allBody = (await resp.toList()).expand((i) => i).toList();
-      expect(UTF8.decode(allBody), "abcdefgh");
+      expect(utf8.decode(allBody), "abcdefgh");
     });
 
     test("Unregistered content-type of Stream<List<int>> does not get gzipped", () async {
@@ -236,7 +236,7 @@ void main() {
       expect(resp.headers.value("content-encoding"), isNull);
 
       expect(resp.statusCode, 200);
-      expect(UTF8.decode(await resp.first), "abcd");
+      expect(utf8.decode(await resp.first), "abcd");
     });
   });
 
@@ -321,7 +321,7 @@ void main() {
       var body = {
         "key": new List.generate(8192 * 50, (_) => "a").join(" ")
       };
-      req.add(UTF8.encode(JSON.encode(body)));
+      req.add(utf8.encode(json.encode(body)));
 
       try {
         var response = await req.close();
@@ -344,9 +344,9 @@ void main() {
       body = {
         "key": "a"
       };
-      req.add(UTF8.encode(JSON.encode(body)));
+      req.add(utf8.encode(json.encode(body)));
       var response = await req.close();
-      expect(JSON.decode(UTF8.decode(await response.first)), {"key": "a"});
+      expect(json.decode(utf8.decode(await response.first)), {"key": "a"});
     });
 
     test("Entity with unknown content-type that is too large is rejected, chunked", () async {

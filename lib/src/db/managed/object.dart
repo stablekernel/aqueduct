@@ -231,7 +231,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   /// match a property of the receiver.
   ///
   /// Usage:
-  ///     var values = JSON.decode(requestBody);
+  ///     var values = json.decode(requestBody);
   ///     var user = new User()
   ///       ..readFromMap(values);
   @override
@@ -278,7 +278,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   /// the value null will be serialized for that property key.
   ///
   /// Usage:
-  ///     var json = JSON.encode(model.asMap());
+  ///     var json = json.encode(model.asMap());
   @override
   Map<String, dynamic> asMap() {
     var outputMap = <String, dynamic>{};
