@@ -220,11 +220,6 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     return name;
   }
 
-  @Deprecated("3.0, use readFromMap instead")
-  void readMap(Map<String, dynamic> keyValues) {
-    readFromMap(keyValues);
-  }
-
   /// Populates the properties of a this instance from a map.
   ///
   /// This method will thrown an exception if a key in the map does not
