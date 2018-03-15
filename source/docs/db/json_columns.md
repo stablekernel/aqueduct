@@ -8,7 +8,7 @@ PostgreSQL supports many column data types like integers, strings, booleans and 
 
 ## The Document Data Type
 
-JSON document columns are added to a database table by declaring a `Document` property in a `ManagedObject<T>`'s persistent type. A document column can contain either a JSON-encodable `Map` or `List`.
+JSON document columns are added to a database table by declaring a `Document` property in a `ManagedObject<T>`'s persistent type. In PostgreSQL, a `Document` column data type is `jsonb`. A document column can only contain JSON-encodable data. This data is typically a `Map` or `List` that contains only JSON-encodable data. The following `ManagedObject<T>` declaration will have a `contents` column of type `jsonb`.
 
 ```dart
 class Event extends ManagedObject<_Event> implements _Event {}
@@ -23,7 +23,28 @@ class _Event {
 }
 ```
 
-In PostgreSQL, a `Document` column data type is `jsonb`.
+A `Document` object has a `data` property to hold its JSON-encodable data. When instantiating `Document`, this property defaults to null unless a value has been provided to the optional, ordered parameter in its constructor.
+
+```dart
+final doc = new Document();
+assert(doc.data == null);
+
+final doc = new Document({"key": "value"});
+assert(doc.data is Map);
+
+final doc = new Document([0]);
+assert(doc.data is List);
+```
+
+The data in a document can be accessed through its `data` property, or through its subscript operator. `Document`'s subscript operator forwards the invocation to its `data` property.
+
+```dart
+final doc = new Document({"key": "value"});
+
+assert(doc["key"] == doc.data["key"]);
+```
+
+The argument to the subscript operator may be a string (if `data` is a map) or an integer (if `data` is a list).
 
 ## Basic Operations on Document Properties
 
@@ -175,54 +196,3 @@ For operations not supported by `Query<T>`, you may use SQL directly:
 ```dart
 final eventTagCounts = await context.query("SELECT jsonb_array_length(contents->'tags') from _Event");
 ```
-
-## Using JSON Documents to Filter Query Results
-
-The values stored in a `Document` column can be used to filter the results returned from a query. The following example will return objects that have the value 'bob' for the key 'user' in their `contents` property.
-
-```dart
-final query = Query<Event>()
-  ..where((e) => e.contents["user"]).equalTo("bob");
-final events = await query.fetch();
-```
-
-If an `event.contents` has another value for 'user' or does not have a 'user' key at all, that event will not be fetched.
-
-When matching a value stored in a document property, you must subscript the `Document` property. The expression is applied to the subscripted key path. You may also use index arrays to match array elements, and use nested subscript operators to match values deeper in the object structure. All comparison expressions may be used in this way.
-
-// fixme
-The expression `whereContains` is the only matcher that can be also applied directly to a `Document` property. It tests whether the top-level object or array contains an element. For objects, it tests whether the key exists in the object. For arrays, it tests whether the the argument is contained in that array. The following would only fetch events that have a 'type' key.
-
-```dart
-final query = Query<Event>()
-  ..where((e) => e.contents).contains("type");
-final eventsWithAnyType = await query.fetch();
-```
-
-### Important Note on Indexing and Performance
-
-## Modifying a JSON Document
-
-Typically when updating a `Document` property, you fetch it, modify it in memory, and then use the modified value in an update query. For some situations, it may make sense to update the contents of a `Document` property without first fetching it.
-
-Existing values in a JSON document can be modified using the subscript operator with an update query's `values`. The following query sets the 'status' of every event's contents to 'complete'.
-
-```dart
-final query = Query<Event>()
-  ..values.contents["status"] = "complete";
-final events = await query.update();
-```
-
-If 'status' did not exist in `contents`, it would be added to the object.
-
-You may also modify nested values, as well as modify objects in an array. For example, the following query sets the value of the first 'items' to 'flashlight'.
-
-```dart
-final query = Query<Event>()
-  ..values.contents["items"][0] = "flashlight";
-final events = await query.update();
-```
-
-Note that if the key 'items' does not exist in `contents`, no operation is performed because there is no array to index into.
-
-If an index is out of bounds for an array, the value will be inserted at the end of the array. Otherwise, the value is replaced in the array. You may use negative indices to replace values by counting from the end of the array. It is not currently possible to insert an object into an array without first fetching it (unless you use SQL directly).
