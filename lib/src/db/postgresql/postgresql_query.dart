@@ -1,9 +1,12 @@
 import 'dart:async';
 
+import 'package:aqueduct/src/db/managed/key_path.dart';
+import 'package:aqueduct/src/db/query/matcher_internal.dart';
+
 import '../db.dart';
 import '../query/mixin.dart';
 import '../query/sort_descriptor.dart';
-import 'property_mapper.dart';
+import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
 import 'query_builder.dart';
 import 'postgresql_query_reduce.dart';
 
@@ -34,7 +37,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     validateInput(ValidateOperation.insert);
 
     var builder = new PostgresQueryBuilder(entity,
-        returningProperties: propertiesToFetch, values: valueMap ?? values?.backingMap);
+        returningProperties: propertiesToFetch, values: valueMap ?? values?.backing?.contents);
 
     var buffer = new StringBuffer();
     buffer.write("INSERT INTO ${builder.primaryTableDefinition} ");
@@ -62,8 +65,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
-        values: valueMap ?? values?.backingMap,
-        whereBuilder: (hasWhereBuilder ? where : null),
+        values: valueMap ?? values?.backing?.contents,
+        expressions: expressions,
         predicate: predicate);
 
     var buffer = new StringBuffer();
@@ -102,7 +105,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<int> delete() async {
-    var builder = new PostgresQueryBuilder(entity, predicate: predicate, whereBuilder: hasWhereBuilder ? where : null);
+    var builder = new PostgresQueryBuilder(entity, predicate: predicate, expressions: expressions);
 
     var buffer = new StringBuffer();
     buffer.write("DELETE FROM ${builder.primaryTableDefinition} ");
@@ -152,18 +155,23 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       allSortDescriptors.insert(0, pageSortDescriptor);
 
       if (pageDescriptor.boundingValue != null) {
+        final prop = entity.properties[pageDescriptor.propertyName];
+        final expr = new QueryExpression(new KeyPath(prop));
+
         if (pageDescriptor.order == QuerySortOrder.ascending) {
-          where[pageDescriptor.propertyName] = whereGreaterThan(pageDescriptor.boundingValue);
+          expr.expression = new ComparisonExpression(pageDescriptor.boundingValue, PredicateOperator.greaterThan);
         } else {
-          where[pageDescriptor.propertyName] = whereLessThan(pageDescriptor.boundingValue);
+          expr.expression = new ComparisonExpression(pageDescriptor.boundingValue, PredicateOperator.lessThan);
         }
+
+        expressions.add(expr);
       }
     }
 
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,
         predicate: predicate,
-        whereBuilder: hasWhereBuilder ? where : null,
+        expressions: expressions,
         nestedRowMappers: rowMappersFromSubqueries,
         sortDescriptors: allSortDescriptors,
         aliasTables: true);
@@ -221,7 +229,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
           var joinElement = new RowMapper(PersistentJoinType.leftOuter, relationshipDesc, subQuery.propertiesToFetch,
               predicate: subQuery.predicate,
               sortDescriptors: subQuery.sortDescriptors,
-              whereBuilder: subQuery.hasWhereBuilder ? subQuery.where : null);
+              expressions: subQuery.expressions);
           joinElement.addRowMappers(subQuery.rowMappersFromSubqueries);
 
           return joinElement;

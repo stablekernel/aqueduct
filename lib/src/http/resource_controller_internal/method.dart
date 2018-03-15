@@ -1,4 +1,6 @@
 import 'dart:mirrors';
+import 'package:aqueduct/src/auth/auth.dart';
+
 import 'internal.dart';
 
 class BoundMethod {
@@ -16,6 +18,8 @@ class BoundMethod {
         .where((pm) => pm.isOptional)
         .map((pm) => new BoundParameter(pm, isRequired: false))
         .toList();
+
+    scopes = getMethodScopes(mirror);
   }
 
   Symbol methodSymbol;
@@ -23,6 +27,7 @@ class BoundMethod {
   List<String> pathVariables;
   List<BoundParameter> positionalParameters = [];
   List<BoundParameter> optionalParameters = [];
+  List<AuthScope> scopes;
 
   /// Checks if a request's method and path variables will select this binder.
   ///

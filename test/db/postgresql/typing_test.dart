@@ -1,5 +1,6 @@
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/postgresql/postgresql_query.dart';
 import 'package:aqueduct/src/db/postgresql/query_builder.dart';
 
@@ -18,13 +19,13 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     final q = new Query<TestModel>()
-      ..where.id = whereEqualTo(1)
-      ..where.n = whereEqualTo("a")
-      ..where.t = whereEqualTo(new DateTime.now())
-      ..where.l = whereEqualTo(1)
-      ..where.b = whereEqualTo(true)
-      ..where.d = whereEqualTo(1.0)
-      ..where.doc = whereEqualTo({"k":"v"});
+      ..where((o) => o.id).equalTo(1)
+      ..where((o) => o.n).equalTo("a")
+      ..where((o) => o.t).equalTo(new DateTime.now())
+      ..where((o) => o.l).equalTo(1)
+      ..where((o) => o.b).equalTo(true)
+      ..where((o) => o.d).equalTo(1.0)
+      ..where((o) => o.doc).equalTo(new Document({"k":"v"}));
 
     var mapper = (q as PostgresQuery).createFetchMapper();
     expect(mapper.finalizedPredicate.format, contains("id:int8"));
@@ -46,10 +47,11 @@ void main() {
       ..values.l = 1
       ..values.b = true
       ..values.d = 1.0
-      ..values.doc = new Document.from({"k":"v"});
+      ..values.doc = new Document({"k":"v"});
 
-    var builder = new PostgresQueryBuilder(context.entityForType(TestModel),
-        returningProperties: ["id"], values: q.values.backingMap);
+    final entity = context.entityForType(TestModel);
+    var builder = new PostgresQueryBuilder(entity,
+        returningProperties: [new KeyPath(entity.properties["id"])], values: q.values.backing.contents);
     var insertString = builder.insertionValueString;
     expect(insertString, contains("id:int8"));
     expect(insertString, contains("n:text"));

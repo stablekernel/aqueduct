@@ -92,16 +92,6 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// This mechanism only works on [fetch] and [fetchOne] execution methods. You *must not* execute a subquery created by this method.
   Query<T> join<T extends ManagedObject>({T object(InstanceType x), ManagedSet<T> set(InstanceType x)});
 
-  /// Deprecated: see [join].
-  @Deprecated("3.0, use join(object:set:) instead")
-  Query<T> joinOne<T extends ManagedObject>(
-      T propertyIdentifier(InstanceType x));
-
-  /// Deprecated: see [join].
-  @Deprecated("3.0, use join(object:set:) instead")
-  Query<T> joinMany<T extends ManagedObject>(
-      ManagedSet<T> propertyIdentifier(InstanceType x));
-
   /// Configures this instance to fetch a section of a larger result set.
   ///
   /// This method provides an effective mechanism for paging a result set by ordering rows
@@ -161,17 +151,24 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// result.
   QueryReduceOperation<InstanceType> get reduce;
 
-  /// A convenience for building [predicate] in a safe way.
+  /// Selects a property from the object being queried to add a filtering expression.
   ///
-  /// Use this property instead of providing a [predicate] to filter the rows this query manipulates or fetches. This property
-  /// is an instance of [InstanceType] with special [ManagedObject.backingMap] behavior. When you set properties of this property using
-  /// matchers (see examples such as [whereEqualTo] and [whereContains]), the underlying database will generate a [QueryPredicate] to
-  /// match the behavior of these matches. For example, the following query will generate a predicate that only operates on rows
-  /// where 'id' is greater than 1:
+  /// You use this property to add filtering expression to a query. The expressions are added to the SQL WHERE clause
+  /// of the generated query.
   ///
-  ///       var q = new Query<Employee>()
-  ///           ..where.employeeID = greaterThan(1);
-  InstanceType get where;
+  /// You provide a closure for [propertyIdentifier] that returns a property of its argument. Its argument is always
+  /// an empty instance of the object being queried. You invoke methods like [QueryExpression.lessThan] on the
+  /// object returned from this method to add an expression to this query.
+  ///
+  ///         final query = new Query<Employee>()
+  ///           ..where((e) => e.name).equalTo("Bob");
+  ///
+  /// You may select properties of relationships using this method.
+  ///
+  ///         final query = new Query<Employee>()
+  ///           ..where((e) => e.manager.name).equalTo("Sally");
+  ///
+  QueryExpression<T> where<T>(T propertyIdentifier(InstanceType x));
 
   /// Confirms that a query has no predicate before executing it.
   ///
@@ -205,19 +202,54 @@ abstract class Query<InstanceType extends ManagedObject> {
 
   /// Values to be used when inserting or updating an object.
   ///
-  /// Keys must be the name of the property on the model object. Prefer to use [values] instead.
+  /// This method is an unsafe version of [values]. Prefer to use [values] instead.
+  /// Keys in this map must be the name of a property of [InstanceType], otherwise an exception
+  /// is thrown. Values provided in this map are not run through any [Validate] annotations
+  /// declared by the [InstanceType].
+  ///
+  /// Do not set this property and [values] on the same query. If both this property and [values] are set,
+  /// the behavior is undefined.
   Map<String, dynamic> valueMap;
 
-  /// Values to be used when inserting or updating an object.
+  /// Values to be sent to database during an [update] or [insert] query.
   ///
-  /// Will generate the [valueMap] for this [Query] using values from this object. This object is created
-  /// once accessed, so it is not necessary to create an instance and set this property, but instead,
-  /// set properties of this property.
+  /// You set values for the properties of this object to insert a row or update one or more rows.
+  /// This property is the same type as the type being inserted or updated. [values] is empty (but not null)
+  /// when a [Query] is first created, therefore, you do not have to assign an instance to it and may set
+  /// values for its properties immediately:
   ///
-  /// For example, the following code would generate the values map {'name' = 'Joe', 'job' = 'programmer'}:
-  ///     var q = new Query<User>()
-  ///       ..values.name = 'Joe
-  ///       ..values.job = 'programmer';
+  ///         var q = Query<User>()
+  ///           ..values.name = 'Joe'
+  ///           ..values.job = 'programmer';
+  ///         await q.insert();
+  ///
+  /// You may only set values for properties that are backed by a column. This includes most properties, except
+  /// all [ManagedSet] properties and [ManagedObject] properties that do not have a [Relate] annotation. If you attempt
+  /// to set a property that isn't allowed on [values], an error is thrown.
+  ///
+  /// If a property of [values] is a [ManagedObject] with a [Relate] annotation, you may provide a value for its primary key
+  /// property. This value will be stored in the foreign key column that backs the property. You may set properties
+  /// of this type immediately, without having to create an instance of the related type:
+  ///
+  ///         // Assumes that Employee is declared with the following property:
+  ///         // @Relate(#employees)
+  ///         // Manager manager;
+  ///
+  ///         final q = Query<Employee>()
+  ///           ..values.name = "Sally"
+  ///           ..values.manager.id = 10;
+  ///         await q.insert();
+  ///
+  /// WARNING: You may replace this property with a new instance of [InstanceType]. When doing so, a copy
+  /// of the object is created and assigned to this property.
+  ///
+  ///         final o = SomeObject()
+  ///           ..id = 1;
+  ///         final q = Query<SomeObject>()
+  ///           ..values = o;
+  ///
+  ///         o.id = 2;
+  ///         assert(q.values.id == 1); // true
   ///
   InstanceType values;
 

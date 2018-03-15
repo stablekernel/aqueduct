@@ -5,31 +5,18 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
 
-/// Implement this interface to add OpenAPI Components to an OpenAPI document.
+/// The methods you implement to document OpenAPI components.
 ///
-/// Components are reusable elements in an OpenAPI document. Types may register components
-/// so that other objects can use them when documenting themselves. These components are registered
-/// by implementing [documentComponents].
+/// The documentation process calls methods from objects of this type. You implement methods from
+/// this interface to add reusable components to your OpenAPI document. You may use these components
+/// when documenting other components or when implementing [APIOperationDocumenter].
+///
+/// You must implement [documentComponents].
 ///
 /// [ApplicationChannel], [Controller], [ManagedEntity], and [AuthServer] all implement this interface.
 ///
-/// [documentComponents] is called automatically for all controllers in an application (those that are linked to the channel entry point).
-/// This method is also called on any property declarations in [ApplicationChannel] that implement this interface (e.g., a service object
-/// instantiated in [ApplicationChannel.prepare] and referenced in [ApplicationChannel.entryPoint]).
-///
-/// If an [APIComponentDocumenter] is not a controller, or is not declared as a property of [ApplicationChannel],
-/// override [documentComponents] in [ApplicationChannel] to invoke the documenter's implementation. You must call the superclass' implementation.
-/// Example:
-///
-///         class Channel extends ApplicationChannel {
-///           @override
-///           void documentComponents(APIDocumentContext context) {
-///             super.documentComponents(context);
-///
-///             undocumentedService.documentComponents(context);
-///           }
 abstract class APIComponentDocumenter {
-  /// Document a declared variable as an [APISchemaObject] for use in an OpenAPI document.
+  /// Creates an [APISchemaObject] from a reflected variable.
   ///
   /// [mirror] must reflect on a variable of that has one of the following supported types:
   /// [int], [double], [String], [DateTime], or [HTTPSerializable]. [mirror] may reflect a
@@ -52,7 +39,7 @@ abstract class APIComponentDocumenter {
     return object;
   }
 
-  /// Document a class as an [APISchemaObject] for use in an OpenAPI document.
+  /// Creates an [APISchemaObject] from a reflected class.
   ///
   /// [type] must be representable as an [APISchemaObject]. This includes primitive types (int, String, etc.),
   /// maps, lists and any type that implements [HTTPSerializable].
@@ -86,45 +73,50 @@ abstract class APIComponentDocumenter {
         "Unsupported type '${MirrorSystem.getName(type.simpleName)}' for 'APIComponentDocumenter.documentType'.");
   }
 
-  /// Register reusable OpenAPI Components.
+  /// Tells this object to add its components to [context].
   ///
-  /// Components are reusable OpenAPI objects. Other objects may reference these components instead of
-  /// duplicating the code to create them.
+  /// You may register components with [context] in this method. The order in which components
+  /// are registered does not matter.
   ///
-  /// To add a component, you register it with a [context]:
+  /// Example:
   ///
-  ///         @override
-  ///         void documentComponents(APIDocumentContext context) {
-  ///           context.schema.register("Car", new APISchemaObject.object({
-  ///             "make": new APISchemaObject.string(),
-  ///             "model": new APISchemaObject.string(),
-  ///             "year": new APISchemaObject.integer(),
-  ///           }));
+  ///         class Car implements APIComponentDocumenter {
+  ///           @override
+  ///           void documentComponents(APIDocumentContext context) {
+  ///             context.schema.register("Car", new APISchemaObject.object({
+  ///               "make": new APISchemaObject.string(),
+  ///               "model": new APISchemaObject.string(),
+  ///               "year": new APISchemaObject.integer(),
+  ///             }));
+  ///           }
   ///         }
   ///
   /// See [APIDocumentContext] for more details.
   void documentComponents(APIDocumentContext context);
 }
 
-/// Implement this interface to add OpenAPI Operation documentation to an OpenAPI document.
+/// The methods you implement to document the operations of a [Controller].
 ///
-/// Operation documenters provide documentation for the operations in an OpenAPI document by implementing
-/// [documentOperations]. [Controller] implements this interface; subclasses should override
-/// [documentOperations] to either create [APIOperation]s, or add to or modify to an operation
-/// created by another controller.
+/// The documentation process calls these methods for every [Controller] in your [ApplicationChannel].
+/// You implement [documentOperations] to create or modify [APIOperation] objects that describe the
+/// HTTP operations that a controller handler.
 abstract class APIOperationDocumenter {
-  /// Return all [APIPath] objects this instance is responsible for managing.
+  /// Tells this object to return all [APIPath]s it handles.
   ///
   /// This method is implemented by [Router] to provide the paths of an OpenAPI document
   /// and typically shouldn't be overridden by another controller.
   Map<String, APIPath> documentPaths(APIDocumentContext context);
 
-  /// Returns all [APIOperation]s this instance handles.
+  /// Tells this object to return all [APIOperation]s it handles.
   ///
-  /// The return value of this method must be a map, where each key is a lowercase request method (e.g., 'get', 'post', 'delete').
-  /// [context] is used to reference components that other objects have registered.
+  /// You implement this method to create or modify [APIOperation] objects that describe the
+  /// HTTP operations that a controller handles. Each controller in the channel, starting with
+  /// the entry point, have this method.
   ///
-  /// Endpoint controllers override this method by returning the operations they support. For example:
+  /// By default, a controller returns the operations created by its linked controllers.
+  ///
+  /// Endpoint controllers should override this method to create a [Map] of [APIOperation] objects, where the
+  /// key is a [String] representation of the status code the response is for. Example:
   ///
   ///       @override
   ///       Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
@@ -143,10 +135,8 @@ abstract class APIOperationDocumenter {
   ///         };
   ///       }
   ///
-  /// As shown above, endpoint controllers should check the [path] for any path variables that change the documented operations' behavior.
-  ///
-  /// Middleware controllers override this method by first calling the superclass' implementation. This allows the linked controller to
-  /// provide its operations that this method then modifies. Example:
+  /// Middleware controllers should override this method to call the superclass' implementation (which gathers
+  /// the operation objects from an endpoint controller) and then modify those operations before returning them.
   ///
   ///       @override
   ///       Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
@@ -162,19 +152,21 @@ abstract class APIOperationDocumenter {
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path);
 }
 
-/// Register and reference OpenAPI components while documenting an application.
+/// An object that contains information about [APIDocument] being generated.
 ///
-/// When documenting, a context keeps track of reusable components. [APIComponentDocumenter]s
-/// add components to a context, and [APIOperationDocumenter] use them to avoid repeating definitions.
+/// This object is passed to you in every documentation method. You use this method
+/// to work with components and schedule deferred functionality.
 ///
-/// Components are divided into collections of their type, e.g. [schema], [responses], etc. These [APIComponentCollection]s
-/// are used to access and register individual components.
+/// Component registries for each type of component - e.g. [schema], [responses] - are used to
+/// register and reference those types.
 class APIDocumentContext {
+  /// Creates a new context.
   APIDocumentContext(this.document)
       : schema = new APIComponentCollection<APISchemaObject>._("schemas", document.components.schemas),
         responses = new APIComponentCollection<APIResponse>._("responses", document.components.responses),
         parameters = new APIComponentCollection<APIParameter>._("parameters", document.components.parameters),
-        requestBodies = new APIComponentCollection<APIRequestBody>._("requestBodies", document.components.requestBodies),
+        requestBodies =
+            new APIComponentCollection<APIRequestBody>._("requestBodies", document.components.requestBodies),
         headers = new APIComponentCollection<APIHeader>._("headers", document.components.headers),
         securitySchemes =
             new APIComponentCollection<APISecurityScheme>._("securitySchemes", document.components.securitySchemes),
@@ -208,20 +200,39 @@ class APIDocumentContext {
 
   /// Allows asynchronous code during documentation.
   ///
-  /// Documentation methods in [APIOperationDocumenter] and [APIOperationDocumenter] are synchronous. If
-  /// acquiring some information requires asynchronous execution, wrap that behavior in [document]. Once all objects
-  /// have finished documenting, [document] is called. For multiple invocations of this method, [document] is called in the order it was added
+  /// Documentation methods are synchronous. Asynchronous methods may be called and awaited on
+  /// in [document]. All [document] closures will be executes and awaited on before finishing [document].
+  /// These closures are called in the order they were added.
   void defer(FutureOr document()) {
     _deferredOperations.add(document);
   }
 
-  /// Verifies all referenced objects and completes all [defer] operations.
+  /// Finalizes [document].
   ///
   /// You do not need to call this method.
   Future finalize() async {
     final ops = _deferredOperations;
     _deferredOperations = [];
     await Future.forEach(ops, (op) => op());
+
+    document.paths.values
+        .expand((p) => p.operations.values)
+        .where((op) => op.security != null)
+        .expand((op) => op.security)
+        .forEach((req) {
+      req.requirements.forEach((schemeName, scopes) {
+        final scheme = document.components.securitySchemes[schemeName];
+        if (scheme.type == APISecuritySchemeType.oauth2) {
+          scheme.flows.values.forEach((flow) {
+            scopes.forEach((scope) {
+              if (!flow.scopes.containsKey(scope)) {
+                flow.scopes[scope] = "";
+              }
+            });
+          });
+        }
+      });
+    });
 
     _validateReferences(document.asMap());
   }
@@ -233,7 +244,10 @@ class APIDocumentContext {
       if (resolved == null) {
         if (refUri.contains("aqueduct-typeref:")) {
           final segments = refUri.split("/");
-          throw new StateError("Unresolved OpenAPI reference. No component was registered in '${segments[2]}' for type '${segments.last.split(":").last}'.");
+          throw new StateError(
+              "Unresolved OpenAPI reference. No component was registered in '${segments[2]}' for type '${segments.last
+                  .split(":")
+                  .last}'.");
         }
         throw new StateError("Unresolved OpenAPI reference. No component was registered for '$refUri'.");
       }
@@ -245,15 +259,11 @@ class APIDocumentContext {
       }
     });
   }
-
-
 }
 
 /// A collection of reusable OpenAPI objects.
 ///
 /// Components of type [T] may be registered and referenced through this object.
-///
-/// See also [APIDocumentContext].
 class APIComponentCollection<T extends APIObject> {
   APIComponentCollection._(this._typeName, this._componentMap);
 
@@ -262,13 +272,18 @@ class APIComponentCollection<T extends APIObject> {
   final Map<Type, T> _typeReferenceMap = {};
   final Map<Type, Completer<T>> _resolutionMap = {};
 
-  /// Adds a component of type [T].
+  /// Adds a [component] for [name] so that it can be referenced later.
   ///
   /// [component] will be stored in the OpenAPI document. The component will be usable
-  /// by other objects by its [name]. If this component is represented by a Dart type,
-  /// provide that type as [representation]. This allows objects to reference
-  /// a component by its Dart type, instead of its [name].
+  /// by other objects by its [name].
+  ///
+  /// If this component is represented by a class, provide it as [representation].
+  /// Objects may reference either [name] or [representation] when using a component.
   void register(String name, T component, {Type representation}) {
+    if (_componentMap.containsKey(name)) {
+      return;
+    }
+
     _componentMap[name] = component;
 
     if (representation != null) {
@@ -290,9 +305,11 @@ class APIComponentCollection<T extends APIObject> {
   /// Returns an object that references a component named [name].
   ///
   /// The returned object is always a reference object; it does not contain
-  /// actual values.
+  /// actual values of that object.
   ///
   /// An object is always returned, even if no component named [name] exists.
+  /// If after [APIDocumentContext.finalize] is called and no object
+  /// has been registered for [name], an error is thrown.
   T getObject(String name) {
     APIObject obj = reflectClass(T).newInstance(#empty, []).reflectee;
     obj.referenceURI = "#/components/$_typeName/$name";
@@ -304,7 +321,9 @@ class APIComponentCollection<T extends APIObject> {
   /// The returned object is always a reference object; it does not
   /// contain actual values.
   ///
-  /// If [type] is never registered, this reference will be invalid.
+  /// An object is always returned, even if no component named has been registered
+  /// for [type]. If after [APIDocumentContext.finalize] is called and no object
+  /// has been registered for [type], an error is thrown.
   T getObjectWithType(Type type) {
     if (_typeReferenceMap.containsKey(type)) {
       return _typeReferenceMap[type];
@@ -326,5 +345,4 @@ class APIComponentCollection<T extends APIObject> {
   bool hasRegisteredType(Type type) {
     return _typeReferenceMap.containsKey(type);
   }
-
 }

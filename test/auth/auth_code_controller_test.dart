@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:async';
 
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/test.dart';
@@ -43,7 +44,7 @@ void main() {
       var res = await req.get();
       expect(res, hasResponse(200, null, headers: {"content-type": "text/html; charset=utf-8"}));
       // The data is actually JSON for purposes of this test, just makes it easier to validate here.
-      var decoded = JSON.decode(res.body);
+      var decoded = json.decode(res.body);
       expect(decoded, {
         "response_type": "code",
         "client_id": "com.stablekernel.redirect",
@@ -64,7 +65,7 @@ void main() {
       var res = await req.get();
       expect(res, hasStatus(200));
       expect(res, hasHeaders({"content-type": "text/html; charset=utf-8"}));
-      var decoded = JSON.decode(res.body);
+      var decoded = json.decode(res.body);
       expect(decoded, {
         "response_type": "code",
         "client_id": "com.stablekernel.redirect",
@@ -494,7 +495,7 @@ class TestChannel extends ApplicationChannel implements AuthCodeControllerDelega
   @override
   Future<String> render(AuthCodeController forController, Uri requestUri, String responseType, String clientID,
       String state, String scope) async {
-    return JSON.encode({
+    return json.encode({
       "response_type": responseType,
       "path": requestUri.path,
       "client_id": clientID,

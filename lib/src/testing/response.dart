@@ -50,7 +50,7 @@ class TestResponse {
         .defaultInstance
         .codecForContentType(_innerResponse.headers.contentType);
 
-    return UTF8.decode(codec.encode(decodedBody));
+    return utf8.decode(codec.encode(decodedBody));
   }
 
   /// HTTP response headers.
@@ -99,7 +99,7 @@ class TestResponse {
 }
 
 /// Instances of these type represent the body of a [TestResponse].
-class TestResponseBody extends HTTPBodyDecoder {
+class TestResponseBody extends BodyDecoder {
   /// Creates a new instance of this type.
   ///
   /// Instances of this type decode [response]'s body based on its content-type.

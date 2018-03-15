@@ -7,11 +7,11 @@ import 'route_specification.dart';
 ///
 /// Note: The properties [variables], [orderedVariableNames] and [remainingPath] are not set until
 /// after the owning request has passed through a [Router].
-class HTTPRequestPath {
-  /// Default constructor for [HTTPRequestPath].
+class RequestPath {
+  /// Default constructor for [RequestPath].
   ///
   /// There is no need to invoke this constructor manually.
-  HTTPRequestPath(this.segments);
+  RequestPath(this.segments);
 
   void setSpecification(RouteSpecification spec, {int segmentOffset: 0}) {
     var requestIterator = segments.iterator;
@@ -70,7 +70,7 @@ class HTTPRequestPath {
   ///
   /// If no path variables are present in the request, this list is empty. Only path variables that are
   /// available for the specific request are in this list. For example, if a route has two path variables,
-  /// but the incoming request this [HTTPRequestPath] represents only has one variable, only that one variable
+  /// but the incoming request this [RequestPath] represents only has one variable, only that one variable
   /// will appear in this property.
   List<String> orderedVariableNames = [];
 

@@ -48,7 +48,7 @@ void main() {
 
     test("Application handles a bunch of requests", () async {
       var reqs = <Future>[];
-      var responses = [];
+      var responses = <http.Response>[];
       for (int i = 0; i < 20; i++) {
         var req = http.get("http://localhost:8888/t");
         req.then((resp) {
@@ -80,7 +80,7 @@ void main() {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
         var result = await http.get("http://localhost:8888/startup");
-        sum += int.parse(JSON.decode(result.body));
+        sum += int.parse(json.decode(result.body));
       }
       expect(sum, 10);
     });
@@ -95,15 +95,15 @@ void main() {
 
     test("didFinishLaunching is false before launch, true after, false after stop", () async {
       app = new Application<TestChannel>();
-      expect(app.hasFinishedLaunching, false);
+      expect(app.isRunning, false);
 
       var future = app.start(numberOfInstances: 2, consoleLogging: true);
-      expect(app.hasFinishedLaunching, false);
+      expect(app.isRunning, false);
       await future;
-      expect(app.hasFinishedLaunching, true);
+      expect(app.isRunning, true);
 
       await app.stop();
-      expect(app.hasFinishedLaunching, false);
+      expect(app.isRunning, false);
     });
   });
 }

@@ -41,7 +41,7 @@ class UserController extends QueryController<User> {
     }
 
     await authServer.revokeAuthenticatableAccessForIdentifier(id);
-    var q = new Query<User>()..where.id = whereEqualTo(id);
+    var q = new Query<User>()..where((o) => o.id).equalTo(id);
     await q.delete();
 
     return new Response.ok(null);

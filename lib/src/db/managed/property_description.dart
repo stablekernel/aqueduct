@@ -250,7 +250,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   String toString() {
-    return "[Attribute]    ${entity.tableName}.$name ($type)";
+    return "${entity.name}.$name";
   }
 
   @override
@@ -279,7 +279,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       }
       return enumerationValueMap[value];
     } else if (type.kind == ManagedPropertyType.document) {
-      return new Document.from(value);
+      return new Document(value);
     }
 
     // no need to check type here - gets checked by managed backing
@@ -314,6 +314,9 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   /// The [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
   ManagedRelationshipDescription get inverse => destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
 
+  /// Whether or not this relationship is on the belonging side.
+  bool get isBelongsTo => relationshipType == ManagedRelationshipType.belongsTo;
+
   /// Whether or not a the argument can be assigned to this property.
   @override
   bool isAssignableWith(dynamic dartValue) {
@@ -341,8 +344,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     } else if (value is ManagedObject) {
       // If we're only fetching the foreign key, don't do a full asMap
       if (relationshipType == ManagedRelationshipType.belongsTo &&
-          value.backingMap.length == 1 &&
-          value.backingMap.containsKey(destinationEntity.primaryKey)) {
+          value.backing.contents.length == 1 &&
+          value.backing.contents.containsKey(destinationEntity.primaryKey)) {
         return {destinationEntity.primaryKey: value[destinationEntity.primaryKey]};
       }
 
@@ -402,7 +405,14 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
 
   @override
   String toString() {
-    return "[Relationship] ${entity.tableName}.$name $relationshipType ${destinationEntity.tableName}.${MirrorSystem
-        .getName(inverseKey)}";
+    var relTypeString = "has-one";
+    switch (relationshipType) {
+      case ManagedRelationshipType.belongsTo: relTypeString = "belongs to"; break;
+      case ManagedRelationshipType.hasMany: relTypeString = "has-many"; break;
+      case ManagedRelationshipType.hasOne: relTypeString = "has-a"; break;
+    }
+    return "${entity.name}.$name - "
+        "$relTypeString '${destinationEntity.name}' "
+        "(inverse: ${MirrorSystem.getName(inverseKey)})";
   }
 }

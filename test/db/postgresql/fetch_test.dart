@@ -22,12 +22,6 @@ void main() {
 
     expect(item.name, "Joe");
     expect(item.email, "a@a.com");
-
-    var dynQuery = new Query.forEntity(context.dataModel.entityForType(TestModel))
-      ..where["id"] = whereEqualTo(item.id);
-    item = await dynQuery.fetchOne();
-    expect(item.name, "Joe");
-    expect(item.email, "a@a.com");
   });
 
   test("Query with dynamic entity and mis-matched context throws exception", () async {
@@ -60,6 +54,26 @@ void main() {
     expect(item.name, "Joe");
     expect(item.id, id);
     expect(item.email, isNull);
+  });
+
+  test("Returning properties for undefined attributes fails", () async {
+    context = await contextWithModels([TestModel]);
+
+    var m = new TestModel(name: "Joe", email: "b@a.com");
+    var req = new Query<TestModel>()..values = m;
+
+    await req.insert();
+
+    try {
+      req = new Query<TestModel>()
+        ..returningProperties((t) => [t.id, t["foobar"]]);
+      fail("unreachable");
+    } on ArgumentError catch (e) {
+      expect(e.toString(), allOf([
+        contains("'foobar'"),
+        contains("'TestModel'"),
+      ]));
+    }
   });
 
   test("Ascending sort descriptors work", () async {
@@ -122,9 +136,9 @@ void main() {
       expect(true, false);
     } on ArgumentError catch (e) {
       expect(e.toString(), allOf([
-        contains("does not exist on table"),
+        contains("does not exist on"),
         contains("'nonexisting'"),
-        contains("'simple'"),
+        contains("'TestModel'"),
       ]));
     }
   });
@@ -139,8 +153,7 @@ void main() {
       expect(e.toString(), allOf([
         contains("'posts'"),
         contains("'GenUser'"),
-        contains("does not exist"),
-        contains("recognized as ORM relationship")
+        contains("is a relationship"),
       ]));
     }
   });
@@ -202,14 +215,14 @@ void main() {
     var req = new Query<TestModel>()..values = m;
     await req.insert();
 
-    req = new Query<TestModel>()
-      ..returningProperties((t) => [t.id, t["badkey"]]);
 
     try {
-      await req.fetch();
-      expect(true, false);
+      req = new Query<TestModel>()
+        ..returningProperties((t) => [t.id, t["badkey"]]);
+
+      fail("unreachable");
     } on ArgumentError catch (e) {
-      expect(e.toString(), contains("Column 'badkey' does not exist for table 'simple'"));
+      expect(e.toString(), contains("Property 'badkey' does not exist on 'TestModel'"));
     }
   });
 
@@ -244,7 +257,7 @@ void main() {
         5);
 
     var query = new Query<GenPost>();
-    query.where["owner"] = whereRelatedByValue(u1.id);
+    query.where((o) => o.owner).identifiedBy(u1.id);
     res = await query.fetch();
 
     GenUser user = res.first.owner;
@@ -277,14 +290,14 @@ void main() {
 
     var result = await iq.insert();
     expect(result.id, greaterThan(0));
-    expect(result.backingMap["text"], isNull);
+    expect(result.backing.contents["text"], isNull);
 
     var fq = new Query<Omit>()
       ..predicate = new QueryPredicate("id=@id", {"id": result.id});
 
     var fResult = await fq.fetchOne();
     expect(fResult.id, result.id);
-    expect(fResult.backingMap["text"], isNull);
+    expect(fResult.backing.contents["text"], isNull);
   });
 
   test(
@@ -327,25 +340,25 @@ void main() {
 
     var result = await q.fetchOne();
     expect(result.owner.id, 1);
-    expect(result.owner.backingMap.length, 1);
+    expect(result.owner.backing.contents.length, 1);
 
-    q = new Query<GenPost>()..returningProperties((p) => [p.id, p["owner_id"]]);
+
     try {
-      await q.fetchOne();
+      q = new Query<GenPost>()..returningProperties((p) => [p.id, p["owner_id"]]);
       expect(true, false);
     } on ArgumentError catch (e) {
       expect(e.toString(),
-          contains("Column 'owner_id' does not exist for table '_GenPost'"));
+          contains("Property 'owner_id' does not exist on 'GenPost'"));
     }
   });
 
-  test("Can use public accessor to private property in where", () async {
+  test("Can use public accessor to private property", () async {
     context = await contextWithModels([PrivateField]);
 
     await (new Query<PrivateField>()).insert();
     var q = new Query<PrivateField>();
-    var result = await q.fetch();
-    expect(result.first.public, "x");
+    var result = await q.fetchOne();
+    expect(result.public, "x");
   });
 
   test("When fetching valid enum value from db, is available as enum value and in where", () async {
@@ -362,12 +375,12 @@ void main() {
     expect(result.asMap()["enumValues"], "abcd");
 
     q = new Query<EnumObject>()
-      ..where.enumValues = whereEqualTo(EnumValues.abcd);
+      ..where((o) => o.enumValues).equalTo(EnumValues.abcd);
     result = await q.fetchOne();
     expect(result, isNotNull);
 
     q = new Query<EnumObject>()
-      ..where.enumValues = whereEqualTo(EnumValues.efgh);
+      ..where((o) => o.enumValues).equalTo(EnumValues.efgh);
     result = await q.fetchOne();
     expect(result, isNull);
   });

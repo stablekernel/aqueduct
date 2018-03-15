@@ -35,7 +35,7 @@ class TestClient {
   /// The base URL that requests will be made against.
   String get baseURL {
     if (_application != null) {
-      if (!_application.hasFinishedLaunching) {
+      if (!_application.isRunning) {
         throw new TestClientException("Application under test is not running. Add `await app.start()` in a setup method.");
       }
       return "${_application.server.requiresHTTPS ? "https" : "http"}://localhost:${_application.channel.server.server.port}";

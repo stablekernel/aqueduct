@@ -14,13 +14,13 @@ void main() {
 
     test("didFinishLaunching is false before launch, true after, false after stop", () async {
       app = new Application<TestChannel>();
-      expect(app.hasFinishedLaunching, false);
+      expect(app.isRunning, false);
 
       await app.test();
-      expect(app.hasFinishedLaunching, true);
+      expect(app.isRunning, true);
 
       await app.stop();
-      expect(app.hasFinishedLaunching, false);
+      expect(app.isRunning, false);
     });
   });
 
@@ -83,7 +83,7 @@ void main() {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
         var result = await http.get("http://localhost:8888/startup");
-        sum += int.parse(JSON.decode(result.body));
+        sum += int.parse(json.decode(result.body));
       }
       expect(sum, 10);
     });

@@ -15,9 +15,15 @@ void main() {
       EnumObject,
       TransientBelongsTo,
       TransientOwner,
-      DocumentTest
+      DocumentTest,
+      ConstructorOverride
     ]);
     var _ = new ManagedContext(dm, ps);
+  });
+
+  test("Can set properties in constructor", () {
+    final obj = new ConstructorOverride();
+    expect(obj.value, "foo");
   });
 
   test("NoSuchMethod still throws", () {
@@ -74,7 +80,7 @@ void main() {
       reflect(user).setField(#foo, "hey");
       expect(true, false);
     } on ArgumentError catch (e) {
-      expect(e.toString(), contains("Property 'foo' does not exist on 'User'"));
+      expect(e.toString(), contains("Property 'foo=' does not exist on 'User'"));
     }
   });
 
@@ -192,7 +198,7 @@ void main() {
     user.readFromMap(map);
 
     expect(
-        user.dateCreated.difference(DateTime.parse(dateString)), Duration.ZERO);
+        user.dateCreated.difference(DateTime.parse(dateString)), Duration.zero);
 
     var remap = user.asMap();
     expect(remap["dateCreated"], dateString);
@@ -404,7 +410,7 @@ void main() {
     expect(m["transientBigInt"], 123456789);
     expect(m["transientString"], "lowercase string");
     expect(m["transientDate"].difference(DateTime.parse(dateString)),
-        Duration.ZERO);
+        Duration.zero);
     expect(m["transientBool"], true);
     expect(m["transientDouble"], 30.5);
     expect(m["transientList"], [1, 2, 3, 4, 5]);
@@ -476,7 +482,7 @@ void main() {
       }
 
       try {
-        e.backing.setValueForProperty(e.entity, "enumValues", "foobar");
+        e["enumValues"] = "foobar";
         expect(true, false);
       } on ValidationException catch (e) {
         expectError(e, contains("invalid input value for 'enumValues'"));
@@ -537,7 +543,7 @@ void main() {
 
     test("Can emit object into map from object document data type", () {
       final o = new DocumentTest()
-        ..document = new Document.from({"key": "value"});
+        ..document = new Document({"key": "value"});
       expect(o.asMap(), {
         "document": {"key": "value"}
       });
@@ -545,7 +551,7 @@ void main() {
 
     test("Can emit array into map from array document data type", () {
       final o = new DocumentTest()
-        ..document = new Document.from([{"key": "value"}, 1]);
+        ..document = new Document([{"key": "value"}, 1]);
       expect(o.asMap(), {
         "document": [{"key": "value"}, 1]
       });
@@ -812,4 +818,16 @@ class _DocumentTest {
   int id;
 
   Document document;
+}
+
+class ConstructorOverride extends ManagedObject<_ConstructorOverride> implements _ConstructorOverride {
+  ConstructorOverride() {
+    value = "foo";
+  }
+}
+class _ConstructorOverride {
+  @primaryKey
+  int id;
+
+  String value;
 }

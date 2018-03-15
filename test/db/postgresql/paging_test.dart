@@ -314,7 +314,7 @@ void main() {
 
         expect(true, false);
       } on ArgumentError catch (e) {
-        expect(e.toString(), contains("Column 'foobar' does not exist on table '_PageableTestModel'"));
+        expect(e.toString(), contains("Property 'foobar' does not exist on 'PageableTestModel'"));
       }
     });
 
@@ -333,7 +333,7 @@ void main() {
           ..pageBy((p) => p.objects, QuerySortOrder.ascending);
         expect(true, false);
       } on ArgumentError catch (e) {
-        expect(e.toString(), contains("Column 'objects' does not exist on table '_HasMany'"));
+        expect(e.toString(), contains("Property 'objects' on 'HasMany' is a relationship"));
       }
     });
   });

@@ -30,7 +30,7 @@ void main() {
       };
       var response = await postJSON(m);
       expect(response.statusCode, 200);
-      expect(JSON.decode(response.body), m);
+      expect(json.decode(response.body), m);
     });
 
     test("Can read List<Map> body object into List<HTTPSerializable>", () async {
@@ -47,7 +47,7 @@ void main() {
       ];
       var response = await postJSON(m);
       expect(response.statusCode, 200);
-      expect(JSON.decode(response.body), m);
+      expect(json.decode(response.body), m);
     });
 
     test("Can read empty List body", () async {
@@ -55,7 +55,7 @@ void main() {
       var m = [];
       var response = await postJSON(m);
       expect(response.statusCode, 200);
-      expect(JSON.decode(response.body), m);
+      expect(json.decode(response.body), m);
     });
 
     test("Body arg can be optional", () async {
@@ -66,7 +66,7 @@ void main() {
       };
       var response = await postJSON(m);
       expect(response.statusCode, 200);
-      expect(JSON.decode(response.body), m);
+      expect(json.decode(response.body), m);
 
       response = await http.post("http://localhost:4040/");
       expect(response.statusCode, 200);
@@ -82,7 +82,7 @@ void main() {
       };
       var response = await postJSON(m);
       expect(response.statusCode, 200);
-      expect(JSON.decode(response.body), m);
+      expect(json.decode(response.body), m);
     });
   });
 
@@ -108,7 +108,7 @@ void main() {
       };
       var response = await postJSON(m);
       expect(response.statusCode, 400);
-      expect(JSON.decode(response.body)["error"], contains("job"));
+      expect(json.decode(response.body)["error"], contains("job"));
     });
 
     test("Body is empty returns 400", () async {
@@ -120,7 +120,7 @@ void main() {
       };
       var response = await postJSON(m);
       expect(response.statusCode, 400);
-      expect(JSON.decode(response.body)["error"], contains("job"));
+      expect(json.decode(response.body)["error"], contains("job"));
     });
 
     test("Is List when expecting Map returns 400", () async {
@@ -131,7 +131,7 @@ void main() {
       }];
       var response = await postJSON(m);
       expect(response.statusCode, 422);
-      expect(JSON.decode(response.body)["error"], contains("unexpected request entity data type"));
+      expect(json.decode(response.body)["error"], contains("unexpected request entity data type"));
     });
 
     test("Is Map when expecting List returns 400", () async {
@@ -142,28 +142,28 @@ void main() {
       };
       var response = await postJSON(m);
       expect(response.statusCode, 422);
-      expect(JSON.decode(response.body)["error"], contains("unexpected request entity data type"));
+      expect(json.decode(response.body)["error"], contains("unexpected request entity data type"));
     });
 
     test("If required body and no body included, return 400", () async {
       server = await enableController("/", TestController);
       var response = await postJSON(null);
       expect(response.statusCode, 400);
-      expect(JSON.decode(response.body)["error"], contains("missing required Body"));
+      expect(json.decode(response.body)["error"], contains("missing required Body"));
     });
 
     test("Expect list of objects, got list of strings", () async {
       server = await enableController("/", ListTestController);
       var response = await postJSON(["a", "b"]);
       expect(response.statusCode, 422);
-      expect(JSON.decode(response.body)["error"], contains("unexpected request entity data type"));
+      expect(json.decode(response.body)["error"], contains("unexpected request entity data type"));
 
     });
   });
 }
 
-Future<http.Response> postJSON(dynamic json) {
-  if (json == null) {
+Future<http.Response> postJSON(dynamic body) {
+  if (body == null) {
     return http
         .post("http://localhost:4040",
         headers: {"Content-Type": "application/json"})
@@ -172,7 +172,7 @@ Future<http.Response> postJSON(dynamic json) {
   return http
       .post("http://localhost:4040",
       headers: {"Content-Type": "application/json"},
-      body: JSON.encode(json))
+      body: json.encode(body))
       .catchError((err) => null);
 }
 

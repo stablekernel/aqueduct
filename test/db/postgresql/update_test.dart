@@ -52,7 +52,7 @@ void main() {
     var newParent = await q.insert();
 
     childQuery = new Query<Child>()
-      ..where.id = whereEqualTo(child.id)
+      ..where((o) => o.id).equalTo(child.id)
       ..values.parent = newParent;
     child = (await childQuery.update()).first;
     expect(child.parent.id, newParent.id);
@@ -73,7 +73,7 @@ void main() {
     expect(child.parent.id, parent.id);
 
     childQuery = new Query<Child>()
-      ..where["id"] = whereEqualTo(child.id)
+      ..where((o) => o.id).equalTo(child.id)
       ..values = (new Child()..parent = null);
     child = (await childQuery.update()).first;
     expect(child.parent, isNull);
@@ -124,7 +124,7 @@ void main() {
     await req.insert();
 
     var q = new Query<TestModel>()
-      ..where["name"] = whereEqualTo("Bob")
+      ..where((o) => o.name).equalTo("Bob")
       ..values = (new TestModel()..emailAddress = "3@a.com");
 
     List<TestModel> results = await q.update();
@@ -149,7 +149,7 @@ void main() {
         .insert();
 
     var updateQuery = new Query<TestModel>()
-      ..where["emailAddress"] = whereEqualTo("1@a.com")
+      ..where((o) => o.emailAddress).equalTo("1@a.com")
       ..values.emailAddress = "3@a.com";
     var updatedObject = (await updateQuery.update()).first;
 
@@ -284,7 +284,7 @@ void main() {
 
     try {
       var q = new Query<TestModel>()
-        ..where.emailAddress = whereEqualTo("2@a.com")
+        ..where((o) => o.emailAddress).equalTo("2@a.com")
         ..values.emailAddress = "1@a.com";
       await q.updateOne();
       expect(true, false);
@@ -308,7 +308,7 @@ void main() {
 
     q = new Query<EnumObject>()
       ..values.enumValues = EnumValues.other18Letters
-      ..where.enumValues = whereEqualTo(EnumValues.efgh);
+      ..where((o) => o.enumValues).equalTo(EnumValues.efgh);
 
     var result = await q.update();
     expect(result.length, 1);

@@ -18,17 +18,40 @@ import 'package:aqueduct/src/db/managed/managed.dart';
 ///           Document details;
 ///         }
 class Document {
-  /// Creates an empty instance where [data] is null.
-  Document();
-
-  /// Creates a new instance containing [data].
+  /// Creates an instance with an optional initial [data].
   ///
-  /// [data] must be a JSON-encodable [Map] or [List].
-  Document.from(this.data);
-
+  /// If no argument is passed, [data] is null. Otherwise, it is the first argument.
+  Document([this.data]);
 
   /// The JSON-encodable data contained by this instance.
   ///
   /// This value must be JSON-encodable.
   dynamic data;
+
+  /// Returns an element of [data] by index or key.
+  ///
+  /// [keyOrIndex] may be a [String] or [int].
+  ///
+  /// When [data] is a [Map], [keyOrIndex] must be a [String] and will return the object for the key
+  /// in that map.
+  ///
+  /// When [data] is a [List], [keyOrIndex] must be a [int] and will return the object at the index
+  /// in that list.
+  dynamic operator [](dynamic keyOrIndex) {
+    return data[keyOrIndex];
+  }
+
+  /// Sets an element of [data] by index or key.
+  ///
+  /// [keyOrIndex] may be a [String] or [int]. [value] must be a JSON-encodable value.
+  ///
+  /// When [data] is a [Map], [keyOrIndex] must be a [String] and will set [value] for the key
+  /// [keyOrIndex].
+  ///
+  /// When [data] is a [List], [keyOrIndex] must be a [int] and will set [value] for the index
+  /// [keyOrIndex]. This index must be within the length of [data]. For all other [List] operations,
+  /// you may cast [data] to [List].
+  void operator []=(dynamic keyOrIndex, dynamic value) {
+    data[keyOrIndex] = value;
+  }
 }

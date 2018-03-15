@@ -203,9 +203,7 @@ class AuthCode {
 class Authorization {
   /// Creates an instance of a [Authorization].
   Authorization(this.clientID, this.resourceOwnerIdentifier, this.validator,
-      {this.credentials, List<AuthScope> scopes}) {
-    this._scopes = scopes;
-  }
+      {this.credentials, this.scopes});
 
   /// The client ID the permission was granted under.
   final String clientID;
@@ -232,16 +230,15 @@ class Authorization {
   ///
   /// If the access token used to create this instance has scope,
   /// those scopes will be available here. Otherwise, null.
-  List<String> get scopes => _scopes?.map((s) => s.toString())?.toList();
-  List<AuthScope> _scopes;
+  List<AuthScope> scopes;
 
   /// Whether or not this instance has access to a specific scope.
   ///
   /// This method checks each element in [scopes] for any that gives privileges
   /// to access [scope].
-  bool authorizedForScope(String scope) {
+  bool isAuthorizedForScope(String scope) {
     var asScope = new AuthScope(scope);
-    return _scopes?.any((s) => asScope.allowsScope(s)) ?? false;
+    return scopes?.any((s) => asScope.allowsScope(s)) ?? false;
   }
 }
 
@@ -302,6 +299,23 @@ class AuthScope {
   static const List<AuthScope> Any = const [
     const AuthScope._("_scope:_constant:_marker", const [], null)
   ];
+
+  /// Returns true if that [providedScopes] fulfills [requiredScopes].
+  ///
+  /// For all [requiredScopes], there must be a scope in [requiredScopes] that meets or exceeds
+  /// that scope for this method to return true. If [requiredScopes] is null, this method
+  /// return true regardless of [providedScopes].
+  static bool verify(List<AuthScope> requiredScopes, List<AuthScope> providedScopes) {
+    if (requiredScopes == null) {
+      return true;
+    }
+
+    return requiredScopes.every((requiredScope) {
+      var tokenHasValidScope = providedScopes?.any((tokenScope) => requiredScope.allowsScope(tokenScope));
+
+      return tokenHasValidScope ?? false;
+    });
+  }
 
   static Map<String, AuthScope> _cache = {};
 

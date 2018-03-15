@@ -1,5 +1,6 @@
-import '../db.dart';
-import 'property_mapper.dart';
+import 'package:aqueduct/src/db/managed/managed.dart';
+
+import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
 
 abstract class EntityTableMapper {
   ManagedEntity get entity;

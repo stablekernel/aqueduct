@@ -1,104 +1,180 @@
 import 'dart:mirrors';
+import 'package:aqueduct/src/db/managed/key_path.dart';
+
 import 'managed.dart';
 import '../query/matcher_internal.dart';
 import 'relationship_type.dart';
 import 'exception.dart';
 
+final ArgumentError _invalidValueConstruction = new ArgumentError("Invalid property access when building 'Query.values'. "
+    "May only assign values to properties backed by a column of the table being inserted into. "
+    "This prohibits 'ManagedObject' and 'ManagedSet' properties, except for 'ManagedObject' "
+    "properties with a 'Relate' annotation. For 'Relate' properties, you may only set their "
+    "primary key property.");
+
 class ManagedValueBacking extends ManagedBacking {
   @override
-  Map<String, dynamic> valueMap = {};
+  Map<String, dynamic> contents = {};
 
   @override
-  dynamic valueForProperty(ManagedEntity entity, String propertyName) {
-    if (entity.properties[propertyName] == null) {
-      throw new ArgumentError("Invalid property access for 'ManagedObject'. "
-          "Property '$propertyName' does not exist on '${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
-    }
-
-    return valueMap[propertyName];
+  dynamic valueForProperty(ManagedPropertyDescription property) {
+    return contents[property.name];
   }
 
   @override
-  void setValueForProperty(
-      ManagedEntity entity, String propertyName, dynamic value) {
-    var property = entity.properties[propertyName];
-    if (property == null) {
-      throw new ArgumentError("Invalid property access for 'ManagedObject'. "
-          "Property '$propertyName' does not exist on '${MirrorSystem.getName(entity.instanceType.simpleName)}'.");
-    }
-
+  void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
     if (value != null) {
       if (!property.isAssignableWith(value)) {
-        throw new ValidationException(["invalid input value for '${propertyName}'"]);
+        throw new ValidationException(["invalid input value for '${property.name}'"]);
       }
     }
 
-    valueMap[propertyName] = value;
+    contents[property.name] = value;
   }
 }
 
-class ManagedMatcherBacking extends ManagedBacking {
-  @override
-  Map<String, dynamic> valueMap = {};
-
-  @override
-  dynamic valueForProperty(ManagedEntity entity, String propertyName) {
-    if (!valueMap.containsKey(propertyName)) {
-      var relDesc = entity.relationships[propertyName];
-      if (relDesc?.relationshipType == ManagedRelationshipType.hasMany) {
-        valueMap[propertyName] = new ManagedSet()
-          ..entity = relDesc.destinationEntity;
-      } else if (relDesc?.relationshipType == ManagedRelationshipType.hasOne ||
-          relDesc?.relationshipType == ManagedRelationshipType.belongsTo) {
-        valueMap[propertyName] = relDesc.destinationEntity.newInstance()
-          ..backing = new ManagedMatcherBacking();
-      }
+class ManagedForeignKeyBuilderBacking extends ManagedBacking {
+  ManagedForeignKeyBuilderBacking();
+  ManagedForeignKeyBuilderBacking.from(ManagedEntity entity, ManagedBacking backing) {
+    if (backing.contents.containsKey(entity.primaryKey)) {
+      contents[entity.primaryKey] = backing.contents[entity.primaryKey];
     }
-
-    return valueMap[propertyName];
   }
 
   @override
-  void setValueForProperty(
-      ManagedEntity entity, String propertyName, dynamic value) {
-    if (value == null) {
-      valueMap.remove(propertyName);
+  Map<String, dynamic> contents = {};
+
+  @override
+  dynamic valueForProperty(ManagedPropertyDescription property) {
+    if (property is ManagedAttributeDescription && property.isPrimaryKey) {
+      return contents[property.name];
+    }
+
+    throw _invalidValueConstruction;
+  }
+
+  @override
+  void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
+    if (property is ManagedAttributeDescription && property.isPrimaryKey) {
+      contents[property.name] = value;
       return;
     }
 
-    if (value is MatcherExpression) {
-      var property = entity.properties[propertyName];
+    throw _invalidValueConstruction;
+  }
+}
 
-      if (property is ManagedRelationshipDescription) {
-        var innerObject = valueForProperty(entity, propertyName);
-        if (innerObject is ManagedObject) {
-          innerObject[innerObject.entity.primaryKey] = value;
-        } else if (innerObject is ManagedSet) {
-          innerObject.haveAtLeastOneWhere[innerObject.entity.primaryKey] =
-              value;
+class ManagedBuilderBacking extends ManagedBacking {
+  ManagedBuilderBacking();
+  ManagedBuilderBacking.from(ManagedEntity entity, ManagedBacking original) {
+    if (original is! ManagedValueBacking) {
+      throw new ArgumentError("Invalid 'ManagedObject' assignment to 'Query.values'. Object must be created through default constructor.");
+    }
+
+    original.contents.forEach((key, value) {
+      final prop = entity.properties[key];
+      if (prop == null) {
+        throw new ArgumentError("Invalid 'ManagedObject' assignment to 'Query.values'. Property '$key' does not exist for '${entity.name}'.");
+      }
+
+      if (prop is ManagedRelationshipDescription) {
+        if (!prop.isBelongsTo) {
+          return;
         }
+      }
+
+      setValueForProperty(prop, value);
+    });
+  }
+
+  @override
+  Map<String, dynamic> contents = {};
+
+  @override
+  dynamic valueForProperty(ManagedPropertyDescription property) {
+    if (property is ManagedRelationshipDescription) {
+      if (!property.isBelongsTo) {
+        throw _invalidValueConstruction;
+      }
+
+      if(!contents.containsKey(property.name)) {
+        contents[property.name] = property.inverse.entity.newInstance(backing: new ManagedForeignKeyBuilderBacking());
+      }
+    }
+
+    return contents[property.name];
+  }
+
+  @override
+  void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
+    if (property is ManagedRelationshipDescription) {
+      if (!property.isBelongsTo) {
+        throw _invalidValueConstruction;
+      }
+
+      if (value == null) {
+        contents[property.name] = null;
       } else {
-        valueMap[propertyName] = value;
+        final original = (value as ManagedObject);
+        final replacementBacking = new ManagedForeignKeyBuilderBacking.from(original.entity, original.backing);
+        final replacement = original.entity.newInstance(backing: replacementBacking);
+        contents[property.name] = replacement;
       }
     } else {
-      final typeName = MirrorSystem.getName(entity.instanceType.simpleName);
-
-      throw new ArgumentError("Invalid query matcher assignment. Tried assigning value to 'Query<$typeName>.where.$propertyName'. Wrap value in 'whereEqualTo()'.");
+      contents[property.name] = value;
     }
   }
 }
 
 class ManagedAccessTrackingBacking extends ManagedBacking {
-  @override
-  Map<String, dynamic> get valueMap => null;
+  List<KeyPath> keyPaths;
+  KeyPath workingKeyPath;
 
   @override
-  dynamic valueForProperty(ManagedEntity entity, String propertyName) =>
-      propertyName;
+  Map<String, dynamic> get contents => null;
 
   @override
-  void setValueForProperty(
-      ManagedEntity entity, String propertyName, dynamic value) {
+  dynamic valueForProperty(ManagedPropertyDescription property) {
+    if (workingKeyPath != null) {
+      workingKeyPath.add(property);
+
+      return forward(property, workingKeyPath);
+    }
+
+
+    keyPaths ??= [];
+    final keyPath = new KeyPath(property);
+    keyPaths.add(keyPath);
+
+    return forward(property, keyPath);
+  }
+
+  @override
+  void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
     // no-op
+  }
+
+  dynamic forward(ManagedPropertyDescription property, KeyPath keyPath) {
+    if (property is ManagedRelationshipDescription) {
+      final tracker = new ManagedAccessTrackingBacking()
+        ..workingKeyPath = keyPath;
+      return property.inverse.entity.newInstance(backing: tracker);
+    } else if (property is ManagedAttributeDescription && property.type.kind == ManagedPropertyType.document) {
+      return new DocumentAccessTracker(keyPath);
+    }
+
+    return null;
+  }
+}
+
+class DocumentAccessTracker extends Document {
+  DocumentAccessTracker(this.owner);
+
+  final KeyPath owner;
+
+  @override
+  dynamic operator [](dynamic keyOrIndex) {
+    owner.addDynamicElement(keyOrIndex);
+    return this;
   }
 }

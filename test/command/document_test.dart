@@ -27,7 +27,7 @@ void main() {
   test("Document command uses project pubspec for metadata", () async {
     await terminal.runAqueductCommand("document", ["--machine"]);
 
-    final map = JSON.decode(terminal.output);
+    final map = json.decode(terminal.output);
     expect(map["info"]["title"], "application_test");
     expect(map["info"]["version"], "0.0.1");
     expect(map["info"]["description"], isNotNull);
@@ -36,7 +36,7 @@ void main() {
   test("Can override title/version/etc.", () async {
     await terminal.runAqueductCommand("document", ["--machine", "--title", "foobar", "--version", "2.0.0"]);
 
-    final map = JSON.decode(terminal.output);
+    final map = json.decode(terminal.output);
     expect(map["info"]["title"], "foobar");
     expect(map["info"]["version"], "2.0.0");
   });
@@ -44,7 +44,7 @@ void main() {
   test("Can set license, contact", () async {
     await terminal.runAqueductCommand("document", ["--machine", "--license-url", "http://whatever.com", "--license-name", "bsd", "--contact-email", "a@b.com"]);
 
-    final map = JSON.decode(terminal.output);
+    final map = json.decode(terminal.output);
     expect(map["info"]["license"]["name"], "bsd");
     expect(map["info"]["license"]["url"], "http://whatever.com");
     expect(map["info"]["contact"]["email"], "a@b.com");

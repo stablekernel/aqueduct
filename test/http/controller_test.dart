@@ -38,10 +38,10 @@ void main() {
       final r1 = await http.get("http://localhost:4111");
       final r2 = await http.get("http://localhost:4111");
 
-      List<int> r1m = JSON.decode(r1.headers["x-middleware"]);
-      List<int> r2m = JSON.decode(r2.headers["x-middleware"]);
-      List<int> r1e = JSON.decode(r1.body);
-      List<int> r2e = JSON.decode(r2.body);
+      List<int> r1m = json.decode(r1.headers["x-middleware"]);
+      List<int> r2m = json.decode(r2.headers["x-middleware"]);
+      List<int> r1e = json.decode(r1.body);
+      List<int> r2e = json.decode(r2.body);
 
       expect(r1m.first, r1e.first);
       expect(r2m.first, r2e.first);
@@ -120,7 +120,7 @@ void main() {
       });
 
       var resp = await http.get("http://localhost:4111/");
-      expect(JSON.decode(resp.body), {"foo": "y", "x": "a"});
+      expect(json.decode(resp.body), {"foo": "y", "x": "a"});
     });
   });
 
@@ -213,7 +213,7 @@ void main() {
 
       var resp = await http.get("http://localhost:8888");
       expect(resp.headers["content-type"], startsWith("application/json"));
-      expect(JSON.decode(resp.body), {"name": "Bob"});
+      expect(json.decode(resp.body), {"name": "Bob"});
     });
 
     test("Responding to request with no content-type, but does have a body, defaults to application/json", () async {
@@ -228,7 +228,7 @@ void main() {
 
       var resp = await http.get("http://localhost:8888");
       expect(resp.headers["content-type"], startsWith("application/json"));
-      expect(JSON.decode(resp.body), {"a": "b"});
+      expect(json.decode(resp.body), {"a": "b"});
     });
 
     test(
@@ -281,7 +281,7 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 200);
-      expect(JSON.decode((new String.fromCharCodes(await resp.first))), {"statusCode": 403});
+      expect(json.decode((new String.fromCharCodes(await resp.first))), {"statusCode": 403});
 
       // valid preflight
       req = await (new HttpClient().open("OPTIONS", "localhost", 8888, ""));
@@ -292,7 +292,7 @@ void main() {
 
       expect(resp.statusCode, 200);
       expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
-      expect(JSON.decode((new String.fromCharCodes(await resp.first))), {"statusCode": 200});
+      expect(json.decode((new String.fromCharCodes(await resp.first))), {"statusCode": 200});
     });
 
     test("willSendResponse is always called prior to Response being sent for normal requests", () async {
@@ -306,22 +306,22 @@ void main() {
       // normal response
       var resp = await http.get("http://localhost:8888");
       expect(resp.statusCode, 200);
-      expect(JSON.decode(resp.body), {"statusCode": 100});
+      expect(json.decode(resp.body), {"statusCode": 100});
 
       // httpresponseexception
       resp = await http.get("http://localhost:8888?q=http_response_exception");
       expect(resp.statusCode, 200);
-      expect(JSON.decode(resp.body), {"statusCode": 400});
+      expect(json.decode(resp.body), {"statusCode": 400});
 
       // query exception
       resp = await http.get("http://localhost:8888?q=query_exception");
       expect(resp.statusCode, 200);
-      expect(JSON.decode(resp.body), {"statusCode": 503});
+      expect(json.decode(resp.body), {"statusCode": 503});
 
       // any other exception (500)
       resp = await http.get("http://localhost:8888?q=server_error");
       expect(resp.statusCode, 200);
-      expect(JSON.decode(resp.body), {"statusCode": 500});
+      expect(json.decode(resp.body), {"statusCode": 500});
     });
 
     test("Failure to decode request body as appropriate type is 422", () async {
@@ -336,7 +336,7 @@ void main() {
       });
 
       var resp = await http.post("http://localhost:8888",
-          headers: {"content-type": "application/json"}, body: JSON.encode(["a"]));
+          headers: {"content-type": "application/json"}, body: json.encode(["a"]));
 
       expect(resp.statusCode, 422);
     });
@@ -447,7 +447,7 @@ class NotingMiddleware extends Controller {
   @override
   FutureOr<RequestOrResponse> handle(Request req) {
     req.addResponseModifier((resp) {
-      resp.headers["x-middleware"] = JSON.encode([req.hashCode, hashCode]);
+      resp.headers["x-middleware"] = json.encode([req.hashCode, hashCode]);
     });
     return req;
   }

@@ -30,13 +30,13 @@ void main() {
         () async {
       var q = new Query<Parent>()
         ..join(object: (p) => p.child)
-        ..where.name = whereEqualTo("D");
+        ..where((o) => o.name).equalTo("D");
 
       var verifier = (Parent p) {
         expect(p.name, "D");
         expect(p.pid, isNotNull);
-        expect(p.backingMap["child"], isNull);
-        expect(p.backingMap.containsKey("child"), true);
+        expect(p.backing.contents["child"], isNull);
+        expect(p.backing.contents.containsKey("child"), true);
       };
       verifier(await q.fetchOne());
       verifier((await q.fetch()).first);
@@ -45,7 +45,7 @@ void main() {
     test(
         "Fetch has-one relationship that is null returns null for property, and more nested has relationships are ignored",
         () async {
-      var q = new Query<Parent>()..where.name = whereEqualTo("D");
+      var q = new Query<Parent>()..where((o) => o.name).equalTo("D");
 
       q.join(object: (p) => p.child)
         ..join(object: (c) => c.toy)
@@ -54,14 +54,14 @@ void main() {
       var verifier = (Parent p) {
         expect(p.name, "D");
         expect(p.pid, isNotNull);
-        expect(p.backingMap["child"], isNull);
-        expect(p.backingMap.containsKey("child"), true);
+        expect(p.backing.contents["child"], isNull);
+        expect(p.backing.contents.containsKey("child"), true);
       };
       verifier(await q.fetchOne());
       verifier((await q.fetch()).first);
 
       var dynQuery = new Query.forEntity(context.dataModel.entityForType(Parent))
-        ..where["name"] = whereEqualTo("D");
+        ..where((o) => o["name"]).equalTo("D");
 
       dynQuery.join<ManagedObject>(object: (p) => p["child"])
         ..join<ManagedObject>(object: (c) => c["toy"])
@@ -75,15 +75,15 @@ void main() {
         () async {
       var q = new Query<Parent>()
         ..join(object: (p) => p.child)
-        ..where.name = whereEqualTo("C");
+        ..where((o) => o.name).equalTo("C");
 
       var verifier = (Parent p) {
         expect(p.name, "C");
         expect(p.pid, isNotNull);
         expect(p.child.cid, isNotNull);
         expect(p.child.name, "C3");
-        expect(p.child.backingMap.containsKey("toy"), false);
-        expect(p.child.backingMap.containsKey("vaccinations"), false);
+        expect(p.child.backing.contents.containsKey("toy"), false);
+        expect(p.child.backing.contents.containsKey("vaccinations"), false);
       };
       verifier(await q.fetchOne());
       verifier((await q.fetch()).first);
@@ -92,7 +92,7 @@ void main() {
     test(
         "Fetch has-one relationship, include has-one and has-many in that has-one, where bottom of graph has valid object for hasmany but not for hasone",
         () async {
-      var q = new Query<Parent>()..where.name = whereEqualTo("B");
+      var q = new Query<Parent>()..where((o) => o.name).equalTo("B");
 
       q.join(object: (p) => p.child)
         ..join(object: (c) => c.toy)
@@ -103,7 +103,7 @@ void main() {
         expect(p.pid, isNotNull);
         expect(p.child.cid, isNotNull);
         expect(p.child.name, "C2");
-        expect(p.child.backingMap.containsKey("toy"), true);
+        expect(p.child.backing.contents.containsKey("toy"), true);
         expect(p.child.toy, isNull);
         expect(p.child.vaccinations.length, 1);
         expect(p.child.vaccinations.first.vid, isNotNull);
@@ -117,7 +117,7 @@ void main() {
     test(
         "Fetch has-one relationship, include has-one and has-many in that has-one, where bottom of graph is all null/empty",
         () async {
-      var q = new Query<Parent>()..where.name = whereEqualTo("C");
+      var q = new Query<Parent>()..where((o) => o.name).equalTo("C");
 
       q.join(object: (p) => p.child)
         ..join(object: (c) => c.toy)
@@ -128,7 +128,7 @@ void main() {
         expect(p.pid, isNotNull);
         expect(p.child.cid, isNotNull);
         expect(p.child.name, "C3");
-        expect(p.child.backingMap.containsKey("toy"), true);
+        expect(p.child.backing.contents.containsKey("toy"), true);
         expect(p.child.toy, isNull);
         expect(p.child.vaccinations, []);
       };
@@ -142,7 +142,7 @@ void main() {
         () async {
       var q = new Query<Parent>()
         ..join(object: (p) => p.child)
-        ..where.name = whereIn(["C", "D"]);
+        ..where((o) => o.name).oneOf(["C", "D"]);
 
       var results = await q.fetch();
       expect(results.first.pid, isNotNull);
@@ -151,7 +151,7 @@ void main() {
 
       expect(results.last.pid, isNotNull);
       expect(results.last.name, "D");
-      expect(results.last.backingMap.containsKey("child"), true);
+      expect(results.last.backing.contents.containsKey("child"), true);
       expect(results.last.child, isNull);
     });
 
@@ -200,7 +200,7 @@ void main() {
 
     test("Predicate impacts top-level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>()..where.name = whereEqualTo("A");
+      var q = new Query<Parent>()..where((o) => o.name).equalTo("A");
       q.join(object: (p) => p.child)
         ..join(object: (c) => c.toy)
         ..join(set: (c) => c.vaccinations)
@@ -222,7 +222,7 @@ void main() {
         () async {
       var q = new Query<Parent>();
       q.join(object: (p) => p.child)
-        ..where.name = whereEqualTo("C1")
+        ..where((o) => o.name).equalTo("C1")
         ..join(object: (c) => c.toy)
         ..join(set: (c) => c.vaccinations)
             .sortBy((v) => v.vid, QuerySortOrder.ascending);
@@ -240,7 +240,7 @@ void main() {
 
       for (var other in results.sublist(1)) {
         expect(other.child, isNull);
-        expect(other.backingMap.containsKey("child"), true);
+        expect(other.backing.contents.containsKey("child"), true);
       }
     });
 
@@ -248,7 +248,7 @@ void main() {
         () async {
       var q = new Query<Parent>();
       var childJoin = q.join(object: (p) => p.child)..join(object: (c) => c.toy);
-      childJoin.join(set: (c) => c.vaccinations)..where.kind = whereEqualTo("V1");
+      childJoin.join(set: (c) => c.vaccinations)..where((o) => o.kind).equalTo("V1");
 
       var results = await q.fetch();
 
@@ -269,10 +269,10 @@ void main() {
     test(
         "Predicate that omits top-level objects but would include lower level object return no results",
         () async {
-      var q = new Query<Parent>()..where.pid = whereEqualTo(5);
+      var q = new Query<Parent>()..where((o) => o.pid).equalTo(5);
 
       var childJoin = q.join(object: (p) => p.child)..join(object: (c) => c.toy);
-      childJoin.join(set: (c) => c.vaccinations)..where.kind = whereEqualTo("V1");
+      childJoin.join(set: (c) => c.vaccinations)..where((o) => o.kind).equalTo("V1");
       var results = await q.fetch();
       expect(results.length, 0);
     });
@@ -303,12 +303,12 @@ void main() {
       for (var p in parents) {
         expect(p.name, isNotNull);
         expect(p.pid, isNotNull);
-        expect(p.backingMap.length, 3);
+        expect(p.backing.contents.length, 3);
 
         if (p.child != null) {
           expect(p.child.name, isNotNull);
           expect(p.child.cid, isNotNull);
-          expect(p.child.backingMap.length, 3);
+          expect(p.child.backing.contents.length, 3);
 
           for (var v in p.child.vaccinations) {
             expect(v.kind, isNotNull);
@@ -330,15 +330,15 @@ void main() {
       var parents = await q.fetch();
       for (var p in parents) {
         expect(p.pid, isNotNull);
-        expect(p.backingMap.length, 2);
+        expect(p.backing.contents.length, 2);
 
         if (p.child != null) {
           expect(p.child.cid, isNotNull);
-          expect(p.child.backingMap.length, 2);
+          expect(p.child.backing.contents.length, 2);
 
           for (var v in p.child.vaccinations) {
             expect(v.vid, isNotNull);
-            expect(v.backingMap.length, 1);
+            expect(v.backing.contents.length, 1);
           }
         }
       }
@@ -359,7 +359,7 @@ void main() {
 
     test("Objects returned in join are not the same instance", () async {
       var q = new Query<Parent>()
-        ..where.pid = whereEqualTo(1)
+        ..where((o) => o.pid).equalTo(1)
         ..join(object: (p) => p.child);
 
       var o = await q.fetchOne();
@@ -381,28 +381,25 @@ void main() {
 
     test("Trying to fetch hasOne relationship through resultProperties fails",
         () async {
-      var q = new Query<Parent>()..returningProperties((p) => [p.pid, p.child]);
       try {
-        await q.fetchOne();
+        new Query<Parent>()..returningProperties((p) => [p.pid, p.child]);
         expect(true, false);
       } on ArgumentError catch (e) {
         expect(
             e.toString(),
             contains(
-                "Column 'child' does not exist for table '_Parent'. 'child' recognized as ORM relationship, use 'Query.join' instead"));
+                "Cannot select has-many or has-one relationship properties"));
       }
 
-      q = new Query<Parent>();
-      q.join(object: (p) => p.child)..returningProperties((c) => [c.cid, c.toy]);
-
       try {
-        await q.fetchOne();
+        var q = new Query<Parent>();
+        q.join(object: (p) => p.child)..returningProperties((c) => [c.cid, c.toy]);
         expect(true, false);
       } on ArgumentError catch (e) {
         expect(
             e.toString(),
             contains(
-                "Column \'toy\' does not exist for table \'_Child\'. \'toy\' recognized as ORM relationship, use \'Query.join\' instead."));
+                "Cannot select has-many or has-one relationship properties"));
       }
     });
 

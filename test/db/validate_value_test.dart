@@ -182,7 +182,7 @@ void main() {
     });
 
     test("Implicitly added to enum types", () {
-      var e = new EnumObject()..backingMap["enumValues"] = "foobar";
+      var e = new EnumObject()..backing.contents["enumValues"] = "foobar";
       expect(e.validate(), false);
       e.enumValues = EnumValues.abcd;
       expect(e.validate(), true);

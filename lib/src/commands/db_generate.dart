@@ -68,7 +68,7 @@ class CLIDatabaseGenerate extends CLICommand
         "source": source,
         "tablesEvaluated" : dataModel
             .entities
-            .map((e) => MirrorSystem.getName(e.instanceType.simpleName))
+            .map((e) => e.name)
             .toList(),
         "changeList": changeList
       };

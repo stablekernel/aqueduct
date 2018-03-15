@@ -23,21 +23,20 @@ import 'exception.dart';
 /// and query-building.
 abstract class ManagedBacking {
   /// Retrieve a property by its entity and name.
-  dynamic valueForProperty(ManagedEntity entity, String propertyName);
+  dynamic valueForProperty(ManagedPropertyDescription property);
 
   /// Sets a property by its entity and name.
-  void setValueForProperty(
-      ManagedEntity entity, String propertyName, dynamic value);
+  void setValueForProperty(ManagedPropertyDescription property, dynamic value);
 
   /// Removes a property from this instance.
   ///
   /// Use this method to use any reference of a property from this instance.
   void removeProperty(String propertyName) {
-    valueMap.remove(propertyName);
+    contents.remove(propertyName);
   }
 
   /// A map of all set values of this instance.
-  Map<String, dynamic> get valueMap;
+  Map<String, dynamic> get contents;
 }
 
 /// An object that represents a database row.
@@ -65,38 +64,61 @@ abstract class ManagedBacking {
 ///
 /// See more documentation on defining a data model at http://aqueduct.io/docs/db/modeling_data/
 class ManagedObject<PersistentType> implements HTTPSerializable {
-  /// The [ManagedEntity] this instance is described by.
-  ManagedEntity entity =
-      ManagedContext.defaultContext.dataModel.entityForType(PersistentType);
-
-  /// The managed values of this instance.
-  ///
-  /// Not all values are fetched or populated in a [ManagedObject] instance. This value contains
-  /// key-value pairs for the managed object that have been set, either manually
-  /// or when fetched from a database. When [ManagedObject] is instantiated, this map is empty.
-  Map<String, dynamic> get backingMap => backing.valueMap;
-
-  ManagedBacking backing = new ManagedValueBacking();
-
-  /// Retrieves a value by property name from the [backingMap].
-  dynamic operator [](String propertyName) =>
-      backing.valueForProperty(entity, propertyName);
-
-  /// Sets a value by property name in the [backingMap].
-  void operator []=(String propertyName, dynamic value) {
-    backing.setValueForProperty(entity, propertyName, value);
+  /// Creates a new instance of [entity] with [backing].
+  static ManagedObject instantiateDynamic(ManagedEntity entity, {ManagedBacking backing}) {
+    ManagedObject object = entity.instanceType.newInstance(const Symbol(""), []).reflectee as ManagedObject;
+    if (backing != null) {
+      object.backing = backing;
+    }
+    object.entity = entity;
+    return object;
   }
 
-  /// Removes a property from the [backingMap].
+  /// The [ManagedEntity] this instance is described by.
+  ManagedEntity entity = ManagedContext.defaultContext.dataModel.entityForType(PersistentType);
+
+  /// The persistent values of this object.
+  ///
+  /// Values stored by this object are stored in [backing]. A backing is a [Map], where each key
+  /// is a property name of this object. A backing adds some access logic to storing and retrieving
+  /// its key-value pairs.
+  ///
+  /// You rarely need to use [backing] directly. There are many implementations of [ManagedBacking]
+  /// for fulfilling the behavior of the ORM, so you cannot rely on its behavior.
+  ManagedBacking backing = new ManagedValueBacking();
+
+  /// Retrieves a value by property name from [backing].
+  dynamic operator [](String propertyName) {
+    final prop = entity.properties[propertyName];
+    if (prop == null) {
+      throw new ArgumentError("Invalid property access for '${entity.name}'. "
+          "Property '$propertyName' does not exist on '${entity.name}'.");
+    }
+
+    return backing.valueForProperty(prop);
+  }
+
+  /// Sets a value by property name in [backing].
+  void operator []=(String propertyName, dynamic value) {
+    final prop = entity.properties[propertyName];
+    if (prop == null) {
+      throw new ArgumentError("Invalid property access for '${entity.name}'. "
+          "Property '$propertyName' does not exist on '${entity.name}'.");
+    }
+
+    backing.setValueForProperty(prop, value);
+  }
+
+  /// Removes a property from [backing].
   ///
   /// This will remove a value from the backing map.
   void removePropertyFromBackingMap(String propertyName) {
     backing.removeProperty(propertyName);
   }
 
-  /// Checks whether or not a property has been set in this instances' [backingMap].
+  /// Checks whether or not a property has been set in this instances' [backing].
   bool hasValueForProperty(String propertyName) {
-    return backingMap.containsKey(propertyName);
+    return backing.contents.containsKey(propertyName);
   }
 
   /// Callback to modify an object prior to updating it with a [Query].
@@ -116,9 +138,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   ///
   /// This method is only invoked when a query is configured by its [Query.values]. This method is not invoked
   /// if [Query.valueMap] is used to configure a query.
-  void willUpdate() {
-
-  }
+  void willUpdate() {}
 
   /// Callback to modify an object prior to inserting it with a [Query].
   ///
@@ -137,9 +157,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   ///
   /// This method is only invoked when a query is configured by its [Query.values]. This method is not invoked
   /// if [Query.valueMap] is used to configure a query.
-  void willInsert() {
-
-  }
+  void willInsert() {}
 
   /// Validates an object according to its property [Validate] metadata.
   ///
@@ -173,21 +191,33 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   @override
   dynamic noSuchMethod(Invocation invocation) {
     if (invocation.isGetter) {
-      var propertyName = MirrorSystem.getName(invocation.memberName);
-
-      return this[propertyName];
-    } else if (invocation.isSetter) {
-      var propertyName = MirrorSystem.getName(invocation.memberName);
-      if (propertyName.endsWith("=")) {
-        propertyName = propertyName.substring(0, propertyName.length - 1);
+      if (invocation.memberName == #haveAtLeastOneWhere) {
+        return this;
       }
 
-      this[propertyName] = invocation.positionalArguments.first;
+      return this[_getPropertyNameFromInvocation(invocation)];
+    } else if (invocation.isSetter) {
+      this[_getPropertyNameFromInvocation(invocation)] = invocation.positionalArguments.first;
 
       return null;
     }
 
     return super.noSuchMethod(invocation);
+  }
+
+  String _getPropertyNameFromInvocation(Invocation invocation) {
+    // It memberName is not in symbolMap, it may be because that property doesn't exist for this object's entity.
+    // But it also may occur for private ivars, in which case, we reconstruct the symbol and try that.
+
+    var name = entity.symbolMap[invocation.memberName] ??
+        entity.symbolMap[new Symbol(MirrorSystem.getName(invocation.memberName))];
+
+    if (name == null) {
+      throw new ArgumentError("Invalid property access for '${entity.name}'. "
+          "Property '${MirrorSystem.getName(invocation.memberName)}' does not exist on '${entity.name}'.");
+    }
+
+    return name;
   }
 
   @Deprecated("3.0, use readFromMap instead")
@@ -201,7 +231,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   /// match a property of the receiver.
   ///
   /// Usage:
-  ///     var values = JSON.decode(requestBody);
+  ///     var values = json.decode(requestBody);
   ///     var user = new User()
   ///       ..readFromMap(values);
   @override
@@ -221,7 +251,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
 
       if (property is ManagedAttributeDescription) {
         if (!property.isTransient) {
-          backing.setValueForProperty(entity, k, property.convertFromPrimitiveValue(v));
+          backing.setValueForProperty(property, property.convertFromPrimitiveValue(v));
         } else {
           if (!property.transientStatus.isAvailableAsInput) {
             throw new ValidationException(["invalid input key '$k'"]);
@@ -235,7 +265,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
           mirror.setField(new Symbol(k), decodedValue);
         }
       } else {
-        backing.setValueForProperty(entity, k, property.convertFromPrimitiveValue(v));
+        backing.setValueForProperty(property, property.convertFromPrimitiveValue(v));
       }
     });
   }
@@ -244,25 +274,23 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   ///
   /// This method returns a map of the key-values pairs in this instance. This value is typically converted into a transmission format like JSON.
   ///
-  /// Only properties present in [backingMap] are serialized, otherwise, they are omitted from the map. If a property is present in [backingMap] and the value is null,
+  /// Only properties present in [backing] are serialized, otherwise, they are omitted from the map. If a property is present in [backing] and the value is null,
   /// the value null will be serialized for that property key.
   ///
   /// Usage:
-  ///     var json = JSON.encode(model.asMap());
+  ///     var json = json.encode(model.asMap());
   @override
   Map<String, dynamic> asMap() {
     var outputMap = <String, dynamic>{};
 
-    backing.valueMap.forEach((k, v) {
+    backing.contents.forEach((k, v) {
       if (!_isPropertyPrivate(k)) {
         outputMap[k] = entity.properties[k].convertToPrimitiveValue(v);
       }
     });
 
     var reflectedThis = reflect(this);
-    entity.attributes.values
-        .where((attr) => attr.transientStatus?.isAvailableAsOutput ?? false)
-        .forEach((attr) {
+    entity.attributes.values.where((attr) => attr.transientStatus?.isAvailableAsOutput ?? false).forEach((attr) {
       var value = reflectedThis.getField(new Symbol(attr.name)).reflectee;
       if (value != null) {
         outputMap[attr.name] = value;
@@ -272,6 +300,5 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
     return outputMap;
   }
 
-  static bool _isPropertyPrivate(String propertyName) =>
-      propertyName.startsWith("_");
+  static bool _isPropertyPrivate(String propertyName) => propertyName.startsWith("_");
 }

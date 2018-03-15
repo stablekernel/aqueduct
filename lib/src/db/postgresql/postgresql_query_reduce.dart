@@ -2,7 +2,6 @@ import 'dart:async';
 
 import '../query/query.dart';
 import '../managed/object.dart';
-import '../managed/backing.dart';
 import 'postgresql_query.dart';
 import 'postgresql_persistent_store.dart';
 import 'query_builder.dart';
@@ -38,15 +37,13 @@ class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<
   }
 
   String _columnName(dynamic selector(T object)) {
-    var tracker = new ManagedAccessTrackingBacking();
-    var obj = query.entity.newInstance()..backing = tracker;
-    return selector(obj as T) as String;
+    return query.identifyAttribute(selector).name;
   }
 
   Future<U> _execute<U>(String function) async {
     var builder = new PostgresQueryBuilder(query.entity,
         predicate: query.predicate,
-        whereBuilder: query.hasWhereBuilder ? query.where : null);
+        expressions: query.expressions);
     var buffer = new StringBuffer();
     buffer.write("SELECT $function ");
     buffer.write("FROM ${builder.primaryTableDefinition} ");

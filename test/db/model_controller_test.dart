@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
+import 'package:aqueduct/src/db/query/mixin.dart';
 import 'package:test/test.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
@@ -51,14 +52,14 @@ void main() {
   test("Request with path parameter and body", () async {
     var response = await http.put("http://localhost:8888/users/2",
         headers: {"Content-Type": "application/json;charset=utf-8"},
-        body: JSON.encode({"name": "joe"}));
+        body: json.encode({"name": "joe"}));
     expect(response.statusCode, 200);
   });
 
   test("Request without path parameter and body", () async {
     var response = await http.post("http://localhost:8888/users",
         headers: {"Content-Type": "application/json;charset=utf-8"},
-        body: JSON.encode({"name": "joe"}));
+        body: json.encode({"name": "joe"}));
     expect(response.statusCode, 200);
   });
 
@@ -77,7 +78,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values.backingMap.length != 0) {
+    if (query.values.backing.contents.length != 0) {
       statusCode = 400;
     }
 
@@ -92,13 +93,13 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    ComparisonMatcherExpression comparisonMatcher = query.where["id"];
-    if (comparisonMatcher.operator != MatcherOperator.equalTo ||
+    ComparisonExpression comparisonMatcher = (query as QueryMixin).expressions.firstWhere((expr) => expr.keyPath.path.first.name == "id").expression;
+    if (comparisonMatcher.operator != PredicateOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
     }
 
-    if (query.values.backingMap.length != 0) {
+    if (query.values.backing.contents.length != 0) {
       statusCode = 400;
     }
 
@@ -119,8 +120,8 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    ComparisonMatcherExpression comparisonMatcher = query.where["id"];
-    if (comparisonMatcher.operator != MatcherOperator.equalTo ||
+    ComparisonExpression comparisonMatcher = (query as QueryMixin).expressions.firstWhere((expr) => expr.keyPath.path.first.name == "id").expression;
+    if (comparisonMatcher.operator != PredicateOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
     }
@@ -171,7 +172,7 @@ class _TestModel {
 class StringController extends QueryController<StringModel> {
   @Operation.get("id")
   Future<Response> get(@Bind.path("id") String id) async {
-    StringMatcherExpression comparisonMatcher = query.where["foo"];
+    StringExpression comparisonMatcher = (query as QueryMixin).expressions.firstWhere((expr) => expr.keyPath.path.first.name == "foo").expression;
     return new Response.ok(comparisonMatcher.value);
   }
 }

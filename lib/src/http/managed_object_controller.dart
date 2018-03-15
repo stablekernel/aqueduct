@@ -92,7 +92,7 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
   @Operation.get("id")
   Future<Response> getObject(@Bind.path("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
-    _query.where[primaryKey] = whereEqualTo(_parseValueForProperty(id, _query.entity.properties[primaryKey]));
+    _query.where((o) => o[primaryKey]).equalTo(_parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     _query = await willFindObjectWithQuery(_query);
 
@@ -159,7 +159,7 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
   @Operation.delete("id")
   Future<Response> deleteObject(@Bind.path("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
-    _query.where[primaryKey] = whereEqualTo(_parseValueForProperty(id, _query.entity.properties[primaryKey]));
+    _query.where((o) => o[primaryKey]).equalTo(_parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     _query = await willDeleteObjectWithQuery(_query);
 
@@ -198,7 +198,7 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
   @Operation.put("id")
   Future<Response> updateObject(@Bind.path("id") String id) async {
     var primaryKey = _query.entity.primaryKey;
-    _query.where[primaryKey] = whereEqualTo(_parseValueForProperty(id, _query.entity.properties[primaryKey]));
+    _query.where((o) => o[primaryKey]).equalTo(_parseValueForProperty(id, _query.entity.properties[primaryKey]));
 
     InstanceType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as InstanceType;
     instance.readFromMap(request.body.asMap());
@@ -384,7 +384,7 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
     final ops = super.documentOperations(context, route, path);
 
-    final entityName = MirrorSystem.getName(_query.entity.instanceType.simpleName);
+    final entityName = _query.entity.name;
 
     if ((path.parameters?.where((p) => p.location == APIParameterLocation.path)?.length ?? 0) > 0) {
       ops["get"].id = "get$entityName";

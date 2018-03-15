@@ -29,6 +29,11 @@ class ManagedEntity implements APIComponentDocumenter {
   /// You should never call this method directly, it will be called by [ManagedDataModel].
   ManagedEntity(this.dataModel, this._tableName, this.instanceType, this.persistentType);
 
+  /// The name of this entity.
+  ///
+  /// This name will match the name of [instanceType].
+  String get name => MirrorSystem.getName(instanceType.simpleName);
+
   /// The type of instances represented by this entity.
   ///
   /// Managed objects are made up of two components, a persistent type and an instance type. Applications
@@ -54,7 +59,10 @@ class ManagedEntity implements APIComponentDocumenter {
 
   set attributes(Map<String, ManagedAttributeDescription> m) {
     _attributes = m;
-    _primaryKey = m.values.firstWhere((attrDesc) => attrDesc.isPrimaryKey, orElse: () => null)?.name;
+    _primaryKey = m.values
+        .firstWhere((attrDesc) => attrDesc.isPrimaryKey,
+            orElse: () => throw new ManagedDataModelError.noPrimaryKey(this))
+        ?.name;
   }
 
   /// All relationship values of this entity.
@@ -130,6 +138,11 @@ class ManagedEntity implements APIComponentDocumenter {
     return properties[primaryKey];
   }
 
+  /// A map from accessor symbol name to property name.
+  ///
+  /// This map should not be modified.
+  Map<Symbol, String> symbolMap;
+
   /// Name of table in database this entity maps to.
   ///
   /// By default, the table will be named by the persistent type, e.g., a managed object declared as so will have a [tableName] of '_User'.
@@ -155,10 +168,14 @@ class ManagedEntity implements APIComponentDocumenter {
   }
 
   /// Creates a new instance of this entity's instance type.
-  ManagedObject newInstance() {
-    var model = instanceType.newInstance(new Symbol(""), []).reflectee as ManagedObject;
-    model.entity = this;
-    return model;
+  ///
+  /// By default, the returned object will use a normal value backing map. 
+  ManagedObject newInstance({ManagedBacking backing}) {
+    if (backing != null) {
+      return ManagedObject.instantiateDynamic(this, backing: backing);
+    }
+
+    return ManagedObject.instantiateDynamic(this);
   }
 
   /// Two entities are considered equal if they have the same [tableName].
@@ -176,7 +193,7 @@ class ManagedEntity implements APIComponentDocumenter {
   void documentComponents(APIDocumentContext context) {
     final schemaProperties = <String, APISchemaObject>{};
     final obj = new APISchemaObject.object(schemaProperties)
-      ..title = "${MirrorSystem.getName(instanceType.simpleName)}";
+      ..title = "${name}";
 
     // Documentation comments
     context.defer(() async {
@@ -216,6 +233,6 @@ class ManagedEntity implements APIComponentDocumenter {
     });
 
     context.schema
-        .register(MirrorSystem.getName(instanceType.simpleName), obj, representation: instanceType.reflectedType);
+        .register(name, obj, representation: instanceType.reflectedType);
   }
 }

@@ -1,5 +1,6 @@
 ## 3.0.0
 
+- Adds 'Scope' annotation to add granular scoping to `ResourceController` methods.
 - Adds support for storing PostgreSQL JSONB data with `Document` data type.
 - Adds support for OpenAPI 3.0.0 documentation generation.
     - Adds `APIComponentDocumenter`, `APIOperationDocumenter`, `APIDocumentContext`.

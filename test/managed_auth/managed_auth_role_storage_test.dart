@@ -253,7 +253,7 @@ void main() {
 }
 
 class User extends ManagedObject<_User>
-    implements _User, ManagedAuthResourceOwner {
+    implements _User, ManagedAuthResourceOwner<_User> {
   static const String DefaultPassword = "foobaraxegrind!%12";
 }
 
@@ -299,7 +299,7 @@ class RoleBasedAuthStorage extends ManagedAuthDelegate<User> {
   Future<User> fetchAuthenticatableByUsername(
       AuthServer server, String username) {
     var query = new Query<User>(context)
-      ..where.username = whereEqualTo(username)
+      ..where((o) => o.username).equalTo(username)
       ..returningProperties((t) => [t.id, t.hashedPassword, t.salt, t.username, t.role]);
 
     return query.fetchOne();

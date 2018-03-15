@@ -1,3 +1,8 @@
+import 'dart:mirrors';
+
+import 'package:aqueduct/src/db/managed/key_path.dart';
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
+
 import '../managed/backing.dart';
 import '../managed/managed.dart';
 import 'page.dart';
@@ -28,117 +33,69 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   Map<ManagedRelationshipDescription, Query> subQueries;
 
   QueryMixin _parentQuery;
-  InstanceType _whereBuilder;
+  List<QueryExpression<dynamic>> expressions = [];
   InstanceType _valueObject;
 
-  bool get hasWhereBuilder => _whereBuilder?.backingMap?.isNotEmpty ?? false;
+  List<KeyPath> _propertiesToFetch;
 
-  List<String> _propertiesToFetch;
-
-  List<String> get propertiesToFetch => _propertiesToFetch ?? entity.defaultProperties;
+  List<KeyPath> get propertiesToFetch => _propertiesToFetch ?? entity.defaultProperties.map((k) => new KeyPath(entity.properties[k])).toList();
 
   @override
   InstanceType get values {
     if (_valueObject == null) {
       _valueObject = entity.newInstance() as InstanceType;
+      _valueObject.backing = new ManagedBuilderBacking.from(_valueObject.entity, _valueObject.backing);
     }
     return _valueObject;
   }
 
   @override
   set values(InstanceType obj) {
-    _valueObject = obj;
+    _valueObject = entity.newInstance(backing: new ManagedBuilderBacking.from(entity, obj.backing));
   }
 
   @override
-  InstanceType get where {
-    if (_whereBuilder == null) {
-      _whereBuilder = entity.newInstance() as InstanceType;
-      _whereBuilder.backing = new ManagedMatcherBacking();
+  QueryExpression<T> where<T>(T propertyIdentifier(InstanceType x)) {
+    final properties = identifyProperties(propertyIdentifier);
+    if (properties.length != 1) {
+      throw new ArgumentError("Invalid property selector. Must reference a single property only.");
     }
-    return _whereBuilder;
+
+    final expr = new QueryExpression<T>(properties.first);
+    expressions.add(expr);
+    return expr;
   }
 
   @override
   Query<T> join<T extends ManagedObject>({T object(InstanceType x), ManagedSet<T> set(InstanceType x)}) {
-    var tracker = new ManagedAccessTrackingBacking();
-    var obj = entity.newInstance()..backing = tracker;
-    var matchingKey;
-    if (object != null) {
-      matchingKey = object(obj as InstanceType) as String;
-    } else if (set != null) {
-      matchingKey = set(obj as InstanceType) as String;
-    }
+    final desc = identifyRelationship(object ?? set);
 
-    var attr = entity.relationships[matchingKey];
-    if (attr == null) {
-      throw new ArgumentError("Invalid join query. Relationship named '$matchingKey' on table '${entity
-          .tableName}' is not a relationship.");
-    }
-
-    return _createSubquery(attr);
-  }
-
-  @override
-  Query<T> joinOne<T extends ManagedObject>(T m(InstanceType x)) {
-    return join(object: m);
-  }
-
-  @override
-  Query<T> joinMany<T extends ManagedObject>(ManagedSet<T> m(InstanceType x)) {
-    return join(set: m);
+    return _createSubquery(desc);
   }
 
   @override
   void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order, {T boundingValue}) {
-    var tracker = new ManagedAccessTrackingBacking();
-    var obj = entity.newInstance()..backing = tracker;
-    var propertyName = propertyIdentifier(obj as InstanceType) as String;
-
-    var attribute = entity.attributes[propertyName];
-    if (attribute == null) {
-      if (entity.relationships[propertyName] != null) {
-        throw new ArgumentError(
-            "Invalid query pageBy. Column '$propertyName' does not exist on table '${entity.tableName}'. "
-            "'$propertyName' recognized as ORM relationship and is therefore are not pageable.");
-      } else {
-        throw new ArgumentError(
-            "Invalid query pageBy. Column '$propertyName' does not exist on table '${entity.tableName}'.");
-      }
-    }
-
-    pageDescriptor = new QueryPage(order, propertyName, boundingValue: boundingValue);
+    final attribute = identifyAttribute(propertyIdentifier);
+    pageDescriptor = new QueryPage(order, attribute.name, boundingValue: boundingValue);
   }
 
   @override
   void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order) {
-    var tracker = new ManagedAccessTrackingBacking();
-    var obj = entity.newInstance()..backing = tracker;
-    var propertyName = propertyIdentifier(obj as InstanceType) as String;
-
-    var attribute = entity.attributes[propertyName];
-    if (attribute == null) {
-      if (entity.relationships[propertyName] != null) {
-        throw new ArgumentError(
-            "Invalid query sortBy. Column '$propertyName' does not exist on table '${entity.tableName}'. "
-            "'$propertyName' recognized as ORM relationship and is therefore are not pageable.");
-      } else {
-        throw new ArgumentError(
-            "Invalid query sortBy. Column '$propertyName' does not exist on table '${entity.tableName}'.");
-      }
-    }
+    final attribute = identifyAttribute(propertyIdentifier);
 
     sortDescriptors ??= <QuerySortDescriptor>[];
-    sortDescriptors.add(new QuerySortDescriptor(propertyName, order));
+    sortDescriptors.add(new QuerySortDescriptor(attribute.name, order));
   }
 
   @override
   void returningProperties(List<dynamic> propertyIdentifiers(InstanceType x)) {
-    var tracker = new ManagedAccessTrackingBacking();
-    var obj = entity.newInstance()..backing = tracker;
-    var propertyNames = propertyIdentifiers(obj as InstanceType) as List<String>;
+    final properties = identifyProperties(propertyIdentifiers);
 
-    _propertiesToFetch = propertyNames;
+    if (properties.any((kp) => kp.path.any((p) => p is ManagedRelationshipDescription && p.relationshipType != ManagedRelationshipType.belongsTo))) {
+      throw new ArgumentError("Invalid property selector. Cannot select has-many or has-one relationship properties. Use join instead.");
+    }
+
+    _propertiesToFetch = identifyProperties(propertyIdentifiers);
   }
 
   void validateInput(ValidateOperation op) {
@@ -184,5 +141,73 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     subQueries[fromRelationship] = subquery;
 
     return subquery;
+  }
+
+  ManagedAttributeDescription identifyAttribute<T>(T propertyIdentifier(InstanceType x)) {
+    final keyPaths = identifyProperties(propertyIdentifier);
+    if (keyPaths.length != 1) {
+      throw new ArgumentError("Invalid property selector. Cannot access more than one property for this operation.");
+    }
+
+    final firstKeyPath = keyPaths.first;
+    if (firstKeyPath.dynamicElements != null) {
+      throw new ArgumentError("Invalid property selector. Cannot access subdocuments for this operation.");
+    }
+
+    final elements = firstKeyPath.path;
+    if (elements.length > 1) {
+      throw new ArgumentError("Invalid property selector. Cannot use relationships for this operation.");
+    }
+
+    final propertyName = elements.first.name;
+    var attribute = entity.attributes[propertyName];
+    if (attribute == null) {
+      if (entity.relationships.containsKey(propertyName)) {
+        throw new ArgumentError(
+            "Invalid property selection. Property '$propertyName' on "
+                "'${entity.name}' "
+                "is a relationship and cannot be selected for this operation.");
+      } else {
+        throw new ArgumentError(
+            "Invalid property selection. Column '$propertyName' does not "
+                "exist on table '${entity.tableName}'.");
+      }
+    }
+
+    return attribute;
+  }
+
+  ManagedRelationshipDescription identifyRelationship<T>(T propertyIdentifier(InstanceType x)) {
+    final keyPaths = identifyProperties(propertyIdentifier);
+    if (keyPaths.length != 1) {
+      throw new ArgumentError("Invalid property selector. Cannot access more than one property for this operation.");
+    }
+
+    final firstKeyPath = keyPaths.first;
+    if (firstKeyPath.dynamicElements != null) {
+      throw new ArgumentError("Invalid property selector. Cannot access subdocuments for this operation.");
+    }
+
+    final elements = firstKeyPath.path;
+    if (elements.length > 1) {
+      throw new ArgumentError("Invalid property selector. Cannot identify a nested relationship for this operation.");
+    }
+
+    final propertyName = elements.first.name;
+    var desc = entity.relationships[propertyName];
+    if (desc == null) {
+      throw new ArgumentError("Invalid property selection. Relationship named '$propertyName' on table '${entity
+          .tableName}' is not a relationship.");
+    }
+
+    return desc;
+  }
+
+  List<KeyPath> identifyProperties<T>(T propertiesIdentifier(InstanceType x)) {
+    final tracker = new ManagedAccessTrackingBacking();
+    var obj = entity.newInstance(backing: tracker);
+    propertiesIdentifier(obj);
+
+    return tracker.keyPaths;
   }
 }
