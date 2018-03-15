@@ -105,6 +105,15 @@ class ManagedValidator {
       _buildLengthExpressions();
       _validationMethod = _validateExpressions;
     } else if (definition._builtinValidate == _BuiltinValidate.oneOf) {
+      var supportedOneOfTypes = [
+        ManagedPropertyType.string,
+        ManagedPropertyType.integer,
+        ManagedPropertyType.bigInteger
+      ];
+      if (!supportedOneOfTypes.contains(attribute.type.kind)) {
+        throw new ManagedDataModelError.invalidValidator(
+            attribute.entity, attribute.name, "Property type for Validate.oneOf must be a String or Int");
+      }
       if (definition._values.isEmpty) {
         throw new ManagedDataModelError.invalidValidator(
             attribute.entity, attribute.name, "Validate.oneOf must have at least one element");
@@ -533,6 +542,8 @@ class Validate<T> {
   /// [values] must be homogenous - every value must be the same type -
   /// and the property with this metadata must also match the type
   /// of the objects in [values].
+  ///
+  /// This validator can be used for [String] and [int] properties.
   ///
   ///         @Validate.oneOf(const ["A", "B", "C")
   ///         String foo;

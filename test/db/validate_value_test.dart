@@ -189,6 +189,8 @@ void main() {
     });
   });
 
+
+
   group("Operation", () {
     test("Specify update only, only runs on update", () {
       var t = new T()..mustBeZeroOnUpdate = 10;
@@ -272,6 +274,28 @@ void main() {
         expect(e.toString(), contains("must be String"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FLEN"));
+      }
+    });
+
+    test("Unsupported type, date, for oneOf", () {
+      try {
+        new ManagedDataModel([UnsupportedDateOneOf]);
+        expect(true, false);
+      } on ManagedDataModelError catch (e) {
+        expect(e.toString(), contains("has invalid validator for property"));
+        expect(e.toString(), contains("Property type for Validate.oneOf must be a String or Int"));
+        expect(e.toString(), contains("compareDateOneOf20162017"));
+      }
+    });
+
+    test("Unsupported type, double, for oneOf", () {
+      try {
+        new ManagedDataModel([UnsupportedDoubleOneOf]);
+        expect(true, false);
+      } on ManagedDataModelError catch (e) {
+        expect(e.toString(), contains("has invalid validator for property"));
+        expect(e.toString(), contains("Property type for Validate.oneOf must be a String or Int"));
+        expect(e.toString(), contains("someFloatingNumber"));
       }
     });
 
@@ -442,6 +466,24 @@ class _FOO {
 
   @Validate.oneOf(const ["x", "y"])
   int d;
+}
+
+class UnsupportedDateOneOf extends ManagedObject<_UDAOO> {}
+class _UDAOO {
+  @primaryKey
+  int id;
+
+  @Validate.oneOf(const ["2016-01-01T00:00:00", "2017-01-01T00:00:00"])
+  DateTime compareDateOneOf20162017;
+}
+
+class UnsupportedDoubleOneOf extends ManagedObject<_UDOOO> {}
+class _UDOOO {
+  @primaryKey
+  int id;
+
+  @Validate.oneOf(const ["3.14159265359", "2.71828"])
+  double someFloatingNumber;
 }
 
 class FailingHeterogenous extends ManagedObject<_FH> {}
