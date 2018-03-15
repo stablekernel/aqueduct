@@ -187,15 +187,6 @@ void main() {
       e.enumValues = EnumValues.abcd;
       expect(e.validate(), true);
     });
-
-    test("oneOf/date", () {
-      var t = new T()..compareDateOneOf20162017 = new DateTime(2016);
-      expect(t.validate(), true);
-      t.compareDateOneOf20162017 = new DateTime(2017);
-      expect(t.validate(), true);
-      t.compareDateOneOf20162017 = new DateTime(2015);
-      expect(t.validate(), false);
-    });
   });
 
 
@@ -286,6 +277,17 @@ void main() {
       }
     });
 
+    test("Unsupported type for oneOf", () {
+      try {
+        new ManagedDataModel([UnsupportedOneOf]);
+        expect(true, false);
+      } on ManagedDataModelError catch (e) {
+        expect(e.toString(), contains("has invalid validator for property"));
+        expect(e.toString(), contains("Property type for Validate.oneOf must be a String or Number"));
+        expect(e.toString(), contains("compareDateOneOf20162017"));
+      }
+    });
+
     test("Non-matching type for oneOf", () {
       try {
         new ManagedDataModel([FailingOneOf]);
@@ -343,9 +345,6 @@ class _T {
 
   @Validate.compare(greaterThanEqualTo: "1990-01-01T00:00:00Z")
   DateTime compareDateGreaterThanEqualTo1990;
-
-  @Validate.oneOf(const ["2016-01-01T00:00:00", "2017-01-01T00:00:00"])
-  DateTime compareDateOneOf20162017;
 
   @Validate.compare(equalTo: 5)
   int compareIntEqualTo5;
@@ -457,6 +456,17 @@ class _FOO {
   @Validate.oneOf(const ["x", "y"])
   int d;
 }
+
+class UnsupportedOneOf extends ManagedObject<_UOO> {}
+class _UOO {
+  @primaryKey
+  int id;
+
+  @Validate.oneOf(const ["2016-01-01T00:00:00", "2017-01-01T00:00:00"])
+  DateTime compareDateOneOf20162017;
+}
+
+
 
 class FailingHeterogenous extends ManagedObject<_FH> {}
 class _FH {

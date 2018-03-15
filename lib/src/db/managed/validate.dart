@@ -105,21 +105,25 @@ class ManagedValidator {
       _buildLengthExpressions();
       _validationMethod = _validateExpressions;
     } else if (definition._builtinValidate == _BuiltinValidate.oneOf) {
+      var supportedOneOfTypes = [
+        ManagedPropertyType.string,
+        ManagedPropertyType.integer,
+        ManagedPropertyType.doublePrecision,
+        ManagedPropertyType.bigInteger
+      ];
+      if (!supportedOneOfTypes.contains(attribute.type.kind)) {
+        throw new ManagedDataModelError.invalidValidator(
+            attribute.entity, attribute.name, "Property type for Validate.oneOf must be a String or Number");
+      }
       if (definition._values.isEmpty) {
         throw new ManagedDataModelError.invalidValidator(
             attribute.entity, attribute.name, "Validate.oneOf must have at least one element");
       }
-
-      _options = (attribute.type.kind == ManagedPropertyType.datetime)
-          ? definition._values.map((option) =>
-          _comparisonValueForAttributeType(option)).toList()
-          : definition._values;
-
-      if (_options.any((v) => !attribute.isAssignableWith(v))) {
+      if (definition._values.any((v) => !attribute.isAssignableWith(v))) {
         throw new ManagedDataModelError.invalidValidator(attribute.entity, attribute.name,
             "All elements of Validate.oneOf must be assignable to '${attribute.type}'");
       }
-
+      _options = definition._values;
       _validationMethod = _validateOneOf;
     }
   }
@@ -539,6 +543,8 @@ class Validate<T> {
   /// [values] must be homogenous - every value must be the same type -
   /// and the property with this metadata must also match the type
   /// of the objects in [values].
+  ///
+  /// This validator can be used for [String], [double], and [int] properties.
   ///
   ///         @Validate.oneOf(const ["A", "B", "C")
   ///         String foo;
