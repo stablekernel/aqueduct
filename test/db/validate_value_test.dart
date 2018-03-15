@@ -187,16 +187,18 @@ void main() {
       e.enumValues = EnumValues.abcd;
       expect(e.validate(), true);
     });
+
+    test("oneOf/date", () {
+      var t = new T()..compareDateOneOf20162017 = new DateTime(2016);
+      expect(t.validate(), true);
+      t.compareDateOneOf20162017 = new DateTime(2017);
+      expect(t.validate(), true);
+      t.compareDateOneOf20162017 = new DateTime(2015);
+      expect(t.validate(), false);
+    });
   });
 
-  test("oneOf/date", () {
-    var t = new T()..compareDateOneOf20162017 = new DateTime(2016);
-    expect(t.validate(), true);
-    t.compareDateOneOf20162017 = new DateTime(2017);
-    expect(t.validate(), true);
-    t.compareDateOneOf20162017 = new DateTime(2015);
-    expect(t.validate(), false);
-  });
+
 
   group("Operation", () {
     test("Specify update only, only runs on update", () {
