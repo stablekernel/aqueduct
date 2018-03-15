@@ -108,11 +108,17 @@ class ManagedValidator {
         throw new ManagedDataModelError.invalidValidator(
             attribute.entity, attribute.name, "Validate.oneOf must have at least one element");
       }
-      if (definition._values.any((v) => !attribute.isAssignableWith(v))) {
+
+      _options = definition._values;
+
+      if (attribute.type.kind == ManagedPropertyType.datetime) {
+        _options = _options.map((option) => _comparisonValueForAttributeType(option)).toList();
+      }
+      if (_options.any((v) => !attribute.isAssignableWith(v))) {
         throw new ManagedDataModelError.invalidValidator(attribute.entity, attribute.name,
             "All elements of Validate.oneOf must be assignable to '${attribute.type}'");
       }
-      _options = definition._values;
+
       _validationMethod = _validateOneOf;
     }
   }

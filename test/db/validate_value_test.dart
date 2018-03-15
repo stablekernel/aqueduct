@@ -189,6 +189,15 @@ void main() {
     });
   });
 
+  test("oneOf/date", () {
+    var t = new T()..compareDateOneOf20162017 = new DateTime(2016);
+    expect(t.validate(), true);
+    t.compareDateOneOf20162017 = new DateTime(2017);
+    expect(t.validate(), true);
+    t.compareDateOneOf20162017 = new DateTime(2015);
+    expect(t.validate(), false);
+  });
+
   group("Operation", () {
     test("Specify update only, only runs on update", () {
       var t = new T()..mustBeZeroOnUpdate = 10;
@@ -332,6 +341,9 @@ class _T {
 
   @Validate.compare(greaterThanEqualTo: "1990-01-01T00:00:00Z")
   DateTime compareDateGreaterThanEqualTo1990;
+
+  @Validate.oneOf(const ["2016-01-01T00:00:00", "2017-01-01T00:00:00"])
+  DateTime compareDateOneOf20162017;
 
   @Validate.compare(equalTo: 5)
   int compareIntEqualTo5;
