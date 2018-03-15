@@ -108,12 +108,11 @@ class ManagedValidator {
       var supportedOneOfTypes = [
         ManagedPropertyType.string,
         ManagedPropertyType.integer,
-        ManagedPropertyType.doublePrecision,
         ManagedPropertyType.bigInteger
       ];
       if (!supportedOneOfTypes.contains(attribute.type.kind)) {
         throw new ManagedDataModelError.invalidValidator(
-            attribute.entity, attribute.name, "Property type for Validate.oneOf must be a String or Number");
+            attribute.entity, attribute.name, "Property type for Validate.oneOf must be a String or Int");
       }
       if (definition._values.isEmpty) {
         throw new ManagedDataModelError.invalidValidator(
@@ -544,7 +543,7 @@ class Validate<T> {
   /// and the property with this metadata must also match the type
   /// of the objects in [values].
   ///
-  /// This validator can be used for [String], [double], and [int] properties.
+  /// This validator can be used for [String] and [int] properties.
   ///
   ///         @Validate.oneOf(const ["A", "B", "C")
   ///         String foo;
