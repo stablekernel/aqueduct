@@ -311,7 +311,7 @@ class CustomValidate extends Validate<String> {
   const CustomValidate();
 
   @override
-  bool validate(ValidateOperation operation, ManagedAttributeDescription property, String value, List<String> errors) {
+  bool validate(String value, List<String> failureDescriptions) {
     return false;
   }
 

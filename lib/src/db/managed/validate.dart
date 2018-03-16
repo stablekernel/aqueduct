@@ -135,52 +135,53 @@ class Validator {
     else {
       _validationMethod = definition.validate;
     }
-    //todo: add custom validation functionality back:  _validationMethod = definition.validate;
   }
 
   final ValidationDefinition definition;
-  _BuiltinValidate get validationStrategy => definition._builtinValidate;
   _Validation _validationMethod;
   RegExp _regex;
   List<_Validation> _expressionValidations;
   List<dynamic> _options;
   ManagedPropertyType type;
   String name;
-  bool _isExpectingStringType = false;
-  bool _comparisonValuesAreDateTime = false;
+  _BuiltinValidate get validationStrategy => definition._builtinValidate;
+  bool get _isExpectingComparable => validationStrategy == _BuiltinValidate.comparison;
+  bool get _isExpectingString => [_BuiltinValidate.regex, _BuiltinValidate.length].contains(validationStrategy);
+  bool get _shouldAttemptDateTimeConversion => validationStrategy == _BuiltinValidate.length;
 
 
-  Comparable get _greaterThan => _comparisonValuesAreDateTime
-          ? _convertToDateTime(definition._greaterThan)
+  Comparable get _greaterThan => _shouldAttemptDateTimeConversion
+          ? _attemptDateTimeConversion(definition._greaterThan)
           : definition._greaterThan;
 
-  Comparable get _greaterThanEqualTo => _comparisonValuesAreDateTime
-          ? _convertToDateTime(definition._greaterThanEqualTo)
+  Comparable get _greaterThanEqualTo => _shouldAttemptDateTimeConversion
+          ? _attemptDateTimeConversion(definition._greaterThanEqualTo)
           : definition._greaterThanEqualTo;
 
   Comparable get _equalTo =>
-      _comparisonValuesAreDateTime
-          ? _convertToDateTime(definition._equalTo)
+      _shouldAttemptDateTimeConversion
+          ? _attemptDateTimeConversion(definition._equalTo)
           : definition._equalTo;
 
   Comparable get _lessThan =>
-      _comparisonValuesAreDateTime
-          ? _convertToDateTime(definition._lessThan)
+      _shouldAttemptDateTimeConversion
+          ? _attemptDateTimeConversion(definition._lessThan)
           : definition._lessThan;
 
   Comparable get _lessThanEqualTo =>
-      _comparisonValuesAreDateTime
-          ? _convertToDateTime(definition._lessThanEqualTo)
+      _shouldAttemptDateTimeConversion
+          ? _attemptDateTimeConversion(definition._lessThanEqualTo)
           : definition._lessThanEqualTo;
 
   bool isValid(dynamic valueUnderEvalutation,
       List<String> failureDescriptions) {
-    if (_isExpectingStringType && valueUnderEvalutation is! String) {
+    if (_isExpectingString && valueUnderEvalutation is! String) {
       failureDescriptions.add(
           "Validator cannot evaluate value for ${name}. The value must be a string but got ${valueUnderEvalutation
               .runtimeType}.");
       return false;
-    } else if (valueUnderEvalutation is! Comparable) {
+    }
+    if (_isExpectingComparable && valueUnderEvalutation is! Comparable) {
       failureDescriptions.add(
           "Validator cannot evaluate value for ${name}. The value of type, ${valueUnderEvalutation
               .runtimeType}, does not implement Comparable");
@@ -200,7 +201,6 @@ class Validator {
         throw new ValidatorError.invalidPropertyType(
             name, type.toString(), "Validate.matches can only be used to evaluate properties of type String.");
       }
-      _isExpectingStringType = true;
       _regex = new RegExp(definition._pattern);
       _validationMethod = _validateRegex;
     } else if (validationStrategy == _BuiltinValidate.comparison) {
@@ -211,8 +211,6 @@ class Validator {
         throw new ValidatorError.invalidPropertyType(
             name, type.toString(),  "Validate.length can only be used to evaluate properties of type String");
       }
-      _isExpectingStringType = true;
-      _comparisonValuesAreDateTime = true;
       _buildComparisonExpressions();
       _validationMethod = _validateExpressions;
     } else if (validationStrategy == _BuiltinValidate.oneOf) {
@@ -221,7 +219,7 @@ class Validator {
         ManagedPropertyType.integer,
         ManagedPropertyType.bigInteger
       ];
-      if (!supportedOneOfTypes.contains(attribute.type.kind)) {
+      if (!supportedOneOfTypes.contains(type)) {
         throw new ValidatorError.invalidPropertyType(
             name, type.toString(), "Validate.oneOf can only be used to evaluate properties of type String or Int");
       }
@@ -242,7 +240,7 @@ class Validator {
     _expressionValidations = [];
 
     if (_greaterThan != null) {
-      var comparisonValue = _convertToDateTime(definition._greaterThan);
+      var comparisonValue = _attemptDateTimeConversion(definition._greaterThan);
       _expressionValidations
           .add((dynamic value, List<String> failureDescriptions) {
 
@@ -254,7 +252,7 @@ class Validator {
     }
 
     if (_greaterThanEqualTo != null) {
-      var comparisonValue = _convertToDateTime(definition._greaterThanEqualTo);
+      var comparisonValue = _attemptDateTimeConversion(definition._greaterThanEqualTo);
       _expressionValidations
           .add((dynamic value, List<String> failureDescriptions) {
 
@@ -267,7 +265,7 @@ class Validator {
     }
 
     if (_lessThan != null) {
-      var comparisonValue = _convertToDateTime(definition._lessThan);
+      var comparisonValue = _attemptDateTimeConversion(definition._lessThan);
       _expressionValidations
           .add((dynamic value, List<String> failureDescriptions) {
 
@@ -279,7 +277,7 @@ class Validator {
     }
 
     if (_lessThanEqualTo != null) {
-      var comparisonValue = _convertToDateTime(definition._lessThanEqualTo);
+      var comparisonValue = _attemptDateTimeConversion(definition._lessThanEqualTo);
       _expressionValidations
           .add((dynamic value, List<String> failureDescriptions) {
 
@@ -291,7 +289,7 @@ class Validator {
     }
 
     if (_equalTo != null) {
-      var comparisonValue = _convertToDateTime(definition._equalTo);
+      var comparisonValue = _attemptDateTimeConversion(definition._equalTo);
       _expressionValidations
           .add((dynamic value, List<String> failureDescriptions) {
 
@@ -303,7 +301,7 @@ class Validator {
     }
   }
 
-  Comparable<dynamic> _convertToDateTime(dynamic inputValue) {
+  Comparable<dynamic> _attemptDateTimeConversion(dynamic inputValue) {
     if (type == ManagedPropertyType.datetime) {
       try {
         return DateTime.parse(inputValue);
