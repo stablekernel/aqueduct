@@ -237,9 +237,3 @@ TestResponse expectResponse(
   expect(response, hasResponse(statusCode, body, headers: headers));
   return response;
 }
-
-@Deprecated("3.0, no longer necessary")
-dynamic asNumber(dynamic value) => value;
-
-@Deprecated("3.0, no longer necessary")
-dynamic asDateTime(dynamic value) => value;

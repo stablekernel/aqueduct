@@ -243,12 +243,4 @@ class SchemaBuilder {
       }
     }
   }
-
-  //todo: Transitionary code that can be removed at 3.0
-  @deprecated
-  static String sourceForSchemaUpgrade(
-      Schema existingSchema, Schema newSchema, int version) {
-    return null;
-  }
-
 }

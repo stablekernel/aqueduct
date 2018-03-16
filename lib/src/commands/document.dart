@@ -61,10 +61,8 @@ abstract class CLIDocumentOptions implements CLICommand {
       ..addOption("contact-url", help: "API Docs: Contact URL")
       ..addOption("license-url", help: "API Docs: License URL")
       ..addOption("license-name", help: "API Docs: License Name")
-      ..addOption("host",
-          allowMultiple: true,
-          help: "Scheme, host and port for available instances.",
-          valueHelp: "https://api.myapp.com:8000");
+      ..addMultiOption("host",
+          help: "Scheme, host and port for available instances.", valueHelp: "https://api.myapp.com:8000");
   }
 
   Future<Map<String, dynamic>> documentProject(Uri projectDirectory, String libraryName, File pubspecFile) {
@@ -73,8 +71,7 @@ abstract class CLIDocumentOptions implements CLICommand {
 
       var document = await Application.document(ApplicationChannel.defaultType, config, loadYaml(values["pubspec"]));
 
-      document.servers =
-          (values["hosts"] as List<Uri>)?.map((uri) => new APIServerDescription(uri))?.toList() ?? [];
+      document.servers = (values["hosts"] as List<Uri>)?.map((uri) => new APIServerDescription(uri))?.toList() ?? [];
       if (values["title"] != null) {
         document.info ??= new APIInfo.empty();
         document.info.title = values["title"];
@@ -145,8 +142,7 @@ abstract class CLIDocumentOptions implements CLICommand {
     };
 
     var executor = new IsolateExecutor(generator, [libraryName],
-        message: variables,
-        packageConfigURI: projectDirectory.resolve(".packages"));
+        message: variables, packageConfigURI: projectDirectory.resolve(".packages"));
 
     return executor.execute() as Future<Map<String, dynamic>>;
   }
