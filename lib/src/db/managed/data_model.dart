@@ -243,9 +243,9 @@ class ManagedDataModelError extends Error {
   }
 
   factory ManagedDataModelError.invalidValidator(
-      ManagedEntity entity, String property, String reason) {
-    return new ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
-        "has invalid validator for property '$property'. Reason: $reason");
+      ManagedEntity entity, String reason) {
+    return new ManagedDataModelError("Failed to build data model for type '${_getPersistentClassName(entity)}' "
+        "Reason: $reason");
   }
 
   factory ManagedDataModelError.emptyEntityUniqueProperties(

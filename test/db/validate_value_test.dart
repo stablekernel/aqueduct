@@ -247,13 +247,10 @@ void main() {
       try {
         new ManagedDataModel([FailingDateTime]);
         expect(true, false);
-//      } on ValidatorError catch (e) {
-      } catch (e) {
-        expect(e.toString(), contains("All elements"));
-//      } on ManagedDataModelError catch (e) {
-//        expect(e.toString(), contains("cannot be parsed as DateTime"));
-//        expect(e.toString(), contains("'d'"));
-//        expect(e.toString(), contains("_FDT"));
+      } on ManagedDataModelError catch (e) {
+        expect(e.toString(), contains("cannot be parsed as DateTime"));
+        expect(e.toString(), contains("'d'"));
+        expect(e.toString(), contains("_FDT"));
       }
     });
 
@@ -262,7 +259,8 @@ void main() {
         new ManagedDataModel([FailingRegex]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("must be String"));
+        expect(e.toString(), contains("Validator cannot be used on property"));
+        expect(e.toString(), contains("can only be used to evaluate properties of type String"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FRX"));
       }
@@ -273,7 +271,8 @@ void main() {
         new ManagedDataModel([FailingLength]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("must be String"));
+        expect(e.toString(), contains("Validator cannot be used on property"));
+        expect(e.toString(), contains("can only be used to evaluate properties of type String"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FLEN"));
       }
@@ -284,8 +283,8 @@ void main() {
         new ManagedDataModel([UnsupportedDateOneOf]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("has invalid validator for property"));
-        expect(e.toString(), contains("Property type for Validate.oneOf must be a String or Int"));
+        expect(e.toString(), contains("Validator cannot be used on property"));
+        expect(e.toString(), contains("can only be used to evaluate properties of type String or Int"));
         expect(e.toString(), contains("compareDateOneOf20162017"));
       }
     });
@@ -295,8 +294,8 @@ void main() {
         new ManagedDataModel([UnsupportedDoubleOneOf]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("has invalid validator for property"));
-        expect(e.toString(), contains("Property type for Validate.oneOf must be a String or Int"));
+        expect(e.toString(), contains("Validator cannot be used on property"));
+        expect(e.toString(), contains("can only be used to evaluate properties of type String or Int"));
         expect(e.toString(), contains("someFloatingNumber"));
       }
     });
@@ -306,7 +305,7 @@ void main() {
         new ManagedDataModel([FailingOneOf]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("must be assignable"));
+        expect(e.toString(), contains("requires all elements representing valid values to be assignable to"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FOO"));
       }
@@ -317,7 +316,7 @@ void main() {
         new ManagedDataModel([FailingEmptyOneOf]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("must have at least one element"));
+        expect(e.toString(), contains("requires at least one element represnting a valid value"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FEO"));
       }
@@ -328,7 +327,7 @@ void main() {
         new ManagedDataModel([FailingHeterogenous]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("must be assignable"));
+        expect(e.toString(), contains("requires all elements representing valid values to be assignable to"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FH"));
       }
@@ -420,7 +419,7 @@ class CustomValidate extends Validate<dynamic> {
     : super(onUpdate: onUpdate, onInsert: onInsert);
 
   @override
-  bool validate(ValidateOperation operation, ManagedAttributeDescription property, dynamic value, List<String> errors) {
+  bool validate(dynamic value, List<String> errors) {
     return value == "XYZ";
   }
 }
