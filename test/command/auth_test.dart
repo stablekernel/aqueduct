@@ -28,7 +28,6 @@ void main() {
   });
 
   tearDown(() async {
-    ManagedContext.defaultContext = null;
     for (var t in schema.dependencyOrderedTables.reversed) {
       var tableCommands = store.deleteTable(t);
       for (var c in tableCommands) {

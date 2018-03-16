@@ -56,6 +56,8 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
       ..addOption("id", abbr: "i", help: "The client ID to insert.");
   }
 
+  ManagedContext context;
+
   String get clientID => values["id"];
 
   List<String> get scopes {
@@ -78,11 +80,11 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
     }
 
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    ManagedContext.defaultContext = new ManagedContext.standalone(dataModel, persistentStore);
+    context = new ManagedContext.standalone(dataModel, persistentStore);
 
     var scopingClient = new AuthClient.public(clientID, allowedScopes: scopes?.map((s) => new AuthScope(s))?.toList());
 
-    var query = new Query<ManagedAuthClient>()
+    var query = new Query<ManagedAuthClient>(context)
       ..where((o) => o.id).equalTo(clientID)
       ..values.allowedScope = scopingClient.allowedScopes?.map((s) => s.toString())?.join(" ");
 
@@ -100,7 +102,7 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
 
   @override
   Future cleanup() async {
-    await ManagedContext.defaultContext?.persistentStore?.close();
+    await context?.persistentStore?.close();
   }
 
   @override
@@ -137,6 +139,8 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
           abbr: "r",
           help: "The redirect URI of the client if it supports the authorization code flow. May be omitted.");
   }
+
+  ManagedContext context;
 
   String get clientID => values["id"];
 
@@ -184,7 +188,7 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     }
 
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    ManagedContext.defaultContext = new ManagedContext(dataModel, persistentStore);
+    context = new ManagedContext(dataModel, persistentStore);
 
     var credentials = AuthUtility.generateAPICredentialPair(clientID, secret,
         redirectURI: redirectUri, hashLength: hashLength, hashRounds: hashRounds, hashFunction: hashFunction)
@@ -197,7 +201,7 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
       ..redirectURI = credentials.redirectURI
       ..allowedScope = credentials.allowedScopes?.map((s) => s.toString())?.join(" ");
 
-    var query = new Query<ManagedAuthClient>()..values = managedCredentials;
+    var query = new Query<ManagedAuthClient>(context)..values = managedCredentials;
 
     try {
       await query.insert();
@@ -228,7 +232,7 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
 
   @override
   Future cleanup() async {
-    await ManagedContext.defaultContext?.persistentStore?.close();
+    await context?.persistentStore?.close();
   }
 
   @override

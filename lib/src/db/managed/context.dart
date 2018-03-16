@@ -28,26 +28,12 @@ import 'package:aqueduct/src/openapi/documentable.dart';
 /// so the most recently [ManagedContext] instantiated becomes the [ManagedContext.defaultContext]. By default, [Query]s
 /// target the [ManagedContext.defaultContext] and need not be specified.
 class ManagedContext implements APIComponentDocumenter {
-  /// The default context that a [Query] runs on.
-  ///
-  /// For classes that require a [ManagedContext] - like [Query] - this is the default context when none
-  /// is specified.
-  ///
-  /// This value is set when a [ManagedContext] is instantiated in an isolate; the last context created
-  /// is the default context. Most applications
-  /// will not use more than one [ManagedContext]. When running tests, you should set
-  /// this value each time you instantiate a [ManagedContext] to ensure that a previous test isolate
-  /// state did not set this property.
-  static ManagedContext defaultContext;
-
   /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
   ///
   /// This instance will become the [ManagedContext.defaultContext], unless another [ManagedContext]
   /// is created, in which the new context becomes the default context. See [ManagedContext.standalone]
   /// to create a context without setting it as the default context.
-  ManagedContext(this.dataModel, this.persistentStore) {
-    defaultContext = this;
-  }
+  ManagedContext(this.dataModel, this.persistentStore);
 
   /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
   ///

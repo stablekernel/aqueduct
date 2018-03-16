@@ -4,6 +4,8 @@ import 'dart:mirrors';
 import '../helpers.dart';
 
 void main() {
+  ManagedContext context;
+
   setUpAll(() {
     var ps = new DefaultPersistentStore();
     ManagedDataModel dm = new ManagedDataModel([
@@ -18,7 +20,7 @@ void main() {
       DocumentTest,
       ConstructorOverride
     ]);
-    var _ = new ManagedContext(dm, ps);
+    context = new ManagedContext(dm, ps);
   });
 
   test("Can set properties in constructor", () {
@@ -492,7 +494,7 @@ void main() {
 
   group("Private fields", () {
     test("Private fields on entity", () {
-      var entity = ManagedContext.defaultContext.dataModel.entityForType(PrivateField);
+      var entity = context.dataModel.entityForType(PrivateField);
       expect(entity.attributes["_private"], isNotNull);
     });
 

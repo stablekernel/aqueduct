@@ -9,8 +9,7 @@ void main() {
     ManagedDataModel dataModel;
     setUp(() {
       dataModel = new ManagedDataModel([User, Item, Manager, EnumObject, DocumentObject]);
-      ManagedContext.defaultContext =
-          new ManagedContext(dataModel, new DefaultPersistentStore());
+      new ManagedContext(dataModel, new DefaultPersistentStore());
     });
 
     test("Entities have appropriate types", () {

@@ -27,11 +27,10 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   /// By default, [context] is [ManagedContext.defaultContext]. The [entity] of this instance is found by
   /// evaluating [InstanceType] in [context].
-  factory Query([ManagedContext context]) {
-    var ctx = context ?? ManagedContext.defaultContext;
-    var entity = ctx.dataModel.entityForType(InstanceType);
+  factory Query(ManagedContext context) {
+    var entity = context.dataModel.entityForType(InstanceType);
 
-    return ctx.persistentStore.newQuery<InstanceType>(ctx, entity);
+    return context.persistentStore.newQuery<InstanceType>(context, entity);
   }
 
   /// Creates a new [Query] without a static type.
@@ -40,13 +39,12 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// where the static type argument cannot be defined. Behaves just like the unnamed constructor.
   ///
   /// If [entity] is not in [context]'s [ManagedContext.dataModel], throws a internal failure [QueryException].
-  factory Query.forEntity(ManagedEntity entity, [ManagedContext context]) {
-    var ctx = context ?? ManagedContext.defaultContext;
-    if (!ctx.dataModel.entities.any((e) => identical(entity, e))) {
+  factory Query.forEntity(ManagedEntity entity, ManagedContext context) {
+    if (!context.dataModel.entities.any((e) => identical(entity, e))) {
       throw new StateError("Invalid query construction. Entity for '${entity.tableName}' is from different context than specified for query.");
     }
 
-    return ctx.persistentStore.newQuery<InstanceType>(ctx, entity);
+    return context.persistentStore.newQuery<InstanceType>(context, entity);
   }
 
   /// Configures this instance to fetch a relationship property identified by [object] or [set].

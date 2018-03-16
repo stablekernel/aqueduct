@@ -18,7 +18,7 @@ void main() {
     context = await contextWithModels([User, ManagedAuthClient, ManagedAuthToken]);
     storage = new RoleBasedAuthStorage(context);
     auth = new AuthServer(storage);
-    createdUsers = await createUsers(5);
+    createdUsers = await createUsers(context, 5);
 
     var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
 
@@ -38,7 +38,7 @@ void main() {
       ..hashedSecret = ac.hashedSecret
       ..redirectURI = ac.redirectURI)
         .map((mc) {
-      var q = new Query<ManagedAuthClient>()..values = mc;
+      var q = new Query<ManagedAuthClient>(context)..values = mc;
       return q.insert();
     }));
   });
@@ -262,7 +262,7 @@ class _User extends ManagedAuthenticatable {
   String role;
 }
 
-Future<List<User>> createUsers(int count) async {
+Future<List<User>> createUsers(ManagedContext ctx, int count) async {
   var list = <User>[];
   for (int i = 0; i < count; i++) {
     var salt = AuthUtility.generateRandomSalt();
@@ -284,7 +284,7 @@ Future<List<User>> createUsers(int count) async {
       u.role = "invalid";
     }
 
-    var q = new Query<User>()..values = u;
+    var q = new Query<User>(ctx)..values = u;
 
     list.add(await q.insert());
   }

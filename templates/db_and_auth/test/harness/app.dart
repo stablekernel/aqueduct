@@ -56,9 +56,9 @@ class TestApplication {
   }
 
   Future initializeDatabase() async {
-    await createDatabaseSchema(ManagedContext.defaultContext);
-    await addClientRecord();
-    await addClientRecord(clientID: DefaultPublicClientID, clientSecret: null);
+    await createDatabaseSchema(application.channel.context);
+    await addClientRecord(application.channel.context);
+    await addClientRecord(application.channel.context, clientID: DefaultPublicClientID, clientSecret: null);
   }
 
   /// Stops running this application harness.
@@ -73,7 +73,7 @@ class TestApplication {
   ///
   /// Invoke this method in tearDown() to clear data between tests.
   Future discardPersistentData() async {
-    await ManagedContext.defaultContext.persistentStore.close();
+    await application.channel.context.persistentStore.close();
     await initializeDatabase();
   }
 
@@ -82,7 +82,7 @@ class TestApplication {
   /// [start] must have already been called prior to executing this method. By default,
   /// every application harness inserts a default client record during [start]. See [start]
   /// for more details.
-  static Future<ManagedAuthClient> addClientRecord(
+  static Future<ManagedAuthClient> addClientRecord(ManagedContext context,
       {String clientID: DefaultClientID, String clientSecret: DefaultClientSecret}) async {
     var salt;
     var hashedPassword;
@@ -91,7 +91,7 @@ class TestApplication {
       hashedPassword = AuthUtility.generatePasswordHash(clientSecret, salt);
     }
 
-    var clientQ = new Query<ManagedAuthClient>()
+    var clientQ = new Query<ManagedAuthClient>(context)
       ..values.id = clientID
       ..values.salt = salt
       ..values.hashedSecret = hashedPassword;

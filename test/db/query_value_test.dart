@@ -13,13 +13,13 @@ void main() {
   });
 
   test("Can immediately access primary key of belongs-to relationship when building Query.values", () {
-    final q = new Query<Child>();
+    final q = new Query<Child>(ctx);
     q.values.parent.id = 1;
     expect(q.values.parent.id, 1);
   });
 
   test("Values set in constructor are replicated in Query.values", () async {
-    final q = new Query<Constructor>();
+    final q = new Query<Constructor>(ctx);
     expect(q.values.name, "Bob");
   });
 
@@ -47,7 +47,7 @@ void main() {
 //  });
 
   test("Access ManagedSet property of Query.values throws error", () {
-    final q = new Query<Root>();
+    final q = new Query<Root>(ctx);
     try {
       q.values.children = new ManagedSet<Child>();
       fail('unreachable');
@@ -57,7 +57,7 @@ void main() {
   });
 
   test("Accessing non-primary key of ManagedObject property in Query.values throws error", () {
-    final q = new Query<Child>();
+    final q = new Query<Child>(ctx);
     try {
       q.values.parent.name = "ok";
       fail('unreachable');
@@ -67,7 +67,7 @@ void main() {
   });
 
   test("Accessing primary key of has-one property in Query.values throws error", () {
-    final q = new Query<Root>();
+    final q = new Query<Root>(ctx);
     try {
       q.values.child.id = 1;
       fail('unreachable');
@@ -77,21 +77,21 @@ void main() {
   });
 
   test("Can set belongs-to relationship with default constructed object if it is empty", () {
-    final q = new Query<Child>();
+    final q = new Query<Child>(ctx);
     q.values.parent = new Root();
     q.values.parent.id = 1;
     expect(q.values.parent.id, 1);
   });
 
   test("Can set belongs-to relationship with default constructed object if it only contains primary key", () {
-    final q = new Query<Child>();
+    final q = new Query<Child>(ctx);
     q.values.parent = new Root()..id = 1;
     expect(q.values.parent.id, 1);
 
   });
 
   test("Setting belongs-to relationship with default constructed object removes non-primary key values", () {
-    final q = new Query<Child>();
+    final q = new Query<Child>(ctx);
     q.values.parent = new Root()
       ..id = 1
       ..name = "bob";
@@ -111,14 +111,14 @@ void main() {
 
   group("Query.values assigned to instance created by default constroct", () {
     test("Can still create subobjects", () {
-      final q = new Query<Child>();
+      final q = new Query<Child>(ctx);
       q.values = new Child();
       q.values.parent.id = 1;
       expect(q.values.parent.id, 1);
     });
 
     test("Replaced object retains all property values", () {
-      final q = new Query<Child>();
+      final q = new Query<Child>(ctx);
       final r = new Child()
         ..name = "bob";
 
@@ -129,7 +129,7 @@ void main() {
     });
 
     test("If default instance holds ManagedSet, remove it", () {
-      final q = new Query<Root>();
+      final q = new Query<Root>(ctx);
       q.values = new Root()
         ..children = new ManagedSet();
 
@@ -137,14 +137,14 @@ void main() {
     });
 
     test("If default instance holds has-one ManagedObject, remove it", () {
-      final q = new Query<Root>();
+      final q = new Query<Root>(ctx);
       q.values = new Root()
         ..child = new Child();
       expect(q.values.backing.contents, {});
     });
 
     test("If default instance holds belongs-to ManagedObject with more than primary key, remove inner key", () {
-      final q = new Query<Child>();
+      final q = new Query<Child>(ctx);
       q.values = new Child()
         ..parent = (new Root()..name = "fred");
       expect(q.values.backing.contents.keys, ["parent"]);
@@ -152,7 +152,7 @@ void main() {
     });
 
     test("If default instance holds belongs-to ManagedObject with only primary key, retain value", () {
-      final q = new Query<Child>();
+      final q = new Query<Child>(ctx);
       final r = new Child()
         ..parent = (new Root()..id = 1);
 
@@ -162,7 +162,7 @@ void main() {
     });
 
     test("If multiple values are set on assigned object, only remove those that need to be removed", () {
-      final q = new Query<Child>();
+      final q = new Query<Child>(ctx);
       q.values = new Child()
         ..parent = (new Root()..id = 1..name = "fred")
         ..name = "fred";

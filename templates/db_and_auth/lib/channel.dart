@@ -13,6 +13,7 @@ import 'utility/html_template.dart';
 class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDelegate {
   HTMLRenderer htmlRenderer = new HTMLRenderer();
   AuthServer authServer;
+  ManagedContext context;
 
   /// Initialize services in this method.
   ///
@@ -26,9 +27,9 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
 
     var config = new WildfireConfiguration(options.configurationFilePath);
 
-    ManagedContext.defaultContext = contextWithConnectionInfo(config.database);
+    context = contextWithConnectionInfo(config.database);
 
-    var authStorage = new ManagedAuthDelegate<User>(ManagedContext.defaultContext);
+    var authStorage = new ManagedAuthDelegate<User>(context);
     authServer = new AuthServer(authStorage);
   }
 
@@ -51,16 +52,16 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
     router
         .route("/register")
         .link(() => new Authorizer.basic(authServer))
-        .link(() => new RegisterController(authServer));
+        .link(() => new RegisterController(context, authServer));
 
     /* Gets profile for user with bearer token */
-    router.route("/me").link(() => new Authorizer.bearer(authServer)).link(() => new IdentityController());
+    router.route("/me").link(() => new Authorizer.bearer(authServer)).link(() => new IdentityController(context));
 
     /* Gets all users or one specific user by id */
     router
         .route("/users/[:id]")
         .link(() => new Authorizer.bearer(authServer))
-        .link(() => new UserController(authServer));
+        .link(() => new UserController(context, authServer));
 
     return router;
   }

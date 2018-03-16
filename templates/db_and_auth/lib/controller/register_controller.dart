@@ -2,7 +2,7 @@ import '../wildfire.dart';
 import '../model/user.dart';
 
 class RegisterController extends QueryController<User> {
-  RegisterController(this.authServer);
+  RegisterController(ManagedContext context, this.authServer) : super(context);
 
   AuthServer authServer;
 

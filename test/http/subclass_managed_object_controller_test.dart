@@ -17,7 +17,7 @@ void main() {
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 5; i++) {
-        var q = new Query<TestModel>()
+        var q = new Query<TestModel>(app.channel.context)
           ..values.createdAt = now
           ..values.name = "$i";
         allObjects.add(await q.insert());
