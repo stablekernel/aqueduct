@@ -1,0 +1,5 @@
+language: dart
+script: pub run test -r expanded
+branches:
+  only:
+    - master

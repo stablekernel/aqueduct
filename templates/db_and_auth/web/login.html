@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+
+<body>
+<div class="container">
+    <h1>Login</h1>
+    <form action="{{path}}" method="POST">
+        <input type="hidden" name="state" value="{{state}}">
+        <input type="hidden" name="client_id" value="{{client_id}}">
+        <input type="hidden" name="response_type" value="code">
+        <div class="form-group">
+            <label for="username">User Name</label>
+            <input type="text" class="form-control" name="username" placeholder="Please enter your user name">
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" class="form-control" name="password" placeholder="Please enter your password">
+        </div>
+        <button type="submit" class="btn btn-success">Login</button>
+    </form>
+</div>
+</body>
+
+</html>
