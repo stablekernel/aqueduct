@@ -247,11 +247,13 @@ void main() {
       try {
         new ManagedDataModel([FailingDateTime]);
         expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("19x34"));
-        expect(e.toString(), contains("cannot be parsed as DateTime"));
-        expect(e.toString(), contains("'d'"));
-        expect(e.toString(), contains("_FDT"));
+//      } on ValidatorError catch (e) {
+      } catch (e) {
+        expect(e.toString(), contains("All elements"));
+//      } on ManagedDataModelError catch (e) {
+//        expect(e.toString(), contains("cannot be parsed as DateTime"));
+//        expect(e.toString(), contains("'d'"));
+//        expect(e.toString(), contains("_FDT"));
       }
     });
 

@@ -9,6 +9,11 @@ class ValidatorError extends Error {
   final String message;
   ValidatorError(this.message);
 
+  @override
+  String toString() {
+    return "Validator Error: $message";
+  }
+
   factory ValidatorError.empty(String name) {
     return new ValidatorError("Invalid input for Validator on ${name}"
         "Input collection must have at least one element");
@@ -16,11 +21,11 @@ class ValidatorError extends Error {
 
   factory ValidatorError.invalidProperty(String name, String reason) {
     return new ValidatorError(
-        "Invalid input for Validator on ${name}." + reason);
+        "Invalid input for Validator on ${name}. ${reason}");
   }
   factory ValidatorError.invalidInput(String name, String reason) {
     return new ValidatorError(
-        "Invalid value passed to Validator for ${name}." + reason);
+        "Invalid value passed to Validator for ${name}. ${reason}");
   }
 }
 
@@ -30,8 +35,10 @@ class ValidatorError extends Error {
 /// Instances of this type are created during [ManagedDataModel] compilation.
 
 class ManagedValidator extends Validator {
+    final ManagedAttributeDescription attribute;
 
-    ManagedValidator(ManagedAttributeDescription attribute, Validate definition) : super(attribute.name, attribute.type.kind, definition);
+    ManagedValidator(this.attribute, Validate definition) : super(attribute.name, attribute.type.kind, definition);
+
 
   //todo: add custom validation back with operation parameter
 
@@ -85,6 +92,11 @@ class ManagedValidator extends Validator {
     return valid;
   }
 
+  @override
+  bool isAssignableWith(dynamic dartValue) {
+    return attribute.isAssignableWith(dartValue);
+  }
+
   static String _errorStringForOperation(ValidateOperation op) {
     switch (op) {
       case ValidateOperation.insert:
@@ -95,7 +107,6 @@ class ManagedValidator extends Validator {
         return "unknown";
     }
   }
-
 }
 
 
@@ -106,7 +117,11 @@ class Validator {
   /// to [ManagedObject] properties.
   Validator(this.name, this.type, this.definition) {
     if (definition._builtinValidate != null) {
-      _build();
+      try {
+        _build();
+      } catch(e) {
+        rethrow;
+      }
     }
 //    else {
 //      _validationMethod = definition.validate;
@@ -119,30 +134,28 @@ class Validator {
   bool _isExpectingStringType = false;
   bool _comparisonValuesAreDateTime = false;
 
-  Comparable get _greaterThan =>
-      _comparisonValuesAreDateTime
+  Comparable get _greaterThan => _comparisonValuesAreDateTime
           ? _convertToDateTime(definition._greaterThan)
-          : _greaterThan;
+          : definition._greaterThan;
 
-  Comparable get _greaterThanEqualTo =>
-      _comparisonValuesAreDateTime
+  Comparable get _greaterThanEqualTo => _comparisonValuesAreDateTime
           ? _convertToDateTime(definition._greaterThanEqualTo)
-          : _greaterThanEqualTo;
+          : definition._greaterThanEqualTo;
 
   Comparable get _equalTo =>
       _comparisonValuesAreDateTime
           ? _convertToDateTime(definition._equalTo)
-          : _equalTo;
+          : definition._equalTo;
 
   Comparable get _lessThan =>
       _comparisonValuesAreDateTime
           ? _convertToDateTime(definition._lessThan)
-          : _lessThan;
+          : definition._lessThan;
 
   Comparable get _lessThanEqualTo =>
       _comparisonValuesAreDateTime
           ? _convertToDateTime(definition._lessThanEqualTo)
-          : _lessThanEqualTo;
+          : definition._lessThanEqualTo;
 
   /// The metadata associated with this instance.
   final Validate definition;
@@ -196,7 +209,7 @@ class Validator {
         throw new ValidatorError.invalidProperty(
             name, "Validate.oneOf must have at least one element");
       }
-      if (definition._values.any((v) => !isAssignableWith(v, type))) {
+      if (definition._values.any((v) => !isAssignableWith(v))) {
         throw new ValidatorError.invalidProperty(
             name, "All elements of Validate.oneOf must be assignable to '${type}'");
       }
@@ -270,7 +283,7 @@ class Validator {
     }
   }
 
-  dynamic _convertToDateTime(dynamic inputValue) {
+  Comparable<dynamic> _convertToDateTime(dynamic inputValue) {
     if (type == ManagedPropertyType.datetime) {
       try {
         return DateTime.parse(inputValue);
@@ -307,11 +320,11 @@ class Validator {
     return true;
   }
 
-  bool isAssignableWith(dynamic dartValue, ManagedPropertyType kind) {
+  bool isAssignableWith(dynamic dartValue) {
     if (dartValue == null) {
       return true;
     }
-    switch (kind) {
+    switch (type) {
       case ManagedPropertyType.integer:
         return dartValue is int;
       case ManagedPropertyType.bigInteger:
