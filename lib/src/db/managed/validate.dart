@@ -367,7 +367,7 @@ class Validator {
 }
 
 
-class Validate<T> extends ValidationDefinition {
+class Validate<T> extends ValidationDefinition<T> {
   /// Whether or not this validation is checked on update queries.
   final bool runOnUpdate;
 
