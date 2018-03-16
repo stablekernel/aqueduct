@@ -1,9 +1,6 @@
-import 'dart:mirrors';
 import 'package:aqueduct/src/db/managed/key_path.dart';
 
 import 'managed.dart';
-import '../query/matcher_internal.dart';
-import 'relationship_type.dart';
 import 'exception.dart';
 
 final ArgumentError _invalidValueConstruction = new ArgumentError("Invalid property access when building 'Query.values'. "

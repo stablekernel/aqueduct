@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors';
 
 import '../db/db.dart';
 import '../utilities/source_generator.dart';
@@ -54,16 +53,8 @@ class CLIDatabaseGenerate extends CLICommand
       var schema = new Schema.fromDataModel(dataModel);
       var changeList = <String>[];
 
-      var source;
-      if (currentMirrorSystem().libraries.containsKey(Uri.parse("package:aqueduct/src/db/schema/migration_builder.dart"))) {
-        // This runs on 2.0.3 and later. Previous project versions will fallback to outdated version.
-        source = MigrationBuilder.sourceForSchemaUpgrade(
+      final source  = MigrationBuilder.sourceForSchemaUpgrade(
             inputSchema, schema, version, changeList: changeList);
-      } else {
-        print("\n*** Warning: using outdated version of db generate. Upgrade your project's aqueduct dependency to at least 2.0.3.***\n");
-        source = SchemaBuilder.sourceForSchemaUpgrade(inputSchema, schema, version);
-      }
-
       return {
         "source": source,
         "tablesEvaluated" : dataModel
