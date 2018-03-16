@@ -1,5 +1,3 @@
-import 'dart:mirrors';
-
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
 import 'package:aqueduct/src/db/postgresql/mappers/row.dart';
