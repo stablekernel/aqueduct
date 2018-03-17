@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:aqueduct/src/application/service_registry.dart';
 import 'package:aqueduct/src/db/managed/data_model_manager.dart';
 
 import 'managed.dart';
@@ -38,6 +39,7 @@ class ManagedContext implements APIComponentDocumenter {
   /// This is the default constructor.
   ManagedContext(this.dataModel, this.persistentStore) {
     ManagedDataModelManager.add(dataModel);
+    ApplicationServiceRegistry.defaultInstance.register<ManagedContext>(this, (o) => o.close());
   }
 
   /// The persistent store that [Query]s on this context are executed through.
