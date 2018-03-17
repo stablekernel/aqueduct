@@ -9,7 +9,7 @@ void main() {
     ctx = await contextWithModels([Root, Child, Constructor]);
   });
   tearDownAll(() async {
-    await ctx.persistentStore.close();
+    await ctx.close();
   });
 
   test("Can immediately access primary key of belongs-to relationship when building Query.values", () {

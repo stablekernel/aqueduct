@@ -18,7 +18,7 @@ void main() {
   });
 
   tearDownAll(() async {
-    await ctx.persistentStore.close();
+    await ctx.close();
   });
 
   group("Assign non-join matchers to belongsToProperty", () {

@@ -236,8 +236,6 @@ void main() {
   group("Valid data model with deferred types", () {
     test("Entities have correct properties and relationships", () {
       var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
-      ManagedContext.defaultContext =
-          new ManagedContext(dataModel, new DefaultPersistentStore());
 
       expect(dataModel.entities.length, 2);
 
@@ -265,8 +263,6 @@ void main() {
 
     test("Will use tableName of base class if not declared in subclass", () {
       var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
-      ManagedContext.defaultContext =
-          new ManagedContext(dataModel, new DefaultPersistentStore());
       expect(dataModel.entityForType(TotalModel).tableName, "predefined");
     });
 

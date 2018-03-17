@@ -1,3 +1,7 @@
+import 'dart:async';
+
+import 'package:aqueduct/src/db/managed/data_model_manager.dart';
+
 import 'managed.dart';
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
@@ -5,10 +9,15 @@ import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/http/http.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 
-/// The target for database queries and coordinator of [Query]s.
+/// A service object required to execute [Query]s.
 ///
-/// An application that uses Aqueduct's ORM functionality must create an instance of this type. This is done
-/// in a [ApplicationChannel]'s constructor:
+/// You create objects of this type to use the Aqueduct ORM. Create instances in [ApplicationChannel.prepare]
+/// and inject them into controllers that execute database queries.
+///
+/// A context must have a [PersistentStore] (that determines the database queries are sent to) and a [ManagedDataModel] (that determines
+/// the [ManagedObject]s that can be used).
+///
+/// Example initialization:
 ///
 ///         class Channel extends ApplicationChannel {
 ///            ManagedContext context;
@@ -23,29 +32,24 @@ import 'package:aqueduct/src/openapi/documentable.dart';
 ///            @override
 ///            Controller get entryPoint => ...;
 ///         }
-///
-/// A [Query] must have a valid [ManagedContext] to execute. Most applications only need one [ManagedContext],
-/// so the most recently [ManagedContext] instantiated becomes the [ManagedContext.defaultContext]. By default, [Query]s
-/// target the [ManagedContext.defaultContext] and need not be specified.
 class ManagedContext implements APIComponentDocumenter {
   /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
   ///
-  /// This instance will become the [ManagedContext.defaultContext], unless another [ManagedContext]
-  /// is created, in which the new context becomes the default context. See [ManagedContext.standalone]
-  /// to create a context without setting it as the default context.
-  ManagedContext(this.dataModel, this.persistentStore);
-
-  /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
-  ///
-  /// This constructor creates an instance in the same way the default constructor does,
-  /// but does not set it to be the [defaultContext].
-  ManagedContext.standalone(this.dataModel, this.persistentStore);
+  /// This is the default constructor.
+  ManagedContext(this.dataModel, this.persistentStore) {
+    ManagedDataModelManager.add(dataModel);
+  }
 
   /// The persistent store that [Query]s on this context are executed through.
   final PersistentStore persistentStore;
 
   /// The data model containing the [ManagedEntity]s that describe the [ManagedObject]s this instance works with.
   final ManagedDataModel dataModel;
+
+  Future close() async {
+    await persistentStore?.close();
+    dataModel.release();
+  }
 
   /// Returns an entity for a type from [dataModel].
   ///

@@ -23,7 +23,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await context?.persistentStore?.close();
+      await context?.close();
     });
 
     test("Fetch has-many relationship that has none returns empty OrderedSet",
@@ -229,7 +229,7 @@ void main() {
     });
 
     tearDownAll(() {
-      context?.persistentStore?.close();
+      context?.close();
     });
 
     test("Predicate impacts top-level objects when fetching object graph",
@@ -345,7 +345,7 @@ void main() {
     });
 
     tearDownAll(() {
-      context?.persistentStore?.close();
+      context?.close();
     });
 
     test(
@@ -398,7 +398,7 @@ void main() {
     });
 
     tearDownAll(() {
-      context?.persistentStore?.close();
+      context?.close();
     });
 
     test("Objects returned in join are not the same instance", () async {
@@ -422,7 +422,7 @@ void main() {
     });
 
     tearDownAll(() {
-      context?.persistentStore?.close();
+      context?.close();
     });
 
     test("Trying to fetch hasMany relationship through resultProperties fails",

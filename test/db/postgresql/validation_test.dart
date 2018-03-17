@@ -9,7 +9,7 @@ void main() {
   });
 
   tearDownAll(() async {
-    await ctx.persistentStore.close();
+    await ctx.close();
   });
 
   test("update runs update validations", () async {

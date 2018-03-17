@@ -25,10 +25,12 @@ export 'reduce.dart';
 abstract class Query<InstanceType extends ManagedObject> {
   /// Creates a new [Query].
   ///
-  /// By default, [context] is [ManagedContext.defaultContext]. The [entity] of this instance is found by
-  /// evaluating [InstanceType] in [context].
+  ///
   factory Query(ManagedContext context) {
     var entity = context.dataModel.entityForType(InstanceType);
+    if (entity == null) {
+      throw new ArgumentError("Invalid context. The data model of 'context' does not contain '$InstanceType'.");
+    }
 
     return context.persistentStore.newQuery<InstanceType>(context, entity);
   }

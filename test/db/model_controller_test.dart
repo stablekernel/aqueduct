@@ -16,12 +16,11 @@ void main() {
 
   setUpAll(() async {
     context = await contextWithModels([TestModel, StringModel]);
-    ManagedContext.defaultContext = context;
 
     server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
     var router = new Router();
-    router.route("/users/[:id]").link(() => new TestModelController());
-    router.route("/string/:id").link(() => new StringController());
+    router.route("/users/[:id]").link(() => new TestModelController(context));
+    router.route("/string/:id").link(() => new StringController(context));
     router.prepare();
 
     server.listen((req) async {
@@ -30,7 +29,7 @@ void main() {
   });
 
   tearDownAll(() async {
-    await context.persistentStore.close();
+    await context.close();
     await server?.close(force: true);
   });
 
@@ -70,6 +69,8 @@ void main() {
 }
 
 class TestModelController extends QueryController<TestModel> {
+  TestModelController(ManagedContext context) : super(context);
+
   @Operation.get()
   Future<Response> getAll() async {
     int statusCode = 200;
@@ -170,6 +171,8 @@ class _TestModel {
 }
 
 class StringController extends QueryController<StringModel> {
+  StringController(ManagedContext context) : super(context);
+
   @Operation.get("id")
   Future<Response> get(@Bind.path("id") String id) async {
     StringExpression comparisonMatcher = (query as QueryMixin).expressions.firstWhere((expr) => expr.keyPath.path.first.name == "foo").expression;

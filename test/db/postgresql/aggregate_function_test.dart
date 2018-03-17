@@ -11,7 +11,7 @@ void main() {
   });
 
   tearDown(() async {
-    await ctx.persistentStore.close();
+    await ctx.close();
   });
 
   group("Average", () {

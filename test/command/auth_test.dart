@@ -21,7 +21,7 @@ void main() {
       }
     }
 
-    context = new ManagedContext.standalone(dataModel, store);
+    context = new ManagedContext(dataModel, store);
 
     terminal = new Terminal.current()
       ..defaultAqueductArgs = ["--connect","postgres://dart:dart@localhost:5432/dart_test"];
@@ -34,7 +34,7 @@ void main() {
         await store.execute(c);
       }
     }
-    await context.persistentStore.close();
+    await context.close();
   });
 
   tearDownAll(() async {
@@ -45,6 +45,7 @@ void main() {
     test("Can create public client", () async {
 
       await terminal.runAqueductCommand("auth", ["add-client", "--id", "a.b.c"]);
+      print("${terminal.output}");
 
       var q = new Query<ManagedAuthClient>(context);
       var results = await q.fetch();

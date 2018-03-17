@@ -23,7 +23,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await context?.persistentStore?.close();
+      await context?.close();
     });
 
     test("Fetch has-one relationship that is null returns null for property",
@@ -195,7 +195,7 @@ void main() {
     });
 
     tearDownAll(() {
-      context?.persistentStore?.close();
+      context?.close();
     });
 
     test("Predicate impacts top-level objects when fetching object graph",
@@ -287,7 +287,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await context?.persistentStore?.close();
+      await context?.close();
     });
 
     test("Can fetch graph when omitting foreign or primary keys from query",
@@ -354,7 +354,7 @@ void main() {
     });
 
     tearDownAll(() {
-      context?.persistentStore?.close();
+      context?.close();
     });
 
     test("Objects returned in join are not the same instance", () async {
@@ -376,7 +376,7 @@ void main() {
     });
 
     tearDownAll(() {
-      context?.persistentStore?.close();
+      context?.close();
     });
 
     test("Trying to fetch hasOne relationship through resultProperties fails",

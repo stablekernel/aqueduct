@@ -23,6 +23,10 @@ void main() {
     context = new ManagedContext(dm, ps);
   });
 
+  tearDownAll(() async {
+    await context.close();
+  });
+
   test("Can set properties in constructor", () {
     final obj = new ConstructorOverride();
     expect(obj.value, "foo");
@@ -90,7 +94,7 @@ void main() {
     var user = new User();
     user.id = 1;
     user.name = "Bob";
-    var posts = [
+    List<Post> posts = <Post>[
       new Post()
         ..text = "A"
         ..id = 1
@@ -105,7 +109,7 @@ void main() {
         ..owner = user,
     ];
 
-    user.posts = new ManagedSet.from(posts);
+    user.posts = new ManagedSet<Post>.from(posts);
 
     expect(user.posts.length, 3);
     expect(user.posts.first.owner, user);
@@ -138,7 +142,7 @@ void main() {
         ..text = "C"
         ..id = 3,
     ];
-    user.posts = new ManagedSet.from(posts);
+    user.posts = new ManagedSet<Post>.from(posts);
 
     var m = user.asMap();
     expect(m is Map, true);

@@ -25,21 +25,14 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   /// Creates an empty [ManagedSet].
   ManagedSet() {
     _innerValues = [];
-    entity =
-        ManagedContext.defaultContext.dataModel.entityForType(InstanceType);
   }
 
   /// Creates a [ManagedSet] from an [Iterable] of [InstanceType]s.
   ManagedSet.from(Iterable<InstanceType> items) {
     _innerValues = items.toList();
-    entity =
-        ManagedContext.defaultContext.dataModel.entityForType(InstanceType);
   }
 
   List<InstanceType> _innerValues;
-
-  /// The [ManagedEntity] that represents the [InstanceType].
-  ManagedEntity entity;
 
   /// Filters [Query] results based on the criteria of the objects in this collection.
   ///

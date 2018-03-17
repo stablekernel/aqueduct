@@ -26,7 +26,7 @@ void main() {
   });
 
   tearDownAll(() async {
-    await ctx.persistentStore.close();
+    await ctx.close();
   });
 
   group("Joins return appropriate properties", () {

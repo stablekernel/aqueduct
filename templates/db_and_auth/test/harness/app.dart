@@ -73,7 +73,7 @@ class TestApplication {
   ///
   /// Invoke this method in tearDown() to clear data between tests.
   Future discardPersistentData() async {
-    await application.channel.context.persistentStore.close();
+    await application.channel.context.close();
     await initializeDatabase();
   }
 

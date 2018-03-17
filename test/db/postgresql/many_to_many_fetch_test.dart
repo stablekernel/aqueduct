@@ -27,7 +27,7 @@ void main() {
   });
 
   tearDownAll(() async {
-    await ctx.persistentStore.close();
+    await ctx.close();
   });
 
   group("Explicit joins", () {

@@ -20,9 +20,9 @@ import 'http.dart';
 /// 3. If the [Request] contains a body, it will be decoded per the [acceptedContentTypes] and deserialized into the [Query.values] property via [ManagedObject.readFromMap].
 abstract class QueryController<InstanceType extends ManagedObject>
     extends ResourceController {
-  /// Create an instance of [QueryController]. By default, [context] is the [ManagedContext.defaultContext].
-  QueryController([ManagedContext context]) : super() {
-    query = new Query<InstanceType>(context ?? ManagedContext.defaultContext);
+  /// Create an instance of [QueryController].
+  QueryController(ManagedContext context) : super() {
+    query = new Query<InstanceType>(context);
   }
   
   /// A query representing the values received from the [request] being processed.

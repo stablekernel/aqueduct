@@ -80,7 +80,7 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
     }
 
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    context = new ManagedContext.standalone(dataModel, persistentStore);
+    context = new ManagedContext(dataModel, persistentStore);
 
     var scopingClient = new AuthClient.public(clientID, allowedScopes: scopes?.map((s) => new AuthScope(s))?.toList());
 
@@ -102,7 +102,7 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
 
   @override
   Future cleanup() async {
-    await context?.persistentStore?.close();
+    await context?.close();
   }
 
   @override
@@ -232,7 +232,7 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
 
   @override
   Future cleanup() async {
-    await context?.persistentStore?.close();
+    await context?.close();
   }
 
   @override

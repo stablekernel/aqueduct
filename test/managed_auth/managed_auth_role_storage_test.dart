@@ -44,7 +44,7 @@ void main() {
   });
 
   tearDownAll(() async {
-    await context?.persistentStore?.close();
+    await context?.close();
     context = null;
   });
 

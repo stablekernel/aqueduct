@@ -11,7 +11,7 @@ void main() {
   ManagedContext context;
 
   tearDown(() async {
-    await context?.persistentStore?.close();
+    await context?.close();
     context = null;
   });
 

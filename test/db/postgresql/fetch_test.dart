@@ -5,7 +5,7 @@ import '../../helpers.dart';
 void main() {
   ManagedContext context;
   tearDown(() async {
-    await context?.persistentStore?.close();
+    await context?.close();
     context = null;
   });
 
@@ -27,7 +27,7 @@ void main() {
   test("Query with dynamic entity and mis-matched context throws exception", () async {
     context = await contextWithModels([TestModel]);
 
-    var someOtherContext = new ManagedContext.standalone(new ManagedDataModel([]), null);
+    var someOtherContext = new ManagedContext(new ManagedDataModel([]), null);
     try {
       new Query.forEntity(context.dataModel.entityForType(TestModel), someOtherContext);
       expect(true, false);
