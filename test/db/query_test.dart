@@ -12,6 +12,15 @@ void main() {
     await ctx.close();
   });
 
+  test("If context does not contian data model with query type, throw exception", () async {
+    try {
+      new Query<Missing>(ctx);
+      fail('unreachable');
+    } on ArgumentError catch (e) {
+      expect(e.toString(), contains("Invalid context"));
+    }
+  });
+  
   test("Can immediately access primary key of belongs-to relationship when building Query.values", () {
     final q = new Query<Child>(ctx);
     q.values.parent.id = 1;
@@ -23,7 +32,7 @@ void main() {
     expect(q.values.name, "Bob");
   });
 
-//todo: Deferring these until next PR
+//todo: Deferring these until later
 //  test("Can immediately access document property when building Query.values", () {
 //    final q = new Query<Root>();
 //    q.values.document["id"] = 1;
@@ -214,4 +223,10 @@ class Constructor extends ManagedObject<_Constructor> implements _Constructor {
   Constructor() {
     name = "Bob";
   }
+}
+
+class Missing extends ManagedObject<_Missing> {}
+class _Missing {
+  @primaryKey
+  int id;
 }

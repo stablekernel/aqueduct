@@ -45,7 +45,6 @@ void main() {
     test("Can create public client", () async {
 
       await terminal.runAqueductCommand("auth", ["add-client", "--id", "a.b.c"]);
-      print("${terminal.output}");
 
       var q = new Query<ManagedAuthClient>(context);
       var results = await q.fetch();

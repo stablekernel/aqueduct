@@ -6,10 +6,15 @@ import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 void main() {
   group("Valid data model", () {
+    ManagedContext context;
     ManagedDataModel dataModel;
     setUp(() {
       dataModel = new ManagedDataModel([User, Item, Manager, EnumObject, DocumentObject]);
-      new ManagedContext(dataModel, new DefaultPersistentStore());
+      context = new ManagedContext(dataModel, new DefaultPersistentStore());
+    });
+
+    tearDown(() async {
+      await context.close();
     });
 
     test("Entities have appropriate types", () {

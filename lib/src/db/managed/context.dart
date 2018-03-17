@@ -18,7 +18,7 @@ import 'package:aqueduct/src/openapi/documentable.dart';
 /// A context must have a [PersistentStore] (that determines the database queries are sent to) and a [ManagedDataModel] (that determines
 /// the [ManagedObject]s that can be used).
 ///
-/// Example initialization:
+/// Example usage:
 ///
 ///         class Channel extends ApplicationChannel {
 ///            ManagedContext context;
@@ -31,7 +31,11 @@ import 'package:aqueduct/src/openapi/documentable.dart';
 ///            }
 ///
 ///            @override
-///            Controller get entryPoint => ...;
+///            Controller get entryPoint {
+///              final router = new Router();
+///              router.route("/path").link(() => new DBController(context));
+///              return router;
+///            }
 ///         }
 class ManagedContext implements APIComponentDocumenter {
   /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
@@ -48,9 +52,13 @@ class ManagedContext implements APIComponentDocumenter {
   /// The data model containing the [ManagedEntity]s that describe the [ManagedObject]s this instance works with.
   final ManagedDataModel dataModel;
 
+  /// Closes this context and release its underlying resources.
+  ///
+  /// This method closes the connection to [persistentStore] and releases [dataModel].
+  /// A context may not be reused once it has been closed.
   Future close() async {
     await persistentStore?.close();
-    dataModel.release();
+    dataModel?.release();
   }
 
   /// Returns an entity for a type from [dataModel].

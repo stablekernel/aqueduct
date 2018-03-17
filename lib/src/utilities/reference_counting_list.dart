@@ -36,6 +36,7 @@ class ReferenceCountable {
     _retainCount --;
     if (_retainCount <= 0) {
       _owner?.remove(this);
+      _owner = null;
     }
   }
   void retain() {
