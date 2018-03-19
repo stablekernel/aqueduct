@@ -133,21 +133,24 @@ class Validator {
       _build();
     }
     else {
-      _validationMethod = definition.validate;
+      var validator = new CustomValidator(definition.validate);
+      validators.add(validator);
     }
   }
 
+  List<BaseValidator> validators = [];
   final ValidationDefinition definition;
   _Validation _validationMethod;
   RegExp _regex;
   List<_Validation> _expressionValidations;
   List<dynamic> _options;
+  //todo: factor our managed property type
   ManagedPropertyType type;
   String name;
   _BuiltinValidate get validationStrategy => definition._builtinValidate;
   bool get _isExpectingComparable => validationStrategy == _BuiltinValidate.comparison;
   bool get _isExpectingString => [_BuiltinValidate.regex, _BuiltinValidate.length].contains(validationStrategy);
-  bool get _shouldAttemptDateTimeConversion => validationStrategy == _BuiltinValidate.length;
+  bool _shouldAttemptDateTimeConversion = false;
 
 
   Comparable get _greaterThan => _shouldAttemptDateTimeConversion
@@ -192,27 +195,27 @@ class Validator {
         ? valueUnderEvalutation.length
         : valueUnderEvalutation;
 
-    return _validationMethod(value, failureDescriptions);
+    return validators.every((v) => v.validate(value, failureDescriptions));
   }
 
   void _build() {
+    if (type == ManagedPropertyType.datetime) {
+      _shouldAttemptDateTimeConversion = true;
+    }
     if (validationStrategy == _BuiltinValidate.regex) {
       if (type != ManagedPropertyType.string) {
         throw new ValidatorError.invalidPropertyType(
             name, type.toString(), "Validate.matches can only be used to evaluate properties of type String.");
       }
-      _regex = new RegExp(definition._pattern);
-      _validationMethod = _validateRegex;
+      validators.add( new StringPatternValidator(definition._pattern));
     } else if (validationStrategy == _BuiltinValidate.comparison) {
-      _buildComparisonExpressions();
-      _validationMethod = _validateExpressions;
+      validators.addAll(_buildComparisonExpressions());
     } else if (validationStrategy == _BuiltinValidate.length) {
       if (type != ManagedPropertyType.string) {
         throw new ValidatorError.invalidPropertyType(
             name, type.toString(),  "Validate.length can only be used to evaluate properties of type String");
       }
-      _buildComparisonExpressions();
-      _validationMethod = _validateExpressions;
+      validators.addAll(_buildComparisonExpressions());
     } else if (validationStrategy == _BuiltinValidate.oneOf) {
       var supportedOneOfTypes = [
         ManagedPropertyType.string,
@@ -231,78 +234,39 @@ class Validator {
         throw new ValidatorError.invalidConstraintValue(
             name, "Validate.oneOf requires all elements representing valid values to be assignable to '${type}'");
       }
-      _options = definition._validValues;
-      _validationMethod = _validateOneOf;
+      final options = definition._validValues.toSet();
+      validators.add(new SetValidator(options));
     }
   }
 
-  void _buildComparisonExpressions() {
-    _expressionValidations = [];
+  List<ComparableValidator> _buildComparisonExpressions() {
+    List<ComparableValidator> validators = [];
 
     if (_greaterThan != null) {
-      var comparisonValue = _attemptDateTimeConversion(definition._greaterThan);
-      _expressionValidations
-          .add((dynamic value, List<String> failureDescriptions) {
-
-        if (value.compareTo(comparisonValue) <= 0) {
-          failureDescriptions.add("The value evaluated for '${name}' is invalid. Must be greater than '$comparisonValue'.");
-          return false;
-        }
-      });
+      validators.add(new ComparableValidator.greaterThan(_greaterThan));
     }
 
     if (_greaterThanEqualTo != null) {
-      var comparisonValue = _attemptDateTimeConversion(definition._greaterThanEqualTo);
-      _expressionValidations
-          .add((dynamic value, List<String> failureDescriptions) {
-
-        if (value.compareTo(comparisonValue) < 0) {
-          failureDescriptions
-              .add("The value evaluated for'${name}' is invalid. Must be greater than or equal to '$comparisonValue'.");
-          return false;
-        }
-      });
+      validators.add(new ComparableValidator.greaterThanEqualTo(_greaterThanEqualTo));
     }
 
     if (_lessThan != null) {
-      var comparisonValue = _attemptDateTimeConversion(definition._lessThan);
-      _expressionValidations
-          .add((dynamic value, List<String> failureDescriptions) {
-
-        if (value.compareTo(comparisonValue) >= 0) {
-          failureDescriptions.add("The value evaluated for'${name}' is invalid. Must be less than to '$comparisonValue'.");
-          return false;
-        }
-      });
+      validators.add(new ComparableValidator.lessThan(_lessThan));
     }
 
     if (_lessThanEqualTo != null) {
-      var comparisonValue = _attemptDateTimeConversion(definition._lessThanEqualTo);
-      _expressionValidations
-          .add((dynamic value, List<String> failureDescriptions) {
-
-        if (value.compareTo(comparisonValue) > 0) {
-          failureDescriptions.add("The value evaluated for'${name}' is invalid. Must be less than or equal to '$comparisonValue'.");
-          return false;
-        }
-      });
+      validators.add(new ComparableValidator.lessThanEqualTo(_lessThanEqualTo));
     }
 
     if (_equalTo != null) {
-      var comparisonValue = _attemptDateTimeConversion(definition._equalTo);
-      _expressionValidations
-          .add((dynamic value, List<String> failureDescriptions) {
-
-        if (value.compareTo(comparisonValue) != 0) {
-          failureDescriptions.add("The value evaluated for'${name}' is invalid. Must be equal to '$comparisonValue'.");
-          return false;
-        }
-      });
+      validators.add(new ComparableValidator.equalTo(_equalTo));
     }
+
+    return validators;
   }
 
   Comparable<dynamic> _attemptDateTimeConversion(dynamic inputValue) {
-    if (type == ManagedPropertyType.datetime) {
+    if (inputValue != null && type == ManagedPropertyType.datetime) {
       try {
         return DateTime.parse(inputValue);
       } on FormatException {
@@ -314,29 +278,7 @@ class Validator {
     return inputValue;
   }
 
-  bool _validateRegex(dynamic value, List<String> failureDescriptions) {
-    if (!_regex.hasMatch(value)) {
-      failureDescriptions.add("The value evaluated for'${name}' is invalid. Must match pattern ${_regex.pattern}.");
-      return false;
-    }
-
-    return true;
-  }
-
-  bool _validateExpressions(dynamic value, List<String> failureDescriptions) {
-    // If any are false, then this validation failed and this returns false. Otherwise none are false and this method returns true.
-    return !_expressionValidations.any((expr) => expr(value, failureDescriptions) == false);
-  }
-
-  bool _validateOneOf(dynamic value, List<String> failureDescriptions) {
-    if (_options.every((v) => value != v)) {
-      failureDescriptions.add(
-          "The value evaluated for '${name}' is invalid. Must be one of: ${_options.map((v) => "'$v'").join(",")}.");
-      return false;
-    }
-
-    return true;
-  }
+  //todo: review for refactoring
 
   bool isAssignableWith(dynamic dartValue) {
     if (dartValue == null) {
@@ -367,6 +309,104 @@ class Validator {
 }
 
 
+abstract class BaseValidator<T> {
+  bool validate(T value, List<String> failureDescriptions);
+}
+
+class CustomValidator implements BaseValidator {
+  final _isValid;
+
+  CustomValidator(this._isValid);
+
+  bool validate(dynamic value, List<String> failureDescriptions) {
+    return _isValid(value, failureDescriptions);
+  }
+}
+
+//class StringLengthValidator extends ComparableValidator<String> {
+//  const StringLengthValidator.lessThan(num thresholdValue) : super.lessThan(thresholdValue);
+//  const StringLengthValidator.greaterThan(num thresholdValue) : super.greaterThan(thresholdValue);
+//  const StringLengthValidator.equalTo(num thresholdValue) : super.equalTo(thresholdValue);
+//  const StringLengthValidator.greaterThanEqualTo(num thresholdValue) : super.greaterThanEqualTo(thresholdValue);
+//  const StringLengthValidator.lessThanEqualTo(num thresholdValue) : super.lessThanEqualTo(thresholdValue);
+//
+//  @override
+//  bool validate(String value, List<String> failureDescriptions) {
+//    num comparator = value.length.compareTo(_thresholdValue);
+//    bool isValid = _isValid(comparator);
+//    if (_isValid == false) {
+//      failureDescriptions.add("The length of the String evaluated for '${name}' is invalid. Failed comparison check against '$comparisonValue'.");
+//    }
+//    return isValid;
+//  }
+//}
+
+class ComparableValidator<T extends Comparable> implements BaseValidator<T> {
+  final Comparable _thresholdValue;
+  final _isValid;
+
+  static bool isLessThan(num comparator) => comparator < 0;
+  static bool isGreaterThan(num comparator) => comparator > 0;
+  static bool isEqualTo(num comparator) => comparator == 0;
+  static bool isGreaterThanEqualTo(num comparator) => isGreaterThan(comparator) || isEqualTo(comparator);
+  static bool isLessThanEqualTo(num comparator) => isLessThan(comparator) || isEqualTo(comparator);
+
+  const ComparableValidator.lessThan(this._thresholdValue): _isValid = isLessThan;
+  const ComparableValidator.greaterThan(this._thresholdValue): _isValid = isGreaterThan;
+  const ComparableValidator.equalTo(this._thresholdValue): _isValid = isEqualTo;
+  const ComparableValidator.greaterThanEqualTo(this._thresholdValue): _isValid = isGreaterThanEqualTo;
+  const ComparableValidator.lessThanEqualTo(this._thresholdValue): _isValid = isLessThanEqualTo;
+
+  /**
+   * Compares this object to another [Comparable]
+   *
+   * Returns a value like a [Comparator] when comparing `this` to [other].
+   * That is, it returns a negative integer if `this` is ordered before [other],
+   * a positive integer if `this` is ordered after [other],
+   * and zero if `this` and [other] are ordered together.
+   *
+   * The [other] argument must be a value that is comparable to this object.
+   */
+  bool validate(T value, List<String> failureDescriptions) {
+    num comparator = value.compareTo(_thresholdValue);
+    bool isValid = _isValid(comparator);
+    if (isValid == false) {
+      failureDescriptions.add("${value} failed comparison check against '$_thresholdValue'.");
+    }
+    return isValid;
+  }
+}
+
+class StringPatternValidator implements BaseValidator<String> {
+  final String _pattern;
+
+  const StringPatternValidator(String pattern) : _pattern = pattern;
+
+  bool validate(String value, List<String> failureDescriptions) {
+    final regexp = new RegExp(_pattern);
+    bool isValid = regexp.hasMatch(value);
+    if (isValid == false) {
+      failureDescriptions.add("Value ${value} failed comparison check against pattern '$_pattern'.");
+    }
+    return isValid;
+  }
+}
+
+class SetValidator implements BaseValidator<dynamic> {
+  final Set _validValues;
+
+  const SetValidator(Set validValues): _validValues = validValues;
+
+  bool validate(dynamic value, List<String> failureDescriptions) {
+    bool isValid = _validValues.contains(value);
+    if (isValid == false) {
+      failureDescriptions.add("${value} not found in set '${_validValues.toString()}'.");
+    }
+    return isValid;
+  }
+}
+
+//todo: edit comments
 class Validate<T> extends ValidationDefinition<T> {
   /// Whether or not this validation is checked on update queries.
   final bool runOnUpdate;
@@ -526,7 +566,7 @@ class Validate<T> extends ValidationDefinition<T> {
 
 
 
-
+//todo: document with comments
 class ValidationDefinition<T> {
 
   const ValidationDefinition()
@@ -600,6 +640,8 @@ class ValidationDefinition<T> {
   final Comparable _lessThanEqualTo;
   final _BuiltinValidate _builtinValidate;
 
+  //todo
+
 //  void readFromMap(Map<String, dynamic> map) {
 //    _value = map['_value'];
 //    _values = map['_values'];
@@ -662,6 +704,8 @@ class ValidationDefinition<T> {
   bool validate(T value, List<String> failureDescriptions) {
     return false;
   }
+
+  //todo: move this out of class look into moving into Validate or ManagedAttributeDescription
 
   /// Adds constraints to an [APISchemaObject] imposed by this validator.
   ///
@@ -728,5 +772,6 @@ class ValidationDefinition<T> {
   }
 }
 
+//todo: rename
 typedef bool _Validation<T>(T value, List<String> errors);
 enum _BuiltinValidate { regex, comparison, length, present, absent, oneOf }
