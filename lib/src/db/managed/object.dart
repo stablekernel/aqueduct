@@ -1,5 +1,7 @@
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/db/managed/data_model_manager.dart';
+
 import '../../http/serializable.dart';
 import 'managed.dart';
 import 'backing.dart';
@@ -75,7 +77,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   }
 
   /// The [ManagedEntity] this instance is described by.
-  ManagedEntity entity = ManagedContext.defaultContext.dataModel.entityForType(PersistentType);
+  ManagedEntity entity = ManagedDataModelManager.findEntity(PersistentType);
 
   /// The persistent values of this object.
   ///

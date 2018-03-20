@@ -43,7 +43,7 @@ void main() {
           ..hashedSecret = ac.hashedSecret
           ..redirectURI = ac.redirectURI)
         .map((mc) {
-      var q = new Query<ManagedAuthClient>()..values = mc;
+      var q = new Query<ManagedAuthClient>(context)..values = mc;
       return q.insert();
     }));
 
@@ -51,7 +51,7 @@ void main() {
   });
 
   tearDown(() async {
-    await context?.persistentStore?.close();
+    await context?.close();
     context = null;
   });
 
@@ -80,13 +80,13 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
-      var q = new Query<ManagedAuthClient>();
+      var q = new Query<ManagedAuthClient>(context);
       expect(await q.fetch(), hasLength(5));
     });
 
     test("Revoking unknown client has no impact", () async {
       await auth.revokeClientID("nonsense");
-      var q = new Query<ManagedAuthClient>();
+      var q = new Query<ManagedAuthClient>(context);
       expect(await q.fetch(), hasLength(5));
     });
   });
@@ -96,7 +96,7 @@ void main() {
     User createdUser;
     setUp(() async {
       auth = new AuthServer(storage);
-      createdUser = (await createUsers(1)).first;
+      createdUser = (await createUsers(context, 1)).first;
     });
 
     test(
@@ -253,7 +253,7 @@ void main() {
 
     setUp(() async {
       auth = new AuthServer(storage);
-      createdUser = (await createUsers(1)).first;
+      createdUser = (await createUsers(context, 1)).first;
       initialToken = await auth.authenticate(createdUser.username,
           User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
     });
@@ -305,7 +305,7 @@ void main() {
       }
 
       // Make sure we don't have duplicates in the db
-      var q = new Query<ManagedAuthToken>();
+      var q = new Query<ManagedAuthToken>(context);
       expect(await q.fetch(), hasLength(1));
     });
 
@@ -374,7 +374,7 @@ void main() {
 
     setUp(() async {
       auth = new AuthServer(storage);
-      createdUser = (await createUsers(1)).first;
+      createdUser = (await createUsers(context, 1)).first;
     });
 
     test("Can create an auth code that can be exchanged for a token", () async {
@@ -481,7 +481,7 @@ void main() {
 
     setUp(() async {
       auth = new AuthServer(storage);
-      createdUser = (await createUsers(1)).first;
+      createdUser = (await createUsers(context, 1)).first;
       code = await auth.authenticateForCode(createdUser.username,
           User.DefaultPassword, "com.stablekernel.redirect");
     });
@@ -527,7 +527,7 @@ void main() {
         expect(true, false);
       } on AuthServerException {}
 
-      var q = new Query<ManagedAuthToken>()..where((o) => o.code).equalTo(code.code);
+      var q = new Query<ManagedAuthToken>(context)..where((o) => o.code).equalTo(code.code);
       expect(await q.fetch(), isEmpty);
     });
 
@@ -551,7 +551,7 @@ void main() {
       }
 
       // Ensure that the associated auth code is also destroyed
-      var authCodeQuery = new Query<ManagedAuthToken>();
+      var authCodeQuery = new Query<ManagedAuthToken>(context);
       expect(await authCodeQuery.fetch(), isEmpty);
     });
 
@@ -586,7 +586,7 @@ void main() {
       }
 
       // Ensure that the associated auth code is also destroyed
-      var authCodeQuery = new Query<ManagedAuthToken>();
+      var authCodeQuery = new Query<ManagedAuthToken>(context);
       expect(await authCodeQuery.fetch(), isEmpty);
     });
 
@@ -640,7 +640,7 @@ void main() {
 
     setUp(() async {
       auth = new AuthServer(storage);
-      createdUsers = await createUsers(3);
+      createdUsers = await createUsers(context, 3);
     });
 
     test("Revoking a client revokes all of its tokens and auth codes",
@@ -680,7 +680,7 @@ void main() {
         expect(e.reason, AuthRequestError.invalidGrant);
       }
 
-      var tokenQuery = new Query<ManagedAuthToken>();
+      var tokenQuery = new Query<ManagedAuthToken>(context);
       expect(await tokenQuery.fetch(), isEmpty);
     });
 
@@ -722,7 +722,7 @@ void main() {
       expect(await auth.verify(issuedTokenKeep.accessToken),
           new isInstanceOf<Authorization>());
 
-      var tokenQuery = new Query<ManagedAuthToken>();
+      var tokenQuery = new Query<ManagedAuthToken>(context);
       expect(await tokenQuery.fetch(), hasLength(3));
     });
 
@@ -757,7 +757,7 @@ void main() {
 
     setUp(() async {
       auth = new AuthServer(storage);
-      createdUsers = await createUsers(3);
+      createdUsers = await createUsers(context, 3);
     });
 
     test(
@@ -801,7 +801,7 @@ void main() {
         expect(e.reason, AuthRequestError.invalidGrant);
       }
 
-      var tokenQuery = new Query<ManagedAuthToken>();
+      var tokenQuery = new Query<ManagedAuthToken>(context);
       expect(await tokenQuery.fetch(), isEmpty);
     });
   });
@@ -814,7 +814,7 @@ void main() {
     setUp(() async {
       var limitedStorage = new ManagedAuthDelegate<User>(context, tokenLimit: 3);
       auth = new AuthServer(limitedStorage);
-      createdUsers = await createUsers(3);
+      createdUsers = await createUsers(context, 3);
     });
 
     test("Revoking a token automatically deletes the code that generated it",
@@ -826,11 +826,11 @@ void main() {
       var exchangedToken = await auth.exchange(
           exchangedCode.code, "com.stablekernel.redirect", "mckinley");
 
-      var codeQuery = new Query<ManagedAuthToken>()
+      var codeQuery = new Query<ManagedAuthToken>(context)
         ..where((o) => o.code).equalTo(exchangedCode.code);
       expect(await codeQuery.fetch(), hasLength(1));
 
-      var tokenQuery = new Query<ManagedAuthToken>()
+      var tokenQuery = new Query<ManagedAuthToken>(context)
         ..where((o) => o.accessToken).equalTo(exchangedToken.accessToken);
       await tokenQuery.delete();
 
@@ -865,14 +865,14 @@ void main() {
       }
 
       // Insert the 'race condition' code
-      var manualInsertQuery = new Query<ManagedAuthToken>()..values = manualCode;
+      var manualInsertQuery = new Query<ManagedAuthToken>(context)..values = manualCode;
       manualCode = await manualInsertQuery.insert();
 
       // Make a new code, should kill the race condition code and the first generated code in the loop.
       // Other user codes remain
       var newCode = await auth.authenticateForCode(createdUsers.first.username,
           User.DefaultPassword, "com.stablekernel.redirect");
-      var codeQuery = new Query<ManagedAuthToken>();
+      var codeQuery = new Query<ManagedAuthToken>(context);
       var codesInDB = (await codeQuery.fetch()).map((ac) => ac.code).toList();
 
       // These codes are in chronological order
@@ -907,7 +907,7 @@ void main() {
     setUp(() async {
       var limitedStorage = new ManagedAuthDelegate<User>(context, tokenLimit: 3);
       auth = new AuthServer(limitedStorage);
-      createdUsers = await createUsers(10);
+      createdUsers = await createUsers(context, 10);
     });
 
     test(
@@ -937,14 +937,14 @@ void main() {
       }
 
       // Insert the 'race condition' token
-      var manualInsertQuery = new Query<ManagedAuthToken>()..values = manualToken;
+      var manualInsertQuery = new Query<ManagedAuthToken>(context)..values = manualToken;
       manualToken = await manualInsertQuery.insert();
 
       // Make a new token, should kill the race condition token and the first generated token in the loop.
       // Other user token remain
       var newToken = await auth.authenticate(createdUsers.first.username,
           User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
-      var tokenQuery = new Query<ManagedAuthToken>();
+      var tokenQuery = new Query<ManagedAuthToken>(context);
       var tokensInDB =
           (await tokenQuery.fetch()).map((ac) => ac.accessToken).toList();
 
@@ -1012,7 +1012,7 @@ void main() {
     User createdUser;
     setUp(() async {
       auth = new AuthServer(storage);
-      createdUser = (await createUsers(1)).first;
+      createdUser = (await createUsers(context, 1)).first;
 
       var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
 
@@ -1051,7 +1051,7 @@ void main() {
             ..hashedSecret = ac.hashedSecret
             ..redirectURI = ac.redirectURI)
           .map((mc) {
-        var q = new Query<ManagedAuthClient>()..values = mc;
+        var q = new Query<ManagedAuthClient>(context)..values = mc;
         return q.insert();
       }));
     });
@@ -1274,7 +1274,7 @@ void main() {
             new AuthScope("location:add")
           ]);
 
-      var q = new Query<ManagedAuthClient>()
+      var q = new Query<ManagedAuthClient>(context)
         ..where((o) => o.id).equalTo("all.redirect")
         ..values.allowedScope = "user location:add.readonly";
       await q.updateOne();
@@ -1411,7 +1411,7 @@ class User extends ManagedObject<_User>
 
 class _User extends ManagedAuthenticatable {}
 
-Future<List<User>> createUsers(int count) async {
+Future<List<User>> createUsers(ManagedContext ctx, int count) async {
   var list = <User>[];
   for (int i = 0; i < count; i++) {
     var salt = AuthUtility.generateRandomSalt();
@@ -1421,7 +1421,7 @@ Future<List<User>> createUsers(int count) async {
       ..hashedPassword =
           AuthUtility.generatePasswordHash(User.DefaultPassword, salt);
 
-    var q = new Query<User>()..values = u;
+    var q = new Query<User>(ctx)..values = u;
 
     list.add(await q.insert());
   }

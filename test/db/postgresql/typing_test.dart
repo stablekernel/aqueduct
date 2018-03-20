@@ -11,14 +11,14 @@ import '../../helpers.dart';
 void main() {
   ManagedContext context;
   tearDown(() async {
-    await context?.persistentStore?.close();
+    await context?.close();
     context = null;
   });
 
   test("Values get typed when used in predicate", () async {
     context = await contextWithModels([TestModel]);
 
-    final q = new Query<TestModel>()
+    final q = new Query<TestModel>(context)
       ..where((o) => o.id).equalTo(1)
       ..where((o) => o.n).equalTo("a")
       ..where((o) => o.t).equalTo(new DateTime.now())
@@ -40,7 +40,7 @@ void main() {
   test("Values get typed when used as insertion values", () async {
     context = await contextWithModels([TestModel]);
 
-    final q = new Query<TestModel>()
+    final q = new Query<TestModel>(context)
       ..values.id = 1
       ..values.n = "a"
       ..values.t = new DateTime.now()

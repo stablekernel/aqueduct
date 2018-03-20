@@ -39,10 +39,8 @@ import 'http.dart';
 /// - sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
 class ManagedObjectController<InstanceType extends ManagedObject> extends ResourceController {
   /// Creates an instance of a [ManagedObjectController].
-  ///
-  /// [context] defaults to [ManagedContext.defaultContext].
-  ManagedObjectController([ManagedContext context]) : super() {
-    _query = new Query<InstanceType>(context ?? ManagedContext.defaultContext);
+  ManagedObjectController(ManagedContext context) : super() {
+    _query = new Query<InstanceType>(context);
   }
 
   /// Creates a new [ManagedObjectController] without a static type.
@@ -50,8 +48,8 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
   /// This method is used when generating instances of this type dynamically from runtime values,
   /// where the static type argument cannot be defined. Behaves just like the unnamed constructor.
   ///
-  ManagedObjectController.forEntity(ManagedEntity entity, [ManagedContext context]) : super() {
-    _query = new Query.forEntity(entity, context ?? ManagedContext.defaultContext);
+  ManagedObjectController.forEntity(ManagedEntity entity, ManagedContext context) : super() {
+    _query = new Query.forEntity(entity, context);
   }
 
   /// Returns a route pattern for using [ManagedObjectController]s.

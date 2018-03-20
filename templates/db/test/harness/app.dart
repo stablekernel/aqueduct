@@ -59,14 +59,14 @@ class TestApplication {
   }
 
   Future initializeDatabase() async {
-    await createDatabaseSchema(ManagedContext.defaultContext);
+    await createDatabaseSchema(application.channel.context);
   }
 
   /// Discards any persistent data stored during a test.
   ///
   /// Invoke this method in tearDown() to clear data between tests.
   Future discardPersistentData() async {
-    await ManagedContext.defaultContext.persistentStore.close();
+    await application.channel.context.persistentStore.close();
     await initializeDatabase();
   }
 

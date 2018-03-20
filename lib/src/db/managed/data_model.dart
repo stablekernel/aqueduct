@@ -1,5 +1,6 @@
 import 'dart:mirrors';
 import 'package:aqueduct/src/openapi/documentable.dart';
+import 'package:aqueduct/src/utilities/reference_counting_list.dart';
 
 import 'managed.dart';
 import 'data_model_builder.dart';
@@ -14,7 +15,7 @@ import '../query/query.dart';
 ///
 /// Most applications do not need to access instances of this type.
 ///
-class ManagedDataModel implements APIComponentDocumenter {
+class ManagedDataModel extends Object with ReferenceCountable implements APIComponentDocumenter {
   /// Creates an instance of [ManagedDataModel] from a list of types that extend [ManagedObject]. It is preferable
   /// to use [ManagedDataModel.fromCurrentMirrorSystem] over this method.
   ///

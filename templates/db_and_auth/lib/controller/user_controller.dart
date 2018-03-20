@@ -2,7 +2,7 @@ import '../wildfire.dart';
 import '../model/user.dart';
 
 class UserController extends QueryController<User> {
-  UserController(this.authServer);
+  UserController(ManagedContext context, this.authServer) : super(context);
 
   AuthServer authServer;
 
@@ -41,8 +41,7 @@ class UserController extends QueryController<User> {
     }
 
     await authServer.revokeAuthenticatableAccessForIdentifier(id);
-    var q = new Query<User>()..where((o) => o.id).equalTo(id);
-    await q.delete();
+    await query.delete();
 
     return new Response.ok(null);
   }

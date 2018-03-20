@@ -21,21 +21,20 @@ void main() {
       }
     }
 
-    context = new ManagedContext.standalone(dataModel, store);
+    context = new ManagedContext(dataModel, store);
 
     terminal = new Terminal.current()
       ..defaultAqueductArgs = ["--connect","postgres://dart:dart@localhost:5432/dart_test"];
   });
 
   tearDown(() async {
-    ManagedContext.defaultContext = null;
     for (var t in schema.dependencyOrderedTables.reversed) {
       var tableCommands = store.deleteTable(t);
       for (var c in tableCommands) {
         await store.execute(c);
       }
     }
-    await context.persistentStore.close();
+    await context.close();
   });
 
   tearDownAll(() async {

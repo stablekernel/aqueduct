@@ -10,7 +10,7 @@ void main() {
     var counter = 0;
     var names = ["Bob", "Fred", "Tim", "Sally", "Kanye", "Lisa"];
     for (var name in names) {
-      var q = new Query<TestModel>()
+      var q = new Query<TestModel>(context)
         ..values.name = name
         ..values.email = "$counter@a.com";
       await q.insert();
@@ -18,28 +18,28 @@ void main() {
       counter++;
     }
 
-    var q = new Query<InnerModel>()
+    var q = new Query<InnerModel>(context)
       ..values.name = "Bob's"
       ..values.owner = (new TestModel()..id = 1);
     await q.insert();
 
-    q = new Query<InnerModel>()..values.name = "No one's";
+    q = new Query<InnerModel>(context)..values.name = "No one's";
     await q.insert();
   });
 
   tearDownAll(() async {
-    await context?.persistentStore?.close();
+    await context?.close();
     context = null;
   });
 
   group("Equals matcher", () {
     test("Non-string value", () async {
-      var q = new Query<TestModel>()..where((p) => p.id).equalTo(1);
+      var q = new Query<TestModel>(context)..where((p) => p.id).equalTo(1);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, 1);
 
-      q = new Query<TestModel>()..where((p) => p.id).not.equalTo(1);
+      q = new Query<TestModel>(context)..where((p) => p.id).not.equalTo(1);
 
       results = await q.fetch();
       expect(results.length, 5);
@@ -47,32 +47,32 @@ void main() {
     });
 
     test("String value, case sensitive default", () async {
-      var q = new Query<TestModel>()..where((o) => o.email).equalTo("0@a.com");
+      var q = new Query<TestModel>(context)..where((o) => o.email).equalTo("0@a.com");
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, 1);
 
-      q = new Query<TestModel>()..where((o) => o.email).not.equalTo("0@a.com");
+      q = new Query<TestModel>(context)..where((o) => o.email).not.equalTo("0@a.com");
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.id == 1), false);
 
-      q = new Query<TestModel>()..where((o) => o.email).equalTo("0@A.com");
+      q = new Query<TestModel>(context)..where((o) => o.email).equalTo("0@A.com");
       results = await q.fetch();
       expect(results.length, 0);
 
-      q = new Query<TestModel>()..where((o) => o.email).not.equalTo("0@A.com");
+      q = new Query<TestModel>(context)..where((o) => o.email).not.equalTo("0@A.com");
       results = await q.fetch();
       expect(results.length, 6);
     });
 
     test("String value, case sensitive default", () async {
-      var q = new Query<TestModel>()..where((o) => o.email).equalTo("0@A.com", caseSensitive: false);
+      var q = new Query<TestModel>(context)..where((o) => o.email).equalTo("0@A.com", caseSensitive: false);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, 1);
 
-      q = new Query<TestModel>()..where((o) => o.email).not.equalTo("0@A.com", caseSensitive: false);
+      q = new Query<TestModel>(context)..where((o) => o.email).not.equalTo("0@A.com", caseSensitive: false);
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.email == "0@a.com"), false);
@@ -80,54 +80,54 @@ void main() {
   });
 
   test("Less than matcher", () async {
-    var q = new Query<TestModel>()..where((o) => o.id).lessThan(3);
+    var q = new Query<TestModel>(context)..where((o) => o.id).lessThan(3);
     var results = await q.fetch();
     expect(results.length, 2);
     expect(results.first.id, 1);
     expect(results.last.id, 2);
 
-    q = new Query<TestModel>()..where((o) => o.id).not.lessThan(3);
+    q = new Query<TestModel>(context)..where((o) => o.id).not.lessThan(3);
     results = await q.fetch();
     expect(results.length, 4);
     expect(results.every((tm) => tm.id >= 3), true);
   });
 
   test("Less than equal to matcher", () async {
-    var q = new Query<TestModel>()..where((o) => o.id).lessThanEqualTo(3);
+    var q = new Query<TestModel>(context)..where((o) => o.id).lessThanEqualTo(3);
     var results = await q.fetch();
     expect(results.length, 3);
     expect(results[0].id, 1);
     expect(results[1].id, 2);
     expect(results[2].id, 3);
 
-    q = new Query<TestModel>()..where((o) => o.id).not.lessThanEqualTo(3);
+    q = new Query<TestModel>(context)..where((o) => o.id).not.lessThanEqualTo(3);
     results = await q.fetch();
     expect(results.length, 3);
     expect(results.every((tm) => tm.id > 3), true);
   });
 
   test("Greater than matcher", () async {
-    var q = new Query<TestModel>()..where((o) => o.id).greaterThan(4);
+    var q = new Query<TestModel>(context)..where((o) => o.id).greaterThan(4);
     var results = await q.fetch();
     expect(results.length, 2);
     expect(results[0].id, 5);
     expect(results[1].id, 6);
 
-    q = new Query<TestModel>()..where((o) => o.id).not.greaterThan(4);
+    q = new Query<TestModel>(context)..where((o) => o.id).not.greaterThan(4);
     results = await q.fetch();
     expect(results.length, 4);
     expect(results.every((tm) => tm.id <= 4), true);
   });
 
   test("Greater than equal to matcher", () async {
-    var q = new Query<TestModel>()..where((o) => o.id).greaterThanEqualTo(4);
+    var q = new Query<TestModel>(context)..where((o) => o.id).greaterThanEqualTo(4);
     var results = await q.fetch();
     expect(results.length, 3);
     expect(results[0].id, 4);
     expect(results[1].id, 5);
     expect(results[2].id, 6);
 
-    q = new Query<TestModel>()..where((o) => o.id).not.greaterThanEqualTo(4);
+    q = new Query<TestModel>(context)..where((o) => o.id).not.greaterThanEqualTo(4);
     results = await q.fetch();
     expect(results.length, 3);
     expect(results.every((tm) => tm.id < 4), true);
@@ -135,44 +135,44 @@ void main() {
 
   group("Not equal matcher", () {
     test("Non-string value", () async {
-      var q = new Query<TestModel>()..where((o) => o.id).notEqualTo(1);
+      var q = new Query<TestModel>(context)..where((o) => o.id).notEqualTo(1);
       var results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((t) => t.id == 1), false);
 
-      q = new Query<TestModel>()..where((o) => o.id).not.notEqualTo(1);
+      q = new Query<TestModel>(context)..where((o) => o.id).not.notEqualTo(1);
       results = await q.fetch();
       expect(results.length, 1);
       expect(results.any((t) => t.id == 1), true);
     });
 
     test("String value, case sensitive default", () async {
-      var q = new Query<TestModel>()..where((o) => o.email).notEqualTo("0@a.com");
+      var q = new Query<TestModel>(context)..where((o) => o.email).notEqualTo("0@a.com");
       var results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((t) => t.id == 1), false);
 
-      q = new Query<TestModel>()..where((o) => o.email).not.notEqualTo("0@a.com");
+      q = new Query<TestModel>(context)..where((o) => o.email).not.notEqualTo("0@a.com");
       results = await q.fetch();
       expect(results.length, 1);
       expect(results.any((t) => t.id == 1), true);
 
-      q = new Query<TestModel>()..where((o) => o.email).notEqualTo("0@A.com");
+      q = new Query<TestModel>(context)..where((o) => o.email).notEqualTo("0@A.com");
       results = await q.fetch();
       expect(results.length, 6);
 
-      q = new Query<TestModel>()..where((o) => o.email).not.notEqualTo("0@A.com");
+      q = new Query<TestModel>(context)..where((o) => o.email).not.notEqualTo("0@A.com");
       results = await q.fetch();
       expect(results.length, 0);
     });
 
     test("String value, case sensitive default", () async {
-      var q = new Query<TestModel>()..where((o) => o.email).notEqualTo("0@A.com", caseSensitive: false);
+      var q = new Query<TestModel>(context)..where((o) => o.email).notEqualTo("0@A.com", caseSensitive: false);
       var results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((t) => t.id == 1), false);
 
-      q = new Query<TestModel>()..where((o) => o.email).not.notEqualTo("0@A.com", caseSensitive: false);
+      q = new Query<TestModel>(context)..where((o) => o.email).not.notEqualTo("0@A.com", caseSensitive: false);
       results = await q.fetch();
       expect(results.length, 1);
       expect(results.any((t) => t.id == 1), true);
@@ -180,13 +180,13 @@ void main() {
   });
 
   test("whereIn matcher", () async {
-    var q = new Query<TestModel>()..where((o) => o.id).oneOf([1, 2]);
+    var q = new Query<TestModel>(context)..where((o) => o.id).oneOf([1, 2]);
     var results = await q.fetch();
     expect(results.length, 2);
     expect(results[0].id, 1);
     expect(results[1].id, 2);
 
-    q = new Query<TestModel>()..where((o) => o.id).not.oneOf([1, 2]);
+    q = new Query<TestModel>(context)..where((o) => o.id).not.oneOf([1, 2]);
     results = await q.fetch();
     expect(results.length, 4);
     expect(results.any((t) => t.id == 1), false);
@@ -194,14 +194,14 @@ void main() {
   });
 
   test("whereBetween matcher", () async {
-    var q = new Query<TestModel>()..where((o) => o.id).between(2, 4);
+    var q = new Query<TestModel>(context)..where((o) => o.id).between(2, 4);
     var results = await q.fetch();
     expect(results.length, 3);
     expect(results[0].id, 2);
     expect(results[1].id, 3);
     expect(results[2].id, 4);
 
-    q = new Query<TestModel>()..where((o) => o.id).not.between(2, 4);
+    q = new Query<TestModel>(context)..where((o) => o.id).not.between(2, 4);
     results = await q.fetch();
     expect(results.length, 3);
 
@@ -212,14 +212,14 @@ void main() {
   });
 
   test("whereOutsideOf matcher", () async {
-    var q = new Query<TestModel>()..where((o) => o.id).outsideOf(2, 4);
+    var q = new Query<TestModel>(context)..where((o) => o.id).outsideOf(2, 4);
     var results = await q.fetch();
     expect(results.length, 3);
     expect(results[0].id, 1);
     expect(results[1].id, 5);
     expect(results[2].id, 6);
 
-    q = new Query<TestModel>()..where((o) => o.id).not.outsideOf(2, 4);
+    q = new Query<TestModel>(context)..where((o) => o.id).not.outsideOf(2, 4);
     results = await q.fetch();
     expect(results.length, 3);
 
@@ -230,36 +230,36 @@ void main() {
   });
 
   test("identifiedBy matcher", () async {
-    var q = new Query<InnerModel>()..where((o) => o.owner).identifiedBy(1);
+    var q = new Query<InnerModel>(context)..where((o) => o.owner).identifiedBy(1);
     var results = await q.fetch();
     expect(results.length, 1);
     expect(results.first.owner.id, 1);
 
     // Does not include null values; this is intentional.
-    q = new Query<InnerModel>()..where((o) => o.owner).not.identifiedBy(1);
+    q = new Query<InnerModel>(context)..where((o) => o.owner).not.identifiedBy(1);
     results = await q.fetch();
     expect(results.length, 0);
   });
 
   test("whereNull matcher", () async {
-    var q = new Query<InnerModel>()..where((o) => o.owner).isNull();
+    var q = new Query<InnerModel>(context)..where((o) => o.owner).isNull();
     var results = await q.fetch();
     expect(results.length, 1);
     expect(results.first.name, "No one's");
 
-    q = new Query<InnerModel>()..where((o) => o.owner).not.isNull();
+    q = new Query<InnerModel>(context)..where((o) => o.owner).not.isNull();
     results = await q.fetch();
     expect(results.length, 1);
     expect(results.first.name, "Bob's");
   });
 
   test("whereNotNull matcher", () async {
-    var q = new Query<InnerModel>()..where((o) => o.owner).isNotNull();
+    var q = new Query<InnerModel>(context)..where((o) => o.owner).isNotNull();
     var results = await q.fetch();
     expect(results.length, 1);
     expect(results.first.name, "Bob's");
 
-    q = new Query<InnerModel>()..where((o) => o.owner).not.isNotNull();
+    q = new Query<InnerModel>(context)..where((o) => o.owner).not.isNotNull();
     results = await q.fetch();
     expect(results.length, 1);
     expect(results.first.name, "No one's");
@@ -267,13 +267,13 @@ void main() {
 
   group("whereContains matcher", () {
     test("Case sensitive, default", () async {
-      var q = new Query<TestModel>()..where((o) => o.name).contains("y");
+      var q = new Query<TestModel>(context)..where((o) => o.name).contains("y");
       var results = await q.fetch();
       expect(results.length, 2);
       expect(results.first.name, "Sally");
       expect(results.last.name, "Kanye");
 
-      q = new Query<TestModel>()..where((o) => o.name).not.contains("y");
+      q = new Query<TestModel>(context)..where((o) => o.name).not.contains("y");
       results = await q.fetch();
       expect(results.length, 4);
       expect(results.any((tm) => tm.name == "Sally"), false);
@@ -281,13 +281,13 @@ void main() {
     });
 
     test("Case insensitive", () async {
-      var q = new Query<TestModel>()..where((o) => o.name).contains("Y", caseSensitive: false);
+      var q = new Query<TestModel>(context)..where((o) => o.name).contains("Y", caseSensitive: false);
       var results = await q.fetch();
       expect(results.length, 2);
       expect(results.first.name, "Sally");
       expect(results.last.name, "Kanye");
 
-      q = new Query<TestModel>()..where((o) => o.name).not.contains("Y", caseSensitive: false);
+      q = new Query<TestModel>(context)..where((o) => o.name).not.contains("Y", caseSensitive: false);
       results = await q.fetch();
       expect(results.length, 4);
       expect(results.any((tm) => tm.name == "Sally"), false);
@@ -297,24 +297,24 @@ void main() {
 
   group("whereBeginsWith matcher", () {
     test("Case sensitive, default", () async {
-      var q = new Query<TestModel>()..where((o) => o.name).beginsWith("B");
+      var q = new Query<TestModel>(context)..where((o) => o.name).beginsWith("B");
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.name, "Bob");
 
-      q = new Query<TestModel>()..where((o) => o.name).not.beginsWith("B");
+      q = new Query<TestModel>(context)..where((o) => o.name).not.beginsWith("B");
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.name == "Bob"), false);
     });
 
     test("Case insensitive", () async {
-      var q = new Query<TestModel>()..where((o) => o.name).beginsWith("b", caseSensitive: false);
+      var q = new Query<TestModel>(context)..where((o) => o.name).beginsWith("b", caseSensitive: false);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.name, "Bob");
 
-      q = new Query<TestModel>()..where((o) => o.name).not.beginsWith("b", caseSensitive: false);
+      q = new Query<TestModel>(context)..where((o) => o.name).not.beginsWith("b", caseSensitive: false);
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.name == "Bob"), false);
@@ -323,24 +323,24 @@ void main() {
 
   group("whereEndsWith matcher", () {
     test("Case sensitive, default", () async {
-      var q = new Query<TestModel>()..where((o) => o.name).endsWith("m");
+      var q = new Query<TestModel>(context)..where((o) => o.name).endsWith("m");
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.name, "Tim");
 
-      q = new Query<TestModel>()..where((o) => o.name).not.endsWith("m");
+      q = new Query<TestModel>(context)..where((o) => o.name).not.endsWith("m");
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.name == "Tim"), false);
     });
 
     test("Case insensitive", () async {
-      var q = new Query<TestModel>()..where((o) => o.name).endsWith("M", caseSensitive: false);
+      var q = new Query<TestModel>(context)..where((o) => o.name).endsWith("M", caseSensitive: false);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.name, "Tim");
 
-      q = new Query<TestModel>()..where((o) => o.name).not.endsWith("M", caseSensitive: false);
+      q = new Query<TestModel>(context)..where((o) => o.name).not.endsWith("M", caseSensitive: false);
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.name == "Tim"), false);

@@ -20,7 +20,7 @@ void main() {
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 5; i++) {
-        var q = new Query<TestModel>()
+        var q = new Query<TestModel>(app.channel.context)
           ..values.createdAt = now
           ..values.name = "$i";
         allObjects.add(await q.insert());
@@ -30,7 +30,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.channel.context.persistentStore.close();
+      await app.channel.context.close();
       await app.stop();
     });
 
@@ -96,7 +96,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.channel.context.persistentStore.close();
+      await app.channel.context.close();
       await app.stop();
     });
 
@@ -129,7 +129,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.channel.context.persistentStore.close();
+      await app.channel.context.close();
       await app.stop();
     });
 
@@ -166,7 +166,7 @@ void main() {
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {
-        var q = new Query<TestModel>()
+        var q = new Query<TestModel>(app.channel.context)
           ..values.createdAt = now
           ..values.name = "${9 - i}";
         allObjects.add(await q.insert());
@@ -176,7 +176,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.channel.context.persistentStore.close();
+      await app.channel.context.close();
       await app.stop();
     });
 
@@ -277,15 +277,14 @@ void main() {
         ..components = new APIComponents());
 
       var dataModel = new ManagedDataModel([TestModel]);
-      ManagedContext.defaultContext =
-      new ManagedContext(dataModel, new DefaultPersistentStore());
-      final c = new ManagedObjectController<TestModel>();
+      final ctx = new ManagedContext(dataModel, new DefaultPersistentStore());
+      final c = new ManagedObjectController<TestModel>(ctx);
       c.prepare();
 
       collectionOperations = c.documentOperations(context, "/", new APIPath());
       idOperations = c.documentOperations(context, "/", new APIPath(parameters: [new APIParameter.path("id")]));
 
-      ManagedContext.defaultContext.documentComponents(context);
+      ctx.documentComponents(context);
 
       await context.finalize();
     });
@@ -362,7 +361,7 @@ void main() {
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {
-        var q = new Query<TestModel>()
+        var q = new Query<TestModel>(app.channel.context)
           ..values.createdAt = now
           ..values.name = "${9 - i}";
         allObjects.add(await q.insert());
@@ -372,7 +371,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.channel.context.persistentStore.close();
+      await app.channel.context.close();
       await app.stop();
     });
 
@@ -399,7 +398,6 @@ class TestChannel extends ApplicationChannel {
     var persistentStore = new PostgreSQLPersistentStore(
         "dart", "dart", "localhost", 5432, "dart_test");
     context = new ManagedContext(dataModel, persistentStore);
-    ManagedContext.defaultContext = context;
 
     var targetSchema = new Schema.fromDataModel(context.dataModel);
     var schemaBuilder = new SchemaBuilder.toSchema(
@@ -417,11 +415,11 @@ class TestChannel extends ApplicationChannel {
     final router = new Router();
     router
         .route("/controller/[:id]")
-        .link(() => new ManagedObjectController<TestModel>());
+        .link(() => new ManagedObjectController<TestModel>(context));
 
     router
       .route("/dynamic/[:id]")
-      .link(() => new ManagedObjectController.forEntity(context.dataModel.entityForType(TestModel)));
+      .link(() => new ManagedObjectController.forEntity(context.dataModel.entityForType(TestModel), context));
     return router;
   }
 }

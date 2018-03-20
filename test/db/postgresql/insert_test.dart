@@ -11,7 +11,7 @@ void main() {
   ManagedContext context;
 
   tearDown(() async {
-    await context?.persistentStore?.close();
+    await context?.close();
     context = null;
   });
 
@@ -19,7 +19,7 @@ void main() {
       () async {
     context = await contextWithModels([TestModel]);
 
-    var q = new Query<TestModel>()..values.id = 1;
+    var q = new Query<TestModel>(context)..values.id = 1;
 
     expect(q.values.id, 1);
   });
@@ -27,7 +27,7 @@ void main() {
   test("Insert Bad Key", () async {
     context = await contextWithModels([TestModel]);
 
-    var insertReq = new Query<TestModel>()
+    var insertReq = new Query<TestModel>(context)
       ..valueMap = {
         "name": "bob",
         "emailAddress": "bk@a.com",
@@ -50,10 +50,10 @@ void main() {
       ..name = "bob"
       ..emailAddress = "dup@a.com";
 
-    var insertReq = new Query<TestModel>()..values = m;
+    var insertReq = new Query<TestModel>(context)..values = m;
     await insertReq.insert();
 
-    var insertReqDup = new Query<TestModel>()..values = m;
+    var insertReqDup = new Query<TestModel>(context)..values = m;
 
     var successful = false;
     try {
@@ -66,7 +66,7 @@ void main() {
     expect(successful, false);
 
     m.emailAddress = "dup1@a.com";
-    var insertReqFollowup = new Query<TestModel>()..values = m;
+    var insertReqFollowup = new Query<TestModel>(context)..values = m;
 
     var result = await insertReqFollowup.insert();
 
@@ -76,19 +76,19 @@ void main() {
   test("Insert an object that violates a unique set constraint fails with conflict", () async {
     context = await contextWithModels([MultiUnique]);
 
-    var q = new Query<MultiUnique>()
+    var q = new Query<MultiUnique>(context)
       ..values.a = "a"
       ..values.b = "b";
 
     await q.insert();
 
-    q = new Query<MultiUnique>()
+    q = new Query<MultiUnique>(context)
       ..values.a = "a"
       ..values.b = "a";
 
     await q.insert();
 
-    q = new Query<MultiUnique>()
+    q = new Query<MultiUnique>(context)
       ..values.a = "a"
       ..values.b = "b";
     try {
@@ -106,7 +106,7 @@ void main() {
       ..name = "bob"
       ..emailAddress = "1@a.com";
 
-    var insertReq = new Query<TestModel>()..values = m;
+    var insertReq = new Query<TestModel>(context)..values = m;
 
     var result = await insertReq.insert();
 
@@ -123,11 +123,11 @@ void main() {
       ..name = "bob"
       ..emailAddress = "2@a.com";
 
-    var insertReq = new Query<TestModel>()..values = m;
+    var insertReq = new Query<TestModel>(context)..values = m;
 
     var result = await insertReq.insert();
 
-    var readReq = new Query<TestModel>()
+    var readReq = new Query<TestModel>(context)
       ..predicate =
           new QueryPredicate("emailAddress = @email", {"email": "2@a.com"});
 
@@ -140,7 +140,7 @@ void main() {
 
     var m = new TestModel()..emailAddress = "required@a.com";
 
-    var insertReq = new Query<TestModel>()..values = m;
+    var insertReq = new Query<TestModel>(context)..values = m;
 
     var successful = false;
     try {
@@ -158,7 +158,7 @@ void main() {
       () async {
     context = await contextWithModels([TestModel]);
 
-    var insertReq = new Query<TestModel>()
+    var insertReq = new Query<TestModel>(context)
       ..valueMap = {"id": 20, "name": "Bob"}
       ..returningProperties((t) => [t.id, t.name]);
 
@@ -167,7 +167,7 @@ void main() {
     expect(value.name, "Bob");
     expect(value.asMap().containsKey("emailAddress"), false);
 
-    insertReq = new Query<TestModel>()
+    insertReq = new Query<TestModel>(context)
       ..valueMap = {"id": 21, "name": "Bob"}
       ..returningProperties((t) => [t.id, t.name, t.emailAddress]);
 
@@ -183,13 +183,13 @@ void main() {
     context = await contextWithModels([GenUser, GenPost]);
 
     var u = new GenUser()..name = "Joe";
-    var q = new Query<GenUser>()..values = u;
+    var q = new Query<GenUser>(context)..values = u;
     u = await q.insert();
 
     var p = new GenPost()
       ..owner = u
       ..text = "1";
-    var pq = new Query<GenPost>()..values = p;
+    var pq = new Query<GenPost>(context)..values = p;
     p = await pq.insert();
 
     expect(p.id, greaterThan(0));
@@ -201,7 +201,7 @@ void main() {
 
     var t = new GenTime()..text = "hey";
 
-    var q = new Query<GenTime>()..values = t;
+    var q = new Query<GenTime>(context)..values = t;
 
     var result = await q.insert();
 
@@ -218,7 +218,7 @@ void main() {
       ..dateCreated = dt
       ..text = "hey";
 
-    var q = new Query<GenTime>()..values = t;
+    var q = new Query<GenTime>(context)..values = t;
 
     var result = await q.insert();
 
@@ -232,7 +232,7 @@ void main() {
 
     var t = new TransientModel()..value = "foo";
 
-    var q = new Query<TransientModel>()..values = t;
+    var q = new Query<TransientModel>(context)..values = t;
     var result = await q.insert();
     expect(result.transientValue, null);
   });
@@ -249,21 +249,21 @@ void main() {
 
     var u = new GenUser()..readFromMap(json);
 
-    var q = new Query<GenUser>()..values = u;
+    var q = new Query<GenUser>(context)..values = u;
 
     var result = await q.insert();
     expect(result.id, greaterThan(0));
     expect(result.name, "Bob");
     expect(result.posts, isNull);
 
-    var pq = new Query<GenPost>();
+    var pq = new Query<GenPost>(context);
     expect(await pq.fetch(), hasLength(0));
   });
 
   test("Insert object with no keys", () async {
     context = await contextWithModels([BoringObject]);
 
-    var q = new Query<BoringObject>();
+    var q = new Query<BoringObject>(context);
     var result = await q.insert();
     expect(result.id, greaterThan(0));
   });
@@ -271,8 +271,8 @@ void main() {
   test("Can use insert private properties", () async {
     context = await contextWithModels([PrivateField]);
 
-    await (new Query<PrivateField>()..values.public = "abc").insert();
-    var q = new Query<PrivateField>();
+    await (new Query<PrivateField>(context)..values.public = "abc").insert();
+    var q = new Query<PrivateField>(context);
     var result = await q.fetch();
     expect(result.first.public, "abc");
   });
@@ -280,7 +280,7 @@ void main() {
   test("Can use enum to set property to be stored in db", () async {
     context = await contextWithModels([EnumObject]);
 
-    var q = new Query<EnumObject>()
+    var q = new Query<EnumObject>(context)
       ..values.enumValues = EnumValues.efgh;
 
     var result = await q.insert();

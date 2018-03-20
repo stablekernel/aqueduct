@@ -4,6 +4,8 @@ import 'dart:mirrors';
 import '../helpers.dart';
 
 void main() {
+  ManagedContext context;
+
   setUpAll(() {
     var ps = new DefaultPersistentStore();
     ManagedDataModel dm = new ManagedDataModel([
@@ -18,7 +20,11 @@ void main() {
       DocumentTest,
       ConstructorOverride
     ]);
-    var _ = new ManagedContext(dm, ps);
+    context = new ManagedContext(dm, ps);
+  });
+
+  tearDownAll(() async {
+    await context.close();
   });
 
   test("Can set properties in constructor", () {
@@ -88,7 +94,7 @@ void main() {
     var user = new User();
     user.id = 1;
     user.name = "Bob";
-    var posts = [
+    List<Post> posts = <Post>[
       new Post()
         ..text = "A"
         ..id = 1
@@ -103,7 +109,7 @@ void main() {
         ..owner = user,
     ];
 
-    user.posts = new ManagedSet.from(posts);
+    user.posts = new ManagedSet<Post>.from(posts);
 
     expect(user.posts.length, 3);
     expect(user.posts.first.owner, user);
@@ -136,7 +142,7 @@ void main() {
         ..text = "C"
         ..id = 3,
     ];
-    user.posts = new ManagedSet.from(posts);
+    user.posts = new ManagedSet<Post>.from(posts);
 
     var m = user.asMap();
     expect(m is Map, true);
@@ -492,7 +498,7 @@ void main() {
 
   group("Private fields", () {
     test("Private fields on entity", () {
-      var entity = ManagedContext.defaultContext.dataModel.entityForType(PrivateField);
+      var entity = context.dataModel.entityForType(PrivateField);
       expect(entity.attributes["_private"], isNotNull);
     });
 

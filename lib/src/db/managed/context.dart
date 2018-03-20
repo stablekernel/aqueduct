@@ -1,3 +1,8 @@
+import 'dart:async';
+
+import 'package:aqueduct/src/application/service_registry.dart';
+import 'package:aqueduct/src/db/managed/data_model_manager.dart';
+
 import 'managed.dart';
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
@@ -5,10 +10,17 @@ import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/http/http.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 
-/// The target for database queries and coordinator of [Query]s.
+/// A service object that handles connecting to and sending queries to a database.
 ///
-/// An application that uses Aqueduct's ORM functionality must create an instance of this type. This is done
-/// in a [ApplicationChannel]'s constructor:
+/// You create objects of this type to use the Aqueduct ORM. Create instances in [ApplicationChannel.prepare]
+/// and inject them into controllers that execute database queries.
+///
+/// A context contains two types of objects:
+///
+/// - [PersistentStore] : Maintains a connection to a specific database. Transfers data between your application and the database.
+/// - [ManagedDataModel] : Contains information about the [ManagedObject] subclasses in your application.
+///
+/// Example usage:
 ///
 ///         class Channel extends ApplicationChannel {
 ///            ManagedContext context;
@@ -21,45 +33,38 @@ import 'package:aqueduct/src/openapi/documentable.dart';
 ///            }
 ///
 ///            @override
-///            Controller get entryPoint => ...;
+///            Controller get entryPoint {
+///              final router = new Router();
+///              router.route("/path").link(() => new DBController(context));
+///              return router;
+///            }
 ///         }
-///
-/// A [Query] must have a valid [ManagedContext] to execute. Most applications only need one [ManagedContext],
-/// so the most recently [ManagedContext] instantiated becomes the [ManagedContext.defaultContext]. By default, [Query]s
-/// target the [ManagedContext.defaultContext] and need not be specified.
 class ManagedContext implements APIComponentDocumenter {
-  /// The default context that a [Query] runs on.
-  ///
-  /// For classes that require a [ManagedContext] - like [Query] - this is the default context when none
-  /// is specified.
-  ///
-  /// This value is set when a [ManagedContext] is instantiated in an isolate; the last context created
-  /// is the default context. Most applications
-  /// will not use more than one [ManagedContext]. When running tests, you should set
-  /// this value each time you instantiate a [ManagedContext] to ensure that a previous test isolate
-  /// state did not set this property.
-  static ManagedContext defaultContext;
-
   /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
   ///
-  /// This instance will become the [ManagedContext.defaultContext], unless another [ManagedContext]
-  /// is created, in which the new context becomes the default context. See [ManagedContext.standalone]
-  /// to create a context without setting it as the default context.
+  /// This is the default constructor.
+  ///
+  /// A [Query] is sent to the database described by [persistentStore]. A [Query] may only be executed
+  /// on this context if its type is in [dataModel].
   ManagedContext(this.dataModel, this.persistentStore) {
-    defaultContext = this;
+    ManagedDataModelManager.add(dataModel);
+    ApplicationServiceRegistry.defaultInstance.register<ManagedContext>(this, (o) => o.close());
   }
-
-  /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
-  ///
-  /// This constructor creates an instance in the same way the default constructor does,
-  /// but does not set it to be the [defaultContext].
-  ManagedContext.standalone(this.dataModel, this.persistentStore);
 
   /// The persistent store that [Query]s on this context are executed through.
   final PersistentStore persistentStore;
 
   /// The data model containing the [ManagedEntity]s that describe the [ManagedObject]s this instance works with.
   final ManagedDataModel dataModel;
+
+  /// Closes this context and release its underlying resources.
+  ///
+  /// This method closes the connection to [persistentStore] and releases [dataModel].
+  /// A context may not be reused once it has been closed.
+  Future close() async {
+    await persistentStore?.close();
+    dataModel?.release();
+  }
 
   /// Returns an entity for a type from [dataModel].
   ///

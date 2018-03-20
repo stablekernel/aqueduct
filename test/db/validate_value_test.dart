@@ -1,9 +1,14 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
+import '../helpers.dart';
+
 void main() {
-  var dataModel = new ManagedDataModel([T, U, V, EnumObject]);
-  ManagedContext.defaultContext = new ManagedContext(dataModel, null);
+  final ctx = new ManagedContext(new ManagedDataModel([T, U, V, EnumObject]), new DefaultPersistentStore());
+
+  tearDownAll(() async {
+    await ctx.close();
+  });
 
   group("Validate.matches", () {
     test("Valid regex reports match", () {

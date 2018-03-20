@@ -13,25 +13,25 @@ export 'predicate.dart';
 export 'reduce.dart';
 
 
-/// Instances of this type configure and execute database commands.
+/// An object for configuring and executing a database query.
 ///
-/// Queries are used to fetch, update, insert, delete and count objects in a database. A query's [InstanceType] indicates
-/// the type of [ManagedObject] subclass' that this query will return as well. The [InstanceType]'s corresponding [ManagedEntity] determines
-/// the database table and columns to work with.
+/// Queries are used to fetch, update, insert, delete and count [InstanceType]s in a database.
+/// [InstanceType] must be a [ManagedObject].
 ///
-///         var query = new Query<Employee>()
-///           ..where.salary = whereGreaterThan(50000);
-///         var employees = await query.fetch();
+///         final query = new Query<Employee>()
+///           ..where((e) => e.salary).greaterThan(50000);
+///         final employees = await query.fetch();
 abstract class Query<InstanceType extends ManagedObject> {
   /// Creates a new [Query].
   ///
-  /// By default, [context] is [ManagedContext.defaultContext]. The [entity] of this instance is found by
-  /// evaluating [InstanceType] in [context].
-  factory Query([ManagedContext context]) {
-    var ctx = context ?? ManagedContext.defaultContext;
-    var entity = ctx.dataModel.entityForType(InstanceType);
+  /// The query will be sent to the database described by [context].
+  factory Query(ManagedContext context) {
+    final entity = context.dataModel.entityForType(InstanceType);
+    if (entity == null) {
+      throw new ArgumentError("Invalid context. The data model of 'context' does not contain '$InstanceType'.");
+    }
 
-    return ctx.persistentStore.newQuery<InstanceType>(ctx, entity);
+    return context.persistentStore.newQuery<InstanceType>(context, entity);
   }
 
   /// Creates a new [Query] without a static type.
@@ -40,13 +40,12 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// where the static type argument cannot be defined. Behaves just like the unnamed constructor.
   ///
   /// If [entity] is not in [context]'s [ManagedContext.dataModel], throws a internal failure [QueryException].
-  factory Query.forEntity(ManagedEntity entity, [ManagedContext context]) {
-    var ctx = context ?? ManagedContext.defaultContext;
-    if (!ctx.dataModel.entities.any((e) => identical(entity, e))) {
+  factory Query.forEntity(ManagedEntity entity, ManagedContext context) {
+    if (!context.dataModel.entities.any((e) => identical(entity, e))) {
       throw new StateError("Invalid query construction. Entity for '${entity.tableName}' is from different context than specified for query.");
     }
 
-    return ctx.persistentStore.newQuery<InstanceType>(ctx, entity);
+    return context.persistentStore.newQuery<InstanceType>(context, entity);
   }
 
   /// Configures this instance to fetch a relationship property identified by [object] or [set].

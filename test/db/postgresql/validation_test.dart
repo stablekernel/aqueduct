@@ -9,22 +9,22 @@ void main() {
   });
 
   tearDownAll(() async {
-    await ctx.persistentStore.close();
+    await ctx.close();
   });
 
   test("update runs update validations", () async {
-    var q = new Query<T>()
+    var q = new Query<T>(ctx)
       ..values.aOrb = "a";
     var objectID = (await q.insert()).id;
 
-    q = new Query<T>()
+    q = new Query<T>(ctx)
       ..where((o) => o.id).equalTo(objectID)
       ..values.equalTo2OnUpdate = 2;
     var o = (await q.update()).first;
     expect(o.aOrb, "a");
     expect(o.equalTo2OnUpdate, 2);
 
-    q = new Query<T>()
+    q = new Query<T>(ctx)
       ..where((o) => o.id).equalTo(objectID)
       ..values.aOrb = "c"
       ..values.equalTo2OnUpdate = 2;
@@ -35,7 +35,7 @@ void main() {
       expect(e.toString(), contains("Must be one of: 'a','b'"));
     }
 
-    q = new Query<T>()
+    q = new Query<T>(ctx)
       ..where((o) => o.id).equalTo(objectID)
       ..values.aOrb = "b"
       ..values.equalTo2OnUpdate = 1;
@@ -46,7 +46,7 @@ void main() {
       expect(e.toString(), contains("Must be equal to '2'"));
     }
 
-    q = new Query<T>()
+    q = new Query<T>(ctx)
       ..where((o) => o.id).equalTo(objectID)
       ..values.aOrb = "b"
       ..values.equalTo1OnInsert = 2
@@ -58,7 +58,7 @@ void main() {
   });
 
   test("updateOne runs update validations", () async {
-    var q = new Query<T>()
+    var q = new Query<T>(ctx)
       ..where((o) => o.id).equalTo(1)
       ..values.equalTo2OnUpdate = 3;
     try {
@@ -70,14 +70,14 @@ void main() {
   });
 
   test("insert runs insert validations", () async {
-    var q = new Query<T>()
+    var q = new Query<T>(ctx)
       ..values.aOrb = "a"
       ..values.equalTo1OnInsert = 1;
     var o = await q.insert();
     expect(o.aOrb, "a");
     expect(o.equalTo1OnInsert, 1);
 
-    q = new Query<T>()
+    q = new Query<T>(ctx)
       ..values.aOrb = "c"
       ..values.equalTo1OnInsert = 1;
     try {
@@ -87,7 +87,7 @@ void main() {
       expect(e.toString(), contains("Must be one of"));
     }
 
-    q = new Query<T>()
+    q = new Query<T>(ctx)
       ..values.aOrb = "b"
       ..values.equalTo1OnInsert = 2;
     try {
@@ -97,7 +97,7 @@ void main() {
       expect(e.toString(), contains("Must be equal to"));
     }
 
-    q = new Query<T>()
+    q = new Query<T>(ctx)
       ..values.aOrb = "b"
       ..values.equalTo1OnInsert = 1
       ..values.equalTo2OnUpdate = 1;
@@ -108,7 +108,7 @@ void main() {
   });
 
   test("valueMap ignores validations", () async {
-    var q = new Query<T>()
+    var q = new Query<T>(ctx)
       ..valueMap = {
         "aOrb": "c",
         "equalTo1OnInsert": 10
@@ -119,15 +119,15 @@ void main() {
   });
 
   test("willUpdate runs prior to update", () async {
-    var q = new Query<U>();
+    var q = new Query<U>(ctx);
     var o = await q.insert();
-    q = new Query<U>()..where((o) => o.id).equalTo(o.id);
+    q = new Query<U>(ctx)..where((o) => o.id).equalTo(o.id);
     o = (await q.update()).first;
     expect(o.q, "willUpdate");
   });
 
   test("willInsert runs prior to insert", () async {
-    var q = new Query<U>();
+    var q = new Query<U>(ctx);
     var o = await q.insert();
     expect(o.id, isNotNull);
     expect(o.q, "willInsert");
@@ -135,10 +135,10 @@ void main() {
   });
 
   test("ManagedObject onUpdate is subject to all validations", () async {
-    var q = new Query<V>();
+    var q = new Query<V>(ctx);
     var o = await q.insert();
 
-    q = new Query<V>()..where((o) => o.id).equalTo(o.id);
+    q = new Query<V>(ctx)..where((o) => o.id).equalTo(o.id);
     try {
       await q.update();
       expect(true, false);
@@ -149,7 +149,7 @@ void main() {
   });
 
   test("ManagedObject onInsert is subject to all validations", () async {
-    var q = new Query<W>();
+    var q = new Query<W>(ctx);
     try {
       await q.insert();
       expect(true, false);

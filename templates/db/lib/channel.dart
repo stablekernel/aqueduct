@@ -7,6 +7,8 @@ import 'model/model.dart';
 /// Override methods in this class to set up routes and initialize services like
 /// database connections. See http://aqueduct.io/docs/http/channel/.
 class WildfireChannel extends ApplicationChannel {
+  ManagedContext context;
+
   /// Initialize services in this method.
   ///
   /// Implement this method to initialize services, read values from [options]
@@ -18,7 +20,7 @@ class WildfireChannel extends ApplicationChannel {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
     var config = new WildfireConfiguration(options.configurationFilePath);
-    ManagedContext.defaultContext = contextWithConnectionInfo(config.database);
+    context = contextWithConnectionInfo(config.database);
   }
 
   /// Construct the request channel.
@@ -31,7 +33,7 @@ class WildfireChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    router.route("/model/[:id]").link(() => new ManagedObjectController<Model>());
+    router.route("/model/[:id]").link(() => new ManagedObjectController<Model>(context));
 
     return router;
   }

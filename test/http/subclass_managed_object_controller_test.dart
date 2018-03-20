@@ -17,7 +17,7 @@ void main() {
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 5; i++) {
-        var q = new Query<TestModel>()
+        var q = new Query<TestModel>(app.channel.context)
           ..values.createdAt = now
           ..values.name = "$i";
         allObjects.add(await q.insert());
@@ -27,7 +27,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.channel.context.persistentStore.close();
+      await app.channel.context.close();
       await app.stop();
     });
 
@@ -109,7 +109,6 @@ class TestChannel extends ApplicationChannel {
     var persistentStore = new PostgreSQLPersistentStore(
         "dart", "dart", "localhost", 5432, "dart_test");
     context = new ManagedContext(dataModel, persistentStore);
-    ManagedContext.defaultContext = context;
 
     var targetSchema = new Schema.fromDataModel(context.dataModel);
     var schemaBuilder = new SchemaBuilder.toSchema(
@@ -127,7 +126,7 @@ class TestChannel extends ApplicationChannel {
     final router = new Router();
     router
         .route("/controller/[:id]")
-        .link(() => new Subclass());
+        .link(() => new Subclass(context));
     return router;
   }
 }
@@ -143,6 +142,8 @@ class _TestModel {
 }
 
 class Subclass extends ManagedObjectController<TestModel> {
+  Subclass(ManagedContext context) : super(context);
+
   @override
   Future<Query<TestModel>> willFindObjectWithQuery(
       Query<TestModel> query) async {

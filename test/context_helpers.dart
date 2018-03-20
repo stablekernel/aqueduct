@@ -8,7 +8,6 @@ Future<ManagedContext> contextWithModels(List<Type> instanceTypes) async {
   var dataModel = new ManagedDataModel(instanceTypes);
   var commands = commandsFromDataModel(dataModel, temporary: true);
   var context = new ManagedContext(dataModel, persistentStore);
-  ManagedContext.defaultContext = context;
 
   for (var cmd in commands) {
     await persistentStore.execute(cmd);

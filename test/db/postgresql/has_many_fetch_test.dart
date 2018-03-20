@@ -19,16 +19,16 @@ void main() {
     List<Parent> truth;
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
-      truth = await populate();
+      truth = await populate(context);
     });
 
     tearDownAll(() async {
-      await context?.persistentStore?.close();
+      await context?.close();
     });
 
     test("Fetch has-many relationship that has none returns empty OrderedSet",
         () async {
-      var q = new Query<Parent>()
+      var q = new Query<Parent>(context)
         ..join(set: (p) => p.children)
         ..where((o) => o.name).equalTo("D");
 
@@ -44,7 +44,7 @@ void main() {
     test(
         "Fetch has-many relationship that is empty returns empty, and deeper nested relationships are ignored even when included",
         () async {
-      var q = new Query<Parent>()..where((o) => o.name).equalTo("D");
+      var q = new Query<Parent>(context)..where((o) => o.name).equalTo("D");
 
       q.join(set: (p) => p.children)
         ..join(object: (c) => c.toy)
@@ -62,7 +62,7 @@ void main() {
     test(
         "Fetch has-many relationship that is non-empty returns values for scalar properties in subobjects only",
         () async {
-      var q = new Query<Parent>()
+      var q = new Query<Parent>(context)
         ..join(set: (p) => p.children)
         ..where((o) => o.name).equalTo("C");
 
@@ -81,7 +81,7 @@ void main() {
     test(
         "Fetch has-many relationship, include has-one and has-many in that has-many, where bottom of graph has valid object for hasmany but not for hasone",
         () async {
-      var q = new Query<Parent>()..where((o) => o.name).equalTo("B");
+      var q = new Query<Parent>(context)..where((o) => o.name).equalTo("B");
 
       q.join(set: (p) => p.children)
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
@@ -113,7 +113,7 @@ void main() {
     test(
         "Fetch has-many relationship, include has-one and has-many in that has-many, where bottom of graph has valid object for hasone but not for hasmany",
         () async {
-      var q = new Query<Parent>()..where((o) => o.name).equalTo("A");
+      var q = new Query<Parent>(context)..where((o) => o.name).equalTo("A");
 
       q.join(set: (p) => p.children)
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
@@ -148,7 +148,7 @@ void main() {
     test(
         "Fetching multiple top-level instances and including one level of subobjects",
         () async {
-      var q = new Query<Parent>()
+      var q = new Query<Parent>(context)
         ..sortBy((p) => p.pid, QuerySortOrder.ascending)
         ..join(set: (p) => p.children)
         ..where((o) => o.name).oneOf(["A", "C", "D"]);
@@ -182,7 +182,7 @@ void main() {
     });
 
     test("Fetch entire graph", () async {
-      var q = new Query<Parent>();
+      var q = new Query<Parent>(context);
       q.join(set: (p) => p.children)
         ..join(object: (c) => c.toy)
         ..join(set: (c) => c.vaccinations);
@@ -225,16 +225,16 @@ void main() {
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
-      await populate();
+      await populate(context);
     });
 
     tearDownAll(() {
-      context?.persistentStore?.close();
+      context?.close();
     });
 
     test("Predicate impacts top-level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>()..where((o) => o.name).equalTo("A");
+      var q = new Query<Parent>(context)..where((o) => o.name).equalTo("A");
 
       q.join(set: (p) => p.children)
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
@@ -260,7 +260,7 @@ void main() {
 
     test("Predicate impacts 2nd level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>();
+      var q = new Query<Parent>(context);
 
       q.join(set: (p) => p.children)
         ..where((o) => o.name).equalTo("C1")
@@ -287,7 +287,7 @@ void main() {
 
     test("Predicate impacts 3rd level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>();
+      var q = new Query<Parent>(context);
 
       var childJoin = q.join(set: (p) => p.children)..join(object: (c) => c.toy);
       childJoin.join(set: (c) => c.vaccinations)..where((o) => o.kind).equalTo("V1");
@@ -325,7 +325,7 @@ void main() {
     test(
         "Predicate that omits top-level objects but would include lower level object return no results",
         () async {
-      var q = new Query<Parent>()..where((o) => o.pid).equalTo(5);
+      var q = new Query<Parent>(context)..where((o) => o.pid).equalTo(5);
 
       var childJoin = q.join(set: (p) => p.children)..join(object: (c) => c.toy);
       childJoin.join(set: (c) => c.vaccinations)..where((o) => o.kind).equalTo("V1");
@@ -341,17 +341,17 @@ void main() {
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
-      truth = await populate();
+      truth = await populate(context);
     });
 
     tearDownAll(() {
-      context?.persistentStore?.close();
+      context?.close();
     });
 
     test(
         "Sort descriptor on top-level object doesn't impact lower level objects",
         () async {
-      var q = new Query<Parent>()
+      var q = new Query<Parent>(context)
         ..sortBy((p) => p.name, QuerySortOrder.descending);
 
       q.join(set: (p) => p.children)
@@ -394,15 +394,15 @@ void main() {
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
-      await populate();
+      await populate(context);
     });
 
     tearDownAll(() {
-      context?.persistentStore?.close();
+      context?.close();
     });
 
     test("Objects returned in join are not the same instance", () async {
-      var q = new Query<Parent>()
+      var q = new Query<Parent>(context)
         ..where((o) => o.pid).equalTo(1)
         ..join(set: (p) => p.children);
 
@@ -418,17 +418,17 @@ void main() {
 
     setUpAll(() async {
       context = await contextWithModels([Child, Parent, Toy, Vaccine]);
-      await populate();
+      await populate(context);
     });
 
     tearDownAll(() {
-      context?.persistentStore?.close();
+      context?.close();
     });
 
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
       try {
-        new Query<Parent>()
+        new Query<Parent>(context)
           ..returningProperties((p) => [p.pid, p.children]);
       } on ArgumentError catch (e) {
         expect(
@@ -442,7 +442,7 @@ void main() {
         () async {
 
       try {
-        final q = new Query<Parent>();
+        final q = new Query<Parent>(context);
         q.join(set: (p) => p.children)
           ..returningProperties((p) => [p.cid, p.vaccinations]);
 
@@ -505,7 +505,7 @@ class _Vaccine {
   Child child;
 }
 
-Future<List<Parent>> populate() async {
+Future<List<Parent>> populate(ManagedContext context) async {
   var modelGraph = <Parent>[];
   var parents = [
     new Parent()
@@ -538,19 +538,19 @@ Future<List<Parent>> populate() async {
   ];
 
   for (var p in parents) {
-    var q = new Query<Parent>()..values.name = p.name;
+    var q = new Query<Parent>(context)..values.name = p.name;
     var insertedParent = await q.insert();
     modelGraph.add(insertedParent);
 
     insertedParent.children = new ManagedSet<Child>();
     for (var child in p.children ?? <Child>[]) {
-      var childQ = new Query<Child>()
+      var childQ = new Query<Child>(context)
         ..values.name = child.name
         ..values.parent = insertedParent;
       insertedParent.children.add(await childQ.insert());
 
       if (child.toy != null) {
-        var toyQ = new Query<Toy>()
+        var toyQ = new Query<Toy>(context)
           ..values.name = child.toy.name
           ..values.child = insertedParent.children.last;
         insertedParent.children.last.toy = await toyQ.insert();
@@ -560,7 +560,7 @@ Future<List<Parent>> populate() async {
         insertedParent.children.last.vaccinations =
             new ManagedSet<Vaccine>.from(
                 await Future.wait(child.vaccinations.map((v) {
-          var vQ = new Query<Vaccine>()
+          var vQ = new Query<Vaccine>(context)
             ..values.kind = v.kind
             ..values.child = insertedParent.children.last;
           return vQ.insert();

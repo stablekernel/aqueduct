@@ -6,11 +6,15 @@ import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 void main() {
   group("Valid data model", () {
+    ManagedContext context;
     ManagedDataModel dataModel;
     setUp(() {
       dataModel = new ManagedDataModel([User, Item, Manager, EnumObject, DocumentObject]);
-      ManagedContext.defaultContext =
-          new ManagedContext(dataModel, new DefaultPersistentStore());
+      context = new ManagedContext(dataModel, new DefaultPersistentStore());
+    });
+
+    tearDown(() async {
+      await context.close();
     });
 
     test("Entities have appropriate types", () {
@@ -237,8 +241,6 @@ void main() {
   group("Valid data model with deferred types", () {
     test("Entities have correct properties and relationships", () {
       var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
-      ManagedContext.defaultContext =
-          new ManagedContext(dataModel, new DefaultPersistentStore());
 
       expect(dataModel.entities.length, 2);
 
@@ -266,8 +268,6 @@ void main() {
 
     test("Will use tableName of base class if not declared in subclass", () {
       var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
-      ManagedContext.defaultContext =
-          new ManagedContext(dataModel, new DefaultPersistentStore());
       expect(dataModel.entityForType(TotalModel).tableName, "predefined");
     });
 

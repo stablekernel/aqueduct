@@ -227,8 +227,8 @@ class ManagedEntity implements APIComponentDocumenter {
           attrDocs = entityDocs[new Symbol(name)];
         }
 
-        schemaProperty.title = attrDocs.summary;
-        schemaProperty.description = (attrDocs.description ?? "") + (schemaProperty.description ?? "");
+        schemaProperty.title = attrDocs?.summary;
+        schemaProperty.description = (attrDocs?.description ?? "") + (schemaProperty.description ?? "");
       });
     });
 

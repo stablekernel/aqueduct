@@ -7,7 +7,7 @@ void main() {
   ManagedContext context;
 
   tearDown(() async {
-    await context?.persistentStore?.close();
+    await context?.close();
     context = null;
   });
 
@@ -17,18 +17,18 @@ void main() {
     var m = new TestModel()
       ..email = "a@a.com"
       ..name = "joe";
-    var req = new Query<TestModel>()..values = m;
+    var req = new Query<TestModel>(context)..values = m;
 
     var inserted = await req.insert();
     expect(inserted.id, greaterThan(0));
 
-    req = new Query<TestModel>()
+    req = new Query<TestModel>(context)
       ..predicate = new QueryPredicate("id = @id", {"id": inserted.id});
 
     var count = await req.delete();
     expect(count, 1);
 
-    req = new Query<TestModel>()
+    req = new Query<TestModel>(context)
       ..predicate = new QueryPredicate("id = @id", {"id": inserted.id});
 
     var result = await req.fetch();
@@ -45,21 +45,21 @@ void main() {
         ..email = "$i@a.com"
         ..name = "joe";
 
-      var req = new Query<TestModel>()..values = m;
+      var req = new Query<TestModel>(context)..values = m;
 
       await req.insert();
     }
 
-    var req = new Query<TestModel>();
+    var req = new Query<TestModel>(context);
     var result = await req.fetch();
     expect(result.length, 10);
 
-    req = new Query<TestModel>()
+    req = new Query<TestModel>(context)
       ..predicate = new QueryPredicate("id = @id", {"id": 1});
     var count = await req.delete();
     expect(count, 1);
 
-    req = new Query<TestModel>();
+    req = new Query<TestModel>(context);
     result = await req.fetch();
     expect(result.length, 9);
   });
@@ -73,20 +73,20 @@ void main() {
         ..email = "$i@a.com"
         ..name = "joe";
 
-      var req = new Query<TestModel>()..values = m;
+      var req = new Query<TestModel>(context)..values = m;
 
       await req.insert();
     }
 
-    var req = new Query<TestModel>();
+    var req = new Query<TestModel>(context);
     var result = await req.fetch();
     expect(result.length, 10);
 
-    req = new Query<TestModel>()..canModifyAllInstances = true;
+    req = new Query<TestModel>(context)..canModifyAllInstances = true;
     var count = await req.delete();
     expect(count, 10);
 
-    req = new Query<TestModel>();
+    req = new Query<TestModel>(context);
     result = await req.fetch();
     expect(result.length, 0);
   });
@@ -100,23 +100,23 @@ void main() {
         ..email = "$i@a.com"
         ..name = "joe";
 
-      var req = new Query<TestModel>()..values = m;
+      var req = new Query<TestModel>(context)..values = m;
 
       await req.insert();
     }
 
-    var req = new Query<TestModel>();
+    var req = new Query<TestModel>(context);
     var result = await req.fetch();
     expect(result.length, 10);
 
     try {
-      req = new Query<TestModel>();
+      req = new Query<TestModel>(context);
       await req.delete();
     } on StateError catch (e) {
       expect(e.toString(), contains("'canModifyAllInstances'"));
     }
 
-    req = new Query<TestModel>();
+    req = new Query<TestModel>(context);
     result = await req.fetch();
     expect(result.length, 10);
   });
@@ -125,18 +125,18 @@ void main() {
     context = await contextWithModels([TestModel, RefModel]);
 
     var testModelObject = new TestModel()..name = "a";
-    var testModelReq = new Query<TestModel>()..values = testModelObject;
+    var testModelReq = new Query<TestModel>(context)..values = testModelObject;
     var testObj = await testModelReq.insert();
 
     var refModelObject = new RefModel()..test = testObj;
-    var refModelReq = new Query<RefModel>()..values = refModelObject;
+    var refModelReq = new Query<RefModel>(context)..values = refModelObject;
     var refObj = await refModelReq.insert();
 
-    testModelReq = new Query<TestModel>()..canModifyAllInstances = true;
+    testModelReq = new Query<TestModel>(context)..canModifyAllInstances = true;
     var count = await testModelReq.delete();
     expect(count, 1);
 
-    refModelReq = new Query<RefModel>()
+    refModelReq = new Query<RefModel>(context)
       ..returningProperties((r) => [r.id, r.test]);
     refObj = await refModelReq.fetchOne();
     expect(refObj.test, null);
@@ -146,16 +146,16 @@ void main() {
     context = await contextWithModels([GRestrict, GRestrictInverse]);
 
     var griObject = new GRestrictInverse()..name = "a";
-    var griReq = new Query<GRestrictInverse>()..values = griObject;
+    var griReq = new Query<GRestrictInverse>(context)..values = griObject;
     var testObj = await griReq.insert();
 
     var grObject = new GRestrict()..test = testObj;
-    var grReq = new Query<GRestrict>()..values = grObject;
+    var grReq = new Query<GRestrict>(context)..values = grObject;
     await grReq.insert();
 
     var successful = false;
     try {
-      griReq = new Query<GRestrictInverse>()..canModifyAllInstances = true;
+      griReq = new Query<GRestrictInverse>(context)..canModifyAllInstances = true;
       await griReq.delete();
       successful = true;
     } on QueryException catch (e) {
@@ -169,18 +169,18 @@ void main() {
     context = await contextWithModels([GCascade, GCascadeInverse]);
 
     var obj = new GCascadeInverse()..name = "a";
-    var req = new Query<GCascadeInverse>()..values = obj;
+    var req = new Query<GCascadeInverse>(context)..values = obj;
     var testObj = await req.insert();
 
     var cascadeObj = new GCascade()..test = testObj;
-    var cascadeReq = new Query<GCascade>()..values = cascadeObj;
+    var cascadeReq = new Query<GCascade>(context)..values = cascadeObj;
     await cascadeReq.insert();
 
-    req = new Query<GCascadeInverse>()..canModifyAllInstances = true;
+    req = new Query<GCascadeInverse>(context)..canModifyAllInstances = true;
     var count = await req.delete();
     expect(count, 1);
 
-    cascadeReq = new Query<GCascade>();
+    cascadeReq = new Query<GCascade>(context);
     var res = await cascadeReq.fetch();
     expect(res.length, 0);
   });

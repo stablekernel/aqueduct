@@ -435,7 +435,7 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
 
     var results = await oldTokenQuery.fetch();
     if (results.length == 1) {
-      var deleteQ = new Query<ManagedAuthToken>()
+      var deleteQ = new Query<ManagedAuthToken>(context)
         ..where((o) => o.resourceOwner).identifiedBy(resourceOwnerIdentifier)
         ..where((o) => o.expirationDate).lessThanEqualTo(results.first.expirationDate);
 
