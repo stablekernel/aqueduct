@@ -10,13 +10,15 @@ import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/http/http.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 
-/// A service object required to execute [Query]s.
+/// A service object that handles connecting to and sending queries to a database.
 ///
 /// You create objects of this type to use the Aqueduct ORM. Create instances in [ApplicationChannel.prepare]
 /// and inject them into controllers that execute database queries.
 ///
-/// A context must have a [PersistentStore] (that determines the database queries are sent to) and a [ManagedDataModel] (that determines
-/// the [ManagedObject]s that can be used).
+/// A context contains two types of objects:
+///
+/// - [PersistentStore] : Maintains a connection to a specific database. Transfers data between your application and the database.
+/// - [ManagedDataModel] : Contains information about the [ManagedObject] subclasses in your application.
 ///
 /// Example usage:
 ///
@@ -41,6 +43,9 @@ class ManagedContext implements APIComponentDocumenter {
   /// Creates an instance of [ManagedContext] from a [ManagedDataModel] and [PersistentStore].
   ///
   /// This is the default constructor.
+  ///
+  /// A [Query] is sent to the database described by [persistentStore]. A [Query] may only be executed
+  /// on this context if its type is in [dataModel].
   ManagedContext(this.dataModel, this.persistentStore) {
     ManagedDataModelManager.add(dataModel);
     ApplicationServiceRegistry.defaultInstance.register<ManagedContext>(this, (o) => o.close());

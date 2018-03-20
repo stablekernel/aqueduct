@@ -13,21 +13,20 @@ export 'predicate.dart';
 export 'reduce.dart';
 
 
-/// Instances of this type configure and execute database commands.
+/// An object for configuring and executing a database query.
 ///
-/// Queries are used to fetch, update, insert, delete and count objects in a database. A query's [InstanceType] indicates
-/// the type of [ManagedObject] subclass' that this query will return as well. The [InstanceType]'s corresponding [ManagedEntity] determines
-/// the database table and columns to work with.
+/// Queries are used to fetch, update, insert, delete and count [InstanceType]s in a database.
+/// [InstanceType] must be a [ManagedObject].
 ///
-///         var query = new Query<Employee>()
-///           ..where.salary = whereGreaterThan(50000);
-///         var employees = await query.fetch();
+///         final query = new Query<Employee>()
+///           ..where((e) => e.salary).greaterThan(50000);
+///         final employees = await query.fetch();
 abstract class Query<InstanceType extends ManagedObject> {
   /// Creates a new [Query].
   ///
-  ///
+  /// The query will be sent to the database described by [context].
   factory Query(ManagedContext context) {
-    var entity = context.dataModel.entityForType(InstanceType);
+    final entity = context.dataModel.entityForType(InstanceType);
     if (entity == null) {
       throw new ArgumentError("Invalid context. The data model of 'context' does not contain '$InstanceType'.");
     }
