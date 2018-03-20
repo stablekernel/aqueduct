@@ -235,11 +235,13 @@ The body of an HTTP request can also be bound to a parameter:
 
 ```dart
 class CityController extends ResourceController {
+  CityController(this.context);
+
+  final ManagedContext context;
+
   @Operation.post()
   Future<Response> addCity(@Bind.body() City city) async {
-    final query = Query<City>(context)
-      ..values = city;
-    final insertedCity = await query.insert(city);
+    final insertedCity = await Query.insertObject(context, city);
 
     return new Response.ok(insertedCity);
   }

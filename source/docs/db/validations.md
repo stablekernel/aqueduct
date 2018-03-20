@@ -104,7 +104,7 @@ By default, validations are executed when a `Query<T>`'s `insert` or `update` me
 String validateOnInsertOnly;
 ```
 
-It is important to understand how validations work when a value for a property is *not* specified in an insert or update query. For example, consider a `Person` with a `name` and `email` property and then inserted in a query that omits `email`:
+It is important to understand how validations work when a value for a property is *not* specified in an insert or update query. For example, consider a `Person` with a `name` and `email` property and then inserted in a query where `email` hasn't been set:
 
 ```dart
 var query = new Query<Person>(context)
