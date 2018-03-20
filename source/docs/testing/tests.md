@@ -232,7 +232,7 @@ test("Starting an upload creates a pending record in the database", () async {
   var response = await req.post();
   expect(response, hasStatus(202));
 
-  var query = new Query<Upload>()
+  var query = new Query<Upload>(context)
     ..where((u) => u.pending).equalTo(true);
   var pendingUpload = await query.fetchOne();
 
@@ -357,7 +357,7 @@ static Future<ManagedAuthClient> addClientRecord(
     hashedPassword = AuthUtility.generatePasswordHash(clientSecret, salt);
   }
 
-  var clientQ = new Query<ManagedAuthClient>()
+  var clientQ = new Query<ManagedAuthClient>(context)
     ..values.id = clientID
     ..values.salt = salt
     ..values.hashedSecret = hashedPassword;

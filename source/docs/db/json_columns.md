@@ -55,7 +55,7 @@ The argument to the subscript operator may be a string (if `data` is a map) or a
 A `Document` property is first set when inserting with a `Query<T>`. The `values` property of the query is set to a `Document` object initialized with a JSON-encodable value.
 
 ```dart
-final query = Query<Event>()
+final query = Query<Event>(context)
   ..values.timestamp = DateTime.now()
   ..values.contents = Document({
     "type": "push",
@@ -72,7 +72,7 @@ In the above, the argument to `Document` will be JSON-encoded and stored in the 
 When fetching an object with `Document` properties with a `Query<T>`, you access the column's value through the document's `data` property.
 
 ```dart
-final query = Query<Event>()
+final query = Query<Event>(context)
   ..where((e) => e.id).equalTo(1);
 final event1 = await query.fetchOne();
 event1.contents.data == {
@@ -89,7 +89,7 @@ When fetching `Document` properties, the JSON data is decoded into the appropria
 Updating a row with `Document` properties works the same as inserting rows.
 
 ```dart
-final query = Query<Event>()
+final query = Query<Event>(context)
   ..where((e) => e.id).equalTo(1)
   ..values.contents = Document({
     "type": "push",
@@ -134,7 +134,7 @@ Note that using the subscript operator on a `Document` simply invokes it on its 
 When fetching a `Document` property, the default behavior is to return the entire JSON document as it is stored in the database column. You may fetch parts of the document you need by using `Query.returningProperties` and the subscript operator.
 
 ```dart
-final query = Query<Event>()
+final query = Query<Event>(context)
   ..returningProperties((e) => [e.id, e.contents["tags"]]);
 final eventsWithTags = query.fetch();
 ```
@@ -158,7 +158,7 @@ The value of `Event.contents` would only contain the array for the key "tags":
 You may also index arrays in a JSON column using the same subscript operator, and the subscript operator can also be nested. For example, the following query would fetch the "tags" array, and then fetch the string at index 0 from it:
 
 ```dart
-final query = Query<Event>()
+final query = Query<Event>(context)
   ..returningProperties((e) => [e.id, e.contents["tags"][0]]);
 final eventsWithFirstTag = await query.fetchOne();
 eventsWithFirstTag.contents.data == "v1";
@@ -167,7 +167,7 @@ eventsWithFirstTag.contents.data == "v1";
 If a key or index does not exist in the JSON document, the value of the returned property will be null. For this reason, you should use null-aware operators when accessing `Document.data`:
 
 ```dart
-final query = Query<Event>()
+final query = Query<Event>(context)
   ..returningProperties((e) => [e.id, e.contents["tags"][7]]); // 7 is out of bounds
 final eventsWithFirstTag = await query.fetchOne();
 if (eventsWithFirstTag.contents?.data == "v1") {
@@ -178,7 +178,7 @@ if (eventsWithFirstTag.contents?.data == "v1") {
 When fetching elements from a JSON array, you may use negative indices to specify a index from the end of the array.
 
 ```dart
-final query = Query<Event>()
+final query = Query<Event>(context)
   ..returningProperties((e) => [e.id, e.contents["tags"][-1]]);
 final eventsWithLastTag = await query.fetchOne();
 ```
@@ -187,7 +187,7 @@ Note that you can only fetch a single sub-structure from a `Document` column per
 
 ```dart
 // Invalid
-final query = Query<Event>()
+final query = Query<Event>(context)
   ..returningProperties((e) => [e.id, e.contents["type"], e.contents["user"]]);
 ```
 

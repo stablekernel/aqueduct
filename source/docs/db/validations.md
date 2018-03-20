@@ -107,7 +107,7 @@ String validateOnInsertOnly;
 It is important to understand how validations work when a value for a property is *not* specified in an insert or update query. For example, consider a `Person` with a `name` and `email` property and then inserted in a query that omits `email`:
 
 ```dart
-var query = new Query<Person>()
+var query = new Query<Person>(context)
   ..values.name = "Bob";
 
 await query.insert();
@@ -134,7 +134,7 @@ In the above declaration, the validator is only run on update operations and ens
 Validators are not run when a value is null. For example, the following insertion explicitly inserts `null` for the property `email`:
 
 ```dart
-var query = new Query<Person>()
+var query = new Query<Person>(context)
   ..values.email = null
   ..values.name = "Bob";
 
@@ -198,7 +198,7 @@ When overriding this method, the `super` implementation must be invoked to run v
 Validations are only run when values are set via `Query<T>.values`. Values set via `Query<T>.valueMap` are not validated. Therefore, objects should typically be inserted and updated using `Query<T>.values` unless validation must be ignored. Here's an example of skipping validation:
 
 ```dart
-var query = new Query<Person>()
+var query = new Query<Person>(context)
   ..valueMap = {
     "name" : "xyz",
     "email" : "whatever"

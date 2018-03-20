@@ -110,12 +110,12 @@ class _User {
 Your code works be assigning valid enumeration cases to the `User.type` property:
 
 ```dart
-var query = Query<User>()
+var query = Query<User>(context)
   ..values.name = "Bob"
   ..values.type = UserType.admin;
 var bob = await query.insert();
 
-query = Query<User>()
+query = Query<User>(context)
   ..where((u) => u.type).equalTo(UserType.admin);
 var allAdmins = await query.fetch();
 ```
@@ -132,7 +132,7 @@ Managed objects can be inserted into and fetched from a database. They can be us
 @Operation.post()
 Future<Response> createThing(@Bind.body() User user) async {
   // Construct Query for inserting the user, using values from the request body.
-  var insertQuery = Query<User>()
+  var insertQuery = Query<User>(context)
     ..values = user;
 
   // Execute insert, get User back from database
@@ -284,7 +284,7 @@ By default, the delete rule is `DeleteRule.nullify` (it is the least destructive
 When fetching managed objects from a database, there are rules on which relationship properties are fetched. By default, any 'has-one' or 'has-many' relationships are *not* fetched from the database:
 
 ```dart
-var query = Query<User>();
+var query = Query<User>(context);
 var user = await query.fetchOne();
 
 var userMap = user.asMap();
@@ -299,7 +299,7 @@ In order to fetch these types of relationships, you must explicitly configure a 
 The `Relate` property, however, will be fetched by default. But, the entire object is not fetched - only its primary key value:
 
 ```dart
-var query = Query<Job>();
+var query = Query<Job>(context);
 var job = await query.fetchOne();
 
 var jobMap = job.asMap();

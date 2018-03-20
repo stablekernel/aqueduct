@@ -15,14 +15,14 @@ It is really annoying for client applications to have to check for and merge dup
 `Query.pageBy` uses this technique. Its usage is similar to `sortBy`:
 
 ```dart
-var firstQuery = Query<Post>()
+var firstQuery = Query<Post>(context)
   ..pageBy((p) => p.dateCreated, QuerySortOrder.descending)
   ..fetchLimit = 10;
 
 var firstQueryResults = await firstQuery.fetch();
 
 var oldestPostWeGot = firstQueryResults.last.dateCreated;
-var nextQuery = Query<Post>()
+var nextQuery = Query<Post>(context)
   ..pageBy((p) => p.dateCreated, QuerySortOrder.descending, boundingValue: oldestPostWeGot)
   ..fetchLimit = 10;
 ```
@@ -51,7 +51,7 @@ Fetching every row of a table usually doesn't make sense. Instead, we want a spe
 A `Query`'s `where` method is a safe and elegant way to add this criteria to a query. This method allows you to assign boolean expressions to the properties of the object being queried. Each expression is added to the WHERE clause of the generated SQL query. Here's an example of a query that finds a `User` with an `id` equal to 1:
 
 ```dart
-var query = Query<User>()
+var query = Query<User>(context)
   ..where((u) => u.id).equalTo(1);
 ```
 
@@ -62,7 +62,7 @@ There are many expression methods like `equalTo` - see the documentation for `Qu
 You may add multiple criteria to a query by invoking `where` multiple times. Each criteria is combined together with a logical 'and'. For example, the following query will find all users whose `name` is "Bob" *and* `email` is not null:
 
 ```dart
-final query = Query<User>()
+final query = Query<User>(context)
   ..where((u) => u.id).equalTo("Bob")
   ..where((u) => u.email).isNotNull();
 ```
@@ -70,21 +70,21 @@ final query = Query<User>()
 You may apply criteria to relationship properties, too. For nullable relationships, you can apply null/not null checks:
 
 ```dart
-var employedQuery = Query<Person>()
+var employedQuery = Query<Person>(context)
   ..where((c) => c.company).isNotNull();
 ```
 
 More often, you use the `identifiedBy` expression for finding objects that belong to a specific object. For example, when finding all employees for a given company:
 
 ```dart
-var preferredQuery = Query<Employee>()
+var preferredQuery = Query<Employee>(context)
   ..where((c) => c.company).identifiedBy(23);
 ```
 
 The above will only return employees who work for company with a primary key value of 23. It is equivalent to the following, and both are acceptable:
 
 ```dart
-var sameQuery = Query<Employee>()
+var sameQuery = Query<Employee>(context)
   ..where((c) => c.company.id).equalTo(23);
 ```
 
@@ -123,7 +123,7 @@ class _Task {
 A `Query<User>` will fetch the `name` and `id` of each `User`. A `User`'s `tasks` are not fetched, so the data returned looks like this:
 
 ```dart
-var q = Query<User>();
+var q = Query<User>(context);
 var users = await q.fetch();
 
 users.first.asMap() == {
@@ -135,7 +135,7 @@ users.first.asMap() == {
 The `join()` method will tell a query to also include related objects. The following shows a fetch that gets users and their tasks:
 
 ```dart
-var q = Query<User>()
+var q = Query<User>(context)
   ..join(set: (u) => u.tasks);
 var users = await q.fetch();
 
@@ -154,7 +154,7 @@ When joining a has-many relationship, the `set:` argument takes a property selec
 The method `join()` returns a new `Query<T>`, where `T` is the type of the joined object. That is, the above code could also be written as such:
 
 ```dart
-var q = Query<User>();
+var q = Query<User>(context);
 
 // type annotation added for clarity
 Query<Task> taskSubQuery = q.join(set: (u) => u.tasks);
@@ -165,7 +165,7 @@ Query<Task> taskSubQuery = q.join(set: (u) => u.tasks);
 You do not execute a query created by a join, but you do configure it like any other query. (The parent query keeps track of the joined query and you execute the parent query.) For example, you may modify the properties that are returned for the joined objects:
 
 ```dart
-var q = Query<User>();
+var q = Query<User>(context);
 
 q.join(set: (u) => u.tasks)  
   ..returningProperties((t) => [t.id, t.contents]);
@@ -176,7 +176,7 @@ final usersAndTasks = await q.fetch();
 You may also apply filtering criteria to a join query. Consider a `Parent` that has-many `Children`. When fetching parents and joining their children, a `where` expression on the join query impacts which children are returned, but does not impact which parents are returned. For example, the following query would fetch every parent, but would only include children who are greater than 1 years old:
 
 ```dart
-final q = Query<Parent>();
+final q = Query<Parent>(context);
 q.join(set: (p) => p.children)
   ..where((c) => c.age).greaterThan(1);
 
@@ -188,7 +188,7 @@ final parentsAndTheirChildren = await q.fetch();
 However, consider if we applied a similar expression to the parent query - it would only return parents *who have children that are greater than 1 years old*.
 
 ```dart
-final q = Query<Parent>()
+final q = Query<Parent>(context)
   ..where((c) => c.children.haveAtLeastOneWhere.age).greaterThan(1);
   ..join(set: (p) => p.children);
 
@@ -198,7 +198,7 @@ final parentsWithOlderChildren = await q.fetch();
 The difference is where the expression is applied. When applying it to the child query, it removes child objects that don't meet the criteria. When applying it to the parent query, it removes parents that don't meet the criteria. The property `haveAtLeastOneWhere` is specific to has-many relationships. When selecting properties of a has-one or belongs-to relationship, you access the property directly:
 
 ```dart
-final q = Query<Child>()
+final q = Query<Child>(context)
   ..where((p) => p.parent.age).greaterThan(30)
   ..join(object: (p) => e.parent);
 
@@ -208,7 +208,7 @@ final childrenWithParentsOver30 = await q.fetch();
 Note that you may use relationship properties without explicitly joining the property. A SQL JOIN is still performed, but the related object is not included in the result set.
 
 ```dart
-final q = Query<Child>()
+final q = Query<Child>(context)
   ..where((p) => p.parent.age).greaterThan(30);
 
 final employeesWithManagersOver30YearsOld = await q.fetch();
@@ -219,7 +219,7 @@ final employeesWithManagersOver30YearsOld = await q.fetch();
 More than one join can be applied to a query, and subqueries can be nested. So, this is all valid, assuming the relationship properties exist:
 
 ```dart
-var q = Query<User>()
+var q = Query<User>(context)
   ..join(object: (u) => u.address);
 
 q.join(set: (u) => u.tasks)
@@ -233,7 +233,7 @@ This would fetch all users, their addresses, all of their tasks, and the locatio
 Queries can also be used to perform functions like `count`, `sum`, `average`, `min` and `max`. Here's an example:
 
 ```dart
-var query = Query<User>();
+var query = Query<User>(context);
 var numberOfUsers = await query.reduce.count();
 ```
 
@@ -246,7 +246,7 @@ var averageSalary = await query.reduce.sum((u) => u.salary);
 Any values configured in a `Query<T>` also impact the `reduce` function. For example, applying a `Query.where` and then executing a `sum` function will only sum the rows that meet the criteria of the where clause:
 
 ```dart
-var query = Query<User>()
+var query = Query<User>(context)
   ..where((u) => u.name.equalTo("Bob");
 var averageSalaryOfPeopleNamedBob = await query.reduce.sum((u) => u.salary);
 ```

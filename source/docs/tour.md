@@ -117,7 +117,7 @@ class ResourceController extends ResourceController {
 ```dart
 router
   .route("/users/[:id]")
-  .link(() => new ManagedObjectController<User>());
+  .link(() => new ManagedObjectController<User>(context));
 ```
 
 `Controller` is the base class for all controllers that form a channel. They only have a single method to handle the request, and must either return the request or a response. When a controller returns a response, the request is taken out of the channel.
@@ -205,7 +205,7 @@ import 'package:aqueduct/aqueduct.dart'
 class ResourceController extends ResourceController {
   @Operation.get()
   Future<Response> getAllResources() async {
-    var query = new Query<Resource>();
+    var query = new Query<Resource>(context);
 
     var results = await query.fetch();
 
@@ -217,7 +217,7 @@ class ResourceController extends ResourceController {
 The results can be filtered by the `Query.where` property, which has the same properties as the object being queried.
 
 ```dart
-var query = new Query<Employee>()
+var query = new Query<Employee>(context)
   ..where((e) => e.name).startsWith("Sa")
   ..where((e) => e.salary).greaterThan(50000);
 var results = await query.fetch();
@@ -226,13 +226,13 @@ var results = await query.fetch();
 Values set on the properties of `Query.values` are sent to the database on insert and update operations. Like `Query.where`, `Query.values` has the same properties as the object being inserted or updated.
 
 ```dart
-var query = new Query<Employee>()
+var query = new Query<Employee>(context)
   ..values.name = "Bob"
   ..values.salary = 50000;
 
 var bob = await query.insert();  
 
-var updateQuery = new Query<Employee>()
+var updateQuery = new Query<Employee>(context)
   ..where((e) => e.id).equalTo(bob.id)
   ..values.name = "Bobby";
 bob = await updateQuery.updateOne();  
@@ -241,7 +241,7 @@ bob = await updateQuery.updateOne();
 `Query<T>`s can sort and page on a result set. It can also join tables and return objects and their relationships:
 
 ```dart
-var query = new Query<Employee>()
+var query = new Query<Employee>(context)
   ..where((e) => e.name).equalTo("Sue Gallagher")
   ..join(object: (e) => e.manager)
   ..join(set: (e) => e.directReports);
@@ -297,7 +297,7 @@ class _Initiative {
 class UserController extends ResourceController {
   @Operation.put('id')
   Future<Response> updateUser(@Bind.path("id") int id, @Bind.body() User user) async {
-    var query = new Query<User>()
+    var query = new Query<User>(context)
       ..where((u) => e.id).equalTo(id)
       ..values = user;
 

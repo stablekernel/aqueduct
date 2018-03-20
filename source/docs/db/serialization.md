@@ -8,7 +8,7 @@ In the previous chapter, you have seen that `ManagedObject<T>`s subclasses are r
 class UserController extends ResourceController {
   @Operation.post()
   Future<Response> createUser(@Bind.body() User user) async {
-    var query = Query<User>()
+    var query = Query<User>(context)
       ..values = user;
 
     return Response.ok(await query.insert());
@@ -95,7 +95,7 @@ var user2 = User()..readFromMap({
   "name": null
 });
 
-var query = Query<User>()
+var query = Query<User>(context)
   ..where((u) => u.id).equalTo(3)
   ..where((u) => u.name).isNull();
 var user3 = await query.fetchOne();
@@ -231,7 +231,7 @@ Notice that the names of the keys - including relationship properties and proper
 It's important to note that "belongs to" relationships - those with `Relate` metadata - are always returned in `asMap()` when fetching an object from the database. However, the full object is not returned - only its primary key. Therefore, you will get the following result:
 
 ```dart
-var jobQuery = Query<Job>();
+var jobQuery = Query<Job>(context);
 var job = await jobQuery.fetchOne();
 
 job.asMap() == {

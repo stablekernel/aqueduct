@@ -45,6 +45,7 @@ pages:
     - 'Storage, Serialization and Deserialization': 'db/serialization.md'
     - 'Executing Queries': 'db/executing_queries.md'
     - 'Advanced Queries': 'db/advanced_queries.md'
+    - 'Transactions': 'db/transactions.md'
     - 'Validations': 'db/validations.md'
     - 'Migration and Tooling': 'db/db_tools.md'
     - 'JSON Document Storage': 'db/json_columns.md'

@@ -1,9 +1,11 @@
 # Inserting, Updating, Deleting and Fetching Objects
 
-To send commands to a database - whether to fetch, insert, delete or update objects - you will create, configure and execute instances of `Query<T>`. The type argument must be a subclass of `ManagedObject<T>`. This tells the `Query<T>` which table it will operate on. Here's an example of a `Query<T>` that fetches all instances of `User`:
+To send commands to a database - whether to fetch, insert, delete or update objects - you will create, configure and execute instances of `Query<T>`. The type of object the query is performed on is determined by the type argument. The argument must be a subclass of `ManagedObject`.
+
+A query compiles and executes a SQL query on a given [ManagedContext](connecting.db). Here's an example of a `Query<T>` that fetches all instances of `User`:
 
 ```dart
-var query = Query<User>();
+var query = Query<User>(context);
 var allUsers = await query.fetch();
 ```
 
@@ -36,7 +38,7 @@ class _User {
 To insert a new row into the `_User` table, a `Query<T>` is constructed and executed:
 
 ```dart
-var query = Query<User>()
+var query = Query<User>(context)
   ..values.name = "Bob"
   ..values.email = "bob@stablekernel.com";  
 
@@ -54,14 +56,14 @@ Every `Query<T>` has a `values` property that is the type of managed object bein
 INSERT INTO _user (name, email) VALUES ('Bob', 'bob@stablekernel.com')
 ```
 
-Note there is no value provided for the `id` property in this query. Recall that `primaryKey` metadata is a convenience for `Column` with autoincrementing behavior. Therefore, the database will assign a value for `id` during insertion. The object returned from `insert()` will be an instance of `User` that represents the inserted row and will include the auto-generated `id`.
+Note there is no value provided for the `id` property in this query. Recall that `primaryKey` is a convenience for `Column` with auto-incrementing behavior. Therefore, the database will assign a value for `id` during insertion. The object returned from `insert()` will be an instance of `User` that represents the inserted row and will include the auto-generated `id`.
 
 Properties that are not set in the `values` property will not be sent to the database.
 
 Values that are explicitly set to `null` will be sent as `NULL`. For example, consider the following `Query<T>`:
 
 ```dart
-var query = Query<User>()
+var query = Query<User>(context)
   ..values.name = null;
 await query.insert();
 ```
@@ -74,22 +76,26 @@ INSERT INTO _user (name) VALUES (NULL);
 
 If a property is not nullable (its `Column` has `nullable: false`) and its value is not set in a query prior to inserting it, the query will fail and throw an exception.
 
-You may also set `Query.values` with an instance of a managed object. This is valuable when reading an object from a JSON HTTP request body:
+You may also set `Query.values` with an instance of a managed object. This is valuable when reading an object from a HTTP request body:
 
 ```dart
 var user = User()
-  ..readFromMap(requestBody);
+  ..readFromMap(request.body.asMap());
 
-var query = Query<User>()
+var query = Query<User>(context)
   ..values = user;
 ```
-
-By default, the returned object from an `insert()` will have all of its properties set. See a later section on configuring which properties are returned from a `Query<T>`.
 
 If an insert query fails because of a unique constraint is violated, a `QueryException` will be thrown.  See a later section on how `QueryException`s are gracefully handled by `Controller`s. In short, it is unlikely that you have to handle `QueryException` directly - `Controller`s know how to turn them into the appropriate HTTP response.
 
 !!! warning "Setting Query.values"
     By default, `Query.values` is an empty instance of the object being inserted. If you replace it with an object - that you got from a request body or instantiated yourself - the properties are *copied* into `Query.values`. Further modifications of the replacement object have no effect on `Query.values`.
+
+There is a convenience static method on `Query` for inserting objects without having to create a `Query` object.
+
+```dart
+final insertedObject = await Query.insertObject(context, User()..name = "Bob");
+```
 
 ### Updating Data with a Query
 
@@ -99,7 +105,7 @@ An update query can - and likely should - be restricted to a single row or subse
 
 ```dart
 // A Query that will change any user's whose name is 'Bob' to 'Fred'
-var query = Query<User>()
+var query = Query<User>(context)
   ..values.name = "Fred"
   ..where((u) => u.name).equalTo("Bob");
 
@@ -118,7 +124,7 @@ Like `insert()`, only the values set in the `values` property of a query get upd
 
 ```dart
 // A Query that will remove names from anyone currently named Bob.
-var query = Query<User>()
+var query = Query<User>(context)
   ..values.name = null
   ..where((u) => u.name).equalTo("Bob");
 ```
@@ -130,7 +136,7 @@ There is a variant to `Query<T>.update` named `updateOne`. The `updateOne` metho
 
 ```dart
 // Update user with id = 1 to have the name 'Fred'
-var query = Query<User>()
+var query = Query<User>(context)
   ..values.name = "Fred"
   ..where((u) => u.id).equalTo(1);
 
@@ -146,7 +152,7 @@ Update queries have a safety feature that prevents you from accidentally updatin
 A `Query<T>` will delete rows from a database when using `delete()`. Like update queries, you should specify a row or rows using `where` properties of the `Query<T>`. The result of a delete operation will be a `Future<int>` with the number of rows deleted.
 
 ```dart
-var query = Query<User>()
+var query = Query<User>(context)
   ..where((u) => u.id).equalTo(1);
 
 int usersDeleted = await query.delete();
@@ -161,7 +167,7 @@ Any properties set in the query's `values` are ignored when executing a delete.
 Of the four basic operations of a `Query<T>`, fetching data is the most configurable. A simple `Query<T>` that would fetch every instance of some entity looks like this:
 
 ```dart
-var query = Query<User>();
+var query = Query<User>(context);
 
 List<User> allUsers = await query.fetch();
 ```
@@ -169,7 +175,7 @@ List<User> allUsers = await query.fetch();
 A fetch `Query<T>` uses its `where` property to filter the result set, just like delete and update queries. Any properties set in the query's `values` are ignored when executing a fetch, since there is no need for them. In addition to fetching a list of instances from a database, you may also fetch a single instance with `fetchOne`. If no instance is found, `null` is returned.
 
 ```dart
-var query = Query<User>()
+var query = Query<User>(context)
   ..where((u) => u.id).equalTo(1);
 
 User oneUser = await query.fetchOne();
@@ -182,7 +188,7 @@ Fetch queries can be limited to a number of instances with the `fetchLimit` prop
 Results of a fetch can be sorted using the `sortBy` method of a `Query<T>`. Here's an example:
 
 ```dart
-var q = Query<User>()
+var q = Query<User>(context)
   ..sortBy((u) => u.dateCreated, QuerySortOrder.ascending);
 ```
 
@@ -191,7 +197,7 @@ var q = Query<User>()
 A `Query<T>` results can be sorted by multiple properties. When multiple `sortBy`s are invoked on a `Query<T>`, later `sortBy`s are used to break ties in previous `sortBy`s. For example, the following query will sort by last name, then by first name:
 
 ```dart
-var q = Query<User>()
+var q = Query<User>(context)
   ..sortBy((u) => u.lastName, QuerySortOrder.ascending)
   ..sortBy((u) => u.firstName, QuerySortOrder.ascending);
 ```
@@ -224,7 +230,7 @@ Any property with `omitByDefault` set to true will not be fetched by default.
 A property that is `omitByDefault` can still be fetched. Likewise, a property that is in the defaults can still be omitted. Each `Query<T>` has a `returningProperties` method to adjust which properties do get returned from the query. Its usage looks like this:
 
 ```dart
-var query = Query<User>()
+var query = Query<User>(context)
   ..returningProperties((user) => [user.id, user.name]);
 ```
 

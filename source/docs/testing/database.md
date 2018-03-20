@@ -59,7 +59,7 @@ Future main() async {
   await provisionDatabase();
 
   var defaultUser = new User(...);
-  var query = new Query<User>()..values = defaultUser;
+  var query = new Query<User>(context)..values = defaultUser;
   await query.insert();
 
   ...

@@ -237,7 +237,7 @@ The body of an HTTP request can also be bound to a parameter:
 class CityController extends ResourceController {
   @Operation.post()
   Future<Response> addCity(@Bind.body() City city) async {
-    final query = new Query<City>()
+    final query = Query<City>(context)
       ..values = city;
     final insertedCity = await query.insert(city);
 
@@ -406,7 +406,7 @@ A `QueryController<T>` builds a `Query<T>` based on the incoming request. If the
 ```dart
 @Operation.put('id')
 Future<Response> updateUser(@Bind.path('id') int id, @Bind.body() User user) async {
-  var query = new Query<User>()
+  var query = new Query<User>(context)
     ..where((u) => u.id).equalTo(id)
     ..values = user;
 
@@ -418,6 +418,8 @@ A `QueryController<T>` builds this query before a operation method is invoked, s
 
 ```dart
 class UserController extends QueryController<User> {
+  UserController(ManagedContext context) : super(context);
+
   @Operation.put('id')
   Future<Response> updateUser(@Bind.path('id') int id) async {
     // query already exists and is identical to the snippet above
@@ -432,7 +434,7 @@ A `ManagedObjectController<T>` is significantly more powerful; you don't even ne
 ```dart
 router
   .route("/users/[:id]")
-  .link(() => new ManagedObjectController<User>());
+  .link(() => new ManagedObjectController<User>(context));
 ```
 
 This controller has the following behavior:
@@ -457,6 +459,8 @@ A `ManagedObjectController<T>` can also be subclassed. A subclass allows for cal
 
 ```dart
 class UserController extends ManagedObjectController<User> {
+  UserController(ManagedContext context) : super(context);
+
   Future<Query<User>> willUpdateObjectWithQuery(
       Query<User> query) async {
     query.values.lastUpdatedAt = new DateTime.now().toUtc();

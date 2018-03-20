@@ -62,7 +62,7 @@ Future main() async {
     ..hashedSecret = credentials.hashedSecret
     ..salt = credentials.salt;
 
-  var query = new Query<ManagedAuthClient>()..values = managedCredentials;
+  var query = new Query<ManagedAuthClient>(context)..values = managedCredentials;
   await query.insert();
 }
 ```
