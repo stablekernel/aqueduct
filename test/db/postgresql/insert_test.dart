@@ -7,7 +7,6 @@ import '../../helpers.dart';
 import 'package:postgres/postgres.dart';
 
 void main() {
-  justLogEverything();
   ManagedContext context;
 
   tearDown(() async {
@@ -41,6 +40,13 @@ void main() {
       expect(
           e.toString(), contains("Column 'bad_key' does not exist for table 'simple'"));
     }
+  });
+
+  test("Insert from static method", () async {
+    context = await contextWithModels([TestModel]);
+    final o = await Query.insertObject(context, new TestModel()..name = "Bob");
+    expect(o.id, isNotNull);
+    expect(o.name, "Bob");
   });
 
   test("Inserting an object that violated a unique constraint fails", () async {
