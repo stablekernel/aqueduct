@@ -194,24 +194,24 @@ void main() {
   group("Operation", () {
     test("Specify update only, only runs on update", () {
       var t = new T()..mustBeZeroOnUpdate = 10;
-      expect(ManagedValidator.run(t, operation: ValidateOperation.insert), true);
+      expect(ManagedValidator.run(t, operation: DatabaseOperation.insert), true);
 
       t.mustBeZeroOnUpdate = 10;
-      expect(ManagedValidator.run(t, operation: ValidateOperation.update), false);
+      expect(ManagedValidator.run(t, operation: DatabaseOperation.update), false);
 
       t.mustBeZeroOnUpdate = 0;
-      expect(ManagedValidator.run(t, operation: ValidateOperation.update), true);
+      expect(ManagedValidator.run(t, operation: DatabaseOperation.update), true);
     });
 
     test("Specify insert only, only runs on insert", () {
       var t = new T()..mustBeZeroOnInsert = 10;
-      expect(ManagedValidator.run(t, operation: ValidateOperation.update), true);
+      expect(ManagedValidator.run(t, operation: DatabaseOperation.update), true);
 
       t.mustBeZeroOnInsert = 10;
-      expect(ManagedValidator.run(t, operation: ValidateOperation.insert), false);
+      expect(ManagedValidator.run(t, operation: DatabaseOperation.insert), false);
 
       t.mustBeZeroOnInsert = 0;
-      expect(ManagedValidator.run(t, operation: ValidateOperation.insert), true);
+      expect(ManagedValidator.run(t, operation: DatabaseOperation.insert), true);
     });
 
     test("More than one matcher", () {
@@ -507,7 +507,7 @@ class _FT {
 
 class V extends ManagedObject<_V> implements _V {
   @override
-  bool validate({ValidateOperation forOperation, List<String> collectErrorsIn}) {
+  bool validate({DatabaseOperation forOperation, List<String> collectErrorsIn}) {
     collectErrorsIn ??= [];
 
     var valid = super.validate(forOperation: forOperation, collectErrorsIn: collectErrorsIn);

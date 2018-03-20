@@ -34,7 +34,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<InstanceType> insert() async {
-    validateInput(ValidateOperation.insert);
+    validateInput(DatabaseOperation.insert);
 
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch, values: valueMap ?? values?.backing?.contents);
@@ -61,7 +61,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<List<InstanceType>> update() async {
-    validateInput(ValidateOperation.update);
+    validateInput(DatabaseOperation.update);
 
     var builder = new PostgresQueryBuilder(entity,
         returningProperties: propertiesToFetch,

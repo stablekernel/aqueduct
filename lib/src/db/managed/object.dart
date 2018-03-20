@@ -184,7 +184,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   /// and [Query.insert]. It is not guaranteed to be non-null when invoked manually. This list is provided as a reference value
   /// by the object performing the validation. Do not create a new [List] and pass
   /// it to the superclass' implementation, as it will not be the same list the caller has access to.
-  bool validate({ValidateOperation forOperation: ValidateOperation.insert, List<String> collectErrorsIn}) {
+  bool validate({DatabaseOperation forOperation: DatabaseOperation.insert, List<String> collectErrorsIn}) {
     return ManagedValidator.run(this, operation: forOperation, errors: collectErrorsIn);
   }
 

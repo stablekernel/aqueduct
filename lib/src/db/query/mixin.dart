@@ -96,11 +96,11 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     _propertiesToFetch = identifyProperties(propertyIdentifiers);
   }
 
-  void validateInput(ValidateOperation op) {
+  void validateInput(DatabaseOperation op) {
     if (valueMap == null) {
-      if (op == ValidateOperation.insert) {
+      if (op == DatabaseOperation.insert) {
         values.willInsert();
-      } else if (op == ValidateOperation.update) {
+      } else if (op == DatabaseOperation.update) {
         values.willUpdate();
       }
 
