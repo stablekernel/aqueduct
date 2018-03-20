@@ -1,4 +1,6 @@
 import 'dart:mirrors';
+import 'package:aqueduct/src/db/managed/backing.dart';
+import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
@@ -176,6 +178,74 @@ class ManagedEntity implements APIComponentDocumenter {
     }
 
     return ManagedObject.instantiateDynamic(this);
+  }
+
+
+  ManagedAttributeDescription identifyAttribute<T, U>(T propertyIdentifier(U x)) {
+    final keyPaths = identifyProperties(propertyIdentifier);
+    if (keyPaths.length != 1) {
+      throw new ArgumentError("Invalid property selector. Cannot access more than one property for this operation.");
+    }
+
+    final firstKeyPath = keyPaths.first;
+    if (firstKeyPath.dynamicElements != null) {
+      throw new ArgumentError("Invalid property selector. Cannot access subdocuments for this operation.");
+    }
+
+    final elements = firstKeyPath.path;
+    if (elements.length > 1) {
+      throw new ArgumentError("Invalid property selector. Cannot use relationships for this operation.");
+    }
+
+    final propertyName = elements.first.name;
+    var attribute = attributes[propertyName];
+    if (attribute == null) {
+      if (relationships.containsKey(propertyName)) {
+        throw new ArgumentError(
+            "Invalid property selection. Property '$propertyName' on "
+                "'${name}' "
+                "is a relationship and cannot be selected for this operation.");
+      } else {
+        throw new ArgumentError(
+            "Invalid property selection. Column '$propertyName' does not "
+                "exist on table '${tableName}'.");
+      }
+    }
+
+    return attribute;
+  }
+
+  ManagedRelationshipDescription identifyRelationship<T, U>(T propertyIdentifier(U x)) {
+    final keyPaths = identifyProperties(propertyIdentifier);
+    if (keyPaths.length != 1) {
+      throw new ArgumentError("Invalid property selector. Cannot access more than one property for this operation.");
+    }
+
+    final firstKeyPath = keyPaths.first;
+    if (firstKeyPath.dynamicElements != null) {
+      throw new ArgumentError("Invalid property selector. Cannot access subdocuments for this operation.");
+    }
+
+    final elements = firstKeyPath.path;
+    if (elements.length > 1) {
+      throw new ArgumentError("Invalid property selector. Cannot identify a nested relationship for this operation.");
+    }
+
+    final propertyName = elements.first.name;
+    var desc = relationships[propertyName];
+    if (desc == null) {
+      throw new ArgumentError("Invalid property selection. Relationship named '$propertyName' on table '${tableName}' is not a relationship.");
+    }
+
+    return desc;
+  }
+
+  List<KeyPath> identifyProperties<T, U>(T propertiesIdentifier(U x)) {
+    final tracker = new ManagedAccessTrackingBacking();
+    var obj = newInstance(backing: tracker);
+    propertiesIdentifier(obj as U);
+
+    return tracker.keyPaths;
   }
 
   /// Two entities are considered equal if they have the same [tableName].

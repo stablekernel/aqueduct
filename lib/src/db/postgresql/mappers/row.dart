@@ -22,7 +22,7 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
   ManagedRelationshipDescription joiningProperty;
   EntityTableMapper originatingTable;
   PersistentJoinType type;
-  List<QueryExpression<dynamic>> expressions;
+  List<QueryExpression<dynamic, dynamic>> expressions;
   QueryPredicate predicate;
   QueryPredicate _joinCondition;
   List<SortMapper> _sortMappers;

@@ -37,7 +37,7 @@ class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<
   }
 
   String _columnName(dynamic selector(T object)) {
-    return query.identifyAttribute(selector).name;
+    return query.entity.identifyAttribute(selector).name;
   }
 
   Future<U> _execute<U>(String function) async {

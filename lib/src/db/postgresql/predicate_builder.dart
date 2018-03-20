@@ -19,7 +19,7 @@ abstract class PredicateBuilder implements EntityTableMapper {
   /// but also allows other joins to disambiguate column names by prefixing the parameter
   /// name.
   List<ExpressionMapper> propertyExpressionsFromObject(
-      List<QueryExpression<dynamic>> expressions, List<RowMapper> implicitRowMappers,
+      List<QueryExpression<dynamic, dynamic>> expressions, List<RowMapper> implicitRowMappers,
       {bool disambiguateVariableNames: false}) {
     if (expressions == null) {
       return [];
