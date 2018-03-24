@@ -5,9 +5,6 @@ import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:postgres/postgres.dart';
 
-export 'package:aqueduct/src/db/postgresql/mappers/expression.dart';
-export 'package:aqueduct/src/db/postgresql/mappers/row.dart';
-
 enum PersistentJoinType { leftOuter }
 
 /// Common interface for values that can be mapped to/from a database.
@@ -16,7 +13,7 @@ abstract class PostgresMapper {}
 class ColumnMapper extends PostgresMapper {
   ColumnMapper(this.table, this.property, {this.documentKeyPath});
 
-  static List<ColumnMapper> fromKeys(EntityTableMapper table, ManagedEntity entity, List<KeyPath> keys) {
+  static List<ColumnMapper> fromKeys(TableMapper table, ManagedEntity entity, List<KeyPath> keys) {
     // Ensure the primary key is always available and at 0th index.
     var primaryKeyIndex;
     for (var i = 0; i < keys.length; i++) {
@@ -75,7 +72,7 @@ class ColumnMapper extends PostgresMapper {
     PredicateOperator.equalTo: "="
   };
 
-  final EntityTableMapper table;
+  final TableMapper table;
   final ManagedPropertyDescription property;
   final List<String> documentKeyPath;
 
@@ -151,11 +148,3 @@ class ColumnMapper extends PostgresMapper {
   }
 }
 
-class PropertyValueMapper extends ColumnMapper {
-  PropertyValueMapper(EntityTableMapper table, ManagedPropertyDescription property, dynamic value)
-      : super(table, property) {
-    this.value = convertValueForStorage(value);
-  }
-
-  dynamic value;
-}

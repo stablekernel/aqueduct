@@ -1,18 +1,19 @@
+import 'package:aqueduct/src/db/postgresql/mappers/row.dart';
+
 import '../db.dart';
 import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
 import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
 
 abstract class RowInstantiator {
-  List<PostgresMapper> get returningOrderedMappers;
+  TableMapper get rootTableMapper;
+  List<PostgresMapper> get orderedReturnMappers;
 
-  Map<EntityTableMapper, Map<dynamic, ManagedObject>> distinctObjects = {};
-
-  EntityTableMapper get rootTableMapper;
+  Map<TableMapper, Map<dynamic, ManagedObject>> distinctObjects = {};
 
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
     try {
       return rows
-          .map((row) => instanceFromRow(row.iterator, returningOrderedMappers.iterator))
+          .map((row) => instanceFromRow(row.iterator, orderedReturnMappers.iterator))
           .where((wrapper) => wrapper.isNew)
           .map((wrapper) => wrapper.instance)
           .toList();
@@ -22,7 +23,7 @@ abstract class RowInstantiator {
   }
 
   InstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator, Iterator<ColumnMapper> mappingIterator,
-      {EntityTableMapper forTableMapper}) {
+      {TableMapper forTableMapper}) {
     forTableMapper ??= rootTableMapper;
 
     // Inspect the primary key first.  We are guaranteed to have the primary key come first in any rowIterator.
@@ -55,7 +56,7 @@ abstract class RowInstantiator {
     return new InstanceWrapper(instance, !alreadyExists);
   }
 
-  ManagedObject createInstanceWithPrimaryKeyValue(EntityTableMapper tableMapper, dynamic primaryKeyValue) {
+  ManagedObject createInstanceWithPrimaryKeyValue(TableMapper tableMapper, dynamic primaryKeyValue) {
     var instance = tableMapper.entity.newInstance();
 
     instance[tableMapper.entity.primaryKey] = primaryKeyValue;
@@ -71,7 +72,7 @@ abstract class RowInstantiator {
     return instance;
   }
 
-  ManagedObject getExistingInstance(EntityTableMapper tableMapper, dynamic primaryKeyValue) {
+  ManagedObject getExistingInstance(TableMapper tableMapper, dynamic primaryKeyValue) {
     var byType = distinctObjects[tableMapper];
     if (byType == null) {
       return null;
@@ -86,7 +87,7 @@ abstract class RowInstantiator {
     }
 
     var innerInstanceWrapper =
-        instanceFromRow(rowIterator, mapper.returningOrderedMappers.iterator, forTableMapper: mapper);
+        instanceFromRow(rowIterator, mapper.orderedReturnMappers.iterator, forTableMapper: mapper);
 
     if (mapper.isToMany) {
       // If to many, put in a managed set.
@@ -135,7 +136,7 @@ abstract class RowInstantiator {
     while (mappingIterator.moveNext()) {
       var mapper = mappingIterator.current;
       if (mapper is RowMapper) {
-        var _ = instanceFromRow(rowIterator, (mapper as RowMapper).returningOrderedMappers.iterator);
+        var _ = instanceFromRow(rowIterator, (mapper as RowMapper).orderedReturnMappers.iterator);
       } else {
         rowIterator.moveNext();
       }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:aqueduct/src/db/managed/key_path.dart';
+import 'package:aqueduct/src/db/postgresql/mappers/row.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 
 import '../db.dart';
@@ -49,7 +50,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("VALUES (${builder.insertionValueString}) ");
     }
 
-    if ((builder.returningOrderedMappers?.length ?? 0) > 0) {
+    if ((builder.orderedReturnMappers?.length ?? 0) > 0) {
       buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
@@ -79,7 +80,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw canModifyAllInstancesError;
     }
 
-    if ((builder.returningOrderedMappers?.length ?? 0) > 0) {
+    if ((builder.orderedReturnMappers?.length ?? 0) > 0) {
       buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
@@ -149,6 +150,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   PostgresQueryBuilder createFetchMapper() {
     var allSortDescriptors = new List<QuerySortDescriptor>.from(sortDescriptors ?? []);
+
+    // Add a sort descriptor and potentially another expression
     if (pageDescriptor != null) {
       validatePageDescriptor();
       var pageSortDescriptor = new QuerySortDescriptor(pageDescriptor.propertyName, pageDescriptor.order);
@@ -156,13 +159,9 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
       if (pageDescriptor.boundingValue != null) {
         final prop = entity.properties[pageDescriptor.propertyName];
-        final expr = new QueryExpression(new KeyPath(prop));
-
-        if (pageDescriptor.order == QuerySortOrder.ascending) {
-          expr.expression = new ComparisonExpression(pageDescriptor.boundingValue, PredicateOperator.greaterThan);
-        } else {
-          expr.expression = new ComparisonExpression(pageDescriptor.boundingValue, PredicateOperator.lessThan);
-        }
+        final operator = pageDescriptor.order == QuerySortOrder.ascending ? PredicateOperator.greaterThan : PredicateOperator.lessThan;
+        final expr = new QueryExpression(new KeyPath(prop),
+            withExpressions: [new ComparisonExpression(pageDescriptor.boundingValue, operator)]);
 
         expressions.add(expr);
       }
@@ -172,7 +171,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
         returningProperties: propertiesToFetch,
         predicate: predicate,
         expressions: expressions,
-        nestedRowMappers: rowMappersFromSubqueries,
+        joinedRowMappers: rowMappersFromSubqueries,
         sortDescriptors: allSortDescriptors,
         aliasTables: true);
 

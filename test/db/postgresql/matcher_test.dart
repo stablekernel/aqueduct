@@ -346,6 +346,15 @@ void main() {
       expect(results.any((tm) => tm.name == "Tim"), false);
     });
   });
+
+  group("not matcher", () {
+    test("can invert back to identity", () async {
+      var q = new Query<TestModel>(context)..where((o) => o.id).not.not.equalTo(1);
+      final results = await q.fetch();
+      expect(results.length, 1);
+      expect(results.first.id, 1);
+    });
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}

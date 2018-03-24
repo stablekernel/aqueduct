@@ -5,7 +5,7 @@ import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:aqueduct/src/db/query/query.dart';
 
 class ExpressionMapper extends ColumnMapper {
-  ExpressionMapper(EntityTableMapper table, ManagedPropertyDescription property, this.expression,
+  ExpressionMapper(TableMapper table, ManagedPropertyDescription property, this.expression,
       {this.additionalVariablePrefix: ""})
       : super(table, property);
 
@@ -101,15 +101,4 @@ class ExpressionMapper extends ColumnMapper {
 
     return new QueryPredicate("$n $operation @$variableName$typeSuffix", {variableName: matchValue});
   }
-}
-
-class SortMapper extends ColumnMapper {
-  SortMapper(EntityTableMapper table, ManagedPropertyDescription property, QuerySortOrder order)
-      : super(table, property) {
-    this.order = (order == QuerySortOrder.ascending ? "ASC" : "DESC");
-  }
-
-  String order;
-
-  String get orderByString => "${columnName(withTableNamespace: true)} $order";
 }

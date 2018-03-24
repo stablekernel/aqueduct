@@ -180,7 +180,10 @@ class ManagedEntity implements APIComponentDocumenter {
     return ManagedObject.instantiateDynamic(this);
   }
 
-
+  /// Returns an attribute in this entity for a property selector.
+  ///
+  /// Invokes [identifyProperties] with [propertyIdentifier], and ensures that a single attribute
+  /// on this entity was selected. Returns that attribute.
   ManagedAttributeDescription identifyAttribute<T, U>(T propertyIdentifier(U x)) {
     final keyPaths = identifyProperties(propertyIdentifier);
     if (keyPaths.length != 1) {
@@ -215,6 +218,10 @@ class ManagedEntity implements APIComponentDocumenter {
     return attribute;
   }
 
+  /// Returns a relationship in this entity for a property selector.
+  ///
+  /// Invokes [identifyProperties] with [propertyIdentifier], and ensures that a single relationship
+  /// on this entity was selected. Returns that relationship.
   ManagedRelationshipDescription identifyRelationship<T, U>(T propertyIdentifier(U x)) {
     final keyPaths = identifyProperties(propertyIdentifier);
     if (keyPaths.length != 1) {
@@ -240,6 +247,23 @@ class ManagedEntity implements APIComponentDocumenter {
     return desc;
   }
 
+  /// Returns a property selected by [propertyIdentifier].
+  ///
+  /// Invokes [identifyProperties] with [propertyIdentifier], and ensures that a single property
+  /// on this entity was selected. Returns that property.
+  KeyPath identifyProperty<T, U>(T propertyIdentifier(U x)) {
+    final properties = identifyProperties(propertyIdentifier);
+    if (properties.length != 1) {
+      throw new ArgumentError("Invalid property selector. Must reference a single property only.");
+    }
+
+    return properties.first;
+  }
+
+  /// Returns a list of properties selected by [propertiesIdentifier].
+  ///
+  /// Each selected property in [propertiesIdentifier] is returned in a [KeyPath] object that fully identifies the
+  /// property relative to this entity.
   List<KeyPath> identifyProperties<T, U>(T propertiesIdentifier(U x)) {
     final tracker = new ManagedAccessTrackingBacking();
     var obj = newInstance(backing: tracker);

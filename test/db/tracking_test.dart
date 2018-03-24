@@ -1,6 +1,3 @@
-import 'dart:async';
-
-import 'package:aqueduct/src/db/query/mixin.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import '../helpers.dart';
