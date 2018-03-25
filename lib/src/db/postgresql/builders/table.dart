@@ -36,6 +36,7 @@ class TableBuilder implements Returnable {
 
   TableBuilder.implicit(this.parent, this.joinedBy) :
     entity = joinedBy.inverse.entity {
+    tableAlias = generateTableAlias();
     returningValues = [];
     columnSortBuilders = [];
   }
@@ -276,7 +277,7 @@ class TableBuilder implements Returnable {
   }
 
   String get joinString {
-    if (hasImplicitJoins) {
+    if (isImplicitlyJoined) {
       return innerSelectString;
     }
 
