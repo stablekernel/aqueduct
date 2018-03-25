@@ -1,15 +1,15 @@
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 
-import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/expression.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/row.dart';
+import 'package:aqueduct/src/db/postgresql/builders/column.dart';
+import 'package:aqueduct/src/db/postgresql/builders/expression.dart';
+import 'package:aqueduct/src/db/postgresql/builders/row.dart';
 import 'package:aqueduct/src/db/query/matcher_expression.dart';
 
-abstract class TableMapper {
+abstract class TableBuilder {
   ManagedEntity get entity;
 
-  List<PostgresMapper> orderedReturnMappers;
+  List<Returnable> orderedReturnMappers;
 
   String get tableDefinition {
     if (tableAlias == null) {
@@ -43,8 +43,8 @@ abstract class TableMapper {
   /// mapper is created and passed to subsequent invocations. This triggers a join
   /// but also allows other joins to disambiguate column names by prefixing the parameter
   /// name.
-  List<ExpressionMapper> propertyExpressionsFromObject(
-      List<QueryExpression<dynamic, dynamic>> expressions, List<RowMapper> implicitRowMappers,
+  List<ColumnExpressionBuilder> propertyExpressionsFromObject(
+      List<QueryExpression<dynamic, dynamic>> expressions, List<TableRowBuilder> implicitRowMappers,
       {bool disambiguateVariableNames: false}) {
     if (expressions == null) {
       return [];
@@ -69,11 +69,11 @@ abstract class TableMapper {
             bool isColumn = lastElement is ManagedAttributeDescription || isBelongsTo;
 
             if (isColumn) {
-              return [new ExpressionMapper(this, lastElement, expression.expression, additionalVariablePrefix: prefix)];
+              return [new ColumnExpressionBuilder(this, lastElement, expression.expression, additionalVariablePrefix: prefix)];
             }
           } else if (isForeignKey) {
             return [
-              new ExpressionMapper(this, expression.keyPath.path.first, expression.expression,
+              new ColumnExpressionBuilder(this, expression.keyPath.path.first, expression.expression,
                   additionalVariablePrefix: prefix)
             ];
           }
@@ -87,12 +87,12 @@ abstract class TableMapper {
 
           // Let's see if we already have a join for this relationship
           // and if not, create an implicit one.
-          RowMapper rowMapper = orderedReturnMappers
-              .where((m) => m is RowMapper)
-              .firstWhere((m) => (m as RowMapper).isJoinOnProperty(firstElement), orElse: () {
+          TableRowBuilder rowMapper = orderedReturnMappers
+              .where((m) => m is TableRowBuilder)
+              .firstWhere((m) => (m as TableRowBuilder).isJoinOnProperty(firstElement), orElse: () {
             disambiguate = false;
 
-            final m = new RowMapper.implicit(PersistentJoinType.leftOuter, firstElement, this);
+            final m = new TableRowBuilder.implicit(PersistentJoinType.leftOuter, firstElement, this);
             implicitRowMappers.add(m);
             return m;
           });
@@ -103,7 +103,8 @@ abstract class TableMapper {
           if (isPropertyOnThisEntity) {
             final inversePrimaryKey =
                 (lastElement as ManagedRelationshipDescription).inverse.entity.primaryKeyAttribute;
-            final expr = new QueryExpression(new KeyPath(inversePrimaryKey), withExpressions: expression.expressions);
+            final expr = new QueryExpression(new KeyPath(inversePrimaryKey))
+              ..expression = expression.expression;
             return rowMapper
                 .propertyExpressionsFromObject([expr], implicitRowMappers, disambiguateVariableNames: disambiguate);
           }

@@ -9,16 +9,6 @@ class QueryExpressionJunction<T, InstanceType> {
   QueryExpressionJunction._(this.lhs);
 
   final QueryExpression<T, InstanceType> lhs;
-
-  QueryExpression<U, InstanceType> or<U>(U propertyIdentifier(InstanceType x)) {
-    if (lhs.expression is! OrExpression) {
-      lhs.expression = new OrExpression(lhs.expression);
-    } else {
-
-    }
-
-    return new QueryExpression(keyPath);
-  }
 }
 
 /// Contains methods for adding logical expressions to properties when building a [Query].
@@ -68,7 +58,7 @@ class QueryExpression<T, InstanceType> {
   ///         final query = new Query<Employee>()
   ///           ..where((e) => e.name).not.equalTo("Bob");
   QueryExpression<T, InstanceType> get not {
-    _invertNext = true;
+    _invertNext = !_invertNext;
 
     return this;
   }

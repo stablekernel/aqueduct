@@ -1,14 +1,14 @@
-import 'package:aqueduct/src/db/postgresql/mappers/row.dart';
+import 'package:aqueduct/src/db/postgresql/builders/row.dart';
 
 import '../db.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
+import 'package:aqueduct/src/db/postgresql/builders/column.dart';
+import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 
 abstract class RowInstantiator {
-  TableMapper get rootTableMapper;
-  List<PostgresMapper> get orderedReturnMappers;
+  TableBuilder get rootTableMapper;
+  List<Returnable> get orderedReturnMappers;
 
-  Map<TableMapper, Map<dynamic, ManagedObject>> distinctObjects = {};
+  Map<TableBuilder, Map<dynamic, ManagedObject>> distinctObjects = {};
 
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
     try {
@@ -22,8 +22,8 @@ abstract class RowInstantiator {
     }
   }
 
-  InstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator, Iterator<ColumnMapper> mappingIterator,
-      {TableMapper forTableMapper}) {
+  InstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator, Iterator<ColumnBuilder> mappingIterator,
+      {TableBuilder forTableMapper}) {
     forTableMapper ??= rootTableMapper;
 
     // Inspect the primary key first.  We are guaranteed to have the primary key come first in any rowIterator.
@@ -45,18 +45,18 @@ abstract class RowInstantiator {
 
     while (mappingIterator.moveNext()) {
       var mapper = mappingIterator.current;
-      if (mapper is! RowMapper) {
+      if (mapper is! TableRowBuilder) {
         rowIterator.moveNext();
         applyColumnValueToProperty(instance, mapper, rowIterator.current);
-      } else if (mapper is RowMapper) {
-        applyRowValuesToInstance(instance, mapper as RowMapper, rowIterator);
+      } else if (mapper is TableRowBuilder) {
+        applyRowValuesToInstance(instance, mapper as TableRowBuilder, rowIterator);
       }
     }
 
     return new InstanceWrapper(instance, !alreadyExists);
   }
 
-  ManagedObject createInstanceWithPrimaryKeyValue(TableMapper tableMapper, dynamic primaryKeyValue) {
+  ManagedObject createInstanceWithPrimaryKeyValue(TableBuilder tableMapper, dynamic primaryKeyValue) {
     var instance = tableMapper.entity.newInstance();
 
     instance[tableMapper.entity.primaryKey] = primaryKeyValue;
@@ -72,7 +72,7 @@ abstract class RowInstantiator {
     return instance;
   }
 
-  ManagedObject getExistingInstance(TableMapper tableMapper, dynamic primaryKeyValue) {
+  ManagedObject getExistingInstance(TableBuilder tableMapper, dynamic primaryKeyValue) {
     var byType = distinctObjects[tableMapper];
     if (byType == null) {
       return null;
@@ -81,7 +81,7 @@ abstract class RowInstantiator {
     return byType[primaryKeyValue];
   }
 
-  void applyRowValuesToInstance(ManagedObject instance, RowMapper mapper, Iterator<dynamic> rowIterator) {
+  void applyRowValuesToInstance(ManagedObject instance, TableRowBuilder mapper, Iterator<dynamic> rowIterator) {
     if (mapper.flattened.isEmpty) {
       return;
     }
@@ -110,7 +110,7 @@ abstract class RowInstantiator {
     }
   }
 
-  void applyColumnValueToProperty(ManagedObject instance, ColumnMapper mapper, dynamic value) {
+  void applyColumnValueToProperty(ManagedObject instance, ColumnBuilder mapper, dynamic value) {
     var desc = mapper.property;
 
     if (desc is ManagedRelationshipDescription) {
@@ -132,11 +132,11 @@ abstract class RowInstantiator {
     }
   }
 
-  void exhaustNullInstanceIterator(Iterator<dynamic> rowIterator, Iterator<ColumnMapper> mappingIterator) {
+  void exhaustNullInstanceIterator(Iterator<dynamic> rowIterator, Iterator<ColumnBuilder> mappingIterator) {
     while (mappingIterator.moveNext()) {
       var mapper = mappingIterator.current;
-      if (mapper is RowMapper) {
-        var _ = instanceFromRow(rowIterator, (mapper as RowMapper).orderedReturnMappers.iterator);
+      if (mapper is TableRowBuilder) {
+        var _ = instanceFromRow(rowIterator, (mapper as TableRowBuilder).orderedReturnMappers.iterator);
       } else {
         rowIterator.moveNext();
       }

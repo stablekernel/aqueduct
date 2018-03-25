@@ -1,19 +1,21 @@
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
+import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:postgres/postgres.dart';
 
 enum PersistentJoinType { leftOuter }
 
 /// Common interface for values that can be mapped to/from a database.
-abstract class PostgresMapper {}
+abstract class Returnable {}
 
-class ColumnMapper extends PostgresMapper {
-  ColumnMapper(this.table, this.property, {this.documentKeyPath});
+class ColumnBuilder extends Returnable {
+  ColumnBuilder(this.table, this.property, {this.documentKeyPath});
 
-  static List<ColumnMapper> fromKeys(TableMapper table, ManagedEntity entity, List<KeyPath> keys) {
+  static List<ColumnBuilder> fromKeys(TableBuilder table, List<KeyPath> keys) {
+    final entity = table.entity;
+
     // Ensure the primary key is always available and at 0th index.
     var primaryKeyIndex;
     for (var i = 0; i < keys.length; i++) {
@@ -32,7 +34,7 @@ class ColumnMapper extends PostgresMapper {
     }
 
     return keys.map((key) {
-      return new ColumnMapper(table, propertyForName(entity, key.path.first.name), documentKeyPath: key.dynamicElements);
+      return new ColumnBuilder(table, propertyForName(entity, key.path.first.name), documentKeyPath: key.dynamicElements);
     }).toList();
   }
 
@@ -72,7 +74,7 @@ class ColumnMapper extends PostgresMapper {
     PredicateOperator.equalTo: "="
   };
 
-  final TableMapper table;
+  final TableBuilder table;
   final ManagedPropertyDescription property;
   final List<String> documentKeyPath;
 

@@ -21,16 +21,6 @@ abstract class PredicateExpression {
   PredicateExpression get inverse;
 }
 
-class OrExpression implements PredicateExpression {
-  OrExpression(PredicateExpression expr) {
-    expressions.add(expr);
-  }
-
-  final List<PredicateExpression> expressions = [];
-
-  //PredicateExpression get inverse
-}
-
 class ComparisonExpression implements PredicateExpression {
   const ComparisonExpression(this.value, this.operator);
 

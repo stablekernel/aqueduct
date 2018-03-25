@@ -1,11 +1,11 @@
 import 'package:aqueduct/src/db/managed/managed.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
+import 'package:aqueduct/src/db/postgresql/builders/column.dart';
+import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:aqueduct/src/db/query/query.dart';
 
-class ExpressionMapper extends ColumnMapper {
-  ExpressionMapper(TableMapper table, ManagedPropertyDescription property, this.expression,
+class ColumnExpressionBuilder extends ColumnBuilder {
+  ColumnExpressionBuilder(TableBuilder table, ManagedPropertyDescription property, this.expression,
       {this.additionalVariablePrefix: ""})
       : super(table, property);
 
@@ -36,7 +36,7 @@ class ExpressionMapper extends ColumnMapper {
     var name = columnName(withTableNamespace: true);
     var variableName = columnName(withPrefix: defaultVariablePrefix);
 
-    return new QueryPredicate("$name ${ColumnMapper.symbolTable[operator]} @$variableName$typeSuffix",
+    return new QueryPredicate("$name ${ColumnBuilder.symbolTable[operator]} @$variableName$typeSuffix",
         {variableName: convertValueForStorage(value)});
   }
 

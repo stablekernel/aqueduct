@@ -1,34 +1,34 @@
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/expression.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/sort.dart';
+import 'package:aqueduct/src/db/postgresql/builders/expression.dart';
+import 'package:aqueduct/src/db/postgresql/builders/sort.dart';
 import 'package:aqueduct/src/db/query/query.dart';
 import 'package:aqueduct/src/db/query/sort_descriptor.dart';
 
-import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
+import 'package:aqueduct/src/db/postgresql/builders/table.dart';
+import 'package:aqueduct/src/db/postgresql/builders/column.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
-class RowMapper extends PostgresMapper with TableMapper {
-  RowMapper(this.type, this.joiningProperty, List<KeyPath> propertiesToFetch,
+class TableRowBuilder extends Returnable with TableBuilder {
+  TableRowBuilder(this.type, this.joiningProperty, List<KeyPath> propertiesToFetch,
       {this.predicate, this.expressions, List<QuerySortDescriptor> sortDescriptors}) {
-    orderedReturnMappers = ColumnMapper.fromKeys(this, entity, propertiesToFetch);
-    _sortMappers = sortDescriptors?.map((s) => new SortMapper(this, entity.properties[s.key], s.order))?.toList();
+    orderedReturnMappers = ColumnBuilder.fromKeys(this, propertiesToFetch);
+    _sortMappers = sortDescriptors?.map((s) => new ColumnSortBuilder(this, entity.properties[s.key], s.order))?.toList();
   }
 
-  RowMapper.implicit(this.type, this.joiningProperty, this.originatingTable) {
+  TableRowBuilder.implicit(this.type, this.joiningProperty, this.originatingTable) {
     orderedReturnMappers = [];
   }
 
   ManagedRelationshipDescription joiningProperty;
-  TableMapper originatingTable;
+  TableBuilder originatingTable;
   PersistentJoinType type;
   List<QueryExpression<dynamic, dynamic>> expressions;
   QueryPredicate predicate;
   QueryPredicate _joinCondition;
-  List<SortMapper> _sortMappers;
-  List<RowMapper> _implicitRowMappers;
-  List<ExpressionMapper> _matcherExpressions;
+  List<ColumnSortBuilder> _sortMappers;
+  List<TableRowBuilder> _implicitRowMappers;
+  List<ColumnExpressionBuilder> _matcherExpressions;
 
   @override
   ManagedEntity get entity => joiningProperty.inverse.entity;
@@ -36,18 +36,18 @@ class RowMapper extends PostgresMapper with TableMapper {
   ManagedRelationshipDescription get foreignKeyProperty =>
       joiningProperty.relationshipType == ManagedRelationshipType.belongsTo ? joiningProperty : joiningProperty.inverse;
 
-  List<SortMapper> get sortMappers {
-    var allSortMappers = _sortMappers ?? <SortMapper>[];
-    orderedReturnMappers.where((p) => p is RowMapper).forEach((p) {
-      allSortMappers.addAll((p as RowMapper).sortMappers);
+  List<ColumnSortBuilder> get sortMappers {
+    var allSortMappers = _sortMappers ?? <ColumnSortBuilder>[];
+    orderedReturnMappers.where((p) => p is TableRowBuilder).forEach((p) {
+      allSortMappers.addAll((p as TableRowBuilder).sortMappers);
     });
     return allSortMappers;
   }
 
   Map<String, dynamic> get substitutionVariables {
     var variables = joinCondition.parameters ?? {};
-    orderedReturnMappers.where((p) => p is RowMapper).forEach((p) {
-      variables.addAll((p as RowMapper).substitutionVariables);
+    orderedReturnMappers.where((p) => p is TableRowBuilder).forEach((p) {
+      variables.addAll((p as TableRowBuilder).substitutionVariables);
     });
     matcherExpressions.where((expr) => !identical(expr.table, this)).forEach((expr) {
       if (expr.predicate?.parameters != null) {
@@ -58,9 +58,9 @@ class RowMapper extends PostgresMapper with TableMapper {
     return variables;
   }
 
-  List<ColumnMapper> get flattened {
+  List<ColumnBuilder> get flattened {
     return orderedReturnMappers.fold([], (prev, c) {
-      if (c is RowMapper) {
+      if (c is TableRowBuilder) {
         prev.addAll(c.flattened);
       } else {
         prev.add(c);
@@ -69,7 +69,7 @@ class RowMapper extends PostgresMapper with TableMapper {
     });
   }
 
-  List<RowMapper> get implicitRowMappers {
+  List<TableRowBuilder> get implicitRowMappers {
     if (_implicitRowMappers == null) {
       _buildMatcher();
     }
@@ -77,7 +77,7 @@ class RowMapper extends PostgresMapper with TableMapper {
     return _implicitRowMappers;
   }
 
-  List<ExpressionMapper> get matcherExpressions {
+  List<ColumnExpressionBuilder> get matcherExpressions {
     if (_matcherExpressions == null) {
       _buildMatcher();
     }
@@ -87,13 +87,13 @@ class RowMapper extends PostgresMapper with TableMapper {
 
   QueryPredicate get joinCondition {
     if (_joinCondition == null) {
-      ColumnMapper leftMapper, rightMapper;
+      ColumnBuilder leftMapper, rightMapper;
       if (identical(foreignKeyProperty, joiningProperty)) {
-        leftMapper = new ColumnMapper(originatingTable, joiningProperty);
-        rightMapper = new ColumnMapper(this, entity.primaryKeyAttribute);
+        leftMapper = new ColumnBuilder(originatingTable, joiningProperty);
+        rightMapper = new ColumnBuilder(this, entity.primaryKeyAttribute);
       } else {
-        leftMapper = new ColumnMapper(originatingTable, originatingTable.entity.primaryKeyAttribute);
-        rightMapper = new ColumnMapper(this, joiningProperty.inverse);
+        leftMapper = new ColumnBuilder(originatingTable, originatingTable.entity.primaryKeyAttribute);
+        rightMapper = new ColumnBuilder(this, joiningProperty.inverse);
       }
 
       var leftColumn = leftMapper.columnName(withTableNamespace: true);
@@ -111,20 +111,20 @@ class RowMapper extends PostgresMapper with TableMapper {
     return _joinCondition;
   }
 
-  void addRowMappers(List<RowMapper> rowMappers, {bool areImplicit: false}) {
+  void addRowMappers(List<TableRowBuilder> rowMappers, {bool areImplicit: false}) {
     rowMappers.forEach((r) {
       if (!areImplicit) {
         orderedReturnMappers.where((m) {
-          if (m is ColumnMapper) {
+          if (m is ColumnBuilder) {
             return identical(m.property, r.joiningProperty);
           }
 
           return false;
         }).forEach((m) {
-          (m as ColumnMapper).fetchAsForeignKey = true;
+          (m as ColumnBuilder).fetchAsForeignKey = true;
         });
       } else {
-        _implicitRowMappers ??= <RowMapper>[];
+        _implicitRowMappers ??= <TableRowBuilder>[];
         validateImplicitRowMapper(r);
         _implicitRowMappers.add(r);
       }
@@ -134,12 +134,12 @@ class RowMapper extends PostgresMapper with TableMapper {
     orderedReturnMappers.addAll(rowMappers);
   }
 
-  void validateImplicitRowMapper(RowMapper rowMapper) {
+  void validateImplicitRowMapper(TableRowBuilder rowMapper) {
     // Check implicit row mappers for cycles
     var parentTable = originatingTable;
     while (parentTable != null) {
-      var inverseMapper = parentTable.orderedReturnMappers.reversed.where((pm) => pm is RowMapper).firstWhere((pm) {
-        return identical(rowMapper.joiningProperty.inverse, (pm as RowMapper).joiningProperty);
+      var inverseMapper = parentTable.orderedReturnMappers.reversed.where((pm) => pm is TableRowBuilder).firstWhere((pm) {
+        return identical(rowMapper.joiningProperty.inverse, (pm as TableRowBuilder).joiningProperty);
       }, orElse: () => null);
 
       if (inverseMapper != null) {
@@ -149,8 +149,8 @@ class RowMapper extends PostgresMapper with TableMapper {
             "but this matcher should be on a parent 'Query'.");
       }
 
-      if (parentTable is RowMapper) {
-        parentTable = (parentTable as RowMapper).originatingTable;
+      if (parentTable is TableRowBuilder) {
+        parentTable = (parentTable as TableRowBuilder).originatingTable;
       } else {
         parentTable = null;
       }
@@ -159,7 +159,7 @@ class RowMapper extends PostgresMapper with TableMapper {
 
   String get innerSelectString {
     var nestedJoins =
-        orderedReturnMappers.where((m) => m is RowMapper).map((rm) => (rm as RowMapper).joinString).join(" ");
+        orderedReturnMappers.where((m) => m is TableRowBuilder).map((rm) => (rm as TableRowBuilder).joinString).join(" ");
 
     var flattenedColumns = flattened;
     var columnsWithNamespace = flattenedColumns.map((p) => p.columnName(withTableNamespace: true)).join(",");
@@ -184,9 +184,9 @@ class RowMapper extends PostgresMapper with TableMapper {
 
     var thisJoin = "LEFT OUTER JOIN $tableDefinition ON ${joinCondition.format}";
 
-    if (orderedReturnMappers.any((p) => p is RowMapper)) {
-      var nestedJoins = orderedReturnMappers.where((p) => p is RowMapper).map((p) {
-        return (p as RowMapper).joinString;
+    if (orderedReturnMappers.any((p) => p is TableRowBuilder)) {
+      var nestedJoins = orderedReturnMappers.where((p) => p is TableRowBuilder).map((p) {
+        return (p as TableRowBuilder).joinString;
       }).toList();
       nestedJoins.insert(0, thisJoin);
       return nestedJoins.join(" ");
@@ -216,7 +216,7 @@ class RowMapper extends PostgresMapper with TableMapper {
   }
 
   void _buildMatcher() {
-    var rowMappers = <RowMapper>[];
+    var rowMappers = <TableRowBuilder>[];
     _matcherExpressions = propertyExpressionsFromObject(expressions, rowMappers);
 
     addRowMappers(rowMappers, areImplicit: true);

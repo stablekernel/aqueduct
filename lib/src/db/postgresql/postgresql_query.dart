@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:aqueduct/src/db/managed/key_path.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/row.dart';
+import 'package:aqueduct/src/db/postgresql/builders/row.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 
 import '../db.dart';
 import '../query/mixin.dart';
 import '../query/sort_descriptor.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
+import 'package:aqueduct/src/db/postgresql/builders/column.dart';
 import 'query_builder.dart';
 import 'postgresql_query_reduce.dart';
 
@@ -160,8 +160,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       if (pageDescriptor.boundingValue != null) {
         final prop = entity.properties[pageDescriptor.propertyName];
         final operator = pageDescriptor.order == QuerySortOrder.ascending ? PredicateOperator.greaterThan : PredicateOperator.lessThan;
-        final expr = new QueryExpression(new KeyPath(prop),
-            withExpressions: [new ComparisonExpression(pageDescriptor.boundingValue, operator)]);
+        final expr = new QueryExpression(new KeyPath(prop))
+          ..expression = new ComparisonExpression(pageDescriptor.boundingValue, operator);
 
         expressions.add(expr);
       }
@@ -222,10 +222,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     }
   }
 
-  List<RowMapper> get rowMappersFromSubqueries {
+  List<TableRowBuilder> get rowMappersFromSubqueries {
     return subQueries?.keys?.map((relationshipDesc) {
           var subQuery = subQueries[relationshipDesc] as PostgresQuery;
-          var joinElement = new RowMapper(PersistentJoinType.leftOuter, relationshipDesc, subQuery.propertiesToFetch,
+          var joinElement = new TableRowBuilder(PersistentJoinType.leftOuter, relationshipDesc, subQuery.propertiesToFetch,
               predicate: subQuery.predicate,
               sortDescriptors: subQuery.sortDescriptors,
               expressions: subQuery.expressions);
