@@ -1,113 +1,44 @@
-import 'package:aqueduct/src/db/managed/key_path.dart';
-import 'package:aqueduct/src/db/postgresql/builders/column.dart';
-import 'package:aqueduct/src/db/postgresql/builders/row.dart';
 import 'package:aqueduct/src/db/postgresql/builders/sort.dart';
 import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 import 'package:aqueduct/src/db/postgresql/builders/value.dart';
+import 'package:aqueduct/src/db/postgresql/postgresql_query.dart';
 
 import '../db.dart';
-import '../query/sort_descriptor.dart';
 import 'row_instantiator.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
-class PostgresQueryBuilder extends Object with RowInstantiator, TableBuilder {
+class PostgresQueryBuilder extends TableBuilder {
   static const String valueKeyPrefix = "v_";
 
-  PostgresQueryBuilder(this.entity,
-      {List<KeyPath> returningProperties,
-      Map<String, dynamic> values,
-      List<QueryExpression<dynamic, dynamic>> expressions,
-      QueryPredicate predicate,
-      List<TableRowBuilder> joinedRowMappers,
-      List<QuerySortDescriptor> sortDescriptors,
-      bool aliasTables: false}) {
-    if (aliasTables) {
-      shouldAliasTables = true;
-      tableAlias = "t0";
-    }
-
-    if (returningProperties == null) {
-      orderedReturnMappers = [];
-    } else {
-      orderedReturnMappers = ColumnBuilder.fromKeys(this, returningProperties);
-    }
-
-    this.sortMappers = sortDescriptors?.map((s) => new ColumnSortBuilder(this, entity.properties[s.key], s.order))?.toList();
-
-    if (joinedRowMappers != null) {
-      orderedReturnMappers.addAll(joinedRowMappers);
-      joinedRowMappers.forEach((rm) {
-        rm.originatingTable = this;
-
-        // If we're joining on belongsTo relationship, ensure
-        // that foreign key column gets ignored during instantiation.
-        // It'll get populated by the joined table.
-        orderedReturnMappers.where((m) {
-          if (m is ColumnBuilder) {
-            return identical(m.property, rm.joiningProperty);
-          }
-
-          return false;
-        }).forEach((m) {
-          (m as ColumnBuilder).fetchAsForeignKey = true;
-        });
-      });
-    }
-
-    columnValueMappers =
-        values?.keys?.map((key) => validatedColumnValueMapper(values, key))?.where((v) => v != null)?.toList() ?? [];
-
-    var implicitJoins = <TableRowBuilder>[];
-    finalizedPredicate = predicateFrom(expressions, [predicate], implicitJoins);
-    orderedReturnMappers.addAll(implicitJoins);
-  }
-
-  bool shouldAliasTables = false;
-
-  List<ColumnValueBuilder> columnValueMappers;
-  QueryPredicate finalizedPredicate;
-  List<ColumnSortBuilder> sortMappers;
-
-  @override
-  ManagedEntity entity;
-
-  @override
-  String tableAlias;
-
-  @override
-  TableBuilder get rootTableMapper => this;
-
-  String get primaryTableDefinition => tableDefinition;
-
-  bool get containsJoins => orderedReturnMappers.reversed.any((p) => p is TableRowBuilder);
-
-  String get whereClause => finalizedPredicate?.format;
-
-  Map<String, dynamic> get substitutionValueMap {
-    var m = <String, dynamic>{};
-    if (finalizedPredicate?.parameters != null) {
-      m.addAll(finalizedPredicate.parameters);
-    }
-
-    columnValueMappers.forEach((ColumnValueBuilder c) {
-      m[c.columnName(withPrefix: valueKeyPrefix)] = c.value;
+  PostgresQueryBuilder(PostgresQuery query) : super(query) {
+    (query.valueMap ?? query.values?.backing?.contents).forEach((key, value) {
+      addColumnValueBuilder(key, value);
     });
 
-    orderedReturnMappers.where((rm) => rm is TableRowBuilder).forEach((rm) {
-      m.addAll((rm as TableRowBuilder).substitutionVariables);
-    });
-
-    return m;
+    predicate = QueryPredicate.andPredicates(predicates);
+    substitutionValueMap.addAll(predicate?.parameters ?? {});
   }
 
-  List<ColumnBuilder> get flattenedReturnMappers {
-    return orderedReturnMappers.expand((c) {
-      if (c is TableRowBuilder) {
-        return c.flattened;
-      }
-      return [c];
-    }).toList();
+  final List<ColumnValueBuilder> columnValueMappers = [];
+  final Map<String, dynamic> substitutionValueMap = {};
+
+  QueryPredicate predicate;
+
+  bool get containsJoins => returningValues.reversed.any((p) => p is TableBuilder);
+
+
+  void addColumnValueBuilder(String key, dynamic value) {
+    final builder = _createColumnValueBuilder(key, value);
+    columnValueMappers.add(builder);
+    substitutionValueMap[builder.columnName(withPrefix: valueKeyPrefix)] = builder.value;
   }
+
+  List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
+    final instantiator = new RowInstantiator(this, returningValues);
+    return instantiator.instancesForRows(rows);
+  }
+
+  String get whereClauseString => predicate?.format;
 
   String get updateValueString {
     return columnValueMappers.map((m) {
@@ -125,18 +56,20 @@ class PostgresQueryBuilder extends Object with RowInstantiator, TableBuilder {
     return columnValueMappers.map((c) => c.columnName(withTypeSuffix: true, withPrefix: "@$valueKeyPrefix")).join(",");
   }
 
+  @override
   String get joinString {
-    return orderedReturnMappers.where((e) => e is TableRowBuilder).map((e) => (e as TableRowBuilder).joinString).join(" ");
+    return returningValues.where((e) => e is TableBuilder).map((e) => (e as TableBuilder).joinString).join(" ");
   }
 
   String get returningColumnString {
-    return flattenedReturnMappers.map((p) => p.columnName(withTableNamespace: shouldAliasTables)).join(",");
+    return returningColumns.map((p) => p.columnName(withTableNamespace: containsJoins)).join(",");
   }
 
   String get orderByString {
-    var allSortMappers = new List<ColumnSortBuilder>.from(sortMappers);
+    var allSortMappers = new List<ColumnSortBuilder>.from(columnSortBuilders);
 
-    var nestedSorts = orderedReturnMappers.where((m) => m is TableRowBuilder).expand((m) => (m as TableRowBuilder).sortMappers);
+    var nestedSorts =
+        returningValues.where((m) => m is TableBuilder).expand((m) => (m as TableBuilder).columnSortBuilders);
     allSortMappers.addAll(nestedSorts);
 
     if (allSortMappers.length == 0) {
@@ -146,7 +79,7 @@ class PostgresQueryBuilder extends Object with RowInstantiator, TableBuilder {
     return "ORDER BY ${allSortMappers.map((s) => s.orderByString).join(",")}";
   }
 
-  ColumnValueBuilder validatedColumnValueMapper(Map<String, dynamic> valueMap, String key) {
+  ColumnValueBuilder _createColumnValueBuilder(String key, dynamic value) {
     var property = entity.properties[key];
     if (property == null) {
       throw new ArgumentError("Invalid query. Column '$key' does not exist for table '${entity.tableName}'");
@@ -157,7 +90,6 @@ class PostgresQueryBuilder extends Object with RowInstantiator, TableBuilder {
         return null;
       }
 
-      var value = valueMap[key];
       if (value != null) {
         if (value is ManagedObject || value is Map) {
           return new ColumnValueBuilder(this, property, value[property.destinationEntity.primaryKey]);
@@ -169,23 +101,6 @@ class PostgresQueryBuilder extends Object with RowInstantiator, TableBuilder {
       }
     }
 
-    return new ColumnValueBuilder(this, property, valueMap[key]);
-  }
-
-  QueryPredicate predicateFrom(
-      List<QueryExpression<dynamic, dynamic>> expressions, List<QueryPredicate> predicates, List<TableRowBuilder> createdImplicitRowMappers) {
-    var matchers = propertyExpressionsFromObject(expressions, createdImplicitRowMappers);
-    var allPredicates = matchers.expand((p) => [p.predicate]).toList();
-    allPredicates.addAll(predicates.where((p) => p != null));
-    return QueryPredicate.andPredicates(allPredicates);
-  }
-
-  int aliasCounter = 0;
-
-  @override
-  String generateTableAlias() {
-    tableAlias ??= "t0";
-    aliasCounter++;
-    return "t$aliasCounter";
+    return new ColumnValueBuilder(this, property, value);
   }
 }

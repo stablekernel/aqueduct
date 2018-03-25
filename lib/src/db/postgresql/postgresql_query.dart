@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:aqueduct/src/db/managed/key_path.dart';
-import 'package:aqueduct/src/db/postgresql/builders/row.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 
 import '../db.dart';
@@ -37,11 +36,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   Future<InstanceType> insert() async {
     validateInput(ValidateOperation.insert);
 
-    var builder = new PostgresQueryBuilder(entity,
-        returningProperties: propertiesToFetch, values: valueMap ?? values?.backing?.contents);
+    var builder = new PostgresQueryBuilder(this);
 
     var buffer = new StringBuffer();
-    buffer.write("INSERT INTO ${builder.primaryTableDefinition} ");
+    buffer.write("INSERT INTO ${builder.tableNameString} ");
 
     if (builder.columnValueMappers.isEmpty) {
       buffer.write("VALUES (DEFAULT) ");
@@ -50,7 +48,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("VALUES (${builder.insertionValueString}) ");
     }
 
-    if ((builder.orderedReturnMappers?.length ?? 0) > 0) {
+    if ((builder.returningValues?.length ?? 0) > 0) {
       buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
@@ -64,23 +62,19 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   Future<List<InstanceType>> update() async {
     validateInput(ValidateOperation.update);
 
-    var builder = new PostgresQueryBuilder(entity,
-        returningProperties: propertiesToFetch,
-        values: valueMap ?? values?.backing?.contents,
-        expressions: expressions,
-        predicate: predicate);
+    var builder = new PostgresQueryBuilder(this);
 
     var buffer = new StringBuffer();
-    buffer.write("UPDATE ${builder.primaryTableDefinition} ");
+    buffer.write("UPDATE ${builder.tableNameString} ");
     buffer.write("SET ${builder.updateValueString} ");
 
-    if (builder.whereClause != null) {
-      buffer.write("WHERE ${builder.whereClause} ");
+    if (builder.whereClauseString != null) {
+      buffer.write("WHERE ${builder.whereClauseString} ");
     } else if (!canModifyAllInstances) {
       throw canModifyAllInstancesError;
     }
 
-    if ((builder.orderedReturnMappers?.length ?? 0) > 0) {
+    if ((builder.returningValues?.length ?? 0) > 0) {
       buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
@@ -106,13 +100,13 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<int> delete() async {
-    var builder = new PostgresQueryBuilder(entity, predicate: predicate, expressions: expressions);
+    var builder = new PostgresQueryBuilder(this);
 
     var buffer = new StringBuffer();
-    buffer.write("DELETE FROM ${builder.primaryTableDefinition} ");
+    buffer.write("DELETE FROM ${builder.tableNameString} ");
 
-    if (builder.whereClause != null) {
-      buffer.write("WHERE ${builder.whereClause} ");
+    if (builder.whereClauseString != null) {
+      buffer.write("WHERE ${builder.whereClauseString} ");
     } else if (!canModifyAllInstances) {
       throw canModifyAllInstancesError;
     }
@@ -123,13 +117,13 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<InstanceType> fetchOne() async {
-    var rowMapper = createFetchMapper();
+    var builder = createFetchBuilder();
 
-    if (!rowMapper.containsJoins) {
+    if (!builder.containsJoins) {
       fetchLimit = 1;
     }
 
-    var results = await _fetch(rowMapper);
+    var results = await _fetch(builder);
     if (results.length == 1) {
       return results.first;
     } else if (results.length > 1) {
@@ -143,12 +137,12 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<List<InstanceType>> fetch() async {
-    return _fetch(createFetchMapper());
+    return _fetch(createFetchBuilder());
   }
 
   //////
 
-  PostgresQueryBuilder createFetchMapper() {
+  PostgresQueryBuilder createFetchBuilder() {
     var allSortDescriptors = new List<QuerySortDescriptor>.from(sortDescriptors ?? []);
 
     // Add a sort descriptor and potentially another expression
@@ -167,13 +161,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       }
     }
 
-    var builder = new PostgresQueryBuilder(entity,
-        returningProperties: propertiesToFetch,
-        predicate: predicate,
-        expressions: expressions,
-        joinedRowMappers: rowMappersFromSubqueries,
-        sortDescriptors: allSortDescriptors,
-        aliasTables: true);
+    var builder = new PostgresQueryBuilder(this);
 
     if (builder.containsJoins && pageDescriptor != null) {
       throw new StateError("Invalid query. Cannot set both 'pageDescription' and use 'join' in query.");
@@ -185,14 +173,14 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   Future<List<InstanceType>> _fetch(PostgresQueryBuilder builder) async {
     var buffer = new StringBuffer();
     buffer.write("SELECT ${builder.returningColumnString} ");
-    buffer.write("FROM ${builder.primaryTableDefinition} ");
+    buffer.write("FROM ${builder.tableNameString} ");
 
     if (builder.containsJoins) {
       buffer.write("${builder.joinString} ");
     }
 
-    if (builder.whereClause != null) {
-      buffer.write("WHERE ${builder.whereClause} ");
+    if (builder.whereClauseString != null) {
+      buffer.write("WHERE ${builder.whereClauseString} ");
     }
 
     buffer.write("${builder.orderByString} ");
@@ -220,20 +208,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     if (pageDescriptor.boundingValue != null && !prop.isAssignableWith(pageDescriptor.boundingValue)) {
       throw new StateError("Invalid query page descriptor. Bounding value for column '${pageDescriptor.propertyName}' has invalid type.");
     }
-  }
-
-  List<TableRowBuilder> get rowMappersFromSubqueries {
-    return subQueries?.keys?.map((relationshipDesc) {
-          var subQuery = subQueries[relationshipDesc] as PostgresQuery;
-          var joinElement = new TableRowBuilder(PersistentJoinType.leftOuter, relationshipDesc, subQuery.propertiesToFetch,
-              predicate: subQuery.predicate,
-              sortDescriptors: subQuery.sortDescriptors,
-              expressions: subQuery.expressions);
-          joinElement.addRowMappers(subQuery.rowMappersFromSubqueries);
-
-          return joinElement;
-        })?.toList() ??
-        [];
   }
 
   static final StateError canModifyAllInstancesError = new StateError(

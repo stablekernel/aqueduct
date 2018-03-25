@@ -41,15 +41,13 @@ class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<
   }
 
   Future<U> _execute<U>(String function) async {
-    var builder = new PostgresQueryBuilder(query.entity,
-        predicate: query.predicate,
-        expressions: query.expressions);
+    var builder = new PostgresQueryBuilder(query);
     var buffer = new StringBuffer();
     buffer.write("SELECT $function ");
-    buffer.write("FROM ${builder.primaryTableDefinition} ");
+    buffer.write("FROM ${builder.tableNameString} ");
 
-    if (builder.whereClause != null) {
-      buffer.write("WHERE ${builder.whereClause} ");
+    if (builder.whereClauseString != null) {
+      buffer.write("WHERE ${builder.whereClauseString} ");
     }
 
     PostgreSQLPersistentStore store = query.context.persistentStore;

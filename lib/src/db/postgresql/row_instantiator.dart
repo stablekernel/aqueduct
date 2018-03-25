@@ -1,19 +1,19 @@
-import 'package:aqueduct/src/db/postgresql/builders/row.dart';
-
 import '../db.dart';
 import 'package:aqueduct/src/db/postgresql/builders/column.dart';
 import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 
-abstract class RowInstantiator {
-  TableBuilder get rootTableMapper;
-  List<Returnable> get orderedReturnMappers;
+class RowInstantiator {
+  RowInstantiator(this.rootTableBuilder, this.returningValues);
+
+  final TableBuilder rootTableBuilder;
+  final List<Returnable> returningValues;
 
   Map<TableBuilder, Map<dynamic, ManagedObject>> distinctObjects = {};
 
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
     try {
       return rows
-          .map((row) => instanceFromRow(row.iterator, orderedReturnMappers.iterator))
+          .map((row) => instanceFromRow(row.iterator, returningValues.iterator))
           .where((wrapper) => wrapper.isNew)
           .map((wrapper) => wrapper.instance)
           .toList();
@@ -24,7 +24,7 @@ abstract class RowInstantiator {
 
   InstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator, Iterator<ColumnBuilder> mappingIterator,
       {TableBuilder forTableMapper}) {
-    forTableMapper ??= rootTableMapper;
+    forTableMapper ??= rootTableBuilder;
 
     // Inspect the primary key first.  We are guaranteed to have the primary key come first in any rowIterator.
     rowIterator.moveNext();
@@ -45,11 +45,11 @@ abstract class RowInstantiator {
 
     while (mappingIterator.moveNext()) {
       var mapper = mappingIterator.current;
-      if (mapper is! TableRowBuilder) {
+      if (mapper is! TableBuilder) {
         rowIterator.moveNext();
         applyColumnValueToProperty(instance, mapper, rowIterator.current);
-      } else if (mapper is TableRowBuilder) {
-        applyRowValuesToInstance(instance, mapper as TableRowBuilder, rowIterator);
+      } else if (mapper is TableBuilder) {
+        applyRowValuesToInstance(instance, mapper as TableBuilder, rowIterator);
       }
     }
 
@@ -81,23 +81,23 @@ abstract class RowInstantiator {
     return byType[primaryKeyValue];
   }
 
-  void applyRowValuesToInstance(ManagedObject instance, TableRowBuilder mapper, Iterator<dynamic> rowIterator) {
-    if (mapper.flattened.isEmpty) {
+  void applyRowValuesToInstance(ManagedObject instance, TableBuilder mapper, Iterator<dynamic> rowIterator) {
+    if (mapper.returningColumns.isEmpty) {
       return;
     }
 
     var innerInstanceWrapper =
-        instanceFromRow(rowIterator, mapper.orderedReturnMappers.iterator, forTableMapper: mapper);
+        instanceFromRow(rowIterator, mapper.returningValues.iterator, forTableMapper: mapper);
 
     if (mapper.isToMany) {
       // If to many, put in a managed set.
-      ManagedSet list = instance[mapper.joiningProperty.name] ?? new ManagedSet();
+      ManagedSet list = instance[mapper.joinedBy.name] ?? new ManagedSet();
       if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
         list.add(innerInstanceWrapper.instance);
       }
-      instance[mapper.joiningProperty.name] = list;
+      instance[mapper.joinedBy.name] = list;
     } else {
-      var existingInnerInstance = instance[mapper.joiningProperty.name];
+      var existingInnerInstance = instance[mapper.joinedBy.name];
 
       // If not assigned yet, assign this value (which may be null). If assigned,
       // don't overwrite with a null row that may come after. Once we have it, we have it.
@@ -105,7 +105,7 @@ abstract class RowInstantiator {
       // Now if it is belongsTo, we may have already populated it with the foreign key object.
       // In this case, we do need to override it
       if (existingInnerInstance == null) {
-        instance[mapper.joiningProperty.name] = innerInstanceWrapper?.instance;
+        instance[mapper.joinedBy.name] = innerInstanceWrapper?.instance;
       }
     }
   }
@@ -115,17 +115,13 @@ abstract class RowInstantiator {
 
     if (desc is ManagedRelationshipDescription) {
       // This is a belongsTo relationship (otherwise it wouldn't be a column), keep the foreign key.
-      // However, if we are later going to get these values and more from a join,
-      // we need ignore it here.
-      if (!mapper.fetchAsForeignKey) {
-        if (value != null) {
-          var innerInstance = desc.destinationEntity.newInstance();
-          innerInstance[desc.destinationEntity.primaryKey] = value;
-          instance[desc.name] = innerInstance;
-        } else {
-          // If null, explicitly add null to map so the value is populated.
-          instance[desc.name] = null;
-        }
+      if (value != null) {
+        var innerInstance = desc.destinationEntity.newInstance();
+        innerInstance[desc.destinationEntity.primaryKey] = value;
+        instance[desc.name] = innerInstance;
+      } else {
+        // If null, explicitly add null to map so the value is populated.
+        instance[desc.name] = null;
       }
     } else if (desc is ManagedAttributeDescription) {
       instance[desc.name] = mapper.convertValueFromStorage(value);
@@ -135,8 +131,8 @@ abstract class RowInstantiator {
   void exhaustNullInstanceIterator(Iterator<dynamic> rowIterator, Iterator<ColumnBuilder> mappingIterator) {
     while (mappingIterator.moveNext()) {
       var mapper = mappingIterator.current;
-      if (mapper is TableRowBuilder) {
-        var _ = instanceFromRow(rowIterator, (mapper as TableRowBuilder).orderedReturnMappers.iterator);
+      if (mapper is TableBuilder) {
+        var _ = instanceFromRow(rowIterator, (mapper as TableBuilder).returningValues.iterator);
       } else {
         rowIterator.moveNext();
       }

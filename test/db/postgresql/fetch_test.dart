@@ -3,6 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
+  justLogEverything();
   ManagedContext context;
   tearDown(() async {
     await context?.close();

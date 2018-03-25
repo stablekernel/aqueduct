@@ -14,6 +14,8 @@ class ColumnBuilder extends Returnable {
   ColumnBuilder(this.table, this.property, {this.documentKeyPath});
 
   static List<ColumnBuilder> fromKeys(TableBuilder table, List<KeyPath> keys) {
+    keys ??= [];
+
     final entity = table.entity;
 
     // Ensure the primary key is always available and at 0th index.
@@ -77,8 +79,6 @@ class ColumnBuilder extends Returnable {
   final TableBuilder table;
   final ManagedPropertyDescription property;
   final List<String> documentKeyPath;
-
-  bool fetchAsForeignKey = false;
 
   String get typeSuffix {
     var type = PostgreSQLFormat.dataTypeStringForDataType(typeMap[property.type.kind]);

@@ -276,6 +276,19 @@ void main() {
       var results = await q.fetch();
       expect(results.length, 0);
     });
+
+    test("Can use two 'where' criteria on the child object when not joining child object explicitly", () async {
+      var q = new Query<Parent>(context)..where((o) => o.child.name).equalTo("C1")
+      ..where((o) => o.child.parent.pid).equalTo(1);
+      final res1 = await q.fetchOne();
+      expect(res1.child.name, "C1");
+      expect(res1.child.parent.pid, res1.pid);
+
+      var q2 = new Query<Parent>(context)..where((o) => o.child.name).equalTo("C2")
+        ..where((o) => o.child.parent.pid).equalTo(2);
+      final res2 = await q2.fetch();
+      expect(res2.length, 0);
+    });
   });
 
   group("Result keys", () {
@@ -470,6 +483,12 @@ class _Vaccine {
 }
 
 Future<List<Parent>> populate(ManagedContext context) async {
+  /*
+                A            B      C
+                C1           C2     C3
+              T1  V1,V2       V3
+
+   */
   var modelGraph = <Parent>[];
   var parents = [
     new Parent()
