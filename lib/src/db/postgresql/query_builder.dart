@@ -14,28 +14,27 @@ class PostgresQueryBuilder extends TableBuilder {
     (query.valueMap ?? query.values?.backing?.contents).forEach((key, value) {
       addColumnValueBuilder(key, value);
     });
-}
 
-  final List<ColumnValueBuilder> columnValueMappers = [];
-  final Map<String, dynamic> _variables = {};
-
-  @override
-  Map<String, dynamic> get variables {
-    final m = super.variables;
-    m.addAll(_variables);
-    return m;
+    columnValueMappers.forEach((cv) {
+      variables[cv.columnName(withPrefix: valueKeyPrefix)] = cv.value;
+    });
+    finalize(variables);
   }
 
-  bool get containsJoins => returningValues.reversed.any((p) => p is TableBuilder);
+  final Map<String, dynamic> variables = {};
+
+  final List<ColumnValueBuilder> columnValueMappers = [];
+
+  bool get containsJoins => returning.reversed.any((p) => p is TableBuilder);
 
   void addColumnValueBuilder(String key, dynamic value) {
     final builder = _createColumnValueBuilder(key, value);
     columnValueMappers.add(builder);
-    _variables[builder.columnName(withPrefix: valueKeyPrefix)] = builder.value;
+    variables[builder.columnName(withPrefix: valueKeyPrefix)] = builder.value;
   }
 
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
-    final instantiator = new RowInstantiator(this, returningValues);
+    final instantiator = new RowInstantiator(this, returning);
     return instantiator.instancesForRows(rows);
   }
 
@@ -59,18 +58,18 @@ class PostgresQueryBuilder extends TableBuilder {
 
   @override
   String get joinString {
-    return returningValues.where((e) => e is TableBuilder).map((e) => (e as TableBuilder).joinString).join(" ");
+    return returning.where((e) => e is TableBuilder).map((e) => (e as TableBuilder).joinString).join(" ");
   }
 
   String get returningColumnString {
-    return returningColumns.map((p) => p.columnName(withTableNamespace: containsJoins)).join(",");
+    return returningFlattened.map((p) => p.columnName(withTableNamespace: containsJoins)).join(",");
   }
 
   String get orderByString {
     var allSortMappers = new List<ColumnSortBuilder>.from(columnSortBuilders);
 
     var nestedSorts =
-        returningValues.where((m) => m is TableBuilder).expand((m) => (m as TableBuilder).columnSortBuilders);
+        returning.where((m) => m is TableBuilder).expand((m) => (m as TableBuilder).columnSortBuilders);
     allSortMappers.addAll(nestedSorts);
 
     if (allSortMappers.length == 0) {

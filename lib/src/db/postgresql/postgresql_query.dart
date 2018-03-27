@@ -48,7 +48,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("VALUES (${builder.insertionValueString}) ");
     }
 
-    if ((builder.returningValues?.length ?? 0) > 0) {
+    if ((builder.returning?.length ?? 0) > 0) {
       buffer.write("RETURNING ${builder.returningColumnString}");
     }
 
@@ -74,7 +74,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw canModifyAllInstancesError;
     }
 
-    if ((builder.returningValues?.length ?? 0) > 0) {
+    if ((builder.returning?.length ?? 0) > 0) {
       buffer.write("RETURNING ${builder.returningColumnString}");
     }
 

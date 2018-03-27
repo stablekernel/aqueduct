@@ -64,6 +64,11 @@ void main() {
     test("Query with both explicit and implicit join only returns values for explicit join", () async {
       var q = new Query<RootObject>(ctx);
 
+      // if i have a join condition that uses a property of a has-many or has-one relationship,
+      // it creates another join. but that joined table's columns are not usable in
+      //the join condition, so we must do an inner select that does the join and move
+      // the additional expression to the where clause
+
       q.join(object: (r) => r.child)..where((o) => o.grandChild.gid).greaterThan(1);
       var results = await q.fetch();
 

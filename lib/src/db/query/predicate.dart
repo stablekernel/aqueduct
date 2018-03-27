@@ -47,19 +47,38 @@ class QueryPredicate {
       return predicateList.first;
     }
 
-    var predicateFormat =
-        "(" + predicateList.map((pred) => "${pred.format}").join(" AND ") + ")";
+    // If we have duplicate keys anywhere, we need to disambiguiate them.
+    int dupeCounter = 0;
+    final allFormatStrings = [];
+    final valueMap = <String, dynamic>{};
+    for (var predicate in predicateList) {
+      if (predicate == null) {
+        continue;
+      }
 
-    var valueMap = <String, dynamic>{};
-    predicateList.forEach((p) {
-      p.parameters?.forEach((k, v) {
-        if (valueMap.containsKey(k)) {
-          throw new ArgumentError("Invalid query predicate when creating 'andPredicate'. "
-              "Substitution key '$k' appears in multiple predicates and cannot be disambiguated.");
-        }
-        valueMap[k] = v;
-      });
-    });
+      final duplicateKeys = predicate.parameters?.keys?.where((k) => valueMap.keys.contains(k))?.toList() ?? [];
+
+      if (duplicateKeys.length > 0) {
+        var fmt = predicate.format;
+        Map<String, String> dupeMap = {};
+        duplicateKeys.forEach((key) {
+          final replacementKey = "${key}$dupeCounter";;
+          fmt = fmt.replaceAll(key, replacementKey);
+          dupeMap[key] = replacementKey;
+          dupeCounter ++;
+        });
+
+        predicate?.parameters?.forEach((key, value) {
+          valueMap[dupeMap[key] ?? key] = value;
+        });
+      } else {
+        allFormatStrings.add(predicate.format);
+        valueMap.addAll(predicate?.parameters ?? {});
+      }
+    }
+
+    var predicateFormat =
+        "(" + allFormatStrings.join(" AND ") + ")";
 
     return new QueryPredicate(predicateFormat, valueMap);
   }

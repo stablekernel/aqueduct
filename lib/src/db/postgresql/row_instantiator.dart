@@ -83,12 +83,12 @@ class RowInstantiator {
   }
 
   void applyRowValuesToInstance(ManagedObject instance, TableBuilder mapper, Iterator<dynamic> rowIterator) {
-    if (mapper.returningColumns.isEmpty) {
+    if (mapper.returningFlattened.isEmpty) {
       return;
     }
 
     var innerInstanceWrapper =
-        instanceFromRow(rowIterator, mapper.returningValues.iterator, forTableMapper: mapper);
+        instanceFromRow(rowIterator, mapper.returning.iterator, forTableMapper: mapper);
 
     if (mapper.isToMany) {
       // If to many, put in a managed set.
@@ -133,7 +133,7 @@ class RowInstantiator {
     while (mappingIterator.moveNext()) {
       var mapper = mappingIterator.current;
       if (mapper is TableBuilder) {
-        var _ = instanceFromRow(rowIterator, (mapper as TableBuilder).returningValues.iterator);
+        var _ = instanceFromRow(rowIterator, (mapper as TableBuilder).returning.iterator);
       } else {
         rowIterator.moveNext();
       }
