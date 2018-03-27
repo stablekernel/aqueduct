@@ -80,7 +80,15 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
 
   bool get containsJoins => returningOrderedMappers.reversed.any((p) => p is RowMapper);
 
-  String get whereClause => finalizedPredicate?.format;
+  String get whereClause {
+    if (finalizedPredicate?.format == null) {
+      return null;
+    }
+    if (finalizedPredicate.format.isEmpty) {
+      return null;
+    }
+    return finalizedPredicate.format;
+  }
 
   Map<String, dynamic> get substitutionValueMap {
     var m = <String, dynamic>{};
@@ -176,7 +184,7 @@ class PostgresQueryBuilder extends Object with PredicateBuilder, RowInstantiator
     var matchers = propertyExpressionsFromObject(expressions, createdImplicitRowMappers);
     var allPredicates = matchers.expand((p) => [p.predicate]).toList();
     allPredicates.addAll(predicates.where((p) => p != null));
-    return QueryPredicate.andPredicates(allPredicates);
+    return QueryPredicate.and(allPredicates);
   }
 
   int aliasCounter = 0;

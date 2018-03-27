@@ -113,7 +113,7 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
       if (predicate != null) {
         filterPredicates.add(predicate);
       }
-      _joinCondition = QueryPredicate.andPredicates(filterPredicates);
+      _joinCondition = QueryPredicate.and(filterPredicates);
     }
 
     return _joinCondition;
@@ -174,7 +174,7 @@ class RowMapper extends PostgresMapper with PredicateBuilder, EntityTableMapper 
     var columnsWithoutNamespace = flattenedColumns.map((p) => p.columnName()).join(",");
 
     var outerWhere = QueryPredicate
-        .andPredicates(matcherExpressions.where((expr) => !identical(expr.table, this)).map((expr) => expr.predicate));
+        .and(matcherExpressions.where((expr) => !identical(expr.table, this)).map((expr) => expr.predicate));
     var outerWhereString = "";
     if (outerWhere != null) {
       outerWhereString = " WHERE ${outerWhere.format}";
