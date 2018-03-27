@@ -42,6 +42,13 @@ void main() {
     }
   });
 
+  test("Insert from static method", () async {
+    context = await contextWithModels([TestModel]);
+    final o = await Query.insertObject(context, new TestModel()..name = "Bob");
+    expect(o.id, isNotNull);
+    expect(o.name, "Bob");
+  });
+
   test("Inserting an object that violated a unique constraint fails", () async {
     context = await contextWithModels([TestModel]);
 

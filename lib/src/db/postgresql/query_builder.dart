@@ -26,6 +26,15 @@ class PostgresQueryBuilder extends TableBuilder {
   final List<ColumnValueBuilder> columnValueMappers = [];
 
   bool get containsJoins => returning.reversed.any((p) => p is TableBuilder);
+  String get whereClause {
+    if (predicate?.format == null) {
+      return null;
+    }
+    if (predicate.format.isEmpty) {
+      return null;
+    }
+    return predicate.format;
+  }
 
   void addColumnValueBuilder(String key, dynamic value) {
     final builder = _createColumnValueBuilder(key, value);

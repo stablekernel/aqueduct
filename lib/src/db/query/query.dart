@@ -48,6 +48,14 @@ abstract class Query<InstanceType extends ManagedObject> {
     return context.persistentStore.newQuery<InstanceType>(context, entity);
   }
 
+  /// Inserts [object] into the database managed by [context].
+  ///
+  /// This is equivalent to creating a [Query], assigning [object] to [values], and invoking [insert].
+  static Future<T> insertObject<T extends ManagedObject>(ManagedContext context, T object) {
+    final query = new Query.forEntity(object.entity, context)..values = object;
+    return query.insert();
+  }
+
   /// Configures this instance to fetch a relationship property identified by [object] or [set].
   ///
   /// By default, objects returned by [Query.fetch] do not have their relationship properties populated. (In other words,
