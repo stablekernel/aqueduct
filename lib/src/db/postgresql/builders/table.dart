@@ -173,10 +173,10 @@ class TableBuilder implements Returnable {
     if (lastElement is ManagedRelationshipDescription) {
       final inversePrimaryKey = lastElement.inverse.entity.primaryKeyAttribute;
       final expr = new ColumnExpressionBuilder(joinedTable, inversePrimaryKey, expression.expression, prefix: prefix);
-      joinedTable.parent.predicates.add(expr.predicate);
+      predicates.add(expr.predicate);
     } else {
       final expr = new ColumnExpressionBuilder(joinedTable, lastElement, expression.expression, prefix: prefix);
-      joinedTable.parent.predicates.add(expr.predicate);
+      predicates.add(expr.predicate);
     }
   }
 
