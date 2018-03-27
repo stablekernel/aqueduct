@@ -245,7 +245,7 @@ class TableBuilder implements Returnable {
       rightMapper = new ColumnBuilder(this, entity.primaryKeyAttribute);
     } else {
       leftMapper = new ColumnBuilder(parent, parent.entity.primaryKeyAttribute);
-      rightMapper = new ColumnBuilder(this, joinedBy.inverse);g
+      rightMapper = new ColumnBuilder(this, joinedBy.inverse);
     }
 
     var leftColumn = leftMapper.columnName(withTableNamespace: true);
@@ -274,9 +274,9 @@ class TableBuilder implements Returnable {
   }
 
   String get joinString {
-    if (hasImplicitJoins) {
-      return innerSelectString;
-    }
+//    if (hasImplicitJoins) {
+//      return innerSelectString;
+//    }
 
     var totalJoinPredicate = joiningPredicate;
     if (predicates.isNotEmpty) {
