@@ -141,7 +141,7 @@ class ColumnBuilder extends Returnable {
     }
 
     if (withTableNamespace) {
-      return "${table.tableReference}.$name";
+      return "${table.tableReferenceString}.$name";
     } else if (withPrefix != null) {
       return "$withPrefix$name";
     }

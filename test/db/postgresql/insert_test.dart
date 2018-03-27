@@ -7,7 +7,6 @@ import '../../helpers.dart';
 import 'package:postgres/postgres.dart';
 
 void main() {
-  justLogEverything();
   ManagedContext context;
 
   tearDown(() async {

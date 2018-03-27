@@ -43,6 +43,7 @@ class RowInstantiator {
       instance = createInstanceWithPrimaryKeyValue(forTableMapper, primaryKeyValue);
     }
 
+
     while (mappingIterator.moveNext()) {
       var mapper = mappingIterator.current;
       if (mapper is! TableBuilder) {

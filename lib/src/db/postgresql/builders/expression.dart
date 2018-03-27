@@ -6,13 +6,13 @@ import 'package:aqueduct/src/db/query/query.dart';
 
 class ColumnExpressionBuilder extends ColumnBuilder {
   ColumnExpressionBuilder(TableBuilder table, ManagedPropertyDescription property, this.expression,
-      {this.additionalVariablePrefix: ""})
+      {this.prefix: ""})
       : super(table, property);
 
-  String additionalVariablePrefix;
+  final String prefix;
   PredicateExpression expression;
 
-  String get defaultVariablePrefix => "$additionalVariablePrefix${table.tableReference}_";
+  String get defaultPrefix => "$prefix${table.tableReferenceString}_";
 
   QueryPredicate get predicate {
     var expr = expression;
@@ -34,7 +34,7 @@ class ColumnExpressionBuilder extends ColumnBuilder {
 
   QueryPredicate comparisonPredicate(PredicateOperator operator, dynamic value) {
     var name = columnName(withTableNamespace: true);
-    var variableName = columnName(withPrefix: defaultVariablePrefix);
+    var variableName = columnName(withPrefix: defaultPrefix);
 
     return new QueryPredicate("$name ${ColumnBuilder.symbolTable[operator]} @$variableName$typeSuffix",
         {variableName: convertValueForStorage(value)});
@@ -46,7 +46,7 @@ class ColumnExpressionBuilder extends ColumnBuilder {
 
     var counter = 0;
     values.forEach((value) {
-      var prefix = "$defaultVariablePrefix${counter}_";
+      var prefix = "$defaultPrefix${counter}_";
 
       var variableName = columnName(withPrefix: prefix);
       tokenList.add("@$variableName$typeSuffix");
@@ -67,8 +67,8 @@ class ColumnExpressionBuilder extends ColumnBuilder {
 
   QueryPredicate rangePredicate(dynamic lhsValue, dynamic rhsValue, bool insideRange) {
     var name = columnName(withTableNamespace: true);
-    var lhsName = columnName(withPrefix: "${defaultVariablePrefix}lhs_");
-    var rhsName = columnName(withPrefix: "${defaultVariablePrefix}rhs_");
+    var lhsName = columnName(withPrefix: "${defaultPrefix}lhs_");
+    var rhsName = columnName(withPrefix: "${defaultPrefix}rhs_");
     var operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
 
     return new QueryPredicate("$name $operation @$lhsName$typeSuffix AND @$rhsName$typeSuffix",
@@ -78,7 +78,7 @@ class ColumnExpressionBuilder extends ColumnBuilder {
   QueryPredicate stringPredicate(
       PredicateStringOperator operator, dynamic value, bool caseSensitive, bool invertOperator) {
     var n = columnName(withTableNamespace: true);
-    var variableName = columnName(withPrefix: defaultVariablePrefix);
+    var variableName = columnName(withPrefix: defaultPrefix);
 
     var matchValue = value;
     var operation = caseSensitive ? "LIKE" : "ILIKE";

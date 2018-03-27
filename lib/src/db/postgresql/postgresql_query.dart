@@ -53,7 +53,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     }
 
     var results =
-        await context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
+        await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder.instancesForRows(results).first;
   }
@@ -79,7 +79,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     }
 
     var results =
-        await context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
+        await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder.instancesForRows(results);
   }
@@ -111,7 +111,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw canModifyAllInstancesError;
     }
 
-    return context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds,
+    return context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds,
         returnType: PersistentStoreQueryReturnType.rowCount);
   }
 
@@ -143,25 +143,11 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   //////
 
   PostgresQueryBuilder createFetchBuilder() {
-    var allSortDescriptors = new List<QuerySortDescriptor>.from(sortDescriptors ?? []);
+    var builder = new PostgresQueryBuilder(this);
 
-    // Add a sort descriptor and potentially another expression
     if (pageDescriptor != null) {
       validatePageDescriptor();
-      var pageSortDescriptor = new QuerySortDescriptor(pageDescriptor.propertyName, pageDescriptor.order);
-      allSortDescriptors.insert(0, pageSortDescriptor);
-
-      if (pageDescriptor.boundingValue != null) {
-        final prop = entity.properties[pageDescriptor.propertyName];
-        final operator = pageDescriptor.order == QuerySortOrder.ascending ? PredicateOperator.greaterThan : PredicateOperator.lessThan;
-        final expr = new QueryExpression(new KeyPath(prop))
-          ..expression = new ComparisonExpression(pageDescriptor.boundingValue, operator);
-
-        expressions.add(expr);
-      }
     }
-
-    var builder = new PostgresQueryBuilder(this);
 
     if (builder.containsJoins && pageDescriptor != null) {
       throw new StateError("Invalid query. Cannot set both 'pageDescription' and use 'join' in query.");
@@ -194,7 +180,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     }
 
     var results =
-        await context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
+        await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder.instancesForRows(results);
   }

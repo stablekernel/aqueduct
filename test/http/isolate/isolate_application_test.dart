@@ -8,7 +8,7 @@ import '../../helpers.dart';
 
 void main() {
   setUpAll(() {
-    justLogEverything();
+
   });
 
   group("Lifecycle", () {

@@ -14,23 +14,24 @@ class PostgresQueryBuilder extends TableBuilder {
     (query.valueMap ?? query.values?.backing?.contents).forEach((key, value) {
       addColumnValueBuilder(key, value);
     });
-
-    predicate = QueryPredicate.andPredicates(predicates);
-    substitutionValueMap.addAll(predicate?.parameters ?? {});
-  }
+}
 
   final List<ColumnValueBuilder> columnValueMappers = [];
-  final Map<String, dynamic> substitutionValueMap = {};
+  final Map<String, dynamic> _variables = {};
 
-  QueryPredicate predicate;
+  @override
+  Map<String, dynamic> get variables {
+    final m = super.variables;
+    m.addAll(_variables);
+    return m;
+  }
 
   bool get containsJoins => returningValues.reversed.any((p) => p is TableBuilder);
-
 
   void addColumnValueBuilder(String key, dynamic value) {
     final builder = _createColumnValueBuilder(key, value);
     columnValueMappers.add(builder);
-    substitutionValueMap[builder.columnName(withPrefix: valueKeyPrefix)] = builder.value;
+    _variables[builder.columnName(withPrefix: valueKeyPrefix)] = builder.value;
   }
 
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {

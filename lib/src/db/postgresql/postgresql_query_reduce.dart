@@ -54,7 +54,7 @@ class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<
     var connection = await store.getDatabaseConnection();
     try {
       var result = await connection
-          .query(buffer.toString(), substitutionValues: builder.substitutionValueMap)
+          .query(buffer.toString(), substitutionValues: builder.variables)
           .timeout(new Duration(seconds: query.timeoutInSeconds));
       return result.first.first;
     } on TimeoutException catch (e) {

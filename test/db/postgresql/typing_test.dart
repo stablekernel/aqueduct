@@ -49,9 +49,7 @@ void main() {
       ..values.d = 1.0
       ..values.doc = new Document({"k":"v"});
 
-    final entity = context.entityForType(TestModel);
-    var builder = new PostgresQueryBuilder(entity,
-        returningProperties: [new KeyPath(entity.properties["id"])], values: q.values.backing.contents);
+    var builder = new PostgresQueryBuilder(q as PostgresQuery);
     var insertString = builder.insertionValueString;
     expect(insertString, contains("id:int8"));
     expect(insertString, contains("n:text"));
