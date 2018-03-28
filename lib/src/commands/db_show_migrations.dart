@@ -3,8 +3,7 @@ import 'dart:async';
 import 'base.dart';
 import 'db.dart';
 
-class CLIDatabaseShowMigrations extends CLICommand
-    with CLIDatabaseMigratable, CLIProject {
+class CLIDatabaseShowMigrations extends CLIDatabaseManagingCommand {
   @override
   Future<int> handle() async {
     var files = migrationFiles.map((f) {

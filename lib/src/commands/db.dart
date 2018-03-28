@@ -17,13 +17,6 @@ import 'db_schema.dart';
 
 class CLIDatabase extends CLICommand {
   CLIDatabase() {
-    options
-      ..addOption("migration-directory",
-          abbr: "m",
-          help:
-              "The directory where migration files are stored. Relative paths are relative to the application-directory.",
-          defaultsTo: "migrations");
-
     registerCommand(new CLIDatabaseUpgrade());
     registerCommand(new CLIDatabaseGenerate());
     registerCommand(new CLIDatabaseShowMigrations());
@@ -64,11 +57,97 @@ class CLIDatabase extends CLICommand {
   }
 }
 
-abstract class CLIDatabaseConnectingCommand extends CLICommand with CLIDatabaseMigratable, CLIProject {
+abstract class CLIDatabaseManagingCommand extends CLICommand with CLIProject {
+  CLIDatabaseManagingCommand() {
+    options
+      ..addOption("migration-directory",
+          help:
+              "The directory where migration files are stored. Relative paths are relative to the application-directory.",
+          defaultsTo: "migrations");
+  }
+
+  Directory get migrationDirectory {
+    final uri = Uri.parse(values["migration-directory"]);
+    Directory dir;
+    if (uri.isAbsolute) {
+      dir = new Directory.fromUri(uri);
+    }
+
+    dir = new Directory.fromUri(projectDirectory.uri.resolveUri(uri));
+
+    if (!dir.existsSync()) {
+      dir.createSync();
+    }
+    return dir;
+  }
+
+  List<File> get migrationFiles {
+    Map<int, File> orderMap = migrationDirectory
+        .listSync()
+        .where((fse) => fse is File && fse.path.endsWith(".migration.dart"))
+        .fold({}, (m, fse) {
+      var fileName = fse.uri.pathSegments.last;
+      var migrationName = fileName.split(".").first;
+      var versionNumberString = migrationName.split("_").first;
+
+      try {
+        var versionNumber = int.parse(versionNumberString);
+        m[versionNumber] = fse;
+        return m;
+      } catch (e) {
+        throw new CLIException("Migration files must have the following format: Version_Name.migration.dart,"
+            "where Version must be an integer (optionally prefixed with 0s, e.g. '00000002')"
+            " and '_Name' is optional. Offender: ${fse.uri}");
+      }
+    });
+
+    var sortedKeys = new List<int>.from(orderMap.keys);
+    sortedKeys.sort((int a, int b) => a.compareTo(b));
+    return sortedKeys.map((v) => orderMap[v]).toList();
+  }
+
+  int versionNumberFromFile(File file) {
+    var fileName = file.uri.pathSegments.last;
+    var migrationName = fileName.split(".").first;
+    return int.parse(migrationName.split("_").first);
+  }
+
+  Future<Schema> schemaByApplyingMigrationFile(File migrationFile, Schema fromSchema) async {
+    var sourceFunction = (List<String> args, Map<String, dynamic> values) async {
+      var inputSchema = new Schema.fromMap(values["schema"] as Map<String, dynamic>);
+
+      var migrationClassMirror = currentMirrorSystem()
+          .isolate
+          .rootLibrary
+          .declarations
+          .values
+          .firstWhere((dm) => dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration))) as ClassMirror;
+
+      var migrationInstance = migrationClassMirror.newInstance(new Symbol(''), []).reflectee as Migration;
+      migrationInstance.database = new SchemaBuilder(null, inputSchema);
+
+      await migrationInstance.upgrade();
+
+      return migrationInstance.currentSchema.asMap();
+    };
+
+    var generator = new SourceGenerator(sourceFunction,
+        imports: ["dart:async", "package:aqueduct/aqueduct.dart", "dart:isolate", "dart:mirrors"],
+        additionalContents: migrationFile.readAsStringSync());
+
+    var schemaMap = await IsolateExecutor.executeSource(generator, [],
+        message: {"schema": fromSchema.asMap()}, packageConfigURI: projectDirectory.uri.resolve(".packages"));
+
+    return new Schema.fromMap(schemaMap as Map<String, dynamic>);
+  }
+}
+
+abstract class CLIDatabaseConnectingCommand extends CLIDatabaseManagingCommand {
   static const String FlavorPostgreSQL = "postgres";
 
   CLIDatabaseConnectingCommand() {
     options
+      ..addOption("name")
       ..addOption("flavor",
           abbr: "f", help: "The database driver flavor to use.", defaultsTo: "postgres", allowed: ["postgres"])
       ..addOption("connect",
@@ -153,77 +232,5 @@ abstract class CLIDatabaseConnectingCommand extends CLICommand with CLIDatabaseM
 
   String get _dbConfigFormat {
     return "\n\tusername: username\n\tpassword: password\n\thost: host\n\tport: port\n\tdatabaseName: name\n";
-  }
-}
-
-abstract class CLIDatabaseMigratable {
-  Directory get projectDirectory;
-
-  Directory get migrationDirectory {
-    var dir = new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
-    if (!dir.existsSync()) {
-      dir.createSync();
-    }
-    return dir;
-  }
-
-  List<File> get migrationFiles {
-    Map<int, File> orderMap = migrationDirectory
-        .listSync()
-        .where((fse) => fse is File && fse.path.endsWith(".migration.dart"))
-        .fold({}, (m, fse) {
-      var fileName = fse.uri.pathSegments.last;
-      var migrationName = fileName.split(".").first;
-      var versionNumberString = migrationName.split("_").first;
-
-      try {
-        var versionNumber = int.parse(versionNumberString);
-        m[versionNumber] = fse;
-        return m;
-      } catch (e) {
-        throw new CLIException("Migration files must have the following format: Version_Name.migration.dart,"
-            "where Version must be an integer (optionally prefixed with 0s, e.g. '00000002')"
-            " and '_Name' is optional. Offender: ${fse.uri}");
-      }
-    });
-
-    var sortedKeys = new List<int>.from(orderMap.keys);
-    sortedKeys.sort((int a, int b) => a.compareTo(b));
-    return sortedKeys.map((v) => orderMap[v]).toList();
-  }
-
-  int versionNumberFromFile(File file) {
-    var fileName = file.uri.pathSegments.last;
-    var migrationName = fileName.split(".").first;
-    return int.parse(migrationName.split("_").first);
-  }
-
-  Future<Schema> schemaByApplyingMigrationFile(File migrationFile, Schema fromSchema) async {
-    var sourceFunction = (List<String> args, Map<String, dynamic> values) async {
-      var inputSchema = new Schema.fromMap(values["schema"] as Map<String, dynamic>);
-
-      var migrationClassMirror = currentMirrorSystem()
-          .isolate
-          .rootLibrary
-          .declarations
-          .values
-          .firstWhere((dm) => dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration))) as ClassMirror;
-
-      var migrationInstance = migrationClassMirror.newInstance(new Symbol(''), []).reflectee as Migration;
-      migrationInstance.database = new SchemaBuilder(null, inputSchema);
-
-      await migrationInstance.upgrade();
-
-      return migrationInstance.currentSchema.asMap();
-    };
-
-    var generator = new SourceGenerator(sourceFunction,
-        imports: ["dart:async", "package:aqueduct/aqueduct.dart", "dart:isolate", "dart:mirrors"],
-        additionalContents: migrationFile.readAsStringSync());
-
-    var schemaMap = await IsolateExecutor.executeSource(generator, [],
-        message: {"schema": fromSchema.asMap()}, packageConfigURI: projectDirectory.uri.resolve(".packages"));
-
-    return new Schema.fromMap(schemaMap as Map<String, dynamic>);
   }
 }

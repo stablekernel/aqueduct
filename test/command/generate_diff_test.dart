@@ -142,7 +142,7 @@ void main() {
 
           // Update generated source code to add initialValue,
           var lastMigrationFile =
-          new File.fromUri(terminal.migrationDirectory.uri.resolve("2.migration.dart"));
+          new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("2.migration.dart"));
           var contents =
           lastMigrationFile.readAsStringSync().replaceFirst(r"<<set>>", "'2'");
           lastMigrationFile.writeAsStringSync(contents);
@@ -333,7 +333,7 @@ void main() {
 
       // Update generated source code to add initialValue,
       var lastMigrationFile =
-      new File.fromUri(terminal.migrationDirectory.uri.resolve("2.migration.dart"));
+      new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("2.migration.dart"));
       var contents =
       lastMigrationFile.readAsStringSync().replaceFirst(r"<<set>>", "'2'");
       lastMigrationFile.writeAsStringSync(contents);

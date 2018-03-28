@@ -198,7 +198,7 @@ class _TestObject {
       expect(res, 0);
 
       var secondMigrationFile =
-          new File.fromUri(terminal.migrationDirectory.uri.resolve("00000002_Unnamed.migration.dart"));
+          new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("00000002_Unnamed.migration.dart"));
       expect(secondMigrationFile.readAsStringSync(), contains("database.deleteTable(\"foo\")"));
 
       res = await terminal.runAqueductCommand("db", ["validate"]);
@@ -231,8 +231,13 @@ class Migration1 extends Migration {
   Future seed() async {}
 }
 
-class MockMigratable extends CLICommand with CLIDatabaseMigratable, CLIProject {
-  MockMigratable(this.projectDirectory);
+class MockMigratable extends CLIDatabaseManagingCommand {
+  MockMigratable(this.projectDirectory) {
+    migrationDirectory = new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
+  }
+
+  @override
+  Directory migrationDirectory;
 
   @override
   Directory projectDirectory;

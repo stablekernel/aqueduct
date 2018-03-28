@@ -68,7 +68,7 @@ class Terminal {
     } catch (_) {}
   }
 
-  Directory get migrationDirectory {
+  Directory get defaultMigrationDirectory {
     return new Directory.fromUri(workingDirectory.uri.resolve("migrations/"));
   }
 
@@ -117,10 +117,10 @@ class Terminal {
 
   Future writeMigrations(List<Schema> schemas) async {
     try {
-      migrationDirectory.createSync();
+      defaultMigrationDirectory.createSync();
     } catch (_) {}
     var currentNumberOfMigrations =
-        migrationDirectory
+        defaultMigrationDirectory
             .listSync()
             .where((e) => e.path.endsWith("migration.dart"))
             .length;
@@ -128,7 +128,7 @@ class Terminal {
     for (var i = 1; i < schemas.length; i++) {
       var source = MigrationBuilder.sourceForSchemaUpgrade(schemas[i - 1], schemas[i], i);
 
-      var file = new File.fromUri(migrationDirectory.uri.resolve("${i + currentNumberOfMigrations}.migration.dart"));
+      var file = new File.fromUri(defaultMigrationDirectory.uri.resolve("${i + currentNumberOfMigrations}.migration.dart"));
       file.writeAsStringSync(source);
     }
   }

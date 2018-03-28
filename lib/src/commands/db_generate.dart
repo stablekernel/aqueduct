@@ -6,8 +6,7 @@ import '../utilities/source_generator.dart';
 import 'base.dart';
 import 'db.dart';
 
-class CLIDatabaseGenerate extends CLICommand
-    with CLIDatabaseMigratable, CLIProject {
+class CLIDatabaseGenerate extends CLIDatabaseManagingCommand {
   @override
   Future<int> handle() async {
     var files = migrationFiles;
