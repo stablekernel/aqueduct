@@ -34,7 +34,7 @@ void main() {
   });
 
   test("Can override title/version/etc.", () async {
-    await terminal.runAqueductCommand("document", ["--machine", "--title", "foobar", "--version", "2.0.0"]);
+    await terminal.runAqueductCommand("document", ["--machine", "--title", "foobar", "--api-version", "2.0.0"]);
 
     final map = json.decode(terminal.output);
     expect(map["info"]["title"], "foobar");
