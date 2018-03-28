@@ -10,7 +10,7 @@ environment:
 
 dependencies:
   analyzer: '>=0.30.0 <0.32.0'
-  args: ^1.0.0
+  args: ^1.4.0
   crypto: ^2.0.0
   logging: ^0.11.3
   matcher: ^0.12.0+2
