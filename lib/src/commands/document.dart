@@ -16,7 +16,7 @@ abstract class CLIDocumentOptions implements CLICommand {
 
   String get apiDescription => values["description"];
 
-  String get version => values["version"];
+  String get apiVersion => values["api-version"];
 
   String get termsOfServiceURL => values["tos"];
 
@@ -54,7 +54,7 @@ abstract class CLIDocumentOptions implements CLICommand {
           defaultsTo: "config.src.yaml")
       ..addOption("title", help: "API Docs: Title")
       ..addOption("description", help: "API Docs: Description")
-      ..addOption("version", help: "API Docs: Version")
+      ..addOption("api-version", help: "API Docs: Version")
       ..addOption("tos", help: "API Docs: Terms of Service URL")
       ..addOption("contact-email", help: "API Docs: Contact Email")
       ..addOption("contact-name", help: "API Docs: Contact Name")
@@ -132,7 +132,7 @@ abstract class CLIDocumentOptions implements CLICommand {
       "configPath": configurationPath,
       "title": title,
       "description": apiDescription,
-      "version": version,
+      "version": apiVersion,
       "termsOfServiceURL": termsOfServiceURL,
       "contactEmail": contactEmail,
       "contactName": contactName,
