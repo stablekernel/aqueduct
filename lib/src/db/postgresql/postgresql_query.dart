@@ -36,7 +36,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var buffer = new StringBuffer();
     buffer.write("INSERT INTO ${builder.sqlTableName} ");
 
-    if (builder.columnValueMappers.isEmpty) {
+    if (builder.columnValueBuilders.isEmpty) {
       buffer.write("VALUES (DEFAULT) ");
     } else {
       buffer.write("(${builder.sqlColumnsToInsert}) ");

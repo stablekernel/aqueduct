@@ -87,17 +87,17 @@ class TableBuilder implements Returnable {
   }
 
   QueryPredicate get joiningPredicate {
-    ColumnBuilder leftMapper, rightMapper;
+    ColumnBuilder left, right;
     if (identical(foreignKeyProperty, joinedBy)) {
-      leftMapper = new ColumnBuilder(parent, joinedBy);
-      rightMapper = new ColumnBuilder(this, entity.primaryKeyAttribute);
+      left = new ColumnBuilder(parent, joinedBy);
+      right = new ColumnBuilder(this, entity.primaryKeyAttribute);
     } else {
-      leftMapper = new ColumnBuilder(parent, parent.entity.primaryKeyAttribute);
-      rightMapper = new ColumnBuilder(this, joinedBy.inverse);
+      left = new ColumnBuilder(parent, parent.entity.primaryKeyAttribute);
+      right = new ColumnBuilder(this, joinedBy.inverse);
     }
 
-    var leftColumn = leftMapper.sqlColumnName(withTableNamespace: true);
-    var rightColumn = rightMapper.sqlColumnName(withTableNamespace: true);
+    var leftColumn = left.sqlColumnName(withTableNamespace: true);
+    var rightColumn = right.sqlColumnName(withTableNamespace: true);
     return new QueryPredicate("$leftColumn=$rightColumn", null);
   }
 

@@ -26,14 +26,14 @@ void main() {
       ..where((o) => o.d).equalTo(1.0)
       ..where((o) => o.doc).equalTo(new Document({"k":"v"}));
 
-    var mapper = (q as PostgresQuery).createFetchBuilder();
-    expect(mapper.predicate.format, contains("id:int8"));
-    expect(mapper.predicate.format, contains("n:text"));
-    expect(mapper.predicate.format, contains("t:timestamp"));
-    expect(mapper.predicate.format, contains("l:int4"));
-    expect(mapper.predicate.format, contains("b:boolean"));
-    expect(mapper.predicate.format, contains("d:float8"));
-    expect(mapper.predicate.format, contains("doc:jsonb"));
+    var builder = (q as PostgresQuery).createFetchBuilder();
+    expect(builder.predicate.format, contains("id:int8"));
+    expect(builder.predicate.format, contains("n:text"));
+    expect(builder.predicate.format, contains("t:timestamp"));
+    expect(builder.predicate.format, contains("l:int4"));
+    expect(builder.predicate.format, contains("b:boolean"));
+    expect(builder.predicate.format, contains("d:float8"));
+    expect(builder.predicate.format, contains("doc:jsonb"));
   });
 
   test("Values get typed when used as insertion values", () async {

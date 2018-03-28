@@ -13,7 +13,7 @@ class PostgresQueryBuilder extends TableBuilder {
       addColumnValueBuilder(key, value);
     });
 
-    columnValueMappers.forEach((cv) {
+    columnValueBuilders.forEach((cv) {
       variables[cv.sqlColumnName(withPrefix: valueKeyPrefix)] = cv.value;
     });
 
@@ -24,7 +24,7 @@ class PostgresQueryBuilder extends TableBuilder {
 
   final Map<String, dynamic> variables = {};
 
-  final List<ColumnValueBuilder> columnValueMappers = [];
+  final List<ColumnValueBuilder> columnValueBuilders = [];
 
   bool get containsJoins => returning.reversed.any((p) => p is TableBuilder);
 
@@ -40,7 +40,7 @@ class PostgresQueryBuilder extends TableBuilder {
 
   void addColumnValueBuilder(String key, dynamic value) {
     final builder = _createColumnValueBuilder(key, value);
-    columnValueMappers.add(builder);
+    columnValueBuilders.add(builder);
     variables[builder.sqlColumnName(withPrefix: valueKeyPrefix)] = builder.value;
   }
 
@@ -80,7 +80,7 @@ class PostgresQueryBuilder extends TableBuilder {
    */
 
   String get sqlColumnsAndValuesToUpdate {
-    return columnValueMappers.map((m) {
+    return columnValueBuilders.map((m) {
       final columnName = m.sqlColumnName();
       final variableName = m.sqlColumnName(withPrefix: "@$valueKeyPrefix", withTypeSuffix: true);
       return "$columnName=$variableName";
@@ -88,11 +88,11 @@ class PostgresQueryBuilder extends TableBuilder {
   }
 
   String get sqlColumnsToInsert {
-    return columnValueMappers.map((c) => c.sqlColumnName()).join(",");
+    return columnValueBuilders.map((c) => c.sqlColumnName()).join(",");
   }
 
   String get sqlValuesToInsert {
-    return columnValueMappers.map((c) => c.sqlColumnName(withTypeSuffix: true, withPrefix: "@$valueKeyPrefix")).join(",");
+    return columnValueBuilders.map((c) => c.sqlColumnName(withTypeSuffix: true, withPrefix: "@$valueKeyPrefix")).join(",");
   }
 
   String get sqlColumnsToReturn {
@@ -100,15 +100,15 @@ class PostgresQueryBuilder extends TableBuilder {
   }
 
   String get sqlOrderBy {
-    var allSortMappers = new List<ColumnSortBuilder>.from(columnSortBuilders);
+    var allSorts = new List<ColumnSortBuilder>.from(columnSortBuilders);
 
     var nestedSorts = returning.where((m) => m is TableBuilder).expand((m) => (m as TableBuilder).columnSortBuilders);
-    allSortMappers.addAll(nestedSorts);
+    allSorts.addAll(nestedSorts);
 
-    if (allSortMappers.length == 0) {
+    if (allSorts.length == 0) {
       return "";
     }
 
-    return "ORDER BY ${allSortMappers.map((s) => s.sqlOrderBy).join(",")}";
+    return "ORDER BY ${allSorts.map((s) => s.sqlOrderBy).join(",")}";
   }
 }
