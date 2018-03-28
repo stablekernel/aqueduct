@@ -15,7 +15,7 @@ import 'db_validate.dart';
 import 'db_version.dart';
 import 'db_schema.dart';
 
-class CLIDatabase extends CLICommand with CLIProject {
+class CLIDatabase extends CLICommand {
   CLIDatabase() {
     registerCommand(new CLIDatabaseUpgrade());
     registerCommand(new CLIDatabaseGenerate());
