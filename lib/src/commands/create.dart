@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path_lib;
@@ -57,8 +58,9 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     replaceAqueductDependencyString(destDirectory.path, getAqueductDependencyStringFromPackage(aqueductPackageRef));
 
     displayInfo("Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
+    displayInfo("Please wait...");
     try {
-      await runPubGet(destDirectory, offline: offline);
+      await fetchProjectDependencies(destDirectory, offline: offline);
     } on TimeoutException {
       displayInfo("Fetching dependencies timed out. Run 'pub get' in your project directory.");
     }
@@ -209,22 +211,26 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     }).join("");
   }
 
-  Future<ProcessResult> runPubGet(Directory workingDirectory, {bool offline: false}) async {
+  Future<int> fetchProjectDependencies(Directory workingDirectory, {bool offline: false}) async {
     var args = ["get", "--no-packages-dir"];
     if (offline) {
       args.add("--offline");
     }
 
     try {
-      var result = await Process
-          .run("pub", args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
+      var process = await Process
+          .start("pub", args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
           .timeout(new Duration(seconds: 60));
+      process.stdout.transform(utf8.decoder).listen((output) => outputSink?.write(output));
+      process.stderr.transform(utf8.decoder).listen((output) => outputSink?.write(output));
 
-      if (result.exitCode != 0) {
-        throw new CLIException("${result.stderr}\n\nIf you are offline, try using `pub get --offline`.");
+      final exitCode = await process.exitCode;
+
+      if (exitCode != 0) {
+        throw new CLIException("If you are offline, try using `pub get --offline`.");
       }
 
-      return result;
+      return exitCode;
     } on TimeoutException {
       displayError("Timed out fetching dependencies. Reconnect to the internet or use `pub get --offline`.");
       rethrow;
