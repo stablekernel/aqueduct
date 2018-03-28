@@ -6,7 +6,7 @@ import '../utilities/source_generator.dart';
 import 'base.dart';
 import 'db.dart';
 
-class CLIDatabaseSchema extends CLICommand with CLIDatabaseMigratable, CLIProject {
+class CLIDatabaseSchema extends CLIDatabaseManagingCommand {
   @override
   Future<int> handle() async {
     var map = await getSchema();
