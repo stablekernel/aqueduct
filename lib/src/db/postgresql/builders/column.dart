@@ -1,22 +1,21 @@
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
+import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:postgres/postgres.dart';
 
-export 'package:aqueduct/src/db/postgresql/mappers/expression.dart';
-export 'package:aqueduct/src/db/postgresql/mappers/row.dart';
-
-enum PersistentJoinType { leftOuter }
-
 /// Common interface for values that can be mapped to/from a database.
-abstract class PostgresMapper {}
+abstract class Returnable {}
 
-class ColumnMapper extends PostgresMapper {
-  ColumnMapper(this.table, this.property, {this.documentKeyPath});
+class ColumnBuilder extends Returnable {
+  ColumnBuilder(this.table, this.property, {this.documentKeyPath});
 
-  static List<ColumnMapper> fromKeys(EntityTableMapper table, ManagedEntity entity, List<KeyPath> keys) {
+  static List<ColumnBuilder> fromKeys(TableBuilder table, List<KeyPath> keys) {
+    keys ??= [];
+
+    final entity = table.entity;
+
     // Ensure the primary key is always available and at 0th index.
     var primaryKeyIndex;
     for (var i = 0; i < keys.length; i++) {
@@ -35,7 +34,7 @@ class ColumnMapper extends PostgresMapper {
     }
 
     return keys.map((key) {
-      return new ColumnMapper(table, propertyForName(entity, key.path.first.name), documentKeyPath: key.dynamicElements);
+      return new ColumnBuilder(table, propertyForName(entity, key.path.first.name), documentKeyPath: key.dynamicElements);
     }).toList();
   }
 
@@ -75,20 +74,9 @@ class ColumnMapper extends PostgresMapper {
     PredicateOperator.equalTo: "="
   };
 
-  final EntityTableMapper table;
+  final TableBuilder table;
   final ManagedPropertyDescription property;
   final List<String> documentKeyPath;
-
-  bool fetchAsForeignKey = false;
-
-  String get typeSuffix {
-    var type = PostgreSQLFormat.dataTypeStringForDataType(typeMap[property.type.kind]);
-    if (type != null) {
-      return ":$type";
-    }
-
-    return "";
-  }
 
   dynamic convertValueForStorage(dynamic value) {
     if (property is ManagedAttributeDescription) {
@@ -126,7 +114,16 @@ class ColumnMapper extends PostgresMapper {
     return value;
   }
 
-  String columnName({bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix}) {
+  String get sqlTypeSuffix {
+    var type = PostgreSQLFormat.dataTypeStringForDataType(typeMap[property.type.kind]);
+    if (type != null) {
+      return ":$type";
+    }
+
+    return "";
+  }
+
+  String sqlColumnName({bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix}) {
     var name = property.name;
 
     if (property is ManagedRelationshipDescription) {
@@ -138,11 +135,11 @@ class ColumnMapper extends PostgresMapper {
     }
 
     if (withTypeSuffix) {
-      name = "$name$typeSuffix";
+      name = "$name$sqlTypeSuffix";
     }
 
     if (withTableNamespace) {
-      return "${table.tableReference}.$name";
+      return "${table.sqlTableReference}.$name";
     } else if (withPrefix != null) {
       return "$withPrefix$name";
     }
@@ -151,11 +148,3 @@ class ColumnMapper extends PostgresMapper {
   }
 }
 
-class PropertyValueMapper extends ColumnMapper {
-  PropertyValueMapper(EntityTableMapper table, ManagedPropertyDescription property, dynamic value)
-      : super(table, property) {
-    this.value = convertValueForStorage(value);
-  }
-
-  dynamic value;
-}

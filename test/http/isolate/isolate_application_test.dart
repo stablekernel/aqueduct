@@ -4,13 +4,8 @@ import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:io';
 import 'dart:convert';
-import '../../helpers.dart';
 
 void main() {
-  setUpAll(() {
-    justLogEverything();
-  });
-
   group("Lifecycle", () {
     Application<TestChannel> app;
 

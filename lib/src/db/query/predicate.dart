@@ -73,7 +73,7 @@ class QueryPredicate {
         var fmt = predicate.format;
         Map<String, String> dupeMap = {};
         duplicateKeys.forEach((key) {
-          final replacementKey = "${key}$dupeCounter";;
+          final replacementKey = "${key}$dupeCounter";
           fmt = fmt.replaceAll("@$key", "@$replacementKey");
           dupeMap[key] = replacementKey;
           dupeCounter ++;

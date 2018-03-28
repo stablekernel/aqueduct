@@ -1,18 +1,18 @@
 import 'package:aqueduct/src/db/managed/managed.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
+import 'package:aqueduct/src/db/postgresql/builders/column.dart';
+import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:aqueduct/src/db/query/query.dart';
 
-class ExpressionMapper extends ColumnMapper {
-  ExpressionMapper(EntityTableMapper table, ManagedPropertyDescription property, this.expression,
-      {this.additionalVariablePrefix: ""})
+class ColumnExpressionBuilder extends ColumnBuilder {
+  ColumnExpressionBuilder(TableBuilder table, ManagedPropertyDescription property, this.expression,
+      {this.prefix: ""})
       : super(table, property);
 
-  String additionalVariablePrefix;
+  final String prefix;
   PredicateExpression expression;
 
-  String get defaultVariablePrefix => "$additionalVariablePrefix${table.tableReference}_";
+  String get defaultPrefix => "$prefix${table.sqlTableReference}_";
 
   QueryPredicate get predicate {
     var expr = expression;
@@ -33,10 +33,10 @@ class ExpressionMapper extends ColumnMapper {
   }
 
   QueryPredicate comparisonPredicate(PredicateOperator operator, dynamic value) {
-    var name = columnName(withTableNamespace: true);
-    var variableName = columnName(withPrefix: defaultVariablePrefix);
+    var name = sqlColumnName(withTableNamespace: true);
+    var variableName = sqlColumnName(withPrefix: defaultPrefix);
 
-    return new QueryPredicate("$name ${ColumnMapper.symbolTable[operator]} @$variableName$typeSuffix",
+    return new QueryPredicate("$name ${ColumnBuilder.symbolTable[operator]} @$variableName$sqlTypeSuffix",
         {variableName: convertValueForStorage(value)});
   }
 
@@ -46,39 +46,39 @@ class ExpressionMapper extends ColumnMapper {
 
     var counter = 0;
     values.forEach((value) {
-      var prefix = "$defaultVariablePrefix${counter}_";
+      var prefix = "$defaultPrefix${counter}_";
 
-      var variableName = columnName(withPrefix: prefix);
-      tokenList.add("@$variableName$typeSuffix");
+      var variableName = sqlColumnName(withPrefix: prefix);
+      tokenList.add("@$variableName$sqlTypeSuffix");
       pairedMap[variableName] = convertValueForStorage(value);
 
       counter++;
     });
 
-    var name = columnName(withTableNamespace: true);
+    var name = sqlColumnName(withTableNamespace: true);
     var keyword = within ? "IN" : "NOT IN";
     return new QueryPredicate("$name $keyword (${tokenList.join(",")})", pairedMap);
   }
 
   QueryPredicate nullPredicate(bool isNull) {
-    var name = columnName(withTableNamespace: true);
+    var name = sqlColumnName(withTableNamespace: true);
     return new QueryPredicate("$name ${isNull ? "ISNULL" : "NOTNULL"}", {});
   }
 
   QueryPredicate rangePredicate(dynamic lhsValue, dynamic rhsValue, bool insideRange) {
-    var name = columnName(withTableNamespace: true);
-    var lhsName = columnName(withPrefix: "${defaultVariablePrefix}lhs_");
-    var rhsName = columnName(withPrefix: "${defaultVariablePrefix}rhs_");
+    var name = sqlColumnName(withTableNamespace: true);
+    var lhsName = sqlColumnName(withPrefix: "${defaultPrefix}lhs_");
+    var rhsName = sqlColumnName(withPrefix: "${defaultPrefix}rhs_");
     var operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
 
-    return new QueryPredicate("$name $operation @$lhsName$typeSuffix AND @$rhsName$typeSuffix",
+    return new QueryPredicate("$name $operation @$lhsName$sqlTypeSuffix AND @$rhsName$sqlTypeSuffix",
         {lhsName: convertValueForStorage(lhsValue), rhsName: convertValueForStorage(rhsValue)});
   }
 
   QueryPredicate stringPredicate(
       PredicateStringOperator operator, dynamic value, bool caseSensitive, bool invertOperator) {
-    var n = columnName(withTableNamespace: true);
-    var variableName = columnName(withPrefix: defaultVariablePrefix);
+    var n = sqlColumnName(withTableNamespace: true);
+    var variableName = sqlColumnName(withPrefix: defaultPrefix);
 
     var matchValue = value;
     var operation = caseSensitive ? "LIKE" : "ILIKE";
@@ -99,17 +99,6 @@ class ExpressionMapper extends ColumnMapper {
         break;
     }
 
-    return new QueryPredicate("$n $operation @$variableName$typeSuffix", {variableName: matchValue});
+    return new QueryPredicate("$n $operation @$variableName$sqlTypeSuffix", {variableName: matchValue});
   }
-}
-
-class SortMapper extends ColumnMapper {
-  SortMapper(EntityTableMapper table, ManagedPropertyDescription property, QuerySortOrder order)
-      : super(table, property) {
-    this.order = (order == QuerySortOrder.ascending ? "ASC" : "DESC");
-  }
-
-  String order;
-
-  String get orderByString => "${columnName(withTableNamespace: true)} $order";
 }

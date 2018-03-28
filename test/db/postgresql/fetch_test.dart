@@ -399,6 +399,19 @@ void main() {
       expect(e.toString(), contains("invalid option for key 'enumValues'"));
     }
   });
+
+  test("Cannot include relationship in returning properties", () async {
+    context = await contextWithModels([GenUser, GenPost]);
+
+    try {
+      new Query<GenUser>(context)
+        ..returningProperties((p) => [p.posts]);
+      fail("unreachable");
+    } on ArgumentError catch (e) {
+      expect(e.toString(), contains("Cannot select has-many or has-one relationship properties")) ;
+    }
+  });
+
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {

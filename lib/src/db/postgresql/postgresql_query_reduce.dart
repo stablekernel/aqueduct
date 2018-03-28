@@ -37,26 +37,24 @@ class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<
   }
 
   String _columnName(dynamic selector(T object)) {
-    return query.identifyAttribute(selector).name;
+    return query.entity.identifyAttribute(selector).name;
   }
 
   Future<U> _execute<U>(String function) async {
-    var builder = new PostgresQueryBuilder(query.entity,
-        predicate: query.predicate,
-        expressions: query.expressions);
+    var builder = new PostgresQueryBuilder(query);
     var buffer = new StringBuffer();
     buffer.write("SELECT $function ");
-    buffer.write("FROM ${builder.primaryTableDefinition} ");
+    buffer.write("FROM ${builder.sqlTableName} ");
 
-    if (builder.whereClause != null) {
-      buffer.write("WHERE ${builder.whereClause} ");
+    if (builder.sqlWhereClause != null) {
+      buffer.write("WHERE ${builder.sqlWhereClause} ");
     }
 
     PostgreSQLPersistentStore store = query.context.persistentStore;
     var connection = await store.getDatabaseConnection();
     try {
       var result = await connection
-          .query(buffer.toString(), substitutionValues: builder.substitutionValueMap)
+          .query(buffer.toString(), substitutionValues: builder.variables)
           .timeout(new Duration(seconds: query.timeoutInSeconds));
       return result.first.first;
     } on TimeoutException catch (e) {

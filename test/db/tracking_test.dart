@@ -1,6 +1,3 @@
-import 'dart:async';
-
-import 'package:aqueduct/src/db/query/mixin.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import '../helpers.dart';
@@ -18,14 +15,12 @@ void main() {
 
   group("Attribute identification", () {
     test("Identify top-level", () {
-      final q = new BaseQuery<Parent>(context.entityForType(Parent));
-      expect(q.identifyAttribute((x) => x.field).name, "field");
+      expect(context.entityForType(Parent).identifyAttribute((Parent x) => x.field).name, "field");
     });
 
     test("Cannot select relationship", () {
       try {
-        new BaseQuery<Child>(context.entityForType(Child))
-          ..identifyAttribute((p) => p.parent);
+        context.entityForType(Child).identifyAttribute((Child p) => p.parent);
         fail("unreachable");
       } on ArgumentError catch (e) {
         expect(e.toString(), contains("cannot be selected"));
@@ -34,8 +29,7 @@ void main() {
 
     test("Cannot nest attribute selection", () {
       try {
-        new BaseQuery<Child>(context.entityForType(Child))
-            ..identifyAttribute((p) => p.parent.field);
+        context.entityForType(Child).identifyAttribute((Child p) => p.parent.field);
         fail("unreachable");
       } on ArgumentError catch (e) {
         expect(e.toString(), contains("Cannot use relationships"));
@@ -44,8 +38,8 @@ void main() {
 
     test("cannot select multiple attributes", () {
       try {
-        new BaseQuery<Child>(context.entityForType(Child))
-          ..identifyAttribute((p) {
+        context.entityForType(Child)
+          .identifyAttribute((Child p) {
             p.document;
             return p.field;
           });
@@ -56,14 +50,12 @@ void main() {
     });
 
     test("Can select document directly", () {
-      final q = new BaseQuery<Parent>(context.entityForType(Parent));
-      expect(q.identifyAttribute((x) => x.document).name, "document");
+      expect(context.entityForType(Parent).identifyAttribute((Parent x) => x.document).name, "document");
     });
 
     test("Cannot select sub-document", () {
       try {
-        new BaseQuery<Child>(context.entityForType(Child))
-          ..identifyAttribute((p) => p.document["foo"]);
+        context.entityForType(Child).identifyAttribute((Child p) => p.document["foo"]);
         fail("unreachable");
       } on ArgumentError catch (e) {
         expect(e.toString(), contains("Cannot access subdocuments for this operation"));
@@ -73,19 +65,16 @@ void main() {
 
   group("Relationship identification", () {
     test("Identify top-level relationship", () {
-      final q = new BaseQuery<Parent>(context.entityForType(Parent));
-      expect(q.identifyRelationship((x) => x.children).name, "children");
+      expect(context.entityForType(Parent).identifyRelationship((Parent x) => x.children).name, "children");
     });
 
     test("Identify top-level relationship to-one", () {
-      final q = new BaseQuery<Child>(context.entityForType(Child));
-      expect(q.identifyRelationship((x) => x.parent).name, "parent");
+      expect(context.entityForType(Child).identifyRelationship((Child x) => x.parent).name, "parent");
     });
 
     test("Cannot select attribute", () {
-      final q = new BaseQuery<Parent>(context.entityForType(Parent));
       try {
-        q.identifyRelationship((p) => p.document);
+        context.entityForType(Parent).identifyRelationship((Parent p) => p.document);
         fail("unreachable");
       } on ArgumentError catch (e) {
         expect(e.toString(), contains("Invalid property selection"));
@@ -94,8 +83,7 @@ void main() {
 
     test("Cannot nest attribute selection", () {
       try {
-        new BaseQuery<Grandchild>(context.entityForType(Grandchild))
-          ..identifyRelationship((p) => p.parent.parent);
+        context.entityForType(Grandchild).identifyRelationship((Grandchild p) => p.parent.parent);
         fail("unreachable");
       } on ArgumentError catch (e) {
         expect(e.toString(), contains("Cannot identify a nested relationship"));
@@ -104,8 +92,7 @@ void main() {
 
     test("cannot select multiple attributes", () {
       try {
-        new BaseQuery<Child>(context.entityForType(Child))
-          ..identifyRelationship((p) {
+        context.entityForType(Child).identifyRelationship((Child p) {
             p.parent;
             return p.grandchild;
           });
@@ -118,8 +105,7 @@ void main() {
 
   group("KeyPath identification", () {
     test("Identify multiple properties", () {
-      final q = new BaseQuery<Parent>(context.entityForType(Parent));
-      final props = q.identifyProperties((x) => [x.document, x.field, x.children]);
+      final props = context.entityForType(Parent).identifyProperties((Parent x) => [x.document, x.field, x.children]);
       expect(props.length, 3);
       expect(props.any((k) => k.path.first.name == "document"), true);
       expect(props.any((k) => k.path.first.name == "field"), true);
@@ -127,8 +113,7 @@ void main() {
     });
 
     test("Identify top-level property with subdoc", () {
-      final q = new BaseQuery<Parent>(context.entityForType(Parent));
-      final props = q.identifyProperties((x) => [x.document["k"]]);
+      final props = context.entityForType(Parent).identifyProperties((Parent x) => [x.document["k"]]);
       expect(props.length, 1);
       expect(props.first.path.length, 1);
       expect(props.first.path.first.name, "document");
@@ -136,8 +121,7 @@ void main() {
     });
 
     test("Identify top-level property with subdoc", () {
-      final q = new BaseQuery<Parent>(context.entityForType(Parent));
-      final props = q.identifyProperties((x) => [x.document["k"][1]]);
+      final props = context.entityForType(Parent).identifyProperties((Parent x) => [x.document["k"][1]]);
       expect(props.length, 1);
       expect(props.first.path.length, 1);
       expect(props.first.path.first.name, "document");
@@ -145,8 +129,7 @@ void main() {
     });
 
     test("Subdoc + normal property", () {
-      final q = new BaseQuery<Parent>(context.entityForType(Parent));
-      final props = q.identifyProperties((x) => [x.document["k"][1], x.field]);
+      final props = context.entityForType(Parent).identifyProperties((Parent x) => [x.document["k"][1], x.field]);
       expect(props.length, 2);
 
       expect(props.first.path.length, 1);
@@ -158,19 +141,8 @@ void main() {
       expect(props.last.dynamicElements, isNull);
     });
 
-    test("Cannot include relationship in returning properties", () {
-      try {
-        new BaseQuery<Parent>(context.entityForType(Parent))
-          ..returningProperties((p) => [p.children]);
-        fail("unreachable");
-      } on ArgumentError catch (e) {
-        expect(e.toString(), contains("Cannot select has-many or has-one relationship properties")) ;
-      }
-    });
-
     test("Can select nested properties", () {
-      final q = new BaseQuery<Child>(context.entityForType(Child));
-      final props = q.identifyProperties((x) => [x.parent.field]);
+      final props = context.entityForType(Child).identifyProperties((Child x) => [x.parent.field]);
       expect(props.length, 1);
       expect(props.first.path.length, 2);
       expect(props.first.path.first.name, "parent");
@@ -219,52 +191,4 @@ class _Grandchild {
 
   @Relate(#grandchild)
   Child parent;
-}
-
-class BaseQuery<InstanceType extends ManagedObject> extends Object
-    with QueryMixin<InstanceType>
-    implements Query<InstanceType> {
-
-  BaseQuery(this.entity);
-
-  @override
-  Future<List<InstanceType>> update() async {
-    return [];
-  }
-
-  @override
-  Future<List<InstanceType>> fetch() async {
-    return null;
-  }
-
-  @override
-  QueryReduceOperation<InstanceType> get reduce {
-    return null;
-  }
-
-  @override
-  ManagedEntity entity;
-
-  @override
-  Future<InstanceType> updateOne() {
-    return null;
-  }
-
-  @override
-  Future<InstanceType> insert() {
-    return null;
-  }
-
-  @override
-  Future<int> delete() {
-    return null;
-  }
-
-  @override
-  Future<InstanceType> fetchOne() {
-    return null;
-  }
-
-  @override
-  ManagedContext context;
 }

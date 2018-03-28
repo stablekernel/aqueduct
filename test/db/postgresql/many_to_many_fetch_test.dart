@@ -404,18 +404,25 @@ void main() {
     });
 
     test(
-        "Attempt to implicitly join many to many relationships on the same property throws an exception when executing",
+        "Join on to-many, with where clause on joined table that acesses parent table",
         () async {
-      try {
+          // 'All teams and their away games where %Minn% is away team'
         var q = new Query<Team>(ctx);
         q.join(set: (t) => t.awayGames)
           ..where((o) => o.awayTeam.name).contains("Minn");
-        await q.fetch();
+        var results = await q.fetch();
+        expect(results.length, 3);
+        expect(results.firstWhere((t) => t.name == "Minnesota").awayGames.length, 1);
+        expect(results.where((t) => t.name != "Minnesota").every((t) => t.awayGames.length == 0), true);
 
-        expect(true, false);
-      } on ArgumentError catch (e) {
-        expect(e.toString(), contains("query would join on the same table and foreign key twice"));
-      }
+        // All teams and their games played at %Minn%
+        q = new Query<Team>(ctx);
+        q.join(set: (t) => t.awayGames)
+          ..where((o) => o.homeTeam.name).contains("Minn");
+        results = await q.fetch();
+        expect(results.length, 3);
+        expect(results.firstWhere((t) => t.name == "Iowa").awayGames.length, 1);
+        expect(results.where((t) => t.name != "Iowa").every((t) => t.awayGames.length == 0), true);
     });
   });
 
@@ -492,18 +499,18 @@ Future populateGameSchedule(ManagedContext ctx) async {
 
   var games = [
     new Game()
-      ..homeTeam = teams[0]
-      ..awayTeam = teams[1]
+      ..homeTeam = teams[0] // Wisconsin
+      ..awayTeam = teams[1] // Minnesota
       ..homeScore = 45
       ..awayScore = 0,
     new Game()
-      ..homeTeam = teams[0]
-      ..awayTeam = teams[2]
+      ..homeTeam = teams[0] // Wisconsin
+      ..awayTeam = teams[2] // Iowa
       ..homeScore = 35
       ..awayScore = 3,
     new Game()
-      ..homeTeam = teams[1]
-      ..awayTeam = teams[2]
+      ..homeTeam = teams[1] // Minnesota
+      ..awayTeam = teams[2] // Iowa
       ..homeScore = 0
       ..awayScore = 3,
   ];

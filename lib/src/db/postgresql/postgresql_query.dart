@@ -1,12 +1,7 @@
 import 'dart:async';
 
-import 'package:aqueduct/src/db/managed/key_path.dart';
-import 'package:aqueduct/src/db/query/matcher_internal.dart';
-
 import '../db.dart';
 import '../query/mixin.dart';
-import '../query/sort_descriptor.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
 import 'query_builder.dart';
 import 'postgresql_query_reduce.dart';
 
@@ -36,25 +31,24 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   Future<InstanceType> insert() async {
     validateInput(ValidateOperation.insert);
 
-    var builder = new PostgresQueryBuilder(entity,
-        returningProperties: propertiesToFetch, values: valueMap ?? values?.backing?.contents);
+    var builder = new PostgresQueryBuilder(this);
 
     var buffer = new StringBuffer();
-    buffer.write("INSERT INTO ${builder.primaryTableDefinition} ");
+    buffer.write("INSERT INTO ${builder.sqlTableName} ");
 
-    if (builder.columnValueMappers.isEmpty) {
+    if (builder.columnValueBuilders.isEmpty) {
       buffer.write("VALUES (DEFAULT) ");
     } else {
-      buffer.write("(${builder.valuesColumnString}) ");
-      buffer.write("VALUES (${builder.insertionValueString}) ");
+      buffer.write("(${builder.sqlColumnsToInsert}) ");
+      buffer.write("VALUES (${builder.sqlValuesToInsert}) ");
     }
 
-    if ((builder.returningOrderedMappers?.length ?? 0) > 0) {
-      buffer.write("RETURNING ${builder.returningColumnString}");
+    if ((builder.returning?.length ?? 0) > 0) {
+      buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 
     var results =
-        await context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
+        await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder.instancesForRows(results).first;
   }
@@ -63,28 +57,24 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   Future<List<InstanceType>> update() async {
     validateInput(ValidateOperation.update);
 
-    var builder = new PostgresQueryBuilder(entity,
-        returningProperties: propertiesToFetch,
-        values: valueMap ?? values?.backing?.contents,
-        expressions: expressions,
-        predicate: predicate);
+    var builder = new PostgresQueryBuilder(this);
 
     var buffer = new StringBuffer();
-    buffer.write("UPDATE ${builder.primaryTableDefinition} ");
-    buffer.write("SET ${builder.updateValueString} ");
+    buffer.write("UPDATE ${builder.sqlTableName} ");
+    buffer.write("SET ${builder.sqlColumnsAndValuesToUpdate} ");
 
-    if (builder.whereClause != null) {
-      buffer.write("WHERE ${builder.whereClause} ");
+    if (builder.sqlWhereClause != null) {
+      buffer.write("WHERE ${builder.sqlWhereClause} ");
     } else if (!canModifyAllInstances) {
       throw canModifyAllInstancesError;
     }
 
-    if ((builder.returningOrderedMappers?.length ?? 0) > 0) {
-      buffer.write("RETURNING ${builder.returningColumnString}");
+    if ((builder.returning?.length ?? 0) > 0) {
+      buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 
     var results =
-        await context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
+        await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder.instancesForRows(results);
   }
@@ -105,30 +95,30 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<int> delete() async {
-    var builder = new PostgresQueryBuilder(entity, predicate: predicate, expressions: expressions);
+    var builder = new PostgresQueryBuilder(this);
 
     var buffer = new StringBuffer();
-    buffer.write("DELETE FROM ${builder.primaryTableDefinition} ");
+    buffer.write("DELETE FROM ${builder.sqlTableName} ");
 
-    if (builder.whereClause != null) {
-      buffer.write("WHERE ${builder.whereClause} ");
+    if (builder.sqlWhereClause != null) {
+      buffer.write("WHERE ${builder.sqlWhereClause} ");
     } else if (!canModifyAllInstances) {
       throw canModifyAllInstancesError;
     }
 
-    return context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds,
+    return context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds,
         returnType: PersistentStoreQueryReturnType.rowCount);
   }
 
   @override
   Future<InstanceType> fetchOne() async {
-    var rowMapper = createFetchMapper();
+    var builder = createFetchBuilder();
 
-    if (!rowMapper.containsJoins) {
+    if (!builder.containsJoins) {
       fetchLimit = 1;
     }
 
-    var results = await _fetch(rowMapper);
+    var results = await _fetch(builder);
     if (results.length == 1) {
       return results.first;
     } else if (results.length > 1) {
@@ -142,39 +132,17 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<List<InstanceType>> fetch() async {
-    return _fetch(createFetchMapper());
+    return _fetch(createFetchBuilder());
   }
 
   //////
 
-  PostgresQueryBuilder createFetchMapper() {
-    var allSortDescriptors = new List<QuerySortDescriptor>.from(sortDescriptors ?? []);
+  PostgresQueryBuilder createFetchBuilder() {
+    var builder = new PostgresQueryBuilder(this);
+
     if (pageDescriptor != null) {
       validatePageDescriptor();
-      var pageSortDescriptor = new QuerySortDescriptor(pageDescriptor.propertyName, pageDescriptor.order);
-      allSortDescriptors.insert(0, pageSortDescriptor);
-
-      if (pageDescriptor.boundingValue != null) {
-        final prop = entity.properties[pageDescriptor.propertyName];
-        final expr = new QueryExpression(new KeyPath(prop));
-
-        if (pageDescriptor.order == QuerySortOrder.ascending) {
-          expr.expression = new ComparisonExpression(pageDescriptor.boundingValue, PredicateOperator.greaterThan);
-        } else {
-          expr.expression = new ComparisonExpression(pageDescriptor.boundingValue, PredicateOperator.lessThan);
-        }
-
-        expressions.add(expr);
-      }
     }
-
-    var builder = new PostgresQueryBuilder(entity,
-        returningProperties: propertiesToFetch,
-        predicate: predicate,
-        expressions: expressions,
-        nestedRowMappers: rowMappersFromSubqueries,
-        sortDescriptors: allSortDescriptors,
-        aliasTables: true);
 
     if (builder.containsJoins && pageDescriptor != null) {
       throw new StateError("Invalid query. Cannot set both 'pageDescription' and use 'join' in query.");
@@ -185,18 +153,18 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   Future<List<InstanceType>> _fetch(PostgresQueryBuilder builder) async {
     var buffer = new StringBuffer();
-    buffer.write("SELECT ${builder.returningColumnString} ");
-    buffer.write("FROM ${builder.primaryTableDefinition} ");
+    buffer.write("SELECT ${builder.sqlColumnsToReturn} ");
+    buffer.write("FROM ${builder.sqlTableName} ");
 
     if (builder.containsJoins) {
-      buffer.write("${builder.joinString} ");
+      buffer.write("${builder.sqlJoin} ");
     }
 
-    if (builder.whereClause != null) {
-      buffer.write("WHERE ${builder.whereClause} ");
+    if (builder.sqlWhereClause != null) {
+      buffer.write("WHERE ${builder.sqlWhereClause} ");
     }
 
-    buffer.write("${builder.orderByString} ");
+    buffer.write("${builder.sqlOrderBy} ");
 
     if (fetchLimit != 0) {
       buffer.write("LIMIT $fetchLimit ");
@@ -207,7 +175,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     }
 
     var results =
-        await context.persistentStore.executeQuery(buffer.toString(), builder.substitutionValueMap, timeoutInSeconds);
+        await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder.instancesForRows(results);
   }
@@ -221,20 +189,6 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     if (pageDescriptor.boundingValue != null && !prop.isAssignableWith(pageDescriptor.boundingValue)) {
       throw new StateError("Invalid query page descriptor. Bounding value for column '${pageDescriptor.propertyName}' has invalid type.");
     }
-  }
-
-  List<RowMapper> get rowMappersFromSubqueries {
-    return subQueries?.keys?.map((relationshipDesc) {
-          var subQuery = subQueries[relationshipDesc] as PostgresQuery;
-          var joinElement = new RowMapper(PersistentJoinType.leftOuter, relationshipDesc, subQuery.propertiesToFetch,
-              predicate: subQuery.predicate,
-              sortDescriptors: subQuery.sortDescriptors,
-              expressions: subQuery.expressions);
-          joinElement.addRowMappers(subQuery.rowMappersFromSubqueries);
-
-          return joinElement;
-        })?.toList() ??
-        [];
   }
 
   static final StateError canModifyAllInstancesError = new StateError(

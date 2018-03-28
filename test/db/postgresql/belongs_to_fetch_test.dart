@@ -261,6 +261,18 @@ void main() {
                 and: {"parents": fullObjectMap(RootObject, 4), "parent": null, "grandChildren": []})
           ]));
     });
+
+    test("Can use two 'where' criteria on parent object when not joining parent object explicitly", () async {
+      var q = new Query<ChildObject>(ctx)..where((o) => o.parent.value1).equalTo(1)
+        ..where((o) => o.parent.value2).equalTo(1);
+      final res1 = await q.fetchOne();
+      expect(res1.cid, 1);
+
+      var q2 =  new Query<ChildObject>(ctx)..where((o) => o.parent.value1).equalTo(1)
+        ..where((o) => o.parent.value2).equalTo(2);
+      final res2 = await q2.fetch();
+      expect(res2.length, 0);
+    });
   });
 
   group("Join on parent of hasOne relationship", () {

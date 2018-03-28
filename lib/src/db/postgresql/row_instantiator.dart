@@ -1,18 +1,21 @@
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
+
 import '../db.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/column.dart';
-import 'package:aqueduct/src/db/postgresql/mappers/table.dart';
+import 'package:aqueduct/src/db/postgresql/builders/column.dart';
+import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 
-abstract class RowInstantiator {
-  List<PostgresMapper> get returningOrderedMappers;
+class RowInstantiator {
+  RowInstantiator(this.rootTableBuilder, this.returningValues);
 
-  Map<EntityTableMapper, Map<dynamic, ManagedObject>> distinctObjects = {};
+  final TableBuilder rootTableBuilder;
+  final List<Returnable> returningValues;
 
-  EntityTableMapper get rootTableMapper;
+  Map<TableBuilder, Map<dynamic, ManagedObject>> distinctObjects = {};
 
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
     try {
       return rows
-          .map((row) => instanceFromRow(row.iterator, returningOrderedMappers.iterator))
+          .map((row) => instanceFromRow(row.iterator, returningValues.iterator))
           .where((wrapper) => wrapper.isNew)
           .map((wrapper) => wrapper.instance)
           .toList();
@@ -21,49 +24,49 @@ abstract class RowInstantiator {
     }
   }
 
-  InstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator, Iterator<ColumnMapper> mappingIterator,
-      {EntityTableMapper forTableMapper}) {
-    forTableMapper ??= rootTableMapper;
+  InstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator, Iterator<ColumnBuilder> returningIterator,
+      {TableBuilder table}) {
+    table ??= rootTableBuilder;
 
     // Inspect the primary key first.  We are guaranteed to have the primary key come first in any rowIterator.
     rowIterator.moveNext();
-    mappingIterator.moveNext();
+    returningIterator.moveNext();
 
     var primaryKeyValue = rowIterator.current;
     if (primaryKeyValue == null) {
-      exhaustNullInstanceIterator(rowIterator, mappingIterator);
+      exhaustNullInstanceIterator(rowIterator, returningIterator);
       return null;
     }
 
     var alreadyExists = true;
-    var instance = getExistingInstance(forTableMapper, primaryKeyValue);
+    var instance = getExistingInstance(table, primaryKeyValue);
     if (instance == null) {
       alreadyExists = false;
-      instance = createInstanceWithPrimaryKeyValue(forTableMapper, primaryKeyValue);
+      instance = createInstanceWithPrimaryKeyValue(table, primaryKeyValue);
     }
 
-    while (mappingIterator.moveNext()) {
-      var mapper = mappingIterator.current;
-      if (mapper is! RowMapper) {
+    while (returningIterator.moveNext()) {
+      var ret = returningIterator.current;
+      if (ret is! TableBuilder) {
         rowIterator.moveNext();
-        applyColumnValueToProperty(instance, mapper, rowIterator.current);
-      } else if (mapper is RowMapper) {
-        applyRowValuesToInstance(instance, mapper as RowMapper, rowIterator);
+        applyColumnValueToProperty(instance, ret, rowIterator.current);
+      } else if (ret is TableBuilder) {
+        applyRowValuesToInstance(instance, ret as TableBuilder, rowIterator);
       }
     }
 
     return new InstanceWrapper(instance, !alreadyExists);
   }
 
-  ManagedObject createInstanceWithPrimaryKeyValue(EntityTableMapper tableMapper, dynamic primaryKeyValue) {
-    var instance = tableMapper.entity.newInstance();
+  ManagedObject createInstanceWithPrimaryKeyValue(TableBuilder table, dynamic primaryKeyValue) {
+    var instance = table.entity.newInstance();
 
-    instance[tableMapper.entity.primaryKey] = primaryKeyValue;
+    instance[table.entity.primaryKey] = primaryKeyValue;
 
-    var typeMap = distinctObjects[tableMapper];
+    var typeMap = distinctObjects[table];
     if (typeMap == null) {
       typeMap = {};
-      distinctObjects[tableMapper] = typeMap;
+      distinctObjects[table] = typeMap;
     }
 
     typeMap[instance[instance.entity.primaryKey]] = instance;
@@ -71,8 +74,8 @@ abstract class RowInstantiator {
     return instance;
   }
 
-  ManagedObject getExistingInstance(EntityTableMapper tableMapper, dynamic primaryKeyValue) {
-    var byType = distinctObjects[tableMapper];
+  ManagedObject getExistingInstance(TableBuilder table, dynamic primaryKeyValue) {
+    var byType = distinctObjects[table];
     if (byType == null) {
       return null;
     }
@@ -80,23 +83,23 @@ abstract class RowInstantiator {
     return byType[primaryKeyValue];
   }
 
-  void applyRowValuesToInstance(ManagedObject instance, RowMapper mapper, Iterator<dynamic> rowIterator) {
-    if (mapper.flattened.isEmpty) {
+  void applyRowValuesToInstance(ManagedObject instance, TableBuilder table, Iterator<dynamic> rowIterator) {
+    if (table.flattenedColumnsToReturn.isEmpty) {
       return;
     }
 
     var innerInstanceWrapper =
-        instanceFromRow(rowIterator, mapper.returningOrderedMappers.iterator, forTableMapper: mapper);
+        instanceFromRow(rowIterator, table.returning.iterator, table: table);
 
-    if (mapper.isToMany) {
+    if (table.joinedBy.relationshipType == ManagedRelationshipType.hasMany) {
       // If to many, put in a managed set.
-      ManagedSet list = instance[mapper.joiningProperty.name] ?? new ManagedSet();
+      ManagedSet list = instance[table.joinedBy.name] ?? new ManagedSet();
       if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
         list.add(innerInstanceWrapper.instance);
       }
-      instance[mapper.joiningProperty.name] = list;
+      instance[table.joinedBy.name] = list;
     } else {
-      var existingInnerInstance = instance[mapper.joiningProperty.name];
+      var existingInnerInstance = instance[table.joinedBy.name];
 
       // If not assigned yet, assign this value (which may be null). If assigned,
       // don't overwrite with a null row that may come after. Once we have it, we have it.
@@ -104,38 +107,34 @@ abstract class RowInstantiator {
       // Now if it is belongsTo, we may have already populated it with the foreign key object.
       // In this case, we do need to override it
       if (existingInnerInstance == null) {
-        instance[mapper.joiningProperty.name] = innerInstanceWrapper?.instance;
+        instance[table.joinedBy.name] = innerInstanceWrapper?.instance;
       }
     }
   }
 
-  void applyColumnValueToProperty(ManagedObject instance, ColumnMapper mapper, dynamic value) {
-    var desc = mapper.property;
+  void applyColumnValueToProperty(ManagedObject instance, ColumnBuilder column, dynamic value) {
+    var desc = column.property;
 
     if (desc is ManagedRelationshipDescription) {
       // This is a belongsTo relationship (otherwise it wouldn't be a column), keep the foreign key.
-      // However, if we are later going to get these values and more from a join,
-      // we need ignore it here.
-      if (!mapper.fetchAsForeignKey) {
-        if (value != null) {
-          var innerInstance = desc.destinationEntity.newInstance();
-          innerInstance[desc.destinationEntity.primaryKey] = value;
-          instance[desc.name] = innerInstance;
-        } else {
-          // If null, explicitly add null to map so the value is populated.
-          instance[desc.name] = null;
-        }
+      if (value != null) {
+        var innerInstance = desc.destinationEntity.newInstance();
+        innerInstance[desc.destinationEntity.primaryKey] = value;
+        instance[desc.name] = innerInstance;
+      } else {
+        // If null, explicitly add null to map so the value is populated.
+        instance[desc.name] = null;
       }
     } else if (desc is ManagedAttributeDescription) {
-      instance[desc.name] = mapper.convertValueFromStorage(value);
+      instance[desc.name] = column.convertValueFromStorage(value);
     }
   }
 
-  void exhaustNullInstanceIterator(Iterator<dynamic> rowIterator, Iterator<ColumnMapper> mappingIterator) {
-    while (mappingIterator.moveNext()) {
-      var mapper = mappingIterator.current;
-      if (mapper is RowMapper) {
-        var _ = instanceFromRow(rowIterator, (mapper as RowMapper).returningOrderedMappers.iterator);
+  void exhaustNullInstanceIterator(Iterator<dynamic> rowIterator, Iterator<ColumnBuilder> returningIterator) {
+    while (returningIterator.moveNext()) {
+      var ret = returningIterator.current;
+      if (ret is TableBuilder) {
+        var _ = instanceFromRow(rowIterator, (ret as TableBuilder).returning.iterator);
       } else {
         rowIterator.moveNext();
       }

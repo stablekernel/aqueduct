@@ -10,6 +10,8 @@ class KeyPath {
   final List<ManagedPropertyDescription> path;
   List<dynamic> dynamicElements;
 
+  ManagedPropertyDescription operator [](int index) => path[index];
+
   int get length => path.length;
 
   void add(ManagedPropertyDescription element) {

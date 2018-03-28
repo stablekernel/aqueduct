@@ -3,13 +3,8 @@ import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'dart:io';
-import '../../helpers.dart';
 
 void main() {
-  setUpAll(() {
-    justLogEverything();
-  });
-
   tearDownAll(() {
     new Logger("aqueduct").clearListeners();
   });

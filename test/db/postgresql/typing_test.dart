@@ -1,6 +1,5 @@
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/postgresql/postgresql_query.dart';
 import 'package:aqueduct/src/db/postgresql/query_builder.dart';
 
@@ -27,14 +26,14 @@ void main() {
       ..where((o) => o.d).equalTo(1.0)
       ..where((o) => o.doc).equalTo(new Document({"k":"v"}));
 
-    var mapper = (q as PostgresQuery).createFetchMapper();
-    expect(mapper.finalizedPredicate.format, contains("id:int8"));
-    expect(mapper.finalizedPredicate.format, contains("n:text"));
-    expect(mapper.finalizedPredicate.format, contains("t:timestamp"));
-    expect(mapper.finalizedPredicate.format, contains("l:int4"));
-    expect(mapper.finalizedPredicate.format, contains("b:boolean"));
-    expect(mapper.finalizedPredicate.format, contains("d:float8"));
-    expect(mapper.finalizedPredicate.format, contains("doc:jsonb"));
+    var builder = (q as PostgresQuery).createFetchBuilder();
+    expect(builder.predicate.format, contains("id:int8"));
+    expect(builder.predicate.format, contains("n:text"));
+    expect(builder.predicate.format, contains("t:timestamp"));
+    expect(builder.predicate.format, contains("l:int4"));
+    expect(builder.predicate.format, contains("b:boolean"));
+    expect(builder.predicate.format, contains("d:float8"));
+    expect(builder.predicate.format, contains("doc:jsonb"));
   });
 
   test("Values get typed when used as insertion values", () async {
@@ -49,10 +48,8 @@ void main() {
       ..values.d = 1.0
       ..values.doc = new Document({"k":"v"});
 
-    final entity = context.entityForType(TestModel);
-    var builder = new PostgresQueryBuilder(entity,
-        returningProperties: [new KeyPath(entity.properties["id"])], values: q.values.backing.contents);
-    var insertString = builder.insertionValueString;
+    var builder = new PostgresQueryBuilder(q as PostgresQuery);
+    var insertString = builder.sqlValuesToInsert;
     expect(insertString, contains("id:int8"));
     expect(insertString, contains("n:text"));
     expect(insertString, contains("t:timestamp"));

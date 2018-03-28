@@ -15,13 +15,7 @@ void main() {
   List<RootObject> rootObjects;
   ManagedContext ctx;
   setUpAll(() async {
-    ctx = await contextWithModels([
-      RootObject,
-      RootJoinObject,
-      OtherRootObject,
-      ChildObject,
-      GrandChildObject
-    ]);
+    ctx = await contextWithModels([RootObject, RootJoinObject, OtherRootObject, ChildObject, GrandChildObject]);
     rootObjects = await populateModelGraph(ctx);
   });
 
@@ -50,10 +44,7 @@ void main() {
       var results = await q.fetch();
 
       for (var r in results) {
-        expect(
-            r.backing.contents.length,
-            r.entity.defaultProperties.length +
-                1); // +1 is for key containing 'child'
+        expect(r.backing.contents.length, r.entity.defaultProperties.length + 1); // +1 is for key containing 'child'
         for (var property in r.entity.defaultProperties) {
           expect(r.backing.contents.containsKey(property), true);
         }
@@ -61,8 +52,7 @@ void main() {
         // Child may be null, but even if it is the key must be in the map
         expect(r.backing.contents.containsKey("child"), true);
         if (r.child != null) {
-          expect(r.child.backing.contents.length,
-              r.child.entity.defaultProperties.length);
+          expect(r.child.backing.contents.length, r.child.entity.defaultProperties.length);
           for (var property in r.child.entity.defaultProperties) {
             expect(r.child.backing.contents.containsKey(property), true);
           }
@@ -70,19 +60,19 @@ void main() {
       }
     });
 
-    test(
-        "Query with both explicit and implicit join only returns values for explicit join",
-        () async {
+    test("Query with both explicit and implicit join only returns values for explicit join", () async {
       var q = new Query<RootObject>(ctx);
+
+      // if i have a join condition that uses a property of a has-many or has-one relationship,
+      // it creates another join. but that joined table's columns are not usable in
+      //the join condition, so we must do an inner select that does the join and move
+      // the additional expression to the where clause
 
       q.join(object: (r) => r.child)..where((o) => o.grandChild.gid).greaterThan(1);
       var results = await q.fetch();
 
       for (var r in results) {
-        expect(
-            r.backing.contents.length,
-            r.entity.defaultProperties.length +
-                1); // +1 is for key containing 'child'
+        expect(r.backing.contents.length, r.entity.defaultProperties.length + 1); // +1 is for key containing 'child'
         for (var property in r.entity.defaultProperties) {
           expect(r.backing.contents.containsKey(property), true);
         }
@@ -90,8 +80,7 @@ void main() {
         // Child may be null, but even if it is the key must be in the map
         expect(r.backing.contents.containsKey("child"), true);
         if (r.child != null) {
-          expect(r.child.backing.contents.length,
-              r.child.entity.defaultProperties.length);
+          expect(r.child.backing.contents.length, r.child.entity.defaultProperties.length);
           for (var property in r.child.entity.defaultProperties) {
             expect(r.child.backing.contents.containsKey(property), true);
           }
@@ -107,28 +96,22 @@ void main() {
 
       var results = await q.fetch();
       for (var r in results) {
-        expect(
-            r.backing.contents.length,
-            r.entity.defaultProperties.length +
-                1); // +1 is for key containing 'child'
+        expect(r.backing.contents.length, r.entity.defaultProperties.length + 1); // +1 is for key containing 'child'
         for (var property in r.entity.defaultProperties) {
           expect(r.backing.contents.containsKey(property), true);
         }
 
         expect(r.backing.contents.containsKey("child"), true);
         if (r.child != null) {
-          expect(
-              r.child.backing.contents.length,
-              r.child.entity.defaultProperties.length +
-                  1); // +1 is for key containing 'grandchild
+          expect(r.child.backing.contents.length,
+              r.child.entity.defaultProperties.length + 1); // +1 is for key containing 'grandchild
           for (var property in r.child.entity.defaultProperties) {
             expect(r.child.backing.contents.containsKey(property), true);
           }
 
           expect(r.child.backing.contents.containsKey("grandChild"), true);
           if (r.child.grandChild != null) {
-            expect(r.child.grandChild.backing.contents.length,
-                r.child.grandChild.entity.defaultProperties.length);
+            expect(r.child.grandChild.backing.contents.length, r.child.grandChild.entity.defaultProperties.length);
             for (var property in r.child.grandChild.entity.defaultProperties) {
               expect(r.child.grandChild.backing.contents.containsKey(property), true);
             }
@@ -139,8 +122,7 @@ void main() {
       expect(results.any((r) => r.child?.grandChild != null), true);
     });
 
-    test("Query can specify resultProperties values when explicitly joined",
-        () async {
+    test("Query can specify resultProperties values when explicitly joined", () async {
       var q = new Query<RootObject>(ctx)..returningProperties((r) => [r.rid]);
 
       q.join(object: (r) => r.child)..returningProperties((c) => [c.cid]);
@@ -158,9 +140,7 @@ void main() {
       }
     });
 
-    test(
-        "Query with nested explicit joins can specify resultProperties for all objects",
-        () async {
+    test("Query with nested explicit joins can specify resultProperties for all objects", () async {
       var q = new Query<RootObject>(ctx)..returningProperties((r) => [r.rid]);
 
       var cq = q.join(object: (r) => r.child)..returningProperties((c) => [c.cid]);
@@ -218,8 +198,7 @@ void main() {
 
     test("Explicitly joining related objects, nested implicit join", () async {
       var q = new Query<RootObject>(ctx)..where((o) => o.rid).equalTo(1);
-      q.join(set: (r) => r.children)
-        ..where((o) => o.grandChildren.haveAtLeastOneWhere.gid).equalTo(5);
+      q.join(set: (r) => r.children)..where((o) => o.grandChildren.haveAtLeastOneWhere.gid).equalTo(5);
 
       var results = await q.fetch();
       expect(results.length, 1);
@@ -228,8 +207,7 @@ void main() {
       expect(results.first.children.first.grandChildren, isNull);
     });
 
-    test("Explicitly joining related objects and nested related objects",
-        () async {
+    test("Explicitly joining related objects and nested related objects", () async {
       var q = new Query<RootObject>(ctx)..where((o) => o.rid).equalTo(1);
 
       var cq = q.join(set: (r) => r.children);
@@ -239,30 +217,15 @@ void main() {
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.rid, 1);
-      expect(results.first.children.length,
-          rootObjects.firstWhere((r) => r.rid == 1).children.length);
-      expect(
-          results.first.children
-              .firstWhere((c) => c.cid == 2)
-              .grandChildren
-              .length,
-          1);
-      expect(
-          results.first.children
-              .where((c) => c.cid != 2)
-              .every((c) => c.grandChildren.length == 0),
-          true);
+      expect(results.first.children.length, rootObjects.firstWhere((r) => r.rid == 1).children.length);
+      expect(results.first.children.firstWhere((c) => c.cid == 2).grandChildren.length, 1);
+      expect(results.first.children.where((c) => c.cid != 2).every((c) => c.grandChildren.length == 0), true);
     });
 
     test("Nested implicit joins are combined", () async {
       var q = new Query<RootObject>(ctx)
         ..where((o) => o.children.haveAtLeastOneWhere.cid).equalTo(2)
-        ..where
-            ((o) => o.children
-            .haveAtLeastOneWhere
-            .grandChildren
-            .haveAtLeastOneWhere
-            .gid).lessThan(8);
+        ..where((o) => o.children.haveAtLeastOneWhere.grandChildren.haveAtLeastOneWhere.gid).lessThan(8);
       var results = await q.fetch();
 
       expect(results.length, 1);
@@ -271,14 +234,33 @@ void main() {
 
       q = new Query<RootObject>(ctx)
         ..where((o) => o.children.haveAtLeastOneWhere.cid).equalTo(2)
-        ..where
-          ((o) => o.children
-            .haveAtLeastOneWhere
-            .grandChildren
-            .haveAtLeastOneWhere
-            .gid).greaterThan(8);
+        ..where((o) => o.children.haveAtLeastOneWhere.grandChildren.haveAtLeastOneWhere.gid).greaterThan(8);
       results = await q.fetch();
       expect(results.length, 0);
+    });
+
+    test("Where clause on foreign key property of joined table", () async {
+      var q = new Query<RootObject>(ctx)
+        ..where((o) => o.child.grandChildren.haveAtLeastOneWhere.gid).equalTo(2);
+      var res = await q.fetch();
+      expect(res.length, 1);
+      expect(res.first.rid, 1);
+
+      q = new Query<RootObject>(ctx)
+        ..where((o) => o.children.haveAtLeastOneWhere.grandChild).identifiedBy(4);
+      res = await q.fetch();
+      expect(res.length, 1);
+      expect(res.first.rid, 1);
+
+      q = new Query<RootObject>(ctx)
+        ..where((o) => o.child.grandChildren.haveAtLeastOneWhere.gid).equalTo(4);
+      res = await q.fetch();
+      expect(res.length, 0);
+
+      q = new Query<RootObject>(ctx)
+        ..where((o) => o.children.haveAtLeastOneWhere.grandChild).identifiedBy(8);
+      res = await q.fetch();
+      expect(res.length, 0);
     });
   });
 
@@ -290,15 +272,11 @@ void main() {
 
       expect(results.length, rootObjects.length);
       expect(results.firstWhere((r) => r.child?.cid == 1).child, isNotNull);
-      expect(
-          results.where((r) => r.rid != 1).every(
-              (r) => r.backing.contents.containsKey("child") && r.child == null),
+      expect(results.where((r) => r.rid != 1).every((r) => r.backing.contents.containsKey("child") && r.child == null),
           true);
     });
 
-    test(
-        "Implicit join on child affects child object returned, but not root objects",
-        () async {
+    test("Implicit join on child affects child object returned, but not root objects", () async {
       var q = new Query<RootObject>(ctx);
       q.join(set: (r) => r.children)..where((o) => o.grandChild.gid).equalTo(4);
       var results = await q.fetch();
@@ -306,14 +284,11 @@ void main() {
       expect(results.length, rootObjects.length);
       expect(results.firstWhere((r) => r.rid == 1).children.length, 1);
       expect(results.firstWhere((r) => r.rid == 1).children.first.cid, 2);
-      expect(results.where((r) => r.rid != 1).every((r) => r.children.isEmpty),
-          true);
+      expect(results.where((r) => r.rid != 1).every((r) => r.children.isEmpty), true);
     });
 
     // Filter child by values in both child and grandchild
-    test(
-        "Where clause on child + implicit join to granchild can find overly identified object",
-        () async {
+    test("Where clause on child + implicit join to granchild can find overly identified object", () async {
       var q = new Query<RootObject>(ctx);
       q.join(set: (r) => r.children)
         ..where((o) => o.cid).equalTo(2)
@@ -323,15 +298,11 @@ void main() {
       expect(results.length, rootObjects.length);
       expect(results.firstWhere((r) => r.rid == 1).children.length, 1);
       expect(results.firstWhere((r) => r.rid == 1).children.first.cid, 2);
-      expect(results.firstWhere((r) => r.rid == 1).children.first.grandChildren,
-          isNull);
-      expect(results.where((r) => r.rid != 1).every((r) => r.children.isEmpty),
-          true);
+      expect(results.firstWhere((r) => r.rid == 1).children.first.grandChildren, isNull);
+      expect(results.where((r) => r.rid != 1).every((r) => r.children.isEmpty), true);
     });
 
-    test(
-        "Where clause on child + implicit join to grandchild returns empty if conditions conflict",
-        () async {
+    test("Where clause on child + implicit join to grandchild returns empty if conditions conflict", () async {
       var q = new Query<RootObject>(ctx);
       q.join(set: (r) => r.children)
         ..where((o) => o.cid).equalTo(4)
@@ -342,9 +313,7 @@ void main() {
       expect(results.every((r) => r.children.isEmpty), true);
     });
 
-    test(
-        "Where clause on child + implicit join to grandchild returns appropriate matches",
-        () async {
+    test("Where clause on child + implicit join to grandchild returns appropriate matches", () async {
       var q = new Query<RootObject>(ctx);
       q.join(set: (r) => r.children)
         ..where((o) => o.cid).lessThanEqualTo(5)
@@ -353,21 +322,14 @@ void main() {
 
       expect(results.length, rootObjects.length);
       expect(results.firstWhere((r) => r.rid == 1).children.length, 2);
-      expect(
-          results.firstWhere((r) => r.rid == 1).children.any((c) => c.cid == 2),
-          true);
-      expect(
-          results.firstWhere((r) => r.rid == 1).children.any((c) => c.cid == 4),
-          true);
-      expect(results.where((r) => r.rid != 1).every((r) => r.children.isEmpty),
-          true);
+      expect(results.firstWhere((r) => r.rid == 1).children.any((c) => c.cid == 2), true);
+      expect(results.firstWhere((r) => r.rid == 1).children.any((c) => c.cid == 4), true);
+      expect(results.where((r) => r.rid != 1).every((r) => r.children.isEmpty), true);
     });
   });
 
   group("With where clauses on grandchild object", () {
-    test(
-        "Explicit join on child and grandchild, retains all root objects and child objects",
-        () async {
+    test("Explicit join on child and grandchild, retains all root objects and child objects", () async {
       var q = new Query<RootObject>(ctx);
       var cq = q.join(set: (r) => r.children);
       cq.join(set: (c) => c.grandChildren)..where((o) => o.gid).equalTo(5);
@@ -375,23 +337,8 @@ void main() {
       var results = await q.fetch();
 
       expect(results.length, rootObjects.length);
-      expect(
-          results
-              .firstWhere((r) => r.rid == 1)
-              .children
-              .firstWhere((c) => c.cid == 2)
-              .grandChildren
-              .length,
-          1);
-      expect(
-          results
-              .firstWhere((r) => r.rid == 1)
-              .children
-              .firstWhere((c) => c.cid == 2)
-              .grandChildren
-              .first
-              .gid,
-          5);
+      expect(results.firstWhere((r) => r.rid == 1).children.firstWhere((c) => c.cid == 2).grandChildren.length, 1);
+      expect(results.firstWhere((r) => r.rid == 1).children.firstWhere((c) => c.cid == 2).grandChildren.first.gid, 5);
       expect(
           results
               .firstWhere((r) => r.rid == 1)
@@ -400,26 +347,19 @@ void main() {
               .every((c) => c.grandChildren.length == 0),
           true);
 
-      expect(
-          results
-              .where((r) => r.rid != 1)
-              .every((r) => r.children.every((c) => c.grandChildren.isEmpty)),
-          true);
+      expect(results.where((r) => r.rid != 1).every((r) => r.children.every((c) => c.grandChildren.isEmpty)), true);
     });
   });
 
   group("Implicit and explicit same table", () {
-    test(
-        "An explicit and implicit join on the same table return the keys of the explicit join",
-        () async {
+    test("An explicit and implicit join on the same table return the keys of the explicit join", () async {
       var q = new Query<RootObject>(ctx)..where((o) => o.child.value1).greaterThan(0);
 
       q.join(object: (r) => r.child)..returningProperties((c) => [c.cid]);
 
       var results = await q.fetch();
       for (var r in results) {
-        expect(r.backing.contents.length,
-            r.entity.defaultProperties.length + 1); // +1 is for child
+        expect(r.backing.contents.length, r.entity.defaultProperties.length + 1); // +1 is for child
         for (var property in r.entity.defaultProperties) {
           expect(r.backing.contents.containsKey(property), true);
         }
@@ -428,11 +368,9 @@ void main() {
       }
     });
 
-    test(
-        "An explicit and implicit join on same table combine predicates and have appropriate impact on root objects",
+    test("An explicit and implicit join on same table combine predicates and have appropriate impact on root objects",
         () async {
-      var q = new Query<RootObject>(ctx)
-        ..where((o) => o.children.haveAtLeastOneWhere.cid).greaterThan(5);
+      var q = new Query<RootObject>(ctx)..where((o) => o.children.haveAtLeastOneWhere.cid).greaterThan(5);
 
       q.join(set: (r) => r.children)..where((o) => o.cid).lessThan(10);
 
@@ -440,13 +378,9 @@ void main() {
 
       expect(results.length, 2);
       expect(results.firstWhere((r) => r.rid == 2).children.length, 1);
-      expect(
-          results.firstWhere((r) => r.rid == 2).children.any((c) => c.cid == 7),
-          true);
+      expect(results.firstWhere((r) => r.rid == 2).children.any((c) => c.cid == 7), true);
       expect(results.firstWhere((r) => r.rid == 4).children.length, 1);
-      expect(
-          results.firstWhere((r) => r.rid == 4).children.any((c) => c.cid == 9),
-          true);
+      expect(results.firstWhere((r) => r.rid == 4).children.any((c) => c.cid == 9), true);
     });
   });
 
@@ -495,8 +429,7 @@ void main() {
   });
 
   group("Same entity, different relationship property", () {
-    test("Where clause on root object for two properties with same entity type",
-        () async {
+    test("Where clause on root object for two properties with same entity type", () async {
       var q = new Query<RootObject>(ctx)
         ..where((o) => o.children.haveAtLeastOneWhere.cid).greaterThan(3)
         ..where((o) => o.child.cid).equalTo(1);
@@ -529,16 +462,13 @@ void main() {
       expect(results.firstWhere((r) => r.rid == 2).children.length, 1);
       expect(results.firstWhere((r) => r.rid == 4).children.length, 1);
 
-      expect(
-          results.where((r) => r.rid != 1).every((r) => r.child == null), true);
+      expect(results.where((r) => r.rid != 1).every((r) => r.child == null), true);
     });
   });
 
   group("Can use deeply nested property when building where", () {
     test("From has-one", () async {
-      var q = new Query<RootObject>(ctx)
-          ..where((o) => o.child.grandChild.gid)
-          .equalTo(1);
+      var q = new Query<RootObject>(ctx)..where((o) => o.child.grandChild.gid).equalTo(1);
       final result = await q.fetch();
       expect(result.length, 1);
       expect(result.first.rid, 1);
@@ -546,9 +476,7 @@ void main() {
     });
 
     test("From belongs-to-one", () async {
-      var q = new Query<GrandChildObject>(ctx)
-        ..where((o) => o.parent.parent.rid)
-            .equalTo(1);
+      var q = new Query<GrandChildObject>(ctx)..where((o) => o.parent.parent.rid).equalTo(1);
       final result = await q.fetch();
       expect(result.length, 1);
       expect(result.first.gid, 1);
@@ -558,8 +486,7 @@ void main() {
     test("From belongs-to-many", () async {
       var q = new Query<GrandChildObject>(ctx)
         ..sortBy((o) => o.gid, QuerySortOrder.ascending)
-        ..where((o) => o.parents.parents.rid)
-            .equalTo(1);
+        ..where((o) => o.parents.parents.rid).equalTo(1);
       final result = await q.fetch();
       expect(result.length, 3);
       expect(result.map((g) => g.gid).toList(), [5, 6, 8]);
