@@ -1,6 +1,5 @@
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/postgresql/postgresql_query.dart';
 import 'package:aqueduct/src/db/postgresql/query_builder.dart';
 
@@ -50,7 +49,7 @@ void main() {
       ..values.doc = new Document({"k":"v"});
 
     var builder = new PostgresQueryBuilder(q as PostgresQuery);
-    var insertString = builder.insertionValueString;
+    var insertString = builder.sqlValuesToInsert;
     expect(insertString, contains("id:int8"));
     expect(insertString, contains("n:text"));
     expect(insertString, contains("t:timestamp"));

@@ -12,7 +12,6 @@ import '../../helpers.dart';
  */
 
 void main() {
-  justLogEverything();
   List<RootObject> rootObjects;
   ManagedContext ctx;
   setUpAll(() async {
@@ -238,6 +237,30 @@ void main() {
         ..where((o) => o.children.haveAtLeastOneWhere.grandChildren.haveAtLeastOneWhere.gid).greaterThan(8);
       results = await q.fetch();
       expect(results.length, 0);
+    });
+
+    test("Where clause on foreign key property of joined table", () async {
+      var q = new Query<RootObject>(ctx)
+        ..where((o) => o.child.grandChildren.haveAtLeastOneWhere.gid).equalTo(2);
+      var res = await q.fetch();
+      expect(res.length, 1);
+      expect(res.first.rid, 1);
+
+      q = new Query<RootObject>(ctx)
+        ..where((o) => o.children.haveAtLeastOneWhere.grandChild).identifiedBy(4);
+      res = await q.fetch();
+      expect(res.length, 1);
+      expect(res.first.rid, 1);
+
+      q = new Query<RootObject>(ctx)
+        ..where((o) => o.child.grandChildren.haveAtLeastOneWhere.gid).equalTo(4);
+      res = await q.fetch();
+      expect(res.length, 0);
+
+      q = new Query<RootObject>(ctx)
+        ..where((o) => o.children.haveAtLeastOneWhere.grandChild).identifiedBy(8);
+      res = await q.fetch();
+      expect(res.length, 0);
     });
   });
 

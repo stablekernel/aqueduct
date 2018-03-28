@@ -112,6 +112,10 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   }
 
   Query _createSubquery(ManagedRelationshipDescription fromRelationship) {
+    if (subQueries?.containsKey(fromRelationship) ?? false) {
+      throw new StateError("Invalid query. Cannot join same property more than once.");
+    }
+
     // Ensure we don't cyclically join
     var parent = _parentQuery;
     while (parent != null) {

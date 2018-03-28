@@ -44,10 +44,10 @@ class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<
     var builder = new PostgresQueryBuilder(query);
     var buffer = new StringBuffer();
     buffer.write("SELECT $function ");
-    buffer.write("FROM ${builder.tableNameString} ");
+    buffer.write("FROM ${builder.sqlTableName} ");
 
-    if (builder.whereClauseString != null) {
-      buffer.write("WHERE ${builder.whereClauseString} ");
+    if (builder.sqlWhereClause != null) {
+      buffer.write("WHERE ${builder.sqlWhereClause} ");
     }
 
     PostgreSQLPersistentStore store = query.context.persistentStore;

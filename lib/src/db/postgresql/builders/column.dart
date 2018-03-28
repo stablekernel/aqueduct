@@ -5,8 +5,6 @@ import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:postgres/postgres.dart';
 
-enum PersistentJoinType { leftOuter }
-
 /// Common interface for values that can be mapped to/from a database.
 abstract class Returnable {}
 
@@ -80,15 +78,6 @@ class ColumnBuilder extends Returnable {
   final ManagedPropertyDescription property;
   final List<String> documentKeyPath;
 
-  String get typeSuffix {
-    var type = PostgreSQLFormat.dataTypeStringForDataType(typeMap[property.type.kind]);
-    if (type != null) {
-      return ":$type";
-    }
-
-    return "";
-  }
-
   dynamic convertValueForStorage(dynamic value) {
     if (property is ManagedAttributeDescription) {
       ManagedAttributeDescription p = property;
@@ -125,7 +114,16 @@ class ColumnBuilder extends Returnable {
     return value;
   }
 
-  String columnName({bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix}) {
+  String get sqlTypeSuffix {
+    var type = PostgreSQLFormat.dataTypeStringForDataType(typeMap[property.type.kind]);
+    if (type != null) {
+      return ":$type";
+    }
+
+    return "";
+  }
+
+  String sqlColumnName({bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix}) {
     var name = property.name;
 
     if (property is ManagedRelationshipDescription) {
@@ -137,11 +135,11 @@ class ColumnBuilder extends Returnable {
     }
 
     if (withTypeSuffix) {
-      name = "$name$typeSuffix";
+      name = "$name$sqlTypeSuffix";
     }
 
     if (withTableNamespace) {
-      return "${table.tableReferenceString}.$name";
+      return "${table.sqlTableReference}.$name";
     } else if (withPrefix != null) {
       return "$withPrefix$name";
     }

@@ -12,7 +12,7 @@ class ColumnExpressionBuilder extends ColumnBuilder {
   final String prefix;
   PredicateExpression expression;
 
-  String get defaultPrefix => "$prefix${table.tableReferenceString}_";
+  String get defaultPrefix => "$prefix${table.sqlTableReference}_";
 
   QueryPredicate get predicate {
     var expr = expression;
@@ -33,10 +33,10 @@ class ColumnExpressionBuilder extends ColumnBuilder {
   }
 
   QueryPredicate comparisonPredicate(PredicateOperator operator, dynamic value) {
-    var name = columnName(withTableNamespace: true);
-    var variableName = columnName(withPrefix: defaultPrefix);
+    var name = sqlColumnName(withTableNamespace: true);
+    var variableName = sqlColumnName(withPrefix: defaultPrefix);
 
-    return new QueryPredicate("$name ${ColumnBuilder.symbolTable[operator]} @$variableName$typeSuffix",
+    return new QueryPredicate("$name ${ColumnBuilder.symbolTable[operator]} @$variableName$sqlTypeSuffix",
         {variableName: convertValueForStorage(value)});
   }
 
@@ -48,37 +48,37 @@ class ColumnExpressionBuilder extends ColumnBuilder {
     values.forEach((value) {
       var prefix = "$defaultPrefix${counter}_";
 
-      var variableName = columnName(withPrefix: prefix);
-      tokenList.add("@$variableName$typeSuffix");
+      var variableName = sqlColumnName(withPrefix: prefix);
+      tokenList.add("@$variableName$sqlTypeSuffix");
       pairedMap[variableName] = convertValueForStorage(value);
 
       counter++;
     });
 
-    var name = columnName(withTableNamespace: true);
+    var name = sqlColumnName(withTableNamespace: true);
     var keyword = within ? "IN" : "NOT IN";
     return new QueryPredicate("$name $keyword (${tokenList.join(",")})", pairedMap);
   }
 
   QueryPredicate nullPredicate(bool isNull) {
-    var name = columnName(withTableNamespace: true);
+    var name = sqlColumnName(withTableNamespace: true);
     return new QueryPredicate("$name ${isNull ? "ISNULL" : "NOTNULL"}", {});
   }
 
   QueryPredicate rangePredicate(dynamic lhsValue, dynamic rhsValue, bool insideRange) {
-    var name = columnName(withTableNamespace: true);
-    var lhsName = columnName(withPrefix: "${defaultPrefix}lhs_");
-    var rhsName = columnName(withPrefix: "${defaultPrefix}rhs_");
+    var name = sqlColumnName(withTableNamespace: true);
+    var lhsName = sqlColumnName(withPrefix: "${defaultPrefix}lhs_");
+    var rhsName = sqlColumnName(withPrefix: "${defaultPrefix}rhs_");
     var operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
 
-    return new QueryPredicate("$name $operation @$lhsName$typeSuffix AND @$rhsName$typeSuffix",
+    return new QueryPredicate("$name $operation @$lhsName$sqlTypeSuffix AND @$rhsName$sqlTypeSuffix",
         {lhsName: convertValueForStorage(lhsValue), rhsName: convertValueForStorage(rhsValue)});
   }
 
   QueryPredicate stringPredicate(
       PredicateStringOperator operator, dynamic value, bool caseSensitive, bool invertOperator) {
-    var n = columnName(withTableNamespace: true);
-    var variableName = columnName(withPrefix: defaultPrefix);
+    var n = sqlColumnName(withTableNamespace: true);
+    var variableName = sqlColumnName(withPrefix: defaultPrefix);
 
     var matchValue = value;
     var operation = caseSensitive ? "LIKE" : "ILIKE";
@@ -99,6 +99,6 @@ class ColumnExpressionBuilder extends ColumnBuilder {
         break;
     }
 
-    return new QueryPredicate("$n $operation @$variableName$typeSuffix", {variableName: matchValue});
+    return new QueryPredicate("$n $operation @$variableName$sqlTypeSuffix", {variableName: matchValue});
   }
 }

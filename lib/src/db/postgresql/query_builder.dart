@@ -8,25 +8,27 @@ import 'row_instantiator.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 class PostgresQueryBuilder extends TableBuilder {
-  static const String valueKeyPrefix = "v_";
-
   PostgresQueryBuilder(PostgresQuery query) : super(query) {
     (query.valueMap ?? query.values?.backing?.contents).forEach((key, value) {
       addColumnValueBuilder(key, value);
     });
 
     columnValueMappers.forEach((cv) {
-      variables[cv.columnName(withPrefix: valueKeyPrefix)] = cv.value;
+      variables[cv.sqlColumnName(withPrefix: valueKeyPrefix)] = cv.value;
     });
+
     finalize(variables);
   }
+
+  static const String valueKeyPrefix = "v_";
 
   final Map<String, dynamic> variables = {};
 
   final List<ColumnValueBuilder> columnValueMappers = [];
 
   bool get containsJoins => returning.reversed.any((p) => p is TableBuilder);
-  String get whereClause {
+
+  String get sqlWhereClause {
     if (predicate?.format == null) {
       return null;
     }
@@ -39,7 +41,7 @@ class PostgresQueryBuilder extends TableBuilder {
   void addColumnValueBuilder(String key, dynamic value) {
     final builder = _createColumnValueBuilder(key, value);
     columnValueMappers.add(builder);
-    variables[builder.columnName(withPrefix: valueKeyPrefix)] = builder.value;
+    variables[builder.sqlColumnName(withPrefix: valueKeyPrefix)] = builder.value;
   }
 
   List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
@@ -47,51 +49,11 @@ class PostgresQueryBuilder extends TableBuilder {
     return instantiator.instancesForRows(rows);
   }
 
-  String get whereClauseString => predicate?.format;
-
-  String get updateValueString {
-    return columnValueMappers.map((m) {
-      var columnName = m.columnName();
-      var variableName = m.columnName(withPrefix: "@$valueKeyPrefix", withTypeSuffix: true);
-      return "$columnName=$variableName";
-    }).join(",");
-  }
-
-  String get valuesColumnString {
-    return columnValueMappers.map((c) => c.columnName()).join(",");
-  }
-
-  String get insertionValueString {
-    return columnValueMappers.map((c) => c.columnName(withTypeSuffix: true, withPrefix: "@$valueKeyPrefix")).join(",");
-  }
-
-  @override
-  String get joinString {
-    return returning.where((e) => e is TableBuilder).map((e) => (e as TableBuilder).joinString).join(" ");
-  }
-
-  String get returningColumnString {
-    return returningFlattened.map((p) => p.columnName(withTableNamespace: containsJoins)).join(",");
-  }
-
-  String get orderByString {
-    var allSortMappers = new List<ColumnSortBuilder>.from(columnSortBuilders);
-
-    var nestedSorts =
-        returning.where((m) => m is TableBuilder).expand((m) => (m as TableBuilder).columnSortBuilders);
-    allSortMappers.addAll(nestedSorts);
-
-    if (allSortMappers.length == 0) {
-      return "";
-    }
-
-    return "ORDER BY ${allSortMappers.map((s) => s.orderByString).join(",")}";
-  }
-
   ColumnValueBuilder _createColumnValueBuilder(String key, dynamic value) {
     var property = entity.properties[key];
     if (property == null) {
-      throw new ArgumentError("Invalid query. Column '$key' does not exist for table '${entity.tableName}'");
+      throw new ArgumentError("Invalid query. Column '$key' does "
+          "not exist for table '${entity.tableName}'");
     }
 
     if (property is ManagedRelationshipDescription) {
@@ -104,12 +66,49 @@ class PostgresQueryBuilder extends TableBuilder {
           return new ColumnValueBuilder(this, property, value[property.destinationEntity.primaryKey]);
         }
 
-        throw new ArgumentError("Invalid query. Column '$key' in '${entity.tableName}' does not exist. "
-            "'$key' recognized as ORM relationship. Provided value must be 'Map' "
-            "or ${property.destinationEntity.name}.");
+        throw new ArgumentError("Invalid query. Column '$key' in "
+            "'${entity.tableName}' does not exist. '$key' recognized as ORM relationship. "
+            "Provided value must be 'Map' or ${property.destinationEntity.name}.");
       }
     }
 
     return new ColumnValueBuilder(this, property, value);
+  }
+
+  /*
+      Methods that return portions of a SQL statement for this object
+   */
+
+  String get sqlColumnsAndValuesToUpdate {
+    return columnValueMappers.map((m) {
+      final columnName = m.sqlColumnName();
+      final variableName = m.sqlColumnName(withPrefix: "@$valueKeyPrefix", withTypeSuffix: true);
+      return "$columnName=$variableName";
+    }).join(",");
+  }
+
+  String get sqlColumnsToInsert {
+    return columnValueMappers.map((c) => c.sqlColumnName()).join(",");
+  }
+
+  String get sqlValuesToInsert {
+    return columnValueMappers.map((c) => c.sqlColumnName(withTypeSuffix: true, withPrefix: "@$valueKeyPrefix")).join(",");
+  }
+
+  String get sqlColumnsToReturn {
+    return flattenedColumnsToReturn.map((p) => p.sqlColumnName(withTableNamespace: containsJoins)).join(",");
+  }
+
+  String get sqlOrderBy {
+    var allSortMappers = new List<ColumnSortBuilder>.from(columnSortBuilders);
+
+    var nestedSorts = returning.where((m) => m is TableBuilder).expand((m) => (m as TableBuilder).columnSortBuilders);
+    allSortMappers.addAll(nestedSorts);
+
+    if (allSortMappers.length == 0) {
+      return "";
+    }
+
+    return "ORDER BY ${allSortMappers.map((s) => s.sqlOrderBy).join(",")}";
   }
 }

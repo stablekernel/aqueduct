@@ -1,3 +1,5 @@
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
+
 import '../db.dart';
 import 'package:aqueduct/src/db/postgresql/builders/column.dart';
 import 'package:aqueduct/src/db/postgresql/builders/table.dart';
@@ -82,23 +84,23 @@ class RowInstantiator {
     return byType[primaryKeyValue];
   }
 
-  void applyRowValuesToInstance(ManagedObject instance, TableBuilder mapper, Iterator<dynamic> rowIterator) {
-    if (mapper.returningFlattened.isEmpty) {
+  void applyRowValuesToInstance(ManagedObject instance, TableBuilder builder, Iterator<dynamic> rowIterator) {
+    if (builder.flattenedColumnsToReturn.isEmpty) {
       return;
     }
 
     var innerInstanceWrapper =
-        instanceFromRow(rowIterator, mapper.returning.iterator, forTableMapper: mapper);
+        instanceFromRow(rowIterator, builder.returning.iterator, forTableMapper: builder);
 
-    if (mapper.isToMany) {
+    if (builder.joinedBy.relationshipType == ManagedRelationshipType.hasMany) {
       // If to many, put in a managed set.
-      ManagedSet list = instance[mapper.joinedBy.name] ?? new ManagedSet();
+      ManagedSet list = instance[builder.joinedBy.name] ?? new ManagedSet();
       if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
         list.add(innerInstanceWrapper.instance);
       }
-      instance[mapper.joinedBy.name] = list;
+      instance[builder.joinedBy.name] = list;
     } else {
-      var existingInnerInstance = instance[mapper.joinedBy.name];
+      var existingInnerInstance = instance[builder.joinedBy.name];
 
       // If not assigned yet, assign this value (which may be null). If assigned,
       // don't overwrite with a null row that may come after. Once we have it, we have it.
@@ -106,7 +108,7 @@ class RowInstantiator {
       // Now if it is belongsTo, we may have already populated it with the foreign key object.
       // In this case, we do need to override it
       if (existingInnerInstance == null) {
-        instance[mapper.joinedBy.name] = innerInstanceWrapper?.instance;
+        instance[builder.joinedBy.name] = innerInstanceWrapper?.instance;
       }
     }
   }

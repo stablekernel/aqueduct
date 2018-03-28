@@ -1,12 +1,7 @@
 import 'dart:async';
 
-import 'package:aqueduct/src/db/managed/key_path.dart';
-import 'package:aqueduct/src/db/query/matcher_internal.dart';
-
 import '../db.dart';
 import '../query/mixin.dart';
-import '../query/sort_descriptor.dart';
-import 'package:aqueduct/src/db/postgresql/builders/column.dart';
 import 'query_builder.dart';
 import 'postgresql_query_reduce.dart';
 
@@ -39,17 +34,17 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var builder = new PostgresQueryBuilder(this);
 
     var buffer = new StringBuffer();
-    buffer.write("INSERT INTO ${builder.tableNameString} ");
+    buffer.write("INSERT INTO ${builder.sqlTableName} ");
 
     if (builder.columnValueMappers.isEmpty) {
       buffer.write("VALUES (DEFAULT) ");
     } else {
-      buffer.write("(${builder.valuesColumnString}) ");
-      buffer.write("VALUES (${builder.insertionValueString}) ");
+      buffer.write("(${builder.sqlColumnsToInsert}) ");
+      buffer.write("VALUES (${builder.sqlValuesToInsert}) ");
     }
 
     if ((builder.returning?.length ?? 0) > 0) {
-      buffer.write("RETURNING ${builder.returningColumnString}");
+      buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 
     var results =
@@ -65,17 +60,17 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var builder = new PostgresQueryBuilder(this);
 
     var buffer = new StringBuffer();
-    buffer.write("UPDATE ${builder.tableNameString} ");
-    buffer.write("SET ${builder.updateValueString} ");
+    buffer.write("UPDATE ${builder.sqlTableName} ");
+    buffer.write("SET ${builder.sqlColumnsAndValuesToUpdate} ");
 
-    if (builder.whereClauseString != null) {
-      buffer.write("WHERE ${builder.whereClauseString} ");
+    if (builder.sqlWhereClause != null) {
+      buffer.write("WHERE ${builder.sqlWhereClause} ");
     } else if (!canModifyAllInstances) {
       throw canModifyAllInstancesError;
     }
 
     if ((builder.returning?.length ?? 0) > 0) {
-      buffer.write("RETURNING ${builder.returningColumnString}");
+      buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 
     var results =
@@ -103,10 +98,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var builder = new PostgresQueryBuilder(this);
 
     var buffer = new StringBuffer();
-    buffer.write("DELETE FROM ${builder.tableNameString} ");
+    buffer.write("DELETE FROM ${builder.sqlTableName} ");
 
-    if (builder.whereClauseString != null) {
-      buffer.write("WHERE ${builder.whereClauseString} ");
+    if (builder.sqlWhereClause != null) {
+      buffer.write("WHERE ${builder.sqlWhereClause} ");
     } else if (!canModifyAllInstances) {
       throw canModifyAllInstancesError;
     }
@@ -158,18 +153,18 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   Future<List<InstanceType>> _fetch(PostgresQueryBuilder builder) async {
     var buffer = new StringBuffer();
-    buffer.write("SELECT ${builder.returningColumnString} ");
-    buffer.write("FROM ${builder.tableNameString} ");
+    buffer.write("SELECT ${builder.sqlColumnsToReturn} ");
+    buffer.write("FROM ${builder.sqlTableName} ");
 
     if (builder.containsJoins) {
-      buffer.write("${builder.joinString} ");
+      buffer.write("${builder.sqlJoin} ");
     }
 
-    if (builder.whereClauseString != null) {
-      buffer.write("WHERE ${builder.whereClauseString} ");
+    if (builder.sqlWhereClause != null) {
+      buffer.write("WHERE ${builder.sqlWhereClause} ");
     }
 
-    buffer.write("${builder.orderByString} ");
+    buffer.write("${builder.sqlOrderBy} ");
 
     if (fetchLimit != 0) {
       buffer.write("LIMIT $fetchLimit ");

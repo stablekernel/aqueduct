@@ -3,7 +3,6 @@ import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
 
 void main() {
-  justLogEverything();
   group("Offset/limit", () {
     ManagedContext context;
 

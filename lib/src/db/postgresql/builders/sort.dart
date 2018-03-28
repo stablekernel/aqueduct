@@ -1,15 +1,13 @@
-import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/postgresql/builders/column.dart';
 import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 import 'package:aqueduct/src/db/query/query.dart';
 
 class ColumnSortBuilder extends ColumnBuilder {
-  ColumnSortBuilder(TableBuilder table, ManagedPropertyDescription property, QuerySortOrder order)
-      : super(table, property) {
-    this.order = (order == QuerySortOrder.ascending ? "ASC" : "DESC");
-  }
+  ColumnSortBuilder(TableBuilder table, String key, QuerySortOrder order)
+      : this.order = (order == QuerySortOrder.ascending ? "ASC" : "DESC"),
+        super(table, table.entity.properties[key]);
 
-  String order;
+  final String order;
 
-  String get orderByString => "${columnName(withTableNamespace: true)} $order";
+  String get sqlOrderBy => "${sqlColumnName(withTableNamespace: true)} $order";
 }

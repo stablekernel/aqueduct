@@ -12,7 +12,7 @@ void main() {
     await ctx.close();
   });
 
-  test("If context does not contian data model with query type, throw exception", () async {
+  test("If context does not contian data model with query type, throw exception", () {
     try {
       new Query<Missing>(ctx);
       fail('unreachable');
@@ -27,9 +27,20 @@ void main() {
     expect(q.values.parent.id, 1);
   });
 
-  test("Values set in constructor are replicated in Query.values", () async {
+  test("Values set in constructor are replicated in Query.values", () {
     final q = new Query<Constructor>(ctx);
     expect(q.values.name, "Bob");
+  });
+
+  test("Cannot join on same property twice", () {
+    try {
+      new Query<Root>(ctx)
+        ..join(object: (r) => r.child)
+        ..join(object: (r) => r.child);
+      fail('unreachable');
+    } on StateError catch (e) {
+      expect(e.toString(), contains("Invalid query"));
+    }
   });
 
 //todo: Deferring these until later
