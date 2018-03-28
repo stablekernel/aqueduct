@@ -48,6 +48,7 @@ abstract class CLICommand implements CLIResultHandler {
 
   /// Options for this command.
   ArgParser options = new ArgParser(allowTrailingOptions: true)
+    ..addFlag("version", help: "Prints version of this tool", negatable: false)
     ..addOption("directory",
         abbr: "d", help: "Project directory to execute command in", defaultsTo: Directory.current.path)
     ..addFlag("help", abbr: "h", help: "Shows this", negatable: false)
@@ -63,6 +64,8 @@ abstract class CLICommand implements CLIResultHandler {
   StoppableProcess get runningProcess {
     return _commandMap.values.firstWhere((cmd) => cmd.runningProcess != null, orElse: () => null)?.runningProcess;
   }
+
+  bool get showVersion => values["version"];
 
   bool get showColors => values["color"];
 
@@ -123,6 +126,11 @@ abstract class CLICommand implements CLIResultHandler {
       values = results;
 
       await determineToolVersion();
+
+      if (showVersion) {
+        outputSink.writeln("Aqueduct CLI version: $toolVersion");
+        return 0;
+      }
 
       if (!isMachineOutput) {
         displayInfo("Aqueduct CLI Version: $toolVersion");
@@ -356,6 +364,8 @@ class Runner extends CLICommand {
     registerCommand(new CLIAuth());
     registerCommand(new CLIDocument());
   }
+
+  bool get showVersion => values["version"];
 
   @override
   Future<int> handle() async {
