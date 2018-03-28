@@ -8,17 +8,19 @@ class StoppableProcess {
     var l1 = ProcessSignal.SIGINT.watch().listen((_) {
       stop(0, reason: "Process interrupted.");
     });
+    _listeners.add(l1);
 
-    var l2 = ProcessSignal.SIGTERM.watch().listen((_) {
-      stop(0, reason: "Process terminated by OS.");
-    });
-
-    _listeners = [l1, l2];
+    if (!Platform.isWindows) {
+      var l2 = ProcessSignal.SIGTERM.watch().listen((_) {
+        stop(0, reason: "Process terminated by OS.");
+      });
+      _listeners.add(l2);
+    }
   }
 
   Future<int> get exitCode => _completer.future;
 
-  List<StreamSubscription> _listeners;
+  List<StreamSubscription> _listeners = [];
 
   final _StopProcess _stop;
   final Completer<int> _completer = new Completer<int>();
