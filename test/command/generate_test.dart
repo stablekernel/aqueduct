@@ -22,7 +22,6 @@ class _TestObject {
   String foo;
 }
       """);
-      await terminal.getDependencies(offline: true);
     });
 
     tearDown(() {
@@ -35,6 +34,8 @@ class _TestObject {
     });
 
     test("Ensure migration directory will get created on generation", () async {
+      await terminal.getDependencies(offline: true);
+
       expect(terminal.defaultMigrationDirectory.existsSync(), false);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
@@ -42,6 +43,8 @@ class _TestObject {
     });
 
     test("If there are no migration files, create an initial one that validates to schema", () async {
+      await terminal.getDependencies(offline: true);
+
       // Putting a non-migration file in there to ensure that this doesn't prevent from being ugpraded
       terminal.defaultMigrationDirectory.createSync();
       terminal.addOrReplaceFile("migrations/notmigration.dart", " ");
@@ -56,6 +59,8 @@ class _TestObject {
     });
 
     test("If there is already a migration file, create an upgrade file with changes", () async {
+      await terminal.getDependencies(offline: true);
+
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
       terminal.clearOutput();
@@ -78,6 +83,8 @@ class _TestObject {
     });
 
     test("Can specify migration directory other than default", () async {
+      await terminal.getDependencies(offline: true);
+
       var res = await terminal.runAqueductCommand("db", ["generate", "--migration-directory", "foobar"]);
       expect(res, 0);
 
