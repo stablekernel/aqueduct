@@ -1,5 +1,6 @@
 ## 3.0.0
 
+- Adds `ManagedContext.transaction` to enable queries to be run in a database transaction. 
 - Removes `ManagedContext.defaultContext`; context usage must be explicit.
 - Adds 'Scope' annotation to add granular scoping to `ResourceController` methods.
 - Adds support for storing PostgreSQL JSONB data with `Document` data type.
