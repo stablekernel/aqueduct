@@ -10,9 +10,6 @@ import '../persistent_store/persistent_store.dart';
 import '../schema/schema.dart';
 import 'postgresql_schema_generator.dart';
 
-/// A function that will create an opened instance of [PostgreSQLConnection] when executed.
-typedef Future<PostgreSQLConnection> PostgreSQLConnectionFunction();
-
 /// The database layer responsible for carrying out [Query]s against PostgreSQL databases.
 ///
 /// To interact with a PostgreSQL database, a [ManagedContext] must have an instance of this class.
@@ -118,6 +115,8 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     return _databaseConnection;
   }
 
+  Future<PostgreSQLExecutionContext> get _executionContext async => getDatabaseConnection();
+
   @override
   Query<T> newQuery<T extends ManagedObject>(ManagedContext context, ManagedEntity entity) {
     return new PostgresQuery<T>.withEntity(context, entity);
@@ -126,7 +125,7 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   @override
   Future<dynamic> execute(String sql, {Map<String, dynamic> substitutionValues}) async {
     var now = new DateTime.now().toUtc();
-    var dbConnection = await getDatabaseConnection();
+    var dbConnection = await _executionContext;
     try {
       var rows = await dbConnection.query(sql, substitutionValues: substitutionValues);
 
@@ -153,20 +152,31 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future<dynamic> transaction(ManagedContext transactionContext, Future queries(ManagedContext transaction)) async {
+  Future<dynamic> transaction(ManagedContext transactionContext, Future transactionBlock(ManagedContext transaction)) async {
     final dbConnection = await getDatabaseConnection();
 
     var rollbackReason;
-    await dbConnection.transaction((dbTransactionContext) async {
-      transactionContext.persistentStore = new PostgreSQLPersistentStore._transactionProxy(this, dbTransactionContext);
+    try {
+      await dbConnection.transaction((dbTransactionContext)
+      async {
+        transactionContext.persistentStore =
+        new PostgreSQLPersistentStore._transactionProxy(this, dbTransactionContext);
 
-      try {
-        await queries(transactionContext);
-      } on Rollback catch (rollback) {
-        rollbackReason = rollback.reason;
-        dbTransactionContext.cancelTransaction(reason: rollback.reason);
+        try {
+          await transactionBlock(transactionContext);
+        } on Rollback catch (rollback) {
+          rollbackReason = rollback.reason;
+          dbTransactionContext.cancelTransaction(reason: rollback.reason);
+        }
+      });
+    } on PostgreSQLException catch (e) {
+      final interpreted = _interpretException(e);
+      if (interpreted != null) {
+        throw interpreted;
       }
-    });
+
+      rethrow;
+    }
 
     return rollbackReason;
   }
@@ -232,7 +242,7 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
       {PersistentStoreQueryReturnType returnType: PersistentStoreQueryReturnType.rows}) async {
     var now = new DateTime.now().toUtc();
     try {
-      var dbConnection = await getDatabaseConnection();
+      var dbConnection = await _executionContext;
       var results;
 
       if (returnType == PersistentStoreQueryReturnType.rows) {
@@ -334,7 +344,5 @@ class _TransactionProxy extends PostgreSQLPersistentStore {
   final PostgreSQLExecutionContext context;
 
   @override
-  Future<PostgreSQLConnection> getDatabaseConnection() async {
-    return context;
-  }
+  Future<PostgreSQLExecutionContext> get _executionContext async => context;
 }

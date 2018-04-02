@@ -62,8 +62,34 @@ class ManagedContext implements APIComponentDocumenter {
   /// The data model containing the [ManagedEntity]s that describe the [ManagedObject]s this instance works with.
   final ManagedDataModel dataModel;
 
-  Future<dynamic> transaction(Future queries(ManagedContext transaction)) {
-    return persistentStore.transaction(new ManagedContext.childOf(this), queries);
+  /// Runs all [Query]s in [transactionBlock] within a database transaction.
+  ///
+  /// Queries executed within [transactionBlock] will be executed as a database transaction.
+  /// A [transactionBlock] is passed a [ManagedContext] that must be the target of all queries
+  /// within the block. The context passed to the [transactionBlock] is *not* the same as
+  /// the context the transaction was created from.
+  ///
+  /// *You must not use the context this method was invoked on inside the transactionBlock.
+  /// Doing so will deadlock your application.*
+  ///
+  /// If an exception is encountered in [transactionBlock], any query that has already been
+  /// executed will be rolled back and this method will rethrow the exception.
+  ///
+  /// You may manually rollback a query by throwing a [Rollback] object. This will exit the
+  /// [transactionBlock], roll back any changes made in the transaction, but this method will not
+  /// throw. The parameter passed to [Rollback]'s constructor will be returned from this method
+  /// so that the caller can determine why the transaction was rolled back.
+  ///
+  /// Example usage:
+  ///
+  ///         await context.transaction((transaction) async {
+  ///            final q = new Query<Model>(transaction)
+  ///             ..values = someObject;
+  ///            await q.insert();
+  ///            ...
+  ///         });
+  Future<dynamic> transaction(Future transactionBlock(ManagedContext transaction)) {
+    return persistentStore.transaction(new ManagedContext.childOf(this), transactionBlock);
   }
 
   /// Closes this context and release its underlying resources.
@@ -86,8 +112,18 @@ class ManagedContext implements APIComponentDocumenter {
   void documentComponents(APIDocumentContext context) => dataModel.documentComponents(context);
 }
 
+/// Throw this object to roll back a [ManagedContext.transaction].
+///
+/// When thrown in a transaction, it will cancel an in-progress transaction and rollback
+/// any changes it has made.
 class Rollback {
+  /// Default constructor, takes a [reason] object that can be anything.
+  ///
+  /// The parameter [reason] will be returned by [ManagedContext.transaction].
   Rollback(this.reason);
 
+  /// The reason this rollback occurred.
+  ///
+  /// This value is returned from [ManagedContext.transaction] when this instance is thrown.
   final dynamic reason;
 }
