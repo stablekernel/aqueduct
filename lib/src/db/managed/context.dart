@@ -51,11 +51,20 @@ class ManagedContext implements APIComponentDocumenter {
     ApplicationServiceRegistry.defaultInstance.register<ManagedContext>(this, (o) => o.close());
   }
 
+  /// Creates a child context from [parentContext].
+  ManagedContext.childOf(ManagedContext parentContext) :
+    persistentStore = parentContext.persistentStore,
+    dataModel = parentContext.dataModel;
+
   /// The persistent store that [Query]s on this context are executed through.
-  final PersistentStore persistentStore;
+  PersistentStore persistentStore;
 
   /// The data model containing the [ManagedEntity]s that describe the [ManagedObject]s this instance works with.
   final ManagedDataModel dataModel;
+
+  Future<dynamic> transaction(Future queries(ManagedContext transaction)) {
+    return persistentStore.transaction(new ManagedContext.childOf(this), queries);
+  }
 
   /// Closes this context and release its underlying resources.
   ///
@@ -75,4 +84,10 @@ class ManagedContext implements APIComponentDocumenter {
 
   @override
   void documentComponents(APIDocumentContext context) => dataModel.documentComponents(context);
+}
+
+class Rollback {
+  Rollback(this.reason);
+
+  final dynamic reason;
 }

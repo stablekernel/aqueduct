@@ -34,6 +34,20 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     ApplicationServiceRegistry.defaultInstance.register<PostgreSQLPersistentStore>(this, (store) => store.close());
   }
 
+  PostgreSQLPersistentStore._from(PostgreSQLPersistentStore from)
+      : isSSLConnection = from.isSSLConnection,
+        username = from.username,
+        password = from.password,
+        host = from.host,
+        port = from.port,
+        databaseName = from.databaseName,
+        timeZone = from.timeZone;
+
+  factory PostgreSQLPersistentStore._transactionProxy(
+      PostgreSQLPersistentStore parent, PostgreSQLExecutionContext ctx) {
+    return new _TransactionProxy(parent, ctx);
+  }
+
   /// The logger used by instances of this class.
   static Logger logger = new Logger("aqueduct");
 
@@ -118,9 +132,9 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
 
       var mappedRows = rows.map((row) => row.toList()).toList();
       logger.finest(() => "Query:execute (${(new DateTime.now()
-          .toUtc()
-          .difference(now)
-          .inMilliseconds)}ms) $sql -> $mappedRows");
+        .toUtc()
+        .difference(now)
+        .inMilliseconds)}ms) $sql -> $mappedRows");
       return mappedRows;
     } on PostgreSQLException catch (e) {
       final interpreted = _interpretException(e);
@@ -136,6 +150,25 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   Future close() async {
     await _databaseConnection?.close();
     _databaseConnection = null;
+  }
+
+  @override
+  Future<dynamic> transaction(ManagedContext transactionContext, Future queries(ManagedContext transaction)) async {
+    final dbConnection = await getDatabaseConnection();
+
+    var rollbackReason;
+    await dbConnection.transaction((dbTransactionContext) async {
+      transactionContext.persistentStore = new PostgreSQLPersistentStore._transactionProxy(this, dbTransactionContext);
+
+      try {
+        await queries(transactionContext);
+      } on Rollback catch (rollback) {
+        rollbackReason = rollback.reason;
+        dbTransactionContext.cancelTransaction(reason: rollback.reason);
+      }
+    });
+
+    return rollbackReason;
   }
 
   @override
@@ -181,8 +214,8 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
 
         await ctx.execute(
             "INSERT INTO $versionTableName (versionNumber, dateOfUpgrade) VALUES ($versionNumber, '${new DateTime.now()
-                .toUtc()
-                .toIso8601String()}')");
+            .toUtc()
+            .toIso8601String()}')");
       });
     } on PostgreSQLException catch (e) {
       final interpreted = _interpretException(e);
@@ -213,18 +246,18 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
       }
 
       logger.fine(() => "Query (${(new DateTime.now()
-          .toUtc()
-          .difference(now)
-          .inMilliseconds)}ms) $formatString Substitutes: ${values ?? "{}"} -> $results");
+        .toUtc()
+        .difference(now)
+        .inMilliseconds)}ms) $formatString Substitutes: ${values ?? "{}"} -> $results");
 
       return results;
     } on TimeoutException catch (e) {
       throw new QueryException.transport("timed out connection to database", underlyingException: e);
     } on PostgreSQLException catch (e) {
       logger.fine(() => "Query (${(new DateTime.now()
-          .toUtc()
-          .difference(now)
-          .inMilliseconds)}ms) $formatString $values");
+        .toUtc()
+        .difference(now)
+        .inMilliseconds)}ms) $formatString $values");
       final interpreted = _interpretException(e);
       if (interpreted != null) {
         throw interpreted;
@@ -237,11 +270,14 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   QueryException<PostgreSQLException> _interpretException(PostgreSQLException exception) {
     switch (exception.code) {
       case PostgreSQLErrorCode.uniqueViolation:
-        return new QueryException.conflict("entity_already_exists", ["${exception.tableName}.${exception.columnName}"], underlyingException: exception);
+        return new QueryException.conflict("entity_already_exists", ["${exception.tableName}.${exception.columnName}"],
+            underlyingException: exception);
       case PostgreSQLErrorCode.notNullViolation:
-        return new QueryException.input("non_null_violation", ["${exception.tableName}.${exception.columnName}"], underlyingException: exception);
+        return new QueryException.input("non_null_violation", ["${exception.tableName}.${exception.columnName}"],
+            underlyingException: exception);
       case PostgreSQLErrorCode.foreignKeyViolation:
-        return new QueryException.input("foreign_key_violation", ["${exception.tableName}.${exception.columnName}"],underlyingException: exception);
+        return new QueryException.input("foreign_key_violation", ["${exception.tableName}.${exception.columnName}"],
+            underlyingException: exception);
     }
 
     return null;
@@ -289,4 +325,16 @@ class PostgreSQLErrorCode {
   static const String uniqueViolation = "23505";
   static const String notNullViolation = "23502";
   static const String foreignKeyViolation = "23503";
+}
+
+class _TransactionProxy extends PostgreSQLPersistentStore {
+  _TransactionProxy(this.parent, this.context) : super._from(parent);
+
+  final PostgreSQLPersistentStore parent;
+  final PostgreSQLExecutionContext context;
+
+  @override
+  Future<PostgreSQLConnection> getDatabaseConnection() async {
+    return context;
+  }
 }
