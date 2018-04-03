@@ -279,6 +279,10 @@ class DefaultPersistentStore extends PersistentStore {
   @override
   Future close() async {}
 
+
+  @override
+  Future<dynamic> transaction(ManagedContext transactionContext, Future queries(ManagedContext transaction)) async => throw new Exception("Transaciton not supported on mock");
+
   @override
   List<String> createTable(SchemaTable t, {bool isTemporary: false}) => [];
   @override
