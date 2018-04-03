@@ -70,5 +70,5 @@ if (reason == "something was true") {
 }
 ```
 
-When you rollback, your transaction fails, the transaction closure is aborted and all changes are reverted. The `transaction` method completes successfully with the value provided to `Rollback`. This value can be anything and is used by subsequent to determine why the transaction was rolled back, in the case of
+When you rollback, your transaction fails, the transaction closure is aborted and all changes are reverted. The `transaction` method completes successfully with the value provided to `Rollback`. This value can be anything and is used by subsequent code to determine why the transaction was rolled back, in the case of
 more than one possible rollback in a transaction.
