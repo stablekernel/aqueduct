@@ -129,6 +129,11 @@ a {
     padding: 50px 0;
 }
 
+#prerelease-container {
+    text-align: center;
+    padding: 50px 0;
+}
+
 #hero-gh-container {
     text-align: center;
     padding-bottom: 30px;
@@ -158,8 +163,9 @@ a {
 #terminal {
     display: block;
     margin: 0 auto;
-    width: 400px;
     font-size: 1.1em;
+    width: 90%;
+    max-width: 500px;
     background-color: #666;
     border-color: #666;
     color: white;
@@ -269,7 +275,7 @@ a {
 .cta-button {
     border-radius: 5px;
     background-color: rgb(34, 161, 221);
-    padding: 20px 80px;
+    padding: 20px 50px;
     color: white;
     font-family: 'Lato';
     font-weight: 300;
