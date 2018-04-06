@@ -123,11 +123,12 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future<dynamic> execute(String sql, {Map<String, dynamic> substitutionValues}) async {
+  Future<dynamic> execute(String sql, {Map<String, dynamic> substitutionValues, Duration timeout}) async {
+    timeout ??= new Duration(seconds: 30);
     var now = new DateTime.now().toUtc();
     var dbConnection = await _executionContext;
     try {
-      var rows = await dbConnection.query(sql, substitutionValues: substitutionValues);
+      var rows = await dbConnection.query(sql, substitutionValues: substitutionValues, timeoutInSeconds: timeout.inSeconds);
 
       var mappedRows = rows.map((row) => row.toList()).toList();
       logger.finest(() => "Query:execute (${(new DateTime.now()
@@ -247,12 +248,10 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
 
       if (returnType == PersistentStoreQueryReturnType.rows) {
         results = await dbConnection
-            .query(formatString, substitutionValues: values)
-            .timeout(new Duration(seconds: timeoutInSeconds));
+            .query(formatString, substitutionValues: values, timeoutInSeconds: timeoutInSeconds);
       } else {
         results = await dbConnection
-            .execute(formatString, substitutionValues: values)
-            .timeout(new Duration(seconds: timeoutInSeconds));
+            .execute(formatString, substitutionValues: values, timeoutInSeconds: timeoutInSeconds);
       }
 
       logger.fine(() => "Query (${(new DateTime.now()
