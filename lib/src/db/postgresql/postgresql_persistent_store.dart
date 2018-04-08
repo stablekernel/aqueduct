@@ -201,13 +201,16 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future upgrade(int versionNumber, List<String> commands, {bool temporary: false}) async {
+  Future upgrade(int versionNumber, Migration migration, {bool temporary: false}) async {
     await _createVersionTableIfNecessary(temporary);
 
     var connection = await getDatabaseConnection();
 
     try {
       await connection.transaction((ctx) async {
+        final transactionStore = new PostgreSQLPersistentStore._transactionProxy(this, ctx);
+        migration.database.store = transactionStore;
+
         var existingVersionRows = await ctx.query(
             "SELECT versionNumber, dateOfUpgrade FROM $versionTableName WHERE versionNumber=@v:int4",
             substitutionValues: {"v": versionNumber});
@@ -217,10 +220,12 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
               "Trying to upgrade database to version $versionNumber, but that migration has already been performed on $date.");
         }
 
-        for (var cmd in commands) {
+        await migration.upgrade();
+        for (var cmd in migration.database.commands) {
           logger.info("$cmd");
           await ctx.execute(cmd);
         }
+        await migration.seed();
 
         await ctx.execute(
             "INSERT INTO $versionTableName (versionNumber, dateOfUpgrade) VALUES ($versionNumber, '${new DateTime.now()

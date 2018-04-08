@@ -122,11 +122,7 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
 
       var migrationInstance = migrationClassMirror.newInstance(new Symbol(''), []).reflectee as Migration;
       migrationInstance.database = new SchemaBuilder(store, inputSchema);
-
-      await migrationInstance.upgrade();
-
-      await migrationInstance.store.upgrade(versionNumber, migrationInstance.database.commands);
-      await migrationInstance.seed();
+      await migrationInstance.store.upgrade(versionNumber, migrationInstance);
       await migrationInstance.database.store.close();
 
       return migrationInstance.currentSchema.asMap();
