@@ -17,7 +17,7 @@ dependencies:
   open_api: ^1.0.2
   password_hash: ^1.0.0
   path: ^1.4.1
-  postgres: ^0.9.6
+  postgres: ^0.9.9
   pub_cache: ^0.1.0
   pub_semver: ^1.0.0
   safe_config: ^1.1.0

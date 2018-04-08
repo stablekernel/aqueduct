@@ -105,6 +105,26 @@ void main() {
 
     expect((await (new Query<Model>(context).fetch())).length, 3);
   });
+
+  test("Query on origional context within transaction block times out and cancels transaction", () async {
+    try {
+      await context.transaction((t)
+      async {
+        await Query.insertObject(t, new Model()..name = "1");
+        final q = new Query<Model>(context)
+          ..timeoutInSeconds = 1
+          ..values.name = '2';
+        await q.insert();
+        await Query.insertObject(t, new Model()..name = "3");
+      });
+      fail('unreachable');
+    } on QueryException catch (e) {
+      expect(e.toString(), contains("timed out"));
+    }
+
+    final q = new Query<Model>(context);
+    expect(await q.fetch(), isEmpty);
+  });
 }
 
 class _Model {
