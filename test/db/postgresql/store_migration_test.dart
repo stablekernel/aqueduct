@@ -23,7 +23,7 @@ void main() {
 
     test("Version table gets created on initiating upgrade if it doesn't exist",
         () async {
-      await store.upgrade(new Schema.empty(), 1, new EmptyMigration(), temporary: true);
+      await store.upgrade(new Schema.empty(), 1, [new EmptyMigration()], temporary: true);
 
       var rows = await store.execute(
           "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
@@ -34,8 +34,8 @@ void main() {
     test(
         "Subsequent upgrades do not fail because the verison table is already created",
         () async {
-      final s1 = await store.upgrade(new Schema.empty(), 1, new EmptyMigration(), temporary: true);
-      await store.upgrade(s1, 2, new EmptyMigration(), temporary: true);
+      final s1 = await store.upgrade(new Schema.empty(), 1, [new EmptyMigration()], temporary: true);
+      await store.upgrade(s1, 2, [new EmptyMigration()], temporary: true);
 
       var rows = await store.execute(
           "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
@@ -45,9 +45,9 @@ void main() {
     });
 
     test("Trying to upgrade to version that already exists fails", () async {
-      final s1 = await store.upgrade(new Schema.empty(), 1, new EmptyMigration(), temporary: true);
+      final s1 = await store.upgrade(new Schema.empty(), 1, [new EmptyMigration()], temporary: true);
       try {
-        await store.upgrade(s1, 1, new EmptyMigration(), temporary: true);
+        await store.upgrade(s1, 1, [new EmptyMigration()], temporary: true);
         expect(true, false);
       } on MigrationException catch (e) {
         expect(e.message, contains("Trying to upgrade database"));
@@ -56,10 +56,18 @@ void main() {
 
     test("Version number is dictated by most recent dateOfUpgrade", () async {
       // These are intentionally reversed
-      final s = await store.upgrade(new Schema.empty(), 2, new EmptyMigration(), temporary: true);
-      await store.upgrade(s, 1, new EmptyMigration(), temporary: true);
+      final s = await store.upgrade(new Schema.empty(), 2, [new EmptyMigration()], temporary: true);
+      await store.upgrade(s, 1, [new EmptyMigration()], temporary: true);
 
       expect(await store.schemaVersion, 1);
+    });
+
+    test("Apply more than one migration to new database", () async {
+
+    });
+
+    test("Apply more than one migration to existing database", () async {
+
     });
   });
 }
@@ -73,5 +81,4 @@ class EmptyMigration extends Migration {
 
   @override
   Future downgrade() async => null;
-
 }

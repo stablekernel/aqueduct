@@ -201,40 +201,44 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future<Schema> upgrade(Schema fromSchema, int toVersion, Migration withMigration, {bool temporary: false}) async {
+  Future<Schema> upgrade(Schema fromSchema, int toVersion, List<Migration> withMigrations, {bool temporary: false}) async {
     var connection = await getDatabaseConnection();
 
+    Schema schema = fromSchema;
     await connection.transaction((ctx) async {
       await _createVersionTableIfNecessary(ctx, temporary);
 
       final transactionStore = new PostgreSQLPersistentStore._transactionProxy(this, ctx);
-      withMigration.database = new SchemaBuilder(transactionStore, fromSchema, isTemporary: temporary);
+      for (var migration in withMigrations) {
+        migration.database = new SchemaBuilder(transactionStore, schema, isTemporary: temporary);
+        migration.database.store = transactionStore;
 
-      withMigration.database.store = transactionStore;
-
-      var existingVersionRows = await ctx.query(
+        var existingVersionRows = await ctx.query(
           "SELECT versionNumber, dateOfUpgrade FROM $versionTableName WHERE versionNumber=@v:int4",
           substitutionValues: {"v": toVersion});
-      if (existingVersionRows.length > 0) {
-        var date = existingVersionRows.first.last;
-        throw new MigrationException(
+        if (existingVersionRows.length > 0) {
+          var date = existingVersionRows.first.last;
+          throw new MigrationException(
             "Trying to upgrade database to version $toVersion, but that migration has already been performed on $date.");
-      }
+        }
 
-      await withMigration.upgrade();
-      for (var cmd in withMigration.database.commands) {
-        logger.info("$cmd");
-        await ctx.execute(cmd);
+        await migration.upgrade();
+        for (var cmd in migration.database.commands) {
+          logger.info("$cmd");
+          await ctx.execute(cmd);
+        }
+        await migration.seed();
+
+        schema = migration.currentSchema;
       }
-      await withMigration.seed();
 
       await ctx.execute(
-          "INSERT INTO $versionTableName (versionNumber, dateOfUpgrade) VALUES ($toVersion, '${new DateTime.now()
+        "INSERT INTO $versionTableName (versionNumber, dateOfUpgrade) VALUES ($toVersion, '${new DateTime.now()
           .toUtc()
           .toIso8601String()}')");
     });
 
-    return withMigration.currentSchema;
+    return schema;
   }
 
   @override
