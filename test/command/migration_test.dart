@@ -3,9 +3,11 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/executable.dart';
 import 'dart:async';
 import 'dart:io';
+import '../helpers.dart';
 import 'cli_helpers.dart';
 
 void main() {
+  justLogEverything();
   group("Cooperation", () {
     PersistentStore store;
 
@@ -34,11 +36,9 @@ void main() {
       for (var cmd in initialBuilder.commands) {
         await store.execute(cmd);
       }
-      var db = new SchemaBuilder(store, schema, isTemporary: true);
-      var mig = new Migration1()..database = db;
 
-      await mig.upgrade();
-      await store.upgrade(1, db.commands, temporary: true);
+      var mig = new Migration1();
+      final outSchema = await store.upgrade(schema, 1, mig, temporary: true);
 
       // 'Sync up' that schema to compare it
       schema
@@ -52,9 +52,9 @@ void main() {
       schema
           .addTable(new SchemaTable("foo", [new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)]));
 
-      expect(db.schema.differenceFrom(schema).hasDifferences, false);
+      expect(outSchema.differenceFrom(schema).hasDifferences, false);
 
-      var insertResults = await db.store
+      var insertResults = await store
           .execute("INSERT INTO tableToKeep (columnToEdit) VALUES ('1') RETURNING columnToEdit, addedColumn");
       expect(insertResults, [
         ['1', 2]

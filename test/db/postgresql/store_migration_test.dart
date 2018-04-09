@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:postgres/postgres.dart';
@@ -21,7 +23,7 @@ void main() {
 
     test("Version table gets created on initiating upgrade if it doesn't exist",
         () async {
-      await store.upgrade(1, [], temporary: true);
+      await store.upgrade(new Schema.empty(), 1, new EmptyMigration(), temporary: true);
 
       var rows = await store.execute(
           "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
@@ -32,8 +34,8 @@ void main() {
     test(
         "Subsequent upgrades do not fail because the verison table is already created",
         () async {
-      await store.upgrade(1, [], temporary: true);
-      await store.upgrade(2, [], temporary: true);
+      final s1 = await store.upgrade(new Schema.empty(), 1, new EmptyMigration(), temporary: true);
+      await store.upgrade(s1, 2, new EmptyMigration(), temporary: true);
 
       var rows = await store.execute(
           "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
@@ -43,41 +45,33 @@ void main() {
     });
 
     test("Trying to upgrade to version that already exists fails", () async {
-      await store.upgrade(1, [], temporary: true);
+      final s1 = await store.upgrade(new Schema.empty(), 1, new EmptyMigration(), temporary: true);
       try {
-        await store.upgrade(1, [], temporary: true);
+        await store.upgrade(s1, 1, new EmptyMigration(), temporary: true);
         expect(true, false);
       } on MigrationException catch (e) {
         expect(e.message, contains("Trying to upgrade database"));
       }
     });
 
-    test("Migration that fails a command does not update", () async {
-      await store.upgrade(1, [], temporary: true);
-      try {
-        await store.upgrade(2, ["CREATE TABLE t (id int)", "invalid command"],
-            temporary: true);
-        expect(true, false);
-      } on PostgreSQLException catch (e) {
-        expect(e.code, "42601");
-      }
-
-      expect(await store.schemaVersion, 1);
-
-      try {
-        await store.execute("SELECT id FROM t");
-        expect(true, false);
-      } on PostgreSQLException catch (e) {
-        expect(e.code, PostgreSQLErrorCode.undefinedTable);
-      }
-    });
-
     test("Version number is dictated by most recent dateOfUpgrade", () async {
       // These are intentionally reversed
-      await store.upgrade(2, [], temporary: true);
-      await store.upgrade(1, [], temporary: true);
+      final s = await store.upgrade(new Schema.empty(), 2, new EmptyMigration(), temporary: true);
+      await store.upgrade(s, 1, new EmptyMigration(), temporary: true);
 
       expect(await store.schemaVersion, 1);
     });
   });
+}
+
+class EmptyMigration extends Migration {
+  @override
+  Future upgrade() async => null;
+
+  @override
+  Future seed() async => null;
+
+  @override
+  Future downgrade() async => null;
+
 }

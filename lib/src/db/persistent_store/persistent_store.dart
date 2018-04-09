@@ -65,5 +65,5 @@ abstract class PersistentStore {
 
   Future<int> get schemaVersion;
 
-  Future upgrade(int versionNumber, Migration migration, {bool temporary: false});
+  Future<Schema> upgrade(Schema fromSchema, int toVersion, Migration withMigration, {bool temporary: false});
 }

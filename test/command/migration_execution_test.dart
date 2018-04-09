@@ -106,7 +106,7 @@ void main() {
       ]);
 
       expect(await columnsOfTable(store, "_testobject"), ["id", "foo"]);
-      expect(await columnsOfTable(store, "_foo"), []);
+      expect(await tableExists(store, "_foo"), false);
 
       dir = getAbsoluteDir("case4-2/");
       res = await terminal.runAqueductCommand("db", ["upgrade", "--connect", connectString, "--migration-directory", dir]);
@@ -127,13 +127,8 @@ void main() {
       var res = await terminal.runAqueductCommand("db", ["upgrade", "--connect", connectString, "--migration-directory", dir]);
       expect(res, isNot(0));
 
-      try {
-        await store.execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
-        fail('unreachable');
-      } on PostgreSQLException catch (e) {
-        expect(e.toString(), contains("relation \"_aqueduct_version_pgsql\" does not exist"));
-      }
-      expect(await columnsOfTable(store, "_testobject"), []);
+      expect(await tableExists(store, store.versionTable.name), false);
+      expect(await tableExists(store, "_testobject"), false);
     });
 
     test("If migration fails and more migrations are pending, the pending migrations are cancelled", () async {
@@ -147,9 +142,10 @@ void main() {
       expect(version, [
         [1]
       ]);
-
       expect(await columnsOfTable(store, "_testobject"), ["id", "foo"]);
       expect(await columnsOfTable(store, "_foo"), []);
+      expect(await tableExists(store, store.versionTable.name), true);
+      expect(await tableExists(store, "_testobject"), true);
     });
 
     test("If seed fails, all schema changes are rolled back", () async {
@@ -157,13 +153,8 @@ void main() {
       var res = await terminal.runAqueductCommand("db", ["upgrade", "--connect", connectString, "--migration-directory", dir]);
       expect(res, isNot(0));
 
-      try {
-        await store.execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
-        fail('unreachable');
-      } on PostgreSQLException catch (e) {
-        expect(e.toString(), contains("relation \"_aqueduct_version_pgsql\" does not exist"));
-      }
-      expect(await columnsOfTable(store, "_testobject"), []);
+      expect(await tableExists(store, store.versionTable.name), false);
+      expect(await tableExists(store, "_testobject"), false);
     });
   });
 }
@@ -172,4 +163,10 @@ Future<List<String>> columnsOfTable(PersistentStore persistentStore, String tabl
   List<List<String>> results = await persistentStore.execute("select column_name from information_schema.columns where "
       "table_name='$tableName'");
   return results.map((rows) => rows.first).toList();
+}
+
+Future<bool> tableExists(PersistentStore store, String tableName) async {
+  List<List<dynamic>> exists = await store.execute("SELECT to_regclass(@tableName:text)", substitutionValues: {"tableName": tableName});
+
+  return exists.first.first != null;
 }

@@ -121,11 +121,10 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
           .firstWhere((dm) => dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration))) as ClassMirror;
 
       var migrationInstance = migrationClassMirror.newInstance(new Symbol(''), []).reflectee as Migration;
-      migrationInstance.database = new SchemaBuilder(store, inputSchema);
-      await migrationInstance.store.upgrade(versionNumber, migrationInstance);
-      await migrationInstance.database.store.close();
+      final updatedSchema = await store.upgrade(inputSchema, versionNumber, migrationInstance);
+      await store.close();
 
-      return migrationInstance.currentSchema.asMap();
+      return updatedSchema.asMap();
     }, imports: [
       "dart:async",
       "package:aqueduct/aqueduct.dart",
