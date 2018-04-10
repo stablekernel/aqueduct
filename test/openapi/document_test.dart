@@ -517,7 +517,7 @@ class Endpoint extends Controller {
   }
 
   @override
-  void prepare() {
+  void didAddToChannel() {
     prepared?.complete();
   }
 }

@@ -13,6 +13,11 @@ abstract class RequestOrResponse {}
 
 typedef FutureOr<RequestOrResponse> _Handler(Request request);
 
+abstract class Linkable {
+  Linkable link(Controller instantiator());
+  Linkable linkFunction(FutureOr<RequestOrResponse> handle(Request request));
+}
+
 /// Controllers handle requests by either responding, or taking some action and passing the request to another controller.
 ///
 /// A controller is a discrete processing unit for requests. These units are composed
@@ -21,7 +26,7 @@ typedef FutureOr<RequestOrResponse> _Handler(Request request);
 ///
 /// This class is intended to be subclassed. [ApplicationChannel], [Router], [ResourceController] are all examples of this type.
 /// Subclasses should implement [handle] to respond to, modify or forward requests.
-class Controller implements APIComponentDocumenter, APIOperationDocumenter {
+class Controller implements APIComponentDocumenter, APIOperationDocumenter, Linkable {
   /// Default constructor.
   ///
   /// For subclasses, override [handle] and do not provide [handler].
@@ -67,7 +72,8 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter {
   /// If the receiver does not respond to a request, the controller created by [instantiator] receives the request next.
   ///
   /// See [linkFunction] for a variant of this method that takes a closure instead of an object.
-  Controller link(Controller instantiator()) {
+  @override
+  Linkable link(Controller instantiator()) {
     _nextController = new _ControllerGenerator(instantiator);
     return _nextController;
   }
@@ -77,7 +83,8 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter {
   /// If the receiver does not respond to a request, [handle] receives the request next.
   ///
   /// See [link] for a variant of this method that takes an object instead of a closure.
-  Controller linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
+  @override
+  Linkable linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
     _nextController = new Controller(handle);
     return _nextController;
   }
@@ -96,8 +103,8 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter {
   /// before it is garbage collected.
   ///
   /// If you override this method, you must call the superclass' implementation.
-  void prepare() {
-    _nextController?.prepare();
+  void didAddToChannel() {
+    _nextController?.didAddToChannel();
   }
 
   /// Delivers [req] to this instance to be processed.
@@ -328,14 +335,14 @@ class _ControllerGenerator extends Controller {
   }
 
   @override
-  Controller link(Controller instantiator()) {
+  Linkable link(Controller instantiator()) {
     final c = super.link(instantiator);
     nextInstanceToReceive._nextController = c;
     return c;
   }
 
   @override
-  Controller linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
+  Linkable linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
     final c = super.linkFunction(handle);
     nextInstanceToReceive._nextController = c;
     return c;
@@ -349,10 +356,10 @@ class _ControllerGenerator extends Controller {
   }
 
   @override
-  void prepare() {
+  void didAddToChannel() {
     // don't call super, since nextInstanceToReceive's nextController is set to the same instance,
     // and it must call nextController.prepare
-    nextInstanceToReceive.prepare();
+    nextInstanceToReceive.didAddToChannel();
   }
 
   @override

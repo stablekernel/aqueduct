@@ -21,7 +21,7 @@ void main() {
     var router = new Router();
     router.route("/users/[:id]").link(() => new TestModelController(context));
     router.route("/string/:id").link(() => new StringController(context));
-    router.prepare();
+    router.didAddToChannel();
 
     server.listen((req) async {
       router.receive(new Request(req));

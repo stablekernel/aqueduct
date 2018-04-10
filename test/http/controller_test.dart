@@ -17,14 +17,14 @@ void main() {
       final completer = new Completer();
       final root = new Controller();
       root.linkFunction((req) async => req).link(() => new Always200Controller()).link(() => new PrepareTailController(completer));
-      root.prepare();
+      root.didAddToChannel();
       expect(completer.future, completes);
     });
 
     test("Controllers are generated for each request", () async {
       final root = new Controller();
       root.linkFunction((req) async => req).link(() => new NotingMiddleware()).link(() => new NotingEndpoint());
-      root.prepare();
+      root.didAddToChannel();
       server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4111);
       server.map((r) => new Request(r)).listen((req) => root.receive(req));
 
@@ -438,7 +438,7 @@ class PrepareTailController extends Controller {
   Completer completer;
 
   @override
-  void prepare() {
+  void didAddToChannel() {
     completer.complete();
   }
 }

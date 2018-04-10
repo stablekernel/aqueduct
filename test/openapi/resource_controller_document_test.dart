@@ -15,7 +15,7 @@ void main() {
       ..paths = {}
       ..components = new APIComponents());
     final ac = new A();
-    ac.prepare();
+    ac.didAddToChannel();
     ac.documentComponents(context);
 
     collectionOperations = ac.documentOperations(context, "/", new APIPath());

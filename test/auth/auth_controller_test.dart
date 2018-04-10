@@ -61,7 +61,7 @@ void main() {
     router
         .route("/auth/token")
         .link(() => new AuthController(authenticationServer));
-    router.prepare();
+    router.didAddToChannel();
 
     server =
         await HttpServer.bind("localhost", 8888, v6Only: false, shared: false);
@@ -693,7 +693,7 @@ void main() {
       final authServer = new AuthServer(new InMemoryAuthStorage());
       authServer.documentComponents(context);
       AuthController ac = new AuthController(authServer);
-      ac.prepare();
+      ac.didAddToChannel();
       operations = ac.documentOperations(context, "/", new APIPath());
       await context.finalize();
     });
