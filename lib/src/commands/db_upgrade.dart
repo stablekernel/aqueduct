@@ -38,18 +38,7 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
     var migrationFilesToGetToCurrent = migrationFileSplit.first;
     List<File> migrationFilesToRun = migrationFileSplit.last;
 
-    var pattern = new RegExp(r"<<\s*set\s*>>");
-    for (var file in migrationFilesToRun) {
-      var contents = file.readAsStringSync();
-      if (contents.contains(pattern)) {
-        displayError("Migration file needs input");
-        displayProgress("Migration file: ${file.path}");
-        displayProgress(
-            "An ambiguous change to the schema requires your input in the referenced file. Search for '<<set>>' and replace with an appropriate value.");
-        return 1;
-      }
-    }
-
+    final migrationNames = validateMigrationFiles(migrationFilesToRun);
     var schema = new Schema.empty();
     for (var migration in migrationFilesToGetToCurrent) {
       displayProgress("Replaying version ${versionNumberFromFile(migration)}");
@@ -73,6 +62,41 @@ class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
   @override
   String get description {
     return "Executes migration files against a database.";
+  }
+
+  Map<File, String> validateMigrationFiles(List<File> files) {
+    final migrationTypeVersions = <File, String>{};
+    final requiresInputPattern = new RegExp(r"<<\s*set\s*>>");
+    final migrationTypePattern = new RegExp(r"class (Migration[a-zA-Z0-9]*)");
+    for (var file in files) {
+      final contents = file.readAsStringSync();
+      if (contents.contains(requiresInputPattern)) {
+        throw new CLIException("Migration file needs input", instructions: [
+          "Migration file: ${file.path}",
+          "An ambiguous change to the schema requires your input in the referenced file. Search for '<<set>>' and replace with an appropriate value."
+        ]);
+      }
+
+      final migrationMatch = migrationTypePattern.firstMatch(contents);
+      if (migrationMatch == null) {
+        throw new CLIException("No migration definition found in migration file.", instructions: [
+          "Offending File: '${file.path}'."
+        ]);
+      }
+
+      final migrationName = migrationMatch.group(1);
+      if (migrationTypeVersions.values.contains(migrationName)) {
+        throw new CLIException("Invalid migration file.", instructions: [
+          "File '${file.path}' contains a migration named '${migrationName}'.",
+          "A migration with the same name exists in another migration file.",
+          "Rename the migration class in '${file.path}' so that it is distinct among all migration files."
+        ]);
+      }
+
+      migrationTypeVersions[file] = migrationName;
+    }
+
+    return migrationTypeVersions;
   }
 
   List<List<File>> splitMigrationFiles(int aroundVersion) {
