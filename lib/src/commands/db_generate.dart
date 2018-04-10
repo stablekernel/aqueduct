@@ -52,7 +52,7 @@ class CLIDatabaseGenerate extends CLIDatabaseManagingCommand {
       var schema = new Schema.fromDataModel(dataModel);
       var changeList = <String>[];
 
-      final source  = MigrationBuilder.sourceForSchemaUpgrade(
+      final source  = Migration.sourceForSchemaUpgrade(
             inputSchema, schema, version, changeList: changeList);
       return {
         "source": source,

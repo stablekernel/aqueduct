@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:isolate';
 
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/utilities/source_generator.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -226,59 +228,39 @@ void main() {
       alteredTable
     ]));
   });
-}
 
+  test("Empty list returns initial schema", () async {
 
-String sourceForSchemaUpgrade(String migrationSource) {
-  return """
-$migrationSource
-
-Future main(List<String> args, Map<String, dynamic> message) async {
-  var sendPort = message['sendPort'];
-  var schema = message['schema'];
-  var database = new SchemaBuilder(null, new Schema.fromMap(schema));
-  var migration = new Migration1()..database = database;
-  await migration.upgrade();
-  sendPort.send(database.schema.asMap());
-}  
-
-
-  """;
-}
-
-Future<Map<String, dynamic>> runSource(String source, Schema fromSchema) async {
-  var dataUri = Uri.parse(
-      "data:application/dart;charset=utf-8,${Uri.encodeComponent(source)}");
-  var completer = new Completer<Map>();
-  var receivePort = new ReceivePort();
-  receivePort.listen((msg) {
-    completer.complete(msg);
   });
 
-  var errPort = new ReceivePort()
-    ..listen((msg) {
-      throw new Exception(msg);
-    });
+  test("Multiple migrations are run in order", () async {
 
-  await Isolate.spawnUri(dataUri, [], {
-    "sendPort": receivePort.sendPort,
-    "schema": fromSchema.asMap()
-  },
-      onError: errPort.sendPort,
-      packageConfig: new Uri.file(".packages"));
+  });
 
-  var results = await completer.future;
-  receivePort.close();
-  errPort.close();
-  return results;
+  test("Operations are applied to fromSchema", () async {
+
+  });
 }
 
 Future expectSchema(Schema schema,
     {Schema becomesSchema, List<String> afterCommands, void alsoVerify(Schema createdSchema)}) async {
-  var migrationSource = MigrationBuilder.sourceForSchemaUpgrade(schema, becomesSchema, 1);
+  var migrationSource = Migration.sourceForSchemaUpgrade(schema, becomesSchema, 1);
+  final source = new SourceGenerator((List<String> args, Map<String, dynamic> message) async {
+    var schema = message['schema'];
+    final migration = new Migration1();
+    final outSchema = await Migration.schemaByApplyingMigrations([migration], fromSchema: new Schema.fromMap(schema));
 
-  var scriptSource = sourceForSchemaUpgrade(migrationSource);
-  var response = await runSource(scriptSource, schema);
+    return outSchema.asMap();
+  }, imports: [
+    "dart:mirrors",
+    "dart:async",
+    "package:aqueduct/aqueduct.dart"
+  ], additionalContents: migrationSource);
+
+  
+  var response = await IsolateExecutor.executeSource
+    (source, [], message: {"schema": schema.asMap()}, 
+    packageConfigURI: Directory.current.uri.resolve(".packages"));
   var createdSchema = new Schema.fromMap(response);
   var diff = createdSchema.differenceFrom(becomesSchema);
 
@@ -287,4 +269,29 @@ Future expectSchema(Schema schema,
   if (alsoVerify != null) {
     alsoVerify(createdSchema);
   }
+}
+
+
+// So we can reference the type Migration1 in expectSchema's exuector closure without an error
+class Migration1 extends Migration {
+
+  @override
+  Future downgrade() async
+  {
+
+  }
+
+  @override
+  Future upgrade() async
+  {
+
+  }
+
+  @override
+  Future seed() async
+  {
+
+  }
+
+
 }

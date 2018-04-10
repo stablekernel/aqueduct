@@ -18,6 +18,39 @@ class MigrationException implements Exception {
 /// Subclasses will override [upgrade] to make changes to the [Schema] which
 /// are translated into database operations to update a database's schema.
 abstract class Migration {
+  static Future<Schema> schemaByApplyingMigrations(List<Migration> migrations, {Schema fromSchema}) async {
+    final builder = new SchemaBuilder(null, fromSchema ?? new Schema.empty());
+    for (var migration in migrations) {
+      migration.database = builder;
+      await migration.upgrade();
+    }
+    return builder.schema;
+  }
+
+  static String sourceForSchemaUpgrade(
+    Schema existingSchema, Schema newSchema, int version, {List<String> changeList}) {
+    var diff = existingSchema.differenceFrom(newSchema);
+    var source = diff.generateUpgradeSource(changeList: changeList);
+
+    return """
+import 'package:aqueduct/aqueduct.dart';   
+import 'dart:async';
+
+class Migration$version extends Migration { 
+  @override
+  Future upgrade() async {
+   $source
+  }
+  
+  @override
+  Future downgrade() async {}
+  
+  @override
+  Future seed() async {}
+}
+    """;
+  }
+
   /// The current state of the [Schema].
   ///
   /// During migration, this value will be modified as [SchemaBuilder] operations

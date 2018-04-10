@@ -6,7 +6,6 @@ export 'migration.dart';
 export 'schema_builder.dart';
 export 'schema_column.dart';
 export 'schema_table.dart';
-export 'migration_builder.dart';
 
 /// A portable representation of a database schema.
 ///

@@ -63,11 +63,11 @@ void main() {
     });
 
     test("Apply more than one migration to new database", () async {
-
+      fail('nyi');
     });
 
     test("Apply more than one migration to existing database", () async {
-
+      fail('nyi');
     });
   });
 }

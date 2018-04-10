@@ -126,7 +126,7 @@ class Terminal {
             .length;
 
     for (var i = 1; i < schemas.length; i++) {
-      var source = MigrationBuilder.sourceForSchemaUpgrade(schemas[i - 1], schemas[i], i);
+      var source = Migration.sourceForSchemaUpgrade(schemas[i - 1], schemas[i], i);
 
       var file = new File.fromUri(defaultMigrationDirectory.uri.resolve("${i + currentNumberOfMigrations}.migration.dart"));
       file.writeAsStringSync(source);
