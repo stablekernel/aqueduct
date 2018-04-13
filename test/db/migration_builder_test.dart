@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:isolate_executor/isolate_executor.dart';
@@ -182,10 +183,12 @@ Future expectSchema(Schema schema,
   var migrationSource = Migration.sourceForSchemaUpgrade(schema, becomesSchema, 1);
   migrationSource = migrationSource.split("\n").where((s) => !s.startsWith("import")).join("\n");
 
+  final contents = migrationSource + "\n" + (reflect(schemaByApplyingMigrations) as ClosureMirror).function.source;
+
   final response = await IsolateExecutor.executeWithType(MigrateSchema,
       packageConfigURI: Directory.current.uri.resolve(".packages"),
       imports: MigrateSchema.imports,
-      additionalContents: migrationSource,
+      additionalContents: contents,
       message: {"schema": schema.asMap()});
 
   var createdSchema = new Schema.fromMap(response);
