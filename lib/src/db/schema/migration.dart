@@ -54,15 +54,6 @@ abstract class Migration {
   /// to a database after this migration version is executed.
   Future seed();
 
-  static Future<Schema> schemaByApplyingMigrations(List<Migration> migrations, {Schema fromSchema}) async {
-    final builder = new SchemaBuilder(null, fromSchema ?? new Schema.empty());
-    for (var migration in migrations) {
-      migration.database = builder;
-      await migration.upgrade();
-    }
-    return builder.schema;
-  }
-
   static String sourceForSchemaUpgrade(
     Schema existingSchema, Schema newSchema, int version, {List<String> changeList}) {
     var diff = existingSchema.differenceFrom(newSchema);

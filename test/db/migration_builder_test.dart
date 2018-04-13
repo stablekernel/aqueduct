@@ -208,10 +208,19 @@ class MigrateSchema extends Executable {
   @override
   Future<dynamic> execute() async {
     final migration = instanceOf("Migration1");
-    final outSchema = await Migration.schemaByApplyingMigrations([migration], fromSchema: schema);
+    final outSchema = await schemaByApplyingMigrations([migration], fromSchema: schema);
 
     return outSchema.asMap();
   }
 
   static List<String> get imports => ["package:aqueduct/aqueduct.dart"];
+}
+
+Future<Schema> schemaByApplyingMigrations(List<Migration> migrations, {Schema fromSchema}) async {
+  final builder = new SchemaBuilder(null, fromSchema ?? new Schema.empty());
+  for (var migration in migrations) {
+    migration.database = builder;
+    await migration.upgrade();
+  }
+  return builder.schema;
 }

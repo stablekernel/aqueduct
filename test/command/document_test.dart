@@ -61,7 +61,7 @@ void main() {
       """);
     });
 
-    final exitCode = await terminal.runAqueductCommand("document", ["--machine"]);
+    final exitCode = await terminal.runAqueductCommand("document", ["--machine", "--stacktrace"]);
     expect(exitCode, isNot(0));
     expect(terminal.output, contains("IdentityController.documentComponents"));
     expect(terminal.output, contains("Exception: Hello!"));
