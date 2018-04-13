@@ -405,7 +405,7 @@ void main() {
         ..paths = {}
         ..components = new APIComponents());
       AuthCodeController ac = new AuthCodeController(new AuthServer(new InMemoryAuthStorage()));
-      ac.prepare();
+      ac.didAddToChannel();
       operations = ac.documentOperations(context, "/", new APIPath());
       await context.finalize();
     });

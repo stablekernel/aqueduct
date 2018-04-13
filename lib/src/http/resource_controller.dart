@@ -116,7 +116,7 @@ abstract class ResourceController extends Controller {
   void didDecodeRequestBody(RequestBody decodedObject) {}
 
   @override
-  void prepare() {
+  void didAddToChannel() {
     final bound = new BoundController(reflect(this).type.reflectedType);
     final conflictingOperations = bound.conflictingOperations;
     if (conflictingOperations.length > 0) {
@@ -132,7 +132,7 @@ abstract class ResourceController extends Controller {
           "parameter is bound with @Bind.path(), but path variable is not declared in @Operation(). Offending operation methods: $opNames");
     }
 
-    super.prepare();
+    super.didAddToChannel();
   }
 
   @override

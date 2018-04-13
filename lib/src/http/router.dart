@@ -82,29 +82,29 @@ class Router extends Controller {
   ///         /locations/:name([^0-9])
   ///         /files/*
   ///
-  Controller route(String pattern) {
+  Linkable route(String pattern) {
     var routeController = new _RouteController(RouteSpecification.specificationsForRoutePattern(pattern));
     _routeControllers.add(routeController);
     return routeController;
   }
 
   @override
-  void prepare() {
+  void didAddToChannel() {
     _rootRouteNode = new RouteNode(_routeControllers.expand((rh) => rh.specifications).toList());
 
     for (var c in _routeControllers) {
-      c.prepare();
+      c.didAddToChannel();
     }
   }
 
   /// Routers override this method to throw an exception. Use [route] instead.
   @override
-  Controller link(Controller generatorFunction()) {
+  Linkable link(Controller generatorFunction()) {
     throw new ArgumentError("Invalid link. 'Router' cannot directly link to controllers. Use 'route'.");
   }
 
   @override
-  Controller linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
+  Linkable linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
     throw new ArgumentError("Invalid link. 'Router' cannot directly link to functions. Use 'route'.");
   }
 

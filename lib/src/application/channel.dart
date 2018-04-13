@@ -159,7 +159,7 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   Future<APIDocument> documentAPI(Map<String, dynamic> projectSpec) async {
     final doc = new APIDocument()..components = new APIComponents();
     final root = entryPoint;
-    root.prepare();
+    root.didAddToChannel();
 
     final context = new APIDocumentContext(doc);
     documentComponents(context);

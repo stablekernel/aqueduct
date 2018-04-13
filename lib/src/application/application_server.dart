@@ -69,7 +69,7 @@ class ApplicationServer {
     await channel.prepare();
 
     entryPoint = channel.entryPoint;
-    entryPoint.prepare();
+    entryPoint.didAddToChannel();
 
     logger.fine("ApplicationServer($identifier).start binding HTTP");
     var securityContext = channel.securityContext;

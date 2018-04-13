@@ -279,7 +279,7 @@ void main() {
       var dataModel = new ManagedDataModel([TestModel]);
       final ctx = new ManagedContext(dataModel, new DefaultPersistentStore());
       final c = new ManagedObjectController<TestModel>(ctx);
-      c.prepare();
+      c.didAddToChannel();
 
       collectionOperations = c.documentOperations(context, "/", new APIPath());
       idOperations = c.documentOperations(context, "/", new APIPath(parameters: [new APIParameter.path("id")]));

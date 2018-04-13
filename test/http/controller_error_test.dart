@@ -61,7 +61,7 @@ void main() {
 
 Future<HttpServer> enableController(Controller controller) async {
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
-  controller.prepare();
+  controller.didAddToChannel();
 
   server.map((httpReq) => new Request(httpReq)).listen(controller.receive);
 

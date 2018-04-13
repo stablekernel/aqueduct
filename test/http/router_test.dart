@@ -272,7 +272,7 @@ void main() {
 
       root.link(() => router);
 
-      root.prepare();
+      root.didAddToChannel();
       server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
       server.map((httpReq) => new Request(httpReq)).listen(root.receive);
 
@@ -290,7 +290,7 @@ void main() {
 
       root.link(() => router);
 
-      root.prepare();
+      root.didAddToChannel();
       expect(c1.future, completes);
       expect(c2.future, completes);
 
@@ -299,7 +299,7 @@ void main() {
 }
 
 Future<HttpServer> enableRouter(Router router) async {
-  router.prepare();
+  router.didAddToChannel();
   var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
   server.map((httpReq) => new Request(httpReq)).listen(router.receive);
   return server;
@@ -329,7 +329,7 @@ class PrepareTailController extends Controller {
   Completer completer;
 
   @override
-  void prepare() {
+  void didAddToChannel() {
     completer.complete();
   }
 }

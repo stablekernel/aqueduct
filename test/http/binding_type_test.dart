@@ -7,28 +7,28 @@ void main() {
   group("Non-list success", () {
     test("Can bind String to query, header, path", () {
       final controller = new StandardSet();
-      controller.prepare();
+      controller.didAddToChannel();
       // Just expecting that we don't throw
       expect(true, true);
     });
 
     test("Can bind parseable types to query, header, path", () {
       final controller = new ParseSet();
-      controller.prepare();
+      controller.didAddToChannel();
       // Just expecting that we don't throw
       expect(true, true);
     });
 
     test("Can bind bool to query", () {
       final controller = new BoolBind();
-      controller.prepare();
+      controller.didAddToChannel();
       // Just expecting that we don't throw
       expect(true, true);
     });
 
     test("Can bind HTTPSerializable to body", () {
       final controller = new BodyBind();
-      controller.prepare();
+      controller.didAddToChannel();
       // Just expecting that we don't throw
       expect(true, true);
     });
@@ -37,28 +37,28 @@ void main() {
   group("List success", () {
     test("Can bind String to query, header, path", () {
       final controller = new StandardListSet();
-      controller.prepare();
+      controller.didAddToChannel();
       // Just expecting that we don't throw
       expect(true, true);
     });
 
     test("Can bind parseable types to query, header, path", () {
       final controller = new ParseListSet();
-      controller.prepare();
+      controller.didAddToChannel();
       // Just expecting that we don't throw
       expect(true, true);
     });
 
     test("Can bind bool to query", () {
       final controller = new BoolListBind();
-      controller.prepare();
+      controller.didAddToChannel();
       // Just expecting that we don't throw
       expect(true, true);
     });
 
     test("Can bind HTTPSerializable to body", () {
       final controller = new BodyListBind();
-      controller.prepare();
+      controller.didAddToChannel();
       // Just expecting that we don't throw
       expect(true, true);
     });
@@ -68,7 +68,7 @@ void main() {
     test("Cannot bind dynamic", () {
       final controller = new ErrorDynamic();
       try {
-        controller.prepare();
+        controller.didAddToChannel();
       } on StateError catch (e) {
         expect(e.toString(), "Bad state: Invalid binding 'x' on 'ErrorDynamic.get1': 'dynamic' may not be bound to Header.");
       }
@@ -77,7 +77,7 @@ void main() {
     test("Cannot bind invalid type to default implementation", () {
       final controller = new ErrorDefault();
       try {
-        controller.prepare();
+        controller.didAddToChannel();
       } on StateError catch (e) {
         expect(e.toString(), "Bad state: Invalid binding 'x' on 'ErrorDefault.get1': 'HttpHeaders' may not be bound to Header.");
       }
@@ -86,7 +86,7 @@ void main() {
     test("Cannot bind bool to default implementation", () {
       final controller = new ErrorDefaultBool();
       try {
-        controller.prepare();
+        controller.didAddToChannel();
       } on StateError catch (e) {
         expect(e.toString(), "Bad state: Invalid binding 'x' on 'ErrorDefaultBool.get1': 'bool' may not be bound to Header.");
       }
@@ -95,7 +95,7 @@ void main() {
     test("Cannot bind whacky type to body", () {
       final controller = new ErrorBody();
       try {
-        controller.prepare();
+        controller.didAddToChannel();
       } on StateError catch (e) {
         expect(e.toString(), "Bad state: Invalid binding 'x' on 'ErrorBody.get1': 'HttpHeaders' may not be bound to Body.");
       }
@@ -104,7 +104,7 @@ void main() {
     test("Cannot bind default type to body", () {
       final controller = new ErrorDefaultBody();
       try {
-        controller.prepare();
+        controller.didAddToChannel();
       } on StateError catch (e) {
         expect(e.toString(), "Bad state: Invalid binding 'x' on 'ErrorDefaultBody.get1': 'String' may not be bound to Body.");
       }
