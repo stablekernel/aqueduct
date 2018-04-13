@@ -1,92 +1,54 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:aqueduct/src/commands/scripts/migration_builder.dart';
+import 'package:isolate_executor/isolate_executor.dart';
+
 import '../db/db.dart';
-import '../utilities/source_generator.dart';
 import 'base.dart';
 import 'db.dart';
 
 class CLIDatabaseGenerate extends CLIDatabaseManagingCommand {
   @override
   Future<int> handle() async {
-    var files = migrationFiles;
+    var existingMigrations = projectMigrations;
 
-    var newMigrationFile = new File.fromUri(
-        migrationDirectory.uri.resolve("00000001_Initial.migration.dart"));
+    var newMigrationFile = new File.fromUri(migrationDirectory.uri.resolve("00000001_Initial.migration.dart"));
     var versionNumber = 1;
 
-    if (files.isNotEmpty) {
-      versionNumber  = versionNumberFromFile(files.last) + 1;
-      newMigrationFile = new File.fromUri(migrationDirectory.uri.resolve(
-          "${"$versionNumber".padLeft(8, "0")}_Unnamed.migration.dart"));
+    if (existingMigrations.isNotEmpty) {
+      versionNumber = existingMigrations.last.versionNumber + 1;
+      newMigrationFile = new File.fromUri(
+          migrationDirectory.uri.resolve("${"$versionNumber".padLeft(8, "0")}_Unnamed.migration.dart"));
     }
 
-    var source = await generateMigrationSource(await schemaMapFromExistingMigrationFiles(), versionNumber);
-    List<String> tables = source["tablesEvaluated"];
-    List<String> changeList = source["changeList"];
+    final schema = await schemaByApplyingMigrationSources(projectMigrations);
+    var result = await generateMigrationSource(schema, versionNumber);
 
     displayInfo("The following ManagedObject<T> subclasses were found:");
-    tables.forEach((t) => displayProgress(t));
+    result.tablesEvaluated.forEach((t) => displayProgress(t));
     displayProgress("");
-    displayProgress("* If you were expecting more declarations, ensure the files are visible in the application library file.");
+    displayProgress(
+        "* If you were expecting more declarations, ensure the files are visible in the application library file.");
     displayProgress("");
 
-    changeList?.forEach((c) => displayProgress(c));
+    result.changeList?.forEach((c) => displayProgress(c));
 
-    newMigrationFile.writeAsStringSync(source["source"]);
+    newMigrationFile.writeAsStringSync(result.source);
 
-    displayInfo(
-        "Created new migration file (version ${versionNumberFromFile(newMigrationFile)}).",
-        color: CLIColor.boldGreen);
+    displayInfo("Created new migration file (version ${versionNumber}).", color: CLIColor.boldGreen);
     displayProgress("New file is located at ${newMigrationFile.path}");
 
     return 0;
   }
 
-  Future<Map<String, dynamic>> generateMigrationSource(Map<String, dynamic> initialSchema, int inputVersion) {
-    var generator = new SourceGenerator(
-        (List<String> args, Map<String, dynamic> values) async {
-      var version = values["version"] ?? 1;
-      var inputSchema = new Schema.fromMap(values["initialSchema"]);
-      var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-      var schema = new Schema.fromDataModel(dataModel);
-      var changeList = <String>[];
+  Future<MigrationBuilderResult> generateMigrationSource(Schema initialSchema, int inputVersion) async {
+    final resultMap = await IsolateExecutor.executeWithType(MigrationBuilderExecutable,
+        packageConfigURI: packageConfigUri,
+        imports: MigrationBuilderExecutable.importsForPackage(packageName),
+        message: MigrationBuilderExecutable.createMessage(inputVersion, initialSchema), logHandler: displayProgress);
 
-      final source  = Migration.sourceForSchemaUpgrade(
-            inputSchema, schema, version, changeList: changeList);
-      return {
-        "source": source,
-        "tablesEvaluated" : dataModel
-            .entities
-            .map((e) => e.name)
-            .toList(),
-        "changeList": changeList
-      };
-    }, imports: [
-      "package:aqueduct/aqueduct.dart",
-      "package:$libraryName/$libraryName.dart",
-      "dart:isolate",
-      "dart:mirrors",
-      "dart:async"
-    ]);
-
-    var executor = new IsolateExecutor(generator, [libraryName], message: {
-      "initialSchema" : initialSchema,
-      "version": inputVersion
-    }, packageConfigURI: projectDirectory.uri.resolve(".packages"));
-
-    return executor.execute() as Future<Map<String, dynamic>>;
-  }
-
-  Future<Map<String, dynamic>> schemaMapFromExistingMigrationFiles() async {
-    displayInfo("Replaying migration files...");
-    var schema = new Schema.empty();
-    for (var migration in migrationFiles) {
-      displayProgress("Replaying version ${versionNumberFromFile(migration)}");
-      schema = await schemaByApplyingMigrationFile(migration, schema);
-    }
-
-    return schema.asMap();
+    return new MigrationBuilderResult.fromMap(resultMap);
   }
 
   @override

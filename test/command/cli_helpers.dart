@@ -204,12 +204,14 @@ class Terminal {
     cmd.process(results).then((exitCode) {
       if (!task._processStarted.isCompleted) {
         print("Command failed to start with exit code: $exitCode");
+        print("Message: $output");
         timer.cancel();
         Directory.current = saved;
         task._processStarted.completeError(false);
         task._processFinished.complete(exitCode);
       } else {
         print("Command completed with exit code: $exitCode");
+        print("Output: $output");
         task._processFinished.complete(exitCode);
       }
     });
@@ -240,6 +242,7 @@ export 'channel.dart';
 
   static final _emptyProjectChannel = """
 import 'application_test.dart';
+import 'package:aqueduct/aqueduct.dart';
 class TestChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();

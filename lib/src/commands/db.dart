@@ -1,12 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors';
 
+import 'package:aqueduct/src/db/schema/migration_source.dart';
 import 'package:safe_config/safe_config.dart';
 import 'package:yaml/yaml.dart';
-
+import 'package:isolate_executor/isolate_executor.dart';
 import '../db/db.dart';
-import '../utilities/source_generator.dart';
 import 'base.dart';
 import 'db_generate.dart';
 import 'db_show_migrations.dart';
@@ -14,6 +13,7 @@ import 'db_upgrade.dart';
 import 'db_validate.dart';
 import 'db_version.dart';
 import 'db_schema.dart';
+import 'scripts/schema_builder.dart';
 
 class CLIDatabase extends CLICommand {
   CLIDatabase() {
@@ -81,62 +81,33 @@ abstract class CLIDatabaseManagingCommand extends CLICommand with CLIProject {
     return dir;
   }
 
-  List<File> get migrationFiles {
-    Map<int, File> orderMap = migrationDirectory
+  List<MigrationSource> get projectMigrations {
+    final pattern = new RegExp(r"^[0-9]+[_a-zA-Z0-9]*\.migration\.dart$");
+    final sources = migrationDirectory
         .listSync()
-        .where((fse) => fse is File && fse.path.endsWith(".migration.dart"))
-        .fold({}, (m, fse) {
-      var fileName = fse.uri.pathSegments.last;
-      var migrationName = fileName.split(".").first;
-      var versionNumberString = migrationName.split("_").first;
+        .where((fse) => fse is File && pattern.hasMatch(fse.uri.pathSegments.last))
+        .map((fse) => new MigrationSource.fromFile(fse.uri))
+        .toList();
 
-      try {
-        var versionNumber = int.parse(versionNumberString);
-        m[versionNumber] = fse;
-        return m;
-      } catch (e) {
-        throw new CLIException("Migration files must have the following format: Version_Name.migration.dart,"
-            "where Version must be an integer (optionally prefixed with 0s, e.g. '00000002')"
-            " and '_Name' is optional. Offender: ${fse.uri}");
-      }
-    });
+    sources.sort((s1, s2) => s1.versionNumber.compareTo(s2.versionNumber));
 
-    var sortedKeys = new List<int>.from(orderMap.keys);
-    sortedKeys.sort((int a, int b) => a.compareTo(b));
-    return sortedKeys.map((v) => orderMap[v]).toList();
+    return sources;
   }
 
-  int versionNumberFromFile(File file) {
-    var fileName = file.uri.pathSegments.last;
-    var migrationName = fileName.split(".").first;
-    return int.parse(migrationName.split("_").first);
-  }
+  Future<Schema> schemaByApplyingMigrationSources(List<MigrationSource> sources, {Schema fromSchema}) async {
+    fromSchema ??= new Schema.empty();
 
-  Future<Schema> schemaByApplyingMigrationFile(File migrationFile, Schema fromSchema) async {
-    var sourceFunction = (List<String> args, Map<String, dynamic> values) async {
-      var inputSchema = new Schema.fromMap(values["schema"] as Map<String, dynamic>);
+    if (sources.isNotEmpty) {
+      displayProgress("Replaying versions: ${sources.map((f)
+      => f.versionNumber.toString()).join(", ")}...");
+    }
 
-      var migrationClassMirror = currentMirrorSystem()
-          .isolate
-          .rootLibrary
-          .declarations
-          .values
-          .firstWhere((dm) => dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration))) as ClassMirror;
-
-      var migrationInstance = migrationClassMirror.newInstance(new Symbol(''), []).reflectee as Migration;
-      migrationInstance.database = new SchemaBuilder(null, inputSchema);
-
-      await migrationInstance.upgrade();
-
-      return migrationInstance.currentSchema.asMap();
-    };
-
-    var generator = new SourceGenerator(sourceFunction,
-        imports: ["dart:async", "package:aqueduct/aqueduct.dart", "dart:isolate", "dart:mirrors"],
-        additionalContents: migrationFile.readAsStringSync());
-
-    var schemaMap = await IsolateExecutor.executeSource(generator, [],
-        message: {"schema": fromSchema.asMap()}, packageConfigURI: projectDirectory.uri.resolve(".packages"));
+    final schemaMap = await IsolateExecutor.executeWithType(SchemaBuilderExecutable,
+        packageConfigURI: packageConfigUri,
+        imports: SchemaBuilderExecutable.imports,
+        additionalContents: MigrationSource.combine(sources),
+        message: SchemaBuilderExecutable.createMessage(sources, fromSchema),
+        logHandler: displayProgress);
 
     return new Schema.fromMap(schemaMap as Map<String, dynamic>);
   }

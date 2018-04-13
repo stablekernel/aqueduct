@@ -301,7 +301,7 @@ class DefaultPersistentStore extends PersistentStore {
   Future<int> get schemaVersion async => 0;
 
   @override
-  Future<Schema> upgrade(Schema from, int versionNumber, List<Migration> migrations, {bool temporary: false}) async {
+  Future<Schema> upgrade(Schema from, List<Migration> migrations, {bool temporary: false}) async {
     var out = from;
     for (var migration in migrations) {
       migration.database = new SchemaBuilder(this, out);

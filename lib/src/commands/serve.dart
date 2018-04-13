@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors';
 import 'dart:isolate';
 
 import 'package:aqueduct/src/commands/running_process.dart';
+import 'package:aqueduct/src/commands/scripts/get_channel_type.dart';
 import 'package:args/args.dart';
+import 'package:isolate_executor/isolate_executor.dart';
 import 'package:path/path.dart' as path_lib;
 
-import '../http/http.dart';
-import '../utilities/source_generator.dart';
 import 'base.dart';
 import 'dart:developer';
 
@@ -176,30 +175,13 @@ class CLIServer extends CLICommand with CLIProject {
   }
 
   Future<String> deriveApplicationLibraryDetails() async {
-    // Find request channel type
-    var generator = new SourceGenerator((List<String> args, Map<String, dynamic> values) async {
-      var channelType = ApplicationChannel.defaultType;
-
-      if (channelType == null) {
-        return "null";
-      }
-      return MirrorSystem.getName(reflectClass(channelType).simpleName);
-    }, imports: [
-      "package:aqueduct/aqueduct.dart",
-      "package:$packageName/$libraryName.dart",
-      "dart:isolate",
-      "dart:mirrors",
-      "dart:async"
-    ]);
-
-    var executor =
-        new IsolateExecutor(generator, [libraryName], packageConfigURI: projectDirectory.uri.resolve(".packages"));
-    var result = await executor.execute();
-    if (result == "null") {
+    final name = await IsolateExecutor.executeWithType(GetChannelExecutable,
+        packageConfigURI: packageConfigUri, imports: GetChannelExecutable.importsForPackage(libraryName), logHandler: displayProgress);
+    if (name == "null") {
       throw new CLIException("No ApplicationChannel subclass found in $packageName/$libraryName");
     }
 
-    return result;
+    return name;
   }
 
   Future prepare() async {

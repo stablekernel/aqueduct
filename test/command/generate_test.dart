@@ -51,7 +51,6 @@ class _TestObject {
 
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
-      print("${terminal.output}");
       terminal.clearOutput();
 
       res = await terminal.runAqueductCommand("db", ["validate"]);
@@ -79,6 +78,7 @@ class _TestObject {
       expect(new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("00000002_Unnamed.migration.dart")).existsSync(), true);
 
       res = await terminal.runAqueductCommand("db", ["validate"]);
+      print("${terminal.output}");
       expect(res, 0);
     });
 

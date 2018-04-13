@@ -1,41 +1,25 @@
 import 'dart:async';
 
+import 'package:aqueduct/src/commands/scripts/get_schema.dart';
+import 'package:isolate_executor/isolate_executor.dart';
+
 import '../db/db.dart';
-import '../utilities/source_generator.dart';
+
 import 'base.dart';
 import 'db.dart';
 
 class CLIDatabaseValidate extends CLIDatabaseManagingCommand {
   @override
   Future<int> handle() async {
-    var files = migrationFiles;
-    if (files.isEmpty) {
+    var migrations = projectMigrations;
+    if (migrations.isEmpty) {
       displayError("No migration files found in ${migrationDirectory.path}.");
       return 1;
     }
 
-    var currentSchemaGenerator = new SourceGenerator((List<String> args, Map<String, dynamic> values) async {
-      var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-      var schema = new Schema.fromDataModel(dataModel);
-
-      return schema.asMap();
-    }, imports: [
-      "package:aqueduct/aqueduct.dart",
-      "package:$libraryName/$libraryName.dart",
-      "dart:isolate",
-      "dart:mirrors",
-      "dart:async"
-    ]);
-
-    var currentSchemaExecutor = new IsolateExecutor(currentSchemaGenerator, [libraryName],
-        packageConfigURI: projectDirectory.uri.resolve(".packages"));
-    var result = await currentSchemaExecutor.execute();
-    var currentSchema = new Schema.fromMap(result as Map<String, dynamic>);
-
-    var schemaFromMigrationFiles = new Schema.empty();
-    for (var migrationFile in migrationFiles) {
-      schemaFromMigrationFiles = await schemaByApplyingMigrationFile(migrationFile, schemaFromMigrationFiles);
-    }
+    final currentSchema = new Schema.fromMap(await IsolateExecutor.executeWithType(GetSchemaExecutable,
+        imports: GetSchemaExecutable.importsForPackage(libraryName), packageConfigURI: packageConfigUri, logHandler: displayProgress));
+    var schemaFromMigrationFiles = await schemaByApplyingMigrationSources(migrations);
 
     var differences = currentSchema.differenceFrom(schemaFromMigrationFiles);
 
@@ -49,7 +33,7 @@ class CLIDatabaseValidate extends CLIDatabaseManagingCommand {
     }
 
     displayInfo("Validation OK", color: CLIColor.boldGreen);
-    displayProgress("Latest version is ${versionNumberFromFile(migrationFiles.last)}");
+    displayProgress("Latest version is ${migrations.last.versionNumber}.");
 
     return 0;
   }

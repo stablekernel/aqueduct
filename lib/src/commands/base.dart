@@ -299,6 +299,8 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
 
   Directory get projectDirectory => new Directory(values["directory"]).absolute;
 
+  Uri get packageConfigUri => projectDirectory.uri.resolve(".packages");
+
   String get libraryName => packageName;
 
   String get packageName => projectSpecification["name"];
@@ -365,6 +367,7 @@ class Runner extends CLICommand {
     registerCommand(new CLIDocument());
   }
 
+  @override
   bool get showVersion => values["version"];
 
   @override

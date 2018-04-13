@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/utilities/source_generator.dart';
+import 'package:isolate_executor/isolate_executor.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -12,64 +11,42 @@ void main() {
       new SchemaTable("foo", [
         new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
         new SchemaColumn("loaded", ManagedPropertyType.string,
-            isIndexed: true,
-            isNullable: true,
-            autoincrement: true,
-            isUnique: true,
-            defaultValue: "'foo'"),
-        new SchemaColumn.relationship(
-            "ref", ManagedPropertyType.bigInteger, relatedColumnName: "xyz",
-            relatedTableName: "abc",
-            rule: DeleteRule.cascade)
+            isIndexed: true, isNullable: true, autoincrement: true, isUnique: true, defaultValue: "'foo'"),
+        new SchemaColumn.relationship("ref", ManagedPropertyType.bigInteger,
+            relatedColumnName: "xyz", relatedTableName: "abc", rule: DeleteRule.cascade)
       ]),
-      new SchemaTable("abc", [
-        new SchemaColumn("xyz", ManagedPropertyType.bigInteger, isPrimaryKey: true)
-      ])
+      new SchemaTable("abc", [new SchemaColumn("xyz", ManagedPropertyType.bigInteger, isPrimaryKey: true)])
     ]);
 
-    await expectSchema(new Schema.empty(),
-        becomesSchema: expectedSchema);
+    await expectSchema(new Schema.empty(), becomesSchema: expectedSchema);
   });
 
   test("Delete table", () async {
-    await expectSchema(new Schema([
-      new SchemaTable("foo", [
-        new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
-      ]),
-      new SchemaTable("donotdelete", [])
-    ]), becomesSchema: new Schema([
-      new SchemaTable("donotdelete", [])
-    ]));
+    await expectSchema(
+        new Schema([
+          new SchemaTable("foo", [new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)]),
+          new SchemaTable("donotdelete", [])
+        ]),
+        becomesSchema: new Schema([new SchemaTable("donotdelete", [])]));
   });
 
   test("Add column", () async {
     var existingSchema = new Schema([
-      new SchemaTable("foo", [
-        new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
-      ])
+      new SchemaTable("foo", [new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)])
     ]);
 
     var expectedSchema = new Schema([
       new SchemaTable("foo", [
         new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
         new SchemaColumn("loaded", ManagedPropertyType.string,
-            isIndexed: true,
-            isNullable: true,
-            autoincrement: true,
-            isUnique: true,
-            defaultValue: "'foo'"),
-        new SchemaColumn.relationship(
-            "ref", ManagedPropertyType.bigInteger, relatedColumnName: "xyz",
-            relatedTableName: "abc",
-            rule: DeleteRule.cascade)
+            isIndexed: true, isNullable: true, autoincrement: true, isUnique: true, defaultValue: "'foo'"),
+        new SchemaColumn.relationship("ref", ManagedPropertyType.bigInteger,
+            relatedColumnName: "xyz", relatedTableName: "abc", rule: DeleteRule.cascade)
       ]),
-      new SchemaTable("abc", [
-        new SchemaColumn("xyz", ManagedPropertyType.bigInteger, isPrimaryKey: true)
-      ])
+      new SchemaTable("abc", [new SchemaColumn("xyz", ManagedPropertyType.bigInteger, isPrimaryKey: true)])
     ]);
 
-    await expectSchema(existingSchema,
-        becomesSchema: expectedSchema);
+    await expectSchema(existingSchema, becomesSchema: expectedSchema);
   });
 
   test("Delete column", () async {
@@ -77,37 +54,22 @@ void main() {
       new SchemaTable("foo", [
         new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
         new SchemaColumn("loaded", ManagedPropertyType.string,
-            isIndexed: true,
-            isNullable: true,
-            autoincrement: true,
-            isUnique: true,
-            defaultValue: "'foo'"),
-        new SchemaColumn.relationship(
-            "ref", ManagedPropertyType.bigInteger, relatedColumnName: "xyz",
-            relatedTableName: "abc",
-            rule: DeleteRule.cascade)
+            isIndexed: true, isNullable: true, autoincrement: true, isUnique: true, defaultValue: "'foo'"),
+        new SchemaColumn.relationship("ref", ManagedPropertyType.bigInteger,
+            relatedColumnName: "xyz", relatedTableName: "abc", rule: DeleteRule.cascade)
       ]),
-      new SchemaTable("abc", [
-        new SchemaColumn("xyz", ManagedPropertyType.bigInteger, isPrimaryKey: true)
-      ])
+      new SchemaTable("abc", [new SchemaColumn("xyz", ManagedPropertyType.bigInteger, isPrimaryKey: true)])
     ]);
     var expectedSchema = new Schema([
       new SchemaTable("foo", [
         new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
         new SchemaColumn("loaded", ManagedPropertyType.string,
-            isIndexed: true,
-            isNullable: true,
-            autoincrement: true,
-            isUnique: true,
-            defaultValue: "'foo'")
+            isIndexed: true, isNullable: true, autoincrement: true, isUnique: true, defaultValue: "'foo'")
       ]),
-      new SchemaTable("abc", [
-        new SchemaColumn("xyz", ManagedPropertyType.bigInteger, isPrimaryKey: true)
-      ])
+      new SchemaTable("abc", [new SchemaColumn("xyz", ManagedPropertyType.bigInteger, isPrimaryKey: true)])
     ]);
 
-    await expectSchema(existingSchema,
-        becomesSchema: expectedSchema);
+    await expectSchema(existingSchema, becomesSchema: expectedSchema);
   });
 
   test("Alter column, many statements", () async {
@@ -115,11 +77,7 @@ void main() {
       new SchemaTable("foo", [
         new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
         new SchemaColumn("loaded", ManagedPropertyType.string,
-            isIndexed: true,
-            isNullable: true,
-            autoincrement: true,
-            isUnique: true,
-            defaultValue: null)
+            isIndexed: true, isNullable: true, autoincrement: true, isUnique: true, defaultValue: null)
       ])
     ]);
     var expectedSchema = new Schema.from(existingSchema);
@@ -129,31 +87,21 @@ void main() {
       ..isUnique = false
       ..defaultValue = "'foo'";
 
-    await expectSchema(existingSchema,
-        becomesSchema: expectedSchema);
+    await expectSchema(existingSchema, becomesSchema: expectedSchema);
   });
 
   test("Alter column, just one statement", () async {
     var existingTable = new SchemaTable("foo", [
       new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
       new SchemaColumn("loaded", ManagedPropertyType.string,
-          isIndexed: true,
-          isNullable: true,
-          autoincrement: true,
-          isUnique: true,
-          defaultValue: "'foo'")
+          isIndexed: true, isNullable: true, autoincrement: true, isUnique: true, defaultValue: "'foo'")
     ]);
-    var alteredColumn = new SchemaColumn.from(
-        existingTable.columnForName("loaded"))
-      ..isIndexed = false;
+    var alteredColumn = new SchemaColumn.from(existingTable.columnForName("loaded"))..isIndexed = false;
 
-    var expectedTable = new SchemaTable("foo", [
-      new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-      alteredColumn
-    ]);
+    var expectedTable = new SchemaTable(
+        "foo", [new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true), alteredColumn]);
 
-    await expectSchema(new Schema([existingTable]),
-        becomesSchema: new Schema([expectedTable]));
+    await expectSchema(new Schema([existingTable]), becomesSchema: new Schema([expectedTable]));
   });
 
   test("Create table with uniqueSet", () async {
@@ -161,12 +109,12 @@ void main() {
       new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
       new SchemaColumn("a", ManagedPropertyType.string),
       new SchemaColumn("b", ManagedPropertyType.string),
-    ], uniqueColumnSetNames: ["a", "b"]);
+    ], uniqueColumnSetNames: [
+      "a",
+      "b"
+    ]);
 
-    await expectSchema(new Schema.empty(),
-        becomesSchema: new Schema([
-          expectedTable
-        ]));
+    await expectSchema(new Schema.empty(), becomesSchema: new Schema([expectedTable]));
   });
 
   test("Alter table to add uniqueSet", () async {
@@ -176,11 +124,9 @@ void main() {
       new SchemaColumn("b", ManagedPropertyType.string),
     ]);
 
-    var alteredTable = new SchemaTable.from(existingTable)
-      ..uniqueColumnSet = ["a", "b"];
+    var alteredTable = new SchemaTable.from(existingTable)..uniqueColumnSet = ["a", "b"];
 
-    await expectSchema(new Schema([existingTable]),
-        becomesSchema: new Schema([alteredTable]));
+    await expectSchema(new Schema([existingTable]), becomesSchema: new Schema([alteredTable]));
   });
 
   test("Alter table to remove uniqueSet", () async {
@@ -188,13 +134,14 @@ void main() {
       new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
       new SchemaColumn("a", ManagedPropertyType.string),
       new SchemaColumn("b", ManagedPropertyType.string),
-    ], uniqueColumnSetNames: ["a", "b"]);
+    ], uniqueColumnSetNames: [
+      "a",
+      "b"
+    ]);
 
-    var alteredTable = new SchemaTable.from(existingTable)
-      ..uniqueColumnSet = null;
+    var alteredTable = new SchemaTable.from(existingTable)..uniqueColumnSet = null;
 
-    await expectSchema(new Schema([existingTable]),
-        becomesSchema: new Schema([alteredTable]));
+    await expectSchema(new Schema([existingTable]), becomesSchema: new Schema([alteredTable]));
   });
 
   test("Alter table to modify uniqueSet (same number of keys)", () async {
@@ -203,14 +150,14 @@ void main() {
       new SchemaColumn("a", ManagedPropertyType.string),
       new SchemaColumn("b", ManagedPropertyType.string),
       new SchemaColumn("c", ManagedPropertyType.string),
-    ], uniqueColumnSetNames: ["a", "b"]);
+    ], uniqueColumnSetNames: [
+      "a",
+      "b"
+    ]);
 
-    var alteredTable = new SchemaTable.from(existingTable)
-      ..uniqueColumnSet = ["b", "c"];
+    var alteredTable = new SchemaTable.from(existingTable)..uniqueColumnSet = ["b", "c"];
 
-    await expectSchema(new Schema([existingTable]), becomesSchema: new Schema([
-      alteredTable
-    ]));
+    await expectSchema(new Schema([existingTable]), becomesSchema: new Schema([alteredTable]));
   });
 
   test("Alter table to modify uniqueSet (different number of keys)", () async {
@@ -219,48 +166,28 @@ void main() {
       new SchemaColumn("a", ManagedPropertyType.string),
       new SchemaColumn("b", ManagedPropertyType.string),
       new SchemaColumn("c", ManagedPropertyType.string),
-    ], uniqueColumnSetNames: ["a", "b"]);
+    ], uniqueColumnSetNames: [
+      "a",
+      "b"
+    ]);
 
-    var alteredTable = new SchemaTable.from(existingTable)
-      ..uniqueColumnSet = ["a", "b", "c"];
+    var alteredTable = new SchemaTable.from(existingTable)..uniqueColumnSet = ["a", "b", "c"];
 
-    await expectSchema(new Schema([existingTable]), becomesSchema: new Schema([
-      alteredTable
-    ]));
-  });
-
-  test("Empty list returns initial schema", () async {
-
-  });
-
-  test("Multiple migrations are run in order", () async {
-
-  });
-
-  test("Operations are applied to fromSchema", () async {
-
+    await expectSchema(new Schema([existingTable]), becomesSchema: new Schema([alteredTable]));
   });
 }
 
 Future expectSchema(Schema schema,
     {Schema becomesSchema, List<String> afterCommands, void alsoVerify(Schema createdSchema)}) async {
   var migrationSource = Migration.sourceForSchemaUpgrade(schema, becomesSchema, 1);
-  final source = new SourceGenerator((List<String> args, Map<String, dynamic> message) async {
-    var schema = message['schema'];
-    final migration = new Migration1();
-    final outSchema = await Migration.schemaByApplyingMigrations([migration], fromSchema: new Schema.fromMap(schema));
+  migrationSource = migrationSource.split("\n").where((s) => !s.startsWith("import")).join("\n");
 
-    return outSchema.asMap();
-  }, imports: [
-    "dart:mirrors",
-    "dart:async",
-    "package:aqueduct/aqueduct.dart"
-  ], additionalContents: migrationSource);
+  final response = await IsolateExecutor.executeWithType(MigrateSchema,
+      packageConfigURI: Directory.current.uri.resolve(".packages"),
+      imports: MigrateSchema.imports,
+      additionalContents: migrationSource,
+      message: {"schema": schema.asMap()});
 
-  
-  var response = await IsolateExecutor.executeSource
-    (source, [], message: {"schema": schema.asMap()}, 
-    packageConfigURI: Directory.current.uri.resolve(".packages"));
   var createdSchema = new Schema.fromMap(response);
   var diff = createdSchema.differenceFrom(becomesSchema);
 
@@ -271,27 +198,20 @@ Future expectSchema(Schema schema,
   }
 }
 
+class MigrateSchema extends Executable {
+  MigrateSchema(Map<String, dynamic> message)
+      : schema = new Schema.fromMap(message["schema"]),
+        super(message);
 
-// So we can reference the type Migration1 in expectSchema's exuector closure without an error
-class Migration1 extends Migration {
-
-  @override
-  Future downgrade() async
-  {
-
-  }
+  final Schema schema;
 
   @override
-  Future upgrade() async
-  {
+  Future<dynamic> execute() async {
+    final migration = instanceOf("Migration1");
+    final outSchema = await Migration.schemaByApplyingMigrations([migration], fromSchema: schema);
 
+    return outSchema.asMap();
   }
 
-  @override
-  Future seed() async
-  {
-
-  }
-
-
+  static List<String> get imports => ["package:aqueduct/aqueduct.dart"];
 }

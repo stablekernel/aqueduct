@@ -201,41 +201,50 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future<Schema> upgrade(Schema fromSchema, int toVersion, List<Migration> withMigrations, {bool temporary: false}) async {
+  Future<Schema> upgrade(Schema fromSchema, List<Migration> withMigrations, {bool temporary: false}) async {
     var connection = await getDatabaseConnection();
 
     Schema schema = fromSchema;
     await connection.transaction((ctx) async {
+      final transactionStore = new PostgreSQLPersistentStore._transactionProxy(this, ctx);
       await _createVersionTableIfNecessary(ctx, temporary);
 
-      final transactionStore = new PostgreSQLPersistentStore._transactionProxy(this, ctx);
+      withMigrations.sort((m1, m2) => m1.version.compareTo(m2.version));
+
       for (var migration in withMigrations) {
         migration.database = new SchemaBuilder(transactionStore, schema, isTemporary: temporary);
         migration.database.store = transactionStore;
 
         var existingVersionRows = await ctx.query(
-          "SELECT versionNumber, dateOfUpgrade FROM $versionTableName WHERE versionNumber=@v:int4",
-          substitutionValues: {"v": toVersion});
+            "SELECT versionNumber, dateOfUpgrade FROM $versionTableName WHERE versionNumber >= @v:int4",
+            substitutionValues: {"v": migration.version});
         if (existingVersionRows.length > 0) {
-          var date = existingVersionRows.first.last;
-          throw new MigrationException(
-            "Trying to upgrade database to version $toVersion, but that migration has already been performed on $date.");
+          final date = existingVersionRows.first.last;
+          throw new MigrationException("Trying to upgrade database to version ${migration
+              .version}, but that migration has already been performed on $date.");
         }
 
+        logger.info("Applying migration version ${migration.version}...");
         await migration.upgrade();
+
         for (var cmd in migration.database.commands) {
-          logger.info("$cmd");
+          logger.info("\t$cmd");
           await ctx.execute(cmd);
         }
+
+        logger.info("Seeding data from migration version ${migration.version}...");
         await migration.seed();
+
+        await ctx.execute(
+            "INSERT INTO $versionTableName (versionNumber, dateOfUpgrade) VALUES (${migration.version}, '${new DateTime
+            .now()
+            .toUtc()
+            .toIso8601String()}')");
+
+        logger.info("Applied schema version ${migration.version} successfully.");
 
         schema = migration.currentSchema;
       }
-
-      await ctx.execute(
-        "INSERT INTO $versionTableName (versionNumber, dateOfUpgrade) VALUES ($toVersion, '${new DateTime.now()
-          .toUtc()
-          .toIso8601String()}')");
     });
 
     return schema;
@@ -307,7 +316,9 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
       return;
     }
 
+    logger.info("Initializating database...");
     for (var cmd in commands) {
+      logger.info("\t$cmd");
       await context.execute(cmd);
     }
   }
