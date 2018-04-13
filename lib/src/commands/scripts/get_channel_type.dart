@@ -13,7 +13,7 @@ class GetChannelExecutable extends Executable {
     var channelType = ApplicationChannel.defaultType;
 
     if (channelType == null) {
-      return "null";
+      return null;
     }
     return MirrorSystem.getName(reflectClass(channelType).simpleName);
   }

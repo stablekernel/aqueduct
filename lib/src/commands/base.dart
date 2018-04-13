@@ -155,7 +155,9 @@ abstract class CLICommand implements CLIResultHandler {
       }
     } catch (e, st) {
       displayError("Uncaught error: $e");
-      printStackTrace(st);
+      if (showStacktrace) {
+        printStackTrace(st);
+      }
     } finally {
       await cleanup();
     }

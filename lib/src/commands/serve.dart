@@ -177,7 +177,7 @@ class CLIServer extends CLICommand with CLIProject {
   Future<String> deriveApplicationLibraryDetails() async {
     final name = await IsolateExecutor.executeWithType(GetChannelExecutable,
         packageConfigURI: packageConfigUri, imports: GetChannelExecutable.importsForPackage(libraryName), logHandler: displayProgress);
-    if (name == "null") {
+    if (name == null) {
       throw new CLIException("No ApplicationChannel subclass found in $packageName/$libraryName");
     }
 

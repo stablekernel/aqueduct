@@ -78,7 +78,6 @@ class _TestObject {
       expect(new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("00000002_Unnamed.migration.dart")).existsSync(), true);
 
       res = await terminal.runAqueductCommand("db", ["validate"]);
-      print("${terminal.output}");
       expect(res, 0);
     });
 
@@ -91,6 +90,21 @@ class _TestObject {
       final migDir = new Directory.fromUri(terminal.workingDirectory.uri.resolve("foobar/"));
       final files = migDir.listSync();
       expect(files.any((fse) => fse is File && fse.path.endsWith("migration.dart")), true);
+    });
+
+    test("If migration file requires additional input, send message to user", () async {
+      await terminal.getDependencies(offline: true);
+      var res = await terminal.runAqueductCommand("db", ["generate"]);
+      expect(res, 0);
+      terminal.clearOutput();
+
+      terminal.modifyFile("lib/application_test.dart", (prev) {
+        return prev.replaceFirst("String foo;", "String foo;\nString bar;");
+      });
+      res = await terminal.runAqueductCommand("db", ["generate"]);
+      expect(res, 0);
+
+      expect(terminal.output, contains("<<set>>"));
     });
   });
 }

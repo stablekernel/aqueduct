@@ -31,7 +31,7 @@ class StoppableProcess {
     }
 
     await Future.forEach(_listeners, (StreamSubscription sub) => sub.cancel());
-    await _stop(reason);
+    await _stop(reason ?? "Terminated normally.");
     _completer.complete(exitCode);
   }
 }

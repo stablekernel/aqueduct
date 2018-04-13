@@ -12,10 +12,10 @@ class CLIDatabaseSchema extends CLIDatabaseManagingCommand {
   Future<int> handle() async {
     var map = await getSchema();
     if (isMachineOutput) {
-      print("${json.encode(map)}");
+      outputSink.write("${json.encode(map)}");
     } else {
       var encoder = new JsonEncoder.withIndent("  ");
-      print("${encoder.convert(map)}");
+      outputSink.write("${encoder.convert(map)}");
     }
     return 0;
   }
@@ -31,6 +31,9 @@ class CLIDatabaseSchema extends CLIDatabaseManagingCommand {
   }
 
   Future<Map<String, dynamic>> getSchema() {
-    return IsolateExecutor.executeWithType(GetSchemaExecutable, packageConfigURI: packageConfigUri, logHandler: displayProgress);
+    return IsolateExecutor.executeWithType(GetSchemaExecutable,
+        packageConfigURI: packageConfigUri,
+        imports: GetSchemaExecutable.importsForPackage(packageName),
+        logHandler: displayProgress);
   }
 }
