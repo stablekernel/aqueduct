@@ -28,6 +28,9 @@ dependencies:
 
 dev_dependencies:
   http: ^0.11.3+7
+  aqueduct_test:
+    git:
+      url: git@github.com:stablekernel/dart-aqueduct-test.git
 
 executables:
   aqueduct: aqueduct
