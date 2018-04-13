@@ -27,6 +27,9 @@ abstract class Migration {
   /// The [PersistentStore] that represents the database being migrated.
   PersistentStore get store => database.store;
 
+  // This value is provided by the 'upgrade' tool and is derived from the filename.
+  int version;
+
   /// Receiver for database altering operations.
   ///
   /// Methods invoked on this instance - such as [SchemaBuilder.createTable] - will be validated
@@ -50,4 +53,28 @@ abstract class Migration {
   /// Subclasses will override this method and invoke query methods on [store] to add data
   /// to a database after this migration version is executed.
   Future seed();
+
+  static String sourceForSchemaUpgrade(
+    Schema existingSchema, Schema newSchema, int version, {List<String> changeList}) {
+    var diff = existingSchema.differenceFrom(newSchema);
+    var source = diff.generateUpgradeSource(changeList: changeList);
+
+    return """
+import 'package:aqueduct/aqueduct.dart';   
+import 'dart:async';
+
+class Migration$version extends Migration { 
+  @override
+  Future upgrade() async {
+   $source
+  }
+  
+  @override
+  Future downgrade() async {}
+  
+  @override
+  Future seed() async {}
+}
+    """;
+  }
 }

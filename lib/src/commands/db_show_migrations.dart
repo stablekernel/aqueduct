@@ -6,9 +6,9 @@ import 'db.dart';
 class CLIDatabaseShowMigrations extends CLIDatabaseManagingCommand {
   @override
   Future<int> handle() async {
-    var files = migrationFiles.map((f) {
-      var versionString = "${versionNumberFromFile(f)}".padLeft(8, "0");
-      return " $versionString | ${f.uri.pathSegments.last}";
+    var files = projectMigrations.map((mig) {
+      var versionString = "${mig.versionNumber}".padLeft(8, "0");
+      return " $versionString | ${mig.uri.pathSegments.last}";
     }).join("\n");
 
     print(" Version  | Path");

@@ -3,9 +3,11 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/executable.dart';
 import 'dart:async';
 import 'dart:io';
+import '../helpers.dart';
 import 'cli_helpers.dart';
 
 void main() {
+  justLogEverything();
   group("Cooperation", () {
     PersistentStore store;
 
@@ -34,11 +36,10 @@ void main() {
       for (var cmd in initialBuilder.commands) {
         await store.execute(cmd);
       }
-      var db = new SchemaBuilder(store, schema, isTemporary: true);
-      var mig = new Migration1()..database = db;
 
-      await mig.upgrade();
-      await store.upgrade(1, db.commands, temporary: true);
+      var mig = new Migration1();
+      mig.version = 1;
+      final outSchema = await store.upgrade(schema, [mig], temporary: true);
 
       // 'Sync up' that schema to compare it
       schema
@@ -52,9 +53,9 @@ void main() {
       schema
           .addTable(new SchemaTable("foo", [new SchemaColumn("foobar", ManagedPropertyType.integer, isIndexed: true)]));
 
-      expect(db.schema.differenceFrom(schema).hasDifferences, false);
+      expect(outSchema.differenceFrom(schema).hasDifferences, false);
 
-      var insertResults = await db.store
+      var insertResults = await store
           .execute("INSERT INTO tableToKeep (columnToEdit) VALUES ('1') RETURNING columnToEdit, addedColumn");
       expect(insertResults, [
         ['1', 2]
@@ -63,11 +64,18 @@ void main() {
   });
 
   group("Scanning for migration files", () {
-    var temporaryDirectory = new Directory("migration_tmp");
-    var migrationsDirectory = new Directory.fromUri(temporaryDirectory.uri.resolve("migrations"));
-    var addFiles = (List<String> filenames) {
+    final temporaryDirectory = new Directory("migration_tmp");
+    final migrationsDirectory = new Directory.fromUri(temporaryDirectory.uri.resolve("migrations"));
+    final addFiles = (List<String> filenames) {
       filenames.forEach((name) {
         new File.fromUri(migrationsDirectory.uri.resolve(name)).writeAsStringSync(" ");
+      });
+    };
+    final addValidMigrationFile = (List<String> filenames) {
+      filenames.forEach((name) {
+        new File.fromUri(migrationsDirectory.uri.resolve(name)).writeAsStringSync("""
+class Migration1 extends Migration { @override Future upgrade() async {} @override Future downgrade() async {} @override Future seed() async {} }        
+        """);
       });
     };
 
@@ -81,17 +89,18 @@ void main() {
     });
 
     test("Ignores not .migration.dart files", () async {
-      addFiles(["00000001.migration.dart", "foobar.txt", ".DS_Store", "a.dart", "migration.dart"]);
-      expect(migrationsDirectory.listSync().length, 5);
+      addValidMigrationFile(["00000001.migration.dart", "a_foo.migration.dart"]);
+      addFiles(["foobar.txt", ".DS_Store", "a.dart", "migration.dart"]);
+      expect(migrationsDirectory.listSync().length, 6);
 
       var mock = new MockMigratable(temporaryDirectory);
-      var files = mock.migrationFiles;
+      var files = mock.projectMigrations;
       expect(files.length, 1);
       expect(files.first.uri.pathSegments.last, "00000001.migration.dart");
     });
 
     test("Migration files are ordered correctly", () async {
-      addFiles([
+      addValidMigrationFile([
         "00000001.migration.dart",
         "2.migration.dart",
         "03_Foo.migration.dart",
@@ -101,24 +110,13 @@ void main() {
       expect(migrationsDirectory.listSync().length, 5);
 
       var mock = new MockMigratable(temporaryDirectory);
-      var files = mock.migrationFiles;
+      var files = mock.projectMigrations;
       expect(files.length, 5);
       expect(files[0].uri.pathSegments.last, "00000001.migration.dart");
       expect(files[1].uri.pathSegments.last, "2.migration.dart");
       expect(files[2].uri.pathSegments.last, "03_Foo.migration.dart");
       expect(files[3].uri.pathSegments.last, "000001001.migration.dart");
       expect(files[4].uri.pathSegments.last, "10001_.migration.dart");
-    });
-
-    test("Migration files with invalid form throw error", () async {
-      addFiles(["a_foo.migration.dart"]);
-      var mock = new MockMigratable(temporaryDirectory);
-      try {
-        mock.migrationFiles;
-        expect(true, false);
-      } on CLIException catch (e) {
-        expect(e.message, contains("Migration files must have the following format"));
-      }
     });
   });
 

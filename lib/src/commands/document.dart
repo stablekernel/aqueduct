@@ -2,12 +2,9 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:yaml/yaml.dart';
+import 'package:aqueduct/src/commands/scripts/openapi_builder.dart';
+import 'package:isolate_executor/isolate_executor.dart';
 
-import '../http/http.dart';
-import '../application/application.dart';
-import '../utilities/source_generator.dart';
 import 'base.dart';
 import 'document_serve.dart';
 
@@ -66,66 +63,6 @@ abstract class CLIDocumentOptions implements CLICommand {
   }
 
   Future<Map<String, dynamic>> documentProject(Uri projectDirectory, String libraryName, File pubspecFile) {
-    var generator = new SourceGenerator((List<String> args, Map<String, dynamic> values) async {
-      var config = new ApplicationOptions()..configurationFilePath = values["configPath"];
-
-      var document = await Application.document(ApplicationChannel.defaultType, config, loadYaml(values["pubspec"]));
-
-      document.servers = (values["hosts"] as List<Uri>)?.map((uri) => new APIServerDescription(uri))?.toList() ?? [];
-      if (values["title"] != null) {
-        document.info ??= new APIInfo.empty();
-        document.info.title = values["title"];
-      }
-      if (values["description"] != null) {
-        document.info ??= new APIInfo.empty();
-        document.info.description = values["description"];
-      }
-      if (values["version"] != null) {
-        document.info ??= new APIInfo.empty();
-        document.info.version = values["version"];
-      }
-      if (values["termsOfServiceURL"] != null) {
-        document.info ??= new APIInfo.empty();
-        document.info.termsOfServiceURL = Uri.parse(values["termsOfServiceURL"]);
-      }
-      if (values["contactEmail"] != null) {
-        document.info ??= new APIInfo.empty();
-        document.info.contact ??= new APIContact.empty();
-        document.info.contact.email = values["contactEmail"];
-      }
-      if (values["contactName"] != null) {
-        document.info ??= new APIInfo.empty();
-        document.info.contact ??= new APIContact.empty();
-        document.info.contact.name = values["contactName"];
-      }
-      if (values["contactURL"] != null) {
-        document.info ??= new APIInfo.empty();
-        document.info.contact ??= new APIContact.empty();
-        document.info.contact.url = Uri.parse(values["contactURL"]);
-      }
-      if (values["licenseURL"] != null) {
-        document.info ??= new APIInfo.empty();
-        document.info.license ??= new APILicense.empty();
-        document.info.license.url = Uri.parse(values["licenseURL"]);
-      }
-      if (values["licenseName"] != null) {
-        document.info ??= new APIInfo.empty();
-        document.info.license ??= new APILicense.empty();
-        document.info.license.name = values["licenseName"];
-      }
-
-      return document.asMap();
-    }, imports: [
-      "package:aqueduct/aqueduct.dart",
-      "package:$libraryName/$libraryName.dart",
-      "dart:isolate",
-      "dart:io",
-      "package:yaml/yaml.dart",
-      "dart:mirrors",
-      "dart:async",
-      "dart:convert"
-    ]);
-
     final variables = {
       "pubspec": pubspecFile.readAsStringSync(),
       "hosts": hosts,
@@ -140,11 +77,10 @@ abstract class CLIDocumentOptions implements CLICommand {
       "licenseURL": licenseURL,
       "licenseName": licenseName
     };
-
-    var executor = new IsolateExecutor(generator, [libraryName],
-        message: variables, packageConfigURI: projectDirectory.resolve(".packages"));
-
-    return executor.execute() as Future<Map<String, dynamic>>;
+    return IsolateExecutor.executeWithType(OpenAPIBuilder,
+        packageConfigURI: projectDirectory.resolve(".packages"),
+        message: variables,
+        imports: OpenAPIBuilder.importsForPackage(libraryName));
   }
 }
 

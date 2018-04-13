@@ -153,15 +153,15 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future<dynamic> transaction(ManagedContext transactionContext, Future transactionBlock(ManagedContext transaction)) async {
+  Future<dynamic> transaction(
+      ManagedContext transactionContext, Future transactionBlock(ManagedContext transaction)) async {
     final dbConnection = await getDatabaseConnection();
 
     var rollbackReason;
     try {
-      await dbConnection.transaction((dbTransactionContext)
-      async {
+      await dbConnection.transaction((dbTransactionContext) async {
         transactionContext.persistentStore =
-        new PostgreSQLPersistentStore._transactionProxy(this, dbTransactionContext);
+            new PostgreSQLPersistentStore._transactionProxy(this, dbTransactionContext);
 
         try {
           await transactionBlock(transactionContext);
@@ -202,40 +202,53 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
   }
 
   @override
-  Future upgrade(int versionNumber, List<String> commands, {bool temporary: false}) async {
-    await _createVersionTableIfNecessary(temporary);
-
+  Future<Schema> upgrade(Schema fromSchema, List<Migration> withMigrations, {bool temporary: false}) async {
     var connection = await getDatabaseConnection();
 
-    try {
-      await connection.transaction((ctx) async {
+    Schema schema = fromSchema;
+    await connection.transaction((ctx) async {
+      final transactionStore = new PostgreSQLPersistentStore._transactionProxy(this, ctx);
+      await _createVersionTableIfNecessary(ctx, temporary);
+
+      withMigrations.sort((m1, m2) => m1.version.compareTo(m2.version));
+
+      for (var migration in withMigrations) {
+        migration.database = new SchemaBuilder(transactionStore, schema, isTemporary: temporary);
+        migration.database.store = transactionStore;
+
         var existingVersionRows = await ctx.query(
-            "SELECT versionNumber, dateOfUpgrade FROM $versionTableName WHERE versionNumber=@v:int4",
-            substitutionValues: {"v": versionNumber});
+            "SELECT versionNumber, dateOfUpgrade FROM $versionTableName WHERE versionNumber >= @v:int4",
+            substitutionValues: {"v": migration.version});
         if (existingVersionRows.length > 0) {
-          var date = existingVersionRows.first.last;
-          throw new MigrationException(
-              "Trying to upgrade database to version $versionNumber, but that migration has already been performed on $date.");
+          final date = existingVersionRows.first.last;
+          throw new MigrationException("Trying to upgrade database to version ${migration
+              .version}, but that migration has already been performed on $date.");
         }
 
-        for (var cmd in commands) {
-          logger.info("$cmd");
+        logger.info("Applying migration version ${migration.version}...");
+        await migration.upgrade();
+
+        for (var cmd in migration.database.commands) {
+          logger.info("\t$cmd");
           await ctx.execute(cmd);
         }
 
+        logger.info("Seeding data from migration version ${migration.version}...");
+        await migration.seed();
+
         await ctx.execute(
-            "INSERT INTO $versionTableName (versionNumber, dateOfUpgrade) VALUES ($versionNumber, '${new DateTime.now()
+            "INSERT INTO $versionTableName (versionNumber, dateOfUpgrade) VALUES (${migration.version}, '${new DateTime
+            .now()
             .toUtc()
             .toIso8601String()}')");
-      });
-    } on PostgreSQLException catch (e) {
-      final interpreted = _interpretException(e);
-      if (interpreted != null) {
-        throw interpreted;
-      }
 
-      rethrow;
-    }
+        logger.info("Applied schema version ${migration.version} successfully.");
+
+        schema = migration.currentSchema;
+      }
+    });
+
+    return schema;
   }
 
   @override
@@ -292,19 +305,20 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
     return null;
   }
 
-  Future _createVersionTableIfNecessary(bool temporary) async {
-    var conn = await getDatabaseConnection();
-    var commands = createTable(versionTable, isTemporary: temporary);
-    try {
-      await conn.transaction((ctx) async {
-        for (var cmd in commands) {
-          await ctx.execute(cmd);
-        }
-      });
-    } on PostgreSQLException catch (e) {
-      if (e.code != PostgreSQLErrorCode.duplicateTable) {
-        rethrow;
-      }
+  Future _createVersionTableIfNecessary(PostgreSQLExecutionContext context, bool temporary) async {
+    final table = versionTable;
+    final commands = createTable(table, isTemporary: temporary);
+    final exists =
+        await context.query("SELECT to_regclass(@tableName:text)", substitutionValues: {"tableName": table.name});
+
+    if (exists.first.first != null) {
+      return;
+    }
+
+    logger.info("Initializating database...");
+    for (var cmd in commands) {
+      logger.info("\t$cmd");
+      await context.execute(cmd);
     }
   }
 

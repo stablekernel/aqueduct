@@ -251,7 +251,8 @@ class PostgreSQLSchemaGenerator {
     return new SchemaTable(versionTableName, [
       new SchemaColumn.empty()
         ..name = "versionNumber"
-        ..type = ManagedPropertyType.integer,
+        ..type = ManagedPropertyType.integer
+        ..isUnique = true,
       new SchemaColumn.empty()
         ..name = "dateOfUpgrade"
         ..type = ManagedPropertyType.datetime,
