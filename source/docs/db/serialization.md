@@ -137,7 +137,7 @@ map == {
 
 ```
 
-Transient properties with this annotation may also be used as inputs when reading with `readFromMap()`. For example, consider how to handle user passwords. A password is not stored in plain-text in a database, but they are sent in requests. Thus, a password could read from a request body, but it needs to be salted, hashed and stored in two columns in the database. An instance type could then define a password property, which automatically set the salt and hash of the password in the underlying persistent type:
+Transient properties with this annotation may also be used as inputs when reading with `readFromMap()`. For example, consider how to handle user passwords. A password is not stored in plain-text in a database, but they are sent in requests. Thus, a password could read from a request body, but it needs to be salted, hashed and stored in two columns in the database. An instance type could then define a password property, which automatically set the salt and hash of the password in the table definition:
 
 ```dart
 class User extends ManagedObject<_User> implements _User {

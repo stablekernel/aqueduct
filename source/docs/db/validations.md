@@ -2,7 +2,7 @@
 
 Data is added to a database through `update` and `insert` queries. As part of these two operations, a `ManagedObject<T>` will ensure that its properties have valid values. For example, a `Person` object might ensure that its name starts with a capital letter and that its phone number has only numeric values.  If one or more validation fails, the update or insert operation will fail and the data is not sent to the database. A validation failure will throw a `QueryException`, which automatically sends an HTTP response with error messaging to help the client correct their request.
 
-The preferred way of setting a validation is to add `Validate` metadata to properties of a persistent type of a `ManagedObject<T>`. Here's an example of a validation that ensures a tweet is less than 140 characters:
+The preferred way of setting a validation is to add `Validate` metadata to properties of a table definition. Here's an example of a validation that ensures a tweet is less than 140 characters:
 
 ```dart
 class Tweet extends ManagedObject<_Tweet> implements _Tweet {}
@@ -37,7 +37,7 @@ A built-in validator is useful because it automatically generates an error messa
 
 See the API reference for `Validate` and its named constructors for possible options.
 
-`Validate` metadata on transient properties have no effect. This metadata is only valid for database-backed properties declared in a persistent type.
+`Validate` metadata on transient properties have no effect. This metadata is only valid for database-backed properties declared in a table definition.
 
 ### Custom Validators
 

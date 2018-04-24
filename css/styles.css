@@ -158,7 +158,8 @@ a {
 #terminal {
     display: block;
     margin: 0 auto;
-    width: 400px;
+    width: 90%;
+    max-width: 500px;
     font-size: 1.1em;
     background-color: #666;
     border-color: #666;

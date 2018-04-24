@@ -216,7 +216,7 @@ The Dart analyzer will infer that the argument of a property selector, and it is
 
 ## Specifying Result Properties
 
-When executing queries that return managed objects (i.e., `insert()`, `update()` and `fetch()`), the default properties for each object are fetched. The default properties of a managed object are properties that correspond to a database column - attributes declared in the persistent type. A managed object's default properties can be modified when declaring its persistent type:
+When executing queries that return managed objects (i.e., `insert()`, `update()` and `fetch()`), the default properties for each object are fetched. The default properties of a managed object are properties that correspond to a database column - attributes declared in the table definition. A managed object's default properties can be modified when declaring its table definition:
 
 ```dart
 class _User {

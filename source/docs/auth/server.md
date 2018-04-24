@@ -78,7 +78,7 @@ For more details on authorization controllers like `AuthController`, see [Author
 
 `ManagedAuthDelegate<T>` is a concrete implementation of `AuthDelegate`, providing storage of authorization tokens and clients for an `AuthServer`. Storage is accomplished by Aqueduct's ORM. `ManagedAuthDelegate<T>`, by default, is not part of the standard `aqueduct` library. To use this class, an application must import `package:aqueduct/managed_auth.dart`.
 
-The type argument to `ManagedAuthDelegate<T>` represents the application's concept of a 'user' or 'account' - OAuth 2.0 terminology would refer to this type as a *resource owner*. A resource owner must be a `ManagedObject<T>` subclass that is specific to your application. Its persistent type *must extend* `ManagedAuthenticatable` and the instance type must implement `ManagedAuthResourceOwner<T>`, where `T` is the persistent type. A basic definition may look like this:
+The type argument to `ManagedAuthDelegate<T>` represents the application's concept of a 'user' or 'account' - OAuth 2.0 terminology would refer to this type as a *resource owner*. A resource owner must be a `ManagedObject<T>` subclass that is specific to your application. Its table definition *must extend* `ManagedAuthenticatable` and the instance type must implement `ManagedAuthResourceOwner<T>`, where `T` is the table definition. A basic definition may look like this:
 
 ```dart
 class User extends ManagedObject<_User>
@@ -91,7 +91,7 @@ class _User extends ManagedAuthenticatable {
 }
 ```
 
-By extending `ManagedAuthenticatable` in the persistent type, the database table has the following four columns:
+By extending `ManagedAuthenticatable` in the table definition, the database table has the following four columns:
 
 - an integer primary key named `id`
 - a unique string `username`

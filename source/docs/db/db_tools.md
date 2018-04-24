@@ -5,7 +5,7 @@ The `aqueduct db` command line tool creates and executes *migration files*. A mi
 Migration Files
 ---
 
-Database tables are described by `ManagedObject<T>` subclasses and their persistent type. Migration files describe a series of database commands that will create or modify a database schema to match an application's `ManagedObject<T>` declarations. Migration files are executed on a database when an application is first deployed and when changes to the data model occur - like adding new `ManagedObject<T>` subclasses or changing the name of a `ManagedObject<T>` property.
+Database tables are described by `ManagedObject<T>` subclasses and their table definition. Migration files describe a series of database commands that will create or modify a database schema to match an application's `ManagedObject<T>` declarations. Migration files are executed on a database when an application is first deployed and when changes to the data model occur - like adding new `ManagedObject<T>` subclasses or changing the name of a `ManagedObject<T>` property.
 
 Each migration file contains only the changes made since the last migration file was generated. For example, let's say that version 1 of your application has two `ManagedObject<T>` subclasses, `User` and `Post`. Before you launch, you create a migration file that creates two tables, one for `User` and one for `Post`. A month later, you have developed version 1.1 of your application and now you have a third `ManagedObject<T>` named `Location`. Prior to deploying version 1.1, you generate a new migration file and execute it. This migration file only contains instructions to create a table for `Location`. The 'final product' of your database is the sum of both migration files.
 

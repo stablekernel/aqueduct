@@ -41,12 +41,12 @@ The `_Hero` class is a direct mapping of a database table. This table's name wil
 
 The other class, `Hero`, is what we work with in our code - when we fetch heroes from a database, they will be instances of `Hero`.
 
-The `Hero` class is called the *instance type* of the entity, because that's what we have instances of. `_Hero` is the *persistent type* of the entity, because it declares what is persisted in the database. You won't use the persistent type for anything other than describing the database table.
+The `Hero` class is called the *instance type* of the entity, because that's what we have instances of. `_Hero` is the *table definition* of the entity. You won't use the table definition for anything other than describing the database table.
 
-An instance type must *implement* its persistent type; this gives our `Hero` all of the properties of `_Hero`. An instance type must *extend* `ManagedObject<T>`, where `T` is also the persistent type. `ManagedObject<T>` has behavior for automatically transferring objects to the database and back (among other things).
+An instance type must *implement* its table definition; this gives our `Hero` all of the properties of `_Hero`. An instance type must *extend* `ManagedObject<T>`, where `T` is also the table definition. `ManagedObject<T>` has behavior for automatically transferring objects to the database and back (among other things).
 
 !!! tip "Transient Properties"
-    Properties declared in the instance type aren't stored in the database. This is different than properties in the persistent type. For example, a database table might have a `firstName` and `lastName`, but it's useful in some places to have a `fullName` property. Declaring the `fullName` property in the instance type means we have easy access to the full name, but we still store the first and last name individually.
+    Properties declared in the instance type aren't stored in the database. This is different than properties in the table definition. For example, a database table might have a `firstName` and `lastName`, but it's useful in some places to have a `fullName` property. Declaring the `fullName` property in the instance type means we have easy access to the full name, but we still store the first and last name individually.
 
 Defining a Context
 ---

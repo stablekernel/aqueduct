@@ -48,7 +48,7 @@ Notice that the context for each query is the `transaction` object passed to the
 
 !!! warning "Failing to Use the Transaction Context will Deadlock your Application"
 
-  While a transaction is in progress, any query sent by the same connection becomes part of that transaction. A `ManagedContext` has a single database connection. Because Dart is asynchronous, a its likely that another request will trigger a database request while a transaction is in progress. For this reason, a context must queue queries from outside of a transaction while the transaction is running. In order for the Aqueduct to know if the query is meant to be in the transaction is through the context of the query. If you await on a query on the original context inside of a transaction closure, it won't complete until the transaction completes - but the transaction can't complete because it is awaiting for the query to complete.
+  A `ManagedContext` has a single database connection. While a transaction is in progress, any query sent by the same connection becomes part of that transaction. Because Dart is asynchronous, a its likely that another request will trigger a database request while a transaction is in progress. For this reason, a context must queue queries from outside of a transaction while the transaction is running. A new context is created for each transaction and the database connection is shared with the original context. If you await on a query on the original context from inside a transaction closure, it won't complete until the transaction completes - but the transaction can't complete because it is awaiting for the query to complete. This will prevent the connection from being used until the transaction or query times out.
 
 ### Rollbacks
 
