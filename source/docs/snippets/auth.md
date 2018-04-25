@@ -8,6 +8,7 @@ import 'package:aqueduct/managed_auth.dart';
 
 class AppChannel extends ApplicationChannel {
   AuthServer authServer;
+  ManagedContext context;
 
   @override
   Future prepare() async {
@@ -19,10 +20,10 @@ class AppChannel extends ApplicationChannel {
         5432
         "my_app");
 
-    ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
+    context = new ManagedContext(dataModel, psc);
 
-    var AuthDelegate = new ManagedAuthDelegate<User>(ManagedContext.defaultContext);
-    authServer = new AuthServer(AuthDelegate);
+    final delegate = new ManagedAuthDelegate<User>(context);
+    authServer = new AuthServer(delegate);
   }
 
   @override
@@ -52,6 +53,7 @@ import 'package:aqueduct/managed_auth.dart';
 
 class AppChannel extends ApplicationChannel {
   AuthServer authServer;
+  ManagedContext context;
 
   @override
   Future prepare() async {
@@ -63,10 +65,10 @@ class AppChannel extends ApplicationChannel {
         5432
         "my_app");
 
-    ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
+    context = new ManagedContext(dataModel, psc);
 
-    var AuthDelegate = new ManagedAuthDelegate<User>(ManagedContext.defaultContext);
-    authServer = new AuthServer(AuthDelegate);
+    final delegate = new ManagedAuthDelegate<User>(context);
+    authServer = new AuthServer(delegate);
   }
 
   @override
@@ -76,15 +78,22 @@ class AppChannel extends ApplicationChannel {
     router
       .route("/profile")
       .link(() => new Authorizer.bearer(authServer, scopes: ["profile.readonly"]))
-      .link(() => new ProfileController());
+      .link(() => new ProfileController(context));
   }
 }
 
 class ProfileController extends ResourceController {
+  ProfileController(this.context);
+
+  final ManagedContext context;
+
   @Operation.get()
   Future<Response> getProfile() async {
-    var id = request.authorization.resourceOwnerIdentifier;
-    return new Response.ok(await profileForUserID(id));
+    final id = request.authorization.resourceOwnerIdentifier;
+    final query = new Query<User>(context)
+      ..where((u) => u.id).equalTo(id);
+
+    return new Response.ok(await query.fetchOne());
   }
 }
 ```
@@ -127,6 +136,7 @@ import 'package:aqueduct/managed_auth.dart';
 
 class AppChannel extends ApplicationChannel {
   AuthServer authServer;
+  ManagedContext context;
 
   @override
   Future prepare() async {
@@ -138,25 +148,25 @@ class AppChannel extends ApplicationChannel {
         5432
         "my_app");
 
-    ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
+    context = new ManagedContext(dataModel, psc);
 
-    var AuthDelegate = new ManagedAuthDelegate<User>(ManagedContext.defaultContext);
-    authServer = new AuthServer(AuthDelegate);
+    final delegate = new ManagedAuthDelegate<User>(context);
+    authServer = new AuthServer(delegate);
   }  
 
   @override
   Controller get entryPoint {
     final router = new Router();
+
     router.route("/auth/token").link(() => new AuthController(authServer));  
 
-    router.route("/auth/code").link(() => new AuthCodeController(authServer,
-        renderAuthorizationPageHTML: renderLoginPage));
+    router.route("/auth/code").link(() => new AuthCodeController(authServer, delegate: this));
+
     return router;
   }
 
-  Future<String> renderLoginPage(
-    AuthCodeController controller, Uri requestURI, Map<String, String> queryParameters) async {
-
+  Future<String> render(AuthCodeController forController, Uri requestUri, String responseType, String clientID,
+      String state, String scope) async {
     return """
 <!DOCTYPE html>
 <html lang="en">
@@ -169,10 +179,10 @@ class AppChannel extends ApplicationChannel {
 <body>
 <div class="container">
     <h1>Login</h1>
-    <form action="${requestURI.path}" method="POST">
-        <input type="hidden" name="state" value="${queryParameters["state"]}">
-        <input type="hidden" name="client_id" value="${queryParameters["client_id"]}">
-        <input type="hidden" name="response_type" value="code">
+    <form action="${requestUri.path}" method="POST">
+        <input type="hidden" name="state" value="$state">
+        <input type="hidden" name="client_id" value="$clientID">
+        <input type="hidden" name="response_type" value="$responseType">
         <div class="form-group">
             <label for="username">User Name</label>
             <input type="text" class="form-control" name="username" placeholder="Please enter your user name">

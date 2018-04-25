@@ -328,10 +328,13 @@ import 'package:aqueduct/managed_auth.dart';
 
 class AppApplicationChannel extends ApplicationChannel {
   AuthServer authServer;
+  ManagedContext context;
 
   @override
   Future prepare() async {
-    final delegate = new ManagedAuthDelegate<User>(ManagedContext.defaultContext);
+    context = new ManagedContext(...);
+
+    final delegate = new ManagedAuthDelegate<User>(context);
     authServer = new AuthServer(delegate);
   }  
 }

@@ -1,14 +1,30 @@
 # Aqueduct Application Architecture
 
-The building blocks of an Aqueduct application are instances of `Controller`. A `Controller` is the only thing that can respond to HTTP requests. The logic for an application is written in the methods of this type and its subclasses.
+The purpose of this document is to understand the objects that comprise an Aqueduct application, and how they work with one another to serve HTTP requests. It also discusses the project structure on the filesystem.
 
-Controllers are linked together to create an *application channel*. An application channel is a series of controllers that a request flows through to be verified and fulfilled.
+## Controllers are Building Blocks
+
+The building blocks of an Aqueduct application are [Controllers](controller.md). Each controller type has logic to handle an HTTP request in some way. Controllers are linked together to form a *channel*; an ordered series of controllers. A channel is a composition of its controllers' behaviors.
+
+For example, consider an `Authorizer` controller that verifies the request's authorization credentials are correct, and a `SecretController` that sends a response with secret information. By composing these two controllers together, we have a channel that verifies credentials before sending a secret. The benefit of controllers and channels is that controllers can be reused in multiple channels; the `Authorizer` can protect other types of controllers without any change to its logic.
+
+![Simple Controller Diagram](../img/simple_controller_diagram.png)
+
+The last controller in a channel must always respond to a request. These types of controllers are called *endpoint controllers* and implement the business logic for your application's endpoints. For example, an endpoint controller might fetch a list of books from a database and send them in a response.
+
+The other controllers in a channel are called *middleware controllers*. These types of controllers typically verify something about a request before letting the next controller in the channel handle it. Middleware controllers respond to a request when there is an error, preventing the request from traveling further in the channel. For example, an authorizing controller might send a `401 Unauthorized` response for an unauthorized request, protecting the endpoint controller from invoking its logic.
+
+There is no real distinction between an endpoint and middleware controller other than the way they implement their handling logic. Middleware controllers are typically reusable, while endpoint controllers are typically not. If a middleware controller is not reusable, its logic might be better suited for the endpoint controller it precedes in the channel.
+
+Most endpoint controllers are created by subclassing [ResourceController](resource_controller.md) (itself a subclass of `Controller`). This class allows you to implement methods for each HTTP method (like GET or POST) for a given endpoint.
+
+## The Application Channel and Entry Point
+
+Each application designates a controller as the *entry point* of the application. This controller is the first to receive a new request and is the head of the application's channel. In most applications, the entry point is a [Router](routing.md); this controller allows multiple channels to be linked, effectively splitting the channel into sub-channels.
 
 ![Structure](../img/structure.png)
 
-An application channel always starts at an instance of `ApplicationChannel` (a subclass of `Controller`). When an application receives an HTTP request, it adds it to the `ApplicationChannel`. A `ApplicationChannel` has a `Router` (also a subclass of `Controller`) that splits the channel based on the path of the request. For example, a request with the path `/users` will go down one part of the channel, while a `/things` request will go down another.
-
-An application has exactly one `ApplicationChannel` subclass; it must implement the `entryPoint` method. For example, the diagram above looks like this in code:
+The diagram above looks like this in code:
 
 ```dart
 class AppChannel extends ApplicationChannel {
@@ -35,9 +51,7 @@ class AppChannel extends ApplicationChannel {
 }
 ```
 
-In the above code, all of the objects created are instances of a `Controller` subclass. Each of these controllers can either respond to the request, or send it to the next controller in the channel. For example, an `Authorizer` will respond with a 401 Unauthorized response if a request's authorization isn't valid - but if it is valid, the request is passed to the next controller in the channel.
-
-For more details on the object that handles requests, see [Controllers](controller.md).
+See [this guide](channel.md) for more details on the application channel and entry point.
 
 ## Aqueduct Project Structure and Organization
 

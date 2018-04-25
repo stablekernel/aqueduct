@@ -56,6 +56,9 @@ To create a database, make sure PostgreSQL is running and open the command-line 
 psql
 ```
 
+!!! warning "Location of psql with Postgres.app"
+    If you installed Postgres.app, `psql` is inside the application bundle. You can run this tool by selecting `Open psql` from the status bar item in the Finder.
+
 Then, create a database that your application will connect to and a user that it will connect with:
 
 ```sql
@@ -64,16 +67,18 @@ CREATE USER dart_app WITH PASSWORD 'dart';
 GRANT ALL ON DATABASE my_database_name TO dart_app;
 ```
 
-An application must create a `ManagedContext` that connects to this database:
+An application must create a `ManagedContext` that handles the connection to this database:
 
 ```dart
 class MyChannel extends ApplicationChannel {
+  ManagedContext context;
+
   @override
   Future prepare() async {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var store = new PostgreSQLPersistentStore.fromConnectionInfo(
       "dart_app", "dart", "localhost", 5432, "my_database_name");
-    ManagedContext.defaultContext = new ManagedContext(dataModel, store);
+    context = new ManagedContext(dataModel, store);
   }
 
   ...
@@ -87,4 +92,4 @@ aqueduct db generate
 aqueduct db upgrade --connect postgres://dart_app:dart@localhost:5432/my_database_name
 ```
 
-See the guides on [connecting to a database](db/connecting.md) and [testing with a database](testing/database.md)
+See the guides on [connecting to a database](db/connecting.md) and [testing with a database](testing/database.md) for more details on configuring a database connection.

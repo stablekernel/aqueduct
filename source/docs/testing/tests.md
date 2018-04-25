@@ -302,13 +302,11 @@ Future start() async {
 
   await application.test();
 
-  await createDatabaseSchema(ManagedContext.defaultContext);
+  await createDatabaseSchema(application.channel.context);
 
   client = new TestClient(application);
 }
 ```
-
-Notice that the `ManagedContext.defaultContext` will have already been set by the application's `ApplicationChannel`.
 
 After a test is executed, the test database should be cleared of data so that none of the stored data test leaks into the next test. Because starting and stopping an application isn't a cheap operation, it is often better to simply delete the contents of the database rather than restart the whole application. This is why the flag `isTemporary` in `SchemaBuilder.toSchema` matters: it creates *temporary* tables that only live as long as the database connection. By simply reconnecting to the database, all of the tables and data created are discarded. Therefore, all you have to do is close the connection and add the database schema again.
 
@@ -316,8 +314,9 @@ Here's a method to add to a test harness to do that. (Note that a connection is 
 
 ```dart
 Future discardPersistentData() async {
-  await ManagedContext.defaultContext.persistentStore.close();
-  await createDatabaseSchema(ManagedContext.defaultContext);
+  final ctx = application.channel.context;
+  await ctx.persistentStore.close();
+  await createDatabaseSchema(ctx);
 }
 ```
 

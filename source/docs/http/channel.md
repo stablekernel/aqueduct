@@ -4,20 +4,18 @@ Learn how an application is initialized so it can serve requests.
 
 ## Overview
 
-Applications fulfill HTTP requests using *controllers*. A controller is an object that can process a request in some way. In general, there are two types of controllers:
+Applications fulfill HTTP requests using [controllers](controller.md). A controller is an object that can handle a request in some way. In general, there are two types of controllers:
 
 - Endpoint controllers fulfill a request (e.g., insert a row into a database and send a 200 OK response).
 - Middleware controllers verify something about a request (e.g., verifying the Authorization header has valid credentials) or modify the response created by an endpoint controller (e.g., add a response header).
 
-Controllers are linked together - starting with middleware and ending with an endpoint controller - to form a series of steps a request will go through. Every controller can either pass the request on to its linked controller, or respond to the request itself (in which case, the linked controller never sees the request). For example, an authorizer middleware will let a request pass if it has valid credentials, but will respond with a 401 Unauthorized response if the credentials are invalid. Some controllers, like `Router`, can have multiple controllers linked to it.
+Controllers are linked together - starting with zero or more middleware and ending with an endpoint controller - to form a series of steps a request will go through. Every controller can either pass the request on to its linked controller, or respond to the request itself (in which case, the linked controller never sees the request). For example, an authorizer middleware will let a request pass if it has valid credentials, but will respond with a 401 Unauthorized response if the credentials are invalid. Some controllers, like `Router`, can have multiple controllers linked to it.
 
-These linked controllers are called the *application channel*. An application channel has a single entry point - the controller that will receive HTTP requests first. In a typical application, the entry point is a `Router`. Additional controllers are linked to the `Router` at startup to form a processing pipeline for your application.
-
-The application channel is defined by subclassing `ApplicationChannel`. There is one `ApplicationChannel` subclass per application.
+These linked controllers are called *channels*. You build channels in a subclass of `ApplicationChannel`. There is one `ApplicationChannel` subclass per application.
 
 ### Building the ApplicationChannel
 
-An `ApplicationChannel` must override its `entryPoint` method to return the first controller in the channel. In the implementation of this method, every controller that will be used in the application is linked to either the entry point in some way. Here's an example:
+You must override `ApplicationChannel.entryPoint` to return the first controller of your application's channel. In the implementation of this method, every controller that will be used in the application is linked to either the entry point in some way. Here's an example:
 
 ```dart
 class AppChannel extends ApplicationChannel {
@@ -35,7 +33,7 @@ class AppChannel extends ApplicationChannel {
 }
 ```
 
-This method links together a `Router`, `Authorizer` and `UserController` in that order. A request is first handled by the `Router`, and if its path matches '/users', it will be sent to the `Authorizer`. If the `Authorizer` verifies the request, the request is passed to the `UserController` for fulfillment.
+This method links together a `Router`, `Authorizer` and `UserController` in that order. A request is first handled by the `Router`, and if its path matches '/users', it will be sent to an `Authorizer`. If the `Authorizer` verifies the request, the request is passed to a `UserController` for fulfillment.
 
 By contrast, if the request's path doesn't match '/users', the `Router` sends a 404 Not Found response and doesn't pass it to the `Authorizer`. Likewise, if the request isn't authorized, the `Authorizer` will send a 401 Unauthorized response and prevent it from being passed to the `UserController`. In other words, a request 'falls out' of the channel once a controller responds to it, so that no further controllers will receive it.
 
@@ -89,7 +87,7 @@ Aqueduct applications can - and should - be spread across a number of threads. T
 
 The number of isolates an application will use is configurable at startup when using the [aqueduct serve](../cli/running.md) command.
 
-An isolate can't share memory with another isolate. If an object is created on one isolate, it can be referenced by another. Therefore, each `ApplicationChannel` instance has its own set of services that are configured in the same way. This behavior also makes design patterns like connection pooling implicit; instead of a pool of database connections, there is a pool of application channels that each have their own database connection.
+An isolate can't share memory with another isolate. If an object is created on one isolate, it *cannot* be referenced by another. Therefore, each `ApplicationChannel` instance has its own set of services that are configured in the same way. This behavior also makes design patterns like connection pooling implicit; instead of a pool of database connections, there is a pool of application channels that each have their own database connection.
 
 This architecture intentionally prevents you from keeping state in your application. When you scale to multiple servers, you can trust that your cluster works correctly because you are already effectively clustering on a single server node. For further reading on writing multi-threaded applications, see [this guide](threading.md).
 

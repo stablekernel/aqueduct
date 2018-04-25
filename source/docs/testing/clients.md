@@ -52,8 +52,8 @@ import 'package:aqueduct/managed_auth.dart';
 import 'package:myapp/myapp.dart';
 
 Future main() async {
-  var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-  ManagedContext.defaultContext = new ManagedContext(dataModel, persistentStore);
+  final dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+  final context = = new ManagedContext(dataModel, persistentStore);
 
   var credentials = AuthUtility.generateAPICredentialPair("local.testing", "secretpassword");
 

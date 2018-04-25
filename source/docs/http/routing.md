@@ -2,15 +2,15 @@
 
 ## What is routing?
 
-Every HTTP request has a URL. A URL identifies a *resource* on a computer. In the early days of the Internet, a resource was a file. For example, the URL `http://www.geocities.com/my_page/image.jpg` would return the file `image.jpg` from the folder `my_page` on the webserver located at `www.geocities.com`. In a web application today, resources come from many other sources of data, like a database or a connected device. The job of a web application is to provide, create or modify a resource for a URL, wherever that resource might come from.
+Every HTTP request has a URL. A URL identifies a *resource*. In the early days of the Internet, a resource was a file. For example, the URL `http://www.geocities.com/my_page/image.jpg` would return the file `image.jpg` from the folder `my_page` on the webserver located at `www.geocities.com`. In a web application today, resources come from many other sources of data, like a database or a connected device. The job of a web application is to provide, create or modify a resource for a URL, wherever that resource might come from.
 
 A URL is made up of many parts, some of which are optional. The typical URL we see as humans looks like this: `http://stablekernel.com/about`. Most people recognize that typing this URL into a browser would take them to our company's "About" page. In other words, our "About" page is a resource and the URL identifies it.
 
-More generally, the "About" page URL has the three required components of a URL: a *scheme* (`http`), a *host* (`stablekernel.com`) and a *path* (`/about`). The host specifies the computer responsible for providing the resource, the path indicates the 'name' of the resource and the scheme lets both the requester and the host know how they should exchange information.
+More generally, the "About" page URL has the three required components of a URL: a *scheme* (`http`), a *host* (`stablekernel.com`) and a *path* (`/about`). The host specifies the computer responsible for providing the resource, the path identifies the resource and the scheme lets both the requester and the host know how they should exchange information.
 
 An Aqueduct application receives requests when the scheme is `http` (or `https`) and the host refers to a machine where the application is running. Therefore, once the application gets the request, it only cares about the remaining component: the path.
 
-In Aqueduct, a `Router` routes `Request`s to a `Controller` based on the request path. This process is known as *routing*. When an application starts up, routes are registered in a subclass of `ApplicationChannel`. Each registered route creates a new [channel](structure.md) of `Controller`s that the request will be passed through.
+In Aqueduct, a `Router` routes `Request`s to a `Controller` based on the request path. This process is known as *routing*. When an application starts up, routes are registered in a subclass of `ApplicationChannel`. Each registered route creates a new [channel](structure.md) of `Controller`s that will handle the request.
 
 ## Route Specifications Match HTTP Request Paths
 
@@ -37,7 +37,9 @@ A path can have multiple segments (the characters between slashes). For example,
 
 ### Path Variables
 
-A route specification may have *path variables*. A path variable is a route segment that always succeeds in matching a path segment. The value of the segment is stored so that down-channel controllers can use it. In a route specification, a path variable starts with a colon (`:`). The name of the variable follows this colon. For example, consider the following route that declares a path variable named `userID`:
+A route specification may have *path variables*. A path variable captures the value from a path segment, so that your code can use it. A path variable is most often used to uniquely identify a resource by some identifier, like `/users/1` and `/users/2`.
+
+In a route specification, a path variable starts with a colon (`:`). The name of the variable follows this colon. For example, consider the following route that declares a path variable named `userID`:
 
 ```dart
 router.route("/users/:userID")
@@ -47,7 +49,7 @@ This route specification will match `/users/1`, `/users/2`, `/users/foo`, etc. T
 
 ### Optional Path Segments
 
-Routes may have optional path segments. This allows a group of routes that all refer to a resource collection to go to the same controller. For example, the requests `/users` and `/users/1` can both be covered by a single route specification.
+Routes may have optional path segments. This allows a group of routes that all refer to a resource collection and its individual resources to go to the same controller. For example, the requests `/users` and `/users/1` can both be covered by a single route specification.
 
 An optional path segment has square brackets (`[]`) around it. The brackets can go before or after slashes. For example, the following two syntaxes register a route that accepts both `/users` and `/users/:userID`:
 
@@ -73,9 +75,14 @@ route("/users/[:id/[:subresource/[:subresourceid]]]");
 The code to handle one or more users is likely very different than the code to handle one of its subresources - different database tables will be queried and different authorization may be needed. Thus, a better approach is to split subresources into their own routes to keep controller logic modular:
 
 ```dart
+// Matches /users and /users/:id
 route("/users/[:id]")...;
-route("/users/:id/posts/[:id]")...;
-route("/users/:id/notes/[:id]")...;
+
+// Matches /users/:userId/posts and /users/:userId/posts/:postId
+route("/users/:userId/posts/[:postId]")...;
+
+// Matches /users/:userId/posts and /users/:userId/notes/:noteId
+route("/users/:userId/notes/[:noteId]")...;
 ```
 
 ### Restricting Path Variable Values
@@ -106,12 +113,12 @@ This token is used when another medium is going to interpret the URL. For exampl
 
 ## Accessing Path Variables
 
-Information that a router parses from a request path - like path variables - are stored in a `Request`'s `path`. As a `Request` passes through a `Router`, its `path` is set to an instance of this type. Later controllers access the `path` of a `Request` to help determine which resource the request is referring to. The `path` is an instance of `RequestPath`.
+Information that a router parses from a request path - like path variables - are stored in `Request.path`. When a `Request` is handled by a router, its `path` is set to an instance of this type. Controllers deeper in the channel access `Request.path` to help determine which resource the request is identifying. The `path` is an instance of `RequestPath`.
 
-The `variables` of `RequestPath` are a `Map<String, String>`, where the key is the name of the variable in the route specification and the value is the matching path segment in an incoming request. For example, consider a route specification `/users/:id`. When a request with path `/users/1` is routed, this specification will match. So, a controller would access it like so:
+A `RequestPath` contains an map of `variables`, where the key is path variable name and the value is the value of that variable in the request. For example, consider a route specification `/users/:id`. When a request with path `/users/1` is routed, the value `1` is stored in this map for the key `id`:
 
 ```dart
-var identifier = request.path.variables["id"];
+final identifier = request.path.variables["id"];
 // identifier = "1"
 ```
 
@@ -121,4 +128,4 @@ The values in `variables` are always `String`s, since a request path is a `Strin
 
 ## Failed Matches Return 404
 
-A `Router` will return a `Response.notFound` - a response with status code 404 - if it receives a request that no route is registered for. The router will not send this request to linked controllers. This behavior may be overridden by providing a closure to `Router.unhandledController` to provide a 404 HTML page if the request allows it.
+A `Router` will return a `404 Not Found` if there is no matching route for the request. The router will not send this request to linked controllers. This behavior may be overridden by providing a closure to `Router.unhandledController` to provide a 404 HTML page if the request allows it.

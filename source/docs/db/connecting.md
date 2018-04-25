@@ -9,13 +9,15 @@ A `ManagedContext` uses these two objects to coordinate moving data to and from 
 
 ```dart
 class MyApplicationChannel extends ApplicationChannel {
+  ManagedContext context;
+
   @override
   Future prepare() async {
     var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
     var psc = PostgreSQLPersistentStore.fromConnectionInfo(
         "username", "password", "host", 5432, "databaseName");
 
-    ManagedContext.defaultContext = ManagedContext(dataModel, psc);
+    context = ManagedContext(dataModel, psc);
   }
 }
 ```
@@ -26,9 +28,11 @@ A `ManagedDataModel` should be instantiated with its `fromCurrentMirrorSystem` c
 var dataModel = ManagedDataModel([User, Post, Friendship]);
 ```
 
-There is one `defaultContext` in an application. When executing a `Query<T>`, the default context is chosen if no other context is provided to its constructor. A default context must be instantiated before using any Aqueduct ORM objects or behavior.
+A `ManagedContext` is required to create and execute a `Query<T>`. The context determines which database the query is executed in. A context must exist before creating instances of any `ManagedObject` subclass in your application. Controllers that need to execute database queries must have a reference to a context; this is typically accomplished by passing the context to a controller's constructor.
 
-Connection information for a database is often configured through a configuration file.
+### Using a Configuration File
+
+Connection information for a database is most often configured through a configuration file. This allows you to build configurations for different environments (production, testing, etc.), without having to modify code.
 
 ```dart
 class MyConfigurationItem extends ConfigurationItem {
@@ -38,19 +42,21 @@ class MyConfigurationItem extends ConfigurationItem {
 }
 
 class MyApplicationChannel extends ApplicationChannel {
+  ManagedContext context;
+
   @override
   Future prepare() async {
-    var config = MyConfigurationItem(options.configurationFilePath);
+    final config = MyConfigurationItem(options.configurationFilePath);
 
-    var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = PostgreSQLPersistentStore.fromConnectionInfo(
+    final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    final psc = PostgreSQLPersistentStore.fromConnectionInfo(
         config.database.username,
         config.database.password,
         config.database.host,
         config.database.port,
         config.database.databaseName);        
 
-    ManagedContext.defaultContext = ManagedContext(dataModel, psc);
+    context = ManagedContext(dataModel, psc);
   }
 }
 ```
@@ -66,4 +72,4 @@ database:
   databaseName: my_app
 ```
 
-A `PersistentStore` is an interface. Concrete implementations - like `PostgreSQLPersistentStore` - implement that interface to transmit data to a database in the format it expects. A `PostgreSQLPersistentStore` will automatically connect and maintain a persistent connection to a database. If the connection is lost for some reason, it will automatically reconnect the next time a query is executed. If a connection cannot be established, a `QueryException` is thrown that yields a 503 status code response.
+A `PersistentStore` is an interface. Concrete implementations - like `PostgreSQLPersistentStore` - implement that interface to transmit data to a database in the format it expects. A `PostgreSQLPersistentStore` will automatically connect and maintain a persistent connection to a database. If the connection is lost for some reason, it will automatically reconnect the next time a query is executed. If a connection cannot be established, an exception is thrown that sends a 503 status code response by default.

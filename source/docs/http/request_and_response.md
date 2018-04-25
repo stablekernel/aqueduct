@@ -4,19 +4,19 @@ In Aqueduct, HTTP requests and responses are instances of `Request` and `Respons
 
 ## The Request Object
 
-An instance of `Request` represents an HTTP request. They are automatically created when the application receives a request and are delivered to your application's `ApplicationChannel`. A `Request` is a wrapper around the Dart standard library `HttpRequest` and its values - such as headers - can be accessed through its `raw` property.
+An instance of `Request` represents an HTTP request and are automatically created when the application receives a request. A `Request` is a wrapper around the Dart standard library `HttpRequest` and its values - such as its URI or headers - can be accessed through its `raw` property.
 
 A `Request` has a `body` property. This property decodes the HTTP request body into Dart objects based on the request's content type. The mechanism to decode the body is determined by `HTTPCodecRepository`, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data. The size of a request body is limited to 10MB by default and can be changed by setting the value of `RequestBody.maxSize` during application initialization.
 
-A `Request` may go through many `Controller`s before it is finally responded to. These `Controller`s may validate or add more information to the request as it passes through. For example, an `Authorizer` - a subclass of `Controller` - will validate the Authorization header of a request. Once validated, it will add authorization info to the request - like the user for an OAuth 2.0 bearer token - and pass it to the next `Controller`. The next controller in the channel has access to the authorization info without having to fetch the information again.
+A `Request` is handled by one or more `Controller`s before to be responded to. `Controller`s may validate or add more information to the request, so that later controllers can use this information. For example, an `Authorizer` controller will validate the Authorization header of a request. Once validated, it will add authorization info to the request - like the authorized user ID - and pass it to the next controller. The next controller in the channel has access to the authorization info without having to perform another fetch.
 
-These additional values are added to a `Request`'s `attachments` property. A `Request` also has two built-in attachments, `authorization` and `path`. `authorization` contains authorization information created by an `Authorizer` and `path` has request path information created by a `Router`.
+These additional values are added to a `Request.attachments` property. A `Request` also has two built-in attachments, `authorization` and `path`. `authorization` contains authorization information from an `Authorizer` and `path` has request path information from a `Router`.
 
-`Request`s are responded to by returning an instance of `Response` from a `Controller` (see [Controllers](controller.md)). Controllers that don't create the eventual response can still modify that response by invoking `addResponseModifier`.
+`Request`s are responded to when a controller creates a `Response`.
 
 ## Response Objects and HTTP Body Encoding
 
-An instance of `Response` has a status code, HTTP headers and an HTTP body. There are a number of convenience constructors for `Response` for commonly used status codes. For example, `Response.ok` creates a 200 OK status code response.
+A `Response` has a status code, HTTP headers and an HTTP body. There are a number of convenience constructors for `Response` for commonly used status codes. For example, `Response.ok` creates a 200 OK status code response.
 
 ```dart
 var response = new Response.ok({"key": "value"});
@@ -26,7 +26,7 @@ When a `Response` is returned from a controller, Aqueduct handles sending the HT
 
 An HTTP response often contains a *body*. For example, the body in response to `GET /users/1` might be JSON object that represents a user. To ensure the client understands that the body is a JSON object, it includes the header `Content-Type: application/json; charset=utf-8`.
 
-When creating a `Response` that has a body, you provide a *body object* and a `contentType`. The body object is passed to one of `Response`'s constructors. For example, this map` is the body object of a response:
+When creating a `Response` that has a body, you provide a *body object* and a `contentType`. For example:
 
 ```dart
 var map = {"key": "value"};
@@ -45,9 +45,9 @@ A `ContentType` is made up of three components: a primary type, a subtype and an
 
 ![Content Type Components](../img/content_type_components.png)
 
-The primary and subtype determine the first conversion step and the charset determines the next. Each step is performed by an instance of `Codec`. For example, the content type `application/json` selects `JsonCodec`, while charset `utf-8` selects `Utf8Codec`. These two codecs are run in succession to convert the `Map` to a list of bytes.
+The primary and subtype determine the first conversion step and the charset determines the next. Each step is performed by an instance of `Codec` (from `dart:convert`). For example, the content type `application/json` selects `JsonCodec`, while charset `utf-8` selects `Utf8Codec`. These two codecs are run in succession to convert the `Map` to a list of bytes.
 
-The body object must be a valid input for the initial encoder step. In the above example, a `Map<String, dynamic>` can be encoded by a `JsonCodec`. But if the body object was something silly - like an `Isolate` - encoding would fail at runtime and the client would be sent a 500 Server Error response. A valid input for one `Codec` may not be valid for another; it is up to you to ensure that the body object is valid for the `contentType` of the response.
+The body object must be a valid input selected codec. In the above example, a `Map<String, dynamic>` can be encoded by a `JsonCodec`. But if the body object was something silly - like an `Controller` - encoding would fail at runtime and the client would be sent a 500 Server Error response. A valid input for one `Codec` may not be valid for another; it is up to you to ensure that the body object is valid for the `contentType` of the response.
 
 Not all content types require two conversion steps. For example, when serving an HTML file, the body object is already an HTML `String`. It will only be converted by a charset encoder:
 
@@ -148,14 +148,7 @@ class MyChannel extends ApplicationChannel {
 }
 ```
 
-Content type to codec mappings are added in the constructor of an application's [ApplicationChannel](channel.md). The codec must implement `Codec` from `dart:convert`. In the above example, when a response's content type is `text/html`, the `HTMLCodec` will encode the body object. This codec takes precedence over `text/*` because it is more specific.
-
-When selecting a codec for a response body, the `ContentType.charset` doesn't impact which codec is selected. For example, the following two lines are equivalent:
-
-```dart
-HTTPCodecRepository.defaultInstance.add(new ContentType("application", "html"), new HTMLCodec());
-HTTPCodecRepository.defaultInstance.add(new ContentType("application", "html", charset: "utf-8"), new HTMLCodec());
-```
+Codecs must be added in your `ApplicationChannel.prepare` method. The codec must implement `Codec` from `dart:convert`. In the above example, when a response's content type is `text/html`, the `HTMLCodec` will encode the body object. This codec takes precedence over `text/*` because it is more specific. When selecting a codec for a response body, the `ContentType.charset` doesn't impact which codec is selected.
 
 If a response's content-type has a charset, then a charset encoder like `UTF8` will be applied as a last encoding step. For example, a response with content-type `application/json; charset=utf-8` will encode the body object as a JSON string, which is then encoded as a list of UTF8 bytes. It is required that a response body's eventually encoded type is a list of bytes, so it follows that a codec that produces a string must have a charset.
 

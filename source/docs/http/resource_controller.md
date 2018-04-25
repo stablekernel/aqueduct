@@ -1,6 +1,6 @@
 # ResourceController
 
-A `ResourceController` is a [controller](controller.md) that provide conveniences for organizing and streamlining request handling logic. A `ResourceController` must be subclassed. A subclass handles every operation on a HTTP resource collection and each resource in that collection. For example, a subclassed named `UserController` might handle the following operations:
+A `ResourceController` is a [controller](controller.md) that provide conveniences for implementing endpoint controllers. A `ResourceController` must be subclassed, and in that subclass, you write a method for each operation on that type of resource. For example, a `UserController` might handle the following operations:
 
 - creating a new user (`POST /users`)
 - getting all users (`GET /users`)
@@ -8,7 +8,7 @@ A `ResourceController` is a [controller](controller.md) that provide convenience
 - updating an individual user (`PUT /users/:id`)
 - deleting an individual user (`DELETE /users/:id`)
 
-A `ResourceController` subclass implements an *operation method* for each operation that it supports.
+These methods that are invoked for an operation are called *operation methods*.
 
 ## Operation Methods
 
@@ -41,7 +41,7 @@ class CityController extends ResourceController {
 ```
 
 !!! note "Path Variables"
-    Read more about path variables in [Routing](routing.md).
+    This controller would be linked to the route specification `/cities/[:name]`, so that it can handle both of these operations. Read more about path variables in [Routing](routing.md).
 
 The named constructor of `Operation` tells us which HTTP method the operation method handles. The following named constructors exist:
 
