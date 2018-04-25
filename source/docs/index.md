@@ -19,7 +19,7 @@ brew upgrade dart --devel
 Once you have Dart 2.0, clone Aqueduct locally, switch to the 3.0 branch, and install the CLI from your local repository.
 
 ```bash
-git clone git@github.com:stablekernel/aqueduct.git
+git clone https://github.com/stablekernel/aqueduct.git
 cd aqueduct
 git checkout 3.0
 
