@@ -55,7 +55,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     copyProjectFiles(destDirectory, templateSourceDirectory, projectName);
 
     createProjectSpecificFiles(destDirectory.path);
-    replaceAqueductDependencyString(destDirectory.path, getAqueductDependencyStringFromPackage(aqueductPackageRef));
+    addDependencyOverrideIfNecessary(destDirectory.path, aqueductPackageRef);
 
     displayInfo("Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
     displayInfo("Please wait...");
@@ -162,11 +162,25 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     configSrcPath.copySync(new File(path_lib.join(directoryPath, "config.yaml")).path);
   }
 
-  void replaceAqueductDependencyString(String destDirectoryPath, String aqueductVersion) {
+  void addDependencyOverrideIfNecessary(String destDirectoryPath, PackageRef dependency) {
+    if (dependency.sourceType != "path") {
+      return;
+    }
+
     var pubspecFile = new File(path_lib.join(destDirectoryPath, "pubspec.yaml"));
     var contents = pubspecFile.readAsStringSync();
 
-    contents = contents.replaceFirst("aqueduct: ^3.0.0", aqueductVersion);
+    final overrideBuffer = new StringBuffer();
+    overrideBuffer.writeln("  aqueduct:");
+    overrideBuffer.writeln("    path:  ${dependency.resolve().location.path}");
+
+    final overrideSection = "dependency_overrides:";
+    if (!contents.contains(overrideSection)) {
+      contents = contents + overrideSection;
+    }
+
+    final dependencyInsertLocation = contents.indexOf(overrideSection) + overrideSection.length;
+    contents = contents.replaceRange(dependencyInsertLocation, dependencyInsertLocation, "\n${overrideBuffer.toString()}");
 
     pubspecFile.writeAsStringSync(contents);
   }
@@ -185,17 +199,6 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
       displayError("$e");
       rethrow;
     }
-  }
-
-  String getAqueductDependencyStringFromPackage(PackageRef package) {
-    if (package.sourceType == "path") {
-      return "aqueduct:\n    path: ${package
-          .resolve()
-          .location
-          .path}";
-    }
-
-    return "aqueduct: ^${package.version}";
   }
 
   bool isSnakeCase(String string) {
