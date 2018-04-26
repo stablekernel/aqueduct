@@ -108,7 +108,7 @@ class Application<T extends ApplicationChannel> {
   /// Starts the application for the purpose of running automated tests.
   ///
   /// An application started in this way will run on the same isolate this method is invoked on. Use this method
-  /// to start the application when running tests with the `aqueduct/aqueduct_test` library.
+  /// to start the application when running tests with the `aqueduct_test` library.
   Future test() async {
     if (server != null || supervisors.length > 0) {
       throw new StateError("Application error. Cannot invoke 'test' on already running Aqueduct application.");

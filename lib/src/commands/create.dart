@@ -55,7 +55,12 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     copyProjectFiles(destDirectory, templateSourceDirectory, projectName);
 
     createProjectSpecificFiles(destDirectory.path);
-    addDependencyOverrideIfNecessary(destDirectory.path, aqueductPackageRef);
+    if (aqueductPackageRef.sourceType == "path") {
+      final aqueductLocation = aqueductPackageRef.resolve().location;
+      
+      addPathDependencyOverride(destDirectory.path, "aqueduct", aqueductLocation.uri);
+      addPathDependencyOverride(destDirectory.path, "aqueduct_test", aqueductLocation.parent.uri.resolve("aqueduct_test/"));
+    }
 
     displayInfo("Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
     displayInfo("Please wait...");
@@ -162,17 +167,13 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     configSrcPath.copySync(new File(path_lib.join(directoryPath, "config.yaml")).path);
   }
 
-  void addDependencyOverrideIfNecessary(String destDirectoryPath, PackageRef dependency) {
-    if (dependency.sourceType != "path") {
-      return;
-    }
-
+  void addPathDependencyOverride(String destDirectoryPath, String packageName, Uri location) {
     var pubspecFile = new File(path_lib.join(destDirectoryPath, "pubspec.yaml"));
     var contents = pubspecFile.readAsStringSync();
 
     final overrideBuffer = new StringBuffer();
-    overrideBuffer.writeln("  aqueduct:");
-    overrideBuffer.writeln("    path:  ${dependency.resolve().location.path}");
+    overrideBuffer.writeln("  $packageName:");
+    overrideBuffer.writeln("    path:  ${location.path}");
 
     final overrideSection = "dependency_overrides:";
     if (!contents.contains(overrideSection)) {
