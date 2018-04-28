@@ -7,7 +7,6 @@ psql -c "alter user dart with password 'dart';" -U postgres
 psql -c 'create database dart_test;' -U postgres
 psql -c 'grant all on database dart_test to dart;' -U postgres
 
-
 cd "$TEST_DIR"
 
 pub get
