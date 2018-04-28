@@ -58,7 +58,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     if (aqueductPackageRef.sourceType == "path") {
       final aqueductLocation = aqueductPackageRef.resolve().location;
 
-      addPathDependencyOverride(destDirectory.path,
+      addDependencyOverridesToPackage(destDirectory.path,
           {"aqueduct": aqueductLocation.uri, "aqueduct_test": aqueductLocation.parent.uri.resolve("aqueduct_test/")});
     }
 
@@ -167,8 +167,8 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     configSrcPath.copySync(new File(path_lib.join(directoryPath, "config.yaml")).path);
   }
 
-  void addPathDependencyOverride(String destDirectoryPath, Map<String, Uri> overrides) {
-    var pubspecFile = new File(path_lib.join(destDirectoryPath, "pubspec.yaml"));
+  void addDependencyOverridesToPackage(String packageDirectoryPath, Map<String, Uri> overrides) {
+    var pubspecFile = new File(path_lib.join(packageDirectoryPath, "pubspec.yaml"));
     var contents = pubspecFile.readAsStringSync();
 
     final overrideBuffer = new StringBuffer();
