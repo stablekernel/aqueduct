@@ -1,10 +1,10 @@
 # Deploying an Aqueduct Application on a Local Machine
 
-For other deployment options, see [Deploying Aqueduct Applications](overview.md).
+For other deployment options, see [Deploying Aqueduct Applications](index.md).
 
 ### Purpose
 
-To run a local development version of an Aqueduct application with persistent storage. This is useful in developing client applications against an Aqueduct application. Make sure to also read [Testing Aqueduct Applications](../testing/overview.md).
+To run a local development version of an Aqueduct application with persistent storage. This is useful in developing client applications against an Aqueduct application. Make sure to also read [Testing Aqueduct Applications](../testing/index.md).
 
 
 ### Prerequisites

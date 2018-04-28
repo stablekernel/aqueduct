@@ -56,16 +56,16 @@ Application store information in databases for persistence. Writing database que
 
 Your application's data model is defined by creating Dart classes. Each class is mapped to a database table, and each property of that class is mapped to a column in that table. Aqueduct's command-line tool generates database migration files that detect changes in your data model that can be applied to a live, versioned database. A data model can also be represented as a JSON object to build tools on top of your application.
 
-For more details, see the guide on [Authorization](auth/overview.md).
+For more details, see the guide on [Authorization](auth/index.md).
 
 ## Authorization
 
 OAuth 2.0 is a standardized authorization framework. Aqueduct contains a specification-compliant implementation of an OAuth 2.0 server that can be integrated directly into your application, or stood up alone to provide an authorization server for federated services. This implementation is easily customizable - it can store authorization artifacts - like tokens and client identifiers - in different types of databases or use stateless authorization mechanisms like JWT. The default implementation leverages the Aqueduct ORM to store artifacts in PostgreSQL.
 
-For more details, see the guide on [Databases](db/overview.md).
+For more details, see the guide on [Databases](db/index.md).
 
 ## Documentation
 
 OpenAPI 3.0 is a standardized documentation format for HTTP APIs. Many built-in Aqueduct objects support 'automatic' documentation. Objects that are specific to your application can build on top of this to immediately document your application for every change you make.
 
-For more details, see the guide on [OpenAPI Documentation](openapi/overview.md).
+For more details, see the guide on [OpenAPI Documentation](openapi/index.md).

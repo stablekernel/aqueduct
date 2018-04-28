@@ -63,7 +63,7 @@ lib/
   application_name.dart
 ```
 
-The name of any Dart application is defined by the `name` key in `pubspec.yaml`. In order for `aqueduct serve` to run your application, there must be a `.dart` file in `lib/` with that same name. This is your application library file and it must declare a `ApplicationChannel` subclass or import a file that does. This is the bare minimum requirement to run an Aqueduct application. (See [Deploying](../deploy/overview.md) for more details on running applications.)
+The name of any Dart application is defined by the `name` key in `pubspec.yaml`. In order for `aqueduct serve` to run your application, there must be a `.dart` file in `lib/` with that same name. This is your application library file and it must declare a `ApplicationChannel` subclass or import a file that does. This is the bare minimum requirement to run an Aqueduct application. (See [Deploying](../deploy/index.md) for more details on running applications.)
 
 For organizing applications of reasonable size, we recommend the following structure:
 

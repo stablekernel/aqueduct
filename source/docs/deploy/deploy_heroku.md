@@ -1,10 +1,10 @@
 # Deploying an Aqueduct Application on Heroku
 
-For other deployment options, see [Deploying Aqueduct Applications](overview.md).
+For other deployment options, see [Deploying Aqueduct Applications](index.md).
 
 ### Purpose
 
-To run a production Aqueduct application on Heroku. Make sure to also read [Testing Aqueduct Applications](../testing/overview.md).
+To run a production Aqueduct application on Heroku. Make sure to also read [Testing Aqueduct Applications](../testing/index.md).
 
 ### Prerequisites
 

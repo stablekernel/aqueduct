@@ -16,7 +16,7 @@ pages:
 - Tour: 'tour.md'
 - IntelliJ IDEA Templates: 'intellij.md'
 - Snippets:
-  - 'Overview': 'snippets/overview.md'
+  - 'Overview': 'snippets/index.md'
   - 'HTTP': 'snippets/http.md'
   - 'ORM': 'snippets/orm.md'
   - 'Authentication and Authorization': 'snippets/auth.md'
@@ -27,7 +27,7 @@ pages:
   - '3. Storing Data in a Database': 'tut/storing-data.md'
 - Guides:
   - Serving HTTP Requests:
-    - 'Overview': 'http/overview.md'
+    - 'Overview': 'http/index.md'
     - 'Application Structure': 'http/structure.md'
     - 'Request and Response Objects': 'http/request_and_response.md'
     - 'Handling Requests: Fundamentals': 'http/controller.md'
@@ -39,7 +39,7 @@ pages:
     - 'Websockets': 'http/websockets.md'
     - 'Multi-threading': 'http/threading.md'
   - Databases and ORM:
-    - 'Overview': 'db/overview.md'
+    - 'Overview': 'db/index.md'
     - 'Connecting to a Database': 'db/connecting.md'
     - 'Modeling Data': 'db/modeling_data.md'
     - 'Storage, Serialization and Deserialization': 'db/serialization.md'
@@ -51,7 +51,7 @@ pages:
     - 'JSON Document Storage': 'db/json_columns.md'
     - 'Transactions': 'db/transactions.md'
   - Authorization and OAuth 2.0:
-    - 'Overview': 'auth/overview.md'
+    - 'Overview': 'auth/index.md'
     - 'Setting up Authorization': 'auth/server.md'
     - 'Protecting Routes': 'auth/authorizer.md'
     - 'Issuing Access Tokens': 'auth/controllers.md'
@@ -59,7 +59,7 @@ pages:
     - 'OAuth 2.0 Scoping': 'auth/auth_scopes.md'
     - 'What is OAuth 2.0?': 'auth/what_is_oauth.md'
   - Development and Testing:
-    - 'Overview': 'testing/overview.md'
+    - 'Overview': 'testing/index.md'
     - 'Using a Local Database': 'testing/database.md'
     - 'Using the Debugger': 'testing/debugger.md'
     - 'Development Best Practices': 'testing/best_practices.md'
@@ -67,19 +67,19 @@ pages:
     - 'Writing Tests': 'testing/tests.md'
     - 'Mocking Services'  : 'testing/mock.md'
   - Deployment:
-    - 'Overview': 'deploy/overview.md'
+    - 'Overview': 'deploy/index.md'
     - 'Deploy Locally': 'deploy/deploy_local.md'
     - 'Deploy on Heroku': 'deploy/deploy_heroku.md'
     - 'Deploy on AWS': 'deploy/deploy_aws.md'
     - 'Deploying without aqueduct serve': 'deploy/script.md'
   - OpenAPI Documentation:
-    - 'Overview': 'openapi/overview.md'
+    - 'Overview': 'openapi/index.md'
     - 'Creating an OpenAPI Document': 'openapi/cli.md'
     - 'Documenting Components': 'openapi/components.md'
     - 'Documenting Endpoint Controllers': 'openapi/endpoint.md'
     - 'Documenting Middleware Controllers': 'openapi/middleware.md'
   - Command-line Tooling:
-    - 'Overview': 'cli/overview.md'
+    - 'Overview': 'cli/index.md'
     - 'Creating Applications': 'cli/create.md'
     - 'Running Applications': 'cli/running.md'
     - 'Generating an OpenAPI/Swagger Specification': 'cli/document.md'

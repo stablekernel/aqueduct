@@ -57,7 +57,9 @@ The canonical `Operation()` constructor takes the HTTP method as its first argum
 Future<Response> patchObjectWithID() async => ...;
 ```
 
-All `Operation` constructors take a variable list of path variables. An operation method will only be invoked if it the path variables of a request exactly match the path variables identified in `Operation` constructor. Here's an example of an operation that requires two path variables:
+All `Operation` constructors take a variable list of path variables. There can be multiple path variables for an operation. An operation method will only be invoked if all of its path variables are present in the request path. There can be multiple operation methods for a given HTTP method, as long as each expects a different set of path variables.
+
+Here's an example of an operation that requires two path variables:
 
 ```dart
 @Operation.get('userID', 'itemID')
@@ -68,7 +70,7 @@ Future<Response> getUserItem() async {
 }
 ```
 
-If no operation method exists for an operation, a 405 Method Not Allowed response is automatically sent and no operation method is invoked.
+If no operation method exists for a request, a 405 Method Not Allowed response is automatically sent and no operation method is invoked.
 
 ## Routing to a ResourceController
 
@@ -96,18 +98,22 @@ router
 
 By contrast, the route `/cities/[:name/[attractions/[:id]]]`, while valid, makes controller logic much more unwieldy.
 
-## REST Bindings
+## Request Bindings
 
-Operation methods may *bind* properties of an HTTP request to its parameters. When the operation method is invoked, the value of that property is passed as an argument to the operation method. For example, the following binds the path variable 'name' to the argument `cityName`:
+Operation methods may *bind* properties of an HTTP request to its parameters. When the operation method is invoked, the value of that property is passed as an argument to the operation method. For example, the following binds the header named 'X-API-Key' to the argument `apiKey`:
 
 ```dart
 @Operation.get('name')
-Future<Response> getCityByName(@Bind.path('name') String cityName) async {
-  return new Response.ok(fetchCityWithName(cityName));
+Future<Response> getCityByName(@Bind.path('x-api-key') String apiKey) async {
+  if (!isValid(apiKey)) {
+    return new Response.unauthorized();
+  }
+
+  return new Response.ok(...);
 }
 ```
 
-The following table shows the annotation and the property of the HTTP request that will be bound:
+The following table shows the possible types of bindings:
 
 Property | Binding
 ---|---
@@ -117,73 +123,6 @@ Header | `@Bind.header(headerName)`
 Request Body | `@Bind.body()`
 
 You may bind any number of HTTP request properties to a single operation method.
-
-### Header Bindings
-
-The following operation method binds the header named `X-API-Key` to `apiKey`:
-
-```dart
-class CityController extends ResourceController {
-  @Operation.get()
-  Future<Response> getAllCities(@Bind.header('x-api-key') String apiKey) async {
-    if (!isValid(apiKey)) {
-      return new Response.unauthorized();
-    }
-
-    return new Response.ok(['Atlanta', 'Madison', 'Mountain View']);
-  }
-}
-```
-
-If an `X-API-Key` header is present in the request, its value will be available in `apiKey`. If it is not, `getAllCities(apiKey)` would not be called and a 400 Bad Request response will be sent.
-
-Header bindings may be marked optional by making the bound parameter a Dart optional parameter by wrapping it in curly brackets:
-
-```dart
-Future<Response> getAllCities({@Bind.header('x-api-key') String apiKey})
-```
-
-If an optional header binding is not in the request, the operation method is still called and the bound parameter is null. Like all Dart optional parameters, you may specify a default value when the header is not present in the request:
-
-```dart
-Future<Response> getAllCities({@Bind.header('x-api-key') String apiKey: "defaultKey"})
-```
-
-Header names are case-insensitive per the HTTP specification. Therefore, the header name may be 'X-API-KEY', 'X-Api-Key' 'x-api-key', etc. and `apiKey` will be bound in all cases.
-
-### Query Parameter Bindings
-
-The following operation methods binds the query parameter named 'name' to the parameter `cityName`:
-
-class CityController extends ResourceController {
-  @Operation.get()
-  Future<Response> getAllCities(@Bind.query('name') String cityName) async {
-    return new Response.ok(cities.where((c) => c.name == cityName).toList());
-  }
-}
-
-Like header bindings, query parameters can be required or optional. If required, a 400 Bad Request response is sent and no operation method is called if the query parameter is not present in the request URL. If optional, the bound variable is null or a default value.
-
-Query parameters are case-sensitive; this binding will only match the query parameter 'name', but not 'Name' or 'NAME'.
-
-Query parameters may also bound for query strings in the request body when the content-type is 'application/x-www-form-urlencoded'.
-
-### Path Variable Bindings
-
-The following operation method binds the path variable 'id' to the parameter `cityID`:
-
-```dart
-class CityController extends ResourceController {
-  @Operation.get('id')
-  Future<Response> getCityByID(@Bind.query('id') String cityID) async {
-    return new Response.ok(cities.where((c) => c.id == cityID).toList());
-  }
-}
-```
-
-Path variables are made available when creating [routes](routing.md). A `Router` must have a route that includes a path variable and that path variable must be listed in the `Operation` annotation. Path variables are case-sensitive and may not be optional.
-
-If you attempt to bind a path variable that is not present in the `Operation`, you will get a runtime exception at startup. You do not have to bind path variables for an operation method to be invoked.
 
 ### Optional Bindings
 
@@ -228,6 +167,61 @@ Future<Response> getCitiesByIDs(@Bind.query('id') List<int> ids)
 ```
 
 Note that if a parameter is *not* bound to a list and there are multiple occurrences of that property in the request, a 400 Bad Request response will be sent. If you want to allow multiple values, you must bind to a `List<T>`.
+
+### Header Bindings
+
+The following operation method binds the header named `X-API-Key` to the `apiKey` parameter:
+
+```dart
+class CityController extends ResourceController {
+  @Operation.get()
+  Future<Response> getAllCities(@Bind.header('x-api-key') String apiKey) async {
+    if (!isValid(apiKey)) {
+      return new Response.unauthorized();
+    }
+
+    return new Response.ok(['Atlanta', 'Madison', 'Mountain View']);
+  }
+}
+```
+
+If an `X-API-Key` header is present in the request, its value will be available in `apiKey`. If it is not, `getAllCities(apiKey)` would not be called and a 400 Bad Request response will be sent. If `apiKey` were optional, the method is called as normal and `apiKey` is null or a default value.
+
+Header names are case-insensitive per the HTTP specification. Therefore, the header name may be 'X-API-KEY', 'X-Api-Key' 'x-api-key', etc. and `apiKey` will be bound in all cases.
+
+### Query Parameter Bindings
+
+The following operation methods binds the query parameter named 'name' to the parameter `cityName`:
+
+class CityController extends ResourceController {
+  @Operation.get()
+  Future<Response> getAllCities(@Bind.query('name') String cityName) async {
+    return new Response.ok(cities.where((c) => c.name == cityName).toList());
+  }
+}
+
+Query parameters can be required or optional. If required, a 400 Bad Request response is sent and no operation method is called if the query parameter is not present in the request URL. If optional, the bound variable is null or a default value.
+
+Query parameters are case-sensitive; this binding will only match the query parameter 'name', but not 'Name' or 'NAME'.
+
+Query parameters may also bound for query strings in the request body when the content-type is 'application/x-www-form-urlencoded'.
+
+### Path Variable Bindings
+
+The following operation method binds the path variable 'id' to the parameter `cityID`:
+
+```dart
+class CityController extends ResourceController {
+  @Operation.get('id')
+  Future<Response> getCityByID(@Bind.query('id') String cityID) async {
+    return new Response.ok(cities.where((c) => c.id == cityID).toList());
+  }
+}
+```
+
+Path variables are made available when creating [routes](routing.md). A `Router` must have a route that includes a path variable and that path variable must be listed in the `Operation` annotation. Path variables are case-sensitive and may not be optional.
+
+If you attempt to bind a path variable that is not present in the `Operation`, you will get a runtime exception at startup. You do not have to bind path variables for an operation method to be invoked.
 
 ### HTTP Request Body Bindings
 
@@ -274,9 +268,9 @@ class City implements HTTPSerializable {
 ```
 
 !!! tip "ManagedObject and HTTPSerializable"
-    `ManagedObject`s from Aqueduct's ORM automatically implement `HTTPSerializable` without having to implement these two methods.
+    `ManagedObject`s from Aqueduct's ORM implement `HTTPSerializable` without having to implement these two methods.
 
-Aqueduct will automatically decode the request body from it's content-type, create a new instance of the bound parameter type, and invoke its `readFromMap(map)` method. In the above example, a valid request body would the following JSON:
+Aqueduct will automatically decode the request body from it's content-type, create a new instance of the bound parameter type, and invoke its `readFromMap` method. In the above example, a valid request body would be the following JSON:
 
 ```json
 {
@@ -288,7 +282,7 @@ Aqueduct will automatically decode the request body from it's content-type, crea
 !!! note "HTTP Body Decoding"
     Request bodies are decoded according to their content-type prior to being deserialized. For more information on request body decoding, including decoding content-types other than JSON, see [this guide](request_and_response.md).
 
-If parsing fails or `readFromMap(map)` throws an exception, a 400 Bad Request response will be sent and the operation method won't be called.
+If parsing fails or `readFromMap` throws an exception, a 400 Bad Request response will be sent and the operation method won't be called.
 
 You may also bind `List<HTTPSerializable>` parameters to the request body. Consider the following JSON that contains a list of cities:
 
@@ -308,8 +302,7 @@ Future<Response> addCity(@Bind.body() List<City> cities)
 !!! tip 'List vs Object'
     An endpoint should either take a single object or a list of objects, but not both. If the request body is a JSON list and the bound variable is not a list, a 400 Bad Request response will be sent (and vice versa). Declaring a body binding of the appropriate type validates the expected value and aids in automatically generating an OpenAPI specification for your application.
 
-
-Note that if the request's `Content-Type` is 'x-www-form-urlencoded' and the query string is in the body, its individual keys must be bound with `Bind.query` and not `Bind.body`.
+Note that if the request's `Content-Type` is 'x-www-form-urlencoded', its must be bound with `Bind.query` and not `Bind.body`.
 
 ### Property Binding
 
@@ -331,7 +324,7 @@ class CityController extends ResourceController {
 }
 ```
 
-In the above, both `timestamp` and `limit` are bound prior to `getCities` being invoked. By default, a bound property is optional. Adding an `requiredHTTPParameter` annotation changes a property to required.. If required, any request without the required property fails with a 400 Bad Request status code and none of the operation methods are invoked.
+In the above, both `timestamp` and `limit` are bound prior to `getCities` being invoked. By default, a bound property is optional. Adding an `requiredHTTPParameter` annotation changes a property to required. If required, any request without the required property fails with a 400 Bad Request status code and none of the operation methods are invoked.
 
 ## Other ResourceController Behavior
 

@@ -59,7 +59,7 @@ Aqueduct is a server-side framework for building and deploying REST applications
 
 [Example Repository](https://github.com/stablekernel/aqueduct_examples)
 
-Check out [Snippets](snippets/overview.md) for quick code snippets to get you up and running faster.
+Check out [Snippets](snippets/index.md) for quick code snippets to get you up and running faster.
 
 Import [this file](https://s3.amazonaws.com/aqueduct-intellij/aqueduct.jar) into IntelliJ IDEA for Aqueduct file and code templates.
 

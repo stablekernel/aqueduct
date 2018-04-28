@@ -1,10 +1,10 @@
 # Deploying an Aqueduct Application on Amazon Web Services (AWS)
 
-For other deployment options, see [Deploying Aqueduct Applications](overview.md).
+For other deployment options, see [Deploying Aqueduct Applications](index.md).
 
 ### Purpose
 
-To run a production Aqueduct application on Amazon Web Services. Make sure to also read [Testing Aqueduct Applications](../testing/overview.md).
+To run a production Aqueduct application on Amazon Web Services. Make sure to also read [Testing Aqueduct Applications](../testing/index.md).
 
 ### Prerequisites
 
