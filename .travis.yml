@@ -3,34 +3,29 @@ dart:
   - dev
 addons:
   postgresql: "9.6"
+
 services:
   - postgresql
+
 before_install:
-  - bash ci/before_script.sh
-before_script:
-  - psql -c 'create user dart with createdb;' -U postgres
-  - psql -c "alter user dart with password 'dart';" -U postgres
-  - psql -c 'create database dart_test;' -U postgres
-  - psql -c 'grant all on database dart_test to dart;' -U postgres
-  - pub get
-script: bash ci/script.sh
-env:
-  - STAGE=tests
-  - STAGE=coverage COVERAGE_SLICE='auth http'
-  - STAGE=coverage COVERAGE_SLICE='command'
-  - STAGE=coverage COVERAGE_SLICE='db managed_auth utilities testing'
+  - bash ci/before_install.sh
+
+after_success:
+  - bash ci/after_script.sh
+
+jobs:
+  include:
+    - stage: test
+      script: bash ci/script.sh
+      env: TEST_DIR="aqueduct"
+    - stage: test
+      script: bash ci/script.sh
+      env: TEST_DIR="aqueduct_test"
+
+stages:
+  - test
+
 branches:
   only:
     - master
     - 3.0
-after_success:
-  - bash ci/after_script.sh
-
-matrix:
-  exclude:
-    - dart: dev
-      env: STAGE=coverage COVERAGE_SLICE='auth http'
-    - dart: dev
-      env: STAGE=coverage COVERAGE_SLICE='command'
-    - dart: dev
-      env: STAGE=coverage COVERAGE_SLICE='db managed_auth utilities testing'
