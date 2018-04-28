@@ -57,9 +57,9 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     createProjectSpecificFiles(destDirectory.path);
     if (aqueductPackageRef.sourceType == "path") {
       final aqueductLocation = aqueductPackageRef.resolve().location;
-      
-      addPathDependencyOverride(destDirectory.path, "aqueduct", aqueductLocation.uri);
-      addPathDependencyOverride(destDirectory.path, "aqueduct_test", aqueductLocation.parent.uri.resolve("aqueduct_test/"));
+
+      addPathDependencyOverride(destDirectory.path,
+          {"aqueduct": aqueductLocation.uri, "aqueduct_test": aqueductLocation.parent.uri.resolve("aqueduct_test/")});
     }
 
     displayInfo("Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
@@ -167,23 +167,18 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     configSrcPath.copySync(new File(path_lib.join(directoryPath, "config.yaml")).path);
   }
 
-  void addPathDependencyOverride(String destDirectoryPath, String packageName, Uri location) {
+  void addPathDependencyOverride(String destDirectoryPath, Map<String, Uri> overrides) {
     var pubspecFile = new File(path_lib.join(destDirectoryPath, "pubspec.yaml"));
     var contents = pubspecFile.readAsStringSync();
 
     final overrideBuffer = new StringBuffer();
-    overrideBuffer.writeln("  $packageName:");
-    overrideBuffer.writeln("    path:  ${location.path}");
+    overrideBuffer.writeln("dependency_overrides:");
+    overrides.forEach((packageName, location) {
+      overrideBuffer.writeln("  $packageName:");
+      overrideBuffer.writeln("    path:  ${location.path}");
+    });
 
-    final overrideSection = "dependency_overrides:";
-    if (!contents.contains(overrideSection)) {
-      contents = contents + overrideSection;
-    }
-
-    final dependencyInsertLocation = contents.indexOf(overrideSection) + overrideSection.length;
-    contents = contents.replaceRange(dependencyInsertLocation, dependencyInsertLocation, "\n${overrideBuffer.toString()}");
-
-    pubspecFile.writeAsStringSync(contents);
+    pubspecFile.writeAsStringSync(contents + "\n$overrideBuffer");
   }
 
   void copyProjectFiles(Directory destinationDirectory, Directory sourceDirectory, String projectName) {

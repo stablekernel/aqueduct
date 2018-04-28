@@ -8,6 +8,9 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'cli_helpers.dart';
 
+File get certificateFile => new File.fromUri(Directory.current.uri.resolve("../").resolve("ci/").resolve("aqueduct.cert.pem"));
+File get keyFile => new File.fromUri(Directory.current.uri.resolve("../").resolve("ci/").resolve("aqueduct.key.pem"));
+
 void main() {
   Terminal terminal;
   CLITask task;
@@ -67,10 +70,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start with valid SSL args opens https server", () async {
-    var certFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.cert.pem"));
-    var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
-
-    certFile.copySync(terminal.workingDirectory.uri.resolve("server.crt").path);
+    certificateFile.copySync(terminal.workingDirectory.uri.resolve("server.crt").path);
     keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
 
     task = terminal.startAqueductCommand("serve",
@@ -89,10 +89,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start without one of SSL values throws exception", () async {
-    var certFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.cert.pem"));
-    var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
-
-    certFile.copySync(terminal.workingDirectory.uri.resolve("server.crt").path);
+    certificateFile.copySync(terminal.workingDirectory.uri.resolve("server.crt").path);
     keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
 
     task = terminal.startAqueductCommand("serve", ["--ssl-key-path", "server.key"]);
@@ -105,7 +102,6 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start with invalid SSL values throws exceptions", () async {
-    var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
     keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
 
     var badCertFile = new File.fromUri(terminal.workingDirectory.uri.resolve("server.crt"));
@@ -118,7 +114,6 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Can't find SSL file, throws exception", () async {
-    var keyFile = new File.fromUri(new Directory("ci").uri.resolve("aqueduct.key.pem"));
     keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
 
     task = terminal.startAqueductCommand("serve",
