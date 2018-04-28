@@ -9,13 +9,6 @@ services:
 before_install:
   - bash ci/before_install.sh
 
-before_script:
-  - psql -c 'create user dart with createdb;' -U postgres
-  - psql -c "alter user dart with password 'dart';" -U postgres
-  - psql -c 'create database dart_test;' -U postgres
-  - psql -c 'grant all on database dart_test to dart;' -U postgres
-  - pub get
-
 env:
   - TEST_DIR=aqueduct_test
   - TEST_DIR=aqueduct
@@ -30,10 +23,6 @@ jobs:
 
 matrix:
   exclude:
-    - dart: dev
-      env: STAGE=coverage
-    - dart: dev
-      env: STAGE=coverage
     - dart: dev
       env: STAGE=coverage
 
