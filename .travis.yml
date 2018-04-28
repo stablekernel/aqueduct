@@ -1,0 +1,37 @@
+language: dart
+dart:
+  - dev
+addons:
+  postgresql: "9.6"
+services:
+  - postgresql
+before_install:
+  - bash ci/before_install.sh
+before_script:
+  - psql -c 'create user dart with createdb;' -U postgres
+  - psql -c "alter user dart with password 'dart';" -U postgres
+  - psql -c 'create database dart_test;' -U postgres
+  - psql -c 'grant all on database dart_test to dart;' -U postgres
+  - pub get
+script: bash ci/script.sh
+env:
+  - TEST_DIR=aqueduct_test STAGE=tests
+  - TEST_DIR=aqueduct STAGE=tests
+  - TEST_DIR=aqueduct STAGE=coverage COVERAGE_SLICE='auth http'
+  - TEST_DIR=aqueduct STAGE=coverage COVERAGE_SLICE='command openapi'
+  - TEST_DIR=aqueduct STAGE=coverage COVERAGE_SLICE='db managed_auth utilities testing'
+branches:
+  only:
+    - master
+    - 3.0
+after_success:
+  - bash ci/after_script.sh
+
+matrix:
+  exclude:
+    - dart: dev
+      env: TEST_DIR=aqueduct STAGE=coverage COVERAGE_SLICE='auth http'
+    - dart: dev
+      env: TEST_DIR=aqueduct STAGE=coverage COVERAGE_SLICE='command openapi'
+    - dart: dev
+      env: TEST_DIR=aqueduct STAGE=coverage COVERAGE_SLICE='db managed_auth utilities testing'
