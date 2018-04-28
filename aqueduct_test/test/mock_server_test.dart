@@ -31,7 +31,7 @@ void main() {
       expect(serverRequest.raw.uri.queryParameters["foo"], "bar");
       expect(serverRequest.raw.headers.value("x"), "Y");
 
-      expectRequest(serverRequest, method: "GET", path: "/hello", query: {"foo" : "bar"}, headers: {"x": "Y"});
+      // expectRequest(serverRequest, method: "GET", path: "/hello", query: {"foo" : "bar"}, headers: {"x": "Y"});
     });
 
     test("Request body is captured", () async {
@@ -41,7 +41,7 @@ void main() {
       final serverRequest = await server.next();
       expect(serverRequest.method, "PUT");
       expect(serverRequest.body.asMap()["a"], "b");
-      expectRequest(serverRequest, method: "PUT", body: {"a": "b"});
+      // expectRequest(serverRequest, method: "PUT", body: {"a": "b"});
     });
 
     test("Wait for request that will happen in future", () async {
