@@ -10,10 +10,6 @@ services:
 before_install:
   - bash ci/before_install.sh
 
-env:
-  - TEST_DIR=aqueduct_test
-  - TEST_DIR=aqueduct
-
 after_success:
   - bash ci/after_script.sh
 
@@ -21,14 +17,13 @@ jobs:
   include:
     - stage: test
       script: bash ci/script.sh
+      env: TEST_DIR="aqueduct"
+    - stage: test
+      script: bash ci/script.sh
+      env: TEST_DIR="aqueduct_test"
 
 stages:
   - test
-
-matrix:
-  exclude:
-    - dart: dev
-      env: STAGE=coverage
 
 branches:
   only:
