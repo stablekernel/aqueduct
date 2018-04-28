@@ -1,5 +1,6 @@
 ## 3.0.0
 
+- `package:aqueduct/test` moved to `package:aqueduct_test/aqueduct_test`, which is a separate dependency than `aqueduct`.
 - Adds `ManagedContext.transaction` to enable queries to be run in a database transaction. 
 - Removes `ManagedContext.defaultContext`; context usage must be explicit.
 - Adds 'Scope' annotation to add granular scoping to `ResourceController` methods.

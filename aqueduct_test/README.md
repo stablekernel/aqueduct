@@ -1,2 +1,3 @@
-# dart-aqueduct-test
-Test framework for Aqueduct HTTP applications
+# aqueduct_test
+
+Test framework for `package:aqueduct` applications. 
