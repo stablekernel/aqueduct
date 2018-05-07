@@ -1,57 +1,25 @@
 part of aqueduct_test.client;
 
-/// Instances are HTTP responses returned from [TestClient].
+/// An HTTP response from a test application.
 ///
-/// Instances are created when invoking an execution method with a [TestClient].
+/// You receive objects of this type when using an [Agent] to execute test requests.
+/// The properties of this object are used in test expectations to ensure the endpoint
+/// worked as intended.
 ///
-/// See methods like [expectResponse], [hasResponse] and [hasStatus] for usage.
+/// Prefer to use methods like [expectResponse], [hasResponse] and [hasStatus] when
+/// validating response properties.
 class TestResponse {
   TestResponse._(this._innerResponse)
-    : bodyDecoder = new TestResponseBody(_innerResponse);
+    : body = new TestResponseBody(_innerResponse);
 
   final HttpClientResponse _innerResponse;
 
-  /// HTTP Body of this instance,
+  /// The HTTP body of the response.
   ///
-  /// Use this property to retrieve the body of this request. This property behaves exactly like
-  /// [Request.body] and is automatically decoded before this instance becomes available.
-  final TestResponseBody bodyDecoder;
-
-  /// The HTTP response body decoded according to its Content-Type.
-  ///
-  /// Prefer to use [bodyDecoder].
-  ///
-  /// Decoding is performed by [bodyDecoder].
-  dynamic get decodedBody {
-    if (bodyDecoder.isEmpty) {
-      return null;
-    }
-
-    if (reflectType(bodyDecoder.decodedType).isSubtypeOf(reflectType(Map))) {
-      return bodyDecoder.asMap();
-    } else if (reflectType(bodyDecoder.decodedType).isSubtypeOf(reflectType(String))) {
-      return bodyDecoder.asString();
-    } else if (reflectType(bodyDecoder.decodedType).isSubtypeOf(reflectType(List))) {
-      return bodyDecoder.asList();
-    }
-
-    return bodyDecoder.asBytes();
-  }
-
-  /// A [String] representation of the body.
-  ///
-  /// Kept for backwards compatibility, use [bodyDecoder] instead.
-  String get body {
-    if (decodedBody == null) {
-      return null;
-    }
-
-    var codec = HTTPCodecRepository
-        .defaultInstance
-        .codecForContentType(_innerResponse.headers.contentType);
-
-    return utf8.decode(codec.encode(decodedBody));
-  }
+  /// The body is guaranteed to be decoded prior to accessing it. You do
+  /// not need to invoke [TestResponseBody.decodedData] or any of its asynchronous
+  /// decoding methods.
+  final TestResponseBody body;
 
   /// HTTP response headers.
   HttpHeaders get headers => _innerResponse.headers;
@@ -65,16 +33,6 @@ class TestResponse {
   /// Whether or not the response is a redirect.
   bool get isRedirect => _innerResponse.isRedirect;
 
-  /// The [decodedBody] typed to a [List].
-  ///
-  /// Use [bodyDecoder] instead.
-  List<dynamic> get asList => bodyDecoder.asList();
-
-  /// The [decodedBody] typed to a [Map].
-  ///
-  /// Use [bodyDecoder] instead.
-  Map<dynamic, dynamic> get asMap => decodedBody as Map;
-
   @override
   String toString() {
     var buffer = new StringBuffer();
@@ -87,8 +45,8 @@ class TestResponse {
       buffer.writeln("  - $header");
     });
 
-    if (!bodyDecoder.isEmpty) {
-      buffer.writeln(decodedBody.toString());
+    if (!body.isEmpty) {
+      buffer.writeln(body.toString());
     } else {
       buffer.writeln("- Body is empty");
     }

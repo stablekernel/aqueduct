@@ -9,7 +9,7 @@ void main() {
     var app = new Application<TestChannel>();
     Controller.letUncaughtExceptionsEscape = true;
     app.options.port = 8888;
-    var client = new TestClient.onPort(app.options.port);
+    var client = new Agent.onPort(app.options.port);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
@@ -55,14 +55,14 @@ void main() {
       };
 
       var resp = await (client.request("/controller/2")
-        ..json = {"name": "Fred"})
+        ..body = {"name": "Fred"})
           .put();
       expect(resp, hasResponse(200, body: {"data": expectedMap}));
     });
 
     test("Missing object for update returns overridden status code", () async {
       var resp = await (client.request("/controller/25")
-        ..json = {"name": "Fred"})
+        ..body = {"name": "Fred"})
           .put();
 
       expect(resp, hasStatus(403));
@@ -70,7 +70,7 @@ void main() {
 
     test("Can create an object", () async {
       var resp = await (client.request("/controller")
-        ..json = {
+        ..body = {
           "name": "John",
           "createdAt": new DateTime(2000, 12, 12).toUtc().toIso8601String()
         })

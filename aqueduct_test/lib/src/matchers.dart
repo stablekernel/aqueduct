@@ -3,7 +3,7 @@ import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 
 import 'mock_server.dart';
-import 'client.dart';
+import 'agent.dart';
 import 'response_matcher.dart';
 import 'body_matcher.dart';
 import 'header_matcher.dart';

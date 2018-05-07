@@ -11,13 +11,15 @@ import 'dart:convert';
 
 void main() {
   Application<TestChannel> application;
-  TestClient client = new TestClient.onPort(8888);
+  Agent client = new Agent.onPort(8888);
 
   var codeResponse = (Map<String, String> form) {
     var m = new Map<String, String>.from(form);
     m.addAll({"response_type": "code"});
 
-    var req = client.request("/auth/code")..formData = m;
+    var req = client.request("/auth/code")
+      ..contentType = new ContentType("application", "x-www-form-urlencoded", charset: "utf-8")
+      ..body = m;
 
     return req.post();
   };
@@ -39,13 +41,13 @@ void main() {
   group("GET success case", () {
     test("GET login form with valid values returns a 'page' with the provided values", () async {
       var req = client.request("/auth/code")
-        ..formData = {"client_id": "com.stablekernel.redirect", "response_type": "code"};
+        ..query = {"client_id": "com.stablekernel.redirect", "response_type": "code"};
 
       var res = await req.get();
       expect(res, hasResponse(200, body: null, headers: {"content-type": "text/html; charset=utf-8"}));
+
       // The data is actually JSON for purposes of this test, just makes it easier to validate here.
-      var decoded = json.decode(res.body);
-      expect(decoded, {
+      expect(res.body.asMap(), {
         "response_type": "code",
         "client_id": "com.stablekernel.redirect",
         "state": null,
@@ -56,7 +58,7 @@ void main() {
 
     test("GET login form with valid values returns a 'page' with the provided values + state + scope", () async {
       var req = client.request("/auth/code")
-        ..formData = {
+        ..query = {
           "client_id": "com.stablekernel.redirect",
           "state": "Alaska",
           "response_type": "code",
@@ -65,8 +67,7 @@ void main() {
       var res = await req.get();
       expect(res, hasStatus(200));
       expect(res, hasHeaders({"content-type": "text/html; charset=utf-8"}));
-      var decoded = json.decode(res.body);
-      expect(decoded, {
+      expect(res.body.asMap(), {
         "response_type": "code",
         "client_id": "com.stablekernel.redirect",
         "state": "Alaska",
@@ -79,7 +80,7 @@ void main() {
   group("GET failure cases", () {
     test("No registered rendered returns 405", () async {
       var req = client.request("/nopage")
-        ..formData = {"client_id": "com.stablekernel.redirect", "response_type": "code"};
+        ..query = {"client_id": "com.stablekernel.redirect", "response_type": "code"};
       var res = await req.get();
       expect(res, hasStatus(405));
     });

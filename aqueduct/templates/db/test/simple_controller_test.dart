@@ -1,50 +1,25 @@
 import 'harness/app.dart';
 
 Future main() async {
-  TestApplication app = new TestApplication();
-
-  setUpAll(() async {
-    await app.start();
-  });
-
-  tearDownAll(() async {
-    await app.stop();
-  });
+  Harness harness = new Harness()..install();
 
   tearDown(() async {
-    await app.discardPersistentData();
+    await harness.resetData();
   });
 
-  group("Success flow", () {
-    test("Can create model", () async {
-      var request = app.client.request("/model")
-        ..json = {
-          "name": "Bob"
-        };
+  test("POST /model", () async {
+    var response = await harness.agent.post("/model", body: {"name": "Bob"});
+    expect(response, hasResponse(200, body: {"id": isNotNull, "name": "Bob", "createdAt": isTimestamp}));
+  });
 
-      var response = await request.post();
-      expect(response, hasResponse(200, body: {
-        "id": isNotNull,
-        "name": "Bob",
-        "createdAt": isTimestamp
-      }));
-    });
+  test("GET /model/:id returns previously created object", () async {
+    var response = await harness.agent.post("/model", body: {"name": "Bob"});
 
-    test("Can get model", () async {
-      var request = app.client.request("/model")
-        ..json = {
-          "name": "Bob"
-        };
-
-      var response = await request.post();
-      var createdModelID = response.asMap["id"];
-
-      response = await app.client.request("/model/$createdModelID").get();
-      expect(response, hasResponse(200, body: {
-        "id": response.asMap["id"],
-        "name": response.asMap["name"],
-        "createdAt": response.asMap["createdAt"]
-      }));
-    });
+    final createdObject = response.body.asMap();
+    response = await harness.agent.request("/model/${createdObject["id"]}").get();
+    expect(
+        response,
+        hasResponse(200,
+            body: {"id": createdObject["id"], "name": createdObject["name"], "createdAt": createdObject["createdAt"]}));
   });
 }

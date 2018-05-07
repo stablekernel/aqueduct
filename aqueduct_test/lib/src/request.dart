@@ -1,42 +1,36 @@
 part of aqueduct_test.client;
 
-/// Instances of this type represent an HTTP request to be executed with a [TestClient].
+/// Object to construct an HTTP request during testing.
 ///
-/// There is no need to instantiate this class directly. See [TestClient.request], [TestClient.clientAuthenticatedRequest],
-/// and [TestClient.authenticatedRequest]. Once returned an instance from one of these methods, you may configure
-/// additional properties before executing it with methods like [TestRequest.get], [TestRequest.post], etc.
+/// Test requests are typically executed via methods in [Agent] (e.g., [Agent.get]).
+/// For more granular configuration than provided by those methods, directly configure an
+/// this object and execute it with methods like [get] or [post].
 ///
-/// Instances of this class will create instances of [TestResponse] once executed that can be used in test expectations. See
-/// also [hasResponse] and [hasStatus].
+/// Instantiate these objects via [Agent.request] instead of through this type's constructor.
 class TestRequest {
   HttpClient _client;
 
   /// The base URL of the request.
   ///
-  /// The [path] will be appended to this value.
+  /// The [path] will be appended to this value. When [TestRequest] is instantiated by
+  /// a [Agent], this property is set to [Agent.baseURL].
   String baseURL;
 
   /// The path of the request; will be appended to [baseURL].
   String path;
 
-  /// The Content-Type of the [body].
+  /// The Content-Type that [body] should be encoded in.
   ///
-  /// This defaults to [ContentType.JSON]. For form data or JSON data, use [formData] or [json] instead of setting this
-  /// directly. For other encodings, you must set this value to the appropriate [ContentType].
+  /// [body] will be encoded according to the codec in [HTTPCodecRepository] that matches this value.
+  ///
+  /// Defaults to [ContentType.JSON].
   ContentType contentType = ContentType.JSON;
 
-  /// The HTTP request body.
+  /// The body of the this request.
   ///
-  /// Sets the body of this instance directly.
+  /// Prior to execution, [body] will be encoded according to its [contentType] codec in [HTTPCodecRepository].
   ///
-  /// Prior to execution, this property will be encoded according to its [contentType] and [HTTPCodecRepository].
-  /// If [encodeBody] is false, this must be a [List<int>].
-  ///
-  /// Prefer to use [setBody], [json] or [formData] which set this property and [contentType]
-  /// at the same time.
-  ///
-  /// Note: for backwards compatibility, if [body] is a [String] is encoded
-  /// as UTF8 bytes by default and no codec is used.
+  /// To disable encoded, set [encodeBody] to false: [body] must be a [List<int>] when encoding is disabled.
   dynamic body;
 
   /// Whether or not [body] should be encoded according to [contentType].
@@ -48,26 +42,19 @@ class TestRequest {
   /// Query parameters to add to the request.
   ///
   /// Key-value pairs in this property will be appended to the request URI after being properly URL encoded.
-  Map<String, dynamic> queryParameters = {};
+  Map<String, dynamic> query = {};
 
   /// HTTP headers to add to the request.
   ///
-  /// Prefer to use [addHeader] over directly setting this value. Additionally,
-  /// there are setters for setting specific and common headers. See [setBasicAuthorization] and [accept] as examples.
-  Map<String, dynamic> get headers => _headers;
-
-  set headers(Map<String, dynamic> h) {
-    if (_headers.isNotEmpty) {
-      print("WARNING: Setting TestRequest headers, but headers already have values.");
-    }
-    _headers = h;
-  }
-
-  Map<String, dynamic> _headers = {};
+  /// Each pair is added as a header to the request. The key is the header name and the value
+  /// is the header value. Values follow the rules of [HttpHeaders.add].
+  ///
+  /// See also [setBasicAuthorization], [accept], [bearer] for setting common headers.
+  Map<String, dynamic> headers = {};
 
   /// The full URL of this request.
   ///
-  /// This value is derived from [baseURL], [path], and [queryParameters].
+  /// This value is derived from [baseURL], [path], and [query].
   String get requestURL {
     String url;
     if (path.startsWith("/")) {
@@ -77,7 +64,7 @@ class TestRequest {
     }
 
     var queryElements = [];
-    queryParameters?.forEach((key, val) {
+    query?.forEach((key, val) {
       if (val == null || val == true) {
         queryElements.add("$key");
       } else {
@@ -98,7 +85,7 @@ class TestRequest {
   ///
   ///         Authorization: Basic Base64(username:password)
   void setBasicAuthorization(String username, String password) {
-    addHeader(HttpHeaders.AUTHORIZATION, "Basic ${new Base64Encoder().convert("$username:$password".codeUnits)}");
+    headers[HttpHeaders.AUTHORIZATION] = "Basic ${new Base64Encoder().convert("$username:$password".codeUnits)}";
   }
 
   /// Sets the Authorization header of this request.
@@ -107,43 +94,12 @@ class TestRequest {
   ///
   ///         Authorization: Bearer token
   set bearerAuthorization(String token) {
-    addHeader(HttpHeaders.AUTHORIZATION, "Bearer $token");
+    headers[HttpHeaders.AUTHORIZATION] = "Bearer $token";
   }
 
   /// Sets the Accept header of this request.
   set accept(List<ContentType> contentTypes) {
-    addHeader(HttpHeaders.ACCEPT, contentTypes.map((ct) => ct.toString()).join(","));
-  }
-
-  /// Sets the [body] and [contentType].
-  ///
-  /// On execution, [body] will be encoded according to [contentType]. [contentType]
-  /// defaults to [ContentType.JSON].
-  void setBody(dynamic body, {ContentType contentType}) {
-    this.contentType = contentType ?? ContentType.JSON;
-    this.body = body;
-  }
-
-  /// JSON encodes a serialized value into [body] and sets [contentType].
-  ///
-  /// This method will encode [v] as JSON data and set it as the [body] of this request. [v] must be
-  /// encodable to JSON ([Map]s, [List]s, [String]s, [int]s, etc.). The [contentType]
-  /// will be set to [ContentType.JSON].
-  set json(dynamic v) {
-    setBody(v, contentType: ContentType.JSON);
-  }
-
-  /// Form-data encodes a serialized value into [body] and sets [contentType].
-  ///
-  /// This method will encode [args] as x-www-form-urlencoded data and set it as the [body] of this request. [args] must be
-  /// a [Map<String, String>] . The [contentType] will be set to "application/x-www-form-urlencoded".
-  set formData(Map<String, String> args) {
-    setBody(args, contentType: new ContentType("application", "x-www-form-urlencoded", charset: "utf-8"));
-  }
-
-  /// Adds a header to this request.
-  void addHeader(String name, String value) {
-    headers[name] = value;
+    headers[HttpHeaders.ACCEPT] = contentTypes.map((ct) => ct.toString()).join(",");
   }
 
   /// Executes this request with HTTP POST.
@@ -189,54 +145,35 @@ class TestRequest {
   Future<TestResponse> _executeRequest(String method) async {
     var uri = Uri.parse(requestURL);
     var lowercasedMethod = method.toLowerCase();
-    if (body != null) {
-      if (lowercasedMethod == "get" || lowercasedMethod == "delete" || lowercasedMethod == "head") {
-        if (contentType.subType == "x-www-form-urlencoded") {
-          if (body is! Map) {
-            throw new TestClientException(
-                "Cannot encode body of type '${body.runtimeType}' into URI query string, must be a Map.");
-          }
 
-          var queryParams = queryParameters;
-          queryParams.addAll(body);
-          uri = uri.replace(queryParameters: queryParams);
-
-          contentType = null;
-          body = null;
-        } else {
-          throw new TestClientException("Cannot send HTTP body with HTTP method '$method'");
-        }
-      }
+    if (body != null && (lowercasedMethod == "get" || lowercasedMethod == "head")) {
+      throw new StateError("Cannot set 'body' when using HTTP '${method.toUpperCase()}'.");
     }
 
-    var request = await _client.openUrl(method, uri);
+    var request = await _client.openUrl(method.toUpperCase(), uri);
 
     headers?.forEach((headerKey, headerValue) {
       request.headers.add(headerKey, headerValue);
     });
 
     if (body != null) {
+      final bytes = _bodyBytes;
       request.headers.contentType = contentType;
-      var bytes;
-      if (body is String) {
-        bytes = utf8.encode(body);
-      } else {
-        bytes = _bodyBytes(body);
-      }
       request.headers.contentLength = bytes.length;
       request.add(bytes);
     }
 
-    var requestResponse = await request.close();
+    final rawResponse = await request.close();
 
-    var response = new TestResponse._(requestResponse);
+    final response = new TestResponse._(rawResponse);
 
     // Trigger body to be decoded
-    await response.bodyDecoder.decodedData;
+    await response.body.decodedData;
+
     return response;
   }
 
-  List<int> _bodyBytes(dynamic body) {
+  List<int> get _bodyBytes {
     if (body == null) {
       return null;
     }
