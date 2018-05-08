@@ -23,10 +23,11 @@ void main() {
   });
 
   test("Can use public client to authenticate", () async {
-    expect(harness.public.headers["authorization"], "Basic " + base64.encode("id:".codeUnits));
+    final public = await harness.addClient("id");
+    expect(public.headers["authorization"], "Basic " + base64.encode("id:".codeUnits));
 
     final user = await harness.createUser();
-    final userClient = await harness.loginUser(harness.public, user.username, "password");
+    final userClient = await harness.loginUser(public, user.username, "password");
     final authHeader = userClient.headers["authorization"];
     expect(authHeader, startsWith("Bearer"));
 
@@ -37,10 +38,11 @@ void main() {
   });
 
   test("Can use confidental client to authenticate", () async {
-    expect(harness.confidential.headers["authorization"], "Basic " + base64.encode("confidential-id:secret".codeUnits));
+    final confidential = await harness.addClient("confidential-id", secret: "secret");
+    expect(confidential.headers["authorization"], "Basic " + base64.encode("confidential-id:secret".codeUnits));
 
     final user = await harness.createUser();
-    final userClient = await harness.loginUser(harness.confidential, user.username, "password");
+    final userClient = await harness.loginUser(confidential, user.username, "password");
     final authHeader = userClient.headers["authorization"];
     expect(authHeader, startsWith("Bearer"));
 
@@ -51,33 +53,36 @@ void main() {
   });
 
   test("Can authenticate user with client and access protected route", () async {
-    expect(harness.scopeAgent.headers["authorization"], "Basic " + base64.encode("scope:".codeUnits));
+    final scopeAgent  = await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
+    expect(scopeAgent.headers["authorization"], "Basic " + base64.encode("scope:".codeUnits));
 
     final user = await harness.createUser();
 
-    final userWithCorrectScope = await harness.loginUser(harness.scopeAgent, user.username, "password", scopes: ["scope"]);
+    final userWithCorrectScope = await harness.loginUser(scopeAgent, user.username, "password", scopes: ["scope"]);
     expectResponse(await userWithCorrectScope.request("/endpoint").get(), 200);
 
-    final userWithIncorrectScope = await harness.loginUser(harness.scopeAgent, user.username, "password", scopes: ["not-scope"]);
+    final userWithIncorrectScope = await harness.loginUser(scopeAgent, user.username, "password", scopes: ["not-scope"]);
     expectResponse(await userWithIncorrectScope.request("/endpoint").get(), 403);
   });
 
   test("Can authenticate user with client and access scope-protected route", () async {
-    expect(harness.scopeAgent.headers["authorization"], "Basic " + base64.encode("scope:".codeUnits));
+    final scopeAgent  = await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
+    expect(scopeAgent.headers["authorization"], "Basic " + base64.encode("scope:".codeUnits));
 
     final user = await harness.createUser();
 
-    final userWithCorrectScope = await harness.loginUser(harness.scopeAgent, user.username, "password", scopes: ["scope"]);
+    final userWithCorrectScope = await harness.loginUser(scopeAgent, user.username, "password", scopes: ["scope"]);
     expectResponse(await userWithCorrectScope.request("/endpoint").get(), 200);
 
-    final userWithIncorrectScope = await harness.loginUser(harness.scopeAgent, user.username, "password", scopes: ["not-scope"]);
+    final userWithIncorrectScope = await harness.loginUser(scopeAgent, user.username, "password", scopes: ["not-scope"]);
     expectResponse(await userWithIncorrectScope.request("/endpoint").get(), 403);
   });
 
   test("If password is incorrect, throw reasonable error message", () async {
+    final scopeAgent  = await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
     final user = await harness.createUser();
     try {
-      await harness.loginUser(harness.scopeAgent, user.username, "incorrect");
+      await harness.loginUser(scopeAgent, user.username, "incorrect");
       fail('unreachable');
     } on ArgumentError catch (e) {
       expect(e.toString(), contains("Invalid username/password."));
@@ -85,9 +90,10 @@ void main() {
   });
 
   test("If requested scope is unavailable, throw reasonable error message", () async {
+    final scopeAgent  = await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
     final user = await harness.createUser();
     try {
-      await harness.loginUser(harness.scopeAgent, user.username, "password", scopes: ["whatever"]);
+      await harness.loginUser(scopeAgent, user.username, "password", scopes: ["whatever"]);
       fail('unreachable');
     } on ArgumentError catch (e) {
       expect(e.toString(), contains("Scope not permitted for client identifier and/or user."));
@@ -118,19 +124,12 @@ class Channel extends ApplicationChannel {
 }
 
 class HarnessSubclass extends TestHarness<Channel> with TestHarnessManagedAuthMixin<Channel>, TestHarnessORMMixin {
-  Agent public;
-  Agent confidential;
-  Agent scopeAgent;
-
   @override
   Future afterStart() async {
     await resetData();
   }
 
   Future seed() async {
-    public = await addClient("id");
-    confidential = await addClient("confidential-id", secret: "secret");
-    scopeAgent  = await addClient("scope", allowedScope: ["scope", "not-scope"]);
   }
 
   @override

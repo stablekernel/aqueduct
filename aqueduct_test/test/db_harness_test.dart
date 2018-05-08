@@ -16,15 +16,20 @@ void main() {
     await harness.tearDown();
   });
 
-  test("Calling initializeDatabase uploads schema to channel.context's database", () async {
-    expectResponse(await harness.agent.request("endpoint").get(), 200, body: [
-      {"id": isNumber, "name": "bob"}
-    ]);
+  test("afterStart that invokes resetData sets up database and invokes seed", () async {
+    final q = new Query<Model>(harness.channel.context);
+    final results = await q.fetch();
+    expect(results.map((m) => m.name).toList(), ["bob"]);
   });
 
-  test("Calling resetData clears persistent data but retains schema", () async {
+  test("Calling resetData clears persistent data but retains schema and seeded data", () async {
+    final q = new Query<Model>(harness.channel.context)..sortBy((o) => o.name, QuerySortOrder.ascending);
+
+    await Query.insertObject(harness.channel.context, new Model()..name = "fred");
+    expect((await q.fetch()).map((m) => m.name).toList(), ["bob", "fred"]);
+
     await harness.resetData();
-    expectResponse(await harness.agent.request("endpoint").get(), 200, body: []);
+    expect((await q.fetch()).map((m) => m.name).toList(), ["bob"]);
   });
 }
 

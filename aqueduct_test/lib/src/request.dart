@@ -1,20 +1,29 @@
 part of aqueduct_test.client;
 
-/// Object to construct an HTTP request during testing.
+/// Object to construct and execute an HTTP request during testing.
 ///
 /// Test requests are typically executed via methods in [Agent] (e.g., [Agent.get]).
 /// For more granular configuration than provided by those methods, directly configure an
 /// this object and execute it with methods like [get] or [post].
 ///
-/// Instantiate these objects via [Agent.request] instead of through this type's constructor.
+/// Use [Agent.request] to create instances of this type.
 class TestRequest {
+  TestRequest._(this._client);
+
   HttpClient _client;
+  Uri _baseUrl;
 
   /// The base URL of the request.
   ///
-  /// The [path] will be appended to this value. When [TestRequest] is instantiated by
-  /// a [Agent], this property is set to [Agent.baseURL].
-  String baseURL;
+  /// For example, 'http://localhost:8000'. May contain base path segments. The [path] will be appended to this value
+  /// when this request is executed.
+  ///
+  /// This property is set to [Agent.baseURL] of the creating agent.
+  set baseURL(String baseURL) {
+    _baseUrl = Uri.parse(baseURL);
+  }
+
+  String get baseURL => _baseUrl.toString();
 
   /// The path of the request; will be appended to [baseURL].
   String path;
@@ -49,31 +58,34 @@ class TestRequest {
   /// Each pair is added as a header to the request. The key is the header name and the value
   /// is the header value. Values follow the rules of [HttpHeaders.add].
   ///
-  /// See also [setBasicAuthorization], [accept], [bearer] for setting common headers.
+  /// See also [setBasicAuthorization], [accept], [bearerAuthorization] for setting common headers.
   Map<String, dynamic> headers = {};
 
   /// The full URL of this request.
   ///
   /// This value is derived from [baseURL], [path], and [query].
   String get requestURL {
-    String url;
-    if (path.startsWith("/")) {
-      url = "$baseURL$path";
-    } else {
-      url = [baseURL, path].join("/");
+    if (path == null || baseURL == null) {
+      throw new StateError("TestRequest must have non-null path and baseURL.");
     }
 
-    var queryElements = [];
-    query?.forEach((key, val) {
-      if (val == null || val == true) {
-        queryElements.add("$key");
-      } else {
-        queryElements.add("$key=${Uri.encodeComponent("$val")}");
-      }
-    });
+    var actualPath = path;
+    while (actualPath.startsWith("/")) {
+      actualPath = actualPath.substring(1);
+    }
 
-    if (queryElements.length > 0) {
-      url = url + "?" + queryElements.join("&");
+    var url = _baseUrl.resolve(actualPath).toString();
+    if ((query?.length ?? 0) > 0) {
+      final pairs = query.keys.map((key) {
+        final val = query[key];
+        if (val == null || val == true) {
+          return "$key";
+        } else {
+          return "$key=${Uri.encodeComponent("$val")}";
+        }
+      });
+
+      url = url + "?${pairs.join("&")}";
     }
 
     return url;
@@ -164,7 +176,6 @@ class TestRequest {
     }
 
     final rawResponse = await request.close();
-
     final response = new TestResponse._(rawResponse);
 
     // Trigger body to be decoded
@@ -178,12 +189,17 @@ class TestRequest {
       return null;
     }
 
+    if (!encodeBody) {
+      return body;
+    }
+
     var codec = HTTPCodecRepository.defaultInstance.codecForContentType(contentType);
 
     if (codec == null) {
+      // this check doesn't truly work, but if its a list, it's probably a list of bytes.
+      // if its not, we'll get an exception when we try and write to the response
       if (body is! List<int>) {
-        throw new ArgumentError(
-            "Invalid request body. Body of type '${body.runtimeType}' not encodable as content-type '$contentType'.");
+        throw new StateError("No codec for content type '$contentType'.");
       }
 
       return body;

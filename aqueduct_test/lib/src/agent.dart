@@ -51,6 +51,7 @@ class Agent {
       : _scheme = original._scheme,
         _host = original._host,
         _port = original._port,
+        contentType = original.contentType,
         _application = original._application {
     this.headers.addAll(original?.headers ?? {});
   }
@@ -71,7 +72,7 @@ class Agent {
   ///
   /// See also [setBasicAuthorization], [bearerAuthorization], [accept],
   /// [contentType] for setting common headers.
-  final Map<String, String> headers = {};
+  final Map<String, dynamic> headers = {};
 
   /// Sets the default content-type of requests made by this agent.
   ///
@@ -120,7 +121,7 @@ class Agent {
   ///
   /// The [path] will be appended to [baseURL]. Leading and trailing slashes are ignored.
   TestRequest request(String path) {
-    TestRequest r = new TestRequest()
+    TestRequest r = new TestRequest._(this._client)
       ..baseURL = this.baseURL
       ..path = path
       .._client = _client

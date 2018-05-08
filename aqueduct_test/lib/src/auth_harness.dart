@@ -33,7 +33,7 @@ import 'package:aqueduct_test/aqueduct_test.dart';
 ///               publicAgent = await addClient("com.public.client");
 ///             }
 ///         }
-abstract class TestHarnessManagedAuthMixin<T extends ApplicationChannel> {
+abstract class TestHarnessManagedAuthMixin<T extends ApplicationChannel> implements TestHarness<T> {
   /// Must override to return [authServer] of application under test.
   ///
   /// An [ApplicationChannel] should expose its [AuthServer] service as a property.
@@ -73,7 +73,7 @@ abstract class TestHarnessManagedAuthMixin<T extends ApplicationChannel> {
     await Query.insertObject((authServer.delegate as ManagedAuthDelegate).context, client);
 
     final authorizationHeader = "Basic ${base64.encode("$id:${secret ?? ""}".codeUnits)}";
-    return new Agent(application)..headers["authorization"] = authorizationHeader;
+    return new Agent.from(agent)..headers["authorization"] = authorizationHeader;
   }
 
   /// Authenticates a user for [username] and [password].
@@ -90,10 +90,8 @@ abstract class TestHarnessManagedAuthMixin<T extends ApplicationChannel> {
 
     try {
       final token = await authServer.authenticate(username, password, credentials.username, credentials.password,
-        requestedScopes: scopes?.map((s)
-        => new AuthScope(s))?.toList());
-      return new Agent(application)
-        ..headers["authorization"] = "Bearer ${token.accessToken}";
+          requestedScopes: scopes?.map((s) => new AuthScope(s))?.toList());
+      return new Agent.from(fromAgent)..headers["authorization"] = "Bearer ${token.accessToken}";
     } on AuthServerException catch (e) {
       if (e.reason == AuthRequestError.invalidGrant) {
         throw new ArgumentError("Invalid username/password.");

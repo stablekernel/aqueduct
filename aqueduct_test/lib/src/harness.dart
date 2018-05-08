@@ -38,6 +38,8 @@ class TestHarness<T extends ApplicationChannel> {
   ///
   /// In [beforeStart], this value is the application that will be started. In [afterStart],
   /// this value is the application that is currently running.
+  ///
+  /// After [tearDown], this value becomes null.
   Application<T> get application => _application;
 
   /// The channel of the running application.
@@ -87,9 +89,8 @@ class TestHarness<T extends ApplicationChannel> {
 
     await beforeStart();
     await application.test();
-    await afterStart();
-
     agent = new Agent(application);
+    await afterStart();
   }
 
   /// Stops the test application from running.

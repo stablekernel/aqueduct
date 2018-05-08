@@ -38,7 +38,7 @@ void main() {
       expectResponse(await harness.agent.request("endpoint").get(), 200, body: {"key": "value"});
       expect(harness.application.isRunning, true);
       await harness.tearDown();
-      expect(harness.application.isRunning, false);
+      expect(harness.application, isNull);
       await harness.setUp();
       expectResponse(await harness.agent.request("endpoint").get(), 200, body: {"key": "value"});
       expect(harness.application.isRunning, true);
@@ -66,6 +66,10 @@ void main() {
       expect(harness.events.last.first, 'afterStart');
       expect(harness.events.last.last, true);
     });
+
+    test("agent is set prior to afterStart running", () async {
+      expect(harness.isAgentCreatedInAfterStart, true);
+    });
   });
 }
 
@@ -80,12 +84,14 @@ class Channel extends ApplicationChannel {
 
 class HarnessSubclass extends TestHarness<Channel> {
   List<List<dynamic>> events = [];
+  bool isAgentCreatedInAfterStart = false;
 
   Future beforeStart() async {
     events.add(["beforeStart", application.isRunning]);
   }
 
   Future afterStart() async {
+    isAgentCreatedInAfterStart = agent != null;
     events.add(["afterStart", application.isRunning]);
   }
 }

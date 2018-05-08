@@ -191,17 +191,19 @@ void main() {
       final client = new Agent.onPort(8888)
         ..headers["authorization"] = "Basic ${base64.encode("com.stablekernel.app1:kilimanjaro".codeUnits)}";
 
-      var req = client.request("/auth/token");
-      req.body =
-          "username=$encodedUsername&username=$encodedWrongUsername&password=$encodedPassword&grant_type=password";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      var req = client.request("/auth/token")
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedUsername&username=$encodedWrongUsername&password=$encodedPassword&grant_type=password")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
       expect(resp, hasResponse(400, body: {"error": "invalid_request"}));
 
-      req = client.request("/auth/token");
-      req.body =
-          "username=$encodedWrongUsername&username=$encodedUsername&password=$encodedPassword&grant_type=password";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      req = client.request("/auth/token")
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedWrongUsername&username=$encodedUsername&password=$encodedPassword&grant_type=password")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
       resp = await req.post();
       expect(resp, hasResponse(400, body: {"error": "invalid_request"}));
     });
@@ -232,17 +234,19 @@ void main() {
       final client = new Agent.onPort(8888)
         ..headers["authorization"] = "Basic ${base64.encode("com.stablekernel.app1:kilimanjaro".codeUnits)}";
 
-      var req = client.request("/auth/token");
-      req.body =
-          "username=$encodedUsername&password=$encodedPassword&password=$encodedWrongPassword&grant_type=password";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      var req = client.request("/auth/token")
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedUsername&password=$encodedPassword&password=$encodedWrongPassword&grant_type=password")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
       expect(resp, hasResponse(400, body: {"error": "invalid_request"}));
 
-      req = client.request("/auth/token");
-      req.body =
-          "username=$encodedUsername&password=$encodedWrongPassword&password=$encodedPassword&grant_type=password";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      req = client.request("/auth/token")
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedUsername&password=$encodedWrongPassword&password=$encodedPassword&grant_type=password")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
       resp = await req.post();
       expect(resp, hasResponse(400, body: {"error": "invalid_request"}));
     });
@@ -271,18 +275,19 @@ void main() {
           user1["username"], user1["password"], "com.stablekernel.redirect");
       var encodedCode = Uri.encodeQueryComponent(code.code);
 
-      final client = new Agent.onPort(8888)
-        ..setBasicAuthorization("com.stablekernel.redirect", "mckinley");
+      final client = new Agent.onPort(8888)..setBasicAuthorization("com.stablekernel.redirect", "mckinley");
 
-      var req = client.request("/auth/token");
-      req.body = "code=$encodedCode&code=abcd&grant_type=authorization_code";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      var req = client.request("/auth/token")
+        ..encodeBody = false
+        ..body = utf8.encode("code=$encodedCode&code=abcd&grant_type=authorization_code")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
       expect(resp, hasResponse(400, body: {"error": "invalid_request"}));
 
-      req = client.request("/auth/token");
-      req.body = "code=abcd&code=$encodedCode&grant_type=authorization_code";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      req = client.request("/auth/token")
+        ..encodeBody = false
+        ..body = utf8.encode("code=abcd&code=$encodedCode&grant_type=authorization_code")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
       resp = await req.post();
       expect(resp, hasResponse(400, body: {"error": "invalid_request"}));
     });
@@ -299,8 +304,7 @@ void main() {
     Agent client;
 
     setUp(() {
-      client = new Agent.onPort(8888)
-        ..setBasicAuthorization("com.stablekernel.app1", "kilimanjaro");
+      client = new Agent.onPort(8888)..setBasicAuthorization("com.stablekernel.app1", "kilimanjaro");
     });
 
     test("Unknown grant_type", () async {
@@ -324,19 +328,20 @@ void main() {
     });
 
     test("Duplicate grant_type", () async {
-      client
-        ..setBasicAuthorization("com.stablekernel.redirect", "mckinley");
+      client..setBasicAuthorization("com.stablekernel.redirect", "mckinley");
 
-      var req = client.request("/auth/token");
-      req.body = "code=abcd&grant_type=authorization_code&grant_type=whatever";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      var req = client.request("/auth/token")
+        ..encodeBody = false
+        ..body = utf8.encode("code=abcd&grant_type=authorization_code&grant_type=whatever")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
 
       var res = await req.post();
       expect(res, hasResponse(400, body: {"error": "invalid_request"}));
 
-      req = client.request("/auth/token");
-      req.body = "grant_type=authorization_code&code=abcd&grant_type=whatever";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      req = client.request("/auth/token")
+        ..encodeBody = false
+        ..body = utf8.encode("grant_type=authorization_code&code=abcd&grant_type=whatever")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
 
       res = await req.post();
       expect(res, hasResponse(400, body: {"error": "invalid_request"}));
@@ -347,8 +352,7 @@ void main() {
     Agent client;
 
     setUp(() {
-      client = new Agent.onPort(8888)
-        ..setBasicAuthorization("com.stablekernel.app1", "kilimanjaro");
+      client = new Agent.onPort(8888)..setBasicAuthorization("com.stablekernel.app1", "kilimanjaro");
     });
 
     test("refresh_token is omitted", () async {
@@ -364,15 +368,17 @@ void main() {
       var refreshToken = Uri.encodeQueryComponent(
           (await grant("com.stablekernel.app1", "kilimanjaro", user1)).body.asMap()["refresh_token"]);
 
-      var req = client.request("/auth/token");
-      req.body = "refresh_token=$refreshToken&refresh_token=abcdefg&grant_type=refresh_token";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      var req = client.request("/auth/token")
+        ..encodeBody = false
+        ..body = utf8.encode("refresh_token=$refreshToken&refresh_token=abcdefg&grant_type=refresh_token")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
       expect(resp, hasResponse(400, body: {"error": "invalid_request"}));
 
-      req = client.request("/auth/token");
-      req.body = "refresh_token=abcdefg&refresh_token=$refreshToken&grant_type=refresh_token";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      req = client.request("/auth/token")
+        ..encodeBody = false
+        ..body = utf8.encode("refresh_token=abcdefg&refresh_token=$refreshToken&grant_type=refresh_token")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
       resp = await req.post();
       expect(resp, hasResponse(400, body: {"error": "invalid_request"}));
     });
@@ -398,8 +404,7 @@ void main() {
     test("Client id/secret pair is different than original", () async {
       var resToken = await grant("com.stablekernel.app1", "kilimanjaro", user1);
 
-      var resRefresh =
-          await refresh("com.stablekernel.app2", "fuji", refreshTokenMapFromTokenResponse(resToken));
+      var resRefresh = await refresh("com.stablekernel.app2", "fuji", refreshTokenMapFromTokenResponse(resToken));
       expect(resRefresh, hasResponse(400, body: {"error": "invalid_grant"}));
     });
   });
@@ -572,8 +577,7 @@ void main() {
 
       var m = {"grant_type": "authorization_code", "code": Uri.encodeQueryComponent(code.code), "scope": "other_scope"};
 
-      final client = new Agent.onPort(8888)
-        ..setBasicAuthorization("com.stablekernel.scoped", "kilimanjaro");
+      final client = new Agent.onPort(8888)..setBasicAuthorization("com.stablekernel.scoped", "kilimanjaro");
       var req = client.request("/auth/token")
         ..contentType = new ContentType("application", "x-www-form-urlencoded")
         ..body = m;
@@ -741,8 +745,7 @@ dynamic hasAuthResponse(int statusCode, dynamic body) => hasResponse(statusCode,
     });
 
 Future<TestResponse> grant(String clientID, String clientSecret, Map<String, String> form) {
-  Agent client = new Agent.onPort(8888)
-    ..setBasicAuthorization(clientID, clientSecret);
+  Agent client = new Agent.onPort(8888)..setBasicAuthorization(clientID, clientSecret);
 
   final m = new Map<String, String>.from(form);
   m.addAll({"grant_type": "password"});
@@ -755,8 +758,7 @@ Future<TestResponse> grant(String clientID, String clientSecret, Map<String, Str
 }
 
 Future<TestResponse> refresh(String clientID, String clientSecret, Map<String, String> form) {
-  Agent client = new Agent.onPort(8888)
-    ..setBasicAuthorization(clientID, clientSecret);
+  Agent client = new Agent.onPort(8888)..setBasicAuthorization(clientID, clientSecret);
 
   final m = new Map<String, String>.from(form);
   m.addAll({"grant_type": "refresh_token"});
@@ -769,8 +771,7 @@ Future<TestResponse> refresh(String clientID, String clientSecret, Map<String, S
 }
 
 Future<TestResponse> exchange(String clientID, String clientSecret, String code) {
-  Agent client = new Agent.onPort(8888)
-    ..setBasicAuthorization(clientID, clientSecret);
+  Agent client = new Agent.onPort(8888)..setBasicAuthorization(clientID, clientSecret);
 
   var m = {"grant_type": "authorization_code"};
 

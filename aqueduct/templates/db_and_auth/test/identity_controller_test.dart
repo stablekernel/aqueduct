@@ -6,12 +6,12 @@ Future main() async {
   Harness harness = new Harness()..install();
 
   Agent userClient;
-
-  final defaultUser = new User()
-    ..username = "bob@stablekernel.com"
-    ..password = "foobaraxegrind12%";
+  User defaultUser;
 
   setUp(() async {
+    defaultUser = new User()
+      ..username = "bob@stablekernel.com"
+      ..password = "foobaraxegrind12%";
     userClient = await harness.registerUser(defaultUser);
   });
 

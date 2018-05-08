@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -6,16 +7,11 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
 
 void main() {
-  group("Test Client/Request", () {
+  group("Agent instantiation", () {
     Application app;
-    var server = new MockHTTPServer(4040);
-    setUp(() async {
-      await server.open();
-    });
 
     tearDown(() async {
       await app?.stop();
-      await server?.close();
     });
 
     test("Create from app, explicit port", () async {
@@ -53,6 +49,30 @@ void main() {
       expectResponse(await tc.request("/").get(), 200);
     });
 
+    test("Create agent from another agent has same request URL, contentType and headers", () {
+      final original = new Agent.fromOptions(new ApplicationOptions()
+        ..port = 2121
+        ..address = "foobar.com");
+      original.headers["key"] = "value";
+      original.contentType = ContentType.TEXT;
+
+      final clone = new Agent.from(original);
+      expect(clone.baseURL, original.baseURL);
+      expect(clone.headers, original.headers);
+      expect(clone.contentType, original.contentType);
+    });
+  });
+
+  group("Request building", () {
+    var server = new MockHTTPServer(4040);
+    setUp(() async {
+      await server.open();
+    });
+
+    tearDown(() async {
+      await server?.close();
+    });
+
     test("Host created correctly", () {
       var defaultTestClient = new Agent.onPort(4040);
       var portConfiguredClient = new Agent.fromOptions(new ApplicationOptions()..port = 2121);
@@ -77,14 +97,11 @@ void main() {
       expect(defaultTestClient.request("foo").requestURL, "http://localhost:4040/foo");
       expect(defaultTestClient.request("foo/bar").requestURL, "http://localhost:4040/foo/bar");
 
-      expect((defaultTestClient.request("/foo")..query = {"baz": "bar"}).requestURL,
-          "http://localhost:4040/foo?baz=bar");
-      expect((defaultTestClient.request("/foo")..query = {"baz": 2}).requestURL,
-          "http://localhost:4040/foo?baz=2");
-      expect((defaultTestClient.request("/foo")..query = {"baz": null}).requestURL,
-          "http://localhost:4040/foo?baz");
-      expect((defaultTestClient.request("/foo")..query = {"baz": true}).requestURL,
-          "http://localhost:4040/foo?baz");
+      expect(
+          (defaultTestClient.request("/foo")..query = {"baz": "bar"}).requestURL, "http://localhost:4040/foo?baz=bar");
+      expect((defaultTestClient.request("/foo")..query = {"baz": 2}).requestURL, "http://localhost:4040/foo?baz=2");
+      expect((defaultTestClient.request("/foo")..query = {"baz": null}).requestURL, "http://localhost:4040/foo?baz");
+      expect((defaultTestClient.request("/foo")..query = {"baz": true}).requestURL, "http://localhost:4040/foo?baz");
       expect((defaultTestClient.request("/foo")..query = {"baz": true, "boom": 7}).requestURL,
           "http://localhost:4040/foo?baz&boom=7");
     });
@@ -120,24 +137,33 @@ void main() {
       expect(msg.body.asMap(), {"foo": "bar"});
     });
 
-    test("Headers are added correctly", () async {
-      var defaultTestClient = new Agent.onPort(4040);
+    test("Default headers are added to requests", () async {
+      var defaultTestClient = new Agent.onPort(4040)
+        ..headers["X-Int"] = 1
+        ..headers["X-String"] = "1";
 
-      await (defaultTestClient.request("/foo")..headers = {"X-Content": 1}).get();
+      await defaultTestClient.get("/foo");
 
       var msg = await server.next();
       expect(msg.path.string, "/foo");
-      expect(msg.raw.headers.value("x-content"), "1");
+      expect(msg.raw.headers.value("x-int"), "1");
+      expect(msg.raw.headers.value("x-string"), "1");
+    });
+
+    test("Default headers can be overridden", () async {
+      var defaultTestClient = new Agent.onPort(4040)
+        ..headers["X-Int"] = 1
+        ..headers["X-String"] = "1";
 
       await (defaultTestClient.request("/foo")
-            ..headers = {
-              "X-Content": [1, 2]
-            })
-          .get();
+        ..headers = {
+          "X-Int": [1, 2]
+        })
+        .get();
 
-      msg = await server.next();
+      final msg = await server.next();
       expect(msg.path.string, "/foo");
-      expect(msg.raw.headers.value("x-content"), "1, 2");
+      expect(msg.raw.headers.value("x-int"), "1, 2");
     });
 
     test("Client can expect array of JSON", () async {
@@ -154,21 +180,44 @@ void main() {
       await server?.close(force: true);
     });
 
-    test("Default headers are added for new request", () async {
-      var c = new Agent.onPort(4040)
-          ..headers["x"] = "x"
-          ..headers["y"] = "y";
+    test("Query parameters are provided when using execute", () async {
+      var defaultTestClient = new Agent.onPort(4040);
 
-      await c.get("/foo", headers: {"y": "not-y"});
+      await defaultTestClient.get("/foo", query: {"k": "v"});
 
       var msg = await server.next();
       expect(msg.path.string, "/foo");
-      expect(msg.raw.headers.value("x"), "x");
-      expect(msg.raw.headers.value("y"), "not-y");
+      expect(msg.raw.uri.query, "k=v");
+    });
+
+    test("Basic authorization adds header to all requests", () async {
+      var defaultTestClient = new Agent.onPort(4040)
+        ..headers["k"] = "v"
+        ..setBasicAuthorization("username", "password");
+
+      await defaultTestClient.get("/foo");
+
+      var msg = await server.next();
+      expect(msg.path.string, "/foo");
+      expect(msg.raw.headers.value("k"), "v");
+      expect(msg.raw.headers.value("authorization"), "Basic ${base64.encode("username:password".codeUnits)}");
+    });
+
+    test("Bearer authorization adds header to all requests", () async {
+      var defaultTestClient = new Agent.onPort(4040)
+        ..headers["k"] = "v"
+        ..bearerAuthorization = "token";
+
+      await defaultTestClient.get("/foo");
+
+      var msg = await server.next();
+      expect(msg.path.string, "/foo");
+      expect(msg.raw.headers.value("k"), "v");
+      expect(msg.raw.headers.value("authorization"), "Bearer token");
     });
   });
 
-  group("Test Response", () {
+  group("Response handling", () {
     HttpServer server;
 
     tearDown(() async {
