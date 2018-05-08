@@ -194,14 +194,9 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
         redirectURI: redirectUri, hashLength: hashLength, hashRounds: hashRounds, hashFunction: hashFunction)
       ..allowedScopes = allowedScopes?.map((s) => new AuthScope(s))?.toList();
 
-    var managedCredentials = new ManagedAuthClient()
-      ..id = credentials.id
-      ..hashedSecret = credentials.hashedSecret
-      ..salt = credentials.salt
-      ..redirectURI = credentials.redirectURI
-      ..allowedScope = credentials.allowedScopes?.map((s) => s.toString())?.join(" ");
+    var managedCredentials = new ManagedAuthClient.fromClient(credentials);
 
-    var query = new Query<ManagedAuthClient>(context)..values = managedCredentials;
+    final query = new Query<ManagedAuthClient>(context)..values = managedCredentials;
 
     try {
       await query.insert();

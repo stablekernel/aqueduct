@@ -10,7 +10,7 @@ void justLogEverything() {
     ..onRecord.listen((p) => print("$p ${p.object} ${p.stackTrace}"));
 }
 
-class TestUser extends Authenticatable {
+class TestUser extends ResourceOwner {
   int get uniqueIdentifier => id;
   @override
   int id;
@@ -141,13 +141,26 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   }
 
   @override
-  void revokeAuthenticatableWithIdentifier(AuthServer server, dynamic identifier) {
+  void addClient(AuthServer server, AuthClient client) {
+    clients[client.id] = client;
+  }
+
+  @override
+  void removeTokens(AuthServer server, dynamic identifier) {
     return tokens.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
   }
 
   @override
-  FutureOr<AuthToken> fetchTokenByAccessToken(AuthServer server, String accessToken) {
-    var existing = tokens.firstWhere((t) => t.accessToken == accessToken, orElse: () => null);
+  FutureOr<AuthToken> getToken(AuthServer server, {String byAccessToken, String byRefreshToken}) {
+    AuthToken existing;
+    if (byAccessToken != null) {
+      existing = tokens.firstWhere((t) => t.accessToken == byAccessToken, orElse: () => null);
+    } else if (byRefreshToken != null) {
+      existing = tokens.firstWhere((t) => t.refreshToken == byRefreshToken, orElse: () => null);
+    } else {
+      throw new ArgumentError("byAccessToken and byRefreshToken are mutually exclusive");
+    }
+
     if (existing == null) {
       return null;
     }
@@ -155,24 +168,15 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   }
 
   @override
-  FutureOr<AuthToken> fetchTokenByRefreshToken(AuthServer server, String refreshToken) {
-    var existing = tokens.firstWhere((t) => t.refreshToken == refreshToken, orElse: () => null);
-    if (existing == null) {
-      return null;
-    }
-    return new TestToken.from(existing);
-  }
-
-  @override
-  FutureOr<TestUser> fetchAuthenticatableByUsername(AuthServer server, String username) {
+  FutureOr<TestUser> getResourceOwner(AuthServer server, String username) {
     return users.values.firstWhere((t) => t.username == username, orElse: () => null);
   }
 
   @override
-  void revokeTokenIssuedFromCode(AuthServer server, AuthCode code) => tokens.removeWhere((t) => t.code == code.code);
+  void removeToken(AuthServer server, AuthCode code) => tokens.removeWhere((t) => t.code == code.code);
 
   @override
-  FutureOr storeToken(AuthServer server, AuthToken t, {AuthCode issuedFrom}) {
+  FutureOr addToken(AuthServer server, AuthToken t, {AuthCode issuedFrom}) {
     if (issuedFrom != null) {
       var existingIssued = tokens.firstWhere((token) => token.code == issuedFrom?.code, orElse: () => null);
       var replacement = new TestToken.from(t);
@@ -189,7 +193,7 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   }
 
   @override
-  FutureOr refreshTokenWithAccessToken(
+  FutureOr updateToken(
       AuthServer server, String accessToken, String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate) {
     var existing = tokens.firstWhere((e) => e.accessToken == accessToken, orElse: () => null);
     if (existing != null) {
@@ -210,10 +214,10 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   }
 
   @override
-  void storeAuthCode(AuthServer server, AuthCode code) => tokens.add(new TestToken.from(code));
+  void addCode(AuthServer server, AuthCode code) => tokens.add(new TestToken.from(code));
 
   @override
-  FutureOr<AuthCode> fetchAuthCodeByCode(AuthServer server, String code) {
+  FutureOr<AuthCode> getCode(AuthServer server, String code) {
     var existing = tokens.firstWhere((t) => t.code == code, orElse: () => null);
     if (existing == null) {
       return null;
@@ -222,13 +226,13 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   }
 
   @override
-  void revokeAuthCodeWithCode(AuthServer server, String code) => tokens.removeWhere((c) => c.code == code);
+  void removeCode(AuthServer server, String code) => tokens.removeWhere((c) => c.code == code);
 
   @override
-  FutureOr<AuthClient> fetchClientByID(AuthServer server, String id) => clients[id];
+  FutureOr<AuthClient> getClient(AuthServer server, String id) => clients[id];
 
   @override
-  FutureOr revokeClientWithID(AuthServer server, String id) => clients.remove(id);
+  FutureOr removeClient(AuthServer server, String id) => clients.remove(id);
 }
 
 class DefaultPersistentStore extends PersistentStore {

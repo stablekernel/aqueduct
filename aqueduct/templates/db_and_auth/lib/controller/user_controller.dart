@@ -13,7 +13,7 @@ class UserController extends QueryController<User> {
       return new Response.notFound();
     }
 
-    if (request.authorization.resourceOwnerIdentifier != id) {
+    if (request.authorization.ownerID != id) {
       // Filter out stuff for non-owner of user
     }
 
@@ -22,7 +22,7 @@ class UserController extends QueryController<User> {
 
   @Operation.put("id")
   Future<Response> updateUser(@Bind.path("id") int id) async {
-    if (request.authorization.resourceOwnerIdentifier != id) {
+    if (request.authorization.ownerID != id) {
       return new Response.unauthorized();
     }
 
@@ -36,11 +36,11 @@ class UserController extends QueryController<User> {
 
   @Operation.delete("id")
   Future<Response> deleteUser(@Bind.path("id") int id) async {
-    if (request.authorization.resourceOwnerIdentifier != id) {
+    if (request.authorization.ownerID != id) {
       return new Response.unauthorized();
     }
 
-    await authServer.revokeAuthenticatableAccessForIdentifier(id);
+    await authServer.revokeAllGrantsForResourceOwner(id);
     await query.delete();
 
     return new Response.ok(null);

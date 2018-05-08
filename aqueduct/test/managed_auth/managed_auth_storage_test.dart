@@ -63,20 +63,20 @@ void main() {
     });
 
     test("Get client for ID", () async {
-      var c = await auth.clientForID("com.stablekernel.app1");
+      var c = await auth.getClient("com.stablekernel.app1");
       expect(c is AuthClient, true);
     });
 
     test("Revoked client can no longer be accessed", () async {
-      expect((await auth.clientForID("com.stablekernel.app1")) is AuthClient,
+      expect((await auth.getClient("com.stablekernel.app1")) is AuthClient,
           true);
-      await auth.revokeClientID("com.stablekernel.app1");
-      expect(await auth.clientForID("com.stablekernel.app1"), isNull);
+      await auth.removeClient("com.stablekernel.app1");
+      expect(await auth.getClient("com.stablekernel.app1"), isNull);
     });
 
     test("Cannot revoke null client", () async {
       try {
-        await auth.revokeClientID(null);
+        await auth.removeClient(null);
         expect(true, false);
       } on AuthServerException {}
 
@@ -85,9 +85,73 @@ void main() {
     });
 
     test("Revoking unknown client has no impact", () async {
-      await auth.revokeClientID("nonsense");
+      await auth.removeClient("nonsense");
       var q = new Query<ManagedAuthClient>(context);
       expect(await q.fetch(), hasLength(5));
+    });
+    
+    test("Can add a new public client", () async {
+      var client = AuthUtility.generateAPICredentialPair("pub-id", null, hashLength: auth.hashLength, hashRounds: auth.hashRounds, hashFunction: auth.hashFunction);
+      await auth.addClient(client);
+
+      final q = new Query<ManagedAuthClient>(context)
+        ..where((o) => o.id).equalTo("pub-id");
+      final result = (await q.fetchOne()).asClient();
+      expect(result.id, "pub-id");
+      expect(result.hashedSecret, isNull);
+      expect(result.salt, isNull);
+      expect(result.redirectURI, isNull);
+      expect(result.supportsScopes, false);
+      expect(result.allowedScopes, isNull);
+    });
+
+    test("If client already exists, exception is thrown", () async {
+      var client = AuthUtility.generateAPICredentialPair("conflict", null, hashLength: auth.hashLength, hashRounds: auth.hashRounds, hashFunction: auth.hashFunction);
+      await auth.addClient(client);
+
+      try {
+        await auth.addClient(client);
+        fail('unreachable');
+      } on QueryException catch (e) {
+        expect(e.event, QueryExceptionEvent.conflict);
+      }
+    });
+
+    test("If client id is null, exception is thrown", () async {
+      var client = AuthUtility.generateAPICredentialPair(null, null, hashLength: auth.hashLength, hashRounds: auth.hashRounds, hashFunction: auth.hashFunction);
+
+      try {
+        await auth.addClient(client);
+        fail('unreachable');
+      } on QueryException catch (e) {
+        expect(e.event, QueryExceptionEvent.input);
+      }
+    });
+
+    test("If client has redirect uri and no secret, exception is thrown", () async {
+      var client = new AuthClient("redirect-public-id", null, null)..redirectURI = "http://localhost";
+
+      try {
+        await auth.addClient(client);
+        fail('unreachable');
+      } on ArgumentError {}
+    });
+
+    test("Client retains its allowed scopes", () async {
+      var client = AuthUtility.generateAPICredentialPair("confidential-id", "foobar", redirectURI: "http://localhost", hashLength: auth.hashLength, hashRounds: auth.hashRounds, hashFunction: auth.hashFunction)
+        ..allowedScopes = ["scope"].map((s) => new AuthScope(s)).toList();
+      await auth.addClient(client);
+
+      final q = new Query<ManagedAuthClient>(context)
+        ..where((o) => o.id).equalTo("confidential-id");
+      final result = (await q.fetchOne()).asClient();
+      expect(result.id, "confidential-id");
+      expect(result.hashedSecret, isNotNull);
+      expect(result.salt, isNotNull);
+      expect(result.redirectURI, "http://localhost");
+      expect(result.supportsScopes, isTrue);
+      expect(result.allowsScope(new AuthScope("scope")), true);
+      expect(result.allowsScope(new AuthScope("fooar")), false);
     });
   });
 
@@ -235,7 +299,7 @@ void main() {
     test("Cannot verify token if owner authentcatable is 'revoked'", () async {
       var token = await auth.authenticate(createdUser.username,
           User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
-      await auth.revokeAuthenticatableAccessForIdentifier(createdUser.id);
+      await auth.revokeAllGrantsForResourceOwner(createdUser.id);
 
       try {
         await auth.verify(token.accessToken);
@@ -279,7 +343,7 @@ void main() {
 
       var authorization = await auth.verify(token.accessToken);
       expect(authorization.clientID, "com.stablekernel.app1");
-      expect(authorization.resourceOwnerIdentifier,
+      expect(authorization.ownerID,
           initialToken.resourceOwnerIdentifier);
     });
 
@@ -358,7 +422,7 @@ void main() {
     test("Cannot refresh token if owner authentcatable is 'revoked'", () async {
       var token = await auth.authenticate(createdUser.username,
           User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
-      await auth.revokeAuthenticatableAccessForIdentifier(createdUser.id);
+      await auth.revokeAllGrantsForResourceOwner(createdUser.id);
 
       try {
         await auth.refresh(
@@ -464,7 +528,7 @@ void main() {
         () async {
       var authCode = await auth.authenticateForCode(createdUser.username,
           User.DefaultPassword, "com.stablekernel.redirect");
-      await auth.revokeAuthenticatableAccessForIdentifier(createdUser.id);
+      await auth.revokeAllGrantsForResourceOwner(createdUser.id);
 
       try {
         await auth.exchange(
@@ -660,7 +724,7 @@ void main() {
 
       expect(await auth.verify(issuedToken.accessToken), isNotNull);
 
-      await auth.revokeClientID("com.stablekernel.redirect");
+      await auth.removeClient("com.stablekernel.redirect");
       try {
         await auth.exchange(
             unusedCode.code, "com.stablekernel.redirect", "mckinley");
@@ -711,7 +775,7 @@ void main() {
       var issuedTokenKeep = await auth.authenticate(createdUsers.first.username,
           User.DefaultPassword, "com.stablekernel.redirect2", "gibraltar");
 
-      await auth.revokeClientID("com.stablekernel.redirect");
+      await auth.removeClient("com.stablekernel.redirect");
 
       var exchangedLater = await auth.exchange(
           unusedCodeKeep.code, "com.stablekernel.redirect2", "gibraltar");
@@ -733,7 +797,7 @@ void main() {
           User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
       var p1 = await auth.verify(token.accessToken);
       expect(p1.clientID, "com.stablekernel.app1");
-      expect(p1.resourceOwnerIdentifier, createdUser.id);
+      expect(p1.ownerID, createdUser.id);
 
       var code = await auth.authenticateForCode(createdUser.username,
           User.DefaultPassword, "com.stablekernel.redirect");
@@ -742,11 +806,11 @@ void main() {
 
       p1 = await auth.verify(token.accessToken);
       expect(p1.clientID, "com.stablekernel.app1");
-      expect(p1.resourceOwnerIdentifier, createdUser.id);
+      expect(p1.ownerID, createdUser.id);
 
       var p2 = await auth.verify(token2.accessToken);
       expect(p2.clientID, "com.stablekernel.redirect");
-      expect(p2.resourceOwnerIdentifier, createdUser.id);
+      expect(p2.ownerID, createdUser.id);
     });
   });
 
@@ -779,7 +843,7 @@ void main() {
       expect(await auth.verify(issuedToken.accessToken), isNotNull);
 
       await auth
-          .revokeAuthenticatableAccessForIdentifier(createdUsers.first.id);
+          .revokeAllGrantsForResourceOwner(createdUsers.first.id);
 
       try {
         await auth.exchange(
@@ -980,11 +1044,11 @@ void main() {
 
       var permission = await auth.verify(t1.accessToken);
       expect(permission.clientID, "com.stablekernel.app1");
-      expect(permission.resourceOwnerIdentifier, createdUsers[0].id);
+      expect(permission.ownerID, createdUsers[0].id);
 
       permission = await auth.verify(t2.accessToken);
       expect(permission.clientID, "com.stablekernel.app1");
-      expect(permission.resourceOwnerIdentifier, createdUsers[4].id);
+      expect(permission.ownerID, createdUsers[4].id);
     });
 
     test(
@@ -995,7 +1059,7 @@ void main() {
       var t2 = await auth.authenticate(createdUsers[4].username,
           User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
 
-      await auth.revokeAuthenticatableAccessForIdentifier(createdUsers[0].id);
+      await auth.revokeAllGrantsForResourceOwner(createdUsers[0].id);
       expect(await auth.verify(t2.accessToken), isNotNull);
 
       try {

@@ -452,7 +452,7 @@ Future<HttpServer> enableAuthorizer(Authorizer authorizer) async {
 Future<RequestOrResponse> respond(Request req) async {
   var map = {
     "clientID": req.authorization.clientID,
-    "resourceOwnerIdentifier": req.authorization.resourceOwnerIdentifier,
+    "resourceOwnerIdentifier": req.authorization.ownerID,
     "credentials": req.authorization.credentials?.toString()
   };
 
@@ -466,13 +466,13 @@ Future<RequestOrResponse> respond(Request req) async {
 
 class CrashingStorage extends InMemoryAuthStorage {
   @override
-  Future<AuthToken> fetchTokenByAccessToken(
-      AuthServer server, String accessToken) async {
+  Future<AuthToken> getToken(
+      AuthServer server, {String byAccessToken, String byRefreshToken}) async {
     throw new Response(504, null, "ok");
   }
 
   @override
-  Future<AuthClient> fetchClientByID(AuthServer server, String id) async {
+  Future<AuthClient> getClient(AuthServer server, String id) async {
     throw new Response(504, null, "ok");
   }
 }
