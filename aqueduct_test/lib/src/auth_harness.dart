@@ -2,21 +2,22 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/managed_auth.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
 
-/// Use methods from this class to test applications that use OAuth2 and 'package:aqueduct/managed_auth'.
+/// Use methods from this class to test applications that use [AuthServer] for authentication & authorization.
 ///
 /// This class is mixed in to your [TestHarness] subclass to provide test
-/// utilities for applications that use 'package:aqueduct/managed_auth'.
-/// Methods from this class  add client identifiers and authenticate users for
+/// utilities for applications that use OAuth2.
+///
+/// Methods from this class add client identifiers and authenticate users for
 /// the purpose of executing authenticated requests in your tests.
 ///
-/// You must override [authServer] to return your application's [AuthServer] service, and [application]
-/// to return your harness' application.
+/// You must override [authServer] to return your application's [AuthServer] service,
+/// and [application] to return your harness' application.
 ///
-/// This mixin is typically used with [TestHarnessORMMixin]. Invoke [addClient] in [TestHarnessORMMixin.seed]
-/// to add OAuth2 clients that will survive [TestHarnessORMMixin.resetData].
+/// This mixin is typically used with [TestHarnessORMMixin] and `package:aqueduct/managed_auth`.
+/// Invoke [addClient] in [TestHarnessORMMixin.seed] to add OAuth2 clients that will survive
+/// [TestHarnessORMMixin.resetData].
 ///
 ///         class Harness extends TestHarness<MyChannel>
 ///           with TestHarnessManagedAuthMixin<MyChannel>, TestHarnessORMMixin {
@@ -59,9 +60,7 @@ abstract class TestHarnessManagedAuthMixin<T extends ApplicationChannel> impleme
   /// NOTE: This method adds rows to a database table managed by your test application and [TestHarnessORMMixin.resetData]
   /// will delete those rows. To ensure clients exist for all tests, add clients in [TestHarnessORMMixin.seed].
   Future<Agent> addClient(String id, {String secret, String redirectUri, List<String> allowedScope}) async {
-    final client = new ManagedAuthClient()
-      ..id = id
-      ..allowedScope = allowedScope?.join(" ");
+    final client = new AuthClient.public(id, allowedScopes: allowedScope?.map((s) => new AuthScope(s))?.toList());
 
     if (secret != null) {
       client
@@ -70,7 +69,7 @@ abstract class TestHarnessManagedAuthMixin<T extends ApplicationChannel> impleme
         ..redirectURI = redirectUri;
     }
 
-    await Query.insertObject((authServer.delegate as ManagedAuthDelegate).context, client);
+    await authServer.addClient(client);
 
     final authorizationHeader = "Basic ${base64.encode("$id:${secret ?? ""}".codeUnits)}";
     return new Agent.from(agent)..headers["authorization"] = authorizationHeader;

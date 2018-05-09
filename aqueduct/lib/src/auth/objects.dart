@@ -202,7 +202,7 @@ class AuthCode {
 /// about the validity of the credentials in a request.
 class Authorization {
   /// Creates an instance of a [Authorization].
-  Authorization(this.clientID, this.resourceOwnerIdentifier, this.validator,
+  Authorization(this.clientID, this.ownerID, this.validator,
       {this.credentials, this.scopes});
 
   /// The client ID the permission was granted under.
@@ -215,7 +215,7 @@ class Authorization {
   /// this value would be the primary key of that user.
   ///
   /// If this authorization does not refer to a specific resource owner, this value will be null.
-  final dynamic resourceOwnerIdentifier;
+  final dynamic ownerID;
 
   /// The [AuthValidator] that granted this permission.
   final AuthValidator validator;
@@ -293,9 +293,9 @@ class AuthScope {
 
   const AuthScope._(this._scopeString, this._segments, this._lastModifier);
 
-  /// Signifies 'any' scope in [AuthServerDelegate.allowedScopesForAuthenticatable].
+  /// Signifies 'any' scope in [AuthServerDelegate.getAllowedScopes].
   ///
-  /// See [AuthServerDelegate.allowedScopesForAuthenticatable] for more details.
+  /// See [AuthServerDelegate.getAllowedScopes] for more details.
   static const List<AuthScope> Any = const [
     const AuthScope._("_scope:_constant:_marker", const [], null)
   ];

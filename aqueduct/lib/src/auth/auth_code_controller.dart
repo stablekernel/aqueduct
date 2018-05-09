@@ -118,7 +118,7 @@ class AuthCodeController extends ResourceController {
 
       /// A space-delimited list of access scopes being requested.
       @Bind.query("scope") String scope}) async {
-    var client = await authServer.clientForID(clientID);
+    var client = await authServer.getClient(clientID);
 
     if (state == null) {
       var exception = new AuthServerException(AuthRequestError.invalidRequest, client);

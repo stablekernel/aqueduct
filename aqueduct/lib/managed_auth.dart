@@ -9,7 +9,7 @@
 ///         var authServer = new AuthServer(storage);
 ///
 /// Then, a [ManagedObject] subclass that represents an OAuth 2.0 resource owner ust be declared. It must implement [ManagedAuthResourceOwner].
-/// Its persistent type must implement [ManagedAuthenticatable]. For example, the follower `User` fulfills the requirement:
+/// Its persistent type must implement [ResourceOwnerTableDefinition]. For example, the follower `User` fulfills the requirement:
 ///
 ///         class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwner  {}
 ///         class _User extends ManagedAuthenticatable { ... }
@@ -143,11 +143,11 @@ class _ManagedAuthToken {
 
   /// The resource owner of this token.
   ///
-  /// [ManagedAuthenticatable] must be implemented by some [ManagedObject] subclass in an application.
-  /// That subclass will be the 'owner' of tokens. See [ManagedAuthenticatable] for more details.
+  /// [ResourceOwnerTableDefinition] must be implemented by some [ManagedObject] subclass in an application.
+  /// That subclass will be the 'owner' of tokens. See [ResourceOwnerTableDefinition] for more details.
   @Relate.deferred(DeleteRule.cascade,
       isRequired: true)
-  ManagedAuthenticatable resourceOwner;
+  ResourceOwnerTableDefinition resourceOwner;
 
   /// The client this token was issued for.
   @Relate(#tokens,
@@ -171,6 +171,18 @@ class _ManagedAuthToken {
 /// Use the `aqueduct auth` tool to add new clients to an application.
 class ManagedAuthClient extends ManagedObject<_ManagedAuthClient>
     implements _ManagedAuthClient {
+  /// Default constructor.
+  ManagedAuthClient();
+
+  /// Create from an [AuthClient].
+  ManagedAuthClient.fromClient(AuthClient client) {
+    id = client.id;
+    hashedSecret = client.hashedSecret;
+    salt = client.salt;
+    redirectURI = client.redirectURI;
+    allowedScope = client.allowedScopes?.map((s) => s.toString())?.join(" ");
+  }
+
   /// As an [AuthClient].
   AuthClient asClient() {
     var scopes = allowedScope
@@ -232,7 +244,7 @@ class _ManagedAuthClient {
 ///
 /// This requires all resource owners to have a integer primary key, username
 /// and hashed password. The [ManagedObject] subclass must implement [ManagedAuthResourceOwner].
-class ManagedAuthenticatable implements Authenticatable {
+class ResourceOwnerTableDefinition implements ResourceOwner {
   /// The primary key of a resource owner.
   @override
   @primaryKey
@@ -266,12 +278,12 @@ class ManagedAuthenticatable implements Authenticatable {
 ///         class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwner  {}
 ///         class _User extends ManagedAuthenticatable { ... }
 ///
-/// Note that this interface is made up of both [ManagedAuthenticatable] and [ManagedObject].
+/// Note that this interface is made up of both [ResourceOwnerTableDefinition] and [ManagedObject].
 /// The type declaring this as an interface must extend [ManagedObject] and implement
-/// a persistent type that extends [ManagedAuthenticatable]. Since all [ManagedObject] subclasses
+/// a persistent type that extends [ResourceOwnerTableDefinition]. Since all [ManagedObject] subclasses
 /// extend their persistent type, this interface requirement is met.
 abstract class ManagedAuthResourceOwner<T>
-    implements ManagedAuthenticatable, ManagedObject<T> {}
+    implements ResourceOwnerTableDefinition, ManagedObject<T> {}
 
 /// [AuthServerDelegate] implementation for an [AuthServer] using [ManagedObject]s.
 ///
@@ -304,37 +316,38 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
   final int tokenLimit;
 
   @override
-  Future revokeAuthenticatableWithIdentifier(
+  Future removeTokens(
       AuthServer server, dynamic identifier) {
-    var tokenQuery = new Query<ManagedAuthToken>(context)
+    final tokenQuery = new Query<ManagedAuthToken>(context)
       ..where((o) => o.resourceOwner).identifiedBy(identifier);
 
     return tokenQuery.delete();
   }
 
   @override
-  Future<AuthToken> fetchTokenByAccessToken(
-      AuthServer server, String accessToken) async {
-    var query = new Query<ManagedAuthToken>(context)
-      ..where((o) => o.accessToken).equalTo(accessToken);
-    var token = await query.fetchOne();
+  Future<AuthToken> getToken(
+      AuthServer server, {String byAccessToken, String byRefreshToken}) async {
+    if (byAccessToken != null && byRefreshToken != null) {
+      throw new ArgumentError("Exactly one of 'byAccessToken' or 'byRefreshToken' must be non-null.");
+    }
+
+    final query = new Query<ManagedAuthToken>(context);
+    if (byAccessToken != null) {
+      query.where((o) => o.accessToken).equalTo(byAccessToken);
+    } else if (byRefreshToken != null) {
+      query.where((o) => o.refreshToken).equalTo(byRefreshToken);
+    } else {
+      throw new ArgumentError("Exactly one of 'byAccessToken' or 'byRefreshToken' must be non-null.");
+    }
+
+    final token = await query.fetchOne();
 
     return token?.asToken();
   }
 
   @override
-  Future<AuthToken> fetchTokenByRefreshToken(
-      AuthServer server, String refreshToken) async {
-    var query = new Query<ManagedAuthToken>(context)
-      ..where((o) => o.refreshToken).equalTo(refreshToken);
-    var token = await query.fetchOne();
-
-    return token?.asToken();
-  }
-
-  @override
-  Future<T> fetchAuthenticatableByUsername(AuthServer server, String username) {
-    var query = new Query<T>(context)
+  Future<T> getResourceOwner(AuthServer server, String username) {
+    final query = new Query<T>(context)
       ..where((o) => o.username).equalTo(username)
       ..returningProperties((t) => [t.id, t.hashedPassword, t.salt, t.username]);
 
@@ -342,22 +355,23 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
   }
 
   @override
-  Future revokeTokenIssuedFromCode(AuthServer server, AuthCode code) {
-    var query = new Query<ManagedAuthToken>(context)..where((o) => o.code).equalTo(code.code);
+  Future removeToken(AuthServer server, AuthCode code) {
+    final query = new Query<ManagedAuthToken>(context)..where((o) => o.code).equalTo(code.code);
 
     return query.delete();
   }
 
   @override
-  Future storeToken(AuthServer server, AuthToken t,
+  Future addToken(AuthServer server, AuthToken t,
       {AuthCode issuedFrom}) async {
-    var storage = new ManagedAuthToken.fromToken(t);
-    var query = new Query<ManagedAuthToken>(context)..values = storage;
+    final storage = new ManagedAuthToken.fromToken(t);
+    final query = new Query<ManagedAuthToken>(context)..values = storage;
 
     if (issuedFrom != null) {
       query.where((o) => o.code).equalTo(issuedFrom.code);
       query.values.code = issuedFrom.code;
-      var outToken = await query.updateOne();
+
+      final outToken = await query.updateOne();
       if (outToken == null) {
         throw new AuthServerException(AuthRequestError.invalidGrant,
             new AuthClient(t.clientID, null, null));
@@ -370,13 +384,13 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
   }
 
   @override
-  Future refreshTokenWithAccessToken(
+  Future updateToken(
       AuthServer server,
       String oldAccessToken,
       String newAccessToken,
       DateTime newIssueDate,
       DateTime newExpirationDate) {
-    var query = new Query<ManagedAuthToken>(context)
+    final query = new Query<ManagedAuthToken>(context)
       ..where((o) => o.accessToken).equalTo(oldAccessToken)
       ..values.accessToken = newAccessToken
       ..values.issueDate = newIssueDate
@@ -386,56 +400,65 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
   }
 
   @override
-  Future storeAuthCode(AuthServer server, AuthCode code) async {
-    var storage = new ManagedAuthToken.fromCode(code);
-    var query = new Query<ManagedAuthToken>(context)..values = storage;
+  Future addCode(AuthServer server, AuthCode code) async {
+    final storage = new ManagedAuthToken.fromCode(code);
+    final query = new Query<ManagedAuthToken>(context)..values = storage;
+
     await query.insert();
 
     return pruneTokens(code.resourceOwnerIdentifier);
   }
 
   @override
-  Future<AuthCode> fetchAuthCodeByCode(AuthServer server, String code) async {
-    var query = new Query<ManagedAuthToken>(context)..where((o) => o.code).equalTo(code);
+  Future<AuthCode> getCode(AuthServer server, String code) async {
+    final query = new Query<ManagedAuthToken>(context)..where((o) => o.code).equalTo(code);
 
-    var storage = await query.fetchOne();
+    final storage = await query.fetchOne();
     return storage?.asAuthCode();
   }
 
   @override
-  Future revokeAuthCodeWithCode(AuthServer server, String code) {
-    var query = new Query<ManagedAuthToken>(context)..where((o) => o.code).equalTo(code);
+  Future removeCode(AuthServer server, String code) {
+    final query = new Query<ManagedAuthToken>(context)..where((o) => o.code).equalTo(code);
 
     return query.delete();
   }
 
-  @override
-  Future<AuthClient> fetchClientByID(AuthServer server, String id) async {
-    var query = new Query<ManagedAuthClient>(context)..where((o) => o.id).equalTo(id);
 
-    var storage = await query.fetchOne();
+  @override
+  Future addClient(AuthServer server, AuthClient client) async {
+    final storage = new ManagedAuthClient.fromClient(client);
+    final query = new Query<ManagedAuthClient>(context)..values = storage;
+    return query.insert();
+  }
+
+  @override
+  Future<AuthClient> getClient(AuthServer server, String id) async {
+    final query = new Query<ManagedAuthClient>(context)..where((o) => o.id).equalTo(id);
+
+    final storage = await query.fetchOne();
 
     return storage?.asClient();
   }
 
   @override
-  Future revokeClientWithID(AuthServer server, String id) {
-    var query = new Query<ManagedAuthClient>(context)..where((o) => o.id).equalTo(id);
+  Future removeClient(AuthServer server, String id) {
+    final query = new Query<ManagedAuthClient>(context)..where((o) => o.id).equalTo(id);
 
     return query.delete();
   }
 
   Future pruneTokens(dynamic resourceOwnerIdentifier) async {
-    var oldTokenQuery = new Query<ManagedAuthToken>(context)
+    final oldTokenQuery = new Query<ManagedAuthToken>(context)
       ..where((o) => o.resourceOwner).identifiedBy(resourceOwnerIdentifier)
       ..sortBy((t) => t.expirationDate, QuerySortOrder.descending)
       ..offset = tokenLimit
       ..fetchLimit = 1
       ..returningProperties((t) => [t.expirationDate]);
 
-    var results = await oldTokenQuery.fetch();
+    final results = await oldTokenQuery.fetch();
     if (results.length == 1) {
-      var deleteQ = new Query<ManagedAuthToken>(context)
+      final deleteQ = new Query<ManagedAuthToken>(context)
         ..where((o) => o.resourceOwner).identifiedBy(resourceOwnerIdentifier)
         ..where((o) => o.expirationDate).lessThanEqualTo(results.first.expirationDate);
 
