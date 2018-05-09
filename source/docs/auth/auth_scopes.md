@@ -90,7 +90,7 @@ aqueduct auth set-scope \
 
 Each scope is a space-delimited string; the above examples allow clients authenticating with the `com.app.mobile` client ID to grant access tokens with 'notes' and 'users' scope. If a client application requests scopes that are not available for that client application, the granted access token will not contain that scope. If none of the request scopes are available for the client identifier, no access token is granted. When adding scope restrictions to your application, you must ensure that all of the client applications that have access to those operations are able to grant that scope.
 
-Scopes may also be limited by some attribute of your application's concept of a 'user'. This user-level filtering is done by overriding `getAllowedScopes` in `AuthDelegate`. By default, this method returns `AuthScope.Any` - which means there are no restrictions. If the client application allows the scope, then any user that logs in with that application can request that scope.
+Scopes may also be limited by some attribute of your application's concept of a 'user'. This user-level filtering is done by overriding `getAllowedScopes` in `AuthServerDelegate`. By default, this method returns `AuthScope.Any` - which means there are no restrictions. If the client application allows the scope, then any user that logs in with that application can request that scope.
 
 This method may return a list of `AuthScope`s that are valid for the authenticating user. The following example shows a `ManagedAuthDelegate<T>` subclass that allows any scope for `@stablekernel.com` usernames, no scopes for `@hotmail.com` addresses and some limited scope for everyone else:
 
