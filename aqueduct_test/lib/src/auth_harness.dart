@@ -34,7 +34,7 @@ import 'package:aqueduct_test/aqueduct_test.dart';
 ///               publicAgent = await addClient("com.public.client");
 ///             }
 ///         }
-abstract class TestHarnessManagedAuthMixin<T extends ApplicationChannel> implements TestHarness<T> {
+abstract class TestHarnessAuthMixin<T extends ApplicationChannel> implements TestHarness<T> {
   /// Must override to return [authServer] of application under test.
   ///
   /// An [ApplicationChannel] should expose its [AuthServer] service as a property.

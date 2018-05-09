@@ -27,7 +27,7 @@ export 'package:aqueduct/aqueduct.dart';
 ///           });
 ///         }
 ///
-class Harness extends TestHarness<WildfireChannel> with TestHarnessManagedAuthMixin<WildfireChannel>, TestHarnessORMMixin {
+class Harness extends TestHarness<WildfireChannel> with TestHarnessAuthMixin<WildfireChannel>, TestHarnessORMMixin {
   @override
   ManagedContext get context => channel.context;
 

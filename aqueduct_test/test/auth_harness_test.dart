@@ -123,7 +123,7 @@ class Channel extends ApplicationChannel {
   }
 }
 
-class HarnessSubclass extends TestHarness<Channel> with TestHarnessManagedAuthMixin<Channel>, TestHarnessORMMixin {
+class HarnessSubclass extends TestHarness<Channel> with TestHarnessAuthMixin<Channel>, TestHarnessORMMixin {
   @override
   Future afterStart() async {
     await resetData();

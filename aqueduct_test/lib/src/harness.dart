@@ -13,7 +13,7 @@ import 'package:test/test.dart';
 /// You typically create a subclass of [TestHarness] that is used for all tests in an application. The subclass
 /// overrides callbacks [beforeStart] and [afterStart] to configure the application. This configuration might be
 /// adding an application's database schema to a test database, or to create OAuth2 client identifiers
-/// for use during test. See also [TestHarnessORMMixin] and [TestHarnessManagedAuthMixin] for adding common behaviors
+/// for use during test. See also [TestHarnessORMMixin] and [TestHarnessAuthMixin] for adding common behaviors
 /// like these to your harness.
 ///
 /// Usage:

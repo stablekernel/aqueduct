@@ -1,5 +1,6 @@
 ## 3.0.0
 
+- Adds `BodyDecoder.asDynamic`.
 - `package:aqueduct/test` moved to `package:aqueduct_test/aqueduct_test`, which is a separate dependency than `aqueduct`.
 - Renames methods in `AuthDelegate` to provide consistency.
 - Adds `AuthDelegate.addClient` and `AuthServer.addClient`.
