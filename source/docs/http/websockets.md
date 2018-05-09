@@ -62,7 +62,7 @@ router
   .route("/connect")
   .link(() => new Authorizer(authServer));
   .linkFunction((request) async {
-    var userID = request.authorization.resourceOwnerIdentifier;
+    var userID = request.authorization.ownerID;
     var socket = await WebSocketTransformer.upgrade(request.raw);
     socket.listen((event) => handleEvent(event, fromUserID: userID));
 

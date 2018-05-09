@@ -90,7 +90,7 @@ aqueduct auth set-scope \
 
 Each scope is a space-delimited string; the above examples allow clients authenticating with the `com.app.mobile` client ID to grant access tokens with 'notes' and 'users' scope. If a client application requests scopes that are not available for that client application, the granted access token will not contain that scope. If none of the request scopes are available for the client identifier, no access token is granted. When adding scope restrictions to your application, you must ensure that all of the client applications that have access to those operations are able to grant that scope.
 
-Scopes may also be limited by some attribute of your application's concept of a 'user'. This user-level filtering is done by overriding `allowedScopesForAuthenticatable` in `AuthDelegate`. By default, this method returns `AuthScope.Any` - which means there are no restrictions. If the client application allows the scope, then any user that logs in with that application can request that scope.
+Scopes may also be limited by some attribute of your application's concept of a 'user'. This user-level filtering is done by overriding `getAllowedScopes` in `AuthDelegate`. By default, this method returns `AuthScope.Any` - which means there are no restrictions. If the client application allows the scope, then any user that logs in with that application can request that scope.
 
 This method may return a list of `AuthScope`s that are valid for the authenticating user. The following example shows a `ManagedAuthDelegate<T>` subclass that allows any scope for `@stablekernel.com` usernames, no scopes for `@hotmail.com` addresses and some limited scope for everyone else:
 
@@ -100,7 +100,7 @@ class DomainBasedAuthDelegate extends ManagedAuthDelegate<User> {
         super(context, tokenLimit: tokenLimit);
 
   @override
-  List<AuthScope> allowedScopesForAuthenticatable(covariant User user) {
+  List<AuthScope> getAllowedScopes(covariant User user) {
     if (user.username.endsWith("@stablekernel.com")) {
       return AuthScope.Any;
     } else if (user.username.endsWith("@hotmail.com")) {
@@ -112,9 +112,9 @@ class DomainBasedAuthDelegate extends ManagedAuthDelegate<User> {
 }
 ```
 
-The `user` passed to `allowedScopesForAuthenticatable` is the user being authenticated. It will have previously been fetched by the `AuthServer`. The `AuthServer` fetches this object by invoking `AuthDelegate.fetchAuthenticatableByUsername()`. The default implementation of this method for `ManagedAuthDelegate<T>` only fetches the `id`, `username`, `salt` and `hashedPassword` of the user.
+The `user` passed to `getAllowedScopes` is the user being authenticated. It will have previously been fetched by the `AuthServer`. The `AuthServer` fetches this object by invoking `AuthDelegate.getResourceOwner`. The default implementation of this method for `ManagedAuthDelegate<T>` only fetches the `id`, `username`, `salt` and `hashedPassword` of the user.
 
-When using some other attribute of an application's user object to restrict allowed scopes, you must also override `fetchAuthenticatableByUsername` to fetch these attributes. For example, if your application's user has a `role` attribute, you must fetch it and the other four required properties. Here's an example implementation:
+When using some other attribute of an application's user object to restrict allowed scopes, you must also override `getResourceOwner` to fetch these attributes. For example, if your application's user has a `role` attribute, you must fetch it and the other four required properties. Here's an example implementation:
 
 ```dart
 class RoleBasedAuthDelegate extends ManagedAuthDelegate<User> {
@@ -122,9 +122,9 @@ class RoleBasedAuthDelegate extends ManagedAuthDelegate<User> {
         super(context, tokenLimit: tokenLimit);
 
   @override
-  Future<User> fetchAuthenticatableByUsername(
+  Future<User> getResourceOwner(
       AuthServer server, String username) {
-    var query = Query<User>(context)
+    final query = Query<User>(context)
       ..where((u) => u.username).equalTo(username)
       ..returningProperties((t) =>
         [t.id, t.username, t.hashedPassword, t.salt, t.role]);
@@ -133,7 +133,7 @@ class RoleBasedAuthDelegate extends ManagedAuthDelegate<User> {
   }
 
   @override
-  List<AuthScope> allowedScopesForAuthenticatable(covariant User user) {
+  List<AuthScope> getAllowedScopes(covariant User user) {
     var scopeStrings = [];
     if (user.role == "admin") {
       scopeStrings = ["admin", "user"];

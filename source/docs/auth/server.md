@@ -78,29 +78,29 @@ For more details on authorization controllers like `AuthController`, see [Author
 
 `ManagedAuthDelegate<T>` is a concrete implementation of `AuthDelegate`, providing storage of authorization tokens and clients for an `AuthServer`. Storage is accomplished by Aqueduct's ORM. `ManagedAuthDelegate<T>`, by default, is not part of the standard `aqueduct` library. To use this class, an application must import `package:aqueduct/managed_auth.dart`.
 
-The type argument to `ManagedAuthDelegate<T>` represents the application's concept of a 'user' or 'account' - OAuth 2.0 terminology would refer to this type as a *resource owner*. A resource owner must be a `ManagedObject<T>` subclass that is specific to your application. Its table definition *must extend* `ManagedAuthenticatable` and the instance type must implement `ManagedAuthResourceOwner<T>`, where `T` is the table definition. A basic definition may look like this:
+The type argument to `ManagedAuthDelegate<T>` represents the application's concept of a 'user' or 'account' - OAuth 2.0 terminology would refer to this type as a *resource owner*. A resource owner must be a `ManagedObject<T>` subclass that is specific to your application. Its table definition *must extend* `ResourceOwnerTableDefinition` and the instance type must implement `ManagedAuthResourceOwner<T>`, where `T` is the table definition. A basic definition may look like this:
 
 ```dart
 class User extends ManagedObject<_User>
     implements _User, ManagedAuthResourceOwner<_User> {
 }
 
-class _User extends ManagedAuthenticatable {
+class _User extends ResourceOwnerTableDefinition {
   @Column(unique: true)
   String email;
 }
 ```
 
-By extending `ManagedAuthenticatable` in the table definition, the database table has the following four columns:
+By extending `ResourceOwnerTableDefinition` in the table definition, the database table has the following four columns:
 
 - an integer primary key named `id`
 - a unique string `username`
 - a password hash
 - a salt used to generate the password hash
 
-A `ManagedAuthenticatable` also has a `ManagedSet` of `tokens` for each token that has been granted on its behalf.
+A `ResourceOwnerTableDefinition` also has a `ManagedSet` of `tokens` for each token that has been granted on its behalf.
 
-The interface `ManagedAuthResourceOwner<T>` is a requirement that ensures the type argument is both a `ManagedObject<T>` and `ManagedAuthenticatable`, and serves no other purpose than to restrict `ManagedAuthDelegate<T>`'s type parameter.
+The interface `ManagedAuthResourceOwner<T>` is a requirement that ensures the type argument is both a `ManagedObject<T>` and `ResourceOwnerTableDefinition`, and serves no other purpose than to restrict `ManagedAuthDelegate<T>`'s type parameter.
 
 This structure allows an application to declare its own 'user' type while still enforcing the needs of Aqueduct's OAuth 2.0 implementation.
 

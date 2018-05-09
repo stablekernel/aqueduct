@@ -1,12 +1,12 @@
 ## Tasks
 
-Aqueduct has types to manage authentication and authorization according to the [OAuth 2.0 specification](https://tools.ietf.org/html/rfc6749). The following tasks are important for this behavior:
+Aqueduct has types to manage authentication and authorization according to the [OAuth 2.0 specification](https://tools.ietf.org/html/rfc6749).
 
-- Creating `AuthServer` instances to enable OAuth 2.0 in an Aqueduct application
-- Using `ManagedAuthDelegate<T>` to manage storage of authorization objects, e.g. storing tokens in a database.
-- Using `AuthCodeController` and `AuthController` to expose endpoints for exchanging credentials for authorization tokens.
-- Adding `Authorizer`s to a channel to allow only authorized requests.
-- Managing OAuth 2.0 Client identifiers, secrets and scopes with the `aqueduct auth` tool
+You create an `AuthServer` service object for your application that manages authentication and authorization logic. An `AuthServer` requires a helper object that implements `AuthDelegate` to handle configuration and required data storage. Most often, this object is a `ManagedAuthDelegate<T>` that uses the Aqueduct ORM to manage this storage.
+
+An `AuthServer` service object is injected into `Authorizer` controllers that protect access to controller channels. An `AuthServer` is also injected into `AuthCodeController` and `AuthController` to provide HTTP APIs for authentication.
+
+The `aqueduct auth` command-line tool manages configuration - such as client identifier management - for live applications.
 
 ![Authorization Objects](../img/authobjects.png)
 
@@ -15,6 +15,6 @@ Aqueduct has types to manage authentication and authorization according to the [
 - [What is OAuth 2.0?](what_is_oauth.md)
 - [Creating and Using AuthServers](server.md)
 - [Securing Routes with Authorizer](authorizer.md)
-- [Adding Auth Endpoints](controllers.md)
+- [Adding Authentication Endpoints](controllers.md)
 - [Using Scopes to Control Access](auth_scopes.md)
 - [Managing OAuth 2.0 Clients](cli.md)

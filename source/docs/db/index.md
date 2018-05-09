@@ -1,12 +1,14 @@
 ## Tasks
 
-Aqueduct has an ORM to store data in a database and map database data to Dart objects.
+Aqueduct's ORM stores data in a database and maps database data to Dart objects.
 
-- Defining a data model by declaring `ManagedObject<T>` subclasses
-- Inserting, updating, reading and deleting data with `Query<T>`.
-- Creating `ManagedObject<T>`s from HTTP request body data like JSON
-- Encoding `ManagedObject<T>`s into an HTTP response body
-- Generating and upgrading database schemas with the `aqueduct db` tool.
+You create subclasses of `ManagedObject<T>` in your application code to define the database tables your application uses. The properties of these types have annotations like `Column` and `Validate` to customize the behavior of tables in your database.
+
+Your application creates a `ManagedContext` service object during initialization that manages database access for your application. This service is injected into controllers that make database queries.
+
+Instances of `Query<T>` are created to insert, update, read and delete data from a database. A `Query<T>` has many configurable options for filtering, joining, paging, sorting and performing aggregate functions on database rows.
+
+The `aqueduct db` command-line tool manages databases that your application connects. This tool creates and executes migration scripts that update the schema of a database to match the requirements of your application. 
 
 ## Guides
 

@@ -89,7 +89,7 @@ class ProfileController extends ResourceController {
 
   @Operation.get()
   Future<Response> getProfile() async {
-    final id = request.authorization.resourceOwnerIdentifier;
+    final id = request.authorization.ownerID;
     final query = new Query<User>(context)
       ..where((u) => u.id).equalTo(id);
 

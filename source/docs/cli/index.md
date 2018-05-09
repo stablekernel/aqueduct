@@ -8,7 +8,7 @@ This tool is installed through `pub`:
 pub global activate aqueduct
 ```
 
-Make sure you update the tool by running this command when a new version of Aqueduct is released.
+The above command updates the tool if a new version is available. You should ensure that `aqueduct` and your application use the same version of Aqueduct.
 
 All command-line tools have a `--help` option to show their options.
 

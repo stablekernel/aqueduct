@@ -69,7 +69,7 @@ class NewsFeedController extends ResourceController {
 
   @Operation.get()
   Future<Response> getNewsFeed() async {
-    var forUserID = request.authorization.resourceOwnerIdentifier;
+    var forUserID = request.authorization.ownerID;
 
     var query = Query<Post>(context)
       ..where((p) => p.author).identifiedBy(forUserID);
@@ -95,7 +95,7 @@ class NewsFeedController extends ResourceController {
       return Response.unauthorized();
     }
 
-    var forUserID = request.authorization.resourceOwnerIdentifier;
+    var forUserID = request.authorization.ownerID;
 
     var query = Query<Post>(context)
       ..where((p) => p.author).identifiedBy(forUserID);
