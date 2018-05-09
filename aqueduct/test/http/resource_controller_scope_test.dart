@@ -9,10 +9,14 @@ import '../helpers.dart';
 
 void main() {
   final app = new Application<Channel>();
-  final client = new TestClient(app);
+  Agent client;
 
   setUpAll(() async {
     await app.test();
+  });
+
+  setUp(() {
+    client = new Agent(app);
   });
 
   tearDownAll(() async {
@@ -32,38 +36,46 @@ void main() {
  */
 
   test("If method has no scope restrictions (but Authorizer does), allow request if passes authorizer", () async {
-    expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1").get(), 200);
+    client.headers["authorization"] = "Bearer level1";
+    expectResponse(await client.request("/level1-authorizer").get(), 200);
   });
 
   test("When no Authorizer and method has scope, a 500 error is thrown", () async {
     // Log warning
-    expectResponse(await client.authenticatedRequest("/no-authorizer", accessToken: "level1").put(), 500);
+    client.headers["authorization"] = "Bearer level1";
+    expectResponse(await client.request("/no-authorizer").put(), 500);
   });
 
   test("When no Authorizer and method does not have scope, request is successful", () async {
-    expectResponse(await client.authenticatedRequest("/no-authorizer", accessToken: "level1").get(), 200);
+    client.headers["authorization"] = "Bearer level1";
+    expectResponse(await client.request("/no-authorizer").get(), 200);
   });
 
   test("If token has sufficient scope for method, allow it", () async {
-    expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1").put(), 200);
+    client.headers["authorization"] = "Bearer level1";
+    expectResponse(await client.request("/level1-authorizer").put(), 200);
   });
 
   test("If token does not have sufficient scope for method, return 403 and include required scope in body", () async {
-    expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1").post(), 403,
+    client.headers["authorization"] = "Bearer level1";
+    expectResponse(await client.request("/level1-authorizer").post(), 403,
         body: {"error": "insufficient_scope", "scope": "level1 level2"});
   });
 
   test("If token has sufficient scope for method requiring multiple scopes, allow it", () async {
-    expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1 level2").delete(), 200);
+    client.headers["authorization"] = "Bearer level1 level2";
+    expectResponse(await client.request("/level1-authorizer").delete(), 200);
   });
 
   test("If token has sufficient scope for only ONE of required scopes, do not allow it", () async {
-    expectResponse(await client.authenticatedRequest("/level1-authorizer", accessToken: "level1").delete(), 403,
+    client.headers["authorization"] = "Bearer level1";
+    expectResponse(await client.request("/level1-authorizer").delete(), 403,
         body: {"error": "insufficient_scope", "scope": "level1 level2"});
   });
 
   test("If token does not have any sufficient scopes for method requiring multiple scopes, do not allow it", () async {
-    expectResponse(await client.authenticatedRequest("/authorizer", accessToken: "no-scope").delete(), 403,
+    client.headers["authorization"] = "Bearer no-scope";
+    expectResponse(await client.request("/authorizer").delete(), 403,
         body: {"error": "insufficient_scope", "scope": "level1 level2"});
   });
 

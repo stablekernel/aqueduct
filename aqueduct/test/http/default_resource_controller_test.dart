@@ -12,7 +12,7 @@ void main() {
     var app = new Application<TestChannel>();
     Controller.letUncaughtExceptionsEscape = true;
     app.options.port = 8888;
-    var client = new TestClient.onPort(app.options.port);
+    var client = new Agent.onPort(app.options.port);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
@@ -51,9 +51,7 @@ void main() {
         "createdAt": allObjects.first.createdAt.toIso8601String()
       };
 
-      var resp = await (client.request("/controller/1")
-            ..json = {"name": "Fred"})
-          .put();
+      var resp = await client.put("/controller/1", body: {"name": "Fred"});
       expect(resp, hasResponse(200, body: expectedMap));
 
       expect(await client.request("/controller/1").get(),
@@ -64,7 +62,7 @@ void main() {
 
     test("Can create an object", () async {
       var resp = await (client.request("/controller")
-            ..json = {
+            ..body = {
               "name": "John",
               "createdAt": new DateTime(2000, 12, 12).toUtc().toIso8601String()
             })
@@ -89,7 +87,7 @@ void main() {
   group("Standard operation failure cases", () {
     var app = new Application<TestChannel>();
     app.options.port = 8888;
-    var client = new TestClient.onPort(8888);
+    var client = new Agent.onPort(8888);
 
     setUpAll(() async {
       await app.test();
@@ -108,7 +106,7 @@ void main() {
     test("Put an object with the wrong type of path param returns 404",
         () async {
       var resp = await (client.request("/controller/one")
-            ..json = {"name": "Fred"})
+            ..body = {"name": "Fred"})
           .put();
       expect(resp, hasStatus(404));
     });
@@ -122,7 +120,7 @@ void main() {
   group("Objects that don't exist", () {
     var app = new Application<TestChannel>();
     app.options.port = 8888;
-    var client = new TestClient.onPort(8888);
+    var client = new Agent.onPort(8888);
 
     setUpAll(() async {
       await app.test();
@@ -143,7 +141,7 @@ void main() {
 
     test("Updating an object returns 404", () async {
       expect(
-          await (client.request("/controller/1")..json = {"name": "Fred"})
+          await (client.request("/controller/1")..body = {"name": "Fred"})
               .put(),
           hasStatus(404));
     });
@@ -158,7 +156,7 @@ void main() {
   group("Extended GET requests", () {
     var app = new Application<TestChannel>();
     app.options.port = 8888;
-    var client = new TestClient.onPort(8888);
+    var client = new Agent.onPort(8888);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
@@ -353,7 +351,7 @@ void main() {
   group("With dynamic entity", () {
     var app = new Application<TestChannel>();
     app.options.port = 8888;
-    var client = new TestClient.onPort(8888);
+    var client = new Agent.onPort(8888);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {

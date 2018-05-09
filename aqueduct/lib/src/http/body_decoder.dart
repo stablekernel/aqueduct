@@ -233,11 +233,11 @@ abstract class BodyDecoder {
     }
   }
 
-  /// Returns decoded data as a [List] of bytes if decoding has already been attempted.
+  /// Returns decoded data as a [List] of bytes if decoding has already occurred.
   ///
   /// If decoding has not yet occurred, this method throws an error.
   ///
-  /// If decoding as occurred, behavior is the same as [decodeAsBytes], but the result is not wrapped in [Future].
+  /// If decoding has occurred, behavior is the same as [decodeAsBytes], but the result is not wrapped in [Future].
   List<int> asBytes() {
     if (!hasBeenDecoded) {
       throw new StateError("Invalid body decoding. Body must be decoded before 'asBytes' is invoked. Use 'decodeAsBytes'.");
@@ -256,6 +256,19 @@ abstract class BodyDecoder {
     } on CastError {
       throw new StateError("Invalid body decoding. Body was decoded into another type. Set 'retainOriginalBytes' to true. to retain original bytes.");
     }
+  }
+
+  /// Returns decoded data if decoding has already occurred.
+  ///
+  /// If decoding has not yet occurred, this method throws an error.
+  ///
+  /// If decoding has occurred, behavior is the same as [decodedData], but the result is not wrapped in [Future].
+  dynamic asDynamic() {
+    if (!hasBeenDecoded) {
+      throw new StateError("Invalid body decoding. Body must be decoded before 'asDynamic' is invoked. Use 'decodedData'.");
+    }
+
+    return _decodedData;
   }
 
   Future<List<int>> _readBytes(Stream<List<int>> stream) async {

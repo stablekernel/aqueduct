@@ -40,7 +40,7 @@ Tests will be run using the configuration file `config.src.yaml`. This file shou
 
 See the application test harness, `test/app/harness.dart`, for more details. This file contains a `TestApplication` class that can be set up and torn down for tests. It will create a temporary database that the tests run against. See examples of usage in the `_test.dart` files in `test/`.
 
-For more information, see [Getting Started](https://aqueduct.io/docs/) and [Testing](https://aqueduct.io/docs/testing/overview).
+For more information, see [Getting Started](https://aqueduct.io/docs/) and [Testing](https://aqueduct.io/docs/testing/).
 
 ## Application Structure
 
@@ -67,4 +67,4 @@ This will print a JSON OpenAPI specification to stdout.
 
 ## Deploying an Application
 
-See the documentation for [Deployment](https://aqueduct.io/docs/deploy/overview/).
+See the documentation for [Deployment](https://aqueduct.io/docs/deploy/).

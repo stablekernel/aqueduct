@@ -1,77 +1,50 @@
 import 'harness/app.dart';
 
 void main() {
-  TestApplication app = new TestApplication();
-
-  setUpAll(() async {
-    await app.start();
-  });
-
-  tearDownAll(() async {
-    await app.stop();
-  });
+  Harness harness = new Harness()..install();
 
   tearDown(() async {
-    await app.discardPersistentData();
+    await harness.resetData();
   });
 
-  group("Success cases", () {
-    test("Can create user", () async {
-      var response = await (app.client.clientAuthenticatedRequest("/register")
-            ..json = {"username": "bob@stablekernel.com", "password": "foobaraxegrind12%"})
-          .post();
+  test("Can create user", () async {
+    final response = await harness.publicAgent
+        .post("/register", body: {"username": "bob@stablekernel.com", "password": "foobaraxegrind12%"});
 
-      expect(response, hasResponse(200, body: partial({"access_token": hasLength(greaterThan(0))})));
-    });
-
-    test("Can create user with public client", () async {
-      var response = await (app.client.clientAuthenticatedRequest("/register", clientID: "com.aqueduct.public")
-            ..json = {"username": "bob@stablekernel.com", "password": "foobaraxegrind12%"})
-          .post();
-
-      expect(response, hasResponse(200, body: partial({"access_token": hasLength(greaterThan(0))})));
-    });
-
-    test("Created user has same email a username", () async {
-      var json = {"username": "bob@stablekernel.com", "password": "foobaraxegrind12%"};
-
-      var registerResponse = await (app.client.clientAuthenticatedRequest("/register")..json = json).post();
-
-      var identityResponse =
-          await (app.client.authenticatedRequest("/me", accessToken: registerResponse.asMap["access_token"])).get();
-
-      expect(identityResponse, hasResponse(200, body: partial({"email": json["username"]})));
-    });
+    expect(response, hasResponse(200, body: partial({"access_token": hasLength(greaterThan(0))})));
   });
 
-  group("Failure cases", () {
-    test("Trying to create existing user fails", () async {
-      await (app.client.clientAuthenticatedRequest("/register")
-            ..json = {"username": "bob@stablekernel.com", "password": "someotherpassword"})
-          .post();
+  test("Created user has email is also username", () async {
+    var json = {"username": "bob@stablekernel.com", "password": "foobaraxegrind12%"};
 
-      var response = await (app.client.clientAuthenticatedRequest("/register")
-            ..json = {"username": "bob@stablekernel.com", "password": "foobaraxegrind12%"})
-          .post();
+    final registerResponse = await harness.publicAgent.post("/register", body: json);
+    final accessToken = registerResponse.body.asMap()["access_token"];
+    final userAgent = new Agent.from(harness.agent)..bearerAuthorization = accessToken;
 
-      expect(response, hasStatus(409));
+    final identityResponse = await userAgent.get("/me");
+    expect(identityResponse, hasResponse(200, body: partial({"email": json["username"]})));
+  });
+
+  test("Trying to create existing user fails", () async {
+    await harness.publicAgent
+        .post("/register", body: {"username": "bob@stablekernel.com", "password": "someotherpassword"});
+
+    final response = await harness.publicAgent
+        .post("/register", body: {"username": "bob@stablekernel.com", "password": "foobaraxegrind12%"});
+    expect(response, hasStatus(409));
+  });
+
+  test("Omit password fails", () async {
+    var response = await harness.publicAgent.post("/register", body: {
+      "username": "bobby.bones@stablekernel.com",
     });
 
-    test("Omit password fails", () async {
-      var response = await (app.client.clientAuthenticatedRequest("/register")
-            ..json = {
-              "username": "bobby.bones@stablekernel.com",
-            })
-          .post();
+    expect(response, hasStatus(400));
+  });
 
-      expect(response, hasStatus(400));
-    });
+  test("Omit username fails", () async {
+    var response = await harness.publicAgent.post("/register", body: {"username": "foobaraxegrind12%"});
 
-    test("Omit username fails", () async {
-      var response =
-          await (app.client.clientAuthenticatedRequest("/register")..json = {"username": "foobaraxegrind12%"}).post();
-
-      expect(response, hasStatus(400));
-    });
+    expect(response, hasStatus(400));
   });
 }

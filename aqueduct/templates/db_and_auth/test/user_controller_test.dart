@@ -1,47 +1,34 @@
+import 'package:wildfire/model/user.dart';
+
 import 'harness/app.dart';
 import 'dart:convert';
 
 Future main() async {
-  TestApplication app = new TestApplication();
-  List<String> tokens;
+  Harness harness = new Harness()..install();
 
-  setUpAll(() async {
-    await app.start();
-  });
-
-  tearDownAll(() async {
-    await app.stop();
-  });
+  Map<int, Agent> agents;
 
   setUp(() async {
-    tokens = [];
+    agents = {};
     for (var i = 0; i < 6; i++) {
-      var response = await (app.client.clientAuthenticatedRequest("/register")
-            ..json = {"username": "bob+$i@stablekernel.com", "password": "foobaraxegrind$i%"})
-          .post();
-      tokens.add(json.decode(response.body)["access_token"]);
+      final user = new User()
+        ..username = "bob+$i@stablekernel.com"
+        ..password = "foobaraxegrind$i%";
+      agents[i] = await harness.registerUser(user);
     }
   });
 
   tearDown(() async {
-    await app.discardPersistentData();
+    await harness.resetData();
   });
 
-  group("Success cases", () {
-    test("Can get user with valid credentials", () async {
-      var response = await (app.client.authenticatedRequest("/users/1", accessToken: tokens[0]).get());
-
-      expect(response, hasResponse(200, body: partial({"username": "bob+0@stablekernel.com"})));
-    });
+  test("Can get user with valid credentials", () async {
+    final response = await agents[0].get("/users/1");
+    expect(response, hasResponse(200, body: partial({"username": "bob+0@stablekernel.com"})));
   });
 
-  group("Failure cases", () {
-    test("Updating user fails if not owner", () async {
-      var response = await (app.client.authenticatedRequest("/users/1", accessToken: tokens[4])
-            ..json = {"email": "a@a.com"})
-          .put();
-
-      expect(response, hasStatus(401));
-    });
+  test("Updating user fails if not owner", () async {
+    final response = await agents[4].put("/users/1", body: {"email": "a@a.com"});
+    expect(response, hasStatus(401));
   });
 }

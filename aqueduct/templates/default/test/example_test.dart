@@ -1,22 +1,9 @@
 import 'harness/app.dart';
 
 Future main() async {
-  TestApplication app = new TestApplication();
+  Harness harness = new Harness()..install();
 
-  setUpAll(() async {
-    await app.start();
-  });
-
-  tearDownAll(() async {
-    await app.stop();
-  });
-
-  group("Success flow", () {
-    test("Can hit example endpoint", () async {
-      var request = app.client.request("/example");
-
-      var response = await request.get();
-      expect(response, hasResponse(200, body: {"key": "value"}));
-    });
+  test("GET /example returns 200 {'key': 'value'}", () async {
+    expectResponse(await harness.agent.get("/example"), 200, body: {"key": "value"});
   });
 }

@@ -1,34 +1,30 @@
+import 'package:wildfire/model/user.dart';
+
 import 'harness/app.dart';
 
 Future main() async {
-  TestApplication app = new TestApplication();
+  Harness harness = new Harness()..install();
 
-  setUpAll(() async {
-    await app.start();
+  Agent userClient;
+  User defaultUser;
+
+  setUp(() async {
+    defaultUser = new User()
+      ..username = "bob@stablekernel.com"
+      ..password = "foobaraxegrind12%";
+    userClient = await harness.registerUser(defaultUser);
   });
 
-  tearDownAll(() async {
-    await app.stop();
-  });
-
+  // After each test, reset the database to remove any rows it inserted.
   tearDown(() async {
-    await app.discardPersistentData();
+    await harness.resetData();
   });
 
-  group("Success cases", () {
-    test("Identity returns user associated with bearer token", () async {
-      var req = app.client.clientAuthenticatedRequest("/register")
-        ..json = {"username": "bob@stablekernel.com", "password": "foobaraxegrind12%"};
-
-      var accessToken = (await req.post()).asMap["access_token"];
-      req = app.client.authenticatedRequest("/me", accessToken: accessToken);
-      var result = await req.get();
-
-      expect(
-          result,
-          hasResponse(200,
-              body: partial(
-                  {"id": greaterThan(0), "email": "bob@stablekernel.com", "username": "bob@stablekernel.com"})));
+  test("Identity returns user associated with bearer token", () async {
+    expectResponse(await userClient.get("/me"), 200, body: {
+      "id": greaterThan(0),
+      "email": defaultUser.username,
+      "username": defaultUser.username
     });
   });
 }

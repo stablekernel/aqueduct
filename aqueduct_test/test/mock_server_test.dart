@@ -9,7 +9,7 @@ import 'package:aqueduct_test/aqueduct_test.dart';
 void main() {
   group("Mock HTTP Tests", () {
     MockHTTPServer server;
-    var testClient = new TestClient.onPort(4000);
+    var testClient = new Agent.onPort(4000);
 
     setUp(() async {
       server = new MockHTTPServer(4000);
@@ -21,9 +21,8 @@ void main() {
     });
 
     test("Request is enqueued and immediately available", () async {
-      final response =
-          (testClient.request("/hello?foo=bar")..headers = {"X": "Y"}).get();
-      expect(response, completes);
+      final responseFuture = testClient.get("/hello", query: {"foo": "bar"}, headers: {"X": "Y"});
+      expect(responseFuture, completes);
 
       final serverRequest = await server.next();
       expect(serverRequest.method, "GET");
@@ -35,8 +34,7 @@ void main() {
     });
 
     test("Request body is captured", () async {
-      final req = testClient.request("/foo")..json = {"a": "b"};
-      await req.put();
+      await testClient.put("/foo", body: {"a": "b"});
 
       final serverRequest = await server.next();
       expect(serverRequest.method, "PUT");
@@ -174,7 +172,7 @@ void main() {
     test("Can queue handler", () async {
       server.queueHandler((req) => new Response.ok({"k": req.raw.uri.queryParameters["k"]}));
       final response = await testClient.request("/ok?k=1").get();
-      expect(response.bodyDecoder.asMap()["k"], "1");
+      expect(response.body.asMap()["k"], "1");
 
       expect((await testClient.request("/ok").get()).statusCode, server.defaultResponse.statusCode);
     });
@@ -184,7 +182,7 @@ void main() {
 Future spawnFunc(List pair) async {
   final path = pair.first;
   final delay = pair.last;
-  final testClient = new TestClient.onPort(4000);
+  final testClient = new Agent.onPort(4000);
   sleep(new Duration(seconds: delay));
   await testClient.request(path).get();
 }

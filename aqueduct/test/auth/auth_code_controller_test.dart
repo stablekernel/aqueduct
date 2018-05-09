@@ -11,13 +11,15 @@ import 'dart:convert';
 
 void main() {
   Application<TestChannel> application;
-  TestClient client = new TestClient.onPort(8888);
+  Agent client = new Agent.onPort(8888);
 
   var codeResponse = (Map<String, String> form) {
     var m = new Map<String, String>.from(form);
     m.addAll({"response_type": "code"});
 
-    var req = client.request("/auth/code")..formData = m;
+    var req = client.request("/auth/code")
+      ..contentType = new ContentType("application", "x-www-form-urlencoded", charset: "utf-8")
+      ..body = m;
 
     return req.post();
   };
@@ -39,13 +41,13 @@ void main() {
   group("GET success case", () {
     test("GET login form with valid values returns a 'page' with the provided values", () async {
       var req = client.request("/auth/code")
-        ..formData = {"client_id": "com.stablekernel.redirect", "response_type": "code"};
+        ..query = {"client_id": "com.stablekernel.redirect", "response_type": "code"};
 
       var res = await req.get();
       expect(res, hasResponse(200, body: null, headers: {"content-type": "text/html; charset=utf-8"}));
+
       // The data is actually JSON for purposes of this test, just makes it easier to validate here.
-      var decoded = json.decode(res.body);
-      expect(decoded, {
+      expect(json.decode(res.body.asString()), {
         "response_type": "code",
         "client_id": "com.stablekernel.redirect",
         "state": null,
@@ -56,7 +58,7 @@ void main() {
 
     test("GET login form with valid values returns a 'page' with the provided values + state + scope", () async {
       var req = client.request("/auth/code")
-        ..formData = {
+        ..query = {
           "client_id": "com.stablekernel.redirect",
           "state": "Alaska",
           "response_type": "code",
@@ -65,8 +67,7 @@ void main() {
       var res = await req.get();
       expect(res, hasStatus(200));
       expect(res, hasHeaders({"content-type": "text/html; charset=utf-8"}));
-      var decoded = json.decode(res.body);
-      expect(decoded, {
+      expect(json.decode(res.body.asString()), {
         "response_type": "code",
         "client_id": "com.stablekernel.redirect",
         "state": "Alaska",
@@ -78,8 +79,7 @@ void main() {
 
   group("GET failure cases", () {
     test("No registered rendered returns 405", () async {
-      var req = client.request("/nopage")
-        ..formData = {"client_id": "com.stablekernel.redirect", "response_type": "code"};
+      var req = client.request("/nopage")..query = {"client_id": "com.stablekernel.redirect", "response_type": "code"};
       var res = await req.get();
       expect(res, hasStatus(405));
     });
@@ -173,15 +173,17 @@ void main() {
       var encodedWrongUsername = Uri.encodeQueryComponent("!@#kjasd");
 
       var req = client.request("/auth/code")
-        ..body =
-            "username=$encodedUsername&username=$encodedWrongUsername&password=$encodedPassword&response_type=code&client_id=com.stablekernel.redirect&state=a"
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedUsername&username=$encodedWrongUsername&password=$encodedPassword&response_type=code&client_id=com.stablekernel.redirect&state=a")
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
       expect(resp, hasStatus(400));
 
       req = client.request("/auth/code")
-        ..body =
-            "username=$encodedWrongUsername&username=$encodedUsername&password=$encodedPassword&response_type=code&client_id=com.stablekernel.redirect&state=a"
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedWrongUsername&username=$encodedUsername&password=$encodedPassword&response_type=code&client_id=com.stablekernel.redirect&state=a")
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       resp = await req.post();
       expect(resp, hasStatus(400));
@@ -220,15 +222,17 @@ void main() {
       var encodedWrongPassword = Uri.encodeQueryComponent("!@#kjasd");
 
       var req = client.request("/auth/code")
-        ..body =
-            "username=$encodedUsername&password=$encodedWrongPassword&password=$encodedPassword&response_type=code&client_id=com.stablekernel.redirect&state=a"
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedUsername&password=$encodedWrongPassword&password=$encodedPassword&response_type=code&client_id=com.stablekernel.redirect&state=a")
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
       expect(resp, hasStatus(400));
 
       req = client.request("/auth/code")
-        ..body =
-            "username=$encodedUsername&password=$encodedPassword&password=$encodedWrongPassword&response_type=code&client_id=com.stablekernel.redirect&state=a"
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedUsername&password=$encodedPassword&password=$encodedWrongPassword&response_type=code&client_id=com.stablekernel.redirect&state=a")
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       resp = await req.post();
       expect(resp, hasStatus(400));
@@ -241,8 +245,9 @@ void main() {
       var encodedPassword = Uri.encodeQueryComponent(user1["password"]);
 
       var req = client.request("/auth/code")
-        ..body =
-            "username=$encodedUsername&password=$encodedPassword&response_type=notcode&client_id=com.stablekernel.redirect&state=a"
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedUsername&password=$encodedPassword&response_type=notcode&client_id=com.stablekernel.redirect&state=a")
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
       expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request", state: "a");
@@ -254,17 +259,19 @@ void main() {
       var encodedUsername = Uri.encodeQueryComponent(user1["username"]);
       var encodedPassword = Uri.encodeQueryComponent(user1["password"]);
 
-      var req = client.request("/auth/code");
-      req.body =
-          "username=$encodedUsername&password=$encodedPassword&response_type=notcode&response_type=code&client_id=com.stablekernel.redirect&state=a";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      var req = client.request("/auth/code")
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedUsername&password=$encodedPassword&response_type=notcode&response_type=code&client_id=com.stablekernel.redirect&state=a")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
       expect(resp, hasStatus(400));
 
-      req = client.request("/auth/code");
-      req.body =
-          "username=$encodedUsername&password=$encodedPassword&response_type=code&response_type=notcode&client_id=com.stablekernel.redirect&state=a";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      req = client.request("/auth/code")
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedUsername&password=$encodedPassword&response_type=code&response_type=notcode&client_id=com.stablekernel.redirect&state=a")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
       resp = await req.post();
       expect(resp, hasStatus(400));
     });
@@ -296,17 +303,19 @@ void main() {
       var encodedUsername = Uri.encodeQueryComponent(user1["username"]);
       var encodedPassword = Uri.encodeQueryComponent(user1["password"]);
 
-      var req = client.request("/auth/code");
-      req.body =
-          "username=$encodedUsername&password=$encodedPassword&response_type=code&client_id=com.stablekernel.redirect&client_id=foobar&state=a";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      var req = client.request("/auth/code")
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedUsername&password=$encodedPassword&response_type=code&client_id=com.stablekernel.redirect&client_id=foobar&state=a")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
       expect(resp, hasStatus(400));
 
-      req = client.request("/auth/code");
-      req.body =
-          "username=$encodedUsername&password=$encodedPassword&response_type=code&client_id=foobar&client_id=com.stablekernel.redirect&state=a";
-      req.contentType = new ContentType("application", "x-www-form-urlencoded");
+      req = client.request("/auth/code")
+        ..encodeBody = false
+        ..body = utf8.encode(
+            "username=$encodedUsername&password=$encodedPassword&response_type=code&client_id=foobar&client_id=com.stablekernel.redirect&state=a")
+        ..contentType = new ContentType("application", "x-www-form-urlencoded");
       resp = await req.post();
       expect(resp, hasStatus(400));
     });
@@ -363,8 +372,9 @@ void main() {
       var encodedPassword = Uri.encodeQueryComponent(user1["password"]);
 
       var req = client.request("/auth/code")
+        ..encodeBody = false
         ..body =
-            "username=$encodedUsername&password=$encodedPassword&response_type=notcode&client_id=com.stablekernel.redirect&state=xyz"
+            utf8.encode("username=$encodedUsername&password=$encodedPassword&response_type=notcode&client_id=com.stablekernel.redirect&state=xyz")
         ..contentType = new ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
       expectErrorRedirect(resp, new Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request", state: "xyz");
@@ -411,10 +421,7 @@ void main() {
     });
 
     test("Has GET and POST operation", () {
-      expect(operations, {
-        "get": isNotNull,
-        "post": isNotNull
-      });
+      expect(operations, {"get": isNotNull, "post": isNotNull});
     });
 
     test("GET serves HTML string for only response", () {
@@ -465,7 +472,7 @@ void main() {
     });
 
     test("POST response is a redirect", () {
-      final redirectResponse  = operations["post"].responses["${HttpStatus.MOVED_TEMPORARILY}"];
+      final redirectResponse = operations["post"].responses["${HttpStatus.MOVED_TEMPORARILY}"];
       expect(redirectResponse.content, isNull);
       expect(redirectResponse.headers["Location"].schema.type, APIType.string);
       expect(redirectResponse.headers["Location"].schema.format, "uri");

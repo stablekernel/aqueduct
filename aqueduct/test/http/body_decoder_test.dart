@@ -275,6 +275,8 @@ void main() {
       var body = new RequestBody(await server.first);
       await body.decodedData;
       expect(body.asMap(), {"a": "val"});
+
+      expect(body.asDynamic(), {"a": "val"});
     });
 
     test("Call asMap prior to decode throws error", () async {

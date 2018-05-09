@@ -1,5 +1,5 @@
 import 'package:matcher/matcher.dart';
-import 'client.dart';
+import 'agent.dart';
 import 'header_matcher.dart';
 import 'body_matcher.dart';
 import 'matchers.dart';
@@ -36,7 +36,7 @@ class HTTPResponseMatcher extends Matcher {
     }
 
     if (body != null) {
-      if (!body.matches(response.decodedBody, matchState)) {
+      if (!body.matches(response.body.asDynamic(), matchState)) {
         matchState["HTTPResponseMatcher.didFailOnBody"] = true;
         success = false;
       }
@@ -93,7 +93,7 @@ class HTTPResponseMatcher extends Matcher {
     }
 
     if (matchState["HTTPResponseMatcher.didFailOnBody"] == true) {
-      body.describeMismatch(response.decodedBody, mismatchDescription, matchState, verbose);
+      body.describeMismatch(response.body.asDynamic(), mismatchDescription, matchState, verbose);
     }
 
     return mismatchDescription;
