@@ -241,6 +241,8 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
   }
 }
 
+// This is required to build the data model that contains ManagedAuthClient.
+// Some table definition must implement ManagedAuthenticatable to fulfill
+// this data model's requirements.
 class FauxAuthenticatable extends ManagedObject<_FauxAuthenticatable> {}
-
 class _FauxAuthenticatable extends ManagedAuthenticatable {}
