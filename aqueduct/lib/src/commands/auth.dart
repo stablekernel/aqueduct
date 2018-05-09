@@ -194,14 +194,9 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
         redirectURI: redirectUri, hashLength: hashLength, hashRounds: hashRounds, hashFunction: hashFunction)
       ..allowedScopes = allowedScopes?.map((s) => new AuthScope(s))?.toList();
 
-    var managedCredentials = new ManagedAuthClient()
-      ..id = credentials.id
-      ..hashedSecret = credentials.hashedSecret
-      ..salt = credentials.salt
-      ..redirectURI = credentials.redirectURI
-      ..allowedScope = credentials.allowedScopes?.map((s) => s.toString())?.join(" ");
+    var managedCredentials = new ManagedAuthClient.fromClient(credentials);
 
-    var query = new Query<ManagedAuthClient>(context)..values = managedCredentials;
+    final query = new Query<ManagedAuthClient>(context)..values = managedCredentials;
 
     try {
       await query.insert();
@@ -246,6 +241,8 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
   }
 }
 
+// This is required to build the data model that contains ManagedAuthClient.
+// Some table definition must implement ManagedAuthenticatable to fulfill
+// this data model's requirements.
 class FauxAuthenticatable extends ManagedObject<_FauxAuthenticatable> {}
-
-class _FauxAuthenticatable extends ManagedAuthenticatable {}
+class _FauxAuthenticatable extends ResourceOwnerTableDefinition {}

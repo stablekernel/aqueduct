@@ -1,16 +1,16 @@
 import 'dart:async';
 import 'auth.dart';
 
-/// An interface for implementing an OAuth 2.0 resource owner.
+/// The properties of an OAuth 2.0 Resource Owner.
 ///
-/// In order for an [AuthServer] to authenticate a resource owner - like a User, Profile or Account in your application -
-/// that resource owner class must implement this interface. See the library aqueduct/managed_auth for an implementation
-/// of this interface. It is preferred to use aqueduct/managed_auth than trying to implement this interface.
-abstract class Authenticatable {
-  /// The username of the authenticatable resource.
+/// Your application's 'user' type must implement the methods declared in this interface. [AuthServer] can
+/// validate the credentials of a [ResourceOwner] to grant authorization codes and access tokens on behalf of that
+/// owner.
+abstract class ResourceOwner {
+  /// The username of the resource owner.
   ///
-  /// This value is often an email address. The storage of an [Authenticatable] need not define a [username] property,
-  /// and so the implementation may simply proxy property to the underlying identifying attribute - like email.
+  /// This value must be unique amongst all resource owners. It is often an email address. This value
+  /// is used by authenticating users to identify their account.
   String username;
 
   /// The hashed password of this instance.
@@ -19,111 +19,128 @@ abstract class Authenticatable {
   /// The salt the [hashedPassword] was hashed with.
   String salt;
 
-  /// The unique identifier of this instance, typically the primary key of a database entity representing
-  /// the authenticatable instance.
+  /// A unique identifier of this resource owner.
+  ///
+  /// This unique identifier is used by [AuthServer] to associate authorization codes and access tokens with
+  /// this resource owner.
   dynamic get id;
 }
 
-/// An interface for implementing storage behavior for an [AuthServer].
+/// The methods used by an [AuthServer] to store information and customize behavior related to authorization.
 ///
-/// This interface is responsible for persisting and retrieving information generated and requested by an [AuthServer].
-/// For a concrete, tested implementation of this class, see `ManagedAuthStorage` in `package:aqueduct/managed_auth.dart`.
+/// An [AuthServer] requires an instance of this type to manage storage of [ResourceOwner]s, [AuthToken], [AuthCode],
+/// and [AuthClient]s. You may also customize the token format or add more granular authorization scope rules.
 ///
-/// An [AuthServer] does not dictate how information is stored and therefore can't dictate how information is disposed of.
-/// It is up to implementors of this class to discard of any information it no longer wants to keep.
+/// Prefer to use `ManagedAuthDelegate` from 'package:aqueduct/managed_auth.dart' instead of implementing this interface;
+/// there are important details to consider and test when implementing this interface.
 abstract class AuthServerDelegate {
-  /// This method must revoke all [AuthToken] and [AuthCode]s for an [Authenticatable].
+  /// Must return a [ResourceOwner] for a [username].
   ///
-  /// [server] is the requesting [AuthServer]. [identifier] is the [Authenticatable.id].
-  FutureOr revokeAuthenticatableWithIdentifier(
-      AuthServer server, dynamic identifier);
-
-  /// Returns an [Authenticatable] for an [username].
+  /// This method must return an instance of [ResourceOwner] if one exists for [username]. Otherwise, it must return null.
   ///
-  /// This method must return an instance of [Authenticatable] if one exists for [username]. Otherwise, it must return null.
-  ///
-  /// If overriding this method, every property declared by [Authenticatable] must be non-null in the return value.
+  /// Every property declared by [ResourceOwner] must be non-null in the return value.
   ///
   /// [server] is the [AuthServer] invoking this method.
-  FutureOr<Authenticatable> fetchAuthenticatableByUsername(
-      AuthServer server, String username);
+  FutureOr<ResourceOwner> getResourceOwner(AuthServer server, String username);
 
-  /// Returns an [AuthClient] for a client ID.
+  /// Must store [client].
+  ///
+  /// [client] must be returned by [getClient] after this method has been invoked, and until (if ever)
+  /// [removeClient] is invoked.
+  FutureOr addClient(AuthServer server, AuthClient client);
+
+  /// Must return [AuthClient] for a client ID.
   ///
   /// This method must return an instance of [AuthClient] if one exists for [clientID]. Otherwise, it must return null.
   /// [server] is the [AuthServer] requesting the [AuthClient].
-  FutureOr<AuthClient> fetchClientByID(AuthServer server, String clientID);
+  FutureOr<AuthClient> getClient(AuthServer server, String clientID);
 
-  /// Revokes an [AuthClient] for a client ID.
+  /// Removes an [AuthClient] for a client ID.
   ///
   /// This method must delete the [AuthClient] for [clientID]. Subsequent requests to this
-  /// instance for [fetchClientByID] must return null after this method completes.
+  /// instance for [getClient] must return null after this method completes. If there is no
+  /// matching [clientID], this method may choose whether to throw an exception or fail silently.
+  ///
   /// [server] is the [AuthServer] requesting the [AuthClient].
-  FutureOr revokeClientWithID(AuthServer server, String clientID);
+  FutureOr removeClient(AuthServer server, String clientID);
 
-  /// Returns a [AuthToken] for an [accessToken].
+  /// Returns a [AuthToken] searching by its access token or refresh token.
   ///
-  /// This method must return an instance of [AuthToken] if one exists for [accessToken]. Otherwise, it must return null.
+  /// Exactly one of [byAccessToken] and [byRefreshToken] may be non-null, if not, this method must throw an error.
+  ///
+  /// If [byAccessToken] is not-null and there exists a matching [AuthToken.accessToken], return that token.
+  /// If [byRefreshToken] is not-null and there exists a matching [AuthToken.refreshToken], return that token.
+  ///
+  /// If no match is found, return null.
+  ///
   /// [server] is the [AuthServer] requesting the [AuthToken].
-  FutureOr<AuthToken> fetchTokenByAccessToken(
-      AuthServer server, String accessToken);
+  FutureOr<AuthToken> getToken(
+      AuthServer server, {String byAccessToken, String byRefreshToken});
 
-  /// Returns a [AuthToken] for an [refreshToken].
+  /// This method must delete all [AuthToken] and [AuthCode]s for a [ResourceOwner].
   ///
-  /// This method must return an instance of [AuthToken] if one exists for [refreshToken]. Otherwise, it must return null.
-  /// [server] is the [AuthServer] requesting the [AuthToken].
-  FutureOr<AuthToken> fetchTokenByRefreshToken(
-      AuthServer server, String refreshToken);
+  /// [server] is the requesting [AuthServer]. [resourceOwnerID] is the [ResourceOwner.id].
+  FutureOr removeTokens(AuthServer server, dynamic resourceOwnerID);
 
-  /// Deletes a [AuthToken] by its issuing [AuthCode].
+  /// Must delete a [AuthToken] granted by [grantedByCode].
   ///
-  /// The [server] will call this method when a request tries to exchange an already exchanged [AuthCode].
-  /// This method must delete the [AuthToken] that was previously acquired by exchanging [authCode] - this means
-  /// that the storage performed by this type must track the issuing [AuthCode] for an [AuthToken] if there was one.
-  /// Any storage for [authCode] can also be removed as well.
-  FutureOr revokeTokenIssuedFromCode(AuthServer server, AuthCode authCode);
-
-  /// Asks this instance to store a [AuthToken] for [server].
+  /// If an [AuthToken] has been granted by exchanging [AuthCode], that token must be revoked
+  /// and can no longer be used to authorize access to a resource. [grantedByCode] should
+  /// also be removed.
   ///
-  /// This method must persist the token [t]. If [issuedFrom] is not null, it must associate
-  /// the [issuedFrom] [AuthCode] with [t] in storage, such that [t] can be found again
-  /// by [issuedFrom]'s [AuthCode.code], even if [t] has been refreshed later.
-  FutureOr storeToken(AuthServer server, AuthToken t, {AuthCode issuedFrom});
+  /// This method is invoked when attempting to exchange an authorization code that has already granted a token.
+  FutureOr removeToken(AuthServer server, AuthCode grantedByCode);
 
-  /// Asks this instance to update an existing [AuthToken] for [server].
+  /// Must store [token].
+  ///
+  /// [token] must be stored such that it is accessible from [getToken], and until it is either
+  /// revoked via [removeToken] or [removeTokens], or until it has expired and can reasonably
+  /// be believed to no longer be in use.
+  ///
+  /// You may alter [token] prior to storing it. This may include replacing [AuthToken.accessToken] with another token
+  /// format. The default token format will be a random 32 character string.
+  ///
+  /// If this token was granted through an authorization code, [issuedFrom] is that code. Otherwise, [issuedFrom]
+  /// is null.
+  FutureOr addToken(AuthServer server, AuthToken token, {AuthCode issuedFrom});
+
+  /// Must update [AuthToken] with [newAccessToken, [newIssueDate, [newExpirationDate].
   ///
   /// This method must must update an existing [AuthToken], found by [oldAccessToken],
   /// with the values [newAccessToken], [newIssueDate] and [newExpirationDate].
-  FutureOr refreshTokenWithAccessToken(AuthServer server, String oldAccessToken,
+  ///
+  /// You may alter the token in addition to the provided values, and you may override the provided values.
+  /// [newAccessToken] defaults to a random 32 character string.
+  FutureOr updateToken(AuthServer server, String oldAccessToken,
       String newAccessToken, DateTime newIssueDate, DateTime newExpirationDate);
 
-  /// Asks this instance to store a [AuthCode] for [server].
+  /// Must store [code].
   ///
-  /// The implementing class must persist the auth code [ac].
-  FutureOr storeAuthCode(AuthServer server, AuthCode ac);
+  /// [code] must be accessible until its expiration date.
+  FutureOr addCode(AuthServer server, AuthCode code);
 
-  /// Asks this instance to retrieve an auth code from provided [code].
+  /// Must return [AuthCode] for its identifiying [code].
   ///
-  /// This must return an instance of [AuthCode] if one exists for [code], and
-  /// null otherwise.
-  FutureOr<AuthCode> fetchAuthCodeByCode(AuthServer server, String code);
+  /// This must return an instance of [AuthCode] where [AuthCode.code] matches [code].
+  /// Return null if no matching code.
+  FutureOr<AuthCode> getCode(AuthServer server, String code);
 
-  /// Asks this instance to delete an existing [AuthCode] for [server].
+  /// Must remove [AuthCode] identified by [code].
   ///
-  /// The implementing class must delete the [AuthCode] for [code] from its persistent storage.
-  FutureOr revokeAuthCodeWithCode(AuthServer server, String code);
+  /// The [AuthCode.code] matching [code] must be deleted and no longer accessible.
+  FutureOr removeCode(AuthServer server, String code);
 
-  /// Returns list of allowed scopes for a given [Authenticatable].
+  /// Returns list of allowed scopes for a given [ResourceOwner].
   ///
-  /// Subclasses override this method to return a list of [AuthScope]s based on some attribute(s) of an [Authenticatable].
-  /// That [Authenticatable] is then restricted to only those scopes, even if the authenticating client would allow other scopes
+  /// Subclasses override this method to return a list of [AuthScope]s based on some attribute(s) of an [ResourceOwner].
+  /// That [ResourceOwner] is then restricted to only those scopes, even if the authenticating client would allow other scopes
   /// or scopes with higher privileges.
   ///
-  /// By default, this method returns [AuthScope.Any] - any [Authenticatable] being authenticated has full access to the scopes
+  /// By default, this method returns [AuthScope.Any] - any [ResourceOwner] being authenticated has full access to the scopes
   /// available to the authenticating client.
   ///
-  /// When overriding this method, it is important to note that (by default) only the properties declared by [Authenticatable]
-  /// will be valid for [authenticatable]. If [authenticatable] has properties that are application-specific (like a `role`),
-  /// [fetchAuthenticatableByUsername] must also be overridden to ensure those values are fetched.
-  List<AuthScope> allowedScopesForAuthenticatable(Authenticatable authenticatable) => AuthScope.Any;
+  /// When overriding this method, it is important to note that (by default) only the properties declared by [ResourceOwner]
+  /// will be valid for [owner]. If [owner] has properties that are application-specific (like a `role`),
+  /// [getResourceOwner] must also be overridden to ensure those values are fetched.
+  List<AuthScope> getAllowedScopes(ResourceOwner owner) => AuthScope.Any;
 }

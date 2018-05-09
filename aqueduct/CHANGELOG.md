@@ -1,5 +1,7 @@
 ## 3.0.0
 
+- Renames methods in `AuthDelegate` to provide consistency.
+- Adds `AuthDelegate.addClient` and `AuthServer.addClient`.
 - Adds `ManagedContext.transaction` to enable queries to be run in a database transaction. 
 - Removes `ManagedContext.defaultContext`; context usage must be explicit.
 - Adds 'Scope' annotation to add granular scoping to `ResourceController` methods.
@@ -25,6 +27,7 @@
     - Adds concrete implementations of `AuthorizationParser<T>`, `AuthorizationBearerParser` and `AuthorizationBasicParser`.
 - Removes `AuthValidator.fromBearerToken` and `AuthValidator.fromBasicCredentials` and replaces with `AuthValidator.validate<T>`.    
 - Renames the following:
+    - `Authorization.resourceOwnerIdentifier` -> `Authorization.ownerID`
     - `Request.innerRequest` -> `Request.raw`
     - `whereContainsString` -> `whereContains`
     - `AuthStorage` -> `AuthServerDelegate`

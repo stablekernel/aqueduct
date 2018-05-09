@@ -257,7 +257,7 @@ class User extends ManagedObject<_User>
   static const String DefaultPassword = "foobaraxegrind!%12";
 }
 
-class _User extends ManagedAuthenticatable {
+class _User extends ResourceOwnerTableDefinition {
   @Column(nullable: true)
   String role;
 }
@@ -296,7 +296,7 @@ class RoleBasedAuthStorage extends ManagedAuthDelegate<User> {
         super(context, tokenLimit: tokenLimit);
 
   @override
-  Future<User> fetchAuthenticatableByUsername(
+  Future<User> getResourceOwner(
       AuthServer server, String username) {
     var query = new Query<User>(context)
       ..where((o) => o.username).equalTo(username)
@@ -306,7 +306,7 @@ class RoleBasedAuthStorage extends ManagedAuthDelegate<User> {
   }
 
   @override
-  List<AuthScope> allowedScopesForAuthenticatable(covariant User user) {
+  List<AuthScope> getAllowedScopes(covariant User user) {
     if (user.role == "admin") {
       return AuthScope.Any;
     } else if (user.role == "user") {

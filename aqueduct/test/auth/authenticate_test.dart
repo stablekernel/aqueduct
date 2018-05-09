@@ -44,20 +44,20 @@ void main() {
     });
 
     test("Get client for ID", () async {
-      var c = await auth.clientForID("com.stablekernel.app1");
+      var c = await auth.getClient("com.stablekernel.app1");
       expect(c is AuthClient, true);
     });
 
     test("Revoked client can no longer be accessed", () async {
-      expect((await auth.clientForID("com.stablekernel.app1")) is AuthClient,
+      expect((await auth.getClient("com.stablekernel.app1")) is AuthClient,
           true);
-      await auth.revokeClientID("com.stablekernel.app1");
-      expect(await auth.clientForID("com.stablekernel.app1"), isNull);
+      await auth.removeClient("com.stablekernel.app1");
+      expect(await auth.getClient("com.stablekernel.app1"), isNull);
     });
 
     test("Cannot revoke null client", () async {
       try {
-        await auth.revokeClientID(null);
+        await auth.removeClient(null);
         expect(true, false);
       } on AuthServerException {}
     });
@@ -267,7 +267,7 @@ void main() {
 
       var authorization = await auth.verify(token.accessToken);
       expect(authorization.clientID, "com.stablekernel.app1");
-      expect(authorization.resourceOwnerIdentifier,
+      expect(authorization.ownerID,
           initialToken.resourceOwnerIdentifier);
     });
 
@@ -590,17 +590,17 @@ void main() {
         "kilimanjaro");
     var p1 = await auth.verify(token.accessToken);
     expect(p1.clientID, "com.stablekernel.app1");
-    expect(p1.resourceOwnerIdentifier, createdUser.id);
+    expect(p1.ownerID, createdUser.id);
 
     var token2 = await auth.authenticate("bob+0@stablekernel.com",
         InMemoryAuthStorage.DefaultPassword, "com.stablekernel.app2", "fuji");
     var p2 = await auth.verify(token2.accessToken);
     expect(p2.clientID, "com.stablekernel.app2");
-    expect(p2.resourceOwnerIdentifier, createdUser.id);
+    expect(p2.ownerID, createdUser.id);
 
     p1 = await auth.verify(token.accessToken);
     expect(p1.clientID, "com.stablekernel.app1");
-    expect(p1.resourceOwnerIdentifier, createdUser.id);
+    expect(p1.ownerID, createdUser.id);
   });
 
   test("Ensure users aren't authenticated by other users", () async {
@@ -620,10 +620,10 @@ void main() {
 
     var permission = await auth.verify(t1.accessToken);
     expect(permission.clientID, "com.stablekernel.app1");
-    expect(permission.resourceOwnerIdentifier, users[0].id);
+    expect(permission.ownerID, users[0].id);
 
     permission = await auth.verify(t2.accessToken);
     expect(permission.clientID, "com.stablekernel.app1");
-    expect(permission.resourceOwnerIdentifier, users[4].id);
+    expect(permission.ownerID, users[4].id);
   });
 }
