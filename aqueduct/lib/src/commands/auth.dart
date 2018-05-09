@@ -240,3 +240,7 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
     return "Adds an OAuth 2.0 client to a database when the database has been provisioned with the aqueduct/managed_auth package.";
   }
 }
+
+class FauxAuthenticatable extends ManagedObject<_FauxAuthenticatable> {}
+
+class _FauxAuthenticatable extends ManagedAuthenticatable {}
