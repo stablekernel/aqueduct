@@ -257,7 +257,7 @@ class User extends ManagedObject<_User>
   static const String DefaultPassword = "foobaraxegrind!%12";
 }
 
-class _User extends ManagedAuthenticatable {
+class _User extends ResourceOwnerTableDefinition {
   @Column(nullable: true)
   String role;
 }

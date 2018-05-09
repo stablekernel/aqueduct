@@ -9,7 +9,7 @@
 ///         var authServer = new AuthServer(storage);
 ///
 /// Then, a [ManagedObject] subclass that represents an OAuth 2.0 resource owner ust be declared. It must implement [ManagedAuthResourceOwner].
-/// Its persistent type must implement [ManagedAuthenticatable]. For example, the follower `User` fulfills the requirement:
+/// Its persistent type must implement [ResourceOwnerTableDefinition]. For example, the follower `User` fulfills the requirement:
 ///
 ///         class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwner  {}
 ///         class _User extends ManagedAuthenticatable { ... }
@@ -143,11 +143,11 @@ class _ManagedAuthToken {
 
   /// The resource owner of this token.
   ///
-  /// [ManagedAuthenticatable] must be implemented by some [ManagedObject] subclass in an application.
-  /// That subclass will be the 'owner' of tokens. See [ManagedAuthenticatable] for more details.
+  /// [ResourceOwnerTableDefinition] must be implemented by some [ManagedObject] subclass in an application.
+  /// That subclass will be the 'owner' of tokens. See [ResourceOwnerTableDefinition] for more details.
   @Relate.deferred(DeleteRule.cascade,
       isRequired: true)
-  ManagedAuthenticatable resourceOwner;
+  ResourceOwnerTableDefinition resourceOwner;
 
   /// The client this token was issued for.
   @Relate(#tokens,
@@ -244,7 +244,7 @@ class _ManagedAuthClient {
 ///
 /// This requires all resource owners to have a integer primary key, username
 /// and hashed password. The [ManagedObject] subclass must implement [ManagedAuthResourceOwner].
-class ManagedAuthenticatable implements ResourceOwner {
+class ResourceOwnerTableDefinition implements ResourceOwner {
   /// The primary key of a resource owner.
   @override
   @primaryKey
@@ -278,12 +278,12 @@ class ManagedAuthenticatable implements ResourceOwner {
 ///         class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwner  {}
 ///         class _User extends ManagedAuthenticatable { ... }
 ///
-/// Note that this interface is made up of both [ManagedAuthenticatable] and [ManagedObject].
+/// Note that this interface is made up of both [ResourceOwnerTableDefinition] and [ManagedObject].
 /// The type declaring this as an interface must extend [ManagedObject] and implement
-/// a persistent type that extends [ManagedAuthenticatable]. Since all [ManagedObject] subclasses
+/// a persistent type that extends [ResourceOwnerTableDefinition]. Since all [ManagedObject] subclasses
 /// extend their persistent type, this interface requirement is met.
 abstract class ManagedAuthResourceOwner<T>
-    implements ManagedAuthenticatable, ManagedObject<T> {}
+    implements ResourceOwnerTableDefinition, ManagedObject<T> {}
 
 /// [AuthServerDelegate] implementation for an [AuthServer] using [ManagedObject]s.
 ///

@@ -1473,7 +1473,7 @@ class User extends ManagedObject<_User>
   static const String DefaultPassword = "foobaraxegrind!%12";
 }
 
-class _User extends ManagedAuthenticatable {}
+class _User extends ResourceOwnerTableDefinition {}
 
 Future<List<User>> createUsers(ManagedContext ctx, int count) async {
   var list = <User>[];
