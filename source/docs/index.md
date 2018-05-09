@@ -39,7 +39,7 @@ Because your project was created from a local version of Aqueduct, it’s pubspe
 ```yaml
 aqueduct:
   git:
-    url: git@github.com:stablekernel/aqueduct.git
+    url: https://github.com/stablekernel/aqueduct.git
     ref: “3.0”
 ```
 
