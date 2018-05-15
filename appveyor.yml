@@ -8,8 +8,8 @@ services:
 
 environment:
   matrix:
-  - TEST_DIR: patch/
-  - TEST_DIR: pkg/
+  - TEST_DIR: aqueduct_test/
+  - TEST_DIR: aqueduct/
 
 before_build:
   - echo %TEST_DIR%
