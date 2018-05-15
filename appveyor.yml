@@ -16,6 +16,9 @@ before_build:
   - echo %TEST_DIR%
   - cp -r ci\ %TEST_DIR%\ci\
   - cd %TEST_DIR%
+  - SET PGUSER=postgres
+  - SET PGPASSWORD=Password12!
+  - PATH=C:\Program Files\PostgreSQL\9.6\bin\;%PATH%
 
 install:
   - ps: wget https://storage.googleapis.com/dart-archive/channels/dev/release/2.0.0-dev.55.0/sdk/dartsdk-windows-x64-release.zip -OutFile dart-sdk.zip
