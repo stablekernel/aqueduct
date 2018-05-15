@@ -28,9 +28,9 @@ install:
 build: off
 
 test_script:
-  - cmd: cd %TEST_DIR%
-  - cmd: pub get
-  - cmd: pub run test -j1
+  - cd %TEST_DIR%
+  - pub get
+  - pub run test -j1
 
 cache:
   - C:\Users\appveyor\AppData\Roaming\Pub\Cache
