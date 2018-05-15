@@ -14,6 +14,7 @@ environment:
 
 before_build:
   - echo %TEST_DIR%
+  - cp -r ci\ %TEST_DIR%\ci\
   - cd %TEST_DIR%
 
 install:
@@ -26,7 +27,7 @@ install:
 build: off
 
 test_script:
-  - sh ..\ci\script.sh
+  - sh ci\script.sh
 
 cache:
   - C:\Users\appveyor\AppData\Roaming\Pub\Cache
