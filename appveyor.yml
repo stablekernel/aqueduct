@@ -6,6 +6,7 @@ branches:
 services:
   - postgresql96
 
+
 environment:
   matrix:
   - TEST_DIR: aqueduct_test/
