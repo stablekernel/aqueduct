@@ -115,7 +115,8 @@ void main() {
       test("Tests run on template generated from local path", () async {
         expect((await terminal.runAqueductCommand("create", ["test_project", "-t", template, "--offline"])), 0);
 
-        var res = Process.runSync("pub", ["run", "test", "-j", "1"],
+        final cmd = Platform.isWindows ? "pub.bat" : "pub";
+        var res = Process.runSync(cmd, ["run", "test", "-j", "1"],
             runInShell: true, workingDirectory: terminal.workingDirectory.uri.resolve("test_project").path);
 
         expect(res.stdout, contains("All tests passed"));
