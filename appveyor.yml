@@ -9,15 +9,15 @@ services:
 
 environment:
   matrix:
-  - TEST_DIR: aqueduct_test/
-  - TEST_DIR: aqueduct/
+  - TEST_DIR: aqueduct_test
+  - TEST_DIR: aqueduct
 
 before_build:
   - echo %TEST_DIR%
   - cd %TEST_DIR%
 
 install:
-  - ps: wget https://storage.googleapis.com/dart-archive/channels/dev/release/latest/sdk/dartsdk-windows-x64-release.zip -OutFile dart-sdk.zip
+  - ps: wget https://storage.googleapis.com/dart-archive/channels/dev/release/2.0.0-dev.55.0/sdk/dartsdk-windows-x64-release.zip -OutFile dart-sdk.zip
   - cmd: echo "Unzipping dart-sdk..."
   - cmd: 7z x dart-sdk.zip -o"C:\tools" -y > nul
   - set PATH=%PATH%;C:\tools\dart-sdk\bin
@@ -26,7 +26,7 @@ install:
 build: off
 
 test_script:
-  - sh ../ci/script.sh
+  - sh ..\ci\script.sh
 
 cache:
   - C:\Users\appveyor\AppData\Roaming\Pub\Cache
