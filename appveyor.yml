@@ -31,10 +31,10 @@ install:
 build: off
 
 test_script:
-  - cmd: psql -U postgres -c 'create user dart with createdb;'
+  - cmd: psql -U postgres -c "create user dart with createdb;"
   - cmd: psql -U postgres -c "alter user dart with password 'dart';"
-  - cmd: psql -U postgres -c 'create database dart_test;'
-  - cmd: psql -U postgres -c 'grant all on database dart_test to dart;'
+  - cmd: psql -U postgres -c "create database dart_test;"
+  - cmd: psql -U postgres -c "grant all on database dart_test to dart;"
   - cmd: pub run test -j1
 
 cache:
