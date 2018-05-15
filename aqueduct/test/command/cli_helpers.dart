@@ -25,6 +25,22 @@ class Terminal {
   }
   StringBuffer _output = new StringBuffer();
 
+  static Future activateCLI({String path: "."}) {
+    if (Platform.isWindows) {
+      return Process.run("pub.bat", ["global", "activate", "-spath", path]);
+    }
+
+    return Process.run("pub", ["global", "activate", "-spath", path]);
+  }
+
+  static Future deactivateCLI() {
+    if (Platform.isWindows) {
+      return Process.run("pub.bat", ["global", "deactivate", "aqueduct"]);
+    }
+
+    return Process.run("pub", ["global", "deactivate", "aqueduct"]);
+  }
+
   static Future<Terminal> createProject({String name: "application_test", String template, bool offline: true}) async {
     if (template == null) {
       // Copy empty project
