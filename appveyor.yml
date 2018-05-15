@@ -31,11 +31,11 @@ install:
 build: off
 
 test_script:
-  - psql -c 'create user dart with createdb;' -U postgres
-  - psql -c "alter user dart with password 'dart';" -U postgres
-  - psql -c 'create database dart_test;' -U postgres
-  - psql -c 'grant all on database dart_test to dart;' -U postgres
-  - pub run test -j1
+  - cmd: psql -c 'create user dart with createdb;' -U postgres
+  - cmd: psql -c "alter user dart with password 'dart';" -U postgres
+  - cmd: psql -c 'create database dart_test;' -U postgres
+  - cmd: psql -c 'grant all on database dart_test to dart;' -U postgres
+  - cmd: pub run test -j1
 
 cache:
   - C:\Users\appveyor\AppData\Roaming\Pub\Cache
