@@ -13,7 +13,7 @@ dependencies:
   args: ^1.4.0
   crypto: ^2.0.0
   logging: ^0.11.3
-  isolate_executor: ^1.0.0
+  isolate_executor: ^1.0.1
   open_api: ^1.0.2
   password_hash: ^1.0.0
   path: ^1.4.1

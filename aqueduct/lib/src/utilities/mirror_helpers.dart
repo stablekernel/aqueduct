@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'dart:mirrors' hide Comment;
 import 'dart:isolate';
 
@@ -64,7 +65,7 @@ class DocumentedElement {
       final reflectedType = reflectType(type);
       final uri = reflectedType.location.sourceUri;
       final resolvedUri = await Isolate.resolvePackageUri(uri);
-      final fileUnit = parseDartFile(resolvedUri.path);
+      final fileUnit = parseDartFile(resolvedUri.toFilePath(windows: Platform.isWindows));
 
       var classDeclaration = fileUnit.declarations
           .where((u) => u is ClassDeclaration)

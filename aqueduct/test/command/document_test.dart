@@ -9,11 +9,11 @@ void main() {
   Terminal terminal;
 
   setUpAll(() async {
-    await Process.run("pub", ["global", "activate", "-spath", "."]);
+    await Terminal.activateCLI();
   });
 
   tearDownAll(() async {
-    await Process.run("pub", ["global", "deactivate", "aqueduct"]);
+    await Terminal.deactivateCLI();
   });
 
   setUp(() async {

@@ -343,19 +343,6 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
       } catch (_) {} // Ignore if this doesn't succeed.
     }
   }
-
-  Directory subdirectoryInProjectDirectory(String name, {bool createIfDoesNotExist: true}) {
-    var dir = new Directory(name);
-    if (path_lib.isRelative(name)) {
-      dir = new Directory.fromUri(projectDirectory.uri.resolve(name));
-    }
-
-    if (createIfDoesNotExist && !dir.existsSync()) {
-      dir.createSync();
-    }
-
-    return dir;
-  }
 }
 
 class Runner extends CLICommand {

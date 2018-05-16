@@ -73,21 +73,40 @@ class _TestObject {
       expect(res, 0);
       terminal.clearOutput();
 
-      expect(terminal.defaultMigrationDirectory.listSync().where((fse) => !fse.uri.pathSegments.last.startsWith(".")), hasLength(2));
-      expect(new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("00000001_Initial.migration.dart")).existsSync(), true);
-      expect(new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("00000002_Unnamed.migration.dart")).existsSync(), true);
+      expect(terminal.defaultMigrationDirectory.listSync().where((fse) => !fse.uri.pathSegments.last.startsWith(".")),
+          hasLength(2));
+      expect(
+          new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("00000001_Initial.migration.dart"))
+              .existsSync(),
+          true);
+      expect(
+          new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("00000002_Unnamed.migration.dart"))
+              .existsSync(),
+          true);
 
       res = await terminal.runAqueductCommand("db", ["validate"]);
       expect(res, 0);
     });
 
-    test("Can specify migration directory other than default", () async {
+    test("Can specify migration directory other than default, relative path", () async {
       await terminal.getDependencies(offline: true);
 
       var res = await terminal.runAqueductCommand("db", ["generate", "--migration-directory", "foobar"]);
       expect(res, 0);
 
       final migDir = new Directory.fromUri(terminal.workingDirectory.uri.resolve("foobar/"));
+      final files = migDir.listSync();
+      expect(files.any((fse) => fse is File && fse.path.endsWith("migration.dart")), true);
+    });
+
+    test("Can specify migration directory other than default, absolute path", () async {
+      await terminal.getDependencies(offline: true);
+
+      final migDir = new Directory.fromUri(terminal.workingDirectory.uri.resolve("foobar/"));
+      var res = await terminal.runAqueductCommand(
+          "db", ["generate", "--migration-directory", migDir.uri.toFilePath(windows: Platform.isWindows)]);
+      expect(res, 0);
+
       final files = migDir.listSync();
       expect(files.any((fse) => fse is File && fse.path.endsWith("migration.dart")), true);
     });

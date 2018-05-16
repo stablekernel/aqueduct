@@ -8,7 +8,9 @@ import 'package:pub_semver/pub_semver.dart';
 
 import 'cli_helpers.dart';
 
-File get certificateFile => new File.fromUri(Directory.current.uri.resolve("../").resolve("ci/").resolve("aqueduct.cert.pem"));
+File get certificateFile =>
+    new File.fromUri(Directory.current.uri.resolve("../").resolve("ci/").resolve("aqueduct.cert.pem"));
+
 File get keyFile => new File.fromUri(Directory.current.uri.resolve("../").resolve("ci/").resolve("aqueduct.key.pem"));
 
 void main() {
@@ -70,11 +72,12 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start with valid SSL args opens https server", () async {
-    certificateFile.copySync(terminal.workingDirectory.uri.resolve("server.crt").path);
-    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
+    certificateFile
+        .copySync(terminal.workingDirectory.uri.resolve("server.crt").toFilePath(windows: Platform.isWindows));
+    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").toFilePath(windows: Platform.isWindows));
 
-    task = terminal.startAqueductCommand("serve",
-        ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
+    task = terminal
+        .startAqueductCommand("serve", ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
     await task.hasStarted;
 
     var completer = new Completer();
@@ -89,8 +92,9 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start without one of SSL values throws exception", () async {
-    certificateFile.copySync(terminal.workingDirectory.uri.resolve("server.crt").path);
-    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
+    certificateFile
+        .copySync(terminal.workingDirectory.uri.resolve("server.crt").toFilePath(windows: Platform.isWindows));
+    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").toFilePath(windows: Platform.isWindows));
 
     task = terminal.startAqueductCommand("serve", ["--ssl-key-path", "server.key"]);
     task.hasStarted.catchError((_) => null);
@@ -102,22 +106,22 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start with invalid SSL values throws exceptions", () async {
-    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
+    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").toFilePath(windows: Platform.isWindows));
 
     var badCertFile = new File.fromUri(terminal.workingDirectory.uri.resolve("server.crt"));
     badCertFile.writeAsStringSync("foobar");
 
-    task = terminal.startAqueductCommand("serve",
-        ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
+    task = terminal
+        .startAqueductCommand("serve", ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
   });
 
   test("Can't find SSL file, throws exception", () async {
-    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
+    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").toFilePath(windows: Platform.isWindows));
 
-    task = terminal.startAqueductCommand("serve",
-        ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
+    task = terminal
+        .startAqueductCommand("serve", ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
   });
@@ -132,5 +136,40 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
 
     expect(await task.exitCode, isNot(0));
     expect(terminal.output, contains("unexpected token"));
+  });
+
+  test("Use config-path, relative path", () async {
+    terminal.addOrReplaceFile("foobar.yaml", "key: value", importAqueduct: false);
+    terminal.modifyFile("lib/channel.dart", (c) {
+      var newContents = c.replaceAll('return new Response.ok({"key": "value"});',
+          "return new Response.ok(new File(options.configurationFilePath).readAsStringSync())..contentType = ContentType.TEXT;");
+      newContents = "import 'dart:io';\n$newContents";
+      return newContents;
+    });
+
+    task = terminal.startAqueductCommand("serve", ["--config-path", "foobar.yaml"]);
+    await task.hasStarted;
+
+    var result = await http.get("http://localhost:8888/example");
+    expect(result.body, "key: value");
+  });
+
+  test("Use config-path, absolute path", () async {
+    terminal.addOrReplaceFile("foobar.yaml", "key: value", importAqueduct: false);
+    terminal.modifyFile("lib/channel.dart", (c) {
+      var newContents = c.replaceAll('return new Response.ok({"key": "value"});',
+          "return new Response.ok(new File(options.configurationFilePath).readAsStringSync())..contentType = ContentType.TEXT;");
+      newContents = "import 'dart:io';\n$newContents";
+      return newContents;
+    });
+
+    task = terminal.startAqueductCommand("serve", [
+      "--config-path",
+      terminal.workingDirectory.uri.resolve("foobar.yaml").toFilePath(windows: Platform.isWindows)
+    ]);
+    await task.hasStarted;
+
+    var result = await http.get("http://localhost:8888/example");
+    expect(result.body, "key: value");
   });
 }

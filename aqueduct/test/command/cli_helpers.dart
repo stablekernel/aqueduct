@@ -25,6 +25,18 @@ class Terminal {
   }
   StringBuffer _output = new StringBuffer();
 
+  static Future activateCLI({String path: "."}) {
+    final cmd = Platform.isWindows ? "pub.bat" : "pub";
+
+    return Process.run(cmd, ["global", "activate", "-spath", path]);
+  }
+
+  static Future deactivateCLI() {
+    final cmd = Platform.isWindows ? "pub.bat" : "pub";
+
+    return Process.run(cmd, ["global", "deactivate", "aqueduct"]);
+  }
+
   static Future<Terminal> createProject({String name: "application_test", String template, bool offline: true}) async {
     if (template == null) {
       // Copy empty project
@@ -139,8 +151,9 @@ class Terminal {
       args.add("--offline");
     }
 
+    final cmd = Platform.isWindows ? "pub.bat" : "pub";
     var result = await Process
-        .run("pub", args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
+        .run(cmd, args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
         .timeout(new Duration(seconds: 20));
 
     if (result.exitCode != 0) {
@@ -164,6 +177,9 @@ class Terminal {
     var results = cmd.options.parse(args);
 
     final exitCode = await cmd.process(results);
+    if (exitCode != 0) {
+      print("command failed: ${output}");
+    }
 
     Directory.current = saved;
 

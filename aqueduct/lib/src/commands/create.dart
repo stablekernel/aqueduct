@@ -175,7 +175,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     overrideBuffer.writeln("dependency_overrides:");
     overrides.forEach((packageName, location) {
       overrideBuffer.writeln("  $packageName:");
-      overrideBuffer.writeln("    path:  ${location.path}");
+      overrideBuffer.writeln("    path:  ${location.toFilePath(windows: Platform.isWindows)}");
     });
 
     pubspecFile.writeAsStringSync(contents + "\n$overrideBuffer");
@@ -217,8 +217,9 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     }
 
     try {
+      final cmd = Platform.isWindows ? "pub.bat" : "pub";
       var process = await Process
-          .start("pub", args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
+          .start(cmd, args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
           .timeout(new Duration(seconds: 60));
       process.stdout.transform(utf8.decoder).listen((output) => outputSink?.write(output));
       process.stderr.transform(utf8.decoder).listen((output) => outputSink?.write(output));
