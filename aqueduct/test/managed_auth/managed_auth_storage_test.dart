@@ -172,9 +172,11 @@ void main() {
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.app1");
       expect(token.resourceOwnerIdentifier, createdUser.id);
-      expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
-      expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
       expect(token.type, "bearer");
+
+      final now = new DateTime.now().toUtc();
+      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      expect(token.expirationDate.isAfter(now), true);
     });
 
     test(
@@ -452,10 +454,12 @@ void main() {
           User.DefaultPassword, "com.stablekernel.redirect");
 
       expect(authCode.code.length, greaterThan(0));
-      expect(authCode.issueDate.isBefore(new DateTime.now().toUtc()), true);
       expect(authCode.resourceOwnerIdentifier, createdUser.id);
       expect(authCode.clientID, "com.stablekernel.redirect");
-      expect(authCode.expirationDate.isAfter(new DateTime.now().toUtc()), true);
+
+      final now = new DateTime.now().toUtc();
+      expect(authCode.issueDate.isBefore(now) || authCode.issueDate.isAtSameMomentAs(now), true);
+      expect(authCode.expirationDate.isAfter(now), true);
 
       var token = await auth.exchange(
           authCode.code, "com.stablekernel.redirect", "mckinley");
@@ -563,9 +567,11 @@ void main() {
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.redirect");
       expect(token.resourceOwnerIdentifier, createdUser.id);
-      expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
-      expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
       expect(token.type, "bearer");
+
+      final now = new DateTime.now().toUtc();
+      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      expect(token.expirationDate.isAfter(now), true);
     });
 
     test("Null code fails", () async {

@@ -84,14 +84,16 @@ void main() {
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.app1");
       expect(token.resourceOwnerIdentifier, createdUser.id);
+
+      final now = new DateTime.now().toUtc();
       expect(
           token.issueDate
-              .difference(new DateTime.now().toUtc())
+              .difference(now)
               .inSeconds
               .abs(),
           lessThan(5));
-      expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
-      expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
+      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      expect(token.expirationDate.isAfter(now), true);
       expect(token.type, "bearer");
 
       expect(token.issueDate.difference(token.expirationDate).inSeconds.abs(),
@@ -267,7 +269,7 @@ void main() {
       expect(token.expirationDate.isAfter(now), true);
       expect(token.type, "bearer");
 
-      expect(token.issueDate.isAfter(initialToken.issueDate), true);
+      expect(token.issueDate.isAfter(initialToken.issueDate) || token.issueDate.isAtSameMomentAs(initialToken.issueDate), true);
       expect(token.issueDate.difference(token.expirationDate),
           initialToken.issueDate.difference(initialToken.expirationDate));
 
