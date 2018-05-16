@@ -204,8 +204,13 @@ Future runMigrationCases(List<String> migrationNames, {int fromVersion: 0}) asyn
     file.writeAsStringSync("import 'dart:async';\nimport 'package:aqueduct/aqueduct.dart';\n${mig.source}");
   }
 
-  final res = await terminal.runAqueductCommand(
-      "db", ["upgrade", "--connect", connectString, "--migration-directory", terminal.defaultMigrationDirectory.path]);
+  final res = await terminal.runAqueductCommand("db", [
+    "upgrade",
+    "--connect",
+    connectString,
+    "--migration-directory",
+    terminal.defaultMigrationDirectory.uri.toFilePath(windows: Platform.isWindows)
+  ]);
 
   print("${terminal.output}");
 

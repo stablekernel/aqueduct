@@ -43,7 +43,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
   Future<StoppableProcess> _listen() async {
     final server = await HttpServer.bind(InternetAddress.ANY_IP_V4, port);
 
-    final fileController = new HTTPFileController(_hostedDirectory.uri.path)
+    final fileController = new HTTPFileController(_hostedDirectory.uri.toFilePath(windows: Platform.isWindows))
       ..addCachePolicy(new HTTPCachePolicy(requireConditionalRequest: true), (p) => p.endsWith(".html"))
       ..addCachePolicy(new HTTPCachePolicy(requireConditionalRequest: true), (p) => p.endsWith(".json"))
       ..addCachePolicy(new HTTPCachePolicy(expirationFromNow: new Duration(days: 300)), (p) => true)
