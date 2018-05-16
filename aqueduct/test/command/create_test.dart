@@ -84,12 +84,13 @@ void main() {
       var res = await terminal.runAqueductCommand("create", ["test_project", "--offline"]);
       expect(res, 0);
 
-      var aqueductLocationString = new File.fromUri(terminal.workingDirectory.uri.resolve("test_project/").resolve(".packages"))
-          .readAsStringSync()
-          .split("\n")
-          .firstWhere((p) => p.startsWith("aqueduct:"))
-          .split("aqueduct:")
-          .last;
+      var aqueductLocationString =
+          new File.fromUri(terminal.workingDirectory.uri.resolve("test_project/").resolve(".packages"))
+              .readAsStringSync()
+              .split("\n")
+              .firstWhere((p) => p.startsWith("aqueduct:"))
+              .split("aqueduct:")
+              .last;
 
       var path = path_lib.normalize(path_lib.fromUri(aqueductLocationString));
       expect(path, path_lib.join(Directory.current.path, "lib"));
@@ -117,7 +118,9 @@ void main() {
 
         final cmd = Platform.isWindows ? "pub.bat" : "pub";
         var res = Process.runSync(cmd, ["run", "test", "-j", "1"],
-            runInShell: true, workingDirectory: terminal.workingDirectory.uri.resolve("test_project").path);
+            runInShell: true,
+            workingDirectory:
+                terminal.workingDirectory.uri.resolve("test_project").toFilePath(windows: Platform.isWindows));
 
         expect(res.stdout, contains("All tests passed"));
         expect(res.exitCode, 0);
