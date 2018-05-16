@@ -177,6 +177,9 @@ class Terminal {
     var results = cmd.options.parse(args);
 
     final exitCode = await cmd.process(results);
+    if (exitCode != 0) {
+      print("command failed: ${output}");
+    }
 
     Directory.current = saved;
 

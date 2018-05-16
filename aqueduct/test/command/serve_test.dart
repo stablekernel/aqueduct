@@ -70,8 +70,8 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start with valid SSL args opens https server", () async {
-    certificateFile.copySync(terminal.workingDirectory.uri.resolve("server.crt").path);
-    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
+    certificateFile.copySync(terminal.workingDirectory.uri.resolve("server.crt").toFilePath(windows: Platform.isWindows));
+    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").toFilePath(windows: Platform.isWindows));
 
     task = terminal.startAqueductCommand("serve",
         ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
@@ -89,8 +89,8 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start without one of SSL values throws exception", () async {
-    certificateFile.copySync(terminal.workingDirectory.uri.resolve("server.crt").path);
-    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
+    certificateFile.copySync(terminal.workingDirectory.uri.resolve("server.crt").toFilePath(windows: Platform.isWindows));
+    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").toFilePath(windows: Platform.isWindows));
 
     task = terminal.startAqueductCommand("serve", ["--ssl-key-path", "server.key"]);
     task.hasStarted.catchError((_) => null);
@@ -102,7 +102,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start with invalid SSL values throws exceptions", () async {
-    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
+    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").toFilePath(windows: Platform.isWindows));
 
     var badCertFile = new File.fromUri(terminal.workingDirectory.uri.resolve("server.crt"));
     badCertFile.writeAsStringSync("foobar");
@@ -114,7 +114,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Can't find SSL file, throws exception", () async {
-    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").path);
+    keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").toFilePath(windows: Platform.isWindows));
 
     task = terminal.startAqueductCommand("serve",
         ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
