@@ -70,7 +70,7 @@ abstract class CLIDatabaseManagingCommand extends CLICommand with CLIProject {
     final uri = Uri.parse(values["migration-directory"]);
     Directory dir;
     if (uri.isAbsolute) {
-      dir = new Directory.fromUri(uri);
+      dir = new Directory(uri.toFilePath(windows: Platform.isWindows));
     }
 
     dir = new Directory.fromUri(projectDirectory.uri.resolveUri(uri));

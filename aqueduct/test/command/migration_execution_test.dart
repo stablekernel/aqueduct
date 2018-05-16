@@ -207,9 +207,7 @@ Future runMigrationCases(List<String> migrationNames, {int fromVersion: 0}) asyn
   final res = await terminal.runAqueductCommand("db", [
     "upgrade",
     "--connect",
-    connectString,
-    "--migration-directory",
-    terminal.defaultMigrationDirectory.uri.toFilePath(windows: Platform.isWindows)
+    connectString
   ]);
 
   print("${terminal.output}");
