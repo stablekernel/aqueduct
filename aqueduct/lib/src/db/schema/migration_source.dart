@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:analyzer/analyzer.dart';
 import 'package:crypto/crypto.dart';
 
@@ -18,7 +20,7 @@ class MigrationSource {
   factory MigrationSource.fromFile(Uri uri) {
     CompilationUnit fileUnit;
     try {
-      fileUnit = parseDartFile(uri.path);
+      fileUnit = parseDartFile(uri.toFilePath(windows: Platform.isWindows));
     } catch (_) {
       throw new StateError(
           "Migration file '${uri.path}' failed to compile. If this file was generated and required additional input, "
