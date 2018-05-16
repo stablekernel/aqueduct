@@ -186,9 +186,11 @@ void main() {
       expect(token.refreshToken, isNull);
       expect(token.clientID, "com.stablekernel.public");
       expect(token.resourceOwnerIdentifier, createdUser.id);
-      expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
-      expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
       expect(token.type, "bearer");
+
+      var now = new DateTime.now().toUtc();
+      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      expect(token.expirationDate.isAfter(now), true);
 
       token = await auth.authenticate(createdUser.username,
           User.DefaultPassword, "com.stablekernel.public", null);
@@ -196,9 +198,11 @@ void main() {
       expect(token.refreshToken, isNull);
       expect(token.clientID, "com.stablekernel.public");
       expect(token.resourceOwnerIdentifier, createdUser.id);
-      expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
-      expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
       expect(token.type, "bearer");
+
+      now = new DateTime.now().toUtc();
+      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      expect(token.expirationDate.isAfter(now), true);
     });
 
     test("Can create token if client has redirect uri", () async {
@@ -333,9 +337,11 @@ void main() {
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.app1");
       expect(token.resourceOwnerIdentifier, createdUser.id);
-      expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
-      expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
       expect(token.type, "bearer");
+
+      var now = new DateTime.now().toUtc();
+      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      expect(token.expirationDate.isAfter(now), true);
 
       expect(token.issueDate.isAfter(initialToken.issueDate), true);
       expect(token.issueDate.difference(token.expirationDate),

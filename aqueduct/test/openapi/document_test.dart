@@ -49,7 +49,7 @@ void main() {
     });
 
     test("Controllers are prepared prior to documenting", () async {
-      expect(controllerPrepared.isBefore(controllerDocumented), true);
+      expect(controllerPrepared.isBefore(controllerDocumented) || controllerPrepared.isAtSameMomentAs(controllerDocumented), true);
     });
 
     test("Static init is ran prior to controller prep", () async {
@@ -109,8 +109,12 @@ void main() {
       });
       await ctx.finalize();
 
-      expect((await completer1.future).isBefore(await completer2.future), true);
-      expect((await completer2.future).isBefore(await completer3.future), true);
+      final f1 = await completer1.future;
+      final f2 = await completer2.future;
+      final f3 = await completer3.future;
+
+      expect(f1.isBefore(f2) || f1.isAtSameMomentAs(f2), true);
+      expect(f2.isBefore(f3) || f2.isAtSameMomentAs(f3), true);
     });
 
     test("Finalize throws error if contains unresolved type reference", () async {
