@@ -103,7 +103,6 @@ class _TestObject {
       await terminal.getDependencies(offline: true);
 
       final migDir = new Directory.fromUri(terminal.workingDirectory.uri.resolve("foobar/"));
-
       var res = await terminal.runAqueductCommand(
           "db", ["generate", "--migration-directory", migDir.uri.toFilePath(windows: Platform.isWindows)]);
       expect(res, 0);

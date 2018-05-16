@@ -63,16 +63,7 @@ class CLIServer extends CLICommand with CLIProject {
 
   String get channelType => values["channel"] ?? derivedChannelType;
 
-  File get configurationFile {
-    String path = values["config-path"];
-    if (path_lib.isRelative(path)) {
-      return fileInProjectDirectory(path);
-    }
-
-    return new File(path);
-  }
-
-  Directory get binDirectory => subdirectoryInProjectDirectory("bin");
+  File get configurationFile => new File(values["config-path"]).absolute;
 
   ReceivePort messagePort;
   ReceivePort errorPort;
