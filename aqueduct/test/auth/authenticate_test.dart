@@ -84,14 +84,16 @@ void main() {
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.app1");
       expect(token.resourceOwnerIdentifier, createdUser.id);
+
+      final now = new DateTime.now().toUtc();
       expect(
           token.issueDate
-              .difference(new DateTime.now().toUtc())
+              .difference(now)
               .inSeconds
               .abs(),
           lessThan(5));
-      expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
-      expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
+      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      expect(token.expirationDate.isAfter(now), true);
       expect(token.type, "bearer");
 
       expect(token.issueDate.difference(token.expirationDate).inSeconds.abs(),
@@ -109,8 +111,10 @@ void main() {
       expect(token.refreshToken, isNull);
       expect(token.clientID, "com.stablekernel.public");
       expect(token.resourceOwnerIdentifier, createdUser.id);
-      expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
-      expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
+
+      var now = new DateTime.now().toUtc();
+      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      expect(token.expirationDate.isAfter(now), true);
       expect(token.type, "bearer");
 
       token = await auth.authenticate(createdUser.username,
@@ -119,8 +123,10 @@ void main() {
       expect(token.refreshToken, isNull);
       expect(token.clientID, "com.stablekernel.public");
       expect(token.resourceOwnerIdentifier, createdUser.id);
-      expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
-      expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
+
+      now = new DateTime.now().toUtc();
+      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      expect(token.expirationDate.isAfter(now), true);
       expect(token.type, "bearer");
     });
 
@@ -257,11 +263,13 @@ void main() {
               .inSeconds
               .abs(),
           lessThan(5));
-      expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
-      expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
+
+      final now = new DateTime.now().toUtc();
+      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      expect(token.expirationDate.isAfter(now), true);
       expect(token.type, "bearer");
 
-      expect(token.issueDate.isAfter(initialToken.issueDate), true);
+      expect(token.issueDate.isAfter(initialToken.issueDate) || token.issueDate.isAtSameMomentAs(initialToken.issueDate), true);
       expect(token.issueDate.difference(token.expirationDate),
           initialToken.issueDate.difference(initialToken.expirationDate));
 
@@ -345,16 +353,17 @@ void main() {
           InMemoryAuthStorage.DefaultPassword, "com.stablekernel.redirect");
 
       expect(authCode.code.length, greaterThan(0));
+      final now = new DateTime.now().toUtc();
       expect(
           authCode.issueDate
-              .difference(new DateTime.now().toUtc())
+              .difference(now)
               .inSeconds
               .abs(),
           lessThan(5));
-      expect(authCode.issueDate.isBefore(new DateTime.now().toUtc()), true);
+      expect(authCode.issueDate.isBefore(now) || authCode.issueDate.isAtSameMomentAs(now), true);
       expect(authCode.resourceOwnerIdentifier, createdUser.id);
       expect(authCode.clientID, "com.stablekernel.redirect");
-      expect(authCode.expirationDate.isAfter(new DateTime.now().toUtc()), true);
+      expect(authCode.expirationDate.isAfter(now), true);
       expect(
           authCode.issueDate
               .difference(authCode.expirationDate)
@@ -449,8 +458,9 @@ void main() {
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.redirect");
       expect(token.resourceOwnerIdentifier, createdUser.id);
-      expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
-      expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
+      final now = new DateTime.now().toUtc();
+      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      expect(token.expirationDate.isAfter(now), true);
       expect(token.type, "bearer");
     });
 
