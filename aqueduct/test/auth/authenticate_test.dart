@@ -257,6 +257,7 @@ void main() {
               .inSeconds
               .abs(),
           lessThan(5));
+      print("Token issue date: ${token.issueDate}. Now: ${new DateTime.now().toUtc()}");
       expect(token.issueDate.isBefore(new DateTime.now().toUtc()), true);
       expect(token.expirationDate.isAfter(new DateTime.now().toUtc()), true);
       expect(token.type, "bearer");
