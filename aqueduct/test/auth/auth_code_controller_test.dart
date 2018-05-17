@@ -24,14 +24,19 @@ void main() {
     return req.post();
   };
 
-  setUp(() async {
+  setUpAll(() async {
     application = new Application<TestChannel>();
 
     await application.test();
   });
 
-  tearDown(() async {
+  tearDownAll(() async {
     await application?.stop();
+  });
+
+  setUp(() async {
+    (application.channel.authServer.delegate as InMemoryAuthStorage).reset();
+    (application.channel.authServer.delegate as InMemoryAuthStorage).createUsers(2);
   });
 
   /////////
@@ -486,7 +491,6 @@ class TestChannel extends ApplicationChannel implements AuthCodeControllerDelega
   @override
   Future prepare() async {
     var storage = new InMemoryAuthStorage();
-    storage.createUsers(2);
     authServer = new AuthServer(storage);
   }
 

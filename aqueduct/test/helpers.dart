@@ -105,22 +105,7 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   static const String DefaultPassword = "foobaraxegrind21%";
 
   InMemoryAuthStorage() {
-    var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
-
-    clients = {
-      "com.stablekernel.app1":
-          new AuthClient("com.stablekernel.app1", AuthUtility.generatePasswordHash("kilimanjaro", salt), salt),
-      "com.stablekernel.app2":
-          new AuthClient("com.stablekernel.app2", AuthUtility.generatePasswordHash("fuji", salt), salt),
-      "com.stablekernel.redirect": new AuthClient.withRedirectURI("com.stablekernel.redirect",
-          AuthUtility.generatePasswordHash("mckinley", salt), salt, "http://stablekernel.com/auth/redirect"),
-      "com.stablekernel.public": new AuthClient("com.stablekernel.public", null, salt),
-      "com.stablekernel.redirect2": new AuthClient.withRedirectURI("com.stablekernel.redirect2",
-          AuthUtility.generatePasswordHash("gibraltar", salt), salt, "http://stablekernel.com/auth/redirect2"),
-      "com.stablekernel.scoped": new AuthClient.withRedirectURI("com.stablekernel.scoped",
-          AuthUtility.generatePasswordHash("kilimanjaro", salt), salt, "http://stablekernel.com/auth/scoped",
-          allowedScopes: [new AuthScope("user"), new AuthScope("other_scope")]),
-    };
+    reset();
   }
 
   Map<String, AuthClient> clients;
@@ -138,6 +123,26 @@ class InMemoryAuthStorage extends AuthServerDelegate {
 
       users[i + 1] = u;
     }
+  }
+
+  void reset() {
+    var salt = "ABCDEFGHIJKLMNOPQRSTUVWXYZ012345";
+    clients = {
+      "com.stablekernel.app1":
+      new AuthClient("com.stablekernel.app1", AuthUtility.generatePasswordHash("kilimanjaro", salt), salt),
+      "com.stablekernel.app2":
+      new AuthClient("com.stablekernel.app2", AuthUtility.generatePasswordHash("fuji", salt), salt),
+      "com.stablekernel.redirect": new AuthClient.withRedirectURI("com.stablekernel.redirect",
+        AuthUtility.generatePasswordHash("mckinley", salt), salt, "http://stablekernel.com/auth/redirect"),
+      "com.stablekernel.public": new AuthClient("com.stablekernel.public", null, salt),
+      "com.stablekernel.redirect2": new AuthClient.withRedirectURI("com.stablekernel.redirect2",
+        AuthUtility.generatePasswordHash("gibraltar", salt), salt, "http://stablekernel.com/auth/redirect2"),
+      "com.stablekernel.scoped": new AuthClient.withRedirectURI("com.stablekernel.scoped",
+        AuthUtility.generatePasswordHash("kilimanjaro", salt), salt, "http://stablekernel.com/auth/scoped",
+        allowedScopes: [new AuthScope("user"), new AuthScope("other_scope")]),
+    };
+    users = {};
+    tokens = [];
   }
 
   @override
