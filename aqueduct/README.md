@@ -4,7 +4,7 @@
 
 [![Slack](https://slackaqueductsignup.herokuapp.com/badge.svg)](http://slackaqueductsignup.herokuapp.com/)
 
-Aqueduct is a modern Dart HTTP server framework. The framework is composed of libraries for handling and routing HTTP requests, object-relational mapping (ORM), authentication and authorization (OAuth 2.0 provider) and documentation (OpenAPI). These libraries are used to build scalable applications that run on the Dart VM.
+Aqueduct is a modern Dart HTTP server framework. The framework is composed of libraries for handling and routing HTTP requests, object-relational mapping (ORM), authentication and authorization (OAuth 2.0 provider) and documentation (OpenAPI). These libraries are used to build scalable REST APIs that run on the Dart VM.
 
 If this is your first time viewing Aqueduct, check out [the tour](https://aqueduct.io/docs/tour/).
 
