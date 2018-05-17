@@ -14,7 +14,7 @@ import 'package:aqueduct/aqueduct.dart';
 
 Future main() async {
   final app = new Application<App>()
-    ..options.configurationFilePath = "config.yaml"
+    ..options.configurationFilePath = 'config.yaml'
     ..options.port = 8888;
 
   await app.start(numberOfInstances: 3);
@@ -24,7 +24,7 @@ class App extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/example/[:id]").link(() => new ExampleController());
+    router.route('/example/[:id]').link(() => new ExampleController());
     return router;
   }
 }
@@ -37,6 +37,6 @@ class ExampleController extends ResourceController {
 
   @Operation.get('id')
   Future<Response> getExampleById(@Bind.path('id') int id) async {
-    return new Response.ok({"id": id});
+    return new Response.ok({'id': id});
   }
 }
