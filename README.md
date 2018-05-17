@@ -1,16 +1,12 @@
 ![Aqueduct](https://s3.amazonaws.com/aqueduct-collateral/aqueduct.png)
 
-[![OSX/Linux Build Status](https://travis-ci.org/stablekernel/aqueduct.svg?branch=master)](https://travis-ci.org/stablekernel/aqueduct) [![codecov](https://codecov.io/gh/stablekernel/aqueduct/branch/master/graph/badge.svg)](https://codecov.io/gh/stablekernel/aqueduct) [![Windows Build status](https://ci.appveyor.com/api/projects/status/l2uy4r0yguhg4pis?svg=true)](https://ci.appveyor.com/project/joeconwaystk/aqueduct)
+[![OSX/Linux Build Status](https://travis-ci.org/stablekernel/aqueduct.svg?branch=master)](https://travis-ci.org/stablekernel/aqueduct) [![Windows Build status](https://ci.appveyor.com/api/projects/status/l2uy4r0yguhg4pis?svg=true)](https://ci.appveyor.com/project/joeconwaystk/aqueduct) [![codecov](https://codecov.io/gh/stablekernel/aqueduct/branch/master/graph/badge.svg)](https://codecov.io/gh/stablekernel/aqueduct) 
 
 [![Slack](https://slackaqueductsignup.herokuapp.com/badge.svg)](http://slackaqueductsignup.herokuapp.com/)
 
-Aqueduct is a server-side framework for building and deploying multi-threaded REST applications. It is written in Dart and targets the Dart VM. Its goal is to provide an integrated, consistently styled API. If this is your first time viewing Aqueduct, check out [the tour](https://aqueduct.io/docs/tour/).
+Aqueduct is a modern Dart HTTP server framework. The framework is composed of libraries for handling and routing HTTP requests, object-relational mapping (ORM), authentication and authorization (OAuth 2.0 provider) and documentation (OpenAPI). These libraries are used to build scalable REST APIs that run on the Dart VM.
 
-The framework contains behavior for routing, OAuth 2.0, a PostgreSQL ORM, testing, and more.
-
-The `aqueduct` command-line tool serves applications, manages database schemas and OAuth 2.0 clients, and generates OpenAPI specifications.
-
-In-depth documentation is available [here](https://aqueduct.io/docs).
+If this is your first time viewing Aqueduct, check out [the tour](https://aqueduct.io/docs/tour/).
 
 ## Getting Started
 
@@ -23,7 +19,7 @@ In-depth documentation is available [here](https://aqueduct.io/docs).
 
         aqueduct create my_project
 
-Open the project directory in an [IntelliJ IDE](https://www.jetbrains.com/idea/download/), [Atom](https://atom.io) or [Visual Studio Code](https://code.visualstudio.com). All three IDEs have a Dart plugin. IntelliJ IDEA is preferred and has [file and code templates](https://aqueduct.io/docs/intellij/) specific to Aqueduct.
+Open the project directory in [IntelliJ IDE](https://www.jetbrains.com/idea/download/), [Atom](https://atom.io) or [Visual Studio Code](https://code.visualstudio.com). All three IDEs have a Dart plugin. For IntelliJ IDEA users, there are [file and code templates](https://aqueduct.io/docs/intellij/) for Aqueduct.
 
 ## Tutorials, Documentation and Examples
 
