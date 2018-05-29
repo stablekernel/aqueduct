@@ -441,7 +441,7 @@ Future<HttpServer> enableAuthorizer(Authorizer authorizer) async {
   router.route("/").link(() => authorizer).link(() => new Controller(respond));
   router.didAddToChannel();
 
-  var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8000);
+  var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8000);
   server.map((httpReq) => new Request(httpReq)).listen((r) {
     router.receive(r);
   });

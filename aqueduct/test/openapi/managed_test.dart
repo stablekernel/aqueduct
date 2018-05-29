@@ -55,20 +55,20 @@ void main() {
     test("Schema contains to-many relationships", () {
       final entity = doc.components.schemas["Model1"];
       expect(entity.properties["model2s"].type, APIType.array);
-      expect(entity.properties["model2s"].items.referenceURI, "#/components/schemas/Model2");
+      expect(entity.properties["model2s"].items.referenceURI.path, "/components/schemas/Model2");
     });
 
     test("Schema contains to-one relationships", () {
       final entity = doc.components.schemas["Model1"];
-      expect(entity.properties["model3"].referenceURI, "#/components/schemas/Model3");
+      expect(entity.properties["model3"].referenceURI.path, "/components/schemas/Model3");
     });
 
     test("Schema contains belongs-to relationships", () {
       final model2 = doc.components.schemas["Model2"];
-      expect(model2.properties["model1"].referenceURI, "#/components/schemas/Model1");
+      expect(model2.properties["model1"].referenceURI.path, "/components/schemas/Model1");
 
       final model3 = doc.components.schemas["Model3"];
-      expect(model3.properties["model1"].referenceURI, "#/components/schemas/Model1");
+      expect(model3.properties["model1"].referenceURI.path, "/components/schemas/Model1");
     });
 
     test("If property is not in default set, it should not be included in schema", () {
@@ -270,7 +270,7 @@ class _Model3 {
   @Column(omitByDefault: true)
   String notIncluded;
 
-  @CustomValidate()
+  //@CustomValidate()
   String customValidate;
 
   @Validate.matches("xb")

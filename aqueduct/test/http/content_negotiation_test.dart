@@ -18,7 +18,7 @@ void main() {
   });
 
   setUp(() async {
-    server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+    server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
   });
 
   tearDown(() async {

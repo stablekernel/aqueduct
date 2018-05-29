@@ -61,7 +61,7 @@ void main() {
             ..setContentTypeForExtension("silly", new ContentType("text", "html", charset: "utf-8")));
     router.didAddToChannel();
 
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+    server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
     server.map((r) => new Request(r)).listen((req) {
       router.receive(req);
     });

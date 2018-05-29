@@ -126,7 +126,7 @@ bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
 Table tableAttributesFromPersistentType(ClassMirror typeMirror) =>
     firstMetadataOfType(typeMirror.reflectedType, reflectType(Table));
 
-List<Validate> validatorsFromDeclaration(DeclarationMirror dm) => allMetadataOfType(Validate, dm);
+List<Validate> validatorsFromDeclaration(DeclarationMirror dm) => allMetadataOfType(Validate, dm).cast<Validate>();
 
 Serialize transientMetadataFromDeclaration(DeclarationMirror dm) => firstMetadataOfType(Serialize, dm);
 

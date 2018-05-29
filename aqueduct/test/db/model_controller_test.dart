@@ -17,7 +17,7 @@ void main() {
   setUpAll(() async {
     context = await contextWithModels([TestModel, StringModel]);
 
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+    server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
     var router = new Router();
     router.route("/users/[:id]").link(() => new TestModelController(context));
     router.route("/string/:id").link(() => new StringController(context));

@@ -6,7 +6,6 @@ import 'package:aqueduct/src/commands/running_process.dart';
 import 'package:aqueduct/src/commands/scripts/get_channel_type.dart';
 import 'package:args/args.dart';
 import 'package:isolate_executor/isolate_executor.dart';
-import 'package:path/path.dart' as path_lib;
 
 import 'base.dart';
 import 'dart:developer';

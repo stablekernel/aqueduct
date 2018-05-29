@@ -225,7 +225,7 @@ void main() {
     });
 
     test("Responses have body", () async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
       server.listen((req) {
         var resReq = new Request(req);
         resReq.respond(new Response.ok([
@@ -240,7 +240,7 @@ void main() {
     });
 
     test("Responses with no body don't return one", () async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
       server.listen((req) {
         req.response.statusCode = 200;
         req.response.close();
@@ -252,7 +252,7 @@ void main() {
     });
 
     test("Request with accept adds header", () async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
       server.listen((req) {
         var resReq = new Request(req);
         resReq.respond(new Response.ok({"ACCEPT": req.headers.value(HttpHeaders.ACCEPT)}));

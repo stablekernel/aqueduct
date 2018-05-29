@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:aqueduct/src/db/schema/migration_source.dart';
 import 'package:safe_config/safe_config.dart';
-import 'package:yaml/yaml.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 import '../db/db.dart';
 import 'base.dart';
@@ -134,7 +133,7 @@ abstract class CLIDatabaseConnectingCommand extends CLIDatabaseManagingCommand {
       ..addFlag("use-ssl", help: "Whether or not the database connection should use SSL", defaultsTo: false);
   }
 
-  DatabaseConnectionConfiguration connectedDatabase;
+  DatabaseConfiguration connectedDatabase;
 
   bool get useSSL => values["use-ssl"];
 
@@ -156,9 +155,9 @@ abstract class CLIDatabaseConnectingCommand extends CLIDatabaseManagingCommand {
     }
 
     if (databaseFlavor == FlavorPostgreSQL) {
-      connectedDatabase = new DatabaseConnectionConfiguration();
       if (databaseConnectionString != null) {
         try {
+          connectedDatabase = new DatabaseConfiguration();
           connectedDatabase.decode(databaseConnectionString);
         } catch (_) {
           throw new CLIException("Invalid database configuration.", instructions: [
@@ -176,9 +175,7 @@ abstract class CLIDatabaseConnectingCommand extends CLIDatabaseManagingCommand {
         }
 
         try {
-          var contents = databaseConfigurationFile.readAsStringSync();
-          var yaml = loadYaml(contents);
-          connectedDatabase.readFromMap(yaml);
+          connectedDatabase = new DatabaseConfiguration.fromFile(databaseConfigurationFile);
         } catch (_) {
           throw new CLIException("Invalid database configuration.", instructions: [
             "File located at ${databaseConfigurationFile.path}.",

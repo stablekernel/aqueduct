@@ -1,7 +1,6 @@
 import 'package:wildfire/model/user.dart';
 
 import 'harness/app.dart';
-import 'dart:convert';
 
 Future main() async {
   Harness harness = new Harness()..install();

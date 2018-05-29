@@ -53,7 +53,7 @@ void main() {
 
     HttpServer server;
     setUpAll(() async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
       server.listen((req) {
         req.response.statusCode = 200;
 

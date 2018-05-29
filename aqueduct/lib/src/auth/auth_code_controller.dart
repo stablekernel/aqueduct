@@ -193,7 +193,6 @@ class AuthCodeController extends ResourceController {
     throw new StateError("AuthCodeController documentation failed.");
   }
 
-
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
     final ops = super.documentOperations(context, route, path);

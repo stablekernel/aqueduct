@@ -314,14 +314,14 @@ class Request implements RequestOrResponse {
 
       if (canGzip) {
         compressionType.value = "gzip";
-        return GZIP.encode(resp.body);
+        return gzip.encode(resp.body);
       }
       return resp.body;
     }
 
     if (canGzip) {
       compressionType.value = "gzip";
-      codec = codec.fuse(GZIP);
+      codec = codec.fuse(gzip);
     }
 
     return codec.encode(resp.body);
@@ -339,7 +339,7 @@ class Request implements RequestOrResponse {
     if (codec == null) {
       if (canGzip) {
         compressionType.value = "gzip";
-        return GZIP.encoder.bind(resp.body);
+        return gzip.encoder.bind(resp.body);
       }
 
       return resp.body;
@@ -347,7 +347,7 @@ class Request implements RequestOrResponse {
 
     if (canGzip) {
       compressionType.value = "gzip";
-      codec = codec.fuse(GZIP);
+      codec = codec.fuse(gzip);
     }
 
     return codec.encoder.bind(resp.body);

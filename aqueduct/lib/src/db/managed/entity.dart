@@ -82,7 +82,7 @@ class ManagedEntity implements APIComponentDocumenter {
   /// The string key is the name of the property, case-sensitive. Values will be instances of either [ManagedAttributeDescription]
   /// or [ManagedRelationshipDescription]. This is the concatenation of [attributes] and [relationships].
   Map<String, ManagedPropertyDescription> get properties {
-    var all = new Map.from(attributes) as Map<String, ManagedPropertyDescription>;
+    var all = new Map<String, ManagedPropertyDescription>.from(attributes);
     if (relationships != null) {
       all.addAll(relationships);
     }

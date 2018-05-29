@@ -46,7 +46,7 @@ class HTTPCodecRepository {
   /// and `text/html` have been added through this method, a [Response] with content type `text/html` will select the codec
   /// associated with `text/html` and not `text/*`.
   ///
-  /// [allowCompression] chooses whether or not response bodies are compressed with [GZIP] when using [contentType].
+  /// [allowCompression] chooses whether or not response bodies are compressed with [gzip] when using [contentType].
   /// Media types like images and audio files should avoid setting [allowCompression] because they are already compressed.
   ///
   /// A response with a content type not in this instance will be sent unchanged to the HTTP client (and therefore must be [List<int>]

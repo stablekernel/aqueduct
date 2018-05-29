@@ -273,7 +273,7 @@ void main() {
       root.link(() => router);
 
       root.didAddToChannel();
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
       server.map((httpReq) => new Request(httpReq)).listen(root.receive);
 
       expect((await http.get("http://localhost:4040/1")).body, "1");
@@ -300,7 +300,7 @@ void main() {
 
 Future<HttpServer> enableRouter(Router router) async {
   router.didAddToChannel();
-  var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
+  var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
   server.map((httpReq) => new Request(httpReq)).listen(router.receive);
   return server;
 }

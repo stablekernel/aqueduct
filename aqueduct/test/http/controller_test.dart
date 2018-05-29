@@ -25,7 +25,7 @@ void main() {
       final root = new Controller();
       root.linkFunction((req) async => req).link(() => new NotingMiddleware()).link(() => new NotingEndpoint());
       root.didAddToChannel();
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4111);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4111);
       server.map((r) => new Request(r)).listen((req) => root.receive(req));
 
       // These requests return pairs of [request memory address, controller memory address].
@@ -57,7 +57,7 @@ void main() {
     Controller root;
 
     setUp(() async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4111);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4111);
       root = new Controller();
       server.map((r) => new Request(r)).listen((req) {
         root.receive(req);
@@ -129,7 +129,7 @@ void main() {
     Controller root;
 
     setUp(() async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4111);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4111);
       root = new Controller();
 
       server.map((r) => new Request(r)).listen((req) {
@@ -201,7 +201,7 @@ void main() {
 
 
     test("Request controller's can serialize and encode Serializable objects as JSON by default", () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.linkFunction((req) async {
@@ -217,7 +217,7 @@ void main() {
     });
 
     test("Responding to request with no content-type, but does have a body, defaults to application/json", () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.linkFunction((req) async {
@@ -234,7 +234,7 @@ void main() {
     test(
         "Responding to a request with no explicit content-type and has a body that cannot be encoded to JSON will throw 500",
         () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.linkFunction((req) async {
@@ -250,7 +250,7 @@ void main() {
     });
 
     test("Responding to request with no explicit content-type, does not have a body, has no content-type", () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.linkFunction((req) async {
@@ -266,7 +266,7 @@ void main() {
     });
 
     test("willSendResponse is always called prior to Response being sent for preflight requests", () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.link(() => new Always200Controller());
@@ -296,7 +296,7 @@ void main() {
     });
 
     test("willSendResponse is always called prior to Response being sent for normal requests", () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.link(() => new Always200Controller());
@@ -325,7 +325,7 @@ void main() {
     });
 
     test("Failure to decode request body as appropriate type is 422", () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.linkFunction((r) async {

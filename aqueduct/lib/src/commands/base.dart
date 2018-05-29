@@ -290,7 +290,8 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
         throw new CLIException("Failed to locate pubspec.yaml in project directory '${projectDirectory.path}'");
       }
       var yamlContents = file.readAsStringSync();
-      _pubspec = loadYaml(yamlContents);
+      final Map<dynamic, dynamic> yaml = loadYaml(yamlContents);
+      _pubspec = yaml.cast<String, dynamic>();
     }
 
     return _pubspec;

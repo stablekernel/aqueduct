@@ -1,7 +1,6 @@
+import 'package:aqueduct/src/http/route_node.dart';
 import "package:test/test.dart";
 import 'package:aqueduct/src/http/route_specification.dart';
-
-import '../../lib/src/http/route_node.dart';
 
 void main() {
   group("Pattern splitting", () {
@@ -226,6 +225,6 @@ List<List<RouteSegment>> _segmentsForRoute(String route) {
   return RouteSpecification
       .specificationsForRoutePattern(route)
       .map((spec) => spec.segments)
-      .map((segs) => segs as List<RouteSegment>)
+      .map((segs) => segs)
       .toList();
 }

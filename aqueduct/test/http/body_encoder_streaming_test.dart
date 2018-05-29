@@ -252,7 +252,7 @@ void main() {
       var response = new Response.ok(sc.stream)
         ..contentType = new ContentType("application", "octet-stream");
       var initiateResponseCompleter = new Completer();
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.linkFunction((req) async {
@@ -289,7 +289,7 @@ void main() {
 
     setUp(() async {
       client = new HttpClient();
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
       server.idleTimeout = new Duration(seconds: 1);
     });
 
@@ -409,7 +409,7 @@ Future serverHasNoMoreConnections(HttpServer server) async {
 }
 
 Future<HttpServer> bindAndRespondWith(Response response) async {
-  var server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+  var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
   server.map((req) => new Request(req)).listen((req) async {
     var next = new Controller();
     next.linkFunction((req) async {

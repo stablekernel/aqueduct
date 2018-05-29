@@ -778,7 +778,7 @@ Future<HttpServer> enableController(String pattern, Type controller) async {
       () => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
   router.didAddToChannel();
 
-  var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
+  var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
   server.map((httpReq) => new Request(httpReq)).listen(router.receive);
 
   return server;

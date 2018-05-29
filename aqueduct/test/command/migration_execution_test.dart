@@ -8,8 +8,8 @@ import 'dart:async';
 import 'cli_helpers.dart';
 
 Terminal terminal;
-DatabaseConnectionConfiguration connectInfo =
-    new DatabaseConnectionConfiguration.withConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
+DatabaseConfiguration connectInfo =
+    new DatabaseConfiguration.withConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
 String connectString = "postgres://${connectInfo.username}:${connectInfo.password}@${connectInfo.host}:${connectInfo
   .port}/${connectInfo.databaseName}";
 
