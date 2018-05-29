@@ -44,9 +44,9 @@ class PostgresQueryBuilder extends TableBuilder {
     variables[builder.sqlColumnName(withPrefix: valueKeyPrefix)] = builder.value;
   }
 
-  List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
+  List<T> instancesForRows<T extends ManagedObject>(List<List<dynamic>> rows) {
     final instantiator = new RowInstantiator(this, returning);
-    return instantiator.instancesForRows(rows);
+    return instantiator.instancesForRows<T>(rows);
   }
 
   ColumnValueBuilder _createColumnValueBuilder(String key, dynamic value) {

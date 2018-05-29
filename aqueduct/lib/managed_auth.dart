@@ -44,7 +44,7 @@ class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
         .entity
         .relationships["resourceOwner"]
         .destinationEntity
-        .newInstance();
+        .instanceOf();
     tokenResourceOwner["id"] = t.resourceOwnerIdentifier;
     this
       ..accessToken = t.accessToken
@@ -63,7 +63,7 @@ class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
         .entity
         .relationships["resourceOwner"]
         .destinationEntity
-        .newInstance();
+        .instanceOf();
     tokenResourceOwner["id"] = code.resourceOwnerIdentifier;
 
     this

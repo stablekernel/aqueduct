@@ -12,19 +12,20 @@ class RowInstantiator {
 
   Map<TableBuilder, Map<dynamic, ManagedObject>> distinctObjects = {};
 
-  List<ManagedObject> instancesForRows(List<List<dynamic>> rows) {
+  List<U> instancesForRows<U extends ManagedObject>(List<List<dynamic>> rows) {
     try {
       return rows
           .map((row) => instanceFromRow(row.iterator, returningValues.iterator))
           .where((wrapper) => wrapper.isNew)
           .map((wrapper) => wrapper.instance)
           .toList();
-    } on ValidationException catch (e) {
+    } on ValidationException catch (e,st) {
+      print(st);
       throw new StateError("Database error when retrieving value. ${e.toString()}");
     }
   }
 
-  InstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator, Iterator<ColumnBuilder> returningIterator,
+  InstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator, Iterator<Returnable> returningIterator,
       {TableBuilder table}) {
     table ??= rootTableBuilder;
 
@@ -51,7 +52,7 @@ class RowInstantiator {
         rowIterator.moveNext();
         applyColumnValueToProperty(instance, ret, rowIterator.current);
       } else if (ret is TableBuilder) {
-        applyRowValuesToInstance(instance, ret as TableBuilder, rowIterator);
+        applyRowValuesToInstance(instance, ret, rowIterator);
       }
     }
 
@@ -59,7 +60,7 @@ class RowInstantiator {
   }
 
   ManagedObject createInstanceWithPrimaryKeyValue(TableBuilder table, dynamic primaryKeyValue) {
-    var instance = table.entity.newInstance();
+    var instance = table.entity.instanceOf();
 
     instance[table.entity.primaryKey] = primaryKeyValue;
 
@@ -94,6 +95,7 @@ class RowInstantiator {
     if (table.joinedBy.relationshipType == ManagedRelationshipType.hasMany) {
       // If to many, put in a managed set.
       ManagedSet list = instance[table.joinedBy.name] ?? new ManagedSet();
+
       if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
         list.add(innerInstanceWrapper.instance);
       }
@@ -118,7 +120,7 @@ class RowInstantiator {
     if (desc is ManagedRelationshipDescription) {
       // This is a belongsTo relationship (otherwise it wouldn't be a column), keep the foreign key.
       if (value != null) {
-        var innerInstance = desc.destinationEntity.newInstance();
+        var innerInstance = desc.destinationEntity.instanceOf();
         innerInstance[desc.destinationEntity.primaryKey] = value;
         instance[desc.name] = innerInstance;
       } else {
@@ -130,11 +132,11 @@ class RowInstantiator {
     }
   }
 
-  void exhaustNullInstanceIterator(Iterator<dynamic> rowIterator, Iterator<ColumnBuilder> returningIterator) {
+  void exhaustNullInstanceIterator(Iterator<dynamic> rowIterator, Iterator<Returnable> returningIterator) {
     while (returningIterator.moveNext()) {
       var ret = returningIterator.current;
       if (ret is TableBuilder) {
-        var _ = instanceFromRow(rowIterator, (ret as TableBuilder).returning.iterator);
+        var _ = instanceFromRow(rowIterator, ret.returning.iterator);
       } else {
         rowIterator.moveNext();
       }

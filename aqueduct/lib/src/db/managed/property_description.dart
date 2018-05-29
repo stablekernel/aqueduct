@@ -194,7 +194,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   /// [ManagedValidator]s for this instance.
   List<Validate> get validators {
     if (isEnumeratedValue) {
-      var total = new List.from(_validators);
+      var total = new List<Validate>.from(_validators);
       total.add(new Validate.oneOf(enumerationValueMap.values.toList()));
       return total;
     }

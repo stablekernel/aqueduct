@@ -312,16 +312,17 @@ void main() {
       await req.insert();
     }
 
-    try {
+//    try {
       var q = new Query<GenUser>(context)..join(set: (u) => u.posts);
+    print("Will make req");
       await q.fetchOne();
 
       expect(true, false);
-    } on StateError catch (e) {
-      expect(
-          e.toString(),
-          contains("'fetchOne' returned more than one row from 'GenUser'"));
-    }
+//    } on StateError catch (e) {
+//      expect(
+//          e.toString(),
+//          contains("'fetchOne' returned more than one row from 'GenUser'"));
+//    }
   });
 
   test(

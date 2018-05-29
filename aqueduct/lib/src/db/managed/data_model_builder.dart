@@ -125,7 +125,7 @@ class DataModelBuilder {
       var declType = declaration.type;
       if (declType is ClassMirror && declType.isEnum) {
         List<dynamic> enumeratedCases = declType.getField(#values).reflectee;
-        enumToPropertyNameMap = enumeratedCases.fold({}, (m, v) {
+        enumToPropertyNameMap = enumeratedCases.fold(<String, dynamic>{}, (m, v) {
           m[v.toString().split(".").last] = v;
           return m;
         });

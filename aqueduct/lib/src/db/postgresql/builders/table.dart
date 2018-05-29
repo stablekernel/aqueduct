@@ -38,9 +38,7 @@ class TableBuilder implements Returnable {
     }
 
     query.subQueries?.forEach((relationshipDesc, subQuery) {
-      var join = new TableBuilder(subQuery, parent: this, joinedBy: relationshipDesc);
-
-      addJoinTableBuilder(join);
+      addJoinTableBuilder(TableBuilder(subQuery, parent: this, joinedBy: relationshipDesc));
     });
 
     addColumnExpressions(query.expressions);
@@ -50,7 +48,7 @@ class TableBuilder implements Returnable {
       : entity = joinedBy.inverse.entity,
         _manualPredicate = new QueryPredicate.empty() {
     tableAlias = createTableAlias();
-    returning = [];
+    returning = <Returnable>[];
     columnSortBuilders = [];
   }
 

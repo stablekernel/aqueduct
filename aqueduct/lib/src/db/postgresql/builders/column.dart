@@ -11,7 +11,7 @@ abstract class Returnable {}
 class ColumnBuilder extends Returnable {
   ColumnBuilder(this.table, this.property, {this.documentKeyPath});
 
-  static List<ColumnBuilder> fromKeys(TableBuilder table, List<KeyPath> keys) {
+  static List<Returnable> fromKeys(TableBuilder table, List<KeyPath> keys) {
     keys ??= [];
 
     final entity = table.entity;
@@ -33,9 +33,9 @@ class ColumnBuilder extends Returnable {
       keys.insert(0, new KeyPath(entity.primaryKeyAttribute));
     }
 
-    return keys.map((key) {
-      return new ColumnBuilder(table, propertyForName(entity, key.path.first.name), documentKeyPath: key.dynamicElements);
-    }).toList();
+    return List<Returnable>.from(keys.map((key) {
+      return ColumnBuilder(table, propertyForName(entity, key.path.first.name), documentKeyPath: key.dynamicElements);
+    }));
   }
 
   static ManagedPropertyDescription propertyForName(ManagedEntity entity, String propertyName) {
