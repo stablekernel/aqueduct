@@ -290,7 +290,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
 /// Contains information for a relationship property of a [ManagedObject].
 class ManagedRelationshipDescription extends ManagedPropertyDescription {
-  ManagedRelationshipDescription(ManagedEntity entity, String name, ManagedType type, this.destinationEntity,
+  ManagedRelationshipDescription(ManagedEntity entity, String name, ManagedType type, this.declaredType, this.destinationEntity,
       this.deleteRule, this.relationshipType, this.inverseKey,
       {bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true})
       : super(entity, name, type,
@@ -311,11 +311,17 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   /// The name of the [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
   final Symbol inverseKey;
 
+  /// The type of the variable that this relationship corresponds to.
+  ///
+  /// Is either [ManagedSet] or [ManagedObject].
+  final ClassMirror declaredType;
+
   /// The [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
   ManagedRelationshipDescription get inverse => destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
 
   /// Whether or not this relationship is on the belonging side.
   bool get isBelongsTo => relationshipType == ManagedRelationshipType.belongsTo;
+
 
   /// Whether or not a the argument can be assigned to this property.
   @override

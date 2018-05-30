@@ -37,40 +37,64 @@ enum ManagedPropertyType {
 class ManagedType {
   /// Creates a new instance from a [ClassMirror].
   ///
-  /// [t] must be representable by [ManagedPropertyType].
-  ManagedType(ClassMirror t) {
-    if (t.isAssignableTo(reflectType(int))) {
+  /// [mirror] must be representable by [ManagedPropertyType].
+  ManagedType(this.mirror) {
+    if (mirror.isAssignableTo(reflectType(int))) {
       kind = ManagedPropertyType.integer;
-    } else if (t.isAssignableTo(reflectType(String))) {
+    } else if (mirror.isAssignableTo(reflectType(String))) {
       kind = ManagedPropertyType.string;
-    } else if (t.isAssignableTo(reflectType(DateTime))) {
+    } else if (mirror.isAssignableTo(reflectType(DateTime))) {
       kind = ManagedPropertyType.datetime;
-    } else if (t.isAssignableTo(reflectType(bool))) {
+    } else if (mirror.isAssignableTo(reflectType(bool))) {
       kind = ManagedPropertyType.boolean;
-    } else if (t.isAssignableTo(reflectType(double))) {
+    } else if (mirror.isAssignableTo(reflectType(double))) {
       kind = ManagedPropertyType.doublePrecision;
-    } else if (t.isSubtypeOf(reflectType(Map))) {
-      if (!t.typeArguments.first.isAssignableTo(reflectType(String))) {
-        throw new UnsupportedError("Invalid type '$t' for 'ManagedType'. Key is invalid; must be 'String'.");
+    } else if (mirror.isSubtypeOf(reflectType(Map))) {
+      if (!mirror.typeArguments.first.isAssignableTo(reflectType(String))) {
+        throw new UnsupportedError("Invalid type '${mirror.reflectedType}' for 'ManagedType'. Key is invalid; must be 'String'.");
       }
       kind = ManagedPropertyType.map;
-      elements = new ManagedType(t.typeArguments.last);
-    } else if (t.isSubtypeOf(reflectType(List))) {
+      elements = new ManagedType(mirror.typeArguments.last);
+    } else if (mirror.isSubtypeOf(reflectType(List))) {
       kind = ManagedPropertyType.list;
-      elements = new ManagedType(t.typeArguments.first);
-    } else if (t.isAssignableTo(reflectType(Document))) {
+      elements = new ManagedType(mirror.typeArguments.first);
+    } else if (mirror.isAssignableTo(reflectType(Document))) {
       kind = ManagedPropertyType.document;
-    } else if (t.isEnum) {
+    } else if (mirror.isEnum) {
       kind = ManagedPropertyType.string;
     } else {
-      throw new UnsupportedError("Invalid type '$t' for 'ManagedType'.");
+      throw new UnsupportedError("Invalid type '${mirror.reflectedType}' for 'ManagedType'.");
     }
   }
 
   /// Creates a new instance from a [ManagedPropertyType];
   ManagedType.fromKind(this.kind) {
-    if (kind == ManagedPropertyType.list || kind == ManagedPropertyType.map) {
-      throw new ArgumentError("Cannot instantiate 'ManagedType' from complex type 'list' or 'map'. Use default constructor.");
+    switch (kind) {
+      case ManagedPropertyType.bigInteger: {
+        mirror = reflectClass(int);
+      } break;
+      case ManagedPropertyType.boolean: {
+        mirror = reflectClass(bool);
+      } break;
+      case ManagedPropertyType.datetime: {
+        mirror = reflectClass(DateTime);
+      } break;
+      case ManagedPropertyType.document: {
+        mirror = reflectClass(Document);
+      } break;
+      case ManagedPropertyType.doublePrecision: {
+        mirror = reflectClass(double);
+      } break;
+      case ManagedPropertyType.integer: {
+        mirror = reflectClass(int);
+      } break;
+      case ManagedPropertyType.string: {
+        mirror = reflectClass(String);
+      } break;
+      case ManagedPropertyType.list:
+      case ManagedPropertyType.map: {
+        throw new ArgumentError("Cannot instantiate 'ManagedType' from complex type 'list' or 'map'. Use default constructor.");
+      }
     }
   }
 
@@ -85,33 +109,16 @@ class ManagedType {
   /// Keys of map types are always [String].
   ManagedType elements;
 
+  /// Dart representation of this type.
+  ClassMirror mirror;
+
   /// Whether [dartValue] can be assigned to properties with this type.
   bool isAssignableWith(dynamic dartValue) {
     if (dartValue == null) {
       return true;
     }
 
-    switch (kind) {
-      case ManagedPropertyType.integer:
-        return dartValue is int;
-      case ManagedPropertyType.bigInteger:
-        return dartValue is int;
-      case ManagedPropertyType.boolean:
-        return dartValue is bool;
-      case ManagedPropertyType.datetime:
-        return dartValue is DateTime;
-      case ManagedPropertyType.doublePrecision:
-        return dartValue is double;
-      case ManagedPropertyType.string:
-        return dartValue is String;
-      case ManagedPropertyType.map:
-        return dartValue is Map;
-      case ManagedPropertyType.list:
-        return dartValue is List;
-      case ManagedPropertyType.document:
-        return dartValue is Document;
-    }
-    return false;
+    return reflect(dartValue).type.isAssignableTo(mirror);
   }
 
 

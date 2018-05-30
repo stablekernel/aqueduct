@@ -17,10 +17,9 @@ class RowInstantiator {
       return rows
           .map((row) => instanceFromRow(row.iterator, returningValues.iterator))
           .where((wrapper) => wrapper.isNew)
-          .map((wrapper) => wrapper.instance)
+          .map((wrapper) => wrapper.instance as U)
           .toList();
-    } on ValidationException catch (e,st) {
-      print(st);
+    } on ValidationException catch (e, st) {
       throw new StateError("Database error when retrieving value. ${e.toString()}");
     }
   }
@@ -89,12 +88,12 @@ class RowInstantiator {
       return;
     }
 
-    var innerInstanceWrapper =
-        instanceFromRow(rowIterator, table.returning.iterator, table: table);
+    var innerInstanceWrapper = instanceFromRow(rowIterator, table.returning.iterator, table: table);
 
     if (table.joinedBy.relationshipType == ManagedRelationshipType.hasMany) {
       // If to many, put in a managed set.
-      ManagedSet list = instance[table.joinedBy.name] ?? new ManagedSet();
+      ManagedSet list =
+          instance[table.joinedBy.name] ?? table.joinedBy.declaredType.newInstance(const Symbol(""), []).reflectee;
 
       if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
         list.add(innerInstanceWrapper.instance);

@@ -199,6 +199,7 @@ void main() {
           dm.entityForType(GeneratorModel1),
           "foobar",
           new ManagedType(reflectType(String)),
+          null,
           dm.entityForType(GeneratorModel2),
           DeleteRule.cascade,
           ManagedRelationshipType.belongsTo,
