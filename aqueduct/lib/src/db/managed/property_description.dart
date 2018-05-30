@@ -371,7 +371,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     }
 
     if (relationshipType == ManagedRelationshipType.belongsTo || relationshipType == ManagedRelationshipType.hasOne) {
-      if (value is! Map<String, dynamic>) {
+      if (value is! Map) {
         throw new ValidationException(["invalid input type for '$name'"]);
       }
 
@@ -383,19 +383,19 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
 
     /* else if (relationshipType == ManagedRelationshipType.hasMany) { */
 
-    if (value is! List<Map<String, dynamic>>) {
+    if (value is! List) {
       throw new ValidationException(["invalid input type for '$name'"]);
     }
 
-    if (value.length > 0 && value.first is! Map) {
-      throw new ValidationException(["invalid input type for '$name'"]);
-    }
-
-    return new ManagedSet.from((value as List<Map<String, dynamic>>).map((v) {
+    final instantiator = (dynamic m) {
+      if (m is! Map) {
+        throw new ValidationException(["invalid input type for '$name'"]);
+      }
       ManagedObject instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
-      instance.readFromMap(v);
+      instance.readFromMap(m);
       return instance;
-    }));
+    };
+    return declaredType.newInstance(#from, [value.map(instantiator)]).reflectee;
   }
 
   @override
