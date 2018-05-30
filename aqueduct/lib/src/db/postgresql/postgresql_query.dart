@@ -106,8 +106,9 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw canModifyAllInstancesError;
     }
 
-    return context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds,
+    final result = await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds,
         returnType: PersistentStoreQueryReturnType.rowCount);
+    return result as int;
   }
 
   @override

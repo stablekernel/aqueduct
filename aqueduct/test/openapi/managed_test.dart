@@ -270,7 +270,7 @@ class _Model3 {
   @Column(omitByDefault: true)
   String notIncluded;
 
-  //@CustomValidate()
+  @CustomValidate()
   String customValidate;
 
   @Validate.matches("xb")

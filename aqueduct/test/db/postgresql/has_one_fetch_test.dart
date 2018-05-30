@@ -56,15 +56,6 @@ void main() {
       };
       verifier(await q.fetchOne());
       verifier((await q.fetch()).first);
-
-      var dynQuery = new Query.forEntity(context.dataModel.entityForType(Parent), context)
-        ..where((o) => o["name"]).equalTo("D");
-
-      dynQuery.join<ManagedObject>(object: (p) => p["child"])
-        ..join<ManagedObject>(object: (c) => c["toy"])
-        ..join<ManagedObject>(set: (c) => c["vaccinations"]);
-      verifier(await dynQuery.fetchOne());
-      verifier((await dynQuery.fetch()).first);
     });
 
     test("Fetch has-one relationship that is non-null returns value for property with scalar values only", () async {

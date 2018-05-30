@@ -76,7 +76,7 @@ class ColumnBuilder extends Returnable {
 
   final TableBuilder table;
   final ManagedPropertyDescription property;
-  final List<String> documentKeyPath;
+  final List<dynamic> documentKeyPath;
 
   dynamic convertValueForStorage(dynamic value) {
     if (property is ManagedAttributeDescription) {
