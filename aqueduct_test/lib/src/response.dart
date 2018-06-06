@@ -46,6 +46,7 @@ class TestResponse {
     });
 
     if (!body.isEmpty) {
+      buffer.writeln("Decoded body is:");
       buffer.writeln(body.toString());
     } else {
       buffer.writeln("- Body is empty");
@@ -80,4 +81,11 @@ class TestResponseBody extends BodyDecoder {
 
   @override
   bool get isEmpty => !_hasContent;
+
+  @override
+  String toString() {
+    return asDynamic().toString();
+  }
+
+
 }
