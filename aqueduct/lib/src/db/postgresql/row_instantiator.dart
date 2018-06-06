@@ -19,7 +19,7 @@ class RowInstantiator {
           .where((wrapper) => wrapper.isNew)
           .map((wrapper) => wrapper.instance as U)
           .toList();
-    } on ValidationException catch (e, st) {
+    } on ValidationException catch (e) {
       throw new StateError("Database error when retrieving value. ${e.toString()}");
     }
   }

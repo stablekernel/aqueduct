@@ -1,3 +1,5 @@
+@Timeout(const Duration(seconds: 45))
+
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 import 'cli_helpers.dart';

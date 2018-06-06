@@ -209,7 +209,7 @@ class Terminal {
         task._processStarted.complete(true);
       } else {
         elapsed += 100;
-        if (elapsed > 30000) {
+        if (elapsed > 60000) {
           Directory.current = saved;
           t.cancel();
           task._processStarted.completeError(new TimeoutException("Timed out after 30 seconds"));
@@ -257,6 +257,7 @@ export 'channel.dart';
   """;
 
   static final _emptyProjectChannel = """
+import 'dart:async';
 import 'application_test.dart';
 import 'package:aqueduct/aqueduct.dart';
 class TestChannel extends ApplicationChannel {

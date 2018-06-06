@@ -60,7 +60,7 @@ class ManagedType {
       elements = new ManagedType(mirror.typeArguments.first);
     } else if (mirror.isAssignableTo(reflectType(Document))) {
       kind = ManagedPropertyType.document;
-    } else if (mirror.isEnum) {
+    } else if (mirror is ClassMirror && (mirror as ClassMirror).isEnum) {
       kind = ManagedPropertyType.string;
     } else {
       throw new UnsupportedError("Invalid type '${mirror.reflectedType}' for 'ManagedType'.");
@@ -110,7 +110,7 @@ class ManagedType {
   ManagedType elements;
 
   /// Dart representation of this type.
-  ClassMirror mirror;
+  TypeMirror mirror;
 
   /// Whether [dartValue] can be assigned to properties with this type.
   bool isAssignableWith(dynamic dartValue) {
@@ -120,7 +120,6 @@ class ManagedType {
 
     return reflect(dartValue).type.isAssignableTo(mirror);
   }
-
 
   @override
   String toString() {

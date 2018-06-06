@@ -126,7 +126,7 @@ class CLIServer extends CLICommand with CLIProject {
         paused: true);
 
     errorPort.listen((msg) {
-      if (msg is List<String>) {
+      if (msg is List) {
         startupCompleter.completeError(msg.first, new StackTrace.fromString(msg.last));
       }
     });
@@ -229,7 +229,7 @@ Future main(List<String> args, dynamic sendPort) async {
     """;
 
     return contents.replaceAllMapped(new RegExp("___([A-Za-z0-9_-]+)___"), (match) {
-      return values[match.group(1)];
+      return values[match.group(1)].toString();
     });
   }
 

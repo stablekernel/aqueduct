@@ -1,3 +1,4 @@
+@Timeout(const Duration(seconds: 120))
 import 'dart:async';
 import 'dart:io';
 
@@ -135,7 +136,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
     task.hasStarted.catchError((_) => null);
 
     expect(await task.exitCode, isNot(0));
-    expect(terminal.output, contains("unexpected token"));
+    expect(terminal.output, contains("Variables must be declared using the keywords"));
   });
 
   test("Use config-path, relative path", () async {

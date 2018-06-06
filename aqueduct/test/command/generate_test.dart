@@ -1,3 +1,4 @@
+@Timeout(const Duration(seconds: 120))
 import 'dart:io';
 import 'package:test/test.dart';
 import 'cli_helpers.dart';

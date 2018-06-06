@@ -98,7 +98,7 @@ class DataModelBuilder {
         // If there is both a getter and setter declared to represent one transient property,
         // then we need to combine them here. No other reason a property would appear twice.
         map[attribute.name] = new ManagedAttributeDescription.transient(
-            entity, attribute.name, attribute.type, new Serialize(input: true, output: true));
+            entity, attribute.name, attribute.type, attribute.declaredType, new Serialize(input: true, output: true));
       } else {
         map[attribute.name] = attribute;
       }
@@ -115,9 +115,8 @@ class DataModelBuilder {
       var type = propertyTypeFromDeclaration(declaration);
       if (type == null) {
         throw new ManagedDataModelError.invalidType(
-            entity, declaration.simpleName);
+          entity, declaration.simpleName);
       }
-
       var validators = validatorsFromDeclaration(declaration);
       var attributes = attributeMetadataFromDeclaration(declaration);
       var name = propertyNameFromDeclaration(declaration);
@@ -131,7 +130,7 @@ class DataModelBuilder {
         });
       }
 
-      return new ManagedAttributeDescription(entity, name, type,
+      return new ManagedAttributeDescription(entity, name, type, declaration.type,
           primaryKey: attributes?.isPrimaryKey ?? false,
           defaultValue: attributes?.defaultValue ?? null,
           unique: attributes?.isUnique ?? false,
@@ -164,7 +163,7 @@ class DataModelBuilder {
       }
 
       return new ManagedAttributeDescription.transient(
-          entity, name, type, transience);
+          entity, name, type, dartTypeFromDeclaration(declaration), transience);
     });
   }
 

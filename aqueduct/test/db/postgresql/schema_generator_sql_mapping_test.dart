@@ -173,7 +173,7 @@ void main() {
       var schema = new Schema.fromDataModel(dm);
 
       var propDesc = new ManagedAttributeDescription(
-          dm.entityForType(GeneratorModel1), "foobar", new ManagedType(reflectType(int)),
+          dm.entityForType(GeneratorModel1), "foobar", new ManagedType(reflectType(int)), null,
           nullable: true);
       var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromProperty(propDesc));
       expect(cmds, ["ALTER TABLE _GeneratorModel1 ADD COLUMN foobar INT NULL"]);
@@ -184,7 +184,7 @@ void main() {
       var schema = new Schema.fromDataModel(dm);
 
       var propDesc = new ManagedAttributeDescription(
-          dm.entityForType(GeneratorModel1), "foobar", new ManagedType(reflectType(int)),
+          dm.entityForType(GeneratorModel1), "foobar", new ManagedType(reflectType(int)), null,
           defaultValue: "4", unique: true, indexed: true, nullable: true, autoincrement: true);
       var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromProperty(propDesc));
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar SERIAL NULL DEFAULT 4 UNIQUE");

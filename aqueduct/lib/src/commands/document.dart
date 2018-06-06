@@ -62,7 +62,7 @@ abstract class CLIDocumentOptions implements CLICommand {
           help: "Scheme, host and port for available instances.", valueHelp: "https://api.myapp.com:8000");
   }
 
-  Future<Map<String, dynamic>> documentProject(Uri projectDirectory, String libraryName, File pubspecFile) {
+  Future<Map<dynamic, dynamic>> documentProject(Uri projectDirectory, String libraryName, File pubspecFile) async {
     final variables = {
       "pubspec": pubspecFile.readAsStringSync(),
       "hosts": hosts,
@@ -77,10 +77,11 @@ abstract class CLIDocumentOptions implements CLICommand {
       "licenseURL": licenseURL,
       "licenseName": licenseName
     };
-    return IsolateExecutor.executeWithType(OpenAPIBuilder,
+    final result = await IsolateExecutor.executeWithType(OpenAPIBuilder,
         packageConfigURI: projectDirectory.resolve(".packages"),
         message: variables,
         imports: OpenAPIBuilder.importsForPackage(libraryName));
+    return result as Map<dynamic, dynamic>;
   }
 }
 

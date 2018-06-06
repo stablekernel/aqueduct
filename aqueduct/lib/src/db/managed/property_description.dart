@@ -15,14 +15,15 @@ import 'type.dart';
 /// about the property such as its name and type. Those properties are represented by concrete subclasses of this class, [ManagedRelationshipDescription]
 /// and [ManagedAttributeDescription].
 abstract class ManagedPropertyDescription {
-  ManagedPropertyDescription(this.entity, this.name, this.type,
+  ManagedPropertyDescription(this.entity, this.name, this.type, this.declaredType,
       {String explicitDatabaseType,
       bool unique: false,
       bool indexed: false,
       bool nullable: false,
       bool includedInDefaultResultSet: true,
       bool autoincrement: false})
-      : isUnique = unique,
+      :
+        isUnique = unique,
         isIndexed = indexed,
         isNullable = nullable,
         isIncludedInDefaultResultSet = includedInDefaultResultSet,
@@ -83,6 +84,9 @@ abstract class ManagedPropertyDescription {
   /// depends on this instance's definition.
   dynamic convertFromPrimitiveValue(dynamic value);
 
+  /// The type of the variable that this property represents.
+  final ClassMirror declaredType;
+
   /// Returns an [APISchemaObject] that represents this property.
   ///
   /// Used during documentation.
@@ -125,7 +129,7 @@ abstract class ManagedPropertyDescription {
 /// Each scalar property [ManagedObject] object persists is described by an instance of [ManagedAttributeDescription]. This class
 /// adds two properties to [ManagedPropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class ManagedAttributeDescription extends ManagedPropertyDescription {
-  ManagedAttributeDescription(ManagedEntity entity, String name, ManagedType type,
+  ManagedAttributeDescription(ManagedEntity entity, String name, ManagedType type, ClassMirror declaredType,
       {Serialize transientStatus,
       bool primaryKey: false,
       String defaultValue,
@@ -141,7 +145,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
         this.transientStatus = transientStatus,
         this.enumerationValueMap = enumerationValueMap,
         this._validators = validators,
-        super(entity, name, type,
+        super(entity, name, type, declaredType,
             unique: unique,
             indexed: indexed,
             nullable: nullable,
@@ -149,12 +153,12 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
             autoincrement: autoincrement);
 
   ManagedAttributeDescription.transient(
-      ManagedEntity entity, String name, ManagedType type, this.transientStatus)
+      ManagedEntity entity, String name, ManagedType type, ClassMirror declaredType, this.transientStatus)
       : this.isPrimaryKey = false,
         this.enumerationValueMap = null,
         this.defaultValue = null,
         this._validators = [],
-        super(entity, name, type,
+        super(entity, name, type, declaredType,
             unique: false, indexed: false, nullable: false, includedInDefaultResultSet: false, autoincrement: false);
 
   /// Whether or not this attribute is the primary key for its [ManagedEntity].
@@ -207,7 +211,6 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   /// Whether or not this attribute is represented by a Dart enum.
   bool get isEnumeratedValue => enumerationValueMap != null;
 
-
   @override
   APISchemaObject documentSchemaObject(APIDocumentContext context) {
     final prop = _typedSchemaObject(type)
@@ -255,7 +258,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   dynamic convertToPrimitiveValue(dynamic value) {
-    if (value is DateTime) {
+    if (type.kind == ManagedPropertyType.datetime && value is DateTime) {
       return value.toIso8601String();
     } else if (isEnumeratedValue) {
       // todo: optimize?
@@ -269,9 +272,15 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   dynamic convertFromPrimitiveValue(dynamic value) {
-    if (type.kind == ManagedPropertyType.datetime && value is String) {
+    if (type.kind == ManagedPropertyType.datetime) {
+      if (value is! String) {
+        throw new ValidationException(["invalid input value for '$name'"]);
+      }
       value = DateTime.parse(value);
-    } else if (type.kind == ManagedPropertyType.doublePrecision && value is num) {
+    } else if (type.kind == ManagedPropertyType.doublePrecision) {
+      if (value is! num) {
+        throw new ValidationException(["invalid input value for '$name'"]);
+      }
       value = value.toDouble();
     } else if (isEnumeratedValue) {
       if (!enumerationValueMap.containsKey(value)) {
@@ -280,6 +289,16 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       return enumerationValueMap[value];
     } else if (type.kind == ManagedPropertyType.document) {
       return new Document(value);
+    } else if (type.kind == ManagedPropertyType.list || type.kind == ManagedPropertyType.map) {
+      if (isAssignableWith(value)) {
+        return value;
+      }
+
+      try {
+        return type.cast(value);
+      } catch (_) {
+        throw new ValidationException(["invalid input value for '$name'"]);
+      }
     }
 
     // no need to check type here - gets checked by managed backing
@@ -290,10 +309,10 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
 /// Contains information for a relationship property of a [ManagedObject].
 class ManagedRelationshipDescription extends ManagedPropertyDescription {
-  ManagedRelationshipDescription(ManagedEntity entity, String name, ManagedType type, this.declaredType, this.destinationEntity,
+  ManagedRelationshipDescription(ManagedEntity entity, String name, ManagedType type, ClassMirror declaredType, this.destinationEntity,
       this.deleteRule, this.relationshipType, this.inverseKey,
       {bool unique: false, bool indexed: false, bool nullable: false, bool includedInDefaultResultSet: true})
-      : super(entity, name, type,
+      : super(entity, name, type, declaredType,
             unique: unique,
             indexed: indexed,
             nullable: nullable,
@@ -310,11 +329,6 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
 
   /// The name of the [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
   final Symbol inverseKey;
-
-  /// The type of the variable that this relationship corresponds to.
-  ///
-  /// Is either [ManagedSet] or [ManagedObject].
-  final ClassMirror declaredType;
 
   /// The [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
   ManagedRelationshipDescription get inverse => destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
@@ -334,13 +348,9 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       }
 
       type = type.typeArguments.first;
-      if (type == reflectType(dynamic)) {
-        // We can't say for sure... so we have to assume it to be true at the current stage.
-        return true;
-      }
     }
 
-    return type == destinationEntity.instanceType;
+    return type.isAssignableTo(destinationEntity.instanceType);
   }
 
   @override
@@ -371,12 +381,12 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     }
 
     if (relationshipType == ManagedRelationshipType.belongsTo || relationshipType == ManagedRelationshipType.hasOne) {
-      if (value is! Map) {
+      if (value is! Map<String, dynamic>) {
         throw new ValidationException(["invalid input type for '$name'"]);
       }
 
       ManagedObject instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
-      instance.readFromMap(value as Map<String, dynamic>);
+      instance.readFromMap(value);
 
       return instance;
     }
@@ -388,7 +398,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
     }
 
     final instantiator = (dynamic m) {
-      if (m is! Map) {
+      if (m is! Map<String, dynamic>) {
         throw new ValidationException(["invalid input type for '$name'"]);
       }
       ManagedObject instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
