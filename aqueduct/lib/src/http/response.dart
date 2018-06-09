@@ -93,14 +93,8 @@ class Response implements RequestOrResponse {
     var serializedBody;
     if (initialResponseBody is HTTPSerializable) {
       serializedBody = initialResponseBody.asMap();
-    } else if (initialResponseBody is List) {
-      serializedBody = initialResponseBody.map((value) {
-        if (value is HTTPSerializable) {
-          return value.asMap();
-        } else {
-          return value;
-        }
-      }).toList();
+    } else if (initialResponseBody is List<HTTPSerializable>) {
+      serializedBody = initialResponseBody.map((value) => value.asMap()).toList();
     }
 
     _body = serializedBody ?? initialResponseBody;
