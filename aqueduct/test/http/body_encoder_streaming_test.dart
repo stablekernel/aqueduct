@@ -61,7 +61,7 @@ void main() {
     });
 
     test("Stream a list of bytes with incorrect content type returns 500", () async {
-      HTTPCodecRepository.defaultInstance.add(new ContentType("application", "silly"), const JsonCodec());
+      HTTPCodecRepository.defaultInstance.add(new ContentType("application", "silly"), const Utf8Codec());
 
       var sc = new StreamController<List<int>>();
       var response = new Response.ok(sc.stream)
@@ -309,6 +309,7 @@ void main() {
      */
 
     test("Entity with known content-type that is too large is rejected, chunked", () async {
+      Controller.letUncaughtExceptionsEscape = true;
       RequestBody.maxSize = 8193;
 
       var controller = new Controller()
@@ -340,7 +341,7 @@ void main() {
         }
       }
 
-      expect(serverHasNoMoreConnections(server), completes);
+      await serverHasNoMoreConnections(server);
 
       // Make sure we can still send some more requests;
       req = await client.postUrl(Uri.parse("http://localhost:8123"));
@@ -421,11 +422,11 @@ Future<HttpServer> bindAndRespondWith(Response response) async {
   return server;
 }
 
-class CrashingCodec extends Codec {
+class CrashingCodec extends Codec<String, List<int>> {
   @override
   CrashingEncoder get encoder => new CrashingEncoder();
   @override
-  Converter get decoder => null;
+  Converter<List<int>, String> get decoder => null;
 }
 
 class CrashingEncoder extends Converter<String, List<int>> {

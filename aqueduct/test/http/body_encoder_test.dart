@@ -231,11 +231,11 @@ Future<HttpServer> bindAndRespondWith(Response response) async {
   return server;
 }
 
-class ByteCodec extends Codec {
+class ByteCodec extends Codec<dynamic, List<int>> {
   @override
-  Converter get encoder => const ByteEncoder();
+  Converter<dynamic, List<int>> get encoder => const ByteEncoder();
   @override
-  Converter get decoder => null;
+  Converter<List<int>, dynamic> get decoder => null;
 }
 
 class ByteEncoder extends Converter<String, List<int>> {

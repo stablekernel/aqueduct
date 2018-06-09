@@ -114,7 +114,7 @@ class HTTPCodecRepository {
   /// Returns a [Codec] for [contentType].
   ///
   /// See [add].
-  Codec codecForContentType(ContentType contentType) {
+  Codec<dynamic, List<int>> codecForContentType(ContentType contentType) {
     if (contentType == null) {
       return null;
     }
@@ -153,7 +153,7 @@ class HTTPCodecRepository {
     return null;
   }
 
-  Codec _codecForCharset(String charset) {
+  Codec<dynamic, List<int>> _codecForCharset(String charset) {
     var encoding = Encoding.getByName(charset);
     if (encoding == null) {
       throw new Response(415, null, {"error": "invalid charset '$charset'"});
@@ -162,7 +162,7 @@ class HTTPCodecRepository {
     return encoding;
   }
 
-  Codec _defaultCharsetCodecForType(ContentType type) {
+  Codec<dynamic, List<int>> _defaultCharsetCodecForType(ContentType type) {
     var inner = _defaultCharsetMap[type.primaryType];
     if (inner == null) {
       return null;
@@ -177,7 +177,7 @@ class HTTPCodecRepository {
   }
 }
 
-class _FormCodec extends Codec {
+class _FormCodec extends Codec<Map<String, dynamic>, dynamic> {
   const _FormCodec();
 
   @override

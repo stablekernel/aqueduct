@@ -38,10 +38,10 @@ void main() {
       final r1 = await http.get("http://localhost:4111");
       final r2 = await http.get("http://localhost:4111");
 
-      List<int> r1m = json.decode(r1.headers["x-middleware"]);
-      List<int> r2m = json.decode(r2.headers["x-middleware"]);
-      List<int> r1e = json.decode(r1.body);
-      List<int> r2e = json.decode(r2.body);
+      List<dynamic> r1m = json.decode(r1.headers["x-middleware"]);
+      List<dynamic> r2m = json.decode(r2.headers["x-middleware"]);
+      List<dynamic> r1e = json.decode(r1.body);
+      List<dynamic> r2e = json.decode(r2.body);
 
       expect(r1m.first, r1e.first);
       expect(r2m.first, r2e.first);

@@ -275,7 +275,7 @@ class Request implements RequestOrResponse {
     }
 
     // Otherwise, body is stream
-    var bodyStream = _responseBodyStream(aqueductResponse, compressionType);
+    final bodyStream = _responseBodyStream(aqueductResponse, compressionType);
     if (compressionType.value != null) {
       response.headers.add(HttpHeaders.CONTENT_ENCODING, compressionType.value);
     }
@@ -285,7 +285,7 @@ class Request implements RequestOrResponse {
     return response.addStream(bodyStream).then((_) {
       return response.close();
     }).catchError((e, st) {
-      throw new HTTPStreamingException(e, st);
+      throw HTTPStreamingException(e, st);
     });
   }
 
@@ -294,7 +294,7 @@ class Request implements RequestOrResponse {
       return null;
     }
 
-    Codec codec;
+    Codec<dynamic, List<int>> codec;
     if (resp.encodeBody) {
       codec = HTTPCodecRepository.defaultInstance.codecForContentType(resp.contentType);
     }
@@ -328,7 +328,7 @@ class Request implements RequestOrResponse {
   }
 
   Stream<List<int>> _responseBodyStream(Response resp, _Reference<String> compressionType) {
-    Codec codec;
+    Codec<dynamic, List<int>> codec;
     if (resp.encodeBody) {
       codec = HTTPCodecRepository.defaultInstance.codecForContentType(resp.contentType);
     }

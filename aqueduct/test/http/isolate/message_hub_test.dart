@@ -191,14 +191,14 @@ Future<Map<int, List<Map<String, dynamic>>>> getMessagesFromIsolates() async {
 }
 
 Future<Map<int, List<String>>> getErrorsFromIsolates() async {
-  var msgs = {};
+  var msgs = <int, List<String>>{};
 
   while (msgs.length != numberOfIsolates) {
     var resp = await http.get("http://localhost:8000/errors");
     var serverID = isolateIdentifierFromResponse(resp);
 
     if (!msgs.containsKey(serverID)) {
-      msgs[serverID] = json.decode(resp.body);
+      msgs[serverID] = new List<String>.from(json.decode(resp.body));
     }
   }
 
