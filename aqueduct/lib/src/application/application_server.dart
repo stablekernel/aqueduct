@@ -84,7 +84,6 @@ class ApplicationServer {
     } else {
       _requiresHTTPS = false;
 
-      print("gonna bind ${options.port}");
       server = await HttpServer.bind(
           options.address, options.port,
           v6Only: options.isIpv6Only, shared: shareHttpServer);
