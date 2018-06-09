@@ -93,7 +93,7 @@ class ManagedType {
       } break;
       case ManagedPropertyType.list:
       case ManagedPropertyType.map: {
-        throw new ArgumentError("Cannot instantiate 'ManagedType' from complex type 'list' or 'map'. Use default constructor.");
+        throw new ArgumentError("Cannot instantiate 'ManagedType' from type 'list' or 'map'. Use default constructor.");
       }
     }
   }

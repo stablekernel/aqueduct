@@ -442,6 +442,16 @@ void main() {
     expect(tm["anotherKey"], "anotherValue");
   });
 
+  test("If primitive type cannot be parsed into correct type, it fails with validation exception", () {
+    try {
+      new TransientTypeTest()
+        ..readFromMap({
+          "transientInt": "a string"
+        });
+      fail('unreachable');
+    } on ValidationException {}
+  });
+
   test("If complex type cannot be parsed into exact type, it fails with validation exception", () {
     try {
       new TransientTypeTest()

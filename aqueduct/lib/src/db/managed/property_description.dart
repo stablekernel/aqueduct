@@ -1,5 +1,6 @@
 import 'dart:mirrors';
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
 
 import 'managed.dart';
@@ -290,13 +291,9 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
     } else if (type.kind == ManagedPropertyType.document) {
       return new Document(value);
     } else if (type.kind == ManagedPropertyType.list || type.kind == ManagedPropertyType.map) {
-      if (isAssignableWith(value)) {
-        return value;
-      }
-
       try {
-        return type.cast(value);
-      } catch (_) {
+        return runtimeCast(value, type.mirror);
+      } on CastError catch (_) {
         throw new ValidationException(["invalid input value for '$name'"]);
       }
     }
