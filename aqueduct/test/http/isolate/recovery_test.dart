@@ -17,10 +17,10 @@ void main() {
       await app.start(numberOfInstances: 1);
 
       // This request will generate an uncaught exception
-      var failFuture = http.get("http://localhost:8888/");
+      var failFuture = http.get("http://localhost:8888/?crash=true");
 
       // This request will come in right after the failure but should succeed
-      var successFuture = http.get("http://localhost:8888/1");
+      var successFuture = http.get("http://localhost:8888/");
 
       // Ensure both requests respond with 200, since the failure occurs asynchronously AFTER the response has been generated
       // for the failure case.
@@ -35,7 +35,7 @@ void main() {
       expect(errorMessage.stackTrace, isNotNull);
 
       // And then we should make sure everything is working just fine.
-      expect((await http.get("http://localhost:8888/1")).statusCode, 200);
+      expect((await http.get("http://localhost:8888/")).statusCode, 200);
     });
 
     test("Application with multiple isolates reports uncaught error, recovers",
@@ -56,9 +56,9 @@ void main() {
 
       // Throw some deferred crashers then some success messages at the server
       var failFutures = new Iterable.generate(5)
-          .map((_) => http.get("http://localhost:8888"));
+          .map((_) => http.get("http://localhost:8888/?crash=true"));
 
-      var successResponse = await http.get("http://localhost:8888/1");
+      var successResponse = await http.get("http://localhost:8888/");
       expect(successResponse.statusCode, 200);
       expect((await Future.wait(failFutures)).map((r) => r.statusCode),
           everyElement(200));
@@ -75,23 +75,22 @@ class TestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = new Router();
-    router.route("/[:id]").link(() => new UncaughtCrashController());
+    router.route("/").link(() => new UncaughtCrashController());
     return router;
   }
 }
 
-class UncaughtCrashController extends ResourceController {
-  @Operation.get()
-  Future<Response> crashUncaught() async {
-    new Future(() {
-      var x;
-      x.foo();
-    });
-    return new Response.ok(null);
-  }
+class UncaughtCrashController extends Controller {
+  @override
+  FutureOr<RequestOrResponse> handle(Request req) {
+    if (req.raw.uri.queryParameters["crash"] == "true") {
+      new Future(() {
+        var x;
+        x.foo();
+      });
+      return new Response.ok(null);
+    }
 
-  @Operation.get("id")
-  Future<Response> dontCrash(@Bind.path("id") int id) async {
     return new Response.ok(null);
   }
 }
