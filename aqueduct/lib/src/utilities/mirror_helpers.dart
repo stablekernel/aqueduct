@@ -36,10 +36,7 @@ dynamic runtimeCast(dynamic object, TypeMirror intoType) {
     return output;
   }
 
-  if (!reflect(object).type.isAssignableTo(intoType)) {
-    throw new CastError();
-  }
-  return object;
+  throw new CastError();
 }
 
 dynamic firstMetadataOfType(Type t, DeclarationMirror dm) {
