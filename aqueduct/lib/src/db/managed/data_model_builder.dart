@@ -6,11 +6,16 @@ import 'relationship_type.dart';
 class DataModelBuilder {
   DataModelBuilder(ManagedDataModel dataModel, List<Type> instanceTypes) {
     instanceTypes.forEach((type) {
-      var backingMirror = persistentTypeOfInstanceType(type);
-      var name = tableNameFromClass(backingMirror);
-      var entity = new ManagedEntity(dataModel, name, reflectClass(type), backingMirror);
+      final typeMirror = reflectClass(type);
+      if (!classHasDefaultConstructor(typeMirror)) {
+        throw new ManagedDataModelError.noConstructor(typeMirror);
+      }
 
-      var existingEntityWithThisTableName = entities
+      final backingMirror = tableDefinitionForType(type);
+      final name = tableNameFromClass(backingMirror);
+      final entity = new ManagedEntity(dataModel, name, typeMirror, backingMirror);
+
+      final existingEntityWithThisTableName = entities
           .values
           .firstWhere((e) => e.tableName == entity.tableName,
             orElse: () => null);
@@ -19,7 +24,7 @@ class DataModelBuilder {
       }
 
       entities[type] = entity;
-      persistentTypeToEntityMap[entity.persistentType.reflectedType] = entity;
+      tableDefinitionToEntityMap[entity.tableDefinition.reflectedType] = entity;
 
       entity.attributes = attributesForEntity(entity);
       entity.validators = entity.attributes.values
@@ -61,7 +66,7 @@ class DataModelBuilder {
   }
 
   Map<Type, ManagedEntity> entities = {};
-  Map<Type, ManagedEntity> persistentTypeToEntityMap = {};
+  Map<Type, ManagedEntity> tableDefinitionToEntityMap = {};
 
   String tableNameFromClass(ClassMirror typeMirror) {
     var declaredTableNameClass = classHierarchyForClass(typeMirror).firstWhere(
@@ -74,7 +79,7 @@ class DataModelBuilder {
     return declaredTableNameClass.invoke(#tableName, []).reflectee;
   }
 
-  ClassMirror persistentTypeOfInstanceType(Type instanceType) {
+  ClassMirror tableDefinitionForType(Type instanceType) {
     var ifNotFoundException = new ManagedDataModelError(
         "Invalid instance type '$instanceType' '${reflectClass(instanceType)
             .simpleName}' is not subclass of 'ManagedObject'.");
@@ -108,7 +113,7 @@ class DataModelBuilder {
 
   Iterable<ManagedAttributeDescription> persistentAttributesForEntity(
       ManagedEntity entity) {
-    return instanceVariablesFromClass(entity.persistentType)
+    return instanceVariablesFromClass(entity.tableDefinition)
         .where((declaration) =>
             !doesVariableMirrorRepresentRelationship(declaration))
         .map((declaration) {
@@ -188,7 +193,7 @@ class DataModelBuilder {
 
   Map<String, ManagedRelationshipDescription> relationshipsForEntity(
       ManagedEntity entity) {
-    return instanceVariablesFromClass(entity.persistentType)
+    return instanceVariablesFromClass(entity.tableDefinition)
         .where(doesVariableMirrorRepresentRelationship)
         .fold({}, (map, declaration) {
       var key = MirrorSystem.getName(declaration.simpleName);
@@ -300,7 +305,7 @@ class DataModelBuilder {
         // Then we can scan for a list of possible entities that extend
         // the interface.
         var possibleEntities = entities.values.where((me) {
-          return me.persistentType.isSubtypeOf(typeMirror);
+          return me.tableDefinition.isSubtypeOf(typeMirror);
         }).toList();
 
         if (possibleEntities.length == 0) {
@@ -323,7 +328,7 @@ class DataModelBuilder {
 
   List<VariableMirror> propertiesFromEntityWithType(
       ManagedEntity entity, TypeMirror type) {
-    return instanceVariablesFromClass(entity.persistentType).where((p) {
+    return instanceVariablesFromClass(entity.tableDefinition).where((p) {
       if (p.type.isSubtypeOf(type)) {
         return true;
       }
@@ -344,7 +349,7 @@ class DataModelBuilder {
       // This is the belongs to side. Looking for the has-a side, which has an explicit inverse.
       if (!metadata.isDeferred) {
         var destinationProperty = instanceVariableFromClass(
-            destinationEntity.persistentType, metadata.inversePropertyName);
+            destinationEntity.tableDefinition, metadata.inversePropertyName);
         if (destinationProperty == null) {
           throw new ManagedDataModelError.missingInverse(
               owningEntity, property.simpleName, destinationEntity, null);
@@ -380,7 +385,7 @@ class DataModelBuilder {
       // This is the has-a side. Looking for the belongs to side, which might be deferred on the other side
       // If we have an explicit inverse, look for that first.
       var candidates =
-          instanceVariablesFromClass(destinationEntity.persistentType)
+          instanceVariablesFromClass(destinationEntity.tableDefinition)
               .where((p) => relationshipMetadataFromProperty(p) != null)
               .toList();
 
@@ -405,7 +410,7 @@ class DataModelBuilder {
       // We may be deferring, so check for those and make sure the types match up.
       var deferredCandidates = candidates
           .where((p) => relationshipMetadataFromProperty(p).isDeferred)
-          .where((p) => owningEntity.persistentType.isSubtypeOf(p.type))
+          .where((p) => owningEntity.tableDefinition.isSubtypeOf(p.type))
           .toList();
       if (deferredCandidates.length == 0) {
         VariableMirror candidate;
@@ -429,7 +434,7 @@ class DataModelBuilder {
   }
 
   List<ManagedPropertyDescription> instanceUniquePropertiesForEntity(ManagedEntity entity) {
-    Table tableAttributes = entity.persistentType.metadata
+    Table tableAttributes = entity.tableDefinition.metadata
         .firstWhere((im) => im.type.isSubtypeOf(reflectType(Table)),
           orElse: () => null)?.reflectee;
 

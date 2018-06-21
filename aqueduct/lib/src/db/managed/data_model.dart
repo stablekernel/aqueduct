@@ -25,7 +25,7 @@ class ManagedDataModel extends Object with ReferenceCountable implements APIComp
   ManagedDataModel(List<Type> instanceTypes) {
     var builder = new DataModelBuilder(this, instanceTypes);
     _entities = builder.entities;
-    _persistentTypeToEntityMap = builder.persistentTypeToEntityMap;
+    _tableDefinitionToEntityMap = builder.tableDefinitionToEntityMap;
   }
 
   /// Creates an instance of a [ManagedDataModel] from all subclasses of [ManagedObject] in all libraries visible to the calling library.
@@ -54,16 +54,16 @@ class ManagedDataModel extends Object with ReferenceCountable implements APIComp
     var builder = new DataModelBuilder(
         this, classes.map((cm) => cm.reflectedType).toList());
     _entities = builder.entities;
-    _persistentTypeToEntityMap = builder.persistentTypeToEntityMap;
+    _tableDefinitionToEntityMap = builder.tableDefinitionToEntityMap;
   }
 
   Iterable<ManagedEntity> get entities => _entities.values;
   Map<Type, ManagedEntity> _entities = {};
-  Map<Type, ManagedEntity> _persistentTypeToEntityMap = {};
+  Map<Type, ManagedEntity> _tableDefinitionToEntityMap = {};
 
   /// Returns a [ManagedEntity] for a [Type].
   ///
-  /// [type] may be either a subclass of [ManagedObject] or a [ManagedObject]'s persistent type. For example, the following
+  /// [type] may be either a subclass of [ManagedObject] or a [ManagedObject]'s table definition. For example, the following
   /// definition, you could retrieve its entity by passing MyModel or _MyModel as an argument to this method:
   ///
   ///         class MyModel extends ManagedObject<_MyModel> implements _MyModel {}
@@ -72,7 +72,7 @@ class ManagedDataModel extends Object with ReferenceCountable implements APIComp
   ///           int id;
   ///         }
   ManagedEntity entityForType(Type type) {
-    return _entities[type] ?? _persistentTypeToEntityMap[type];
+    return _entities[type] ?? _tableDefinitionToEntityMap[type];
   }
 
   @override
@@ -105,7 +105,7 @@ class ManagedDataModelError extends Error {
         ", an enum, or ManagedObject subclass (see also 'Relationship.deferred'). "
         "If you want to store something "
         "weird in the database, try declaring accessors in the ManagedObject subclass, "
-        "and have those set values of the properties in the persistent type that are "
+        "and have those set values of the properties in the table definition that are "
         "supported.");
   }
 
@@ -186,7 +186,7 @@ class ManagedDataModelError extends Error {
 
   factory ManagedDataModelError.noDestinationEntity(
       ManagedEntity entity, Symbol property) {
-    var typeMirror = entity.persistentType.instanceMembers[property].returnType;
+    var typeMirror = entity.tableDefinition.instanceMembers[property].returnType;
     return new ManagedDataModelError(
         "Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' expects that there is a subclass "
@@ -200,11 +200,11 @@ class ManagedDataModelError extends Error {
       Symbol property,
       List<ManagedEntity> possibleEntities) {
     var destType =
-        entity.persistentType.instanceMembers[property].returnType.simpleName;
+        entity.tableDefinition.instanceMembers[property].returnType.simpleName;
     return new ManagedDataModelError(
         "Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' expects that just one "
-        "'ManagedObject' subclass uses a persistent type that extends "
+        "'ManagedObject' subclass uses a table definition that extends "
         "'${_getName(destType)}. But the following implementations were found: "
         "${possibleEntities.map((e) => _getInstanceClassName(e))}. That's just "
         "how it is for now.");
@@ -218,6 +218,13 @@ class ManagedDataModelError extends Error {
         "it is transient, but it it has a mismatch. A transient "
         "getter method must have 'isAvailableAsOutput' and a transient "
         "setter method must have 'isAvailableAsInput'.");
+  }
+
+  factory ManagedDataModelError.noConstructor(ClassMirror cm) {
+    final name = _getName(cm.simpleName);
+    return new ManagedDataModelError("Invalid 'ManagedObject' subclass "
+      "'$name' does not implement default, unnamed constructor. "
+      "Add '$name();' to the class declaration.");
   }
 
   factory ManagedDataModelError.duplicateTables(
@@ -280,7 +287,7 @@ class ManagedDataModelError extends Error {
   }
 
   static String _getPersistentClassName(ManagedEntity entity) =>
-      _getName(entity?.persistentType?.simpleName);
+      _getName(entity?.tableDefinition?.simpleName);
 
   static String _getInstanceClassName(ManagedEntity entity) =>
       _getName(entity?.instanceType?.simpleName);

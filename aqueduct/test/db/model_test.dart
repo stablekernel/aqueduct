@@ -563,6 +563,35 @@ void main() {
       });
     });
   });
+
+  group("Constructors", () {
+    test("Can have constructor with only optional args", () {
+      final dm = new ManagedDataModel([DefaultConstructorHasOptionalArgs]);
+      final ctx = new ManagedContext(dm, null);
+      final instance = dm.entityForType(DefaultConstructorHasOptionalArgs).newInstance();
+      expect(instance is DefaultConstructorHasOptionalArgs, true);
+    });
+
+    test("Cannot have unnamed constructor with required args", () {
+      try {
+        new ManagedDataModel([DefaultConstructorHasRequiredArgs]);
+        fail('unreachable');
+      } on ManagedDataModelError catch (e) {
+        expect(e.toString(), contains("DefaultConstructorHasRequiredArgs"));
+        expect(e.toString(), contains("default, unnamed constructor"));
+      }
+    });
+
+    test("Cannot have only named constructor", () {
+      try {
+        new ManagedDataModel([HasNoDefaultConstructor]);
+        fail('unreachable');
+      } on ManagedDataModelError catch (e) {
+        expect(e.toString(), contains("HasNoDefaultConstructor"));
+        expect(e.toString(), contains("default, unnamed constructor"));
+      }
+    });
+  });
 }
 
 class User extends ManagedObject<_User> implements _User {
@@ -836,4 +865,20 @@ class _ConstructorOverride {
   int id;
 
   String value;
+}
+
+class DefaultConstructorHasRequiredArgs extends ManagedObject<_ConstructorTableDef> {
+  DefaultConstructorHasRequiredArgs(int foo);
+}
+
+class DefaultConstructorHasOptionalArgs extends ManagedObject<_ConstructorTableDef> {
+  DefaultConstructorHasOptionalArgs({int foo});
+}
+class HasNoDefaultConstructor extends ManagedObject<_ConstructorTableDef> {
+  HasNoDefaultConstructor.foo();
+}
+
+class _ConstructorTableDef {
+  @primaryKey
+  int id;
 }

@@ -2,7 +2,7 @@ import 'package:aqueduct/src/db/managed/managed.dart';
 
 /// Allows storage of unstructured data in a [ManagedObject] property.
 ///
-/// [Document]s may be properties of [ManagedObject] persistent types. They are a container
+/// [Document]s may be properties of [ManagedObject] table definition. They are a container
 /// for [data] that is a JSON-encodable [Map] or [List]. When storing a [Document] in a database column,
 /// [data] is JSON-encoded.
 ///

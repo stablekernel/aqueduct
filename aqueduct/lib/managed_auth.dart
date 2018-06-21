@@ -9,7 +9,7 @@
 ///         var authServer = new AuthServer(storage);
 ///
 /// Then, a [ManagedObject] subclass that represents an OAuth 2.0 resource owner ust be declared. It must implement [ManagedAuthResourceOwner].
-/// Its persistent type must implement [ResourceOwnerTableDefinition]. For example, the follower `User` fulfills the requirement:
+/// Its table definition must implement [ResourceOwnerTableDefinition]. For example, the follower `User` fulfills the requirement:
 ///
 ///         class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwner  {}
 ///         class _User extends ManagedAuthenticatable { ... }
@@ -237,7 +237,7 @@ class _ManagedAuthClient {
 /// REQUIRED: Represents an OAuth 2.0 Resource Owner database table.
 ///
 /// An application using this library must declare a [ManagedObject] subclass
-/// whose persistent type must *extend* this type. For example,
+/// whose table definition must *extend* this type. For example,
 ///
 ///         class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwner  {}
 ///         class _User extends ManagedAuthenticatable { ... }
@@ -280,8 +280,8 @@ class ResourceOwnerTableDefinition implements ResourceOwner {
 ///
 /// Note that this interface is made up of both [ResourceOwnerTableDefinition] and [ManagedObject].
 /// The type declaring this as an interface must extend [ManagedObject] and implement
-/// a persistent type that extends [ResourceOwnerTableDefinition]. Since all [ManagedObject] subclasses
-/// extend their persistent type, this interface requirement is met.
+/// a table definition that extends [ResourceOwnerTableDefinition]. Since all [ManagedObject] subclasses
+/// extend their table definition, this interface requirement is met.
 abstract class ManagedAuthResourceOwner<T>
     implements ResourceOwnerTableDefinition, ManagedObject<T> {}
 

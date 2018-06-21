@@ -29,7 +29,7 @@ class ManagedEntity implements APIComponentDocumenter {
   /// Creates an instance of this type..
   ///
   /// You should never call this method directly, it will be called by [ManagedDataModel].
-  ManagedEntity(this.dataModel, this._tableName, this.instanceType, this.persistentType);
+  ManagedEntity(this.dataModel, this._tableName, this.instanceType, this.tableDefinition);
 
   /// The name of this entity.
   ///
@@ -38,15 +38,15 @@ class ManagedEntity implements APIComponentDocumenter {
 
   /// The type of instances represented by this entity.
   ///
-  /// Managed objects are made up of two components, a persistent type and an instance type. Applications
+  /// Managed objects are made up of two components, a table definition and an instance type. Applications
   /// use instances of the instance type to work with queries and data from the database table this entity represents. This value is the [ClassMirror] on that type.
   final ClassMirror instanceType;
 
   /// The type of persistent instances represented by this entity.
   ///
-  /// Managed objects are made up of two components, a persistent type and an instance type. The system uses this type to define
+  /// Managed objects are made up of two components, a table definition and an instance type. The system uses this type to define
   /// the mapping to the underlying database table. This value is the [ClassMirror] on the persistent portion of a [ManagedObject] object.
-  final ClassMirror persistentType;
+  final ClassMirror tableDefinition;
 
   /// The [ManagedDataModel] this instance belongs to.
   final ManagedDataModel dataModel;
@@ -97,7 +97,7 @@ class ManagedEntity implements APIComponentDocumenter {
   /// a single property as unique with [Column], where each instance has
   /// a unique value for that property.
   ///
-  /// This value is set by adding [Table] to the persistent type of a [ManagedObject].
+  /// This value is set by adding [Table] to the table definition of a [ManagedObject].
   List<ManagedPropertyDescription> uniquePropertySet;
 
   /// List of [ManagedValidator]s for attributes of this entity.
@@ -147,12 +147,12 @@ class ManagedEntity implements APIComponentDocumenter {
 
   /// Name of table in database this entity maps to.
   ///
-  /// By default, the table will be named by the persistent type, e.g., a managed object declared as so will have a [tableName] of '_User'.
+  /// By default, the table will be named by the table definition, e.g., a managed object declared as so will have a [tableName] of '_User'.
   ///
   ///       class User extends ManagedObject<_User> implements _User {}
   ///       class _User { ... }
   ///
-  /// You may implement the static method [tableName] on the persistent type of a [ManagedObject] to return a [String] table
+  /// You may implement the static method [tableName] on the table definition of a [ManagedObject] to return a [String] table
   /// name override this default.
   String get tableName {
     return _tableName;
@@ -317,7 +317,7 @@ class ManagedEntity implements APIComponentDocumenter {
           final entityDocs = await DocumentedElement.get(instanceType.reflectedType);
           attrDocs = entityDocs[new Symbol(name)];
         } else {
-          final entityDocs = await DocumentedElement.get(persistentType.reflectedType);
+          final entityDocs = await DocumentedElement.get(tableDefinition.reflectedType);
           attrDocs = entityDocs[new Symbol(name)];
         }
 

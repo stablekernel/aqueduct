@@ -20,26 +20,26 @@ void main() {
     test("Entities have appropriate types", () {
       var entity = dataModel.entityForType(User);
       expect(reflectClass(User) == entity.instanceType, true);
-      expect(reflectClass(_User) == entity.persistentType, true);
+      expect(reflectClass(_User) == entity.tableDefinition, true);
 
       entity = dataModel.entityForType(Item);
       expect(reflectClass(Item) == entity.instanceType, true);
-      expect(reflectClass(_Item) == entity.persistentType, true);
+      expect(reflectClass(_Item) == entity.tableDefinition, true);
 
       entity = dataModel.entityForType(Manager);
       expect(reflectClass(Manager) == entity.instanceType, true);
-      expect(reflectClass(_Manager) == entity.persistentType, true);
+      expect(reflectClass(_Manager) == entity.tableDefinition, true);
 
       entity = dataModel.entityForType(EnumObject);
       expect(reflectClass(EnumObject) == entity.instanceType, true);
-      expect(reflectClass(_EnumObject) == entity.persistentType, true);
+      expect(reflectClass(_EnumObject) == entity.tableDefinition, true);
     });
 
     test("Non-existent entity is null", () {
       expect(dataModel.entityForType(String), isNull);
     });
 
-    test("Can fetch models by instance and persistent type", () {
+    test("Can fetch models by instance and table definition", () {
       var e1 = dataModel.entityForType(User);
       var e2 = dataModel.entityForType(_User);
       expect(e1 == e2, true);
@@ -176,7 +176,7 @@ void main() {
           ManagedRelationshipType.hasMany);
     });
 
-    test("Enums are string attributes in persistent type", () {
+    test("Enums are string attributes in table definition", () {
       var entity = dataModel.entityForType(EnumObject);
       expect(entity.attributes["enumValues"].type.kind, ManagedPropertyType.string);
     });
@@ -288,7 +288,7 @@ void main() {
           true);
     });
 
-    test("Partials have defaultProperties from persistent type superclasses",
+    test("Partials have defaultProperties from table definition superclasses",
         () {
       var dataModel = new ManagedDataModel([TotalModel, PartialReferenceModel]);
       var defaultProperties =
@@ -465,7 +465,7 @@ void main() {
   });
 
   group("Multi-unique", () {
-    test("Add Table to persistent type with unique list makes instances unique for those columns", () {
+    test("Add Table to table definition with unique list makes instances unique for those columns", () {
       var dm = new ManagedDataModel([MultiUnique]);
       var e = dm.entityForType(MultiUnique);
 
@@ -474,7 +474,7 @@ void main() {
       expect(e.uniquePropertySet.contains(e.properties["b"]), true);
     });
 
-    test("Add Table to persistent type with unique list makes instances unique for those columns, where column is foreign key relationship", () {
+    test("Add Table to table definition with unique list makes instances unique for those columns, where column is foreign key relationship", () {
       var dm = new ManagedDataModel([MultiUniqueBelongsTo, MultiUniqueHasA]);
       var e = dm.entityForType(MultiUniqueBelongsTo);
       expect(e.uniquePropertySet.length, 2);
@@ -482,7 +482,7 @@ void main() {
       expect(e.uniquePropertySet.contains(e.properties["b"]), true);
     });
 
-    test("Add Table to persistent type with unique list makes instances unique for those columns, where column is foreign key relationship", () {
+    test("Add Table to table definition with unique list makes instances unique for those columns, where column is foreign key relationship", () {
       var dm = new ManagedDataModel([MultiUniqueBelongsTo, MultiUniqueHasA]);
       var e = dm.entityForType(MultiUniqueBelongsTo);
       expect(e.uniquePropertySet.length, 2);
@@ -490,7 +490,7 @@ void main() {
       expect(e.uniquePropertySet.contains(e.properties["b"]), true);
     });
 
-    test("Add Table to persistent type with unique list makes instances unique for those columns, where column is foreign key relationship", () {
+    test("Add Table to table definition with unique list makes instances unique for those columns, where column is foreign key relationship", () {
       var dm = new ManagedDataModel([MultiUniqueBelongsTo, MultiUniqueHasA]);
       var e = dm.entityForType(MultiUniqueBelongsTo);
       expect(e.uniquePropertySet.length, 2);
@@ -498,7 +498,7 @@ void main() {
       expect(e.uniquePropertySet.contains(e.properties["b"]), true);
     });
 
-    test("Add Table to persistent type with unique list makes instances unique for those columns, where column is foreign key relationship", () {
+    test("Add Table to table definition with unique list makes instances unique for those columns, where column is foreign key relationship", () {
       var dm = new ManagedDataModel([MultiUniqueBelongsTo, MultiUniqueHasA]);
       var e = dm.entityForType(MultiUniqueBelongsTo);
       expect(e.uniquePropertySet.length, 2);
@@ -506,7 +506,7 @@ void main() {
       expect(e.uniquePropertySet.contains(e.properties["b"]), true);
     });
 
-    test("Add Table to persistent type with only single element in unique list throws exception, warns to use Table", () {
+    test("Add Table to table definition with only single element in unique list throws exception, warns to use Table", () {
       try {
         new ManagedDataModel([MultiUniqueFailureSingleElement]);
         expect(true, false);
@@ -515,7 +515,7 @@ void main() {
       }
     });
 
-    test("Add Table to persistent type with empty unique list throws exception", () {
+    test("Add Table to table definition with empty unique list throws exception", () {
       try {
         new ManagedDataModel([MultiUniqueFailureNoElement]);
         expect(true, false);
@@ -524,7 +524,7 @@ void main() {
       }
     });
 
-    test("Add Table to persistent type with non-existent property in unique list throws exception", () {
+    test("Add Table to table definition with non-existent property in unique list throws exception", () {
       try {
         new ManagedDataModel([MultiUniqueFailureUnknown]);
         expect(true, false);
@@ -533,7 +533,7 @@ void main() {
       }
     });
 
-    test("Add Table to persistent type with has- property in unique list throws exception", () {
+    test("Add Table to table definition with has- property in unique list throws exception", () {
       try {
         new ManagedDataModel([MultiUniqueFailureRelationship, MultiUniqueFailureRelationshipInverse]);
         expect(true, false);
