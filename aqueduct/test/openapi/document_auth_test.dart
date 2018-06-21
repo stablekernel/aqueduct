@@ -1,3 +1,5 @@
+@Skip("Waiting on https://github.com/dart-lang/sdk/issues/33207")
+
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
