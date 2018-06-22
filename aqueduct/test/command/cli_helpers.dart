@@ -154,7 +154,7 @@ class Terminal {
     final cmd = Platform.isWindows ? "pub.bat" : "pub";
     var result = await Process
         .run(cmd, args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
-        .timeout(new Duration(seconds: 30));
+        .timeout(new Duration(seconds: 45));
 
     if (result.exitCode != 0) {
       throw new Exception("${result.stderr}");
