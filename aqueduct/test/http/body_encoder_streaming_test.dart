@@ -148,7 +148,7 @@ void main() {
 
     test("Content-Type that can be gzipped but request does not have Accept-Encoding not gzipped", () async {
       var sc = new StreamController<String>();
-      server = await bindAndRespondWith(new Response.ok(sc.stream)..contentType = ContentType.TEXT);
+      server = await bindAndRespondWith(new Response.ok(sc.stream)..contentType = ContentType.text);
 
       var req = await client.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
@@ -161,7 +161,7 @@ void main() {
 
       var resp = await respFuture;
 
-      expect(resp.headers.contentType.toString(), equals(ContentType.TEXT.toString()));
+      expect(resp.headers.contentType.toString(), equals(ContentType.text.toString()));
       expect(resp.headers.value("content-encoding"), isNull);
       expect(resp.headers.value("transfer-encoding"), "chunked");
       expect(resp.headers.value("content-length"), isNull);
@@ -173,7 +173,7 @@ void main() {
 
     test("Content-Type that can be gzipped and request has Accept-Encoding but not gzip doesn't get gzipped", () async {
       var sc = new StreamController<String>();
-      server = await bindAndRespondWith(new Response.ok(sc.stream)..contentType = ContentType.TEXT);
+      server = await bindAndRespondWith(new Response.ok(sc.stream)..contentType = ContentType.text);
 
       var req = await client.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
@@ -186,7 +186,7 @@ void main() {
 
       var resp = await respFuture;
 
-      expect(resp.headers.contentType.toString(), equals(ContentType.TEXT.toString()));
+      expect(resp.headers.contentType.toString(), equals(ContentType.text.toString()));
       expect(resp.headers.value("content-encoding"), isNull);
       expect(resp.headers.value("transfer-encoding"), "chunked");
       expect(resp.headers.value("content-length"), isNull);
@@ -322,7 +322,7 @@ void main() {
       });
 
       var req = await client.postUrl(Uri.parse("http://localhost:8123"));
-      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+      req.headers.add(HttpHeaders.contentTypeHeader, "application/json; charset=utf-8");
       var body = {
         "key": new List.generate(8192 * 50, (_) => "a").join(" ")
       };
@@ -345,7 +345,7 @@ void main() {
 
       // Make sure we can still send some more requests;
       req = await client.postUrl(Uri.parse("http://localhost:8123"));
-      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+      req.headers.add(HttpHeaders.contentTypeHeader, "application/json; charset=utf-8");
       body = {
         "key": "a"
       };
@@ -367,7 +367,7 @@ void main() {
       });
 
       var req = await client.postUrl(Uri.parse("http://localhost:8123"));
-      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+      req.headers.add(HttpHeaders.contentTypeHeader, "application/octet-stream");
       req.add(new List.generate(8192 * 100, (_) => 1));
 
       try {
@@ -387,7 +387,7 @@ void main() {
 
       // Make sure we can still send some more requests;
       req = await client.postUrl(Uri.parse("http://localhost:8123"));
-      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+      req.headers.add(HttpHeaders.contentTypeHeader, "application/octet-stream");
       req.add([1, 2, 3, 4]);
       var response = await req.close();
       expect(await response.toList(), [[1, 2, 3, 4]]);

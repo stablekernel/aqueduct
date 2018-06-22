@@ -27,7 +27,7 @@ dependencies:
 
 dev_dependencies:
   matcher: ^0.12.0+2
-  test: ^0.12.28
+  test: ^1.0.0
   http: ^0.11.3+7
   aqueduct_test:
     path: ../aqueduct_test

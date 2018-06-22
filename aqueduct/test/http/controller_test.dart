@@ -378,7 +378,7 @@ class Always200Controller extends Controller {
     var originalMap = {"statusCode": resp.statusCode};
     resp.statusCode = 200;
     resp.body = originalMap;
-    resp.contentType = ContentType.JSON;
+    resp.contentType = ContentType.json;
   }
 }
 

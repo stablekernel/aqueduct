@@ -88,7 +88,7 @@ class Request implements RequestOrResponse {
     if (_cachedAcceptableTypes == null) {
       try {
         var contentTypes = raw
-            .headers[HttpHeaders.ACCEPT]
+            .headers[HttpHeaders.acceptHeader]
             ?.expand((h) => h.split(",").map((s) => s.trim()))
             ?.where((h) => h.isNotEmpty)
             ?.map((h) => ContentType.parse(h))
@@ -252,22 +252,22 @@ class Request implements RequestOrResponse {
     });
     
     if (aqueductResponse.cachePolicy != null) {
-      response.headers.add(HttpHeaders.CACHE_CONTROL, aqueductResponse.cachePolicy.headerValue);
+      response.headers.add(HttpHeaders.cacheControlHeader, aqueductResponse.cachePolicy.headerValue);
     }
 
     if (body == null) {
-      response.headers.removeAll(HttpHeaders.CONTENT_TYPE);
+      response.headers.removeAll(HttpHeaders.contentTypeHeader);
       return response.close();
     }
 
     response.headers.add(
-        HttpHeaders.CONTENT_TYPE, aqueductResponse.contentType.toString());
+        HttpHeaders.contentTypeHeader, aqueductResponse.contentType.toString());
 
     if (body is List) {
       if (compressionType.value != null) {
-        response.headers.add(HttpHeaders.CONTENT_ENCODING, compressionType.value);
+        response.headers.add(HttpHeaders.contentEncodingHeader, compressionType.value);
       }
-      response.headers.add(HttpHeaders.CONTENT_LENGTH, body.length);
+      response.headers.add(HttpHeaders.contentLengthHeader, body.length);
 
       response.add(body);
 
@@ -277,9 +277,9 @@ class Request implements RequestOrResponse {
     // Otherwise, body is stream
     final bodyStream = _responseBodyStream(aqueductResponse, compressionType);
     if (compressionType.value != null) {
-      response.headers.add(HttpHeaders.CONTENT_ENCODING, compressionType.value);
+      response.headers.add(HttpHeaders.contentEncodingHeader, compressionType.value);
     }
-    response.headers.add(HttpHeaders.TRANSFER_ENCODING, "chunked");
+    response.headers.add(HttpHeaders.transferEncodingHeader, "chunked");
     response.bufferOutput = aqueductResponse.bufferOutput;
 
     return response.addStream(bodyStream).then((_) {
@@ -355,7 +355,7 @@ class Request implements RequestOrResponse {
 
   bool get _acceptsGzipResponseBody {
     return raw
-        .headers[HttpHeaders.ACCEPT_ENCODING]
+        .headers[HttpHeaders.acceptEncodingHeader]
         ?.any((v) => v.split(",").any((s) => s.trim() == "gzip")) ?? false;
   }
 

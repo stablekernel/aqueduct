@@ -200,7 +200,7 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
           ? {"controller": "$runtimeType", "error": "$caughtValue.", "stacktrace": trace?.toString()}
           : null;
 
-      final response = new Response.serverError(body: body)..contentType = ContentType.JSON;
+      final response = new Response.serverError(body: body)..contentType = ContentType.json;
 
       await _sendResponse(request, response, includeCORSHeaders: true);
 

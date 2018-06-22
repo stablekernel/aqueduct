@@ -314,7 +314,7 @@ void main() {
     expect(json.decode(resp.body), {"didDecode": false});
 
     resp = await http.post("http://localhost:4040/a", headers: {
-      HttpHeaders.CONTENT_TYPE: ContentType.JSON.toString()
+      HttpHeaders.contentTypeHeader: ContentType.json.toString()
     }, body: json.encode({
       "k":"v"
     }));

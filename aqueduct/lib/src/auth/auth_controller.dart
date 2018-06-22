@@ -42,7 +42,7 @@ class AuthController extends ResourceController {
   ///         Authorization: Basic base64("com.stablekernel.public:")
   ///
   /// Notice the trailing colon indicates that the client secret is the empty string.
-  @Bind.header(HttpHeaders.AUTHORIZATION)
+  @Bind.header(HttpHeaders.authorizationHeader)
   String authHeader;
 
   final AuthorizationBasicParser _parser = new AuthorizationBasicParser();
@@ -106,7 +106,7 @@ class AuthController extends ResourceController {
   /// Transforms a [AuthToken] into a [Response] object with an RFC6749 compliant JSON token
   /// as the HTTP response body.
   static Response tokenResponse(AuthToken token) {
-    return new Response(HttpStatus.OK, {"Cache-Control": "no-store", "Pragma": "no-cache"}, token.asMap());
+    return new Response(HttpStatus.ok, {"Cache-Control": "no-store", "Pragma": "no-cache"}, token.asMap());
   }
 
   @override
@@ -129,7 +129,7 @@ class AuthController extends ResourceController {
   @override
   List<APIParameter> documentOperationParameters(APIDocumentContext context, Operation operation) {
     final parameters = super.documentOperationParameters(context, operation);
-    parameters.removeWhere((p) => p.name == HttpHeaders.AUTHORIZATION);
+    parameters.removeWhere((p) => p.name == HttpHeaders.authorizationHeader);
     return parameters;
   }
 

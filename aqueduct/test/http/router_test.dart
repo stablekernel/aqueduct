@@ -51,9 +51,9 @@ void main() {
 
       server = await enableRouter(router);
 
-      var response = await http.get("http://localhost:4040/notplayer", headers: {HttpHeaders.ACCEPT: "application/json"});
+      var response = await http.get("http://localhost:4040/notplayer", headers: {HttpHeaders.acceptHeader: "application/json"});
       expect(response.statusCode, equals(404));
-      expect(response.headers[HttpHeaders.CONTENT_TYPE], isNull);
+      expect(response.headers[HttpHeaders.contentTypeHeader], isNull);
       expect(response.body.isEmpty, true);
     });
 
@@ -319,7 +319,7 @@ class NumberEmitter extends Controller {
 
   @override
   Future<RequestOrResponse> handle(Request req) async {
-    return new Response(200, null, "$number")..contentType = ContentType.TEXT;
+    return new Response(200, null, "$number")..contentType = ContentType.text;
   }
 }
 

@@ -140,7 +140,7 @@ void main() {
 
 Future<http.Response> postMessage(String message) async {
   return http.post("http://localhost:8000/send",
-      headers: {HttpHeaders.CONTENT_TYPE: ContentType.TEXT.toString()}, body: message);
+      headers: {HttpHeaders.contentTypeHeader: ContentType.text.toString()}, body: message);
 }
 
 Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages, {int butNeverReceiveIn}) async {

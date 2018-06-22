@@ -35,7 +35,7 @@ class PartialMapMatcher extends Matcher {
       return false;
     }
 
-    var mismatches = [];
+    var mismatches = <String>[];
     matchState["PartialMatcher.mismatches"] = mismatches;
 
     var foundMismatch = false;

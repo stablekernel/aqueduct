@@ -86,13 +86,13 @@ abstract class ResourceController extends Controller {
   /// will automatically respond with an Unsupported Media Type response.
   ///
   /// By default, an instance will accept HTTP request bodies with 'application/json; charset=utf-8' encoding.
-  List<ContentType> acceptedContentTypes = [ContentType.JSON];
+  List<ContentType> acceptedContentTypes = [ContentType.json];
 
   /// The default content type of responses from this [ResourceController].
   ///
   /// If the [Response.contentType] has not explicitly been set by a operation method in this controller, the controller will set
   /// that property with this value. Defaults to "application/json".
-  ContentType responseContentType = ContentType.JSON;
+  ContentType responseContentType = ContentType.json;
 
   /// Executed prior to handling a request, but after the [request] has been set.
   ///
@@ -376,7 +376,7 @@ abstract class ResourceController extends Controller {
   Future<Response> _process() async {
     if (!request.body.isEmpty) {
       if (!_requestContentTypeIsSupported(request)) {
-        return new Response(HttpStatus.UNSUPPORTED_MEDIA_TYPE, null, null);
+        return new Response(HttpStatus.unsupportedMediaType, null, null);
       }
     }
 

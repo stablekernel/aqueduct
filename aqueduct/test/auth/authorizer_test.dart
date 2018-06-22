@@ -54,7 +54,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000",
-          headers: {HttpHeaders.AUTHORIZATION: "Notbearer"});
+          headers: {HttpHeaders.authorizationHeader: "Notbearer"});
       expect(res.statusCode, 400);
       expect(json.decode(res.body), {"error": "invalid_authorization_header"});
     });
@@ -66,7 +66,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000",
-          headers: {HttpHeaders.AUTHORIZATION: "Bearer "});
+          headers: {HttpHeaders.authorizationHeader: "Bearer "});
       expect(res.statusCode, 400);
       expect(json.decode(res.body), {"error": "invalid_authorization_header"});
     });
@@ -76,7 +76,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000",
-          headers: {HttpHeaders.AUTHORIZATION: "Bearer 1234567890asdfghjkl"});
+          headers: {HttpHeaders.authorizationHeader: "Bearer 1234567890asdfghjkl"});
       expect(res.statusCode, 401);
     });
 
@@ -85,7 +85,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000",
-          headers: {HttpHeaders.AUTHORIZATION: "Bearer $expiredErrorToken"});
+          headers: {HttpHeaders.authorizationHeader: "Bearer $expiredErrorToken"});
       expect(res.statusCode, 401);
     });
 
@@ -94,7 +94,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000",
-          headers: {HttpHeaders.AUTHORIZATION: "Bearer $accessToken"});
+          headers: {HttpHeaders.authorizationHeader: "Bearer $accessToken"});
       expect(res.statusCode, 200);
       expect(json.decode(res.body),
           {"clientID": "com.stablekernel.app1", "resourceOwnerIdentifier": 1, "credentials": null});
@@ -116,7 +116,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000",
-          headers: {HttpHeaders.AUTHORIZATION: "Notright"});
+          headers: {HttpHeaders.authorizationHeader: "Notright"});
       expect(res.statusCode, 400);
       expect(json.decode(res.body), {"error": "invalid_authorization_header"});
     });
@@ -126,7 +126,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000",
-          headers: {HttpHeaders.AUTHORIZATION: "Basic "});
+          headers: {HttpHeaders.authorizationHeader: "Basic "});
       expect(res.statusCode, 400);
       expect(json.decode(res.body), {"error": "invalid_authorization_header"});
     });
@@ -138,7 +138,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000",
-          headers: {HttpHeaders.AUTHORIZATION: "Basic asasd"});
+          headers: {HttpHeaders.authorizationHeader: "Basic asasd"});
       expect(res.statusCode, 400);
       expect(json.decode(res.body), {"error": "invalid_authorization_header"});
     });
@@ -148,7 +148,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION:
+        HttpHeaders.authorizationHeader:
             "Basic ${new Base64Encoder().convert("abcd:kilimanjaro".codeUnits)}"
       });
       expect(res.statusCode, 401);
@@ -160,7 +160,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION:
+        HttpHeaders.authorizationHeader:
             "Basic ${new Base64Encoder().convert("com.stablekernel.app1:foobar".codeUnits)}"
       });
       expect(res.statusCode, 401);
@@ -172,7 +172,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION:
+        HttpHeaders.authorizationHeader:
             "Basic ${new Base64Encoder().convert("com.stablekernel.app1:kilimanjaro".codeUnits)}"
       });
       expect(res.statusCode, 200);
@@ -188,7 +188,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION:
+        HttpHeaders.authorizationHeader:
             "Basic ${new Base64Encoder().convert("com.stablekernel.public:".codeUnits)}"
       });
       expect(res.statusCode, 200);
@@ -199,7 +199,7 @@ void main() {
       });
 
       res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION:
+        HttpHeaders.authorizationHeader:
             "Basic ${new Base64Encoder().convert("com.stablekernel.public:password".codeUnits)}"
       });
       expect(res.statusCode, 401);
@@ -211,13 +211,13 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION:
+        HttpHeaders.authorizationHeader:
             "Basic ${new Base64Encoder().convert("com.stablekernel.app1:".codeUnits)}"
       });
       expect(res.statusCode, 401);
 
       res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION:
+        HttpHeaders.authorizationHeader:
             "Basic ${new Base64Encoder().convert("com.stablekernel.app1".codeUnits)}"
       });
       expect(res.statusCode, 400);
@@ -265,7 +265,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
+        HttpHeaders.authorizationHeader: "Bearer $userScopedAccessToken"
       });
       expect(res.statusCode, 200);
       expect(json.decode(res.body)["scopes"], ["user"]);
@@ -276,7 +276,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
+        HttpHeaders.authorizationHeader: "Bearer $userScopedAccessToken"
       });
       expect(res.statusCode, 200);
       expect(json.decode(res.body)["scopes"], ["user"]);
@@ -287,7 +287,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION: "Bearer $userAndOtherScopedAccessToken"
+        HttpHeaders.authorizationHeader: "Bearer $userAndOtherScopedAccessToken"
       });
       expect(res.statusCode, 200);
       expect(json.decode(res.body)["scopes"], ["user", "other_scope"]);
@@ -298,7 +298,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION: "Bearer $userAndOtherScopedAccessToken"
+        HttpHeaders.authorizationHeader: "Bearer $userAndOtherScopedAccessToken"
       });
       expect(res.statusCode, 200);
       expect(json.decode(res.body)["scopes"], ["user", "other_scope"]);
@@ -309,7 +309,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION: "Bearer $userAndOtherScopedAccessToken"
+        HttpHeaders.authorizationHeader: "Bearer $userAndOtherScopedAccessToken"
       });
       expect(res.statusCode, 200);
       expect(json.decode(res.body)["scopes"], ["user", "other_scope"]);
@@ -322,7 +322,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION: "Bearer $userReadOnlyScopedAccessToken"
+        HttpHeaders.authorizationHeader: "Bearer $userReadOnlyScopedAccessToken"
       });
       expect(res.statusCode, 403);
       expect(json.decode(res.body), {
@@ -336,7 +336,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
+        HttpHeaders.authorizationHeader: "Bearer $userScopedAccessToken"
       });
       expect(res.statusCode, 403);
       expect(json.decode(res.body), {
@@ -351,7 +351,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
+        HttpHeaders.authorizationHeader: "Bearer $userScopedAccessToken"
       });
       expect(res.statusCode, 403);
       expect(json.decode(res.body), {
@@ -366,7 +366,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION: "Bearer $userScopedAccessToken"
+        HttpHeaders.authorizationHeader: "Bearer $userScopedAccessToken"
       });
       expect(res.statusCode, 403);
       expect(json.decode(res.body), {
@@ -381,7 +381,7 @@ void main() {
       server = await enableAuthorizer(authorizer);
 
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION: "Bearer $userAndOtherReadOnlyScopedAccessToken"
+        HttpHeaders.authorizationHeader: "Bearer $userAndOtherReadOnlyScopedAccessToken"
       });
       expect(res.statusCode, 403);
       expect(json.decode(res.body), {
@@ -397,7 +397,7 @@ void main() {
       var anotherAuthServer = new AuthServer(new CrashingStorage());
       server = await enableAuthorizer(new Authorizer.basic(anotherAuthServer));
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION: "Basic ${new Base64Encoder().convert("a:".codeUnits)}"
+        HttpHeaders.authorizationHeader: "Basic ${new Base64Encoder().convert("a:".codeUnits)}"
       });
       expect(res.statusCode, 504);
     });
@@ -406,7 +406,7 @@ void main() {
       var anotherAuthServer = new AuthServer(new CrashingStorage());
       server = await enableAuthorizer(new Authorizer.bearer(anotherAuthServer));
       var res = await http.get("http://localhost:8000", headers: {
-        HttpHeaders.AUTHORIZATION:
+        HttpHeaders.authorizationHeader:
         "Bearer axy"
       });
       expect(res.statusCode, 504);
