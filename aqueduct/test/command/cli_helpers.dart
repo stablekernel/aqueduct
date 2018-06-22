@@ -154,7 +154,7 @@ class Terminal {
     final cmd = Platform.isWindows ? "pub.bat" : "pub";
     var result = await Process
         .run(cmd, args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
-        .timeout(new Duration(seconds: 20));
+        .timeout(new Duration(seconds: 30));
 
     if (result.exitCode != 0) {
       throw new Exception("${result.stderr}");
@@ -241,7 +241,7 @@ description: A web server application.
 version: 0.0.1
 
 environment:
-  sdk: '>=1.20.0 <2.0.0'
+  sdk: ">=2.0.0-dev <3.0.0"
 
 dependencies:
   aqueduct:
