@@ -1,4 +1,4 @@
-@Timeout(const Duration(seconds: 45))
+@Timeout(const Duration(seconds: 60))
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
