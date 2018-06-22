@@ -17,10 +17,10 @@ jobs:
   include:
     - stage: test
       script: bash ci/script.sh
-      env: TEST_DIR="aqueduct" DART_VM_OPTIONS=--preview-dart-2
+      env: TEST_DIR="aqueduct"
     - stage: test
       script: bash ci/script.sh
-      env: TEST_DIR="aqueduct_test" DART_VM_OPTIONS=--preview-dart-2
+      env: TEST_DIR="aqueduct_test"
 
 stages:
   - test
