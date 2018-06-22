@@ -248,7 +248,7 @@ dependencies:
     path: ../..
 
 dev_dependencies:
-  test: '>=0.12.0 <0.13.0'  
+  test: ^1.0.0  
   """;
 
   static final _emptyProjectLibrary = """
