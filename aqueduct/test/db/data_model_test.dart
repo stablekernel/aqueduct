@@ -575,7 +575,7 @@ class _Item {
   @Column(primaryKey: true)
   String name;
 
-  @Relate(#items,
+  @Relate(Symbol('items'),
       onDelete: DeleteRule.cascade, isRequired: true)
   User user;
 }
@@ -588,7 +588,7 @@ class _Manager {
 
   String name;
 
-  @Relate(#manager)
+  @Relate(Symbol('manager'))
   User worker;
 }
 
@@ -608,7 +608,7 @@ class _FailingChild {
   @primaryKey
   int id;
 
-  @Relate(#gen,
+  @Relate(Symbol('gen'),
       onDelete: DeleteRule.nullify, isRequired: true)
   Owner ref;
 }
@@ -757,10 +757,10 @@ class _DoubleRelationshipForeignKeyModel {
   @primaryKey
   int id;
 
-  @Relate(#hasManyOf)
+  @Relate(Symbol('hasManyOf'))
   DoubleRelationshipHasModel isManyOf;
 
-  @Relate(#hasOneOf)
+  @Relate(Symbol('hasOneOf'))
   DoubleRelationshipHasModel isOneOf;
 
   @Relate.deferred(DeleteRule.cascade)
@@ -815,10 +815,10 @@ class _JoinMany {
   @primaryKey
   int id;
 
-  @Relate(#join)
+  @Relate(Symbol('join'))
   LeftMany left;
 
-  @Relate(#join)
+  @Relate(Symbol('join'))
   RightMany right;
 }
 
@@ -827,7 +827,7 @@ class _InvalidCyclicLeft {
   @primaryKey
   int id;
 
-  @Relate(#ref)
+  @Relate(Symbol('ref'))
   InvalidCyclicRight ref;
 }
 
@@ -836,7 +836,7 @@ class _InvalidCyclicRight {
   @primaryKey
   int id;
 
-  @Relate(#ref)
+  @Relate(Symbol('ref'))
   InvalidCyclicLeft ref;
 }
 
@@ -845,7 +845,7 @@ class _CyclicLeft  {
   @primaryKey
   int id;
 
-  @Relate(#from)
+  @Relate(Symbol('from'))
   CyclicRight leftRef;
 
   CyclicRight from;
@@ -856,7 +856,7 @@ class _CyclicRight  {
   @primaryKey
   int id;
 
-  @Relate(#from)
+  @Relate(Symbol('from'))
   CyclicLeft rightRef;
 
   CyclicLeft from;
@@ -883,7 +883,7 @@ class _InvalidMetadata {
   @Column(primaryKey: true)
   int id;
 
-  @Relate(#foo)
+  @Relate(Symbol('foo'))
   @Column(indexed: true)
   InvalidMetadata1 bar;
 }
@@ -909,7 +909,7 @@ class _MissingInverseWrongSymbol {
   @primaryKey
   int id;
 
-  @Relate(#foobar)
+  @Relate(Symbol('foobar'))
   MissingInverse1 has;
 }
 
@@ -940,10 +940,10 @@ class _DupInverse {
   @primaryKey
   int id;
 
-  @Relate(#inverse)
+  @Relate(Symbol('inverse'))
   DupInverseHas foo;
 
-  @Relate(#inverse)
+  @Relate(Symbol('inverse'))
   DupInverseHas bar;
 }
 
@@ -961,7 +961,7 @@ enum EnumValues {
 
 
 class MultiUnique extends ManagedObject<_MultiUnique> {}
-@Table.unique(const [#a, #b])
+@Table.unique([Symbol('a'), Symbol('b')])
 class _MultiUnique {
   @primaryKey
   int id;
@@ -971,7 +971,7 @@ class _MultiUnique {
 }
 
 class MultiUniqueFailureSingleElement extends ManagedObject<_MultiUniqueFailureSingleElement> {}
-@Table.unique(const [#a])
+@Table.unique([Symbol('a')])
 class _MultiUniqueFailureSingleElement {
   @primaryKey
   int id;
@@ -980,14 +980,14 @@ class _MultiUniqueFailureSingleElement {
 }
 
 class MultiUniqueFailureNoElement extends ManagedObject<_MultiUniqueFailureNoElement> {}
-@Table.unique(const [])
+@Table.unique([])
 class _MultiUniqueFailureNoElement {
   @primaryKey
   int id;
 }
 
 class MultiUniqueFailureUnknown extends ManagedObject<_MultiUniqueFailureUnknown> {}
-@Table.unique(const [#a, #b])
+@Table.unique([Symbol('a'), Symbol('b')])
 class _MultiUniqueFailureUnknown {
   @primaryKey
   int id;
@@ -996,7 +996,7 @@ class _MultiUniqueFailureUnknown {
 }
 
 class MultiUniqueFailureRelationship extends ManagedObject<_MultiUniqueFailureRelationship> {}
-@Table.unique(const [#a, #b])
+@Table.unique(const [Symbol('a'), Symbol('b')])
 class _MultiUniqueFailureRelationship {
   @primaryKey
   int id;
@@ -1010,17 +1010,17 @@ class _MultiUniqueFailureRelationshipInverse {
   @primaryKey
   int id;
 
-  @Relate(#a)
+  @Relate(Symbol('a'))
   MultiUniqueFailureRelationship rel;
 }
 
 class MultiUniqueBelongsTo extends ManagedObject<_MultiUniqueBelongsTo> {}
-@Table.unique(const [#rel, #b])
+@Table.unique([Symbol('rel'), Symbol('b')])
 class _MultiUniqueBelongsTo {
   @primaryKey
   int id;
 
-  @Relate(#a)
+  @Relate(Symbol('a'))
   MultiUniqueHasA rel;
 
   String b;

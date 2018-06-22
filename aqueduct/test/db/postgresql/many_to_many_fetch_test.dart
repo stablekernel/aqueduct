@@ -466,10 +466,10 @@ class _Game {
   int homeScore;
   int awayScore;
 
-  @Relate(#homeGames)
+  @Relate(Symbol('homeGames'))
   Team homeTeam;
 
-  @Relate(#awayGames)
+  @Relate(Symbol('awayGames'))
   Team awayTeam;
 }
 

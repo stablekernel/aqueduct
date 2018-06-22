@@ -336,7 +336,7 @@ class _Child {
 
   String name;
 
-  @Relate(#child,
+  @Relate(Symbol('child'),
       isRequired: false, onDelete: DeleteRule.cascade)
   Parent parent;
 }

@@ -174,7 +174,7 @@ class _Child {
 
   Document document;
 
-  @Relate(#children)
+  @Relate(Symbol('children'))
   Parent parent;
 
   Grandchild grandchild;
@@ -189,6 +189,6 @@ class _Grandchild {
 
   Document document;
 
-  @Relate(#grandchild)
+  @Relate(Symbol('grandchild'))
   Child parent;
 }

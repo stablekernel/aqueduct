@@ -683,7 +683,7 @@ class _Post {
 
   String text;
 
-  @Relate(#posts)
+  @Relate(Symbol('posts'))
   User owner;
 }
 
@@ -917,7 +917,7 @@ class _TransientBelongsTo {
   @primaryKey
   int id;
 
-  @Relate(#t)
+  @Relate(Symbol('t'))
   TransientOwner owner;
 }
 

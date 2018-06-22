@@ -1,4 +1,3 @@
-@Skip('waiting on https://github.com/dart-lang/sdk/issues/33513')
 import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
@@ -229,7 +228,7 @@ class Model1 extends ManagedObject<_Model1> implements _Model1 {
   DateTime field;
 }
 
-@Table(uniquePropertySet: const [#string, #dateTime])
+@Table(uniquePropertySet: [Symbol('string'), Symbol('dateTime')])
 class _Model1 {
   @primaryKey
   int id;
@@ -258,12 +257,12 @@ class _Model2 {
   @primaryKey
   int id;
 
-  @Relate(#model2s)
+  @Relate(Symbol('model2s'))
   Model1 model1;
 }
 
 class Model3 extends ManagedObject<_Model3> implements _Model3 {}
-@Table(uniquePropertySet: const [#matches, #lessThan])
+@Table(uniquePropertySet: [Symbol('matches'), Symbol('lessThan')])
 class _Model3 {
   @primaryKey
   int id;
@@ -304,7 +303,7 @@ class _Model3 {
   @Validate.compare(greaterThan: "hello")
   String nonNumCompare;
 
-  @Relate(#model3)
+  @Relate(Symbol('model3'))
   Model1 model1;
 }
 
