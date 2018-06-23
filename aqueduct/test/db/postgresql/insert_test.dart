@@ -381,7 +381,7 @@ class _EnumObject {
 }
 
 class MultiUnique extends ManagedObject<_MultiUnique> implements _MultiUnique {}
-@Table.unique(const [#a, #b])
+@Table.unique([Symbol('a'), Symbol('b')])
 class _MultiUnique {
   @primaryKey
   int id;
