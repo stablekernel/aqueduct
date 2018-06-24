@@ -28,7 +28,7 @@ class CLIServer extends CLICommand with CLIProject {
           help: "The path to a configuration file. This File is available in the ApplicationOptions"
               "for a ApplicationChannel to use to read application-specific configuration values. Relative paths are relative to [directory].",
           defaultsTo: "config.yaml")
-      ..addOption("timeout", help: "Number of seconds to wait to ensure startup succeeded.", defaultsTo: "20")
+      ..addOption("timeout", help: "Number of seconds to wait to ensure startup succeeded.", defaultsTo: "45")
       ..addOption("isolates", abbr: "n", help: "Number of isolates processing requests", defaultsTo: "3")
       ..addOption("ssl-key-path",
           help:
