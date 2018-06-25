@@ -17,7 +17,10 @@ jobs:
   include:
     - stage: test
       script: bash ci/script.sh
-      env: TEST_DIR="aqueduct"
+      env: TEST_DIR="aqueduct" RUNNER_ARGS="-t cli"
+    - stage: test
+      script: bash ci/script.sh
+      env: TEST_DIR="aqueduct" RUNNER_ARGS="-x cli"
     - stage: test
       script: bash ci/script.sh
       env: TEST_DIR="aqueduct_test"

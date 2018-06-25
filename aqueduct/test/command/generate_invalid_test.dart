@@ -1,3 +1,4 @@
+@Tags(const ["cli"])
 @Skip("waiting on #33513")
 @Timeout(const Duration(seconds: 60))
 import 'package:test/test.dart';
