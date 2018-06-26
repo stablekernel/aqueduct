@@ -53,7 +53,7 @@ void main() {
 
     HttpServer server;
     setUpAll(() async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
       server.listen((req) {
         req.response.statusCode = 200;
 
@@ -230,12 +230,12 @@ void main() {
       var defaultTestClient = new Agent.onPort(4000);
 
       server.queueResponse(
-          new Response.ok("text")..contentType = ContentType.TEXT);
+          new Response.ok("text")..contentType = ContentType.text);
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasBody("text"));
 
       server.queueResponse(
-          new Response.ok("text")..contentType = ContentType.TEXT);
+          new Response.ok("text")..contentType = ContentType.text);
 
       response = await defaultTestClient.request("/foo").get();
       expectFailureFor(() {
@@ -250,12 +250,12 @@ void main() {
       var defaultTestClient = new Agent.onPort(4000);
 
       server.queueResponse(
-          new Response.ok({"foo": "bar"})..contentType = ContentType.JSON);
+          new Response.ok({"foo": "bar"})..contentType = ContentType.json);
       var response = await defaultTestClient.request("/foo").get();
       expect(response, hasBody(isNotNull));
 
       server.queueResponse(
-          new Response.ok({"foo": "bar"})..contentType = ContentType.JSON);
+          new Response.ok({"foo": "bar"})..contentType = ContentType.json);
       response = await defaultTestClient.request("/foo").get();
       expectFailureFor(() {
         expect(response, hasBody({"foo": "notbar"}));
@@ -326,8 +326,8 @@ void main() {
       expectFailureFor(() {
         expect(response, hasBody({"foo": isNot(isString), "x": 5}));
       }, allOf([
-        contains("{'foo': <not an instance of String>, 'x': 5}"),
-        contains('does not match not an instance of String at location')
+        contains("{'foo': <not <Instance of \'String\'>>, 'x': 5}"),
+        contains('does not match not <Instance of \'String\'> at location')
       ]));
     });
 
@@ -387,12 +387,12 @@ void main() {
 
     test("Succeeds on fully specificed spec", () async {
       var defaultTestClient = new Agent.onPort(4000);
-      server.queueResponse(new Response.ok({"a": "b"})..contentType = ContentType.JSON);
+      server.queueResponse(new Response.ok({"a": "b"})..contentType = ContentType.json);
       var resp = expectResponse(await defaultTestClient.request("/foo").get(),
           200, body: {
             "a": "b"
           }, headers: {
-            "content-type": ContentType.JSON
+            "content-type": ContentType.json
           });
 
       expect(resp.statusCode, 200);
@@ -402,7 +402,7 @@ void main() {
       var defaultTestClient = new Agent.onPort(4000);
 
       server.queueResponse(
-          new Response.ok({"foo": "bar"})..contentType = ContentType.JSON);
+          new Response.ok({"foo": "bar"})..contentType = ContentType.json);
 
       var response = await defaultTestClient.request("/foo").get();
       expect(
@@ -425,7 +425,7 @@ void main() {
       var defaultTestClient = new Agent.onPort(4000);
 
       server.queueResponse(
-          new Response.ok({"foo": "bar"})..contentType = ContentType.JSON);
+          new Response.ok({"foo": "bar"})..contentType = ContentType.json);
       var response = await defaultTestClient.request("/foo").get();
       expect(
           response,

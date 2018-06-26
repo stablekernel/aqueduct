@@ -140,13 +140,13 @@ void main() {
 
 Future<http.Response> postMessage(String message) async {
   return http.post("http://localhost:8000/send",
-      headers: {HttpHeaders.CONTENT_TYPE: ContentType.TEXT.toString()}, body: message);
+      headers: {HttpHeaders.contentTypeHeader: ContentType.text.toString()}, body: message);
 }
 
 Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages, {int butNeverReceiveIn}) async {
   final response = await http.get("http://localhost:8000/messages");
   final respondingIsolateID = isolateIdentifierFromResponse(response);
-  final List<Map<String, dynamic>> messages = json.decode(response.body);
+  final List<dynamic> messages = json.decode(response.body);
 
   if (expectedMessages.containsKey(respondingIsolateID)) {
     final remainingMessagesExpectedForIsolateID = expectedMessages[respondingIsolateID];
@@ -191,14 +191,14 @@ Future<Map<int, List<Map<String, dynamic>>>> getMessagesFromIsolates() async {
 }
 
 Future<Map<int, List<String>>> getErrorsFromIsolates() async {
-  var msgs = {};
+  var msgs = <int, List<String>>{};
 
   while (msgs.length != numberOfIsolates) {
     var resp = await http.get("http://localhost:8000/errors");
     var serverID = isolateIdentifierFromResponse(resp);
 
     if (!msgs.containsKey(serverID)) {
-      msgs[serverID] = json.decode(resp.body);
+      msgs[serverID] = new List<String>.from(json.decode(resp.body));
     }
   }
 

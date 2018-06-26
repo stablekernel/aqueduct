@@ -46,7 +46,7 @@ class HTTPCodecRepository {
   /// and `text/html` have been added through this method, a [Response] with content type `text/html` will select the codec
   /// associated with `text/html` and not `text/*`.
   ///
-  /// [allowCompression] chooses whether or not response bodies are compressed with [GZIP] when using [contentType].
+  /// [allowCompression] chooses whether or not response bodies are compressed with [gzip] when using [contentType].
   /// Media types like images and audio files should avoid setting [allowCompression] because they are already compressed.
   ///
   /// A response with a content type not in this instance will be sent unchanged to the HTTP client (and therefore must be [List<int>]
@@ -114,7 +114,7 @@ class HTTPCodecRepository {
   /// Returns a [Codec] for [contentType].
   ///
   /// See [add].
-  Codec codecForContentType(ContentType contentType) {
+  Codec<dynamic, List<int>> codecForContentType(ContentType contentType) {
     if (contentType == null) {
       return null;
     }
@@ -153,7 +153,7 @@ class HTTPCodecRepository {
     return null;
   }
 
-  Codec _codecForCharset(String charset) {
+  Codec<dynamic, List<int>> _codecForCharset(String charset) {
     var encoding = Encoding.getByName(charset);
     if (encoding == null) {
       throw new Response(415, null, {"error": "invalid charset '$charset'"});
@@ -162,7 +162,7 @@ class HTTPCodecRepository {
     return encoding;
   }
 
-  Codec _defaultCharsetCodecForType(ContentType type) {
+  Codec<dynamic, List<int>> _defaultCharsetCodecForType(ContentType type) {
     var inner = _defaultCharsetMap[type.primaryType];
     if (inner == null) {
       return null;
@@ -177,7 +177,7 @@ class HTTPCodecRepository {
   }
 }
 
-class _FormCodec extends Codec {
+class _FormCodec extends Codec<Map<String, dynamic>, dynamic> {
   const _FormCodec();
 
   @override

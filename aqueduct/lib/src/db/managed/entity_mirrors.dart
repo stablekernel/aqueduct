@@ -23,6 +23,26 @@ VariableMirror instanceVariableFromClass(ClassMirror classMirror, Symbol name) {
   return instanceVariablesFromClass(classMirror).firstWhere((dm) => dm.simpleName == name, orElse: () => null);
 }
 
+ClassMirror dartTypeFromDeclaration(DeclarationMirror declaration) {
+  if (declaration is MethodMirror) {
+    ClassMirror type;
+
+    if (declaration.isGetter) {
+      type = declaration.returnType;
+    } else if (declaration.isSetter) {
+      type = declaration.parameters.first.type;
+    }
+
+    return type;
+  } else if (declaration is VariableMirror) {
+    return declaration.type;
+  }
+
+  throw new ManagedDataModelError(
+      "Tried getting property type description from non-property. This is an internal error, "
+      "as this method shouldn't be invoked on non-property or non-accessors.");
+}
+
 ManagedType propertyTypeFromDeclaration(DeclarationMirror declaration) {
   try {
     if (declaration is MethodMirror) {
@@ -126,7 +146,7 @@ bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
 Table tableAttributesFromPersistentType(ClassMirror typeMirror) =>
     firstMetadataOfType(typeMirror.reflectedType, reflectType(Table));
 
-List<Validate> validatorsFromDeclaration(DeclarationMirror dm) => allMetadataOfType(Validate, dm);
+List<Validate> validatorsFromDeclaration(DeclarationMirror dm) => allMetadataOfType(Validate, dm).cast<Validate>();
 
 Serialize transientMetadataFromDeclaration(DeclarationMirror dm) => firstMetadataOfType(Serialize, dm);
 

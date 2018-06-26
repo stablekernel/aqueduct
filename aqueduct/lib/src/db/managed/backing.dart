@@ -95,7 +95,7 @@ class ManagedBuilderBacking extends ManagedBacking {
       }
 
       if(!contents.containsKey(property.name)) {
-        contents[property.name] = property.inverse.entity.newInstance(backing: new ManagedForeignKeyBuilderBacking());
+        contents[property.name] = property.inverse.entity.instanceOf(backing: new ManagedForeignKeyBuilderBacking());
       }
     }
 
@@ -114,7 +114,7 @@ class ManagedBuilderBacking extends ManagedBacking {
       } else {
         final original = (value as ManagedObject);
         final replacementBacking = new ManagedForeignKeyBuilderBacking.from(original.entity, original.backing);
-        final replacement = original.entity.newInstance(backing: replacementBacking);
+        final replacement = original.entity.instanceOf(backing: replacementBacking);
         contents[property.name] = replacement;
       }
     } else {
@@ -155,7 +155,7 @@ class ManagedAccessTrackingBacking extends ManagedBacking {
     if (property is ManagedRelationshipDescription) {
       final tracker = new ManagedAccessTrackingBacking()
         ..workingKeyPath = keyPath;
-      return property.inverse.entity.newInstance(backing: tracker);
+      return property.inverse.entity.instanceOf(backing: tracker);
     } else if (property is ManagedAttributeDescription && property.type.kind == ManagedPropertyType.document) {
       return new DocumentAccessTracker(keyPath);
     }

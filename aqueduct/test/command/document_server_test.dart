@@ -1,3 +1,5 @@
+@Tags(const ["cli"])
+@Skip("Waiting on https://github.com/dart-lang/sdk/issues/33207")
 import 'dart:io';
 
 import 'package:test/test.dart';

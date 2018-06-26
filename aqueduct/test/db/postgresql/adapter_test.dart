@@ -57,7 +57,7 @@ void main() {
       var expectedValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
       var values =
           await Future.wait(expectedValues.map((i) => persistentStore.execute("select $i").catchError((e) => e)));
-      expect(values, everyElement(new isInstanceOf<QueryException>()));
+      expect(values, everyElement(TypeMatcher<QueryException>()));
     });
 
     test("Make multiple requests at once, first few fails because db connect fails (but eventually succeeds)",
@@ -67,7 +67,7 @@ void main() {
       var expectedValues = [1, 2, 3, 4, 5];
       var values =
           await Future.wait(expectedValues.map((i) => persistentStore.execute("select $i").catchError((e) => e)));
-      expect(values, everyElement(new isInstanceOf<QueryException>()));
+      expect(values, everyElement(TypeMatcher<QueryException>()));
 
       proxy = new SocketProxy(5433, 5432);
       await proxy.open();

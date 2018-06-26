@@ -6,7 +6,6 @@ import 'package:aqueduct/src/commands/running_process.dart';
 import 'package:aqueduct/src/commands/scripts/get_channel_type.dart';
 import 'package:args/args.dart';
 import 'package:isolate_executor/isolate_executor.dart';
-import 'package:path/path.dart' as path_lib;
 
 import 'base.dart';
 import 'dart:developer';
@@ -29,7 +28,7 @@ class CLIServer extends CLICommand with CLIProject {
           help: "The path to a configuration file. This File is available in the ApplicationOptions"
               "for a ApplicationChannel to use to read application-specific configuration values. Relative paths are relative to [directory].",
           defaultsTo: "config.yaml")
-      ..addOption("timeout", help: "Number of seconds to wait to ensure startup succeeded.", defaultsTo: "20")
+      ..addOption("timeout", help: "Number of seconds to wait to ensure startup succeeded.", defaultsTo: "45")
       ..addOption("isolates", abbr: "n", help: "Number of isolates processing requests", defaultsTo: "3")
       ..addOption("ssl-key-path",
           help:
@@ -127,7 +126,7 @@ class CLIServer extends CLICommand with CLIProject {
         paused: true);
 
     errorPort.listen((msg) {
-      if (msg is List<String>) {
+      if (msg is List) {
         startupCompleter.completeError(msg.first, new StackTrace.fromString(msg.last));
       }
     });
@@ -230,7 +229,7 @@ Future main(List<String> args, dynamic sendPort) async {
     """;
 
     return contents.replaceAllMapped(new RegExp("___([A-Za-z0-9_-]+)___"), (match) {
-      return values[match.group(1)];
+      return values[match.group(1)].toString();
     });
   }
 

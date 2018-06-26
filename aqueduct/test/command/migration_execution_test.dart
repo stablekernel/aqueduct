@@ -1,3 +1,5 @@
+@Tags(const ["cli"])
+@Timeout(const Duration(seconds: 120))
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
@@ -8,8 +10,8 @@ import 'dart:async';
 import 'cli_helpers.dart';
 
 Terminal terminal;
-DatabaseConnectionConfiguration connectInfo =
-    new DatabaseConnectionConfiguration.withConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
+DatabaseConfiguration connectInfo =
+    new DatabaseConfiguration.withConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
 String connectString = "postgres://${connectInfo.username}:${connectInfo.password}@${connectInfo.host}:${connectInfo
   .port}/${connectInfo.databaseName}";
 
@@ -156,9 +158,9 @@ void main() {
 }
 
 Future<List<String>> columnsOfTable(PersistentStore persistentStore, String tableName) async {
-  List<List<String>> results = await persistentStore.execute("select column_name from information_schema.columns where "
+  List<List<dynamic>> results = await persistentStore.execute("select column_name from information_schema.columns where "
       "table_name='$tableName'");
-  return results.map((rows) => rows.first).toList();
+  return results.map((rows) => rows.first as String).toList();
 }
 
 Future<bool> tableExists(PersistentStore store, String tableName) async {

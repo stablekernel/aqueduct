@@ -200,7 +200,7 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
           ? {"controller": "$runtimeType", "error": "$caughtValue.", "stacktrace": trace?.toString()}
           : null;
 
-      final response = new Response.serverError(body: body)..contentType = ContentType.JSON;
+      final response = new Response.serverError(body: body)..contentType = ContentType.json;
 
       await _sendResponse(request, response, includeCORSHeaders: true);
 
@@ -230,7 +230,7 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
     if (nextController == null) {
       if (_handler == null) {
-        throw new APIException(
+        throw new StateError(
             "Invalid documenter '${runtimeType}'. Reached end of controller chain and found no operations. Path has summary '${path
                 .summary}'.");
       }

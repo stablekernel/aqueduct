@@ -214,10 +214,10 @@ class _Child {
 
   String name;
 
-  @Relate(#children)
+  @Relate(Symbol('children'))
   Root parent;
 
-  @Relate(#child)
+  @Relate(Symbol('child'))
   Root parentHasOne;
 
 }

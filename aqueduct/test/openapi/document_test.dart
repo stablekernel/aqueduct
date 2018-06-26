@@ -127,10 +127,11 @@ void main() {
       try {
         await ctx.finalize();
         fail("unreachable");
-      } on StateError catch (e) {
-        expect(e.message, contains("Unresolved"));
-        expect(e.message, contains("'responses'"));
-        expect(e.message, contains("'String'"));
+      } on ArgumentError catch (e) {
+        expect(e.message, contains("Reference"));
+        expect(e.message, contains("responses"));
+        expect(e.message, contains("String"));
+        expect(e.message, contains("does not exist"));
       }
     });
 
@@ -141,9 +142,10 @@ void main() {
       try {
         await ctx.finalize();
         fail("unreachable");
-      } on StateError catch (e) {
-        expect(e.message, contains("Unresolved"));
+      } on ArgumentError catch (e) {
+        expect(e.message, contains("Reference"));
         expect(e.message, contains("'#/components/schemas/foo'"));
+        expect(e.message, contains("does not exist"));
       }
     });
 
@@ -236,7 +238,7 @@ void main() {
 
         opsWithMiddleware.forEach((op) {
           final middlewareParam =
-              op.parameters.where((p) => p.referenceURI == "#/components/parameters/x-api-key").toList();
+              op.parameters.where((p) => p.referenceURI?.path == "/components/parameters/x-api-key").toList();
           expect(middlewareParam.length, 1);
 
           expect(doc.components.resolve(middlewareParam.first).schema.type, APIType.string);
@@ -261,7 +263,7 @@ void main() {
 
       test("Can resolve component by type", () {
         final ref = doc.components.schemas["someObject"].properties["refByType"];
-        expect(ref.referenceURI, "#/components/schemas/ref-component");
+        expect(ref.referenceURI.path, "/components/schemas/ref-component");
 
         final resolved = doc.components.resolve(ref);
         expect(resolved.type, APIType.object);
@@ -346,20 +348,20 @@ void main() {
           ctx, (reflectClass(ComplexTypes).declarations[#f] as VariableMirror).type);
 
       expect(stringIntMap.type, APIType.object);
-      expect(stringIntMap.additionalProperties.type, APIType.integer);
+      expect(stringIntMap.additionalPropertySchema.type, APIType.integer);
       expect(intList.type, APIType.array);
       expect(intList.items.type, APIType.integer);
       expect(listOfMaps.type, APIType.array);
       expect(listOfMaps.items.type, APIType.object);
-      expect(listOfMaps.items.additionalProperties.type, APIType.string);
+      expect(listOfMaps.items.additionalPropertySchema.type, APIType.string);
       expect(listOfSerial.type, APIType.array);
       expect(listOfSerial.items.type, APIType.object);
       expect(listOfSerial.items.properties["x"].type, APIType.integer);
       expect(serial.type, APIType.object);
       expect(serial.properties["x"].type, APIType.integer);
       expect(stringListMap.type, APIType.object);
-      expect(stringListMap.additionalProperties.type, APIType.array);
-      expect(stringListMap.additionalProperties.items.type, APIType.string);
+      expect(stringListMap.additionalPropertySchema.type, APIType.array);
+      expect(stringListMap.additionalPropertySchema.items.type, APIType.string);
     });
 
     test("Documentation comments for declarations are available in schema object", () async {

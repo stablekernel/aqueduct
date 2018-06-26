@@ -41,7 +41,7 @@ void main() {
     test(
         "Application that fails to open because port is bound fails gracefully",
             () async {
-          var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8888);
+          var server = await HttpServer.bind(InternetAddress.anyIPv4, 8888);
           server.listen((req) {});
 
           var conflictingApp = new Application<TestChannel>();

@@ -30,7 +30,7 @@ class CLIDatabaseSchema extends CLIDatabaseManagingCommand {
     return "Emits the data model of a project as JSON to stdout.";
   }
 
-  Future<Map<String, dynamic>> getSchema() {
+  Future<dynamic> getSchema() {
     return IsolateExecutor.executeWithType(GetSchemaExecutable,
         packageConfigURI: packageConfigUri,
         imports: GetSchemaExecutable.importsForPackage(packageName),

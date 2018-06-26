@@ -1,3 +1,6 @@
+@Tags(const ["cli"])
+@Timeout(const Duration(seconds: 60))
+
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 import 'cli_helpers.dart';

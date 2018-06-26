@@ -140,7 +140,7 @@ class HTTPFileController extends Controller {
   @override
   Future<RequestOrResponse> handle(Request request) async {
     if (request.method != "GET") {
-      return new Response(HttpStatus.METHOD_NOT_ALLOWED, null, null);
+      return new Response(HttpStatus.methodNotAllowed, null, null);
     }
 
     var relativePath = request.path.remainingPath;
@@ -158,16 +158,16 @@ class HTTPFileController extends Controller {
       }
 
       var response = new Response.notFound();
-      if (request.acceptsContentType(ContentType.HTML)) {
+      if (request.acceptsContentType(ContentType.html)) {
         response
           ..body = "<html><h3>404 Not Found</h3></html>"
-          ..contentType = ContentType.HTML;
+          ..contentType = ContentType.html;
       }
       return response;
     }
 
     var lastModifiedDate = await file.lastModified();
-    var ifModifiedSince = request.raw.headers.value(HttpHeaders.IF_MODIFIED_SINCE);
+    var ifModifiedSince = request.raw.headers.value(HttpHeaders.ifModifiedSinceHeader);
     if (ifModifiedSince != null) {
       var date = HttpDate.parse(ifModifiedSince);
       if (!lastModifiedDate.isAfter(date)) {
@@ -180,7 +180,7 @@ class HTTPFileController extends Controller {
         contentTypeForExtension(path.extension(file.path)) ?? new ContentType("application", "octet-stream");
     var byteStream = file.openRead();
 
-    return new Response.ok(byteStream, headers: {HttpHeaders.LAST_MODIFIED: lastModifiedDateStringValue})
+    return new Response.ok(byteStream, headers: {HttpHeaders.lastModifiedHeader: lastModifiedDateStringValue})
       ..cachePolicy = _policyForFile(file)
       ..encodeBody = false
       ..contentType = contentType;

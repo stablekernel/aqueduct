@@ -82,7 +82,7 @@ class ManagedEntity implements APIComponentDocumenter {
   /// The string key is the name of the property, case-sensitive. Values will be instances of either [ManagedAttributeDescription]
   /// or [ManagedRelationshipDescription]. This is the concatenation of [attributes] and [relationships].
   Map<String, ManagedPropertyDescription> get properties {
-    var all = new Map.from(attributes) as Map<String, ManagedPropertyDescription>;
+    var all = new Map<String, ManagedPropertyDescription>.from(attributes);
     if (relationships != null) {
       all.addAll(relationships);
     }
@@ -171,8 +171,9 @@ class ManagedEntity implements APIComponentDocumenter {
 
   /// Creates a new instance of this entity's instance type.
   ///
-  /// By default, the returned object will use a normal value backing map. 
-  ManagedObject newInstance({ManagedBacking backing}) {
+  /// By default, the returned object will use a normal value backing map.
+  /// If [backing] is non-null, it will be the backing map of the returned object.
+  ManagedObject instanceOf({ManagedBacking backing}) {
     if (backing != null) {
       return ManagedObject.instantiateDynamic(this, backing: backing);
     }
@@ -266,7 +267,7 @@ class ManagedEntity implements APIComponentDocumenter {
   /// property relative to this entity.
   List<KeyPath> identifyProperties<T, U>(T propertiesIdentifier(U x)) {
     final tracker = new ManagedAccessTrackingBacking();
-    var obj = newInstance(backing: tracker);
+    var obj = instanceOf(backing: tracker);
     propertiesIdentifier(obj as U);
 
     return tracker.keyPaths;

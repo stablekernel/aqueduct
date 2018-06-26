@@ -1,3 +1,5 @@
+@Skip("Waiting on https://github.com/dart-lang/sdk/issues/33207")
+
 import 'dart:io';
 import 'dart:async';
 
@@ -340,9 +342,9 @@ void main() {
         "password": InMemoryAuthStorage.DefaultPassword
       });
 
-      expect(resp, hasStatus(HttpStatus.MOVED_TEMPORARILY));
+      expect(resp, hasStatus(HttpStatus.movedTemporarily));
 
-      var location = resp.headers.value(HttpHeaders.LOCATION);
+      var location = resp.headers.value(HttpHeaders.locationHeader);
       var uri = Uri.parse(location);
       var requestURI = new Uri.http("stablekernel.com", "/auth/redirect");
       expect(uri.queryParameters["error"], "invalid_request");
@@ -471,13 +473,13 @@ void main() {
 
     test("POST response can be redirect or bad request", () {
       expect(operations["post"].responses, {
-        "${HttpStatus.MOVED_TEMPORARILY}": isNotNull,
-        "${HttpStatus.BAD_REQUEST}": isNotNull,
+        "${HttpStatus.movedTemporarily}": isNotNull,
+        "${HttpStatus.badRequest}": isNotNull,
       });
     });
 
     test("POST response is a redirect", () {
-      final redirectResponse = operations["post"].responses["${HttpStatus.MOVED_TEMPORARILY}"];
+      final redirectResponse = operations["post"].responses["${HttpStatus.movedTemporarily}"];
       expect(redirectResponse.content, isNull);
       expect(redirectResponse.headers["Location"].schema.type, APIType.string);
       expect(redirectResponse.headers["Location"].schema.format, "uri");
@@ -517,9 +519,9 @@ class TestChannel extends ApplicationChannel implements AuthCodeControllerDelega
 }
 
 void expectRedirect(TestResponse resp, Uri requestURI, {String state}) {
-  expect(resp, hasStatus(HttpStatus.MOVED_TEMPORARILY));
+  expect(resp, hasStatus(HttpStatus.movedTemporarily));
 
-  var location = resp.headers.value(HttpHeaders.LOCATION);
+  var location = resp.headers.value(HttpHeaders.locationHeader);
   var uri = Uri.parse(location);
 
   expect(uri.queryParameters["code"], hasLength(greaterThan(0)));
@@ -532,9 +534,9 @@ void expectRedirect(TestResponse resp, Uri requestURI, {String state}) {
 }
 
 void expectErrorRedirect(TestResponse resp, Uri requestURI, String errorReason, {String state}) {
-  expect(resp, hasStatus(HttpStatus.MOVED_TEMPORARILY));
+  expect(resp, hasStatus(HttpStatus.movedTemporarily));
 
-  var location = resp.headers.value(HttpHeaders.LOCATION);
+  var location = resp.headers.value(HttpHeaders.locationHeader);
   var uri = Uri.parse(location);
   expect(uri.authority, requestURI.authority);
   expect(uri.path, requestURI.path);

@@ -55,20 +55,20 @@ void main() {
     test("Schema contains to-many relationships", () {
       final entity = doc.components.schemas["Model1"];
       expect(entity.properties["model2s"].type, APIType.array);
-      expect(entity.properties["model2s"].items.referenceURI, "#/components/schemas/Model2");
+      expect(entity.properties["model2s"].items.referenceURI.path, "/components/schemas/Model2");
     });
 
     test("Schema contains to-one relationships", () {
       final entity = doc.components.schemas["Model1"];
-      expect(entity.properties["model3"].referenceURI, "#/components/schemas/Model3");
+      expect(entity.properties["model3"].referenceURI.path, "/components/schemas/Model3");
     });
 
     test("Schema contains belongs-to relationships", () {
       final model2 = doc.components.schemas["Model2"];
-      expect(model2.properties["model1"].referenceURI, "#/components/schemas/Model1");
+      expect(model2.properties["model1"].referenceURI.path, "/components/schemas/Model1");
 
       final model3 = doc.components.schemas["Model3"];
-      expect(model3.properties["model1"].referenceURI, "#/components/schemas/Model1");
+      expect(model3.properties["model1"].referenceURI.path, "/components/schemas/Model1");
     });
 
     test("If property is not in default set, it should not be included in schema", () {
@@ -228,7 +228,7 @@ class Model1 extends ManagedObject<_Model1> implements _Model1 {
   DateTime field;
 }
 
-@Table(uniquePropertySet: const [#string, #dateTime])
+@Table(uniquePropertySet: [Symbol('string'), Symbol('dateTime')])
 class _Model1 {
   @primaryKey
   int id;
@@ -257,12 +257,12 @@ class _Model2 {
   @primaryKey
   int id;
 
-  @Relate(#model2s)
+  @Relate(Symbol('model2s'))
   Model1 model1;
 }
 
 class Model3 extends ManagedObject<_Model3> implements _Model3 {}
-@Table(uniquePropertySet: const [#matches, #lessThan])
+@Table(uniquePropertySet: [Symbol('matches'), Symbol('lessThan')])
 class _Model3 {
   @primaryKey
   int id;
@@ -303,7 +303,7 @@ class _Model3 {
   @Validate.compare(greaterThan: "hello")
   String nonNumCompare;
 
-  @Relate(#model3)
+  @Relate(Symbol('model3'))
   Model1 model1;
 }
 

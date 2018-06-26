@@ -314,6 +314,7 @@ void main() {
 
     try {
       var q = new Query<GenUser>(context)..join(set: (u) => u.posts);
+
       await q.fetchOne();
 
       expect(true, false);
@@ -463,7 +464,7 @@ class _GenPost {
 
   String text;
 
-  @Relate(#posts,
+  @Relate(Symbol('posts'),
       onDelete: DeleteRule.cascade, isRequired: false)
   GenUser owner;
 }

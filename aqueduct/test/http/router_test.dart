@@ -51,9 +51,9 @@ void main() {
 
       server = await enableRouter(router);
 
-      var response = await http.get("http://localhost:4040/notplayer", headers: {HttpHeaders.ACCEPT: "application/json"});
+      var response = await http.get("http://localhost:4040/notplayer", headers: {HttpHeaders.acceptHeader: "application/json"});
       expect(response.statusCode, equals(404));
-      expect(response.headers[HttpHeaders.CONTENT_TYPE], isNull);
+      expect(response.headers[HttpHeaders.contentTypeHeader], isNull);
       expect(response.body.isEmpty, true);
     });
 
@@ -273,7 +273,7 @@ void main() {
       root.link(() => router);
 
       root.didAddToChannel();
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
       server.map((httpReq) => new Request(httpReq)).listen(root.receive);
 
       expect((await http.get("http://localhost:4040/1")).body, "1");
@@ -300,7 +300,7 @@ void main() {
 
 Future<HttpServer> enableRouter(Router router) async {
   router.didAddToChannel();
-  var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
+  var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
   server.map((httpReq) => new Request(httpReq)).listen(router.receive);
   return server;
 }
@@ -319,7 +319,7 @@ class NumberEmitter extends Controller {
 
   @override
   Future<RequestOrResponse> handle(Request req) async {
-    return new Response(200, null, "$number")..contentType = ContentType.TEXT;
+    return new Response(200, null, "$number")..contentType = ContentType.text;
   }
 }
 

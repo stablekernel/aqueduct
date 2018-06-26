@@ -83,7 +83,7 @@ class Authorizer extends Controller {
 
   @override
   FutureOr<RequestOrResponse> handle(Request req) async {
-    var authData = req.raw.headers.value(HttpHeaders.AUTHORIZATION);
+    var authData = req.raw.headers.value(HttpHeaders.authorizationHeader);
     if (authData == null) {
       return new Response.unauthorized();
     }

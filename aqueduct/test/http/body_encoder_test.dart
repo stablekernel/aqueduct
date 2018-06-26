@@ -132,7 +132,7 @@ void main() {
         var resp = await req.close();
 
         expect(resp.statusCode, 200);
-        expect(resp.headers.contentType.toString(), equals(ContentType.JSON.toString()));
+        expect(resp.headers.contentType.toString(), equals(ContentType.json.toString()));
         expect(resp.headers.value("content-encoding"), "gzip", reason: acceptEncoding);
         expect(resp.headers.value("content-length"), isNotNull);
         expect(json.decode(utf8.decode(await resp.first)), {"a":"b"});
@@ -146,7 +146,7 @@ void main() {
       req.headers.clear();
       var resp = await req.close();
 
-      expect(resp.headers.contentType.toString(), equals(ContentType.JSON.toString()));
+      expect(resp.headers.contentType.toString(), equals(ContentType.json.toString()));
       expect(resp.headers.value("content-encoding"), isNull);
       expect(resp.headers.value("content-length"), isNotNull);
 
@@ -162,7 +162,7 @@ void main() {
       req.headers.add("accept-encoding", "deflate");
       var resp = await req.close();
 
-      expect(resp.headers.contentType.toString(), equals(ContentType.JSON.toString()));
+      expect(resp.headers.contentType.toString(), equals(ContentType.json.toString()));
       expect(resp.headers.value("content-encoding"), isNull);
 
       expect(resp.statusCode, 200);
@@ -219,7 +219,7 @@ void main() {
 }
 
 Future<HttpServer> bindAndRespondWith(Response response) async {
-  var server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+  var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
   server.map((req) => new Request(req)).listen((req) async {
     var next = new Controller();
     next.linkFunction((req) async {
@@ -231,11 +231,11 @@ Future<HttpServer> bindAndRespondWith(Response response) async {
   return server;
 }
 
-class ByteCodec extends Codec {
+class ByteCodec extends Codec<dynamic, List<int>> {
   @override
-  Converter get encoder => const ByteEncoder();
+  Converter<dynamic, List<int>> get encoder => const ByteEncoder();
   @override
-  Converter get decoder => null;
+  Converter<List<int>, dynamic> get decoder => null;
 }
 
 class ByteEncoder extends Converter<String, List<int>> {

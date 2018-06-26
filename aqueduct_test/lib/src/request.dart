@@ -32,8 +32,8 @@ class TestRequest {
   ///
   /// [body] will be encoded according to the codec in [HTTPCodecRepository] that matches this value.
   ///
-  /// Defaults to [ContentType.JSON].
-  ContentType contentType = ContentType.JSON;
+  /// Defaults to [ContentType.json].
+  ContentType contentType = ContentType.json;
 
   /// The body of the this request.
   ///
@@ -97,7 +97,7 @@ class TestRequest {
   ///
   ///         Authorization: Basic Base64(username:password)
   void setBasicAuthorization(String username, String password) {
-    headers[HttpHeaders.AUTHORIZATION] = "Basic ${new Base64Encoder().convert("$username:$password".codeUnits)}";
+    headers[HttpHeaders.authorizationHeader] = "Basic ${new Base64Encoder().convert("$username:$password".codeUnits)}";
   }
 
   /// Sets the Authorization header of this request.
@@ -106,12 +106,12 @@ class TestRequest {
   ///
   ///         Authorization: Bearer token
   set bearerAuthorization(String token) {
-    headers[HttpHeaders.AUTHORIZATION] = "Bearer $token";
+    headers[HttpHeaders.authorizationHeader] = "Bearer $token";
   }
 
   /// Sets the Accept header of this request.
   set accept(List<ContentType> contentTypes) {
-    headers[HttpHeaders.ACCEPT] = contentTypes.map((ct) => ct.toString()).join(",");
+    headers[HttpHeaders.acceptHeader] = contentTypes.map((ct) => ct.toString()).join(",");
   }
 
   /// Executes this request with HTTP POST.

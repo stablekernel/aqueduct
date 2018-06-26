@@ -17,8 +17,7 @@ class OpenAPIBuilder extends Executable {
         contactURL = message["contactURL"] != null ? Uri.parse(message["contactURL"]) : null,
         licenseURL = message["licenseURL"] != null ? Uri.parse(message["licenseURL"]) : null,
         licenseName = message["licenseName"],
-        hosts =
-            (message["hosts"] as List<String>)?.map((uri) => new APIServerDescription(Uri.parse(uri)))?.toList() ?? [],
+        hosts = (message["hosts"] as List<Uri>)?.map((uri) => new APIServerDescription(uri))?.toList() ?? [],
         super(message);
 
   final String pubspecContents;
@@ -38,7 +37,8 @@ class OpenAPIBuilder extends Executable {
   Future<dynamic> execute() async {
     var config = new ApplicationOptions()..configurationFilePath = configPath;
 
-    var document = await Application.document(ApplicationChannel.defaultType, config, loadYaml(pubspecContents));
+    final yaml = (loadYaml(pubspecContents) as Map<dynamic, dynamic>).cast<String, dynamic>();
+    var document = await Application.document(ApplicationChannel.defaultType, config, yaml);
 
     document.servers = hosts;
     if (title != null) {

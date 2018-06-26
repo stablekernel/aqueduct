@@ -81,9 +81,9 @@ class Application<T extends ApplicationChannel> {
 
     if (options.address == null) {
       if (options.isIpv6Only) {
-        options.address = InternetAddress.ANY_IP_V6;
+        options.address = InternetAddress.anyIPv6;
       } else {
-        options.address = InternetAddress.ANY_IP_V4;
+        options.address = InternetAddress.anyIPv4;
       }
     }
 
@@ -114,7 +114,7 @@ class Application<T extends ApplicationChannel> {
       throw new StateError("Application error. Cannot invoke 'test' on already running Aqueduct application.");
     }
 
-    options.address = InternetAddress.LOOPBACK_IP_V4;
+    options.address = InternetAddress.loopbackIPv4;
 
     var channelType = reflectClass(T);
     try {

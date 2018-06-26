@@ -375,8 +375,8 @@ class Runner {
   }
 }
 
-class ReleaseConfig extends ConfigurationItem {
-  ReleaseConfig(String filename) : super.fromFile(filename);
+class ReleaseConfig extends Configuration {
+  ReleaseConfig(String filename) : super.fromFile(new File(filename));
 
   String githubToken;
 }

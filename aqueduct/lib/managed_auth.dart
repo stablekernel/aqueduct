@@ -44,7 +44,7 @@ class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
         .entity
         .relationships["resourceOwner"]
         .destinationEntity
-        .newInstance();
+        .instanceOf();
     tokenResourceOwner["id"] = t.resourceOwnerIdentifier;
     this
       ..accessToken = t.accessToken
@@ -63,7 +63,7 @@ class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
         .entity
         .relationships["resourceOwner"]
         .destinationEntity
-        .newInstance();
+        .instanceOf();
     tokenResourceOwner["id"] = code.resourceOwnerIdentifier;
 
     this
@@ -150,7 +150,7 @@ class _ManagedAuthToken {
   ResourceOwnerTableDefinition resourceOwner;
 
   /// The client this token was issued for.
-  @Relate(#tokens,
+  @Relate(Symbol('tokens'),
       onDelete: DeleteRule.cascade, isRequired: true)
   ManagedAuthClient client;
 

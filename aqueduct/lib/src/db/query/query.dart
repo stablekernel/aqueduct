@@ -52,7 +52,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   /// This is equivalent to creating a [Query], assigning [object] to [values], and invoking [insert].
   static Future<T> insertObject<T extends ManagedObject>(ManagedContext context, T object) {
-    final query = new Query.forEntity(object.entity, context)..values = object;
+    final query = new Query<T>(context)..values = object;
     return query.insert();
   }
 

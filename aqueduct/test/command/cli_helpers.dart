@@ -154,7 +154,7 @@ class Terminal {
     final cmd = Platform.isWindows ? "pub.bat" : "pub";
     var result = await Process
         .run(cmd, args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
-        .timeout(new Duration(seconds: 20));
+        .timeout(new Duration(seconds: 45));
 
     if (result.exitCode != 0) {
       throw new Exception("${result.stderr}");
@@ -209,7 +209,7 @@ class Terminal {
         task._processStarted.complete(true);
       } else {
         elapsed += 100;
-        if (elapsed > 30000) {
+        if (elapsed > 60000) {
           Directory.current = saved;
           t.cancel();
           task._processStarted.completeError(new TimeoutException("Timed out after 30 seconds"));
@@ -241,14 +241,14 @@ description: A web server application.
 version: 0.0.1
 
 environment:
-  sdk: '>=1.20.0 <2.0.0'
+  sdk: ">=2.0.0-dev <3.0.0"
 
 dependencies:
   aqueduct:
     path: ../..
 
 dev_dependencies:
-  test: '>=0.12.0 <0.13.0'  
+  test: ^1.0.0  
   """;
 
   static final _emptyProjectLibrary = """
@@ -257,6 +257,7 @@ export 'channel.dart';
   """;
 
   static final _emptyProjectChannel = """
+import 'dart:async';
 import 'application_test.dart';
 import 'package:aqueduct/aqueduct.dart';
 class TestChannel extends ApplicationChannel {

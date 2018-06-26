@@ -1,3 +1,4 @@
+@Skip("Waiting on https://github.com/dart-lang/sdk/issues/33207")
 import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
@@ -313,7 +314,7 @@ void main() {
     expect(json.decode(resp.body), {"didDecode": false});
 
     resp = await http.post("http://localhost:4040/a", headers: {
-      HttpHeaders.CONTENT_TYPE: ContentType.JSON.toString()
+      HttpHeaders.contentTypeHeader: ContentType.json.toString()
     }, body: json.encode({
       "k":"v"
     }));
@@ -778,7 +779,7 @@ Future<HttpServer> enableController(String pattern, Type controller) async {
       () => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
   router.didAddToChannel();
 
-  var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
+  var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
   server.map((httpReq) => new Request(httpReq)).listen(router.receive);
 
   return server;

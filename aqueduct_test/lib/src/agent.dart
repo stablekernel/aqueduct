@@ -79,7 +79,7 @@ class Agent {
   /// Defaults to 'application/json; charset=utf-8'. A request created
   /// by this agent will have its [TestRequest.contentType] set
   /// to this value.
-  ContentType contentType = ContentType.JSON;
+  ContentType contentType = ContentType.json;
 
   /// The base URL that this agent's requests will be made against.
   String get baseURL {
@@ -106,12 +106,12 @@ class Agent {
   ///
   /// Prefixes [token] with 'Bearer ' and sets it for the key 'authorization' in [headers].
   set bearerAuthorization(String token) {
-    headers[HttpHeaders.AUTHORIZATION] = "Bearer $token";
+    headers[HttpHeaders.authorizationHeader] = "Bearer $token";
   }
 
   /// Adds Accept header to requests from this agent.
   set accept(List<ContentType> contentTypes) {
-    headers[HttpHeaders.ACCEPT] = contentTypes.map((ct) => ct.toString()).join(",");
+    headers[HttpHeaders.acceptHeader] = contentTypes.map((ct) => ct.toString()).join(",");
   }
 
   /// Creates a request object for [path] that can be configured and executed later.

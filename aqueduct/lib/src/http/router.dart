@@ -165,10 +165,10 @@ class Router extends Controller {
 
   Future _handleUnhandledRequest(Request req) async {
     var response = new Response.notFound();
-    if (req.acceptsContentType(ContentType.HTML)) {
+    if (req.acceptsContentType(ContentType.html)) {
       response
         ..body = "<html><h3>404 Not Found</h3></html>"
-        ..contentType = ContentType.HTML;
+        ..contentType = ContentType.html;
     }
 
     applyCORSHeadersIfNecessary(req, response);

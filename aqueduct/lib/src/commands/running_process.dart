@@ -5,13 +5,13 @@ typedef Future _StopProcess(String reason);
 
 class StoppableProcess {
   StoppableProcess(Future onStop(String reason)) : _stop = onStop {
-    var l1 = ProcessSignal.SIGINT.watch().listen((_) {
+    var l1 = ProcessSignal.sigint.watch().listen((_) {
       stop(0, reason: "Process interrupted.");
     });
     _listeners.add(l1);
 
     if (!Platform.isWindows) {
-      var l2 = ProcessSignal.SIGTERM.watch().listen((_) {
+      var l2 = ProcessSignal.sigterm.watch().listen((_) {
         stop(0, reason: "Process terminated by OS.");
       });
       _listeners.add(l2);

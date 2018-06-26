@@ -255,6 +255,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
           }
 
           var decodedValue = property.convertFromPrimitiveValue(v);
+
           if (!property.isAssignableWith(decodedValue)) {
             throw new ValidationException(["invalid input type for key '$k'"]);
           }

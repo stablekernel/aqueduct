@@ -125,7 +125,7 @@ abstract class BodyDecoder {
   /// throws an error [Response].
   ///
   /// For a non-[Future] variant, see [asList].
-  Future<List<Map<String, dynamic>>> decodeAsList() async {
+  Future<List<dynamic>> decodeAsList() async {
     await decodedData;
 
     return asList();

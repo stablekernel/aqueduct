@@ -11,7 +11,7 @@ abstract class Returnable {}
 class ColumnBuilder extends Returnable {
   ColumnBuilder(this.table, this.property, {this.documentKeyPath});
 
-  static List<ColumnBuilder> fromKeys(TableBuilder table, List<KeyPath> keys) {
+  static List<Returnable> fromKeys(TableBuilder table, List<KeyPath> keys) {
     keys ??= [];
 
     final entity = table.entity;
@@ -33,9 +33,9 @@ class ColumnBuilder extends Returnable {
       keys.insert(0, new KeyPath(entity.primaryKeyAttribute));
     }
 
-    return keys.map((key) {
+    return new List.from(keys.map((key) {
       return new ColumnBuilder(table, propertyForName(entity, key.path.first.name), documentKeyPath: key.dynamicElements);
-    }).toList();
+    }));
   }
 
   static ManagedPropertyDescription propertyForName(ManagedEntity entity, String propertyName) {
@@ -76,13 +76,13 @@ class ColumnBuilder extends Returnable {
 
   final TableBuilder table;
   final ManagedPropertyDescription property;
-  final List<String> documentKeyPath;
+  final List<dynamic> documentKeyPath;
 
   dynamic convertValueForStorage(dynamic value) {
     if (property is ManagedAttributeDescription) {
       ManagedAttributeDescription p = property;
       if (p.isEnumeratedValue) {
-        return property.convertToPrimitiveValue(value);
+        return value.toString().split(".").last;
       } else if (p.type.kind == ManagedPropertyType.document) {
         if (value is Document) {
           return value.data;
@@ -105,7 +105,10 @@ class ColumnBuilder extends Returnable {
     if (property is ManagedAttributeDescription) {
       ManagedAttributeDescription p = property;
       if (p.isEnumeratedValue) {
-        return property.convertFromPrimitiveValue(value);
+        if (!p.enumerationValueMap.containsKey(value)) {
+          throw new ValidationException(["invalid option for key '${p.name}'"]);
+        }
+        return p.enumerationValueMap[value];
       } else if (p.type.kind == ManagedPropertyType.document) {
         return new Document(value);
       }
