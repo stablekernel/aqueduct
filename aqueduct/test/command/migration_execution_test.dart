@@ -66,7 +66,7 @@ void main() {
 
     terminal.clearOutput();
     expect(await runMigrationCases(["Case2"]), 0);
-    versionRow = await store.execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
+    versionRow = await store.execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql") as List<List>;
     expect(versionRow.length, 1);
     expect(versionRow.first.last, equals(updateDate));
     expect(terminal.output, contains("already current (version: 1)"));

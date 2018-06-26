@@ -367,8 +367,8 @@ void main() {
     });
 
     test("refresh_token appears more than once", () async {
-      var refreshToken = Uri.encodeQueryComponent(
-          (await grant("com.stablekernel.app1", "kilimanjaro", user1)).body.asMap()["refresh_token"]);
+      final grantMap = (await grant("com.stablekernel.app1", "kilimanjaro", user1)).body.asMap();
+      final refreshToken = Uri.encodeQueryComponent(grantMap["refresh_token"] as String);
 
       var req = client.request("/auth/token")
         ..encodeBody = false

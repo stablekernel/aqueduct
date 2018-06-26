@@ -190,7 +190,7 @@ Future expectSchema(Schema schema,
       packageConfigURI: Directory.current.uri.resolve(".packages"),
       imports: MigrateSchema.imports,
       additionalContents: contents,
-      message: {"schema": schema.asMap()});
+      message: {"schema": schema.asMap()}) as Map<String, dynamic>;
 
   var createdSchema = new Schema.fromMap(response);
   var diff = createdSchema.differenceFrom(becomesSchema);
@@ -204,14 +204,14 @@ Future expectSchema(Schema schema,
 
 class MigrateSchema extends Executable {
   MigrateSchema(Map<String, dynamic> message)
-      : schema = new Schema.fromMap(message["schema"]),
+      : schema = new Schema.fromMap(message["schema"] as Map<String, dynamic>),
         super(message);
 
   final Schema schema;
 
   @override
   Future<dynamic> execute() async {
-    final migration = instanceOf("Migration1");
+    final migration = instanceOf("Migration1") as Migration;
     final outSchema = await schemaByApplyingMigrations([migration], fromSchema: schema);
 
     return outSchema.asMap();

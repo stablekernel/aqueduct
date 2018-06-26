@@ -37,7 +37,7 @@ void main() {
     expect(terminal.output, contains("config.yaml"));
 
     var thisPubspec = yaml.loadYaml(new File.fromUri(Directory.current.uri.resolve("pubspec.yaml")).readAsStringSync());
-    var thisVersion = new Version.parse(thisPubspec["version"]);
+    var thisVersion = new Version.parse(thisPubspec["version"] as String);
     expect(terminal.output, contains("CLI Version: $thisVersion"));
     expect(terminal.output, contains("Aqueduct project version: $thisVersion"));
 
@@ -82,7 +82,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
         .startAqueductCommand("serve", ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
     await task.hasStarted;
 
-    var completer = new Completer();
+    var completer = new Completer<List<int>>();
     var socket = await SecureSocket.connect("localhost", 8888, onBadCertificate: (_) => true);
     var request = "GET /example HTTP/1.1\r\nConnection: close\r\nHost: localhost\r\n\r\n";
     socket.add(request.codeUnits);
