@@ -29,7 +29,7 @@ void main() {
   setUpAll(() async {
     application = new Application<TestChannel>();
 
-    await application.test();
+    await application.startOnCurrentIsolate();
   });
 
   tearDownAll(() async {
