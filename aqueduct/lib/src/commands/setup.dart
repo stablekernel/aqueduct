@@ -25,10 +25,10 @@ class CLISetup extends CLICommand with CLIProject {
   }
 
   bool get shouldSetupHeroku => herokuName != null;
-  String get herokuName => values["heroku"];
-  bool get shouldSetupTests => values["tests"];
-  bool get confirm => values["confirm"];
-  String get grantingUser => values["granting-user"];
+  String get herokuName => decode("heroku");
+  bool get shouldSetupTests => decode("tests");
+  bool get confirm => decode("confirm");
+  String get grantingUser => decode("granting-user");
 
   @override
   Future<int> handle() async {

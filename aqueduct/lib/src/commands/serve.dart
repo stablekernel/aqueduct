@@ -4,7 +4,6 @@ import 'dart:isolate';
 
 import 'package:aqueduct/src/commands/running_process.dart';
 import 'package:aqueduct/src/commands/scripts/get_channel_type.dart';
-import 'package:args/args.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
 import 'base.dart';
@@ -42,27 +41,26 @@ class CLIServer extends CLICommand with CLIProject {
 
   String derivedChannelType;
 
-  ArgResults get command => values.command;
 
-  int get startupTimeout => int.parse(values["timeout"]);
+  int get startupTimeout => decode("timeout");
 
-  String get keyPath => values["ssl-key-path"];
+  String get keyPath => decode("ssl-key-path");
 
-  String get certificatePath => values["ssl-certificate-path"];
+  String get certificatePath => decode("ssl-certificate-path");
 
-  bool get shouldRunObservatory => values["observe"];
+  bool get shouldRunObservatory => decode("observe");
 
-  bool get ipv6Only => values["ipv6-only"];
+  bool get ipv6Only => decode("ipv6-only");
 
-  int get port => int.parse(values["port"]);
+  int get port => decode("port");
 
-  int get numberOfIsolates => int.parse(values["isolates"]);
+  int get numberOfIsolates => decode("isolates");
 
-  String get address => values["address"];
+  String get address => decode("address");
 
-  String get channelType => values["channel"] ?? derivedChannelType;
+  String get channelType => decode("channel") ?? derivedChannelType;
 
-  File get configurationFile => new File(values["config-path"]).absolute;
+  File get configurationFile => new File(decode("config-path")).absolute;
 
   ReceivePort messagePort;
   ReceivePort errorPort;
