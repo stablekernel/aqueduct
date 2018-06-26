@@ -28,7 +28,8 @@ class CLIServer extends CLICommand with CLIProject {
               "for a ApplicationChannel to use to read application-specific configuration values. Relative paths are relative to [directory].",
           defaultsTo: "config.yaml")
       ..addOption("timeout", help: "Number of seconds to wait to ensure startup succeeded.", defaultsTo: "45")
-      ..addOption("isolates", abbr: "n", help: "Number of isolates processing requests", defaultsTo: "3")
+      ..addOption("isolates",
+          abbr: "n", help: "Number of isolates processing requests", defaultsTo: "${Platform.numberOfProcessors}")
       ..addOption("ssl-key-path",
           help:
               "The path to an SSL private key file. If provided along with --ssl-certificate-path, the application will be HTTPS-enabled.")
@@ -40,7 +41,6 @@ class CLIServer extends CLICommand with CLIProject {
   }
 
   String derivedChannelType;
-
 
   int get startupTimeout => decode("timeout");
 
@@ -164,7 +164,9 @@ class CLIServer extends CLICommand with CLIProject {
 
   Future<String> deriveApplicationLibraryDetails() async {
     final name = await IsolateExecutor.executeWithType(GetChannelExecutable,
-        packageConfigURI: packageConfigUri, imports: GetChannelExecutable.importsForPackage(libraryName), logHandler: displayProgress);
+        packageConfigURI: packageConfigUri,
+        imports: GetChannelExecutable.importsForPackage(libraryName),
+        logHandler: displayProgress);
     if (name == null) {
       throw new CLIException("No ApplicationChannel subclass found in $packageName/$libraryName");
     }
