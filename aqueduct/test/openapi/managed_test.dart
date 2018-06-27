@@ -2,11 +2,15 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
+import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 
 import '../helpers.dart';
 
 void main() {
+  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
+
   APIDocument doc;
   ManagedDataModel dataModel;
 

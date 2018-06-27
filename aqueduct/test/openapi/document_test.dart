@@ -1,6 +1,8 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
+import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
@@ -11,6 +13,7 @@ will have their own tests. It does test Router, though.
  */
 
 void main() {
+  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
   group(("Default channel"), () {
     APIDocument doc;
     DateTime controllerDocumented;

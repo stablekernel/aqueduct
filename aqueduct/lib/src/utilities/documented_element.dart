@@ -3,7 +3,8 @@ import 'dart:async';
 class DocumentedElementProvider {
   Future<DocumentedElement> resolve(Type type) async {
     throw StateError("No provider for 'DocumentedElement'. This occurs when attempting to use "
-        "'DocumentedElement' when not documenting an application. This type may only be used during documentation.");
+        "'DocumentedElement' when not documenting an application. This type may only be used during documentation."
+        "You must set DocumentedElement.provider = AnalyzerDocumentedElementProvider().");
   }
 }
 
