@@ -6,8 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
-const int numberOfIsolates = 3;
-
 void main() {
   group("Happy path", () {
     Application app;
@@ -18,7 +16,7 @@ void main() {
 
     test("A message sent to the hub is received by other channels, but not by sender", () async {
       app = new Application<HubChannel>()..options.port = 8000;
-      await app.start(numberOfInstances: numberOfIsolates);
+      await app.start(numberOfInstances: 3);
 
       var resp = await postMessage("msg1");
       var postingIsolateID = isolateIdentifierFromResponse(resp);
@@ -46,7 +44,7 @@ void main() {
       app = new Application<HubChannel>()
         ..options.port = 8000
         ..options.context = {"sendIn": "prepare"};
-      await app.start(numberOfInstances: numberOfIsolates);
+      await app.start(numberOfInstances: 3);
 
       expect(
           waitForMessages({
@@ -78,7 +76,7 @@ void main() {
       app = new Application<HubChannel>()
         ..options.port = 8000
         ..options.context = {"multipleListeners": true};
-      await app.start(numberOfInstances: numberOfIsolates);
+      await app.start(numberOfInstances: 3);
 
       var resp = await postMessage("msg1");
       var postingIsolateID = isolateIdentifierFromResponse(resp);
@@ -115,7 +113,7 @@ void main() {
 
     test("Send invalid x-isolate data returns error in error stream", () async {
       app = new Application<HubChannel>()..options.port = 8000;
-      await app.start(numberOfInstances: numberOfIsolates);
+      await app.start(numberOfInstances: 3);
 
       var resp = await postMessage("garbage");
       var errors = await getErrorsFromIsolates();
@@ -178,7 +176,7 @@ Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages, {i
 Future<Map<int, List<Map<String, dynamic>>>> getMessagesFromIsolates() async {
   var msgs = {};
 
-  while (msgs.length != numberOfIsolates) {
+  while (msgs.length != 3) {
     var resp = await http.get("http://localhost:8000/messages");
     var serverID = isolateIdentifierFromResponse(resp);
 
@@ -193,7 +191,7 @@ Future<Map<int, List<Map<String, dynamic>>>> getMessagesFromIsolates() async {
 Future<Map<int, List<String>>> getErrorsFromIsolates() async {
   var msgs = <int, List<String>>{};
 
-  while (msgs.length != numberOfIsolates) {
+  while (msgs.length != 3) {
     var resp = await http.get("http://localhost:8000/errors");
     var serverID = isolateIdentifierFromResponse(resp);
 
