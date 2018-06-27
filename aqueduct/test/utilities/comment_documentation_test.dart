@@ -1,4 +1,4 @@
-import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
