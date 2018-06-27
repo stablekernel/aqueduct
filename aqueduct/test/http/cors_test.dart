@@ -12,7 +12,7 @@ void main() {
   app.options.port = 8000;
 
   setUpAll(() async {
-    await app.test();
+    await app.startOnCurrentIsolate();
   });
 
   tearDownAll(() async {

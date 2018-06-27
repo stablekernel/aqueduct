@@ -88,7 +88,7 @@ class TestHarness<T extends ApplicationChannel> {
     _application = new Application<T>()..options = options;
 
     await beforeStart();
-    await application.test();
+    await application.startOnCurrentIsolate();
     agent = new Agent(application);
     await afterStart();
   }
