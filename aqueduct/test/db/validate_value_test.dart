@@ -1,4 +1,3 @@
-@Skip("Waiting on https://github.com/dart-lang/sdk/issues/33259")
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 

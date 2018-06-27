@@ -78,15 +78,12 @@ abstract class CLIDatabaseManagingCommand extends CLICommand with CLIProject {
     try {
       final pattern = new RegExp(r"^[0-9]+[_a-zA-Z0-9]*\.migration\.dart$");
       final sources = migrationDirectory
-        .listSync()
-        .where((fse)
-      => fse is File && pattern.hasMatch(fse.uri.pathSegments.last))
-        .map((fse)
-      => new MigrationSource.fromFile(fse.uri))
-        .toList();
+          .listSync()
+          .where((fse) => fse is File && pattern.hasMatch(fse.uri.pathSegments.last))
+          .map((fse) => new MigrationSource.fromFile(fse.uri))
+          .toList();
 
-      sources.sort((s1, s2)
-      => s1.versionNumber.compareTo(s2.versionNumber));
+      sources.sort((s1, s2) => s1.versionNumber.compareTo(s2.versionNumber));
 
       return sources;
     } on StateError catch (e) {
