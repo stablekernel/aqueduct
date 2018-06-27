@@ -9,28 +9,28 @@ import 'base.dart';
 import 'document_serve.dart';
 
 abstract class CLIDocumentOptions implements CLICommand {
-  String get title => values["title"];
+  String get title => decode("title");
 
-  String get apiDescription => values["description"];
+  String get apiDescription => decode("description");
 
-  String get apiVersion => values["api-version"];
+  String get apiVersion => decode("api-version");
 
-  String get termsOfServiceURL => values["tos"];
+  String get termsOfServiceURL => decode("tos");
 
-  String get contactEmail => values["contact-email"];
+  String get contactEmail => decode("contact-email");
 
-  String get contactName => values["contact-name"];
+  String get contactName => decode("contact-name");
 
-  String get contactURL => values["contact-url"];
+  String get contactURL => decode("contact-url");
 
-  String get licenseURL => values["license-url"];
+  String get licenseURL => decode("license-url");
 
-  String get licenseName => values["license-name"];
+  String get licenseName => decode("license-name");
 
-  String get configurationPath => values["config-path"];
+  String get configurationPath => decode("config-path");
 
   List<Uri> get hosts {
-    List<String> hostValues = values["host"] ?? ["http://localhost:8888"];
+    List<String> hostValues = decode("host") ?? ["http://localhost:8888"];
     return hostValues.map((str) {
       var uri = Uri.parse(str);
       if (uri == null) {

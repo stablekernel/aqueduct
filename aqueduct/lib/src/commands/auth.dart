@@ -58,10 +58,10 @@ class CLIAuthScopeClient extends CLIDatabaseConnectingCommand {
 
   ManagedContext context;
 
-  String get clientID => values["id"];
+  String get clientID => decode("id");
 
   List<String> get scopes {
-    var v = values["scopes"] as String;
+    String v = decode("scopes");
     if (v.isEmpty) {
       return null;
     }
@@ -142,14 +142,14 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
 
   ManagedContext context;
 
-  String get clientID => values["id"];
+  String get clientID => decode("id");
 
-  String get secret => values["secret"];
+  String get secret => decode("secret");
 
-  String get redirectUri => values["redirect-uri"];
+  String get redirectUri => decode("redirect-uri");
 
   Hash get hashFunction {
-    switch (values["hash-function"]) {
+    switch (decode("hash-function")) {
       case "sha256":
         return sha256;
       case "sha1":
@@ -157,16 +157,16 @@ class CLIAuthAddClient extends CLIDatabaseConnectingCommand {
       case "md5":
         return md5;
       default:
-        throw new CLIException("Value '${values["hash-function"]}' is not valid for option hash-function.");
+        throw new CLIException("Value '${decode("hash-function")}' is not valid for option hash-function.");
     }
   }
 
-  int get hashRounds => int.parse(values["hash-rounds"]);
+  int get hashRounds => decode("hash-rounds");
 
-  int get hashLength => int.parse(values["hash-length"]);
+  int get hashLength => decode("hash-length");
 
   List<String> get allowedScopes {
-    var v = values["allowed-scopes"] as String;
+    String v = decode("allowed-scopes") as String;
     if (v.isEmpty) {
       return null;
     }

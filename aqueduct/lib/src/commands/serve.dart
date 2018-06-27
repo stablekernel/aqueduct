@@ -4,7 +4,6 @@ import 'dart:isolate';
 
 import 'package:aqueduct/src/commands/running_process.dart';
 import 'package:aqueduct/src/commands/scripts/get_channel_type.dart';
-import 'package:args/args.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
 import 'base.dart';
@@ -29,7 +28,8 @@ class CLIServer extends CLICommand with CLIProject {
               "for a ApplicationChannel to use to read application-specific configuration values. Relative paths are relative to [directory].",
           defaultsTo: "config.yaml")
       ..addOption("timeout", help: "Number of seconds to wait to ensure startup succeeded.", defaultsTo: "45")
-      ..addOption("isolates", abbr: "n", help: "Number of isolates processing requests", defaultsTo: "3")
+      ..addOption("isolates",
+          abbr: "n", help: "Number of isolates processing requests", defaultsTo: "${Platform.numberOfProcessors}")
       ..addOption("ssl-key-path",
           help:
               "The path to an SSL private key file. If provided along with --ssl-certificate-path, the application will be HTTPS-enabled.")
@@ -42,27 +42,25 @@ class CLIServer extends CLICommand with CLIProject {
 
   String derivedChannelType;
 
-  ArgResults get command => values.command;
+  int get startupTimeout => decode("timeout");
 
-  int get startupTimeout => int.parse(values["timeout"]);
+  String get keyPath => decode("ssl-key-path");
 
-  String get keyPath => values["ssl-key-path"];
+  String get certificatePath => decode("ssl-certificate-path");
 
-  String get certificatePath => values["ssl-certificate-path"];
+  bool get shouldRunObservatory => decode("observe");
 
-  bool get shouldRunObservatory => values["observe"];
+  bool get ipv6Only => decode("ipv6-only");
 
-  bool get ipv6Only => values["ipv6-only"];
+  int get port => decode("port");
 
-  int get port => int.parse(values["port"]);
+  int get numberOfIsolates => decode("isolates");
 
-  int get numberOfIsolates => int.parse(values["isolates"]);
+  String get address => decode("address");
 
-  String get address => values["address"];
+  String get channelType => decode("channel") ?? derivedChannelType;
 
-  String get channelType => values["channel"] ?? derivedChannelType;
-
-  File get configurationFile => new File(values["config-path"]).absolute;
+  File get configurationFile => new File(decode("config-path")).absolute;
 
   ReceivePort messagePort;
   ReceivePort errorPort;
@@ -166,7 +164,9 @@ class CLIServer extends CLICommand with CLIProject {
 
   Future<String> deriveApplicationLibraryDetails() async {
     final name = await IsolateExecutor.executeWithType(GetChannelExecutable,
-        packageConfigURI: packageConfigUri, imports: GetChannelExecutable.importsForPackage(libraryName), logHandler: displayProgress);
+        packageConfigURI: packageConfigUri,
+        imports: GetChannelExecutable.importsForPackage(libraryName),
+        logHandler: displayProgress);
     if (name == null) {
       throw new CLIException("No ApplicationChannel subclass found in $packageName/$libraryName");
     }

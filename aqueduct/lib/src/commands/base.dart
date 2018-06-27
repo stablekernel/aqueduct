@@ -4,6 +4,7 @@ import 'dart:isolate';
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/commands/running_process.dart';
+import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:args/args.dart';
 import 'package:path/path.dart' as path_lib;
 import 'package:yaml/yaml.dart';
@@ -36,12 +37,8 @@ class CLIException {
 
 enum CLIColor { red, green, blue, boldRed, boldGreen, boldBlue, boldNone, none }
 
-abstract class CLIResultHandler {
-  ArgResults values;
-}
-
 /// A command line interface command.
-abstract class CLICommand implements CLIResultHandler {
+abstract class CLICommand {
   static const _Delimiter = "-- ";
   static const _Tabs = "    ";
   static const _ErrorDelimiter = "*** ";
@@ -58,22 +55,23 @@ abstract class CLICommand implements CLIResultHandler {
     ..addFlag("stacktrace", help: "Shows the stacktrace if an error occurs", defaultsTo: false)
     ..addFlag("color", help: "Toggles ANSI color", negatable: true, defaultsTo: true);
 
-  @override
-  ArgResults values;
+  ArgResults _argumentValues;
+  List<String> get remainingArguments => _argumentValues.rest;
+  ArgResults get command => _argumentValues.command;
 
   StoppableProcess get runningProcess {
     return _commandMap.values.firstWhere((cmd) => cmd.runningProcess != null, orElse: () => null)?.runningProcess;
   }
 
-  bool get showVersion => values["version"];
+  bool get showVersion => decode("version");
 
-  bool get showColors => values["color"];
+  bool get showColors => decode("color");
 
-  bool get helpMeItsScary => values["help"];
+  bool get helpMeItsScary => decode("help");
 
-  bool get showStacktrace => values["stacktrace"];
+  bool get showStacktrace => decode("stacktrace");
 
-  bool get isMachineOutput => values["machine"];
+  bool get isMachineOutput => decode("machine");
 
   Map<String, CLICommand> _commandMap = {};
 
@@ -90,6 +88,14 @@ abstract class CLICommand implements CLIResultHandler {
 
   Version get toolVersion => _toolVersion;
   Version _toolVersion;
+
+  T decode<T>(String key) {
+    final val = _argumentValues[key];
+    if (T == int && val is String) {
+      return int.parse(val) as T;
+    }
+    return runtimeCast(val, reflectType(T)) as T;
+  }
 
   void registerCommand(CLICommand cmd) {
     _commandMap[cmd.name] = cmd;
@@ -123,7 +129,7 @@ abstract class CLICommand implements CLIResultHandler {
     }
 
     try {
-      values = results;
+      _argumentValues = results;
 
       await determineToolVersion();
 
@@ -280,7 +286,7 @@ abstract class CLICommand implements CLIResultHandler {
   }
 }
 
-abstract class CLIProject implements CLIResultHandler, CLICommand {
+abstract class CLIProject implements CLICommand {
   Map<String, dynamic> _pubspec;
 
   Map<String, dynamic> get projectSpecification {
@@ -299,7 +305,7 @@ abstract class CLIProject implements CLIResultHandler, CLICommand {
 
   File get projectSpecificationFile => new File.fromUri(projectDirectory.uri.resolve("pubspec.yaml"));
 
-  Directory get projectDirectory => new Directory(values["directory"]).absolute;
+  Directory get projectDirectory => new Directory(decode("directory")).absolute;
 
   Uri get packageConfigUri => projectDirectory.uri.resolve(".packages");
 
@@ -357,7 +363,7 @@ class Runner extends CLICommand {
   }
 
   @override
-  bool get showVersion => values["version"];
+  bool get showVersion => decode("version");
 
   @override
   Future<int> handle() async {

@@ -19,7 +19,7 @@ class ApplicationServer {
   ///
   /// You should not need to invoke this method directly.
   ApplicationServer(ClassMirror channelType, this.options, this.identifier) {
-    channel = channelType.newInstance(new Symbol(""), []).reflectee;
+    channel = channelType.newInstance(new Symbol(""), []).reflectee as ApplicationChannel;
     channel.server = this;
     channel.options = options;
   }
