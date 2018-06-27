@@ -18,11 +18,11 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     registerCommand(new CLITemplateList());
   }
 
-  String get templateName => values["template"];
+  String get templateName => decode("template");
 
-  String get projectName => values.rest.length > 0 ? values.rest.first : null;
+  String get projectName => remainingArguments.length > 0 ? remainingArguments.first : null;
 
-  bool get offline => values["offline"];
+  bool get offline => decode("offline");
 
   @override
   Future<int> handle() async {

@@ -66,7 +66,7 @@ abstract class CLIDatabaseManagingCommand extends CLICommand with CLIProject {
   }
 
   Directory get migrationDirectory {
-    final dir = new Directory(values["migration-directory"]).absolute;
+    final dir = new Directory(decode("migration-directory")).absolute;
 
     if (!dir.existsSync()) {
       dir.createSync();
@@ -135,13 +135,13 @@ abstract class CLIDatabaseConnectingCommand extends CLIDatabaseManagingCommand {
 
   DatabaseConfiguration connectedDatabase;
 
-  bool get useSSL => values["use-ssl"];
+  bool get useSSL => decode("use-ssl");
 
-  String get databaseConnectionString => values["connect"];
+  String get databaseConnectionString => decode("connect");
 
-  String get databaseFlavor => values["flavor"];
+  String get databaseFlavor => decode("flavor");
 
-  File get databaseConfigurationFile => fileInProjectDirectory(values["database-config"]);
+  File get databaseConfigurationFile => fileInProjectDirectory(decode("database-config"));
 
   PersistentStore _persistentStore;
 
@@ -150,7 +150,7 @@ abstract class CLIDatabaseConnectingCommand extends CLIDatabaseManagingCommand {
       return _persistentStore;
     }
 
-    if (values["flavor"] == null) {
+    if (decode("flavor") == null) {
       throw new CLIException("No database flavor selected. See --flavor.");
     }
 

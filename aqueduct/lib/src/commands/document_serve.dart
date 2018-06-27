@@ -17,7 +17,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
     options..addOption("port", abbr: "p", help: "Port to listen on", defaultsTo: "8111");
   }
 
-  int get port => int.parse(values["port"]);
+  int get port => decode("port");
 
   @override
   StoppableProcess runningProcess;

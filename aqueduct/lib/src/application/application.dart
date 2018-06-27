@@ -170,7 +170,7 @@ class Application<T extends ApplicationChannel> {
   static Future _globalStart(ClassMirror channelType, ApplicationOptions config) {
     var globalStartSymbol = #initializeApplication;
     if (channelType.staticMembers[globalStartSymbol] != null) {
-      return channelType.invoke(globalStartSymbol, [config]).reflectee;
+      return channelType.invoke(globalStartSymbol, [config]).reflectee as Future;
     }
 
     return null;
