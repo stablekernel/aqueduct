@@ -16,14 +16,14 @@ void main() {
 
     test("Create from app, explicit port", () async {
       app = new Application<SomeChannel>()..options.port = 4111;
-      await app.test();
+      await app.startOnCurrentIsolate();
       var client = new Agent(app);
       expect(client.baseURL, "http://localhost:4111");
     });
 
     test("Create from app, assigned port", () async {
       app = new Application<SomeChannel>()..options.port = 0;
-      await app.test();
+      await app.startOnCurrentIsolate();
 
       var client = new Agent(app);
       var response = await client.request("/").get();
@@ -44,7 +44,7 @@ void main() {
     test("Create from unstarted app, start app, works OK", () async {
       app = new Application<SomeChannel>()..options.port = 0;
       var tc = new Agent(app);
-      await app.test();
+      await app.startOnCurrentIsolate();
 
       expectResponse(await tc.request("/").get(), 200);
     });

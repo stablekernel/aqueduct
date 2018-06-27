@@ -8,7 +8,6 @@ import 'package:aqueduct/src/application/channel.dart';
 import '../http/controller.dart';
 import 'application.dart';
 import 'options.dart';
-import 'package:stack_trace/stack_trace.dart';
 
 /// Listens for HTTP requests and delivers them to its [ApplicationChannel] instance.
 ///
@@ -19,7 +18,7 @@ class ApplicationServer {
   /// Creates a new server that sending requests to [channelType].
   ///
   /// You should not need to invoke this method directly.
-  ApplicationServer(ClassMirror channelType, this.options, this.identifier, {this.captureStack: false}) {
+  ApplicationServer(ClassMirror channelType, this.options, this.identifier) {
     channel = channelType.newInstance(new Symbol(""), []).reflectee as ApplicationChannel;
     channel.server = this;
     channel.options = options;
@@ -36,11 +35,6 @@ class ApplicationServer {
 
   /// The cached entrypoint of [channel].
   Controller entryPoint;
-
-  /// Used during debugging to capture the stacktrace better for asynchronous calls.
-  ///
-  /// Defaults to false.
-  bool captureStack;
 
   /// Target for sending messages to other [ApplicationChannel.messageHub]s.
   ///
@@ -112,15 +106,7 @@ class ApplicationServer {
     server.serverHeader = "aqueduct/${this.identifier}";
 
     logger.fine("ApplicationServer($identifier).didOpen start listening");
-    if (captureStack) {
-      server.map((baseReq) => new Request(baseReq)).listen((req) {
-        Chain.capture(() {
-          entryPoint.receive(req);
-        });
-      });
-    } else {
-      server.map((baseReq) => new Request(baseReq)).listen(entryPoint.receive);
-    }
+    server.map((baseReq) => new Request(baseReq)).listen(entryPoint.receive);
 
     channel.willStartReceivingRequests();
     logger.info("Server aqueduct/$identifier started.");
