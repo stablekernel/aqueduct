@@ -1,5 +1,4 @@
 @Tags(const ["cli"])
-@Timeout(const Duration(seconds: 90))
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
