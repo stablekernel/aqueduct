@@ -1,3 +1,5 @@
+@Tags(const ["cli"])
+@Timeout(const Duration(seconds: 120))
 import 'dart:async';
 import 'dart:io';
 
@@ -7,9 +9,6 @@ import 'package:test/test.dart';
 
 import '../helpers.dart';
 import 'cli_helpers.dart';
-
-@Tags(const ["cli"])
-@Timeout(const Duration(seconds: 120))
 
 void main() {
   justLogEverything();
