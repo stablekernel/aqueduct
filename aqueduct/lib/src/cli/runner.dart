@@ -19,9 +19,6 @@ class Runner extends CLICommand {
   }
 
   @override
-  bool get showVersion => decode("version");
-
-  @override
   Future<int> handle() async {
     printHelp();
     return 0;

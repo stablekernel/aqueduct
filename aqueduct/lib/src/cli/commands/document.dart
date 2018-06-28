@@ -9,7 +9,6 @@ import 'package:aqueduct/src/cli/commands/document_serve.dart';
 
 class CLIDocument extends CLICommand with CLIProject, CLIDocumentOptions {
   CLIDocument() {
-    addDocumentConfigurationOptions();
     registerCommand(new CLIDocumentServe());
   }
 

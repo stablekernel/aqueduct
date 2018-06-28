@@ -3,9 +3,10 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/cli/metadata.dart';
 import 'package:aqueduct/src/cli/running_process.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
-import 'package:args/args.dart';
+import 'package:args/args.dart' as args;
 import 'package:yaml/yaml.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -28,34 +29,52 @@ abstract class CLICommand {
   static const _Tabs = "    ";
   static const _ErrorDelimiter = "*** ";
 
-  /// Options for this command.
-  ArgParser options = new ArgParser(allowTrailingOptions: true)
-    ..addFlag("version", help: "Prints version of this tool", negatable: false)
-    ..addOption("directory",
-        abbr: "d", help: "Project directory to execute command in", defaultsTo: Directory.current.path)
-    ..addFlag("help", abbr: "h", help: "Shows this", negatable: false)
-    ..addFlag("machine",
-        help: "Output is machine-readable, usable for creating tools on top of this CLI. Behavior varies by command.",
-        defaultsTo: false)
-    ..addFlag("stacktrace", help: "Shows the stacktrace if an error occurs", defaultsTo: false)
-    ..addFlag("color", help: "Toggles ANSI color", negatable: true, defaultsTo: true);
+  CLICommand() {
+    final arguments = reflect(this).type.instanceMembers.values.where((m) => m.metadata.any((im) {
+      bool hasArgMetadata = im.type.isAssignableTo(reflectType(Argument));
+      return hasArgMetadata;
+    }));
 
-  ArgResults _argumentValues;
+    arguments.forEach((arg) {
+      if (!arg.isGetter) {
+        throw new StateError("Declaration "
+          "${MirrorSystem.getName(arg.owner.simpleName)}.${MirrorSystem.getName(arg.simpleName)} "
+          "has CLI annotation, but is not a getter.");
+      }
+
+      Argument argType = firstMetadataOfType(arg);
+      argType.addToParser(options);
+    });
+  }
+
+  /// Options for this command.
+  args.ArgParser options = args.ArgParser(allowTrailingOptions: true);
+
+  args.ArgResults _argumentValues;
+
   List<String> get remainingArguments => _argumentValues.rest;
-  ArgResults get command => _argumentValues.command;
+
+  args.ArgResults get command => _argumentValues.command;
 
   StoppableProcess get runningProcess {
     return _commandMap.values.firstWhere((cmd) => cmd.runningProcess != null, orElse: () => null)?.runningProcess;
   }
 
+  @Flag("version", help: "Prints version of this tool", negatable: false)
   bool get showVersion => decode("version");
 
+  @Flag("color", help: "Toggles ANSI color", negatable: true, defaultsTo: true)
   bool get showColors => decode("color");
 
+  @Flag("help", abbr: "h", help: "Shows this", negatable: false)
   bool get helpMeItsScary => decode("help");
 
+  @Flag("stacktrace", help: "Shows the stacktrace if an error occurs", defaultsTo: false)
   bool get showStacktrace => decode("stacktrace");
 
+  @Flag("machine",
+      help: "Output is machine-readable, usable for creating tools on top of this CLI. Behavior varies by command.",
+      defaultsTo: false)
   bool get isMachineOutput => decode("machine");
 
   Map<String, CLICommand> _commandMap = {};
@@ -103,7 +122,7 @@ abstract class CLICommand {
   ///
   /// Do not override this method. This method invokes [handle] within a try-catch block
   /// and will invoke [cleanup] when complete.
-  Future<int> process(ArgResults results, {List<String> parentCommandNames}) async {
+  Future<int> process(args.ArgResults results, {List<String> parentCommandNames}) async {
     if (results.command != null) {
       if (parentCommandNames == null) {
         parentCommandNames = [name];
@@ -270,4 +289,3 @@ abstract class CLICommand {
     });
   }
 }
-

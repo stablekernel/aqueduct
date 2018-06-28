@@ -187,6 +187,7 @@ class Terminal {
   }
 
   CLITask startAqueductCommand(String command, List<String> args) {
+    print(command);
     args ??= [];
     args.insert(0, command);
     args.addAll(defaultAqueductArgs ?? []);

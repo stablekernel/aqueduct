@@ -2,7 +2,9 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/mixins/database_managing.dart';
+import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:test/test.dart';
 
 import '../helpers.dart';
@@ -234,7 +236,7 @@ class Migration1 extends Migration {
   Future seed() async {}
 }
 
-class MockMigratable extends CLIDatabaseManagingCommand {
+class MockMigratable  extends CLICommand with CLIDatabaseManagingCommand, CLIProject {
   MockMigratable(this.projectDirectory) {
     migrationDirectory = new Directory.fromUri(projectDirectory.uri.resolve("migrations"));
   }

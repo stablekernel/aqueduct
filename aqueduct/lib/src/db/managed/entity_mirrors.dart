@@ -144,15 +144,15 @@ bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
 }
 
 Table tableAttributesFromPersistentType(ClassMirror typeMirror) =>
-    firstMetadataOfType(typeMirror.reflectedType, reflectType(Table));
+    firstMetadataOfType(reflectType(Table), dynamicType: typeMirror);
 
-List<Validate> validatorsFromDeclaration(DeclarationMirror dm) => allMetadataOfType(Validate, dm).cast<Validate>();
+List<Validate> validatorsFromDeclaration(DeclarationMirror dm) => allMetadataOfType(dm).cast<Validate>();
 
-Serialize transientMetadataFromDeclaration(DeclarationMirror dm) => firstMetadataOfType(Serialize, dm);
+Serialize transientMetadataFromDeclaration(DeclarationMirror dm) => firstMetadataOfType(dm);
 
-Column attributeMetadataFromDeclaration(DeclarationMirror dm) => firstMetadataOfType(Column, dm);
+Column attributeMetadataFromDeclaration(DeclarationMirror dm) => firstMetadataOfType(dm);
 
-Relate relationshipMetadataFromProperty(DeclarationMirror dm) => firstMetadataOfType(Relate, dm);
+Relate relationshipMetadataFromProperty(DeclarationMirror dm) => firstMetadataOfType(dm);
 
 Iterable<ClassMirror> classHierarchyForClass(ClassMirror t) sync* {
   var persistentTypePtr = t;
