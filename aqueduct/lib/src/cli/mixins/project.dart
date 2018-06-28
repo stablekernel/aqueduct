@@ -1,12 +1,20 @@
 import 'dart:io';
 
 import 'package:aqueduct/src/cli/command.dart';
+import 'package:aqueduct/src/cli/metadata.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 import 'package:path/path.dart' as path_lib;
 
 abstract class CLIProject implements CLICommand {
-  Map<String, dynamic> _pubspec;
+  @Option("directory", abbr: "d", help: "Project directory to execute command in")
+  Directory get projectDirectory {
+    String dir = decode("directory");
+    if (dir == null) {
+      return Directory.current.absolute;
+    }
+    return new Directory(dir).absolute;
+  }
 
   Map<String, dynamic> get projectSpecification {
     if (_pubspec == null) {
@@ -24,15 +32,11 @@ abstract class CLIProject implements CLICommand {
 
   File get projectSpecificationFile => new File.fromUri(projectDirectory.uri.resolve("pubspec.yaml"));
 
-  Directory get projectDirectory => new Directory(decode("directory")).absolute;
-
   Uri get packageConfigUri => projectDirectory.uri.resolve(".packages");
 
   String get libraryName => packageName;
 
   String get packageName => projectSpecification["name"];
-
-  Version _projectVersion;
 
   Version get projectVersion {
     if (_projectVersion == null) {
@@ -48,6 +52,9 @@ abstract class CLIProject implements CLICommand {
 
     return _projectVersion;
   }
+
+  Map<String, dynamic> _pubspec;
+  Version _projectVersion;
 
   static File fileInDirectory(Directory directory, String name) {
     if (path_lib.isRelative(name)) {

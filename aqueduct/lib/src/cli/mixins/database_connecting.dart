@@ -1,40 +1,36 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:aqueduct/src/cli/mixins/database_managing.dart';
+import 'package:aqueduct/src/cli/metadata.dart';
+import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:aqueduct/src/db/persistent_store/persistent_store.dart';
 import 'package:aqueduct/src/db/postgresql/postgresql_persistent_store.dart';
 import 'package:safe_config/safe_config.dart';
 import 'package:aqueduct/src/cli/command.dart';
 
-abstract class CLIDatabaseConnectingCommand extends CLIDatabaseManagingCommand {
+abstract class CLIDatabaseConnectingCommand implements CLICommand, CLIProject {
   static const String FlavorPostgreSQL = "postgres";
-
-  CLIDatabaseConnectingCommand() {
-    options
-      ..addOption("name")
-      ..addOption("flavor",
-        abbr: "f", help: "The database driver flavor to use.", defaultsTo: "postgres", allowed: ["postgres"])
-      ..addOption("connect",
-        abbr: "c",
-        help: "A database connection URI string. If this option is set, database-config is ignored.",
-        valueHelp: "postgres://user:password@localhost:port/databaseName")
-      ..addOption("database-config",
-        help: "A configuration file that provides connection information for the database. "
-          "Paths are relative to project directory. If the connect option is set, this value is ignored. "
-          "See 'aqueduct db -h' for details.",
-        defaultsTo: "database.yaml")
-      ..addFlag("use-ssl", help: "Whether or not the database connection should use SSL", defaultsTo: false);
-  }
 
   DatabaseConfiguration connectedDatabase;
 
+  @Flag("use-ssl", help: "Whether or not the database connection should use SSL", defaultsTo: false)
   bool get useSSL => decode("use-ssl");
 
+  @Option("connect",
+    abbr: "c",
+    help: "A database connection URI string. If this option is set, database-config is ignored.",
+    valueHelp: "postgres://user:password@localhost:port/databaseName")
   String get databaseConnectionString => decode("connect");
 
+  @Option("flavor",
+    abbr: "f", help: "The database driver flavor to use.", defaultsTo: "postgres", allowed: ["postgres"])
   String get databaseFlavor => decode("flavor");
 
+  @Option("database-config",
+    help: "A configuration file that provides connection information for the database. "
+      "Paths are relative to project directory. If the connect option is set, this value is ignored. "
+      "See 'aqueduct db -h' for details.",
+    defaultsTo: "database.yaml")
   File get databaseConfigurationFile => fileInProjectDirectory(decode("database-config"));
 
   PersistentStore _persistentStore;

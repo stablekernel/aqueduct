@@ -256,7 +256,7 @@ abstract class ResourceController extends Controller {
         new BoundController(runtimeType).methods.where((method) => path.containsPathParameters(method.pathVariables));
 
     return operations.fold(<String, APIOperation>{}, (prev, method) {
-      final operation = firstMetadataOfType(Operation, reflect(this).type.instanceMembers[method.methodSymbol]);
+      Operation operation = firstMetadataOfType(reflect(this).type.instanceMembers[method.methodSymbol]);
 
       final op = new APIOperation(
           MirrorSystem.getName(method.methodSymbol), documentOperationResponses(context, operation),

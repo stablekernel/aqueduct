@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:aqueduct/src/cli/metadata.dart';
 import 'package:aqueduct/src/cli/mixins/openapi_options.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:aqueduct/src/cli/running_process.dart';
@@ -11,12 +12,7 @@ import 'package:aqueduct/src/http/http.dart';
 
 /// Used internally.
 class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
-  CLIDocumentServe() {
-    addDocumentConfigurationOptions();
-
-    options..addOption("port", abbr: "p", help: "Port to listen on", defaultsTo: "8111");
-  }
-
+  @Option("port", abbr: "p", help: "Port to listen on", defaultsTo: "8111")
   int get port => decode("port");
 
   @override
