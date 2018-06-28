@@ -41,5 +41,5 @@ T firstMetadataOfType<T>(DeclarationMirror dm, {TypeMirror dynamicType}) {
 
 List<T> allMetadataOfType<T>(DeclarationMirror dm) {
   var tMirror = reflectType(T);
-  return dm.metadata.where((im) => im.type.isSubtypeOf(tMirror)).map((im) => im.reflectee).toList();
+  return dm.metadata.where((im) => im.type.isSubtypeOf(tMirror)).map((im) => im.reflectee).toList().cast<T>();
 }
