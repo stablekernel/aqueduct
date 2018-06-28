@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/commands/auth_add_client.dart';
 import 'package:aqueduct/src/cli/commands/auth_scope.dart';
+import 'package:aqueduct/src/cli/command.dart';
 
 class CLIAuth extends CLICommand {
   CLIAuth() {
@@ -44,5 +44,3 @@ class CLIAuth extends CLICommand {
         "\tdatabaseName: \"database\"";
   }
 }
-
-

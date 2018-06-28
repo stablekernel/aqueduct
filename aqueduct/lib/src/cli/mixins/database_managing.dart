@@ -9,6 +9,7 @@ import 'package:aqueduct/src/db/schema/migration_source.dart';
 import 'package:aqueduct/src/db/schema/schema.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
+
 abstract class CLIDatabaseManagingCommand implements CLICommand, CLIProject {
   @Option("migration-directory",
       help: "The directory where migration files are stored. Relative paths are relative to the application-directory.",
@@ -48,11 +49,11 @@ abstract class CLIDatabaseManagingCommand implements CLICommand, CLIProject {
     }
 
     final schemaMap = await IsolateExecutor.executeWithType(SchemaBuilderExecutable,
-        packageConfigURI: packageConfigUri,
-        imports: SchemaBuilderExecutable.imports,
-        additionalContents: MigrationSource.combine(sources),
-        message: SchemaBuilderExecutable.createMessage(sources, fromSchema),
-        logHandler: displayProgress);
+      packageConfigURI: packageConfigUri,
+      imports: SchemaBuilderExecutable.imports,
+      additionalContents: MigrationSource.combine(sources),
+      message: SchemaBuilderExecutable.createMessage(sources, fromSchema),
+      logHandler: displayProgress);
 
     return new Schema.fromMap(schemaMap as Map<String, dynamic>);
   }

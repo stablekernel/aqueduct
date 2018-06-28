@@ -32,13 +32,11 @@ abstract class CLIProject implements CLICommand {
 
   File get projectSpecificationFile => new File.fromUri(projectDirectory.uri.resolve("pubspec.yaml"));
 
-
   Uri get packageConfigUri => projectDirectory.uri.resolve(".packages");
 
   String get libraryName => packageName;
 
   String get packageName => projectSpecification["name"];
-
 
   Version get projectVersion {
     if (_projectVersion == null) {

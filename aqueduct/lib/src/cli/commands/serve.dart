@@ -213,7 +213,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/commands/starter.dart';
+import 'package:aqueduct/src/cli/starter.dart';
 import 'package:___PACKAGE_NAME___/___LIBRARY_NAME___.dart';
 
 Future main(List<String> args, dynamic sendPort) async {
