@@ -1,9 +1,9 @@
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/executable.dart';
+import 'package:aqueduct/src/cli/runner.dart';
 import 'dart:io';
 
-import 'package:aqueduct/src/commands/running_process.dart';
+import 'package:aqueduct/src/cli/running_process.dart';
 
 class Terminal {
   Terminal(this.workingDirectory) {

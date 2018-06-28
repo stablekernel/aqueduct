@@ -1,11 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:aqueduct/src/commands/scripts/get_schema.dart';
+import 'package:aqueduct/src/cli/mixins/database_managing.dart';
+import 'package:aqueduct/src/cli/scripts/get_schema.dart';
 import 'package:isolate_executor/isolate_executor.dart';
-
-import 'base.dart';
-import 'db.dart';
 
 class CLIDatabaseSchema extends CLIDatabaseManagingCommand {
   @override

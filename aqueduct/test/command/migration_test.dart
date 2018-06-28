@@ -1,10 +1,11 @@
 @Tags(const ["cli"])
-@Timeout(const Duration(seconds: 120))
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/executable.dart';
 import 'dart:async';
 import 'dart:io';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/cli/mixins/database_managing.dart';
+import 'package:test/test.dart';
+
 import '../helpers.dart';
 import 'cli_helpers.dart';
 

@@ -1,7 +1,6 @@
 import 'dart:async';
 
-import 'base.dart';
-import 'db.dart';
+import 'package:aqueduct/src/cli/mixins/database_managing.dart';
 
 class CLIDatabaseShowMigrations extends CLIDatabaseManagingCommand {
   @override

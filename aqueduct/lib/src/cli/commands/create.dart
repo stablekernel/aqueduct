@@ -6,7 +6,7 @@ import 'package:path/path.dart' as path_lib;
 import 'package:pub_cache/pub_cache.dart';
 import 'package:yaml/yaml.dart';
 
-import 'base.dart';
+import 'package:aqueduct/src/cli/command.dart';
 
 /// Used internally.
 class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {

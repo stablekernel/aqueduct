@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'base.dart';
+import 'package:aqueduct/src/cli/command.dart';
+import 'package:aqueduct/src/cli/mixins/project.dart';
 
 class CLISetup extends CLICommand with CLIProject {
   CLISetup() {

@@ -1,12 +1,12 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:aqueduct/src/commands/scripts/migration_builder.dart';
+import 'package:aqueduct/src/cli/command.dart';
+import 'package:aqueduct/src/cli/mixins/database_managing.dart';
+import 'package:aqueduct/src/cli/scripts/migration_builder.dart';
+import 'package:aqueduct/src/db/schema/schema.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
-import '../db/db.dart';
-import 'base.dart';
-import 'db.dart';
 
 class CLIDatabaseGenerate extends CLIDatabaseManagingCommand {
   @override

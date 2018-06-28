@@ -3,26 +3,11 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/commands/running_process.dart';
+import 'package:aqueduct/src/cli/running_process.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:args/args.dart';
-import 'package:path/path.dart' as path_lib;
 import 'package:yaml/yaml.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-import 'auth.dart';
-import 'create.dart';
-import 'db.dart';
-import 'document.dart';
-import 'serve.dart';
-import 'setup.dart';
-
-export 'auth.dart';
-export 'create.dart';
-export 'db.dart';
-export 'document.dart';
-export 'serve.dart';
-export 'setup.dart';
 
 /// Exceptions thrown by command line interfaces.
 class CLIException {
@@ -286,98 +271,3 @@ abstract class CLICommand {
   }
 }
 
-abstract class CLIProject implements CLICommand {
-  Map<String, dynamic> _pubspec;
-
-  Map<String, dynamic> get projectSpecification {
-    if (_pubspec == null) {
-      final file = projectSpecificationFile;
-      if (!file.existsSync()) {
-        throw new CLIException("Failed to locate pubspec.yaml in project directory '${projectDirectory.path}'");
-      }
-      var yamlContents = file.readAsStringSync();
-      final Map<dynamic, dynamic> yaml = loadYaml(yamlContents);
-      _pubspec = yaml.cast<String, dynamic>();
-    }
-
-    return _pubspec;
-  }
-
-  File get projectSpecificationFile => new File.fromUri(projectDirectory.uri.resolve("pubspec.yaml"));
-
-  Directory get projectDirectory => new Directory(decode("directory")).absolute;
-
-  Uri get packageConfigUri => projectDirectory.uri.resolve(".packages");
-
-  String get libraryName => packageName;
-
-  String get packageName => projectSpecification["name"];
-
-  Version _projectVersion;
-
-  Version get projectVersion {
-    if (_projectVersion == null) {
-      var lockFile = new File.fromUri(projectDirectory.uri.resolve("pubspec.lock"));
-      if (!lockFile.existsSync()) {
-        throw new CLIException("No pubspec.lock file. Run `pub get`.");
-      }
-
-      Map lockFileContents = loadYaml(lockFile.readAsStringSync());
-      String projectVersion = lockFileContents["packages"]["aqueduct"]["version"];
-      _projectVersion = new Version.parse(projectVersion);
-    }
-
-    return _projectVersion;
-  }
-
-  static File fileInDirectory(Directory directory, String name) {
-    if (path_lib.isRelative(name)) {
-      return new File.fromUri(directory.uri.resolve(name));
-    }
-
-    return new File.fromUri(directory.uri);
-  }
-
-  File fileInProjectDirectory(String name) {
-    return fileInDirectory(projectDirectory, name);
-  }
-
-  @override
-  void preProcess() {
-    if (!isMachineOutput) {
-      try {
-        displayInfo("Aqueduct project version: $projectVersion");
-      } catch (_) {} // Ignore if this doesn't succeed.
-    }
-  }
-}
-
-class Runner extends CLICommand {
-  Runner() {
-    registerCommand(new CLITemplateCreator());
-    registerCommand(new CLIDatabase());
-    registerCommand(new CLIServer());
-    registerCommand(new CLISetup());
-    registerCommand(new CLIAuth());
-    registerCommand(new CLIDocument());
-  }
-
-  @override
-  bool get showVersion => decode("version");
-
-  @override
-  Future<int> handle() async {
-    printHelp();
-    return 0;
-  }
-
-  @override
-  String get name {
-    return "aqueduct";
-  }
-
-  @override
-  String get description {
-    return "Aqueduct is a tool for managing Aqueduct applications.";
-  }
-}
