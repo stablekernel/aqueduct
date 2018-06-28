@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'db.dart';
+import 'package:aqueduct/src/cli/mixins/database_connecting.dart';
 
 /// Used internally.
 class CLIDatabaseVersion extends CLIDatabaseConnectingCommand {

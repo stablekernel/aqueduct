@@ -1,10 +1,11 @@
 import 'dart:async';
 
+import 'package:aqueduct/src/cli/mixins/database_connecting.dart';
 import 'package:crypto/crypto.dart';
 import 'package:aqueduct/managed_auth.dart';
 import 'package:aqueduct/aqueduct.dart';
 
-import 'base.dart';
+import 'package:aqueduct/src/cli/command.dart';
 
 class CLIAuth extends CLICommand {
   CLIAuth() {
