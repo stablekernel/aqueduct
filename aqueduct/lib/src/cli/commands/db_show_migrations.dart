@@ -1,9 +1,11 @@
 import 'dart:async';
 
-import 'base.dart';
-import 'db.dart';
+import 'package:aqueduct/src/cli/command.dart';
+import 'package:aqueduct/src/cli/mixins/database_connecting.dart';
+import 'package:aqueduct/src/cli/mixins/database_managing.dart';
+import 'package:aqueduct/src/cli/mixins/project.dart';
 
-class CLIDatabaseShowMigrations extends CLIDatabaseManagingCommand {
+class CLIDatabaseShowMigrations extends CLICommand with CLIDatabaseManagingCommand, CLIProject, CLIDatabaseConnectingCommand {
   @override
   Future<int> handle() async {
     var files = projectMigrations.map((mig) {

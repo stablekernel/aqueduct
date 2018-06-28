@@ -2,27 +2,26 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:aqueduct/src/cli/metadata.dart';
 import 'package:path/path.dart' as path_lib;
 import 'package:pub_cache/pub_cache.dart';
 import 'package:yaml/yaml.dart';
 
-import 'base.dart';
+import 'package:aqueduct/src/cli/command.dart';
 
 /// Used internally.
 class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
   CLITemplateCreator() {
-    options
-      ..addOption("template", abbr: "t", help: "Name of the template to use", defaultsTo: "default")
-      ..addFlag("offline", negatable: false, help: "Will fetch dependencies from a local cache if they exist.");
-
     registerCommand(new CLITemplateList());
   }
 
+  @Option("template", abbr: "t", help: "Name of the template to use", defaultsTo: "default")
   String get templateName => decode("template");
 
-  String get projectName => remainingArguments.length > 0 ? remainingArguments.first : null;
-
+  @Flag("offline", negatable: false, help: "Will fetch dependencies from a local cache if they exist.")
   bool get offline => decode("offline");
+
+  String get projectName => remainingArguments.length > 0 ? remainingArguments.first : null;
 
   @override
   Future<int> handle() async {
@@ -218,8 +217,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
 
     try {
       final cmd = Platform.isWindows ? "pub.bat" : "pub";
-      var process = await Process
-          .start(cmd, args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
+      var process = await Process.start(cmd, args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
           .timeout(new Duration(seconds: 60));
       process.stdout.transform(utf8.decoder).listen((output) => outputSink?.write(output));
       process.stderr.transform(utf8.decoder).listen((output) => outputSink?.write(output));

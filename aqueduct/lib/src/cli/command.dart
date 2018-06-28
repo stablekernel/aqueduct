@@ -3,26 +3,12 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/commands/running_process.dart';
+import 'package:aqueduct/src/cli/metadata.dart';
+import 'package:aqueduct/src/cli/running_process.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
-import 'package:args/args.dart';
-import 'package:path/path.dart' as path_lib;
+import 'package:args/args.dart' as args;
 import 'package:yaml/yaml.dart';
 import 'package:pub_semver/pub_semver.dart';
-
-import 'auth.dart';
-import 'create.dart';
-import 'db.dart';
-import 'document.dart';
-import 'serve.dart';
-import 'setup.dart';
-
-export 'auth.dart';
-export 'create.dart';
-export 'db.dart';
-export 'document.dart';
-export 'serve.dart';
-export 'setup.dart';
 
 /// Exceptions thrown by command line interfaces.
 class CLIException {
@@ -43,34 +29,52 @@ abstract class CLICommand {
   static const _Tabs = "    ";
   static const _ErrorDelimiter = "*** ";
 
-  /// Options for this command.
-  ArgParser options = new ArgParser(allowTrailingOptions: true)
-    ..addFlag("version", help: "Prints version of this tool", negatable: false)
-    ..addOption("directory",
-        abbr: "d", help: "Project directory to execute command in", defaultsTo: Directory.current.path)
-    ..addFlag("help", abbr: "h", help: "Shows this", negatable: false)
-    ..addFlag("machine",
-        help: "Output is machine-readable, usable for creating tools on top of this CLI. Behavior varies by command.",
-        defaultsTo: false)
-    ..addFlag("stacktrace", help: "Shows the stacktrace if an error occurs", defaultsTo: false)
-    ..addFlag("color", help: "Toggles ANSI color", negatable: true, defaultsTo: true);
+  CLICommand() {
+    final arguments = reflect(this).type.instanceMembers.values.where((m) => m.metadata.any((im) {
+      bool hasArgMetadata = im.type.isAssignableTo(reflectType(Argument));
+      return hasArgMetadata;
+    }));
 
-  ArgResults _argumentValues;
+    arguments.forEach((arg) {
+      if (!arg.isGetter) {
+        throw new StateError("Declaration "
+          "${MirrorSystem.getName(arg.owner.simpleName)}.${MirrorSystem.getName(arg.simpleName)} "
+          "has CLI annotation, but is not a getter.");
+      }
+
+      Argument argType = firstMetadataOfType(arg);
+      argType.addToParser(options);
+    });
+  }
+
+  /// Options for this command.
+  args.ArgParser options = args.ArgParser(allowTrailingOptions: true);
+
+  args.ArgResults _argumentValues;
+
   List<String> get remainingArguments => _argumentValues.rest;
-  ArgResults get command => _argumentValues.command;
+
+  args.ArgResults get command => _argumentValues.command;
 
   StoppableProcess get runningProcess {
     return _commandMap.values.firstWhere((cmd) => cmd.runningProcess != null, orElse: () => null)?.runningProcess;
   }
 
+  @Flag("version", help: "Prints version of this tool", negatable: false)
   bool get showVersion => decode("version");
 
+  @Flag("color", help: "Toggles ANSI color", negatable: true, defaultsTo: true)
   bool get showColors => decode("color");
 
+  @Flag("help", abbr: "h", help: "Shows this", negatable: false)
   bool get helpMeItsScary => decode("help");
 
+  @Flag("stacktrace", help: "Shows the stacktrace if an error occurs", defaultsTo: false)
   bool get showStacktrace => decode("stacktrace");
 
+  @Flag("machine",
+      help: "Output is machine-readable, usable for creating tools on top of this CLI. Behavior varies by command.",
+      defaultsTo: false)
   bool get isMachineOutput => decode("machine");
 
   Map<String, CLICommand> _commandMap = {};
@@ -118,7 +122,7 @@ abstract class CLICommand {
   ///
   /// Do not override this method. This method invokes [handle] within a try-catch block
   /// and will invoke [cleanup] when complete.
-  Future<int> process(ArgResults results, {List<String> parentCommandNames}) async {
+  Future<int> process(args.ArgResults results, {List<String> parentCommandNames}) async {
     if (results.command != null) {
       if (parentCommandNames == null) {
         parentCommandNames = [name];
@@ -283,101 +287,5 @@ abstract class CLICommand {
         outputSink.writeln("  * $line");
       }
     });
-  }
-}
-
-abstract class CLIProject implements CLICommand {
-  Map<String, dynamic> _pubspec;
-
-  Map<String, dynamic> get projectSpecification {
-    if (_pubspec == null) {
-      final file = projectSpecificationFile;
-      if (!file.existsSync()) {
-        throw new CLIException("Failed to locate pubspec.yaml in project directory '${projectDirectory.path}'");
-      }
-      var yamlContents = file.readAsStringSync();
-      final Map<dynamic, dynamic> yaml = loadYaml(yamlContents);
-      _pubspec = yaml.cast<String, dynamic>();
-    }
-
-    return _pubspec;
-  }
-
-  File get projectSpecificationFile => new File.fromUri(projectDirectory.uri.resolve("pubspec.yaml"));
-
-  Directory get projectDirectory => new Directory(decode("directory")).absolute;
-
-  Uri get packageConfigUri => projectDirectory.uri.resolve(".packages");
-
-  String get libraryName => packageName;
-
-  String get packageName => projectSpecification["name"];
-
-  Version _projectVersion;
-
-  Version get projectVersion {
-    if (_projectVersion == null) {
-      var lockFile = new File.fromUri(projectDirectory.uri.resolve("pubspec.lock"));
-      if (!lockFile.existsSync()) {
-        throw new CLIException("No pubspec.lock file. Run `pub get`.");
-      }
-
-      Map lockFileContents = loadYaml(lockFile.readAsStringSync());
-      String projectVersion = lockFileContents["packages"]["aqueduct"]["version"];
-      _projectVersion = new Version.parse(projectVersion);
-    }
-
-    return _projectVersion;
-  }
-
-  static File fileInDirectory(Directory directory, String name) {
-    if (path_lib.isRelative(name)) {
-      return new File.fromUri(directory.uri.resolve(name));
-    }
-
-    return new File.fromUri(directory.uri);
-  }
-
-  File fileInProjectDirectory(String name) {
-    return fileInDirectory(projectDirectory, name);
-  }
-
-  @override
-  void preProcess() {
-    if (!isMachineOutput) {
-      try {
-        displayInfo("Aqueduct project version: $projectVersion");
-      } catch (_) {} // Ignore if this doesn't succeed.
-    }
-  }
-}
-
-class Runner extends CLICommand {
-  Runner() {
-    registerCommand(new CLITemplateCreator());
-    registerCommand(new CLIDatabase());
-    registerCommand(new CLIServer());
-    registerCommand(new CLISetup());
-    registerCommand(new CLIAuth());
-    registerCommand(new CLIDocument());
-  }
-
-  @override
-  bool get showVersion => decode("version");
-
-  @override
-  Future<int> handle() async {
-    printHelp();
-    return 0;
-  }
-
-  @override
-  String get name {
-    return "aqueduct";
-  }
-
-  @override
-  String get description {
-    return "Aqueduct is a tool for managing Aqueduct applications.";
   }
 }

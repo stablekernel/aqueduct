@@ -1,15 +1,17 @@
 import 'dart:async';
 
-import 'package:aqueduct/src/commands/scripts/run_upgrade.dart';
+import 'package:aqueduct/src/cli/command.dart';
+import 'package:aqueduct/src/cli/mixins/database_connecting.dart';
+import 'package:aqueduct/src/cli/mixins/database_managing.dart';
+import 'package:aqueduct/src/cli/mixins/project.dart';
+import 'package:aqueduct/src/cli/scripts/run_upgrade.dart';
+import 'package:aqueduct/src/db/postgresql/postgresql_persistent_store.dart';
 import 'package:aqueduct/src/db/schema/migration_source.dart';
+import 'package:aqueduct/src/db/schema/schema.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
-import 'base.dart';
-import 'db.dart';
-import '../db/db.dart';
-
 /// Used internally.
-class CLIDatabaseUpgrade extends CLIDatabaseConnectingCommand {
+class CLIDatabaseUpgrade extends CLICommand with CLIDatabaseConnectingCommand, CLIDatabaseManagingCommand, CLIProject {
   @override
   Future<int> handle() async {
     final migrations = projectMigrations;

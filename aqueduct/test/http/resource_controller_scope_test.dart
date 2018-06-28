@@ -13,7 +13,7 @@ void main() {
   Agent client;
 
   setUpAll(() async {
-    await app.test();
+    await app.startOnCurrentIsolate();
   });
 
   setUp(() {

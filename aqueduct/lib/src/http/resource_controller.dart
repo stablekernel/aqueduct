@@ -4,6 +4,7 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/auth/objects.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 import 'http.dart';
@@ -255,7 +256,7 @@ abstract class ResourceController extends Controller {
         new BoundController(runtimeType).methods.where((method) => path.containsPathParameters(method.pathVariables));
 
     return operations.fold(<String, APIOperation>{}, (prev, method) {
-      final operation = firstMetadataOfType(Operation, reflect(this).type.instanceMembers[method.methodSymbol]);
+      Operation operation = firstMetadataOfType(reflect(this).type.instanceMembers[method.methodSymbol]);
 
       final op = new APIOperation(
           MirrorSystem.getName(method.methodSymbol), documentOperationResponses(context, operation),

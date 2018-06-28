@@ -1,5 +1,4 @@
 @Tags(const ["cli"])
-@Timeout(const Duration(seconds: 120))
 import 'dart:async';
 import 'dart:io';
 
@@ -30,7 +29,7 @@ void main() {
   });
 
   test("Served application starts and responds to route", () async {
-    task = terminal.startAqueductCommand("serve", []);
+    task = terminal.startAqueductCommand("serve", ["-n", "1"]);
     await task.hasStarted;
 
     expect(terminal.output, contains("Port: 8888"));
@@ -51,7 +50,7 @@ void main() {
   test("Ensure we don't find the base ApplicationChannel class", () async {
     terminal.addOrReplaceFile("lib/application_test.dart", "import 'package:aqueduct/aqueduct.dart';");
 
-    task = terminal.startAqueductCommand("serve", []);
+    task = terminal.startAqueductCommand("serve", ["-n", "1"]);
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
     expect(terminal.output, contains("No ApplicationChannel subclass"));
@@ -64,7 +63,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
       """);
     });
 
-    task = terminal.startAqueductCommand("serve", []);
+    task = terminal.startAqueductCommand("serve", ["-n", "1"]);
 
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
@@ -79,7 +78,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
     keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").toFilePath(windows: Platform.isWindows));
 
     task = terminal
-        .startAqueductCommand("serve", ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
+        .startAqueductCommand("serve", ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt", "-n", "1"]);
     await task.hasStarted;
 
     var completer = new Completer<List<int>>();
@@ -98,11 +97,11 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
         .copySync(terminal.workingDirectory.uri.resolve("server.crt").toFilePath(windows: Platform.isWindows));
     keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").toFilePath(windows: Platform.isWindows));
 
-    task = terminal.startAqueductCommand("serve", ["--ssl-key-path", "server.key"]);
+    task = terminal.startAqueductCommand("serve", ["--ssl-key-path", "server.key", "-n", "1"]);
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
 
-    task = terminal.startAqueductCommand("serve", ["--ssl-certificate-path", "server.crt"]);
+    task = terminal.startAqueductCommand("serve", ["--ssl-certificate-path", "server.crt", "-n", "1"]);
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
   });
@@ -114,7 +113,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
     badCertFile.writeAsStringSync("foobar");
 
     task = terminal
-        .startAqueductCommand("serve", ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
+        .startAqueductCommand("serve", ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt", "-n", "1"]);
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
   });
@@ -123,7 +122,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
     keyFile.copySync(terminal.workingDirectory.uri.resolve("server.key").toFilePath(windows: Platform.isWindows));
 
     task = terminal
-        .startAqueductCommand("serve", ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt"]);
+        .startAqueductCommand("serve", ["--ssl-key-path", "server.key", "--ssl-certificate-path", "server.crt", "-n", "1"]);
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
   });
@@ -133,7 +132,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
       return contents.replaceFirst("import", "importasjakads");
     });
 
-    task = terminal.startAqueductCommand("serve", []);
+    task = terminal.startAqueductCommand("serve", ["-n", "1"]);
     task.hasStarted.catchError((_) => null);
 
     expect(await task.exitCode, isNot(0));
@@ -149,7 +148,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
       return newContents;
     });
 
-    task = terminal.startAqueductCommand("serve", ["--config-path", "foobar.yaml"]);
+    task = terminal.startAqueductCommand("serve", ["--config-path", "foobar.yaml", "-n", "1"]);
     await task.hasStarted;
 
     var result = await http.get("http://localhost:8888/example");
@@ -167,7 +166,8 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
 
     task = terminal.startAqueductCommand("serve", [
       "--config-path",
-      terminal.workingDirectory.uri.resolve("foobar.yaml").toFilePath(windows: Platform.isWindows)
+      terminal.workingDirectory.uri.resolve("foobar.yaml").toFilePath(windows: Platform.isWindows),
+      "-n", "1"
     ]);
     await task.hasStarted;
 

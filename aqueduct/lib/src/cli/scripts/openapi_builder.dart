@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
+import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 import 'package:yaml/yaml.dart';
 
@@ -35,6 +37,8 @@ class OpenAPIBuilder extends Executable {
 
   @override
   Future<dynamic> execute() async {
+    DocumentedElement.provider = AnalyzerDocumentedElementProvider();
+
     var config = new ApplicationOptions()..configurationFilePath = configPath;
 
     final yaml = (loadYaml(pubspecContents) as Map<dynamic, dynamic>).cast<String, dynamic>();

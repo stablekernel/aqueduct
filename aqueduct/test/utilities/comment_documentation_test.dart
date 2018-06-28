@@ -1,8 +1,10 @@
-import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
+import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
 void main() {
+  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
   DocumentedElement comments;
 
   setUpAll(() async {

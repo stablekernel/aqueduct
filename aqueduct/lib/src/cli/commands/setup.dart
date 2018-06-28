@@ -1,33 +1,35 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'base.dart';
+import 'package:aqueduct/src/cli/command.dart';
+import 'package:aqueduct/src/cli/metadata.dart';
+import 'package:aqueduct/src/cli/mixins/project.dart';
 
 class CLISetup extends CLICommand with CLIProject {
-  CLISetup() {
-    options
-      ..addFlag("tests",
-          help:
-              "Sets up a local database to run application tests. If no other option is on, the command defaults to this flag.")
-      ..addOption("heroku",
-          help:
-              "Sets up the project in the current directory for deplying to Heroku.",
-          valueHelp: "The name of the Heroku application.")
-      ..addOption("granting-user",
-          abbr: "u",
-          defaultsTo: "postgres",
-          help:
-              "The username of the PostgreSQL user that has privileges to create a new test user and test database.")
-      ..addFlag("confirm",
-          abbr: "c",
-          negatable: false,
-          help: "Confirms that you wish to carry out this setup.");
-  }
-
   bool get shouldSetupHeroku => herokuName != null;
+
+  @Option("heroku",
+  help:
+  "Sets up the project in the current directory for deplying to Heroku.",
+  valueHelp: "The name of the Heroku application.")
   String get herokuName => decode("heroku");
+
+  @Flag("tests",
+    help:
+    "Sets up a local database to run application tests. If no other option is on, the command defaults to this flag.")
   bool get shouldSetupTests => decode("tests");
+
+  @Flag("confirm",
+    abbr: "c",
+    negatable: false,
+    help: "Confirms that you wish to carry out this setup.")
   bool get confirm => decode("confirm");
+
+  @Option("granting-user",
+    abbr: "u",
+    defaultsTo: "postgres",
+    help:
+    "The username of the PostgreSQL user that has privileges to create a new test user and test database.")
   String get grantingUser => decode("granting-user");
 
   @override

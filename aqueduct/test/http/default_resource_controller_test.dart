@@ -17,7 +17,7 @@ void main() {
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-      await app.test();
+      await app.startOnCurrentIsolate();
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 5; i++) {
@@ -91,7 +91,7 @@ void main() {
     var client = new Agent.onPort(8888);
 
     setUpAll(() async {
-      await app.test();
+      await app.startOnCurrentIsolate();
     });
 
     tearDownAll(() async {
@@ -124,7 +124,7 @@ void main() {
     var client = new Agent.onPort(8888);
 
     setUpAll(() async {
-      await app.test();
+      await app.startOnCurrentIsolate();
     });
 
     tearDownAll(() async {
@@ -161,7 +161,7 @@ void main() {
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-      await app.test();
+      await app.startOnCurrentIsolate();
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {
@@ -356,7 +356,7 @@ void main() {
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-      await app.test();
+      await app.startOnCurrentIsolate();
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {

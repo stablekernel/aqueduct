@@ -1,0 +1,36 @@
+import 'dart:async';
+
+import 'package:aqueduct/src/cli/commands/auth.dart';
+import 'package:aqueduct/src/cli/command.dart';
+import 'package:aqueduct/src/cli/commands/create.dart';
+import 'package:aqueduct/src/cli/commands/db.dart';
+import 'package:aqueduct/src/cli/commands/document.dart';
+import 'package:aqueduct/src/cli/commands/serve.dart';
+import 'package:aqueduct/src/cli/commands/setup.dart';
+
+class Runner extends CLICommand {
+  Runner() {
+    registerCommand(new CLITemplateCreator());
+    registerCommand(new CLIDatabase());
+    registerCommand(new CLIServer());
+    registerCommand(new CLISetup());
+    registerCommand(new CLIAuth());
+    registerCommand(new CLIDocument());
+  }
+
+  @override
+  Future<int> handle() async {
+    printHelp();
+    return 0;
+  }
+
+  @override
+  String get name {
+    return "aqueduct";
+  }
+
+  @override
+  String get description {
+    return "Aqueduct is a tool for managing Aqueduct applications.";
+  }
+}

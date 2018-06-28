@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
 import 'package:open_api/v3.dart';
 
 /// The methods you implement to document OpenAPI components.
