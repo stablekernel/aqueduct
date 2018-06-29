@@ -181,7 +181,7 @@ Future<Map<int, List<Map<String, dynamic>>>> getMessagesFromIsolates() async {
     var serverID = isolateIdentifierFromResponse(resp);
 
     if (!msgs.containsKey(serverID)) {
-      msgs[serverID] = json.decode(resp.body) as List<Map<String, dynamic>>;
+      msgs[serverID] = (json.decode(resp.body) as List).cast();
     }
   }
 
@@ -196,7 +196,7 @@ Future<Map<int, List<String>>> getErrorsFromIsolates() async {
     var serverID = isolateIdentifierFromResponse(resp);
 
     if (!msgs.containsKey(serverID)) {
-      msgs[serverID] = new List<String>.from(json.decode(resp.body) as List<String>);
+      msgs[serverID] = (json.decode(resp.body) as List).cast();
     }
   }
 
