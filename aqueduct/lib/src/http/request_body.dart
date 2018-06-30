@@ -61,7 +61,7 @@ class RequestBody extends BodyDecoder {
         _bufferingController.add(chunk);
       }, onDone: () {
         _bufferingController.close();
-      }, onError: (e, st) {
+      }, onError: (e, StackTrace st) {
         if (!_bufferingController.isClosed) {
           _bufferingController.addError(e, st);
           _bufferingController.close();

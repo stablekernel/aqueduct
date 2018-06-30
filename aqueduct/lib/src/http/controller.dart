@@ -117,14 +117,16 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
       return _handlePreflightRequest(req);
     }
 
-    var result;
+    Request next;
     try {
       try {
-        result = await handle(req);
+        final result = await handle(req);
         if (result is Response) {
           await _sendResponse(req, result, includeCORSHeaders: true);
           logger.info(req.toDebugString());
           return null;
+        } else if (result is Request) {
+          next = result;
         }
       } on Response catch (response) {
         await _sendResponse(req, response, includeCORSHeaders: true);
@@ -145,11 +147,11 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
       return null;
     }
 
-    if (result == null) {
+    if (next == null) {
       return null;
     }
 
-    return nextController?.receive(result);
+    return nextController?.receive(next);
   }
 
   /// Overridden by subclasses to modify or respond to an incoming request.
@@ -337,14 +339,14 @@ class _ControllerGenerator extends Controller {
   @override
   Linkable link(Controller instantiator()) {
     final c = super.link(instantiator);
-    nextInstanceToReceive._nextController = c;
+    nextInstanceToReceive._nextController = c as Controller;
     return c;
   }
 
   @override
   Linkable linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
     final c = super.linkFunction(handle);
-    nextInstanceToReceive._nextController = c;
+    nextInstanceToReceive._nextController = c as Controller;
     return c;
   }
 

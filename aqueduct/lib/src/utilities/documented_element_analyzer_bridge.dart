@@ -35,7 +35,7 @@ class AnalyzerDocumentedElement extends DocumentedElement {
           SimpleFormalParameter def = p.childEntities.first;
           children[new Symbol(p.identifier.name)] = new AnalyzerDocumentedElement._leaf(def.documentationComment);
         } else {
-          final comment = p.childEntities.firstWhere((c) => c is Comment, orElse: () => null);
+          Comment comment = p.childEntities.firstWhere((c) => c is Comment, orElse: () => null);
           if (comment != null) {
             children[new Symbol(p.identifier.name)] = new AnalyzerDocumentedElement._leaf(comment);
           }

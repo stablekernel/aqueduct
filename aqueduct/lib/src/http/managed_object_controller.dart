@@ -272,8 +272,8 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
     _query.offset = offset;
 
     if (pageBy != null) {
-      var direction;
-      var pageValue;
+      QuerySortOrder direction;
+      String pageValue;
       if (pageAfter != null) {
         direction = QuerySortOrder.ascending;
         pageValue = pageAfter;
@@ -290,8 +290,8 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
         throw new Response.badRequest(body: {"error": "cannot page by '$pageBy'"});
       }
 
-      pageValue = _parseValueForProperty(pageValue, pageByProperty);
-      _query.pageBy((t) => t[pageBy], direction, boundingValue: pageValue == "null" ? null : pageValue);
+      dynamic parsed = _parseValueForProperty(pageValue, pageByProperty);
+      _query.pageBy((t) => t[pageBy], direction, boundingValue: parsed == "null" ? null : parsed);
     }
 
     if (sortBy != null) {
@@ -422,7 +422,7 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
           return null;
       }
     } on FormatException {
-      throw new Response.notFound();
+      throw new Response.badRequest();
     }
 
     return null;

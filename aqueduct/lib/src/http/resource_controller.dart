@@ -214,7 +214,7 @@ abstract class ResourceController extends Controller {
           required: boundBody.isRequired);
     } else if (usesFormEncodedData) {
       final boundController = new BoundController(runtimeType);
-      final props = boundController
+      final Map<String, APISchemaObject> props = boundController
           .parametersForOperation(operation)
           .where((p) => p.binding is BoundQueryParameter)
           .map((param) => _documentParameter(context, operation, param))

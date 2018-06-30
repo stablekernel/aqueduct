@@ -45,7 +45,7 @@ abstract class BodyDecoder {
       throw new StateError("Invalid body decoding. Must decode data prior to calling 'decodedType'.");
     }
 
-    return _decodedData.runtimeType;
+    return (_decodedData as Object).runtimeType;
   }
 
   final Stream<List<int>> _originalByteStream;

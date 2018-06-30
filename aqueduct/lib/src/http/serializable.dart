@@ -23,7 +23,7 @@ abstract class HTTPSerializable {
     }
 
     final properties = <String, APISchemaObject>{};
-    for (var property in mirror.declarations.values.where((d) => d is VariableMirror)) {
+    for (final property in mirror.declarations.values.whereType<VariableMirror>()) {
       properties[MirrorSystem.getName(property.simpleName)] = APIComponentDocumenter.documentVariable(context, property);
     }
 

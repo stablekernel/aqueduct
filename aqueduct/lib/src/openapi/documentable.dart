@@ -45,7 +45,7 @@ abstract class APIComponentDocumenter {
   /// maps, lists and any type that implements [HTTPSerializable].
   ///
   /// See [HTTPSerializable.document] for details on automatic document generation behavior for these types.
-  static APISchemaObject documentType(APIDocumentContext context, ClassMirror type) {
+  static APISchemaObject documentType(APIDocumentContext context, TypeMirror type) {
     if (type.isAssignableTo(reflectType(int))) {
       return new APISchemaObject.integer();
     } else if (type.isAssignableTo(reflectType(double))) {
@@ -311,7 +311,7 @@ class APIComponentCollection<T extends APIObject> {
   /// If after [APIDocumentContext.finalize] is called and no object
   /// has been registered for [name], an error is thrown.
   T getObject(String name) {
-    APIObject obj = reflectClass(T).newInstance(#empty, []).reflectee;
+    T obj = reflectClass(T).newInstance(#empty, []).reflectee;
     obj.referenceURI = new Uri(path: "/components/$_typeName/$name");
     return obj;
   }
@@ -329,7 +329,7 @@ class APIComponentCollection<T extends APIObject> {
       return _typeReferenceMap[type];
     }
 
-    APIObject obj = reflectClass(T).newInstance(#empty, []).reflectee;
+    T obj = reflectClass(T).newInstance(#empty, []).reflectee;
     obj.referenceURI = new Uri(path: "/components/$_typeName/aqueduct-typeref:${MirrorSystem.getName(reflectType(type).simpleName)}");
 
     final completer = _resolutionMap.putIfAbsent(type, () => new Completer<T>.sync());
