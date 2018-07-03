@@ -314,8 +314,9 @@ class DefaultPersistentStore extends PersistentStore {
     var out = from;
     for (var migration in migrations) {
       migration.database = new SchemaBuilder(this, out);
-      out = await migration.upgrade();
+      await migration.upgrade();
       await migration.seed();
+      out = migration.database.schema;
     }
    return out;
   }

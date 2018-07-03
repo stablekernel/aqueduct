@@ -174,14 +174,14 @@ Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages, {i
 }
 
 Future<Map<int, List<Map<String, dynamic>>>> getMessagesFromIsolates() async {
-  var msgs = {};
+  var msgs = <int, List<Map<String, dynamic>>>{};
 
   while (msgs.length != 3) {
     var resp = await http.get("http://localhost:8000/messages");
     var serverID = isolateIdentifierFromResponse(resp);
 
     if (!msgs.containsKey(serverID)) {
-      msgs[serverID] = json.decode(resp.body);
+      msgs[serverID] = (json.decode(resp.body) as List).cast();
     }
   }
 
@@ -196,7 +196,7 @@ Future<Map<int, List<String>>> getErrorsFromIsolates() async {
     var serverID = isolateIdentifierFromResponse(resp);
 
     if (!msgs.containsKey(serverID)) {
-      msgs[serverID] = new List<String>.from(json.decode(resp.body));
+      msgs[serverID] = (json.decode(resp.body) as List).cast();
     }
   }
 
@@ -214,14 +214,14 @@ class HubChannel extends ApplicationChannel {
   @override
   Future prepare() async {
     messageHub.listen((event) {
-      messages.add(event);
+      messages.add(event as Map<String, dynamic>);
     }, onError: (err) {
       errors.add(err.toString());
     });
 
     if (options.context["multipleListeners"] == true) {
       messageHub.listen((event) {
-        messages.add(event);
+        messages.add(event as Map<String, dynamic>);
       }, onError: (err) {
         errors.add(err.toString());
       });

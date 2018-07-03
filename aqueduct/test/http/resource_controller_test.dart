@@ -776,7 +776,7 @@ class UnboundController extends ResourceController {
 Future<HttpServer> enableController(String pattern, Type controller) async {
   var router = new Router();
   router.route(pattern).link(
-      () => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
+      () => reflectClass(controller).newInstance(new Symbol(""), []).reflectee as Controller);
   router.didAddToChannel();
 
   var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);

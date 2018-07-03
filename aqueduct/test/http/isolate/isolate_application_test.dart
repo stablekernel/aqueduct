@@ -76,7 +76,7 @@ void main() {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
         var result = await http.get("http://localhost:8888/startup");
-        sum += int.parse(json.decode(result.body));
+        sum += int.parse(json.decode(result.body) as String);
       }
       expect(sum, 10);
     });

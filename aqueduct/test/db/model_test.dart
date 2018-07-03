@@ -947,6 +947,6 @@ class _ConstructorOverride {
   String value;
 }
 
-dynamic wash(dynamic data) {
-  return json.decode(json.encode(data));
+T wash<T>(dynamic data) {
+  return json.decode(json.encode(data)) as T;
 }

@@ -317,7 +317,7 @@ void main() {
       expect(schema.tables.first.name, "_Unique");
       expect(schema.tables.first.uniqueColumnSet, ["a", "b"]);
 
-      var tableMap = schema.asMap()["tables"].first;
+      var tableMap = schema.asMap()["tables"].first as Map<String, dynamic>;
       expect(tableMap["name"], "_Unique");
       expect(tableMap["unique"], ["a", "b"]);
 

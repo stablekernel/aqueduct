@@ -20,7 +20,7 @@ void main() {
 
       await app.start(numberOfInstances: 1);
 
-      var completer = new Completer();
+      var completer = new Completer<List<int>>();
       var socket = await SecureSocket.connect("localhost", 8888, onBadCertificate: (_) => true);
       var request = "GET /r HTTP/1.1\r\nConnection: close\r\nHost: localhost\r\n\r\n";
       socket.add(request.codeUnits);
