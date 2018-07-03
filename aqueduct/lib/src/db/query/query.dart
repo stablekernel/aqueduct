@@ -124,7 +124,6 @@ abstract class Query<InstanceType extends ManagedObject> {
   void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order,
       {T boundingValue});
 
-
   /// Configures this instance to sort its results by some property and order.
   ///
   /// This method will have the database perform a sort by some property identified by [propertyIdentifier].
