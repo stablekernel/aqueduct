@@ -173,19 +173,19 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// By default, the returned object will use a normal value backing map.
   /// If [backing] is non-null, it will be the backing map of the returned object.
-  ManagedObject instanceOf({ManagedBacking backing}) {
+  T instanceOf<T extends ManagedObject>({ManagedBacking backing}) {
     if (backing != null) {
-      return ManagedObject.instantiateDynamic(this, backing: backing);
+      return ManagedObject.instantiateDynamic(this, backing: backing) as T;
     }
 
-    return ManagedObject.instantiateDynamic(this);
+    return ManagedObject.instantiateDynamic(this) as T;
   }
 
   /// Returns an attribute in this entity for a property selector.
   ///
   /// Invokes [identifyProperties] with [propertyIdentifier], and ensures that a single attribute
   /// on this entity was selected. Returns that attribute.
-  ManagedAttributeDescription identifyAttribute<T, U>(T propertyIdentifier(U x)) {
+  ManagedAttributeDescription identifyAttribute<T, U extends ManagedObject>(T propertyIdentifier(U x)) {
     final keyPaths = identifyProperties(propertyIdentifier);
     if (keyPaths.length != 1) {
       throw new ArgumentError("Invalid property selector. Cannot access more than one property for this operation.");
@@ -223,7 +223,7 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// Invokes [identifyProperties] with [propertyIdentifier], and ensures that a single relationship
   /// on this entity was selected. Returns that relationship.
-  ManagedRelationshipDescription identifyRelationship<T, U>(T propertyIdentifier(U x)) {
+  ManagedRelationshipDescription identifyRelationship<T, U extends ManagedObject>(T propertyIdentifier(U x)) {
     final keyPaths = identifyProperties(propertyIdentifier);
     if (keyPaths.length != 1) {
       throw new ArgumentError("Invalid property selector. Cannot access more than one property for this operation.");
@@ -252,7 +252,7 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// Invokes [identifyProperties] with [propertyIdentifier], and ensures that a single property
   /// on this entity was selected. Returns that property.
-  KeyPath identifyProperty<T, U>(T propertyIdentifier(U x)) {
+  KeyPath identifyProperty<T, U extends ManagedObject>(T propertyIdentifier(U x)) {
     final properties = identifyProperties(propertyIdentifier);
     if (properties.length != 1) {
       throw new ArgumentError("Invalid property selector. Must reference a single property only.");
@@ -265,10 +265,10 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// Each selected property in [propertiesIdentifier] is returned in a [KeyPath] object that fully identifies the
   /// property relative to this entity.
-  List<KeyPath> identifyProperties<T, U>(T propertiesIdentifier(U x)) {
+  List<KeyPath> identifyProperties<T, U extends ManagedObject>(T propertiesIdentifier(U x)) {
     final tracker = new ManagedAccessTrackingBacking();
-    var obj = instanceOf(backing: tracker);
-    propertiesIdentifier(obj as U);
+    var obj = instanceOf<U>(backing: tracker);
+    propertiesIdentifier(obj);
 
     return tracker.keyPaths;
   }
