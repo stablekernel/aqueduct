@@ -205,7 +205,7 @@ void main() {
       expect(results.first.rid, 1);
       expect(results.first.children.length, 1);
       expect(results.first.children.first.grandChildren, isNull);
-    });
+    }, skip: "#481");
 
     test("Explicitly joining related objects and nested related objects", () async {
       var q = new Query<RootObject>(ctx)..where((o) => o.rid).equalTo(1);
@@ -237,7 +237,7 @@ void main() {
         ..where((o) => o.children.haveAtLeastOneWhere.grandChildren.haveAtLeastOneWhere.gid).greaterThan(8);
       results = await q.fetch();
       expect(results.length, 0);
-    });
+    }, skip: "#481");
 
     test("Where clause on foreign key property of joined table", () async {
       var q = new Query<RootObject>(ctx)
@@ -261,7 +261,7 @@ void main() {
         ..where((o) => o.children.haveAtLeastOneWhere.grandChild).identifiedBy(8);
       res = await q.fetch();
       expect(res.length, 0);
-    });
+    }, skip: "#481");
   });
 
   group("With where clauses on child object", () {
@@ -300,7 +300,7 @@ void main() {
       expect(results.firstWhere((r) => r.rid == 1).children.first.cid, 2);
       expect(results.firstWhere((r) => r.rid == 1).children.first.grandChildren, isNull);
       expect(results.where((r) => r.rid != 1).every((r) => r.children.isEmpty), true);
-    });
+    }, skip: "#481");
 
     test("Where clause on child + implicit join to grandchild returns empty if conditions conflict", () async {
       var q = new Query<RootObject>(ctx);
@@ -311,7 +311,7 @@ void main() {
 
       expect(results.length, rootObjects.length);
       expect(results.every((r) => r.children.isEmpty), true);
-    });
+    }, skip: "#481");
 
     test("Where clause on child + implicit join to grandchild returns appropriate matches", () async {
       var q = new Query<RootObject>(ctx);
@@ -325,7 +325,7 @@ void main() {
       expect(results.firstWhere((r) => r.rid == 1).children.any((c) => c.cid == 2), true);
       expect(results.firstWhere((r) => r.rid == 1).children.any((c) => c.cid == 4), true);
       expect(results.where((r) => r.rid != 1).every((r) => r.children.isEmpty), true);
-    });
+    }, skip: "#481");
   });
 
   group("With where clauses on grandchild object", () {
@@ -381,7 +381,7 @@ void main() {
       expect(results.firstWhere((r) => r.rid == 2).children.any((c) => c.cid == 7), true);
       expect(results.firstWhere((r) => r.rid == 4).children.length, 1);
       expect(results.firstWhere((r) => r.rid == 4).children.any((c) => c.cid == 9), true);
-    });
+    }, skip: "#481");
   });
 
   group("Filtering by existence", () {
@@ -446,7 +446,7 @@ void main() {
       results = await q.fetch();
 
       expect(results.length, 0);
-    });
+    }, skip: "#481");
 
     test("Join on on two properties with same entity type", () async {
       var q = new Query<RootObject>(ctx);
