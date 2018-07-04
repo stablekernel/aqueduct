@@ -70,17 +70,17 @@ class SchemaColumn {
   ///
   /// Where [map] is typically created by [asMap].
   SchemaColumn.fromMap(Map<String, dynamic> map) {
-    name = map["name"];
-    _type = map["type"];
-    isIndexed = map["indexed"];
-    isNullable = map["nullable"];
-    autoincrement = map["autoincrement"];
-    isUnique = map["unique"];
-    defaultValue = map["defaultValue"];
-    isPrimaryKey = map["primaryKey"];
-    relatedTableName = map["relatedTableName"];
-    relatedColumnName = map["relatedColumnName"];
-    _deleteRule = map["deleteRule"];
+    name = map["name"] as String;
+    _type = map["type"] as String;
+    isIndexed = map["indexed"] as bool;
+    isNullable = map["nullable"] as bool;
+    autoincrement = map["autoincrement"] as bool;
+    isUnique = map["unique"] as bool;
+    defaultValue = map["defaultValue"] as String;
+    isPrimaryKey = map["primaryKey"] as bool;
+    relatedTableName = map["relatedTableName"] as String;
+    relatedColumnName = map["relatedColumnName"] as String;
+    _deleteRule = map["deleteRule"] as String;
   }
 
   /// Creates an empty instance of this type.

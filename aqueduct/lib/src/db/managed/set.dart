@@ -32,7 +32,7 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
     _innerValues = items.toList();
   }
 
-  List<dynamic> _innerValues;
+  List<InstanceType> _innerValues;
 
   /// Filters [Query] results based on the criteria of the objects in this collection.
   ///

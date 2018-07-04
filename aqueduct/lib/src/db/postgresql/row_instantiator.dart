@@ -47,7 +47,7 @@ class RowInstantiator {
 
     while (returningIterator.moveNext()) {
       var ret = returningIterator.current;
-      if (ret is! TableBuilder) {
+      if (ret is ColumnBuilder) {
         rowIterator.moveNext();
         applyColumnValueToProperty(instance, ret, rowIterator.current);
       } else if (ret is TableBuilder) {

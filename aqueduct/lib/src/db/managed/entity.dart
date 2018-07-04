@@ -137,7 +137,7 @@ class ManagedEntity implements APIComponentDocumenter {
   }
 
   ManagedAttributeDescription get primaryKeyAttribute {
-    return properties[primaryKey];
+    return attributes[primaryKey];
   }
 
   /// A map from accessor symbol name to property name.
@@ -173,12 +173,12 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// By default, the returned object will use a normal value backing map.
   /// If [backing] is non-null, it will be the backing map of the returned object.
-  ManagedObject instanceOf({ManagedBacking backing}) {
+  T instanceOf<T extends ManagedObject>({ManagedBacking backing}) {
     if (backing != null) {
-      return ManagedObject.instantiateDynamic(this, backing: backing);
+      return ManagedObject.instantiateDynamic(this, backing: backing) as T;
     }
 
-    return ManagedObject.instantiateDynamic(this);
+    return ManagedObject.instantiateDynamic(this) as T;
   }
 
   /// Returns an attribute in this entity for a property selector.

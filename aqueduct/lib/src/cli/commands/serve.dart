@@ -128,15 +128,16 @@ class CLIServer extends CLICommand with CLIProject {
 
     errorPort.listen((msg) {
       if (msg is List) {
-        startupCompleter.completeError(msg.first, new StackTrace.fromString(msg.last));
+        startupCompleter.completeError(msg.first, new StackTrace.fromString(msg.last as String));
       }
     });
 
     messagePort.listen((msg) {
-      switch (msg["status"]) {
+      final message = msg as Map<dynamic, dynamic>;
+      switch (message["status"] as String) {
         case "ok":
           {
-            startupCompleter.complete(msg["port"]);
+            startupCompleter.complete(message["port"] as SendPort);
           }
           break;
         case "stopped":

@@ -38,7 +38,7 @@ class TableBuilder implements Returnable {
     }
 
     query.subQueries?.forEach((relationshipDesc, subQuery) {
-      addJoinTableBuilder(TableBuilder(subQuery, parent: this, joinedBy: relationshipDesc));
+      addJoinTableBuilder(TableBuilder(subQuery as PostgresQuery, parent: this, joinedBy: relationshipDesc));
     });
 
     addColumnExpressions(query.expressions);
@@ -74,10 +74,10 @@ class TableBuilder implements Returnable {
   }
 
   List<ColumnBuilder> get flattenedColumnsToReturn {
-    return returning.fold([], (prev, c) {
+    return returning.fold(<ColumnBuilder>[], (prev, c) {
       if (c is TableBuilder) {
         prev.addAll(c.flattenedColumnsToReturn);
-      } else {
+      } else if (c is ColumnBuilder) {
         prev.add(c);
       }
       return prev;
@@ -182,7 +182,7 @@ class TableBuilder implements Returnable {
     } else if (keyPath.length == 1 && keyPath[0] is! ManagedRelationshipDescription) {
       return this;
     } else {
-      final head = keyPath[0];
+      final ManagedRelationshipDescription head = keyPath[0];
       TableBuilder join = returning
           .where((r) => r is TableBuilder)
           .firstWhere((m) => (m as TableBuilder).isJoinOnProperty(head), orElse: () => null);

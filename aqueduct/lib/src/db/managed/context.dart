@@ -125,5 +125,5 @@ class Rollback {
   /// The reason this rollback occurred.
   ///
   /// This value is returned from [ManagedContext.transaction] when this instance is thrown.
-  final dynamic reason;
+  final String reason;
 }

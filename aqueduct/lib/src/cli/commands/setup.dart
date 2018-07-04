@@ -143,29 +143,30 @@ web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port \$PORT --no
     for (var cmd in commands) {
       List<String> args = ["-c", cmd, "-U", grantingUser];
 
-      var result = Process.runSync("psql", args, runInShell: true);
-      if (result.stdout.contains("CREATE DATABASE")) {
+      final result = Process.runSync("psql", args, runInShell: true);
+      final output = (result.stdout as String) + (result.stderr as String);
+      if (output.contains("CREATE DATABASE")) {
         displayProgress("Successfully created database dart_test.");
-      } else if (result.stdout.contains("CREATE ROLE")) {
+      } else if (output.contains("CREATE ROLE")) {
         displayProgress(
             "Successfully created role 'dart' with createdb permissions.");
-      } else if (result.stdout.contains("ALTER ROLE")) {
+      } else if (output.contains("ALTER ROLE")) {
         displayProgress("Successfully set user 'dart' password to 'dart'.");
-      } else if (result.stdout.contains("GRANT")) {
+      } else if (output.contains("GRANT")) {
         displayProgress(
             "Successfully granted all privileges to database dart_test to user 'dart'.");
       }
 
-      if (result.stderr.contains("database \"dart_test\" already exists")) {
+      if (output.contains("database \"dart_test\" already exists")) {
         displayProgress("Database dart_test already exists, continuing.");
-      } else if (result.stderr.contains("role \"dart\" already exists")) {
+      } else if (output.contains("role \"dart\" already exists")) {
         displayProgress("User 'dart' already exists, continuing.");
-      } else if (result.stderr.contains("could not connect to server")) {
+      } else if (output.contains("could not connect to server")) {
         displayError(
             "Database is not accepting connections. Ensure that PostgreSQL is running locally.");
 
         return -1;
-      } else if (result.stderr.length > 0) {
+      } else if ((result.stderr as String).length > 0) {
         displayError("Unknown error: ${result.stderr}");
         return -1;
       }

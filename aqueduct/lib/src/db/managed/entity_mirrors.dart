@@ -25,7 +25,7 @@ VariableMirror instanceVariableFromClass(ClassMirror classMirror, Symbol name) {
 
 ClassMirror dartTypeFromDeclaration(DeclarationMirror declaration) {
   if (declaration is MethodMirror) {
-    ClassMirror type;
+    TypeMirror type;
 
     if (declaration.isGetter) {
       type = declaration.returnType;
@@ -33,9 +33,17 @@ ClassMirror dartTypeFromDeclaration(DeclarationMirror declaration) {
       type = declaration.parameters.first.type;
     }
 
-    return type;
+    if (type is! ClassMirror) {
+      throw ManagedDataModelError("Invalid type for field '${MirrorSystem.getName(declaration.simpleName)}'"
+        " in type '${MirrorSystem.getName(declaration.owner.simpleName)}'.");
+    }
+    return type as ClassMirror;
   } else if (declaration is VariableMirror) {
-    return declaration.type;
+    if (declaration.type is! ClassMirror) {
+      throw ManagedDataModelError("Invalid type for field '${MirrorSystem.getName(declaration.simpleName)}'"
+        " in type '${MirrorSystem.getName(declaration.owner.simpleName)}'.");
+    }
+    return declaration.type as ClassMirror;
   }
 
   throw new ManagedDataModelError(
@@ -46,7 +54,7 @@ ClassMirror dartTypeFromDeclaration(DeclarationMirror declaration) {
 ManagedType propertyTypeFromDeclaration(DeclarationMirror declaration) {
   try {
     if (declaration is MethodMirror) {
-      ClassMirror type;
+      TypeMirror type;
 
       if (declaration.isGetter) {
         type = declaration.returnType;
