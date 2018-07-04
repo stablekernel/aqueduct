@@ -43,7 +43,7 @@ class SchemaTable {
   SchemaTable.fromMap(Map<String, dynamic> map) {
     name = map["name"] as String;
     _columns = (map["columns"] as List<Map<String, dynamic>>).map((c) => new SchemaColumn.fromMap(c)).toList();
-    uniqueColumnSet = (map["unique"] as List).cast();
+    uniqueColumnSet = (map["unique"] as List)?.cast();
   }
 
   /// The [Schema] this table belongs to.
