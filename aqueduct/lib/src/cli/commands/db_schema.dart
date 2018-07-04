@@ -31,7 +31,7 @@ class CLIDatabaseSchema extends CLICommand with CLIDatabaseManagingCommand, CLIP
   }
 
   Future<dynamic> getSchema() {
-    return IsolateExecutor.executeWithType(GetSchemaExecutable,
+    return IsolateExecutor.run(GetSchemaExecutable({}),
         packageConfigURI: packageConfigUri,
         imports: GetSchemaExecutable.importsForPackage(packageName),
         logHandler: displayProgress);

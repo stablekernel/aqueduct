@@ -16,8 +16,10 @@ class CLIDatabaseValidate extends CLICommand with CLIDatabaseManagingCommand, CL
       return 1;
     }
 
-    final currentSchema = new Schema.fromMap(await IsolateExecutor.executeWithType(GetSchemaExecutable,
-        imports: GetSchemaExecutable.importsForPackage(libraryName), packageConfigURI: packageConfigUri, logHandler: displayProgress));
+    final currentSchema = new Schema.fromMap(await IsolateExecutor.run(GetSchemaExecutable({}),
+        imports: GetSchemaExecutable.importsForPackage(libraryName),
+        packageConfigURI: packageConfigUri,
+        logHandler: displayProgress));
     var schemaFromMigrationFiles = await schemaByApplyingMigrationSources(migrations);
 
     var differences = currentSchema.differenceFrom(schemaFromMigrationFiles);

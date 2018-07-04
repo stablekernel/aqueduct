@@ -35,14 +35,13 @@ abstract class CLIDocumentOptions implements CLICommand {
   String get licenseName => decode("license-name");
 
   @Option("config-path",
-    abbr: "c",
-    help:
-    "The path to a configuration file that this application needs to initialize resources for the purpose of documenting its API.",
-    defaultsTo: "config.src.yaml")
+      abbr: "c",
+      help:
+          "The path to a configuration file that this application needs to initialize resources for the purpose of documenting its API.",
+      defaultsTo: "config.src.yaml")
   String get configurationPath => decode("config-path");
 
-  @MultiOption("host",
-    help: "Scheme, host and port for available instances.", valueHelp: "https://api.myapp.com:8000")
+  @MultiOption("host", help: "Scheme, host and port for available instances.", valueHelp: "https://api.myapp.com:8000")
   List<Uri> get hosts {
     List<String> hostValues = decode("host") ?? ["http://localhost:8888"];
     return hostValues.map((str) {
@@ -71,10 +70,8 @@ abstract class CLIDocumentOptions implements CLICommand {
       "licenseURL": licenseURL,
       "licenseName": licenseName
     };
-    final result = await IsolateExecutor.executeWithType(OpenAPIBuilder,
+    return IsolateExecutor.run(OpenAPIBuilder(variables),
         packageConfigURI: projectDirectory.resolve(".packages"),
-        message: variables,
         imports: OpenAPIBuilder.importsForPackage(libraryName));
-    return result as Map<dynamic, dynamic>;
   }
 }

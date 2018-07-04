@@ -28,7 +28,7 @@ class CLIAuthAddClient extends CLICommand with CLIDatabaseConnectingCommand, CLI
       defaultsTo: "sha256",
       allowed: ["sha256", "sha1", "md5"])
   Hash get hashFunction {
-    switch (decode("hash-function")) {
+    switch (decode<String>("hash-function")) {
       case "sha256":
         return sha256;
       case "sha1":
