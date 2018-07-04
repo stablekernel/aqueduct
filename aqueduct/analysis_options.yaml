@@ -1,6 +1,6 @@
 analyzer:
-#  strong-mode:
-#    implicit-casts: false
+  strong-mode:
+    implicit-casts: false
   exclude:
     - tmp/**
 
