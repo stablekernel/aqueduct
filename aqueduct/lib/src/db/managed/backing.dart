@@ -1,4 +1,5 @@
 import 'package:aqueduct/src/db/managed/key_path.dart';
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 import 'managed.dart';
 import 'exception.dart';
@@ -155,7 +156,11 @@ class ManagedAccessTrackingBacking extends ManagedBacking {
     if (property is ManagedRelationshipDescription) {
       final tracker = new ManagedAccessTrackingBacking()
         ..workingKeyPath = keyPath;
-      return property.inverse.entity.instanceOf(backing: tracker);
+      if (property.relationshipType == ManagedRelationshipType.hasMany) {
+        return property.declaredType.newInstance(const Symbol(''), []).reflectee;
+      } else {
+        return property.inverse.entity.instanceOf(backing: tracker);
+      }
     } else if (property is ManagedAttributeDescription && property.type.kind == ManagedPropertyType.document) {
       return new DocumentAccessTracker(keyPath);
     }
