@@ -37,7 +37,7 @@ class BoundController {
     final allDeclarations = reflectClass(controllerType).declarations;
 
     final boundProperties = allDeclarations.values
-        .where((decl) => decl is VariableMirror)
+        .whereType<VariableMirror>()
         .where((decl) => decl.metadata.any((im) => im.reflectee is Bind))
         .map((decl) {
       var isRequired = allDeclarations[decl.simpleName].metadata.any((im) => im.reflectee is HTTPRequiredParameter);

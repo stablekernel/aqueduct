@@ -284,7 +284,7 @@ class Request implements RequestOrResponse {
 
     return response.addStream(bodyStream).then((_) {
       return response.close();
-    }).catchError((e, st) {
+    }).catchError((e, StackTrace st) {
       throw HTTPStreamingException(e, st);
     });
   }

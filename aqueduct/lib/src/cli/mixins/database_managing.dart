@@ -48,13 +48,12 @@ abstract class CLIDatabaseManagingCommand implements CLICommand, CLIProject {
       => f.versionNumber.toString()).join(", ")}...");
     }
 
-    final schemaMap = await IsolateExecutor.executeWithType(SchemaBuilderExecutable,
+    final schemaMap = await IsolateExecutor.run(SchemaBuilderExecutable.input(sources, fromSchema),
       packageConfigURI: packageConfigUri,
       imports: SchemaBuilderExecutable.imports,
       additionalContents: MigrationSource.combine(sources),
-      message: SchemaBuilderExecutable.createMessage(sources, fromSchema),
       logHandler: displayProgress);
 
-    return new Schema.fromMap(schemaMap as Map<String, dynamic>);
+    return new Schema.fromMap(schemaMap);
   }
 }

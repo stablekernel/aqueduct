@@ -6,37 +6,40 @@ import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 import 'package:yaml/yaml.dart';
 
-class OpenAPIBuilder extends Executable {
+class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
   OpenAPIBuilder(Map<String, dynamic> message)
-      : pubspecContents = message["pubspec"],
-        configPath = message["configPath"],
-        title = message["title"],
-        description = message["description"],
-        version = message["version"],
-        termsOfServiceURL = message["termsOfServiceURL"] != null ? Uri.parse(message["termsOfServiceURL"]) : null,
-        contactEmail = message["contactEmail"],
-        contactName = message["contactName"],
-        contactURL = message["contactURL"] != null ? Uri.parse(message["contactURL"]) : null,
-        licenseURL = message["licenseURL"] != null ? Uri.parse(message["licenseURL"]) : null,
-        licenseName = message["licenseName"],
+      : pubspecContents = message["pubspec"] as String,
+        configPath = message["configPath"] as String,
+        title = message["title"] as String,
+        description = message["description"] as String,
+        version = message["version"] as String,
+        termsOfServiceURL =
+            message["termsOfServiceURL"] != null ? Uri.parse(message["termsOfServiceURL"] as String) : null,
+        contactEmail = message["contactEmail"] as String,
+        contactName = message["contactName"] as String,
+        contactURL = message["contactURL"] != null ? Uri.parse(message["contactURL"] as String) : null,
+        licenseURL = message["licenseURL"] != null ? Uri.parse(message["licenseURL"] as String) : null,
+        licenseName = message["licenseName"] as String,
         hosts = (message["hosts"] as List<Uri>)?.map((uri) => new APIServerDescription(uri))?.toList() ?? [],
         super(message);
 
-  final String pubspecContents;
-  final String configPath;
-  final String title;
-  final String description;
-  final String version;
-  final Uri termsOfServiceURL;
-  final String contactEmail;
-  final String contactName;
-  final Uri contactURL;
-  final Uri licenseURL;
-  final String licenseName;
-  final List<APIServerDescription> hosts;
+  OpenAPIBuilder.input(Map<String, dynamic> variables) : super(variables);
+
+  String pubspecContents;
+  String configPath;
+  String title;
+  String description;
+  String version;
+  Uri termsOfServiceURL;
+  String contactEmail;
+  String contactName;
+  Uri contactURL;
+  Uri licenseURL;
+  String licenseName;
+  List<APIServerDescription> hosts;
 
   @override
-  Future<dynamic> execute() async {
+  Future<Map<String, dynamic>> execute() async {
     DocumentedElement.provider = AnalyzerDocumentedElementProvider();
 
     var config = new ApplicationOptions()..configurationFilePath = configPath;

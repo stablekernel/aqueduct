@@ -5,6 +5,8 @@ import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:path/path.dart' as path;
 import 'http.dart';
 
+typedef FutureOr<Response> _OnFileNotFound(HTTPFileController controller, Request req);
+
 /// Serves files from a directory on the filesystem.
 ///
 /// See the constructor for usage.
@@ -69,14 +71,14 @@ class HTTPFileController extends Controller {
   ///
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
   HTTPFileController(String pathOfDirectoryToServe,
-      {Future<Response> onFileNotFound(HTTPFileController controller, Request req)})
+      {FutureOr<Response> onFileNotFound(HTTPFileController controller, Request req)})
       : _servingDirectory = new Uri.directory(pathOfDirectoryToServe),
         _onFileNotFound = onFileNotFound;
 
   Map<String, ContentType> _extensionMap = new Map.from(_defaultExtensionMap);
   List<_PolicyPair> _policyPairs = [];
   final Uri _servingDirectory;
-  final Function _onFileNotFound;
+  final _OnFileNotFound _onFileNotFound;
 
   /// Returns a [ContentType] for a file extension.
   ///

@@ -11,10 +11,10 @@ class MigrationSource {
   }
 
   MigrationSource.fromMap(Map<String, dynamic> map) {
-    originalName = map["originalName"];
-    source = map["source"];
-    name = map["name"];
-    uri = map["uri"];
+    originalName = map["originalName"] as String;
+    source = map["source"] as String;
+    name = map["name"] as String;
+    uri = map["uri"] as Uri;
   }
 
   factory MigrationSource.fromFile(Uri uri) {

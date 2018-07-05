@@ -36,7 +36,7 @@ abstract class CLIProject implements CLICommand {
 
   String get libraryName => packageName;
 
-  String get packageName => projectSpecification["name"];
+  String get packageName => projectSpecification["name"] as String;
 
   Version get projectVersion {
     if (_projectVersion == null) {

@@ -277,7 +277,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       if (value is! String) {
         throw new ValidationException(["invalid input value for '$name'"]);
       }
-      value = DateTime.parse(value);
+      value = DateTime.parse(value as String);
     } else if (type.kind == ManagedPropertyType.doublePrecision) {
       if (value is! num) {
         throw new ValidationException(["invalid input value for '$name'"]);
@@ -337,7 +337,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   /// Whether or not a the argument can be assigned to this property.
   @override
   bool isAssignableWith(dynamic dartValue) {
-    var type = reflect(dartValue).type;
+    TypeMirror type = reflect(dartValue).type;
 
     if (type.isSubtypeOf(reflectType(List))) {
       if (relationshipType != ManagedRelationshipType.hasMany) {
@@ -383,7 +383,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       }
 
       ManagedObject instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
-      instance.readFromMap(value);
+      instance.readFromMap(value as Map<String, dynamic>);
 
       return instance;
     }
@@ -399,7 +399,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
         throw new ValidationException(["invalid input type for '$name'"]);
       }
       ManagedObject instance = destinationEntity.instanceType.newInstance(new Symbol(""), []).reflectee;
-      instance.readFromMap(m);
+      instance.readFromMap(m as Map<String, dynamic>);
       return instance;
     };
     return declaredType.newInstance(#from, [value.map(instantiator)]).reflectee;

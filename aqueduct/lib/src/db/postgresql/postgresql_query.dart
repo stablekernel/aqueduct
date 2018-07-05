@@ -47,10 +47,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 
-    var results =
+    List<List<dynamic>> results =
         await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
-    return builder.instancesForRows(results).first;
+    return builder.instancesForRows<InstanceType>(results).first;
   }
 
   @override
@@ -73,7 +73,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 
-    var results =
+    List<List<dynamic>> results =
         await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder.instancesForRows(results);
@@ -175,7 +175,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("OFFSET $offset ");
     }
 
-    var results =
+    List<List<dynamic>> results =
         await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder.instancesForRows(results);

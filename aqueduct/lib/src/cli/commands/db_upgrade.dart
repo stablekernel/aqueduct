@@ -54,12 +54,13 @@ class CLIDatabaseUpgrade extends CLICommand with CLIDatabaseConnectingCommand, C
   }
 
   Future<Schema> executeMigrations(List<MigrationSource> migrations, Schema fromSchema, int fromVersion) async {
-    final schemaMap = await IsolateExecutor.executeWithType(RunUpgradeExecutable,
+    final schemaMap = await IsolateExecutor.run(
+        RunUpgradeExecutable.input(fromSchema, _storeConnectionInfo, migrations, fromVersion),
         packageConfigURI: packageConfigUri,
         imports: RunUpgradeExecutable.imports,
         additionalContents: MigrationSource.combine(migrations),
-        message: RunUpgradeExecutable.createMessage(fromSchema, _storeConnectionInfo, migrations, fromVersion),
-        additionalTypes: [DBInfo], logHandler: displayProgress);
+        additionalTypes: [DBInfo],
+        logHandler: displayProgress);
 
     return new Schema.fromMap(schemaMap);
   }

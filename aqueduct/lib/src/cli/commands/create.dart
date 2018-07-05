@@ -110,7 +110,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     if (shouldIncludeItem(sourceFileEntity)) {
       if (sourceFileEntity is Directory) {
         copyDirectory(projectName, destinationDirectory, sourceFileEntity);
-      } else {
+      } else if (sourceFileEntity is File) {
         copyFile(projectName, destinationDirectory, sourceFileEntity);
       }
     }

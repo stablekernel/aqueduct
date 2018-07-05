@@ -137,7 +137,7 @@ class ManagedEntity implements APIComponentDocumenter {
   }
 
   ManagedAttributeDescription get primaryKeyAttribute {
-    return properties[primaryKey];
+    return attributes[primaryKey];
   }
 
   /// A map from accessor symbol name to property name.

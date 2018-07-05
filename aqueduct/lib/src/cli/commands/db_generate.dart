@@ -8,7 +8,6 @@ import 'package:aqueduct/src/cli/scripts/migration_builder.dart';
 import 'package:aqueduct/src/db/schema/schema.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
-
 class CLIDatabaseGenerate extends CLICommand with CLIDatabaseManagingCommand, CLIProject {
   @override
   Future<int> handle() async {
@@ -38,9 +37,9 @@ class CLIDatabaseGenerate extends CLICommand with CLIDatabaseManagingCommand, CL
     if (result.source.contains("<<set>>")) {
       displayInfo("File requires input.");
       displayProgress("This migration file requires extra configuration. This is likely because "
-        "a non-nullable column was added to your schema, and needs a default value. "
-        "Search for <<set>> in the migration file and replace it with a valid value. "
-        "(Note that text columns require a single-quoted string, e.g. \"'default'\".)");
+          "a non-nullable column was added to your schema, and needs a default value. "
+          "Search for <<set>> in the migration file and replace it with a valid value. "
+          "(Note that text columns require a single-quoted string, e.g. \"'default'\".)");
     }
     newMigrationFile.writeAsStringSync(result.source);
 
@@ -51,10 +50,10 @@ class CLIDatabaseGenerate extends CLICommand with CLIDatabaseManagingCommand, CL
   }
 
   Future<MigrationBuilderResult> generateMigrationSource(Schema initialSchema, int inputVersion) async {
-    final resultMap = await IsolateExecutor.executeWithType(MigrationBuilderExecutable,
+    final resultMap = await IsolateExecutor.run(MigrationBuilderExecutable.input(initialSchema, inputVersion),
         packageConfigURI: packageConfigUri,
         imports: MigrationBuilderExecutable.importsForPackage(packageName),
-        message: MigrationBuilderExecutable.createMessage(inputVersion, initialSchema), logHandler: displayProgress);
+        logHandler: displayProgress);
 
     return new MigrationBuilderResult.fromMap(resultMap);
   }

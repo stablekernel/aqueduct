@@ -71,7 +71,7 @@ class DataModelBuilder {
     if (declaredTableNameClass == null) {
       return MirrorSystem.getName(typeMirror.simpleName);
     }
-    return declaredTableNameClass.invoke(#tableName, []).reflectee;
+    return declaredTableNameClass.invoke(#tableName, []).reflectee as String;
   }
 
   ClassMirror persistentTypeOfInstanceType(Type instanceType) {
@@ -84,7 +84,7 @@ class DataModelBuilder {
             (cm) => !cm.superclass.isSubtypeOf(reflectType(ManagedObject)),
             orElse: () => throw ifNotFoundException)
         .typeArguments
-        .first;
+        .first as ClassMirror;
   }
 
   Map<String, ManagedAttributeDescription> attributesForEntity(
@@ -120,8 +120,12 @@ class DataModelBuilder {
       var validators = validatorsFromDeclaration(declaration);
       var attributes = attributeMetadataFromDeclaration(declaration);
       var name = propertyNameFromDeclaration(declaration);
-      var enumToPropertyNameMap;
+      Map<String, dynamic> enumToPropertyNameMap;
       var declType = declaration.type;
+      if (declType is! ClassMirror) {
+        throw new ManagedDataModelError("Invalid type for field '${MirrorSystem.getName(declaration.simpleName)}' "
+          "in table definition '${entity.persistentType}'.");
+      }
       if (declType is ClassMirror && declType.isEnum) {
         List<dynamic> enumeratedCases = declType.getField(#values).reflectee;
         enumToPropertyNameMap = enumeratedCases.fold(<String, dynamic>{}, (m, v) {
@@ -130,7 +134,7 @@ class DataModelBuilder {
         });
       }
 
-      return new ManagedAttributeDescription(entity, name, type, declaration.type,
+      return new ManagedAttributeDescription(entity, name, type, declType as ClassMirror,
           primaryKey: attributes?.isPrimaryKey ?? false,
           defaultValue: attributes?.defaultValue ?? null,
           unique: attributes?.isUnique ?? false,
@@ -244,7 +248,7 @@ class DataModelBuilder {
         owningEntity,
         MirrorSystem.getName(property.simpleName),
         columnType,
-        property.type,
+        property.type as ClassMirror,
         destinationEntity,
         relationship.onDelete,
         ManagedRelationshipType.belongsTo,
@@ -276,7 +280,7 @@ class DataModelBuilder {
         owningEntity,
         MirrorSystem.getName(property.simpleName),
         columnType,
-        property.type,
+        property.type as ClassMirror,
         destinationEntity,
         managedRelationship?.onDelete,
         relType,

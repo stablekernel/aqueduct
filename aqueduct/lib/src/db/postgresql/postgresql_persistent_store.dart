@@ -192,7 +192,8 @@ class PostgreSQLPersistentStore extends PersistentStore with PostgreSQLSchemaGen
         return 0;
       }
 
-      return values.last.first;
+      final version = await values.last.first;
+      return version as int;
     } on PostgreSQLException catch (e) {
       if (e.code == PostgreSQLErrorCode.undefinedTable) {
         return 0;

@@ -36,7 +36,7 @@ dynamic runtimeCast(dynamic object, TypeMirror intoType) {
 
 T firstMetadataOfType<T>(DeclarationMirror dm, {TypeMirror dynamicType}) {
   var tMirror = dynamicType ?? reflectType(T);
-  return dm.metadata.firstWhere((im) => im.type.isSubtypeOf(tMirror), orElse: () => null)?.reflectee;
+  return dm.metadata.firstWhere((im) => im.type.isSubtypeOf(tMirror), orElse: () => null)?.reflectee as T;
 }
 
 List<T> allMetadataOfType<T>(DeclarationMirror dm) {

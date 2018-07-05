@@ -17,7 +17,7 @@ class ColumnBuilder extends Returnable {
     final entity = table.entity;
 
     // Ensure the primary key is always available and at 0th index.
-    var primaryKeyIndex;
+    int primaryKeyIndex;
     for (var i = 0; i < keys.length; i++) {
       final firstElement = keys[i].path.first;
       if (firstElement is ManagedAttributeDescription && firstElement.isPrimaryKey) {

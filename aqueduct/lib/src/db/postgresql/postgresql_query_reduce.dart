@@ -53,10 +53,10 @@ class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<
     PostgreSQLPersistentStore store = query.context.persistentStore;
     var connection = await store.getDatabaseConnection();
     try {
-      var result = await connection
+      final result = await connection
           .query(buffer.toString(), substitutionValues: builder.variables)
           .timeout(new Duration(seconds: query.timeoutInSeconds));
-      return result.first.first;
+      return result.first.first as U;
     } on TimeoutException catch (e) {
       throw new QueryException.transport("timed out connecting to database", underlyingException: e);
     }
