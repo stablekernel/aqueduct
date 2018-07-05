@@ -29,10 +29,10 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
 
   /// Creates a [ManagedSet] from an [Iterable] of [InstanceType]s.
   ManagedSet.from(Iterable<InstanceType> items) {
-    _innerValues = items.toList();
+    _innerValues = items.toList().cast();
   }
 
-  List<dynamic> _innerValues;
+  List<InstanceType> _innerValues;
 
   /// Filters [Query] results based on the criteria of the objects in this collection.
   ///
