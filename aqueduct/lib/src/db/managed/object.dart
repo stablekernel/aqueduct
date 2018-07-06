@@ -165,29 +165,24 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   ///
   /// This method is invoked by [Query] when inserting or updating an instance of this type. By default,
   /// this method runs all of the [Validate] metadata for each property of this instance's persistent type. See [Validate]
-  /// for more information.
+  /// for more information. If validations succeed, the returned context [ValidationContext.isValid] will be true. Otherwise,
+  /// it is false and all errors are available in [ValidationContext.errors].
   ///
-  /// This method return the result of [ManagedValidator.run]. You may override this method to provide additional validation
+  /// This method returns the result of [ManagedValidator.run]. You may override this method to provide additional validation
   /// prior to insertion or deletion. If you override this method, you *must* invoke the super implementation to
-  /// validate property [Validate] metadata, e.g.:
+  /// allow [Validate] annotations to run, e.g.:
   ///
-  ///         bool validate({ValidateOperation forOperation: ValidateOperation.insert, List<String> collectErrorsIn}) {
-  ///           var valid = super(forOperation: forOperation, collectErrorsIn: collectErrorsIn);
+  ///         ValidationContext validate({Validating forEvent: Validating.insert}) {
+  ///           var context = super(forEvent: forEvent);
   ///
   ///           if (a + b > 10) {
-  ///             valid = false;
-  ///             collectErrorsIn.add("a + b > 10");
+  ///             context.addError("a + b > 10");
   ///           }
   ///
-  ///           return valid;
+  ///           return context;
   ///         }
-  ///
-  /// [collectErrorsIn] is guaranteed to be a non-null [List] when this method is invoked by [Query.updateOne], [Query.update]
-  /// and [Query.insert]. It is not guaranteed to be non-null when invoked manually. This list is provided as a reference value
-  /// by the object performing the validation. Do not create a new [List] and pass
-  /// it to the superclass' implementation, as it will not be the same list the caller has access to.
-  bool validate({ValidateOperation forOperation: ValidateOperation.insert, List<String> collectErrorsIn}) {
-    return ManagedValidator.run(this, operation: forOperation, errors: collectErrorsIn);
+  ValidationContext validate({Validating forEvent: Validating.insert}) {
+    return ManagedValidator.run(this, event: forEvent);
   }
 
   @override

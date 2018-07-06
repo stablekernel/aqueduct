@@ -1,6 +1,6 @@
 import 'dart:mirrors';
 import 'managed.dart';
-import 'validate.dart';
+import 'package:aqueduct/src/db/managed/validation/metadata.dart';
 import '../../utilities/mirror_helpers.dart';
 
 // Expanding the list of ivars for each class yields duplicates of

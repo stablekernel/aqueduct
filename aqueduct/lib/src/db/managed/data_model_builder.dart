@@ -23,7 +23,7 @@ class DataModelBuilder {
 
       entity.attributes = attributesForEntity(entity);
       entity.validators = entity.attributes.values
-          .map((desc) => desc.validators.map((v) => new ManagedValidator(desc, v)))
+          .map((desc) => desc.validators.map((v) => v.getValidator(desc)))
           .expand((e) => e)
           .toList();
     });

@@ -7,11 +7,11 @@ class ValidationException implements HandlerException {
 
   @override
   Response get response {
-    return new Response.badRequest(body: {"error": errors.join(",")});
+    return new Response.badRequest(body: {"error": "entity validation failed", "reasons": errors});
   }
 
   @override
   String toString() {
-    return response.body["error"] as String;
+    return (response.body["error"] as String) + " " + (response.body["reasons"] as List).join(", ");
   }
 }
