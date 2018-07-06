@@ -263,7 +263,7 @@ class Request implements RequestOrResponse {
     response.headers.add(
         HttpHeaders.contentTypeHeader, aqueductResponse.contentType.toString());
 
-    if (body is List) {
+    if (body is List<int>) {
       if (compressionType.value != null) {
         response.headers.add(HttpHeaders.contentEncodingHeader, compressionType.value);
       }
@@ -272,21 +272,25 @@ class Request implements RequestOrResponse {
       response.add(body);
 
       return response.close();
+    } else if (body is Stream) {
+      // Otherwise, body is stream
+      final bodyStream = _responseBodyStream(aqueductResponse, compressionType);
+      if (compressionType.value != null) {
+        response.headers.add(HttpHeaders.contentEncodingHeader, compressionType.value);
+      }
+      response.headers.add(HttpHeaders.transferEncodingHeader, "chunked");
+      response.bufferOutput = aqueductResponse.bufferOutput;
+
+      return response.addStream(bodyStream).then((_)
+      {
+        return response.close();
+      }).catchError((e, StackTrace st)
+      {
+        throw HTTPStreamingException(e, st);
+      });
     }
 
-    // Otherwise, body is stream
-    final bodyStream = _responseBodyStream(aqueductResponse, compressionType);
-    if (compressionType.value != null) {
-      response.headers.add(HttpHeaders.contentEncodingHeader, compressionType.value);
-    }
-    response.headers.add(HttpHeaders.transferEncodingHeader, "chunked");
-    response.bufferOutput = aqueductResponse.bufferOutput;
-
-    return response.addStream(bodyStream).then((_) {
-      return response.close();
-    }).catchError((e, StackTrace st) {
-      throw HTTPStreamingException(e, st);
-    });
+    throw StateError("Invalid response body. Could not encode.");
   }
 
   List<int> _responseBodyBytes(Response resp, _Reference<String> compressionType) {
@@ -312,11 +316,12 @@ class Request implements RequestOrResponse {
         throw new StateError("Invalid response body. Body of type '${resp.body.runtimeType}' cannot be encoded as content-type '${resp.contentType}'.");
       }
 
+      final bytes = resp.body as List<int>;
       if (canGzip) {
         compressionType.value = "gzip";
-        return gzip.encode(resp.body);
+        return gzip.encode(bytes);
       }
-      return resp.body;
+      return bytes;
     }
 
     if (canGzip) {
@@ -337,12 +342,17 @@ class Request implements RequestOrResponse {
         HTTPCodecRepository.defaultInstance.isContentTypeCompressable(resp.contentType)
             && _acceptsGzipResponseBody;
     if (codec == null) {
-      if (canGzip) {
-        compressionType.value = "gzip";
-        return gzip.encoder.bind(resp.body);
+      if (body is! Stream<List<int>>) {
+        throw new StateError("Invalid response body. Body of type '${resp.body.runtimeType}' cannot be encoded as content-type '${resp.contentType}'.");
       }
 
-      return resp.body;
+      final stream = resp.body as Stream<List<int>>;
+      if (canGzip) {
+        compressionType.value = "gzip";
+        return gzip.encoder.bind(stream);
+      }
+
+      return stream;
     }
 
     if (canGzip) {
@@ -350,7 +360,7 @@ class Request implements RequestOrResponse {
       codec = codec.fuse(gzip);
     }
 
-    return codec.encoder.bind(resp.body);
+    return codec.encoder.bind(resp.body as Stream);
   }
 
   bool get _acceptsGzipResponseBody {
