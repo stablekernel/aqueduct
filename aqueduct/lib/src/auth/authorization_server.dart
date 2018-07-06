@@ -133,12 +133,12 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   ///
   /// All authorization codes and tokens for the [ResourceOwner] identified by [identifier]
   /// will be revoked.
-  Future revokeAllGrantsForResourceOwner(dynamic identifier) {
+  Future revokeAllGrantsForResourceOwner(dynamic identifier) async {
     if (identifier == null) {
       throw new ArgumentError.notNull("identifier");
     }
 
-    return delegate.removeTokens(this, identifier);
+    await delegate.removeTokens(this, identifier);
   }
 
   /// Authenticates a username and password of an [ResourceOwner] and returns an [AuthToken] upon success.

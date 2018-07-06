@@ -143,7 +143,10 @@ class HTTPCodecRepository {
       if (charsetCodec != null) {
         return contentCodec.fuse(charsetCodec);
       }
-      return contentCodec;
+      if (contentCodec is! Codec<dynamic, List<int>>) {
+        throw new StateError("Invalid codec selected. Does not emit 'List<int>'.");
+      }
+      return contentCodec as Codec<dynamic, List<int>>;
     }
 
     if (charsetCodec != null) {

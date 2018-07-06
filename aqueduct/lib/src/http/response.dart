@@ -163,7 +163,11 @@ class Response implements RequestOrResponse {
       return inHeaders;
     }
 
-    return ContentType.parse(inHeaders);
+    if (inHeaders is String) {
+      return ContentType.parse(inHeaders);
+    }
+
+    throw new StateError("Invalid content-type response header. Is not 'String' or 'ContentType'.");
   }
 
   set contentType(ContentType t) {
