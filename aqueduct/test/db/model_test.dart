@@ -922,7 +922,7 @@ class _TransientBelongsTo {
 }
 
 void expectError(ValidationException exception, Matcher matcher) {
-  expect(exception.response.body["error"], matcher);
+  expect(exception.toString(), matcher);
 }
 
 class DocumentTest extends ManagedObject<_DocumentTest> implements _DocumentTest {}

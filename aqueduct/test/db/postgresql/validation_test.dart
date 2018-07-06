@@ -32,7 +32,7 @@ void main() {
       await q.update();
       expect(true, false);
     } on ValidationException catch (e) {
-      expect(e.toString(), contains("Must be one of: 'a','b'"));
+      expect(e.toString(), contains("must be one of: 'a','b'"));
     }
 
     q = new Query<T>(ctx)
@@ -43,7 +43,7 @@ void main() {
       await q.update();
       expect(true, false);
     } on ValidationException catch (e) {
-      expect(e.toString(), contains("Must be equal to '2'"));
+      expect(e.toString(), contains("must be equal to '2'"));
     }
 
     q = new Query<T>(ctx)
@@ -65,7 +65,7 @@ void main() {
       await q.updateOne();
       expect(true, false);
     } on ValidationException catch (e) {
-      expect(e.toString(), contains("Must be equal to"));
+      expect(e.toString(), contains("must be equal to"));
     }
   });
 
@@ -84,7 +84,7 @@ void main() {
       await q.insert();
       expect(true, false);
     } on ValidationException catch (e) {
-      expect(e.toString(), contains("Must be one of"));
+      expect(e.toString(), contains("must be one of"));
     }
 
     q = new Query<T>(ctx)
@@ -94,7 +94,7 @@ void main() {
       await q.insert();
       expect(true, false);
     } on ValidationException catch (e) {
-      expect(e.toString(), contains("Must be equal to"));
+      expect(e.toString(), contains("must be equal to"));
     }
 
     q = new Query<T>(ctx)
@@ -143,8 +143,8 @@ void main() {
       await q.update();
       expect(true, false);
     } on ValidationException catch (e) {
-      expect(e.toString(), contains("'f'"));
-      expect(e.toString(), contains("Must be one of"));
+      expect(e.toString(), contains("V.f"));
+      expect(e.toString(), contains("must be one of"));
     }
   });
 
@@ -154,8 +154,8 @@ void main() {
       await q.insert();
       expect(true, false);
     } on ValidationException catch (e) {
-      expect(e.toString(), contains("'f'"));
-      expect(e.toString(), contains("Must be one of"));
+      expect(e.toString(), contains("W.f"));
+      expect(e.toString(), contains("must be one of"));
     }
   });
 }

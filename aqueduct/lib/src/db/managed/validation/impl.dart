@@ -215,7 +215,7 @@ class OneOfValidator extends ManagedValidator {
   @override
   void validate(ValidationContext context, dynamic value) {
     if (options.every((v) => value != v)) {
-      context.addError("Must be one of: ${options.map((v) => "'$v'").join(",")}.");
+      context.addError("must be one of: ${options.map((v) => "'$v'").join(",")}.");
     }
   }
 }

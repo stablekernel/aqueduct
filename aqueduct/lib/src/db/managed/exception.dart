@@ -12,6 +12,6 @@ class ValidationException implements HandlerException {
 
   @override
   String toString() {
-    return response.body["error"] as String;
+    return (response.body["error"] as String) + " " + (response.body["reasons"] as List).join(", ");
   }
 }
