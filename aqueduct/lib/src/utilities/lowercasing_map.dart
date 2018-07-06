@@ -2,7 +2,7 @@ import 'dart:collection';
 
 class LowercaseMap<V> extends Object with MapMixin<String, V> {
   LowercaseMap();
-  LowercaseMap.fromMap(Map<String, dynamic> m) {
+  LowercaseMap.fromMap(Map<String, V> m) {
     m.forEach((k, v) {
       _inner[k.toLowerCase()] = v;
     });
