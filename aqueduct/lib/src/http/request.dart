@@ -234,13 +234,11 @@ class Request implements RequestOrResponse {
   Future respond(Response aqueductResponse) {
     respondDate = new DateTime.now().toUtc();
 
-    try {
-      _responseModifiers?.forEach((modifier) {
-        modifier(aqueductResponse);
-      });
-    } finally {
-      _responseModifiers = null;
-    }
+    final modifiers = _responseModifiers;
+    _responseModifiers = null;
+    modifiers?.forEach((modifier) {
+      modifier(aqueductResponse);
+    });
 
     _Reference<String> compressionType = new _Reference(null);
     var body = aqueductResponse.body;
