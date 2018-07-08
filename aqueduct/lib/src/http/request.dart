@@ -234,7 +234,9 @@ class Request implements RequestOrResponse {
   Future respond(Response aqueductResponse) {
     respondDate = new DateTime.now().toUtc();
 
-    _responseModifiers?.forEach((modifier) {
+    final modifiers = _responseModifiers;
+    _responseModifiers = null;
+    modifiers?.forEach((modifier) {
       modifier(aqueductResponse);
     });
 
@@ -269,8 +271,6 @@ class Request implements RequestOrResponse {
       response.headers.add(HttpHeaders.contentLengthHeader, body.length);
 
       response.add(body);
-
-      print("closing: $this");
 
       return response.close();
     } else if (body is Stream) {
