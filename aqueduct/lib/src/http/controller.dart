@@ -1,20 +1,51 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:mirrors';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
 
 import 'http.dart';
 
+typedef Controller _ControllerGeneratorClosure();
+typedef FutureOr<RequestOrResponse> _Handler(Request request);
+
 /// The unifying protocol for [Request] and [Response] classes.
 ///
 /// A [Controller] must return an instance of this type from its [Controller.handle] method.
 abstract class RequestOrResponse {}
 
-typedef FutureOr<RequestOrResponse> _Handler(Request request);
+/// An interface that [Controller] subclasses implement to generate a new controller for each request.
+///
+/// If a [Controller] implements this interface, a new [Controller] is created for each request. Controllers
+/// must implement this interface if they declare setters or non-final properties, as those properties could
+/// change during request handling.
+///
+/// A controller that implements this interface can store information that is not tied to the request
+/// to be reused across each instance of the controller type by implementing [recycledState] and [restore].
+/// Use these methods when a controller needs to construct runtime information that only needs to occur once
+/// per controller type.
+abstract class Recyclable<T> implements Controller {
+  /// Returns state information that is reused across instances of this type.
+  ///
+  /// This method is called once when this instance is first created. It is passed
+  /// to each new instance of this type via [restore].
+  T get recycledState;
 
+  /// Provides a new instance of this type with the [recycledState] of this type.
+  ///
+  /// Use this method it provide compiled runtime information to a new instance.
+  void restore(T state);
+}
+
+/// An interface for linking controllers.
+///
+/// All [Controller]s implement this interface.
 abstract class Linkable {
+  /// See [Controller.link].
   Linkable link(Controller instantiator());
+
+  /// See [Controller.linkFunction].
   Linkable linkFunction(FutureOr<RequestOrResponse> handle(Request request));
 }
 
@@ -67,18 +98,45 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
   Controller _nextController;
   final _Handler _handler;
 
-  /// Links a controller to the receiver.
+  static bool _isControllerTypeMutable(Type controllerType) {
+    // We have a whitelist for a few things declared in controller that can't be final.
+    final whitelist = ['policy=', '_nextController='];
+    final members = reflectClass(controllerType).instanceMembers;
+    final fieldKeys = members.keys.where((sym) => !whitelist.contains(MirrorSystem.getName(sym)));
+    return fieldKeys.any((key) => members[key].isSetter);
+  }
+
+  /// Links a controller to the receiver to form a request channel.
   ///
-  /// If the receiver does not respond to a request, the controller created by [instantiator] receives the request next.
+  /// Establishes a channel containing the receiver and the controller returned by [instantiator]. If
+  /// the receiver does not handle a request, the controller created by [instantiator] will get an opportunity to do so.
+  ///
+  /// [instantiator] is called immediately when invoking this function. If the returned [Controller] does not implement
+  /// [Recyclable], this is the only time [instantiator] is called. The returned controller must only have properties that
+  /// are marked as final.
+  ///
+  /// If the returned controller has properties that are not marked as final, it must implement [Recyclable].
+  /// When a controller implements [Recyclable], [instantiator] is called for each new request that
+  /// reaches this point of the channel. See [Recyclable] for more details.
   ///
   /// See [linkFunction] for a variant of this method that takes a closure instead of an object.
   @override
   Linkable link(Controller instantiator()) {
-    _nextController = new _ControllerGenerator(instantiator);
+    final instance = instantiator();
+    if (instance is Recyclable) {
+      _nextController = new _ControllerRecycler(instantiator, instance);
+    } else {
+      if (_isControllerTypeMutable(instance.runtimeType)) {
+        throw ArgumentError("Invalid controller '${instance.runtimeType}'. "
+            "Controllers must not have setters and all fields must be marked as final, or it must implement 'Recyclable'.");
+      }
+      _nextController = instantiator();
+    }
+
     return _nextController;
   }
 
-  /// Links a function controller to the receiver.
+  /// Links a function controller to the receiver to form a request channel.
   ///
   /// If the receiver does not respond to a request, [handle] receives the request next.
   ///
@@ -294,36 +352,27 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
   }
 }
 
-/// Thrown when [Controller] throws an exception.
-///
-///
-class ControllerException implements Exception {
-  ControllerException(this.message);
-
-  String message;
-
-  @override
-  String toString() => "ControllerException: $message";
-}
-
-typedef Controller _ControllerGeneratorClosure();
-
-class _ControllerGenerator extends Controller {
-  _ControllerGenerator(this.generator) {
-    nextInstanceToReceive = instantiate();
+class _ControllerRecycler<T> extends Controller {
+  _ControllerRecycler(this.generator, Recyclable<T> instance) {
+    recycleState = instance.recycledState;
+    this.nextInstanceToReceive = instance;
   }
 
   _ControllerGeneratorClosure generator;
   CORSPolicy policyOverride;
-  Controller nextInstanceToReceive;
+  T recycleState;
 
-  Controller instantiate() {
-    Controller instance = generator();
+  Recyclable<T> _nextInstanceToReceive;
+
+  Recyclable<T> get nextInstanceToReceive => _nextInstanceToReceive;
+
+  set nextInstanceToReceive(Recyclable<T> instance) {
+    _nextInstanceToReceive = instance;
+    instance.restore(recycleState);
     instance._nextController = nextController;
     if (policyOverride != null) {
       instance.policy = policyOverride;
     }
-    return instance;
   }
 
   @override
@@ -353,7 +402,7 @@ class _ControllerGenerator extends Controller {
   @override
   Future receive(Request req) {
     final next = nextInstanceToReceive;
-    nextInstanceToReceive = instantiate();
+    nextInstanceToReceive = generator() as Recyclable<T>;
     return next.receive(req);
   }
 

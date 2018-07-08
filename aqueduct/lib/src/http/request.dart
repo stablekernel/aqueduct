@@ -270,6 +270,8 @@ class Request implements RequestOrResponse {
 
       response.add(body);
 
+      print("closing: $this");
+
       return response.close();
     } else if (body is Stream) {
       // Otherwise, body is stream

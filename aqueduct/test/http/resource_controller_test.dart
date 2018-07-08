@@ -525,6 +525,14 @@ void main() {
       expect(json.decode(resp.body)["error"], contains("list"));
     });
   });
+
+  group("Recycling", () {
+    // Once 33207 fix has made itself into dev channel, addsome additional tests
+    // to ensure that ResourceControllers recycle correctly.
+    test("NYI", () {
+      fail("NYI");
+    });
+  });
 }
 
 class FilteringController extends ResourceController {
