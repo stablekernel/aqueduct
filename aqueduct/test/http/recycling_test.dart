@@ -111,10 +111,7 @@ void main() {
     server.root.didAddToChannel();
 
     final List<Map<String, dynamic>> responses = await Future.wait([
-      http.get("http://localhost:4040").then((r) {
-        print("decoding");
-        return json.decode(r.body) as Map<String, dynamic>;
-      }),
+      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
       http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
       http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
       http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
@@ -131,6 +128,19 @@ void main() {
   test("A recycled controller sends unhandled request to the next linked recyclable", () async {
     server.root.link(() => MiddlewareRecyclable()).link(() => DefaultRecyclable());
     server.root.didAddToChannel();
+
+    final List<Map<String, dynamic>> responses = await Future.wait([
+      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
+    ]);
+
+    expect(responses.every((b) => responses.where((ib) => ib["hashCode"] == b["hashCode"]).length == 1), true);
+    expect(responses.every((b) => b["state"] == "state"), true);
+    expect(responses.every((b) => b["middleware-state"] == "state"), true);
+    expect(responses.every((b) => responses.where((ib) => ib["middleware-address"] == b["middleware-address"]).length == 1), true);
 
     expect(DefaultRecyclable.stateCount, 1);
     expect(MiddlewareRecyclable.stateCount, 1);
@@ -156,8 +166,7 @@ class ServerRoot {
 class DefaultController extends Controller {
   @override
   FutureOr<RequestOrResponse> handle(Request req) {
-    print("hit endpoint $req");
-    return new Response.ok({"hashCode": this.hashCode});
+    return new Response.ok(<String, dynamic>{"hashCode": this.hashCode});
   }
 }
 
