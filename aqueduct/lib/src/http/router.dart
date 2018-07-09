@@ -20,9 +20,9 @@ import 'route_node.dart';
 /// a [Router] is the [ApplicationChannel.entryPoint].
 class Router extends Controller {
   /// Creates a new [Router].
-  Router({String basePath, Future notFoundHandler(Request request)}) :
-    _unmatchedController = notFoundHandler,
-      _basePathSegments = basePath?.split("/")?.where((str) => str.isNotEmpty)?.toList() ?? [] {
+  Router({String basePath, Future notFoundHandler(Request request)})
+      : _unmatchedController = notFoundHandler,
+        _basePathSegments = basePath?.split("/")?.where((str) => str.isNotEmpty)?.toList() ?? [] {
     policy.allowCredentials = false;
   }
 
