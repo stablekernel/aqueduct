@@ -498,8 +498,8 @@ class Middleware extends Controller {
 class Endpoint extends Controller {
   Endpoint(this.prepared, this.documented);
 
-  Completer prepared;
-  Completer documented;
+  final Completer prepared;
+  final Completer documented;
 
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext registry, String route, APIPath path) {

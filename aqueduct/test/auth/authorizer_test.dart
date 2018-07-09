@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 
 void main() {
-  Controller.letUncaughtExceptionsEscape = true;
   InMemoryAuthStorage delegate;
   AuthServer authServer;
   HttpServer server;

@@ -36,6 +36,8 @@ abstract class Recyclable<T> implements Controller {
   ///
   /// Use this method it provide compiled runtime information to a new instance.
   void restore(T state);
+
+
 }
 
 /// An interface for linking controllers.

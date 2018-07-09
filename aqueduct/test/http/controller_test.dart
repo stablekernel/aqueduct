@@ -20,36 +20,6 @@ void main() {
       root.didAddToChannel();
       expect(completer.future, completes);
     });
-
-    test("Controllers are generated for each request", () async {
-      final root = new Controller();
-      root.linkFunction((req) async => req).link(() => new NotingMiddleware()).link(() => new NotingEndpoint());
-      root.didAddToChannel();
-      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4111);
-      server.map((r) => new Request(r)).listen((req) => root.receive(req));
-
-      // These requests return pairs of [request memory address, controller memory address].
-      // A middleware places its pair in a header, the endpoint in the body.
-      // These values are returned so that the tests can check which instances
-      // were created to handle the request.
-      // We are expecting that the request remains the same between the middleware and the endpoint,
-      // and that new controller instances are created for each request.
-
-      final r1 = await http.get("http://localhost:4111");
-      final r2 = await http.get("http://localhost:4111");
-
-      List<dynamic> r1m = json.decode(r1.headers["x-middleware"]);
-      List<dynamic> r2m = json.decode(r2.headers["x-middleware"]);
-      List<dynamic> r1e = json.decode(r1.body);
-      List<dynamic> r2e = json.decode(r2.body);
-
-      expect(r1m.first, r1e.first);
-      expect(r2m.first, r2e.first);
-
-      expect(r1m.last, isNot(r2m.last));
-      expect(r1e.last, isNot(r2e.last));
-    });
-
   });
 
   group("Response modifiers", () {
@@ -446,27 +416,10 @@ class OutlierChannel extends ApplicationChannel {
 class PrepareTailController extends Controller {
   PrepareTailController(this.completer);
 
-  Completer completer;
+  final Completer completer;
 
   @override
   void didAddToChannel() {
     completer.complete();
-  }
-}
-
-class NotingMiddleware extends Controller {
-  @override
-  FutureOr<RequestOrResponse> handle(Request req) {
-    req.addResponseModifier((resp) {
-      resp.headers["x-middleware"] = json.encode([req.hashCode, hashCode]);
-    });
-    return req;
-  }
-}
-
-class NotingEndpoint extends Controller {
-  @override
-  FutureOr<RequestOrResponse> handle(Request req) {
-    return new Response.ok([req.hashCode, hashCode]);
   }
 }

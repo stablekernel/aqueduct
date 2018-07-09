@@ -75,8 +75,8 @@ class HTTPFileController extends Controller {
       : _servingDirectory = new Uri.directory(pathOfDirectoryToServe),
         _onFileNotFound = onFileNotFound;
 
-  Map<String, ContentType> _extensionMap = new Map.from(_defaultExtensionMap);
-  List<_PolicyPair> _policyPairs = [];
+  final Map<String, ContentType> _extensionMap = new Map.from(_defaultExtensionMap);
+  final List<_PolicyPair> _policyPairs = [];
   final Uri _servingDirectory;
   final _OnFileNotFound _onFileNotFound;
 

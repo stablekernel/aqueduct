@@ -51,7 +51,8 @@ void main() {
 
       server = await enableRouter(router);
 
-      var response = await http.get("http://localhost:4040/notplayer", headers: {HttpHeaders.acceptHeader: "application/json"});
+      var response =
+          await http.get("http://localhost:4040/notplayer", headers: {HttpHeaders.acceptHeader: "application/json"});
       expect(response.statusCode, equals(404));
       expect(response.headers[HttpHeaders.contentTypeHeader], isNull);
       expect(response.body.isEmpty, true);
@@ -72,8 +73,7 @@ void main() {
     });
 
     test("Base API adds to path", () async {
-      var router = new Router();
-      router.basePath = "/api";
+      var router = new Router(basePath: "/api");
       router.route("/player/").link(() => new Handler());
 
       server = await enableRouter(router);
@@ -88,9 +88,8 @@ void main() {
     });
 
     test("Change Base API Path after adding routes still succeeds", () async {
-      var router = new Router();
+      var router = new Router(basePath: "/api");
       router.route("/a").link(() => new Handler());
-      router.basePath = "/api";
       server = await enableRouter(router);
       var response = await http.get("http://localhost:4040/api/a");
       expect(response.statusCode, equals(202));
@@ -118,20 +117,18 @@ void main() {
     });
 
     test("Base API + Route Variables correctly identifies segment", () async {
-      final router = new Router()
-          ..basePath = "/api/"
-          ..route(("/a/[:id]")).linkFunction((req) async => new Response.ok(req.path.variables));
+      final router = new Router(basePath: "/api/")
+        ..route(("/a/[:id]")).linkFunction((req) async => new Response.ok(req.path.variables));
       server = await enableRouter(router);
 
       var response = await http.get("http://localhost:4040/api/a/1");
       expect(response.statusCode, 200);
-      expect(json.decode(response.body), {"id":"1"});
+      expect(json.decode(response.body), {"id": "1"});
 
       response = await http.get("http://localhost:4040/api/a");
       expect(response.statusCode, 200);
       expect(json.decode(response.body), {});
     });
-
   });
 
   group("Router ordering", () {
@@ -142,24 +139,20 @@ void main() {
         req.respond(new Response(200, null, "/"));
       });
       router.route("/users/[:id]").linkFunction((req) async {
-        req.respond(
-            new Response(200, null, "/users/${req.path.variables["id"]}"));
+        req.respond(new Response(200, null, "/users/${req.path.variables["id"]}"));
       });
       router.route("/locations[/:id]").linkFunction((req) async {
-        req.respond(
-            new Response(200, null, "/locations/${req.path.variables["id"]}"));
+        req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}"));
       });
       router.route("/locations/:id/vacation").linkFunction((req) async {
-        req.respond(new Response(
-            200, null, "/locations/${req.path.variables["id"]}/vacation"));
+        req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}/vacation"));
       });
       router.route("/locations/:id/alarms[/*]").linkFunction((req) async {
-        req.respond(new Response(200, null,
-            "/locations/${req.path.variables["id"]}/alarms/${req.path.remainingPath}"));
+        req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}/alarms/${req.path.remainingPath}"));
       });
       router.route("/equipment/[:id[/:property]]").linkFunction((req) async {
-        req.respond(new Response(200, null,
-            "/equipment/${req.path.variables["id"]}/${req.path.variables["property"]}"));
+        req.respond(
+            new Response(200, null, "/equipment/${req.path.variables["id"]}/${req.path.variables["property"]}"));
       });
       router.route("/file/*").linkFunction((req) async {
         req.respond(new Response(200, null, "/file/${req.path.remainingPath}"));
@@ -219,8 +212,7 @@ void main() {
       response = await http.get("http://localhost:4040/locations/1/alarms");
       expect(response.body, '"/locations/1/alarms/null"');
 
-      response =
-          await http.get("http://localhost:4040/locations/1/alarms/code");
+      response = await http.get("http://localhost:4040/locations/1/alarms/code");
       expect(response.body, '"/locations/1/alarms/code"');
 
       response = await http.get("http://localhost:4040/equipment/1/code");
@@ -293,7 +285,6 @@ void main() {
       root.didAddToChannel();
       expect(c1.future, completes);
       expect(c2.future, completes);
-
     });
   });
 }
@@ -326,11 +317,10 @@ class NumberEmitter extends Controller {
 class PrepareTailController extends Controller {
   PrepareTailController(this.completer);
 
-  Completer completer;
+  final Completer completer;
 
   @override
   void didAddToChannel() {
     completer.complete();
   }
 }
-
