@@ -43,8 +43,11 @@ void main() {
     });
 
     test("Wait for request that will happen in future", () async {
-      Isolate.spawn(spawnFunc, ["/foo", 1]);
-      Isolate.spawn(spawnFunc, ["/bar", 2]);
+      final i1 = await Isolate.spawn(spawnFunc, ["/foo", 1], paused: true);
+      final i2 = await Isolate.spawn(spawnFunc, ["/bar", 2], paused: true);
+
+      i1.resume(i1.pauseCapability);
+      i2.resume(i2.pauseCapability);
 
       var serverRequest = await server.next();
       expect(serverRequest.path.string, "/foo");

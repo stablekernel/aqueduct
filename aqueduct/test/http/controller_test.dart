@@ -122,6 +122,17 @@ void main() {
       var resp = await http.get("http://localhost:4111/");
       expect(json.decode(resp.body), {"foo": "y", "x": "a"});
     });
+
+    test("Response modifier that throws uncaught exception sends 500 server error", () async {
+      root.linkFunction((r) async {
+        return r..addResponseModifier((resp) => throw Exception('expected'));
+      }).linkFunction((r) async {
+        return new Response.ok(null);
+      });
+
+      var resp = await http.get("http://localhost:4111/");
+      expect(resp.statusCode, 500);
+    });
   });
 
   group("Can return null from request controller is valid", () {
