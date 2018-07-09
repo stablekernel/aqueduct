@@ -123,7 +123,6 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
   /// this method is not called.
   void didDecodeRequestBody(RequestBody decodedObject) {}
 
-
   @override
   void restore(BoundController state) {
     _bound = state;
