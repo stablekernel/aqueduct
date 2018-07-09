@@ -56,36 +56,26 @@ class _Person {
 A subclass of `Validate` must override `Validate.validate()` and call the superclass' primary constructor when instantiated. Here's an example of that phone number validator:
 
 ```dart
-class ValidatePhoneNumber extends Validate<String> {
+class ValidatePhoneNumber extends Validate {
   ValidatePhoneNumber({bool onUpdate: true, bool onInsert: true}) :
     super(onUpdate: onUpdate, onInsert: onInsert);
 
   @override
-  bool validate(
-      ValidateOperation operation,
-      ManagedAttributeDescription property,
-      String value,
-      List<String> errors) {  
+  void validate(ValidationContext context, dynamic value) {  
     if (value.length != 15) {
-      errors.add(
-        "${property.name} has invalid length of ${value.length}, must be 15 digits.");
-      return false;
+      context.addError("must be 15 digits");      
     }
 
     if (containsNonNumericValues(value)) {
-      errors.add(
-        "${property.name} has invalid format, must contain characters 0-9 only.");
-      return false;
+      context.addError("must contain characters 0-9 only.");      
     }
-
-    return true;
   }
 }
 ```
 
-Note that `Validate` is generic - you may provide a type argument which must match the type of the `value` argument to `Validate.validate()`. Omitting the type argument defaults to `dynamic` and therefore `value` must be `dynamic`.
+If `value` is doesn't meet the validation criteria, this method adds an error string to the `ValidationContext` it is passed. Error messages should be brief and indicate the successful criteria that failed. Information about the property being validated will automatically be added to the error message, so you do not need to include that information. If the context has no errors at the end of validation, the validation succeeds; otherwise, it fails.
 
-The `validate` method must return `false` if validation failed, otherwise it should return `true`. It should add error messages for any failed validations. These error messages are returned in the HTTP response.
+A `ValidationContext` also has information about the property being validated, and whether the validation is running for an object being inserted or an object being updated.
 
 ### Validation Behavior
 
@@ -168,30 +158,24 @@ This also means that any custom validator can safely assume that a value passed 
 
 ### Other Validator Behavior
 
-For validators that can't be built by subclassing `Validate`, you may override `ManagedObject<T>.validate()`. This method is useful when a validation involves more than one property.
-
-This method is passed the type of operation triggering the validation - either an insert or update. Here's an example:
+For validators that can't be built by subclassing `Validate`, you may override `ManagedObject<T>.validate()`. This method is useful when a validation involves more than one property. Here's an example:
 
 ```dart
 class Person extends ManagedObject<_Person> implements _Person {
   @override
-  bool validate(
-      {ValidateOperation forOperation: ValidateOperation.insert,
-      List<String> collectErrorsIn}) {
-   var valid = super.validate(
-     forOperation: forOperation, collectErrorsIn: collectErrorsIn);
+  ValidationContext validate({Validating forEvent: Validating.insert}) {
+   final ctx = super.validate(forEvent: forEvent);
 
     if (a + b > 10) {
-      valid = false;
-      collectErrorsIn.add("a + b must be greater than 10");
+      ctx.addError("a + b must be greater than 10");
     }
 
-    return valid;
+    return ctx;
   }
 }
 ```
 
-When overriding this method, the `super` implementation must be invoked to run validations for individual fields. Of course, if it returns `false`, the overridden method must return `false`.
+When overriding this method, the `super` implementation must be invoked to run validations managed by annotations. You must return the `ValidationContext` created by the superclass' implementation.
 
 ### Skipping Validations
 

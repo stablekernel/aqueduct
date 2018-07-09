@@ -11,7 +11,7 @@ Applications fulfill HTTP requests using [controllers](controller.md). A control
 
 Controllers are linked together - starting with zero or more middleware and ending with an endpoint controller - to form a series of steps a request will go through. Every controller can either pass the request on to its linked controller, or respond to the request itself (in which case, the linked controller never sees the request). For example, an authorizer middleware will let a request pass if it has valid credentials, but will respond with a 401 Unauthorized response if the credentials are invalid. Some controllers, like `Router`, can have multiple controllers linked to it.
 
-These linked controllers are called *channels*. You build channels in a subclass of `ApplicationChannel`. There is one `ApplicationChannel` subclass per application.
+These linked controllers are called *channels*. You create and link channels in a subclass of `ApplicationChannel`. There is one `ApplicationChannel` subclass per application.
 
 ### Building the ApplicationChannel
 
@@ -25,8 +25,8 @@ class AppChannel extends ApplicationChannel {
 
     router
       .route("/users")
-      .link(() => new Authorizer())
-      .link(() => new UserController());
+      .link(() => Authorizer())
+      .link(() => UserController());
 
     return router;
   }
@@ -37,8 +37,8 @@ This method links together a `Router`, `Authorizer` and `UserController` in that
 
 By contrast, if the request's path doesn't match '/users', the `Router` sends a 404 Not Found response and doesn't pass it to the `Authorizer`. Likewise, if the request isn't authorized, the `Authorizer` will send a 401 Unauthorized response and prevent it from being passed to the `UserController`. In other words, a request 'falls out' of the channel once a controller responds to it, so that no further controllers will receive it.
 
-!!! note "Linking"
-    The `link()` method takes a closure that creates a new controller. Each time a request passes a controller, the closure is invoked to create a new instance to handle the request. See [the chapter on controllers](controller.md) for more information.
+!!! note "Linking Controllers"
+    The `link()` method takes a closure that creates a new controller. Some controllers get instantiated for each request, and others get reused for every request. See [the chapter on controllers](controller.md) for more information.
 
 ## Providing Services for Controllers
 

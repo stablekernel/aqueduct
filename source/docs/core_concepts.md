@@ -18,11 +18,13 @@ Complex routes can be formed with additional syntax. See the guide on [routing](
 
 Controllers are objects that handle requests. For example, a controller might fetch rows from a database and send them to the client in the response body. Another controller might verify the username and password of a request's Authorization header are valid.
 
-Controllers are linked together to form a series of actions to take for a request. These linked together controllers are called a *channel*. If the above examples were linked together, the channel they form would 'fetch rows from database, but only if the username and password are valid'.
+Controllers are linked together to form a series of actions to take for a request. These linked together controllers are called a *channel*. If the above examples were linked together, the channel would check if a request were authorized before it sent a response containing database rows.
 
-There are two flavors of controllers. An *endpoint controller* performs operations on a resource and always sends a response. A *middleware controller* validates something about a request, or modifies a response sent by an endpoint controller. A channel has zero or more middleware controllers, followed by an endpoint controller.
+There are two flavors of controllers. An *endpoint controller* performs operations on a resource or resource collection, and always sends a response. Endpoint controllers *fulfill* requests by returning the state of a resource or by changing the state of a resource. You write most of your application-specific logic endpoint controllers.
 
-See the guides on [Controllers](http/controller.md) and [ResourceControllers](http/resource_controller.md) for usage details.
+A *middleware controller* takes an action for a request, but isn't responsible for fulfilling the request. Middleware controllers can do many different things and are often reusable in many channels. Most often, a middleware controller validates something about a request before it reaches an endpoint controller. Middleware controllers can send a response for a request, and doing so prevents any other controller in that channel from handling the request.
+
+A channel must have exactly one endpoint controller. It can be preceded by zero or more middleware controllers. See the guides on [Controllers](http/controller.md) and [ResourceControllers](http/resource_controller.md) for usage details.
 
 ## The Application Channel
 

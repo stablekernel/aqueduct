@@ -14,6 +14,7 @@ pages:
 - Core Concepts: 'core_concepts.md'
 - Getting Started: 'getting_started.md'
 - Tour: 'tour.md'
+- Best Practices: 'best_practices.md'
 - IntelliJ IDEA Templates: 'intellij.md'
 - Snippets:
   - 'Overview': 'snippets/index.md'
@@ -60,12 +61,11 @@ pages:
     - 'What is OAuth 2.0?': 'auth/what_is_oauth.md'
   - Development and Testing:
     - 'Overview': 'testing/index.md'
-    - 'Using a Local Database': 'testing/database.md'
-    - 'Using the Debugger': 'testing/debugger.md'
-    - 'Development Best Practices': 'testing/best_practices.md'
-    - 'Developing Client Applications': 'testing/clients.md'
     - 'Writing Tests': 'testing/tests.md'
-    - 'Mocking Services'  : 'testing/mock.md'
+    - 'Testing with the ORM and OAuth 2.0': 'testing/mixins.md'
+    - 'Using the Debugger': 'testing/debugger.md'
+    - 'Developing Client Applications': 'testing/clients.md'
+    - 'Mocking Services': 'testing/mock.md'
   - Deployment:
     - 'Overview': 'deploy/index.md'
     - 'Deploy Locally': 'deploy/deploy_local.md'

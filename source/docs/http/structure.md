@@ -12,15 +12,17 @@ For example, consider an `Authorizer` controller that verifies the request's aut
 
 The last controller in a channel must always respond to a request. These types of controllers are called *endpoint controllers* and implement the business logic for your application's endpoints. For example, an endpoint controller might fetch a list of books from a database and send them in a response.
 
-The other controllers in a channel are called *middleware controllers*. These types of controllers typically verify something about a request before letting the next controller in the channel handle it. Middleware controllers respond to a request when there is an error, preventing the request from traveling further in the channel. For example, an authorizing controller might send a `401 Unauthorized` response for an unauthorized request, protecting the endpoint controller from invoking its logic.
+The other controllers in a channel are called *middleware controllers*. These types of controllers typically verify something about a request before letting the next controller in the channel handle it. Middleware controllers can respond to a request, but doing so prevents the rest of the controllers in the channel from handling the request.
 
-There is no real distinction between an endpoint and middleware controller other than the way they implement their handling logic. Middleware controllers are typically reusable, while endpoint controllers are typically not. If a middleware controller is not reusable, its logic might be better suited for the endpoint controller it precedes in the channel.
+For example, an "authorization" controller could send a `401 Unauthorized` response protecting the endpoint controller from unauthorized requests. A "caching" controller could send a response with information from a cache, preventing the endpoint controller from performing an expensive query.
+
+Both middleware and endpoint controllers are instances of `Controller` (or a subclass). Middleware controllers are typically reusable, while endpoint controllers are typically not. If a middleware controller is not reusable, its logic might be better suited for the endpoint controller it precedes in the channel.
 
 Most endpoint controllers are created by subclassing [ResourceController](resource_controller.md) (itself a subclass of `Controller`). This class allows you to implement methods for each HTTP method (like GET or POST) for a given endpoint.
 
 ## The Application Channel and Entry Point
 
-Each application designates a controller as the *entry point* of the application. This controller is the first to receive a new request and is the head of the application's channel. In most applications, the entry point is a [Router](routing.md); this controller allows multiple channels to be linked, effectively splitting the channel into sub-channels.
+Each application designates one controller as the *entry point* of the application. This controller is the first to receive a new request and is the head of the application's channel. In most applications, the entry point is a [Router](routing.md); this controller allows multiple channels to be linked, effectively splitting the channel into sub-channels.
 
 ![Structure](../img/structure.png)
 

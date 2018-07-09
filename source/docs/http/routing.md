@@ -128,4 +128,4 @@ The values in `variables` are always `String`s, since a request path is a `Strin
 
 ## Failed Matches Return 404
 
-A `Router` will return a `404 Not Found` if there is no matching route for the request. The router will not send this request to linked controllers. This behavior may be overridden by providing a closure to `Router.unhandledController` to provide a 404 HTML page if the request allows it.
+A `Router` will return a `404 Not Found` if there is no matching route for the request. No linked controllers will handle the request. This behavior may be overridden by providing a closure to `Router`'s constructor.

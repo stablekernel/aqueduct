@@ -200,9 +200,6 @@ Controller get entryPoint {
 
 Each of these objects is a subclass of `Controller`, giving them the ability to be linked together to handle requests. A request goes through controllers in the order they are linked. A request for the path `/users` will go through an `APIKeyValidator`, an `Authorizer` and finally a `UsersController`. Each of these controllers has an opportunity to respond, preventing the next controller from receiving the request.
 
-!!! tip "Controller Creation"
-    Controllers are linked by providing a closure to another controller's `link` method. These closures create a new instance of a `Controller` for each request. It's possible to reuse the same controller instance each time, but it's rare and usually not a great idea for reasons that won't make sense quite yet.
-
 ## Advanced Routing
 
 Right now, our application handles `GET /heroes` requests. The browser application uses the this list to populate its hero dashboard. If we click on an individual hero, the browser application will display an individual hero. When navigating to this page, the browser application makes a request to our server for an individual hero. This request contains the unique id of the selected hero in the path, e.g. `/heroes/11` or `/heroes/13`.

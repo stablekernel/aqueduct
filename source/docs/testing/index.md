@@ -10,9 +10,8 @@ You provide mock services for external services that your application communicat
 
 ## Guides
 
-- [Best Practices for Aqueduct Development](best_practices.md)
-- [Using a Local Database](database.md)
+- [Writing Tests with a Test Harness](tests.md)
+- [Testing with the ORM and OAuth 2.0](mixins.md)
 - [Developing Client Applications](clients.md)
 - [Using the Debugger and Profiling](debugger.md)
-- [Writing Tests](tests.md)
 - [Use Mock Services](mock.md)

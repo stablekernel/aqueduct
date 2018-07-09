@@ -2,7 +2,7 @@
 
 An Aqueduct application serves HTTP clients by sending responses for requests.
 
-You create and link `Controller` objects to handle requests. There are many subclasses of `Controller` that handle common tasks, and you often create your own subclasses of `Controller` to implement middleware and endpoint logic. Most of your endpoint logic is implemented in subclasses of `ResourceController`, a controller type geared for REST API endpoints.
+You create and link `Controller` objects to handle requests. There are many subclasses of `Controller` that handle common tasks, and you often create your own subclasses of `Controller` to implement application logic. Most of your logic is implemented in subclasses of `ResourceController`, a controller type geared for REST API endpoints.
 
 You create a subclass of `ApplicationChannel` to configure controllers used by your application. This subclass also initializes any services your application will use to fulfill requests, like database connections or third party API connections. Most often, you use a `Router` controller at the entry point of your application channel to modularize your application logic.
 
