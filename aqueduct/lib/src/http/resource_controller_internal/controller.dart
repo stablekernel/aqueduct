@@ -25,15 +25,7 @@ class BoundOperation {
 }
 
 class BoundController {
-  factory BoundController(Type controllerType) {
-    if (!_controllerBinders.containsKey(controllerType)) {
-      _controllerBinders[controllerType] = new BoundController._(controllerType);
-    }
-
-    return _controllerBinders[controllerType];
-  }
-
-  BoundController._(this.controllerType) {
+  BoundController(this.controllerType) {
     final allDeclarations = reflectClass(controllerType).declarations;
 
     final boundProperties = allDeclarations.values
@@ -51,9 +43,21 @@ class BoundController {
         .where(isOperation)
         .map((decl) => new BoundMethod(decl))
         .toList();
+
+    if (conflictingOperations.length > 0) {
+      final opNames = conflictingOperations.map((s) => "'$s'").join(", ");
+      throw new StateError("Invalid controller. Controller '${controllerType
+        .toString()}' has ambiguous operations. Offending operating methods: $opNames.");
+    }
+
+    if (unsatisfiableOperations.length > 0) {
+      final opNames = unsatisfiableOperations.map((s) => "'$s'").join(", ");
+      throw new StateError("Invalid controller. Controller '${controllerType.toString()}' has operations where "
+        "parameter is bound with @Bind.path(), but path variable is not declared in @Operation(). Offending operation methods: $opNames");
+    }
   }
 
-  Type controllerType;
+  final Type controllerType;
   List<BoundParameter> properties = [];
   List<BoundMethod> methods;
 
@@ -99,8 +103,7 @@ class BoundController {
   }
 
   BoundMethod methodBinderForRequest(Request req) {
-    return methods.firstWhere(
-        (binder) => binder.isSuitableForRequest(req.raw.method, req.path.variables.keys.toList()),
+    return methods.firstWhere((binder) => binder.isSuitableForRequest(req.raw.method, req.path.variables.keys.toList()),
         orElse: () => null);
   }
 
@@ -112,29 +115,25 @@ class BoundController {
         .toList();
   }
 
-  static Map<Type, BoundController> _controllerBinders = {};
-
   // At the end of this method, request.body.decodedData will have been invoked.
-  static Future<BoundOperation> bindRequestToOperation(ResourceController controller, Request request) async {
-    final boundController = new BoundController(controller.runtimeType);
-    final boundMethod = boundController.methodBinderForRequest(request);
+  Future<BoundOperation> bind(ResourceController controller, Request request) async {
+    final boundMethod = methodBinderForRequest(request);
     if (boundMethod == null) {
-      throw new Response(405,
-          {"Allow": boundController.allowedMethodsForPathVariables(request.path.variables.keys).join(", ")}, null);
+      throw new Response(
+          405, {"Allow": allowedMethodsForPathVariables(request.path.variables.keys).join(", ")}, null);
     }
 
     if (boundMethod.scopes != null) {
       if (request.authorization == null) {
-        new Logger("aqueduct").warning("'${controller.runtimeType}' must be linked to channel that contains an 'Authorizer', because "
-            "it uses 'Scope' annotation for one or more of its operation methods.");
+        new Logger("aqueduct")
+            .warning("'${controller.runtimeType}' must be linked to channel that contains an 'Authorizer', because "
+                "it uses 'Scope' annotation for one or more of its operation methods.");
         throw new Response.serverError();
       }
 
       if (!AuthScope.verify(boundMethod.scopes, request.authorization.scopes)) {
-        throw new Response.forbidden(body: {
-          "error": "insufficient_scope",
-          "scope": boundMethod.scopes.map((s) => s.toString()).join(" ")
-        });
+        throw new Response.forbidden(
+            body: {"error": "insufficient_scope", "scope": boundMethod.scopes.map((s) => s.toString()).join(" ")});
       }
     }
 
@@ -155,14 +154,13 @@ class BoundController {
       return parseWith(binder);
     };
 
-
-    final properties = boundController.properties.map(initiallyBindWith).toList();
-    final positional = boundMethod.positionalParameters.map(initiallyBindWith).toList();
-    final optional = boundMethod.optionalParameters.map(initiallyBindWith).toList();
+    final boundProperties = properties.map(initiallyBindWith).toList();
+    final boundPositionalArgs = boundMethod.positionalParameters.map(initiallyBindWith).toList();
+    final boundOptonalArgs = boundMethod.optionalParameters.map(initiallyBindWith).toList();
     final flattened = [
-      properties,
-      positional,
-      optional,
+      boundProperties,
+      boundPositionalArgs,
+      boundOptonalArgs,
     ].expand((x) => x).toList();
 
     var errorMessage = flattened.where((v) => v.errorMessage != null).map((v) => v.errorMessage).join(", ");
@@ -194,8 +192,8 @@ class BoundController {
 
     return new BoundOperation()
       ..methodSymbol = boundMethod.methodSymbol
-      ..positionalMethodArguments = positional.map((v) => v.value).toList()
-      ..optionalMethodArguments = toSymbolMap(optional)
-      ..properties = toSymbolMap(properties);
+      ..positionalMethodArguments = boundPositionalArgs.map((v) => v.value).toList()
+      ..optionalMethodArguments = toSymbolMap(boundOptonalArgs)
+      ..properties = toSymbolMap(boundProperties);
   }
 }
