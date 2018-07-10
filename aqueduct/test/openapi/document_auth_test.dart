@@ -157,7 +157,7 @@ class TestChannel extends ApplicationChannel {
 class DocumentedController extends Controller {
   DocumentedController({this.tag});
 
-  String tag;
+  final String tag;
 
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) {
