@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:async';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
+import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
@@ -10,6 +12,7 @@ import '../helpers.dart';
 import 'dart:convert';
 
 void main() {
+  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
   Application<TestChannel> application;
   Agent client = new Agent.onPort(8888);
 
@@ -420,6 +423,7 @@ void main() {
         ..paths = {}
         ..components = new APIComponents());
       AuthCodeController ac = new AuthCodeController(new AuthServer(new InMemoryAuthStorage()));
+      ac.restore(ac.recycledState);
       ac.didAddToChannel();
       operations = ac.documentOperations(context, "/", new APIPath());
       await context.finalize();

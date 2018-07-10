@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
+import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
@@ -265,7 +267,45 @@ void main() {
     });
   });
 
+  group("With dynamic entity", () {
+    var app = new Application<TestChannel>();
+    app.options.port = 8888;
+    var client = new Agent.onPort(8888);
+    List<TestModel> allObjects = [];
+
+    setUpAll(() async {
+      await app.startOnCurrentIsolate();
+
+      var now = new DateTime.now().toUtc();
+      for (var i = 0; i < 10; i++) {
+        var q = new Query<TestModel>(app.channel.context)
+          ..values.createdAt = now
+          ..values.name = "${9 - i}";
+        allObjects.add(await q.insert());
+
+        now = now.add(new Duration(seconds: 1));
+      }
+    });
+
+    tearDownAll(() async {
+      await app.channel.context.close();
+      await app.stop();
+    });
+
+
+    test("Can get one object", () async {
+      var resp = await client.request("/dynamic/1").get();
+      expect(resp, hasResponse(200, body: allObjects.first.asMap()));
+    });
+
+    test("Can get all objects", () async {
+      var resp = await client.request("/dynamic").get();
+      expect(resp, hasResponse(200, body: allObjects.map((m) => m.asMap()).toList()));
+    });
+  });
+
   group("Documentation", () {
+    DocumentedElement.provider = AnalyzerDocumentedElementProvider();
     Map<String, APIOperation> collectionOperations;
     Map<String, APIOperation> idOperations;
     setUpAll(() async {
@@ -276,9 +316,9 @@ void main() {
 
       var dataModel = new ManagedDataModel([TestModel]);
       final ctx = new ManagedContext(dataModel, new DefaultPersistentStore());
-      final c = new ManagedObjectController<TestModel>(ctx);
+      final c = ManagedObjectController<TestModel>(ctx);
+      c.restore(c.recycledState);
       c.didAddToChannel();
-
       collectionOperations = c.documentOperations(context, "/", new APIPath());
       idOperations = c.documentOperations(context, "/", new APIPath(parameters: [new APIParameter.path("id")]));
 
@@ -346,44 +386,6 @@ void main() {
       expect(op.responses["200"].content["application/json"].schema.type, APIType.array);
       expect(op.responses["200"].content["application/json"].schema.items.referenceURI, "#/components/schemas/TestModel");
     });
-  });
-
-  group("With dynamic entity", () {
-    var app = new Application<TestChannel>();
-    app.options.port = 8888;
-    var client = new Agent.onPort(8888);
-    List<TestModel> allObjects = [];
-
-    setUpAll(() async {
-      await app.startOnCurrentIsolate();
-
-      var now = new DateTime.now().toUtc();
-      for (var i = 0; i < 10; i++) {
-        var q = new Query<TestModel>(app.channel.context)
-          ..values.createdAt = now
-          ..values.name = "${9 - i}";
-        allObjects.add(await q.insert());
-
-        now = now.add(new Duration(seconds: 1));
-      }
-    });
-
-    tearDownAll(() async {
-      await app.channel.context.close();
-      await app.stop();
-    });
-
-
-    test("Can get one object", () async {
-      var resp = await client.request("/dynamic/1").get();
-      expect(resp, hasResponse(200, body: allObjects.first.asMap()));
-    });
-
-    test("Can get all objects", () async {
-      var resp = await client.request("/dynamic").get();
-      expect(resp, hasResponse(200, body: allObjects.map((m) => m.asMap()).toList()));
-    });
-
   });
 }
 

@@ -18,6 +18,7 @@ void main() {
       ..paths = {}
       ..components = new APIComponents());
     final ac = new A();
+    ac.restore(ac.recycledState);
     ac.didAddToChannel();
     ac.documentComponents(context);
 
