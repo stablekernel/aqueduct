@@ -108,7 +108,8 @@ void main() {
       };
       var response = await postJSON(m);
       expect(response.statusCode, 400);
-      expect(json.decode(response.body)["error"], contains("job"));
+      expect(json.decode(response.body)["error"], "entity validation failed");
+      expect(json.decode(response.body)["reasons"].join(","), contains("job"));
     });
 
     test("Body is empty returns 400", () async {
@@ -120,7 +121,8 @@ void main() {
       };
       var response = await postJSON(m);
       expect(response.statusCode, 400);
-      expect(json.decode(response.body)["error"], contains("job"));
+      expect(json.decode(response.body)["error"], "entity validation failed");
+      expect(json.decode(response.body)["reasons"].join(","), contains("job"));
     });
 
     test("Is List when expecting Map returns 400", () async {
