@@ -97,7 +97,7 @@ void main() {
 
   test("If request body is bound, shows up in documentation for operation with valid ref", () {
     expect(context.schema.hasRegisteredType(AModel), true);
-    expect(collectionOperations["post"].requestBody.content["application/json"].schema.referenceURI, "#/components/schemas/AModel");
+    expect(collectionOperations["post"].requestBody.content["application/json"].schema.referenceURI.path, "/components/schemas/AModel");
   });
 }
 
