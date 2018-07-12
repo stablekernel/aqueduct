@@ -185,11 +185,10 @@ Future expectSchema(Schema schema,
 
   final contents = migrationSource + "\n" + (reflect(schemaByApplyingMigrations) as ClosureMirror).function.source;
 
-  final response = await IsolateExecutor.executeWithType(MigrateSchema,
+  final response = await IsolateExecutor.run(MigrateSchema.input(schema),
       packageConfigURI: Directory.current.uri.resolve(".packages"),
       imports: MigrateSchema.imports,
-      additionalContents: contents,
-      message: {"schema": schema.asMap()});
+      additionalContents: contents);
 
   var createdSchema = new Schema.fromMap(response);
   var diff = createdSchema.differenceFrom(becomesSchema);
@@ -201,16 +200,18 @@ Future expectSchema(Schema schema,
   }
 }
 
-class MigrateSchema extends Executable {
+class MigrateSchema extends Executable<Map<String, dynamic>> {
   MigrateSchema(Map<String, dynamic> message)
-      : schema = new Schema.fromMap(message["schema"]),
+      : schema = new Schema.fromMap(message["schema"] as Map<String, dynamic>),
         super(message);
+
+  MigrateSchema.input(this.schema) : super({"schema": schema.asMap()});
 
   final Schema schema;
 
   @override
-  Future<dynamic> execute() async {
-    final migration = instanceOf("Migration1");
+  Future<Map<String, dynamic>> execute() async {
+    final migration = instanceOf("Migration1") as Migration;
     final outSchema = await schemaByApplyingMigrations([migration], fromSchema: schema);
 
     return outSchema.asMap();

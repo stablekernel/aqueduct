@@ -2,6 +2,8 @@ import 'dart:io';
 import 'dart:async';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
+import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
@@ -10,6 +12,7 @@ import '../helpers.dart';
 import 'dart:convert';
 
 void main() {
+  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
   Application<TestChannel> application;
   Agent client = new Agent.onPort(8888);
 
@@ -27,7 +30,7 @@ void main() {
   setUpAll(() async {
     application = new Application<TestChannel>();
 
-    await application.test();
+    await application.startOnCurrentIsolate();
   });
 
   tearDownAll(() async {
@@ -340,9 +343,9 @@ void main() {
         "password": InMemoryAuthStorage.DefaultPassword
       });
 
-      expect(resp, hasStatus(HttpStatus.MOVED_TEMPORARILY));
+      expect(resp, hasStatus(HttpStatus.movedTemporarily));
 
-      var location = resp.headers.value(HttpHeaders.LOCATION);
+      var location = resp.headers.value(HttpHeaders.locationHeader);
       var uri = Uri.parse(location);
       var requestURI = new Uri.http("stablekernel.com", "/auth/redirect");
       expect(uri.queryParameters["error"], "invalid_request");
@@ -420,6 +423,7 @@ void main() {
         ..paths = {}
         ..components = new APIComponents());
       AuthCodeController ac = new AuthCodeController(new AuthServer(new InMemoryAuthStorage()));
+      ac.restore(ac.recycledState);
       ac.didAddToChannel();
       operations = ac.documentOperations(context, "/", new APIPath());
       await context.finalize();
@@ -471,13 +475,13 @@ void main() {
 
     test("POST response can be redirect or bad request", () {
       expect(operations["post"].responses, {
-        "${HttpStatus.MOVED_TEMPORARILY}": isNotNull,
-        "${HttpStatus.BAD_REQUEST}": isNotNull,
+        "${HttpStatus.movedTemporarily}": isNotNull,
+        "${HttpStatus.badRequest}": isNotNull,
       });
     });
 
     test("POST response is a redirect", () {
-      final redirectResponse = operations["post"].responses["${HttpStatus.MOVED_TEMPORARILY}"];
+      final redirectResponse = operations["post"].responses["${HttpStatus.movedTemporarily}"];
       expect(redirectResponse.content, isNull);
       expect(redirectResponse.headers["Location"].schema.type, APIType.string);
       expect(redirectResponse.headers["Location"].schema.format, "uri");
@@ -517,9 +521,9 @@ class TestChannel extends ApplicationChannel implements AuthCodeControllerDelega
 }
 
 void expectRedirect(TestResponse resp, Uri requestURI, {String state}) {
-  expect(resp, hasStatus(HttpStatus.MOVED_TEMPORARILY));
+  expect(resp, hasStatus(HttpStatus.movedTemporarily));
 
-  var location = resp.headers.value(HttpHeaders.LOCATION);
+  var location = resp.headers.value(HttpHeaders.locationHeader);
   var uri = Uri.parse(location);
 
   expect(uri.queryParameters["code"], hasLength(greaterThan(0)));
@@ -532,9 +536,9 @@ void expectRedirect(TestResponse resp, Uri requestURI, {String state}) {
 }
 
 void expectErrorRedirect(TestResponse resp, Uri requestURI, String errorReason, {String state}) {
-  expect(resp, hasStatus(HttpStatus.MOVED_TEMPORARILY));
+  expect(resp, hasStatus(HttpStatus.movedTemporarily));
 
-  var location = resp.headers.value(HttpHeaders.LOCATION);
+  var location = resp.headers.value(HttpHeaders.locationHeader);
   var uri = Uri.parse(location);
   expect(uri.authority, requestURI.authority);
   expect(uri.path, requestURI.path);

@@ -140,7 +140,7 @@ void main() {
       results = await q.fetch();
       expect(
           results.map((r) => r.asMap()).toList(), equals([fullObjectMap(RootObject, 2)]));
-    });
+    }, skip: "#481");
 
     test("Can use implicit join with join table to one side", () async {
       var q = new Query<RootJoinObject>(ctx)..where((o) => o.root.value1).equalTo(1);
@@ -358,7 +358,7 @@ void main() {
         ..where((o) => o.awayGames.haveAtLeastOneWhere.homeTeam.name).contains("Iowa");
       results = await q.fetch();
       expect(results.map((t) => t.asMap()).toList(), equals([]));
-    });
+    }, skip: "#481");
 
     test("Can implicit join from join table - one side", () async {
       // 'Games where Iowa was away'
@@ -466,10 +466,10 @@ class _Game {
   int homeScore;
   int awayScore;
 
-  @Relate(#homeGames)
+  @Relate(Symbol('homeGames'))
   Team homeTeam;
 
-  @Relate(#awayGames)
+  @Relate(Symbol('awayGames'))
   Team awayTeam;
 }
 

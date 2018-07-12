@@ -61,7 +61,7 @@ void main() {
             ..setContentTypeForExtension("silly", new ContentType("text", "html", charset: "utf-8")));
     router.didAddToChannel();
 
-    server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+    server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
     server.map((r) => new Request(r)).listen((req) {
       router.receive(req);
     });
@@ -106,7 +106,7 @@ void main() {
   });
 
   test("If 404 response to request without Accept: text/html, do not include HTML body", () async {
-    var response = await getFile("/file.foobar", headers: {HttpHeaders.ACCEPT: "text/plain"});
+    var response = await getFile("/file.foobar", headers: {HttpHeaders.acceptHeader: "text/plain"});
     expect(response.headers["last-modified"], isNull);
     expect(response.headers["cache-control"], isNull);
     expect(response.headers["content-type"], isNull);
@@ -298,7 +298,7 @@ Future<http.Response> getCacheableFile(String path, {DateTime ifModifiedSince}) 
   }
 
   return http.get("http://localhost:8888/cache$path", headers: {
-    HttpHeaders.IF_MODIFIED_SINCE: HttpDate.format(ifModifiedSince)
+    HttpHeaders.ifModifiedSinceHeader: HttpDate.format(ifModifiedSince)
   });
 }
 

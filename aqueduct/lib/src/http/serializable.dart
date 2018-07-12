@@ -1,7 +1,7 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
 
 import 'http.dart';
 
@@ -23,7 +23,7 @@ abstract class HTTPSerializable {
     }
 
     final properties = <String, APISchemaObject>{};
-    for (var property in mirror.declarations.values.where((d) => d is VariableMirror)) {
+    for (final property in mirror.declarations.values.whereType<VariableMirror>()) {
       properties[MirrorSystem.getName(property.simpleName)] = APIComponentDocumenter.documentVariable(context, property);
     }
 

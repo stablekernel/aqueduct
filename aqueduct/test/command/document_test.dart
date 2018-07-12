@@ -1,4 +1,4 @@
-import 'dart:io';
+@Tags(const ["cli"])
 import 'dart:convert';
 
 import 'package:test/test.dart';

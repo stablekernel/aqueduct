@@ -16,7 +16,7 @@ import 'partial_matcher.dart';
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, {"id": isNumber}));
 ///
-const Matcher isNumber = const isInstanceOf<num>();
+const TypeMatcher<num> isNumber = const TypeMatcher<num>();
 
 /// Validates that value is an [int].
 ///
@@ -25,7 +25,7 @@ const Matcher isNumber = const isInstanceOf<num>();
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, {"id": isInteger}));
 ///
-const Matcher isInteger = const isInstanceOf<int>();
+const TypeMatcher<int> isInteger = const TypeMatcher<int>();
 
 /// Validates that value is a [double].
 ///
@@ -34,7 +34,7 @@ const Matcher isInteger = const isInstanceOf<int>();
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, {"id": isDouble}));
 ///
-const Matcher isDouble = const isInstanceOf<double>();
+const TypeMatcher<double> isDouble = const TypeMatcher<double>();
 
 /// Validates that value is a [String].
 ///
@@ -43,7 +43,7 @@ const Matcher isDouble = const isInstanceOf<double>();
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, {"id": isString}));
 ///
-const Matcher isString = const isInstanceOf<String>();
+const TypeMatcher<String> isString = const TypeMatcher<String>();
 
 /// Validates that value is a [bool].
 ///
@@ -52,7 +52,7 @@ const Matcher isString = const isInstanceOf<String>();
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, {"isActive": isBoolean}));
 ///
-const Matcher isBoolean = const isInstanceOf<bool>();
+const TypeMatcher<bool> isBoolean = const TypeMatcher<bool>();
 
 /// Validates that a [DateTime] is after [date].
 ///

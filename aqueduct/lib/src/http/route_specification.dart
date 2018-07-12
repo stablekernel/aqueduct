@@ -107,7 +107,7 @@ List<RouteSegment> _splitPathSegments(String path) {
     path = path.substring(0, path.length - 1);
   }
 
-  var segments = [];
+  var segments = <String>[];
   var chars = path.codeUnits;
   var buffer = new StringBuffer();
 

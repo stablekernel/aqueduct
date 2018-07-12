@@ -1,6 +1,3 @@
-// Copyright (c) 2015, <your name>. All rights reserved. Use of this source code
-// is governed by a BSD-style license that can be found in the LICENSE file.
-
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
@@ -327,7 +324,7 @@ class _GenPost {
   int id;
   String text;
 
-  @Relate(#posts)
+  @Relate(Symbol('posts'))
   GenUser owner;
 }
 
@@ -384,7 +381,7 @@ class _EnumObject {
 }
 
 class MultiUnique extends ManagedObject<_MultiUnique> implements _MultiUnique {}
-@Table.unique(const [#a, #b])
+@Table.unique([Symbol('a'), Symbol('b')])
 class _MultiUnique {
   @primaryKey
   int id;

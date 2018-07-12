@@ -1,6 +1,8 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
+import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
@@ -11,6 +13,7 @@ will have their own tests. It does test Router, though.
  */
 
 void main() {
+  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
   group(("Default channel"), () {
     APIDocument doc;
     DateTime controllerDocumented;
@@ -127,10 +130,11 @@ void main() {
       try {
         await ctx.finalize();
         fail("unreachable");
-      } on StateError catch (e) {
-        expect(e.message, contains("Unresolved"));
-        expect(e.message, contains("'responses'"));
-        expect(e.message, contains("'String'"));
+      } on ArgumentError catch (e) {
+        expect(e.message, contains("Reference"));
+        expect(e.message, contains("responses"));
+        expect(e.message, contains("String"));
+        expect(e.message, contains("does not exist"));
       }
     });
 
@@ -141,9 +145,10 @@ void main() {
       try {
         await ctx.finalize();
         fail("unreachable");
-      } on StateError catch (e) {
-        expect(e.message, contains("Unresolved"));
+      } on ArgumentError catch (e) {
+        expect(e.message, contains("Reference"));
         expect(e.message, contains("'#/components/schemas/foo'"));
+        expect(e.message, contains("does not exist"));
       }
     });
 
@@ -236,7 +241,7 @@ void main() {
 
         opsWithMiddleware.forEach((op) {
           final middlewareParam =
-              op.parameters.where((p) => p.referenceURI == "#/components/parameters/x-api-key").toList();
+              op.parameters.where((p) => p.referenceURI?.path == "/components/parameters/x-api-key").toList();
           expect(middlewareParam.length, 1);
 
           expect(doc.components.resolve(middlewareParam.first).schema.type, APIType.string);
@@ -261,7 +266,7 @@ void main() {
 
       test("Can resolve component by type", () {
         final ref = doc.components.schemas["someObject"].properties["refByType"];
-        expect(ref.referenceURI, "#/components/schemas/ref-component");
+        expect(ref.referenceURI.path, "/components/schemas/ref-component");
 
         final resolved = doc.components.resolve(ref);
         expect(resolved.type, APIType.object);
@@ -295,77 +300,77 @@ void main() {
     });
 
     test("Type documentation for primitive types", () {
-      expect(APIComponentDocumenter.documentType(ctx, reflectType(int)).type, APIType.integer);
-      expect(APIComponentDocumenter.documentType(ctx, reflectType(double)).type, APIType.number);
-      expect(APIComponentDocumenter.documentType(ctx, reflectType(String)).type, APIType.string);
-      expect(APIComponentDocumenter.documentType(ctx, reflectType(bool)).type, APIType.boolean);
-      expect(APIComponentDocumenter.documentType(ctx, reflectType(DateTime)).type, APIType.string);
-      expect(APIComponentDocumenter.documentType(ctx, reflectType(DateTime)).format, "date-time");
+      expect(APIComponentDocumenter.documentType(ctx, reflectClass(int)).type, APIType.integer);
+      expect(APIComponentDocumenter.documentType(ctx, reflectClass(double)).type, APIType.number);
+      expect(APIComponentDocumenter.documentType(ctx, reflectClass(String)).type, APIType.string);
+      expect(APIComponentDocumenter.documentType(ctx, reflectClass(bool)).type, APIType.boolean);
+      expect(APIComponentDocumenter.documentType(ctx, reflectClass(DateTime)).type, APIType.string);
+      expect(APIComponentDocumenter.documentType(ctx, reflectClass(DateTime)).format, "date-time");
     });
 
     test("Type documentation throws error in type is unsupported", () {
       try {
-        APIComponentDocumenter.documentType(ctx, reflectType(DefaultChannel));
+        APIComponentDocumenter.documentType(ctx, reflectClass(DefaultChannel));
         fail("unreachable");
       } on ArgumentError {}
     });
 
     test("Non-string key map throws error", () {
       try {
-        APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#x] as VariableMirror).type);
+        APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#x] as VariableMirror).type as ClassMirror);
         fail("unreachable");
       } on ArgumentError {}
     });
 
     test("List that contains non-serializble types throws", () {
       try {
-        APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#y] as VariableMirror).type);
+        APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#y] as VariableMirror).type as ClassMirror);
         fail("unreachable");
       } on ArgumentError {}
     });
 
     test("Map that contains values that aren't serializable throws", () {
       try {
-        APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#z] as VariableMirror).type);
+        APIComponentDocumenter.documentType(ctx, (reflectClass(ComplexTypes).declarations[#z] as VariableMirror).type as ClassMirror);
         fail("unreachable");
       } on ArgumentError {}
     });
 
     test("Type documentation for complex types", () {
       final stringIntMap = APIComponentDocumenter.documentType(
-          ctx, (reflectClass(ComplexTypes).declarations[#a] as VariableMirror).type);
+          ctx, (reflectClass(ComplexTypes).declarations[#a] as VariableMirror).type as ClassMirror);
       final intList = APIComponentDocumenter.documentType(
-          ctx, (reflectClass(ComplexTypes).declarations[#b] as VariableMirror).type);
+          ctx, (reflectClass(ComplexTypes).declarations[#b] as VariableMirror).type as ClassMirror);
       final listOfMaps = APIComponentDocumenter.documentType(
-          ctx, (reflectClass(ComplexTypes).declarations[#c] as VariableMirror).type);
+          ctx, (reflectClass(ComplexTypes).declarations[#c] as VariableMirror).type as ClassMirror);
       final listOfSerial = APIComponentDocumenter.documentType(
-          ctx, (reflectClass(ComplexTypes).declarations[#d] as VariableMirror).type);
+          ctx, (reflectClass(ComplexTypes).declarations[#d] as VariableMirror).type as ClassMirror);
       final serial = APIComponentDocumenter.documentType(
-          ctx, (reflectClass(ComplexTypes).declarations[#e] as VariableMirror).type);
+          ctx, (reflectClass(ComplexTypes).declarations[#e] as VariableMirror).type as ClassMirror);
       final stringListMap = APIComponentDocumenter.documentType(
-          ctx, (reflectClass(ComplexTypes).declarations[#f] as VariableMirror).type);
+          ctx, (reflectClass(ComplexTypes).declarations[#f] as VariableMirror).type as ClassMirror);
 
       expect(stringIntMap.type, APIType.object);
-      expect(stringIntMap.additionalProperties.type, APIType.integer);
+      expect(stringIntMap.additionalPropertySchema.type, APIType.integer);
       expect(intList.type, APIType.array);
       expect(intList.items.type, APIType.integer);
       expect(listOfMaps.type, APIType.array);
       expect(listOfMaps.items.type, APIType.object);
-      expect(listOfMaps.items.additionalProperties.type, APIType.string);
+      expect(listOfMaps.items.additionalPropertySchema.type, APIType.string);
       expect(listOfSerial.type, APIType.array);
       expect(listOfSerial.items.type, APIType.object);
       expect(listOfSerial.items.properties["x"].type, APIType.integer);
       expect(serial.type, APIType.object);
       expect(serial.properties["x"].type, APIType.integer);
       expect(stringListMap.type, APIType.object);
-      expect(stringListMap.additionalProperties.type, APIType.array);
-      expect(stringListMap.additionalProperties.items.type, APIType.string);
+      expect(stringListMap.additionalPropertySchema.type, APIType.array);
+      expect(stringListMap.additionalPropertySchema.items.type, APIType.string);
     });
 
     test("Documentation comments for declarations are available in schema object", () async {
-      final titleOnly = APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#a]);
-      final titleAndSummary = APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#b]);
-      final noDocs = APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#c]);
+      final titleOnly = APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#a] as VariableMirror);
+      final titleAndSummary = APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#b] as VariableMirror);
+      final noDocs = APIComponentDocumenter.documentVariable(ctx, reflectClass(ComplexTypes).declarations[#c] as VariableMirror);
       await ctx.finalize();
 
       expect(titleOnly.title, "title");
@@ -493,8 +498,8 @@ class Middleware extends Controller {
 class Endpoint extends Controller {
   Endpoint(this.prepared, this.documented);
 
-  Completer prepared;
-  Completer documented;
+  final Completer prepared;
+  final Completer documented;
 
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext registry, String route, APIPath path) {

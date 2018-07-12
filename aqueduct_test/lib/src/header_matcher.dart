@@ -29,7 +29,7 @@ class HTTPHeaderMatcher extends Matcher {
   @override
   bool matches(dynamic item, Map matchState) {
     HttpHeaders headers = item;
-    var mismatches = [];
+    final mismatches = <String>[];
     matchState["HTTPHeaderMatcher.mismatches"] = mismatches;
 
     var foundMismatchInHeaders = false;
@@ -55,7 +55,7 @@ class HTTPHeaderMatcher extends Matcher {
     }
 
     if (shouldFailIfOthersPresent) {
-      var extraHeaders = [];
+      var extraHeaders = <String>[];
       matchState["HTTPHeaderMatcher.extra"] = extraHeaders;
       headers.forEach((key, _) {
         if (!_matchHeaders.containsKey(key)) {
@@ -91,12 +91,12 @@ class HTTPHeaderMatcher extends Matcher {
   @override
   Description describeMismatch(
       dynamic item, Description mismatchDescription, Map matchState, bool verbose) {
-    List<String> extraKeys = matchState["HTTPHeaderMatcher.extra"] ?? [];
+    List<String> extraKeys = matchState["HTTPHeaderMatcher.extra"] ?? <String>[];
     if (extraKeys.length > 0) {
       mismatchDescription.add("actual has extra headers: ").add(extraKeys.join(", ")).add("\n");
     }
 
-    List<String> mismatches = matchState["HTTPHeaderMatcher.mismatches"] ?? [];
+    List<String> mismatches = matchState["HTTPHeaderMatcher.mismatches"] ?? <String>[];
     if (mismatches.length > 0) {
       mismatchDescription.add(
           "the following headers differ: "

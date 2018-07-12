@@ -1,3 +1,4 @@
+@Tags(const ["cli"])
 import 'dart:io';
 import 'package:test/test.dart';
 import 'cli_helpers.dart';

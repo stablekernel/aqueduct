@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
+import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
@@ -16,7 +18,7 @@ void main() {
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-      await app.test();
+      await app.startOnCurrentIsolate();
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 5; i++) {
@@ -90,7 +92,7 @@ void main() {
     var client = new Agent.onPort(8888);
 
     setUpAll(() async {
-      await app.test();
+      await app.startOnCurrentIsolate();
     });
 
     tearDownAll(() async {
@@ -123,7 +125,7 @@ void main() {
     var client = new Agent.onPort(8888);
 
     setUpAll(() async {
-      await app.test();
+      await app.startOnCurrentIsolate();
     });
 
     tearDownAll(() async {
@@ -160,7 +162,7 @@ void main() {
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-      await app.test();
+      await app.startOnCurrentIsolate();
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {
@@ -265,89 +267,6 @@ void main() {
     });
   });
 
-  group("Documentation", () {
-    Map<String, APIOperation> collectionOperations;
-    Map<String, APIOperation> idOperations;
-    setUpAll(() async {
-      final context = new APIDocumentContext(new APIDocument()
-        ..info = new APIInfo("x", "1.0.0")
-        ..paths = {}
-        ..components = new APIComponents());
-
-      var dataModel = new ManagedDataModel([TestModel]);
-      final ctx = new ManagedContext(dataModel, new DefaultPersistentStore());
-      final c = new ManagedObjectController<TestModel>(ctx);
-      c.didAddToChannel();
-
-      collectionOperations = c.documentOperations(context, "/", new APIPath());
-      idOperations = c.documentOperations(context, "/", new APIPath(parameters: [new APIParameter.path("id")]));
-
-      ctx.documentComponents(context);
-
-      await context.finalize();
-    });
-
-    test("getObject", () {
-      var op = idOperations["get"];
-      expect(op.id, "getTestModel");
-
-      expect(op.responses.length, 2);
-
-      expect(op.responses["404"], isNotNull);
-      expect(op.responses["200"].content["application/json"].schema.referenceURI, "#/components/schemas/TestModel");
-    });
-
-    test("createObject", () {
-      var op = collectionOperations["post"];
-      expect(op.id, "createTestModel");
-
-      expect(op.responses.length, 4);
-
-      expect(op.responses["409"], isNotNull);
-      expect(op.responses["422"], isNotNull);
-      expect(op.responses["400"], isNotNull);
-      expect(op.responses["200"].content["application/json"].schema.referenceURI, "#/components/schemas/TestModel");
-      expect(op.requestBody.content["application/json"].schema.referenceURI, "#/components/schemas/TestModel");
-    });
-
-    test("updateObject", () {
-      var op = idOperations["put"];
-      expect(op.id, "updateTestModel");
-
-      expect(op.responses.length, 5);
-
-      expect(op.responses["404"], isNotNull);
-      expect(op.responses["409"], isNotNull);
-      expect(op.responses["422"], isNotNull);
-      expect(op.responses["400"], isNotNull);
-      expect(op.responses["200"].content["application/json"].schema.referenceURI, "#/components/schemas/TestModel");
-      expect(op.requestBody.content["application/json"].schema.referenceURI, "#/components/schemas/TestModel");
-    });
-
-    test("deleteObject", () {
-      var op = idOperations["delete"];
-      expect(op.id, "deleteTestModel");
-
-      expect(op.responses.length, 2);
-
-      expect(op.responses["404"], isNotNull);
-      expect(op.responses["200"].content, isNull);
-    });
-
-    test("getObjects", () {
-      var op = collectionOperations["get"];
-      expect(op.id, "getTestModels");
-
-      expect(op.responses.length, 2);
-      expect(op.parameters.length, 6);
-      expect(op.parameters.every((p) => p.isRequired == false), true);
-
-      expect(op.responses["400"], isNotNull);
-      expect(op.responses["200"].content["application/json"].schema.type, APIType.array);
-      expect(op.responses["200"].content["application/json"].schema.items.referenceURI, "#/components/schemas/TestModel");
-    });
-  });
-
   group("With dynamic entity", () {
     var app = new Application<TestChannel>();
     app.options.port = 8888;
@@ -355,7 +274,7 @@ void main() {
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-      await app.test();
+      await app.startOnCurrentIsolate();
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {
@@ -383,7 +302,90 @@ void main() {
       var resp = await client.request("/dynamic").get();
       expect(resp, hasResponse(200, body: allObjects.map((m) => m.asMap()).toList()));
     });
+  });
 
+  group("Documentation", () {
+    DocumentedElement.provider = AnalyzerDocumentedElementProvider();
+    Map<String, APIOperation> collectionOperations;
+    Map<String, APIOperation> idOperations;
+    setUpAll(() async {
+      final context = new APIDocumentContext(new APIDocument()
+        ..info = new APIInfo("x", "1.0.0")
+        ..paths = {}
+        ..components = new APIComponents());
+
+      var dataModel = new ManagedDataModel([TestModel]);
+      final ctx = new ManagedContext(dataModel, new DefaultPersistentStore());
+      final c = ManagedObjectController<TestModel>(ctx);
+      c.restore(c.recycledState);
+      c.didAddToChannel();
+      collectionOperations = c.documentOperations(context, "/", new APIPath());
+      idOperations = c.documentOperations(context, "/", new APIPath(parameters: [new APIParameter.path("id")]));
+
+      ctx.documentComponents(context);
+
+      await context.finalize();
+    });
+
+    test("getObject", () {
+      var op = idOperations["get"];
+      expect(op.id, "getTestModel");
+
+      expect(op.responses.length, 2);
+
+      expect(op.responses["404"], isNotNull);
+      expect(op.responses["200"].content["application/json"].schema.referenceURI.path, "/components/schemas/TestModel");
+    });
+
+    test("createObject", () {
+      var op = collectionOperations["post"];
+      expect(op.id, "createTestModel");
+
+      expect(op.responses.length, 4);
+
+      expect(op.responses["409"], isNotNull);
+      expect(op.responses["422"], isNotNull);
+      expect(op.responses["400"], isNotNull);
+      expect(op.responses["200"].content["application/json"].schema.referenceURI.path, "/components/schemas/TestModel");
+      expect(op.requestBody.content["application/json"].schema.referenceURI.path, "/components/schemas/TestModel");
+    });
+
+    test("updateObject", () {
+      var op = idOperations["put"];
+      expect(op.id, "updateTestModel");
+
+      expect(op.responses.length, 5);
+
+      expect(op.responses["404"], isNotNull);
+      expect(op.responses["409"], isNotNull);
+      expect(op.responses["422"], isNotNull);
+      expect(op.responses["400"], isNotNull);
+      expect(op.responses["200"].content["application/json"].schema.referenceURI.path, "/components/schemas/TestModel");
+      expect(op.requestBody.content["application/json"].schema.referenceURI.path, "/components/schemas/TestModel");
+    });
+
+    test("deleteObject", () {
+      var op = idOperations["delete"];
+      expect(op.id, "deleteTestModel");
+
+      expect(op.responses.length, 2);
+
+      expect(op.responses["404"], isNotNull);
+      expect(op.responses["200"].content, isNull);
+    });
+
+    test("getObjects", () {
+      var op = collectionOperations["get"];
+      expect(op.id, "getTestModels");
+
+      expect(op.responses.length, 2);
+      expect(op.parameters.length, 6);
+      expect(op.parameters.every((p) => p.isRequired == false), true);
+
+      expect(op.responses["400"], isNotNull);
+      expect(op.responses["200"].content["application/json"].schema.type, APIType.array);
+      expect(op.responses["200"].content["application/json"].schema.items.referenceURI.path, "/components/schemas/TestModel");
+    });
   });
 }
 

@@ -1,3 +1,4 @@
+@Tags(const ["cli"])
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -103,7 +104,7 @@ void main() {
         .map((fse) => fse.uri.pathSegments[fse.uri.pathSegments.length - 2])
         .toList();
     final aqueductPubspec = loadYaml(new File("pubspec.yaml").readAsStringSync());
-    final aqueductVersionString = "^" + aqueductPubspec["version"];
+    final aqueductVersionString = "^" + (aqueductPubspec["version"] as String);
 
     for (var template in templates) {
       test("Templates contain most recent version of aqueduct by default", () {

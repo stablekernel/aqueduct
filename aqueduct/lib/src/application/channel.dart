@@ -166,7 +166,7 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
 
     doc.paths = root.documentPaths(context);
 
-    doc.info = new APIInfo(projectSpec["name"], projectSpec["version"], description: projectSpec["description"]);
+    doc.info = new APIInfo(projectSpec["name"] as String, projectSpec["version"] as String, description: projectSpec["description"] as String);
 
     await context.finalize();
 
@@ -249,7 +249,7 @@ class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
   StreamSubscription<dynamic> listen(void onData(dynamic event),
           {Function onError, void onDone(), bool cancelOnError: false}) =>
       _inboundController.stream.listen(onData,
-          onError: onError ?? (err, st) => _logger.severe("ApplicationMessageHub error", err, st),
+          onError: onError ?? (err, StackTrace st) => _logger.severe("ApplicationMessageHub error", err, st),
           onDone: onDone,
           cancelOnError: cancelOnError);
 

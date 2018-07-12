@@ -20,36 +20,6 @@ void main() {
       root.didAddToChannel();
       expect(completer.future, completes);
     });
-
-    test("Controllers are generated for each request", () async {
-      final root = new Controller();
-      root.linkFunction((req) async => req).link(() => new NotingMiddleware()).link(() => new NotingEndpoint());
-      root.didAddToChannel();
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4111);
-      server.map((r) => new Request(r)).listen((req) => root.receive(req));
-
-      // These requests return pairs of [request memory address, controller memory address].
-      // A middleware places its pair in a header, the endpoint in the body.
-      // These values are returned so that the tests can check which instances
-      // were created to handle the request.
-      // We are expecting that the request remains the same between the middleware and the endpoint,
-      // and that new controller instances are created for each request.
-
-      final r1 = await http.get("http://localhost:4111");
-      final r2 = await http.get("http://localhost:4111");
-
-      List<int> r1m = json.decode(r1.headers["x-middleware"]);
-      List<int> r2m = json.decode(r2.headers["x-middleware"]);
-      List<int> r1e = json.decode(r1.body);
-      List<int> r2e = json.decode(r2.body);
-
-      expect(r1m.first, r1e.first);
-      expect(r2m.first, r2e.first);
-
-      expect(r1m.last, isNot(r2m.last));
-      expect(r1e.last, isNot(r2e.last));
-    });
-
   });
 
   group("Response modifiers", () {
@@ -57,7 +27,7 @@ void main() {
     Controller root;
 
     setUp(() async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4111);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4111);
       root = new Controller();
       server.map((r) => new Request(r)).listen((req) {
         root.receive(req);
@@ -122,6 +92,17 @@ void main() {
       var resp = await http.get("http://localhost:4111/");
       expect(json.decode(resp.body), {"foo": "y", "x": "a"});
     });
+
+    test("Response modifier that throws uncaught exception sends 500 server error", () async {
+      root.linkFunction((r) async {
+        return r..addResponseModifier((resp) => throw Exception('expected'));
+      }).linkFunction((r) async {
+        return new Response.ok(null);
+      });
+
+      var resp = await http.get("http://localhost:4111/");
+      expect(resp.statusCode, 500);
+    });
   });
 
   group("Can return null from request controller is valid", () {
@@ -129,7 +110,7 @@ void main() {
     Controller root;
 
     setUp(() async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 4111);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4111);
       root = new Controller();
 
       server.map((r) => new Request(r)).listen((req) {
@@ -201,7 +182,7 @@ void main() {
 
 
     test("Request controller's can serialize and encode Serializable objects as JSON by default", () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.linkFunction((req) async {
@@ -217,7 +198,7 @@ void main() {
     });
 
     test("Responding to request with no content-type, but does have a body, defaults to application/json", () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.linkFunction((req) async {
@@ -234,7 +215,7 @@ void main() {
     test(
         "Responding to a request with no explicit content-type and has a body that cannot be encoded to JSON will throw 500",
         () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.linkFunction((req) async {
@@ -250,7 +231,7 @@ void main() {
     });
 
     test("Responding to request with no explicit content-type, does not have a body, has no content-type", () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.linkFunction((req) async {
@@ -266,7 +247,7 @@ void main() {
     });
 
     test("willSendResponse is always called prior to Response being sent for preflight requests", () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.link(() => new Always200Controller());
@@ -296,7 +277,7 @@ void main() {
     });
 
     test("willSendResponse is always called prior to Response being sent for normal requests", () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.link(() => new Always200Controller());
@@ -325,7 +306,7 @@ void main() {
     });
 
     test("Failure to decode request body as appropriate type is 422", () async {
-      server = await HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8888);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.linkFunction((r) async {
@@ -378,7 +359,7 @@ class Always200Controller extends Controller {
     var originalMap = {"statusCode": resp.statusCode};
     resp.statusCode = 200;
     resp.body = originalMap;
-    resp.contentType = ContentType.JSON;
+    resp.contentType = ContentType.json;
   }
 }
 
@@ -435,27 +416,10 @@ class OutlierChannel extends ApplicationChannel {
 class PrepareTailController extends Controller {
   PrepareTailController(this.completer);
 
-  Completer completer;
+  final Completer completer;
 
   @override
   void didAddToChannel() {
     completer.complete();
-  }
-}
-
-class NotingMiddleware extends Controller {
-  @override
-  FutureOr<RequestOrResponse> handle(Request req) {
-    req.addResponseModifier((resp) {
-      resp.headers["x-middleware"] = json.encode([req.hashCode, hashCode]);
-    });
-    return req;
-  }
-}
-
-class NotingEndpoint extends Controller {
-  @override
-  FutureOr<RequestOrResponse> handle(Request req) {
-    return new Response.ok([req.hashCode, hashCode]);
   }
 }

@@ -96,7 +96,7 @@ class AuthCodeController extends ResourceController {
       return new Response.notFound();
     }
 
-    return new Response.ok(renderedPage)..contentType = ContentType.HTML;
+    return new Response.ok(renderedPage)..contentType = ContentType.html;
   }
 
   /// Creates a one-time use authorization code.
@@ -179,11 +179,11 @@ class AuthCodeController extends ResourceController {
       };
     } else if (operation.method == "POST") {
       return {
-        "${HttpStatus.MOVED_TEMPORARILY}": new APIResponse(
+        "${HttpStatus.movedTemporarily}": new APIResponse(
             "If successful, the query parameter of the redirect URI named 'code' contains authorization code. "
             "Otherwise, the query parameter 'error' is present and contains a error string.",
             headers: {"Location": new APIHeader()..schema = new APISchemaObject.string(format: "uri")}),
-        "${HttpStatus.BAD_REQUEST}": new APIResponse.schema(
+        "${HttpStatus.badRequest}": new APIResponse.schema(
             "If 'client_id' is invalid, the redirect URI cannot be verified and this response is sent.",
             new APISchemaObject.object({"error": new APISchemaObject.string()}),
             contentTypes: ["application/json"])
@@ -192,7 +192,6 @@ class AuthCodeController extends ResourceController {
 
     throw new StateError("AuthCodeController documentation failed.");
   }
-
 
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
@@ -229,11 +228,11 @@ class AuthCodeController extends ResourceController {
         path: redirectURI.path,
         queryParameters: queryParameters);
     return new Response(
-        HttpStatus.MOVED_TEMPORARILY,
+        HttpStatus.movedTemporarily,
         {
-          HttpHeaders.LOCATION: responseURI.toString(),
-          HttpHeaders.CACHE_CONTROL: "no-store",
-          HttpHeaders.PRAGMA: "no-cache"
+          HttpHeaders.locationHeader: responseURI.toString(),
+          HttpHeaders.cacheControlHeader: "no-store",
+          HttpHeaders.pragmaHeader: "no-cache"
         },
         null);
   }

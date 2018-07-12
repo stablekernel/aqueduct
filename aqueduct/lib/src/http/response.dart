@@ -21,63 +21,63 @@ class Response implements RequestOrResponse {
 
   /// Represents a 200 response.
   Response.ok(dynamic body, {Map<String, dynamic> headers})
-      : this(HttpStatus.OK, headers, body);
+      : this(HttpStatus.ok, headers, body);
 
   /// Represents a 201 response.
   ///
   /// The [location] is a URI that is added as the Location header.
   Response.created(String location,
       {dynamic body, Map<String, dynamic> headers})
-      : this(HttpStatus.CREATED,
-      _headersWith(headers, {HttpHeaders.LOCATION: location}), body);
+      : this(HttpStatus.created,
+      _headersWith(headers, {HttpHeaders.locationHeader: location}), body);
 
   /// Represents a 202 response.
   Response.accepted({Map<String, dynamic> headers})
-      : this(HttpStatus.ACCEPTED, headers, null);
+      : this(HttpStatus.accepted, headers, null);
 
   /// Represents a 304 response.
   ///
   /// Where [lastModified] is the last modified date of the resource
   /// and [cachePolicy] is the same policy as applied when this resource was first fetched.
   Response.notModified(DateTime lastModified, HTTPCachePolicy cachePolicy) {
-    statusCode = HttpStatus.NOT_MODIFIED;
-    headers = {HttpHeaders.LAST_MODIFIED: HttpDate.format(lastModified)};
+    statusCode = HttpStatus.notModified;
+    headers = {HttpHeaders.lastModifiedHeader: HttpDate.format(lastModified)};
     this.cachePolicy = cachePolicy;
   }
 
   /// Represents a 400 response.
   Response.badRequest({Map<String, dynamic> headers, dynamic body})
-      : this(HttpStatus.BAD_REQUEST, headers, body);
+      : this(HttpStatus.badRequest, headers, body);
 
   /// Represents a 401 response.
   Response.unauthorized({Map<String, dynamic> headers, dynamic body})
-      : this(HttpStatus.UNAUTHORIZED, headers, body);
+      : this(HttpStatus.unauthorized, headers, body);
 
   /// Represents a 403 response.
   Response.forbidden({Map<String, dynamic> headers, dynamic body})
-      : this(HttpStatus.FORBIDDEN, headers, body);
+      : this(HttpStatus.forbidden, headers, body);
 
   /// Represents a 404 response.
   Response.notFound({Map<String, dynamic> headers, dynamic body})
-      : this(HttpStatus.NOT_FOUND, headers, body);
+      : this(HttpStatus.notFound, headers, body);
 
   /// Represents a 409 response.
   Response.conflict({Map<String, dynamic> headers, dynamic body})
-      : this(HttpStatus.CONFLICT, headers, body);
+      : this(HttpStatus.conflict, headers, body);
 
   /// Represents a 410 response.
   Response.gone({Map<String, dynamic> headers, dynamic body})
-      : this(HttpStatus.GONE, headers, body);
+      : this(HttpStatus.gone, headers, body);
 
   /// Represents a 500 response.
   Response.serverError({Map<String, dynamic> headers, dynamic body})
-      : this(HttpStatus.INTERNAL_SERVER_ERROR, headers, body);
+      : this(HttpStatus.internalServerError, headers, body);
 
   /// The default value of a [contentType].
   ///
   /// If no [contentType] is set for an instance, this is the value used. By default, this value is
-  /// [ContentType.JSON].
-  static ContentType defaultContentType = ContentType.JSON;
+  /// [ContentType.json].
+  static ContentType defaultContentType = ContentType.json;
 
   /// An object representing the body of the [Response], which will be encoded when used to [Request.respond].
   ///
@@ -93,14 +93,8 @@ class Response implements RequestOrResponse {
     var serializedBody;
     if (initialResponseBody is HTTPSerializable) {
       serializedBody = initialResponseBody.asMap();
-    } else if (initialResponseBody is List) {
-      serializedBody = initialResponseBody.map((value) {
-        if (value is HTTPSerializable) {
-          return value.asMap();
-        } else {
-          return value;
-        }
-      }).toList();
+    } else if (initialResponseBody is List<HTTPSerializable>) {
+      serializedBody = initialResponseBody.map((value) => value.asMap()).toList();
     }
 
     _body = serializedBody ?? initialResponseBody;
@@ -160,7 +154,7 @@ class Response implements RequestOrResponse {
       return _contentType;
     }
 
-    var inHeaders = _headers[HttpHeaders.CONTENT_TYPE];
+    var inHeaders = _headers[HttpHeaders.contentTypeHeader];
     if (inHeaders == null) {
       return defaultContentType;
     }
@@ -169,7 +163,11 @@ class Response implements RequestOrResponse {
       return inHeaders;
     }
 
-    return ContentType.parse(inHeaders);
+    if (inHeaders is String) {
+      return ContentType.parse(inHeaders);
+    }
+
+    throw new StateError("Invalid content-type response header. Is not 'String' or 'ContentType'.");
   }
 
   set contentType(ContentType t) {

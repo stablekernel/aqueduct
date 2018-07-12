@@ -1,3 +1,4 @@
+
 import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
@@ -313,7 +314,7 @@ void main() {
     expect(json.decode(resp.body), {"didDecode": false});
 
     resp = await http.post("http://localhost:4040/a", headers: {
-      HttpHeaders.CONTENT_TYPE: ContentType.JSON.toString()
+      HttpHeaders.contentTypeHeader: ContentType.json.toString()
     }, body: json.encode({
       "k":"v"
     }));
@@ -522,6 +523,34 @@ void main() {
       expect(resp.statusCode, 400);
 
       expect(json.decode(resp.body)["error"], contains("list"));
+    });
+  });
+
+  group("Recycling", () {
+    test("Multiple requests to same controller yield correct results", () async {
+      server = await enableController("/a/[:id/[:flag]]", TController);
+
+      final List<http.Response> responses = await Future.wait([
+        http.get("http://localhost:4040/a"),
+        http.get("http://localhost:4040/a/foo"),
+        http.get("http://localhost:4040/a/foo/bar"),
+        http.put("http://localhost:4040/a/foo", body: json.encode({"k": "v"}), headers: {"content-type": "application/json;charset=utf-8"}),
+        http.post("http://localhost:4040/a", body: json.encode({"k": "v"}), headers: {"content-type": "application/json;charset=utf-8"}),
+      ]);
+
+      expect(responses[0].statusCode, 200);
+      expect(json.decode(responses[0].body), "getAll");
+
+      expect(responses[1].statusCode, 200);
+      expect(json.decode(responses[1].body), "foo");
+
+      expect(responses[2].statusCode, 200);
+      expect(json.decode(responses[2].body), "foobar");
+
+      expect(responses[3].statusCode, 500);
+
+      expect(responses[4].statusCode, 200);
+      expect(json.decode(responses[4].body), {"k": "v"});
     });
   });
 }
@@ -775,10 +804,10 @@ class UnboundController extends ResourceController {
 Future<HttpServer> enableController(String pattern, Type controller) async {
   var router = new Router();
   router.route(pattern).link(
-      () => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
+      () => reflectClass(controller).newInstance(new Symbol(""), []).reflectee as Controller);
   router.didAddToChannel();
 
-  var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
+  var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
   server.map((httpReq) => new Request(httpReq)).listen(router.receive);
 
   return server;

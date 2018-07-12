@@ -20,15 +20,16 @@ import 'route_node.dart';
 /// a [Router] is the [ApplicationChannel.entryPoint].
 class Router extends Controller {
   /// Creates a new [Router].
-  Router() {
-    unmatchedController = _handleUnhandledRequest;
+  Router({String basePath, Future notFoundHandler(Request request)})
+      : _unmatchedController = notFoundHandler,
+        _basePathSegments = basePath?.split("/")?.where((str) => str.isNotEmpty)?.toList() ?? [] {
     policy.allowCredentials = false;
   }
 
-  List<_RouteController> _routeControllers = [];
-  RouteNode _rootRouteNode;
-  List<String> _basePathSegments = [];
-  Function _unmatchedController;
+  final _RootNode _root = new _RootNode();
+  final List<_RouteController> _routeControllers = [];
+  final List<String> _basePathSegments;
+  final Function _unmatchedController;
 
   /// A prefix for all routes on this instance.
   ///
@@ -39,19 +40,6 @@ class Router extends Controller {
   ///
   /// Trailing and leading slashes have no impact on this value.
   String get basePath => "/${_basePathSegments.join("/")}";
-
-  set basePath(String bp) {
-    _basePathSegments = bp.split("/").where((str) => str.isNotEmpty).toList();
-  }
-
-  /// Invoked when a [Request] does not match a registered route.
-  ///
-  /// If a [Request] has no matching route, this function will be called.
-  ///
-  /// By default, this function will send a 404 Not Found response.
-  set unmatchedController(Future listener(Request req)) {
-    _unmatchedController = listener;
-  }
 
   /// Adds a route that [Controller]s can be linked to.
   ///
@@ -90,7 +78,7 @@ class Router extends Controller {
 
   @override
   void didAddToChannel() {
-    _rootRouteNode = new RouteNode(_routeControllers.expand((rh) => rh.specifications).toList());
+    _root.node = new RouteNode(_routeControllers.expand((rh) => rh.specifications).toList());
 
     for (var c in _routeControllers) {
       c.didAddToChannel();
@@ -121,14 +109,14 @@ class Router extends Controller {
       for (var i = 0; i < _basePathSegments.length; i++) {
         requestURISegmentIterator.moveNext();
         if (_basePathSegments[i] != requestURISegmentIterator.current) {
-          await _unmatchedController(req);
+          await _handleUnhandledRequest(req);
           return null;
         }
       }
 
-      var node = _rootRouteNode.nodeForPathSegments(requestURISegmentIterator, req.path);
+      final node = _root.node.nodeForPathSegments(requestURISegmentIterator, req.path);
       if (node?.specification == null) {
-        await _unmatchedController(req);
+        await _handleUnhandledRequest(req);
         return null;
       }
       req.path.setSpecification(node.specification, segmentOffset: _basePathSegments.length);
@@ -160,21 +148,28 @@ class Router extends Controller {
 
   @override
   String toString() {
-    return _rootRouteNode.toString();
+    return _root.node.toString();
   }
 
   Future _handleUnhandledRequest(Request req) async {
+    if (_unmatchedController != null) {
+      return _unmatchedController(req);
+    }
     var response = new Response.notFound();
-    if (req.acceptsContentType(ContentType.HTML)) {
+    if (req.acceptsContentType(ContentType.html)) {
       response
         ..body = "<html><h3>404 Not Found</h3></html>"
-        ..contentType = ContentType.HTML;
+        ..contentType = ContentType.html;
     }
 
     applyCORSHeadersIfNecessary(req, response);
     await req.respond(response);
     logger.info("${req.toDebugString()}");
   }
+}
+
+class _RootNode {
+  RouteNode node;
 }
 
 class _RouteController extends Controller {

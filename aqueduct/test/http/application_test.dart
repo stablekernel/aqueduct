@@ -16,7 +16,7 @@ void main() {
       app = new Application<TestChannel>();
       expect(app.isRunning, false);
 
-      await app.test();
+      await app.startOnCurrentIsolate();
       expect(app.isRunning, true);
 
       await app.stop();
@@ -29,7 +29,7 @@ void main() {
 
     setUp(() async {
       app = new Application<TestChannel>();
-      await app.test();
+      await app.startOnCurrentIsolate();
     });
 
     tearDown(() async {
@@ -72,7 +72,7 @@ void main() {
       }
       expect(successful, false);
 
-      await app.test();
+      await app.startOnCurrentIsolate();
       var resp = await http.get("http://localhost:8888/t");
       expect(resp.statusCode, 200);
     });
@@ -83,7 +83,7 @@ void main() {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
         var result = await http.get("http://localhost:8888/startup");
-        sum += int.parse(json.decode(result.body));
+        sum += int.parse(json.decode(result.body) as String);
       }
       expect(sum, 10);
     });
@@ -97,7 +97,7 @@ void main() {
 
       try {
         crashingApp.options.context = {"crashIn": "addRoutes"};
-        await crashingApp.test();
+        await crashingApp.startOnCurrentIsolate();
         expect(true, false);
       } on Exception catch (e) {
         expect(e.toString(), contains("addRoutes"));
@@ -105,14 +105,14 @@ void main() {
 
       try {
         crashingApp.options.context = {"crashIn": "prepare"};
-        await crashingApp.test();
+        await crashingApp.startOnCurrentIsolate();
         expect(true, false);
       } on Exception catch (e) {
         expect(e.toString(), contains("prepare"));
       }
 
       crashingApp.options.context = {"crashIn": "dontCrash"};
-      await crashingApp.test();
+      await crashingApp.startOnCurrentIsolate();
       var response = await http.get("http://localhost:8888/t");
       expect(response.statusCode, 200);
       await crashingApp.stop();

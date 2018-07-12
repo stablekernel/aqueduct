@@ -2,9 +2,12 @@ import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
+import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 
 void main() {
+  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
   Map<String, APIOperation> collectionOperations;
   Map<String, APIOperation> idOperations;
   APIDocumentContext context;
@@ -15,6 +18,7 @@ void main() {
       ..paths = {}
       ..components = new APIComponents());
     final ac = new A();
+    ac.restore(ac.recycledState);
     ac.didAddToChannel();
     ac.documentComponents(context);
 
@@ -93,7 +97,7 @@ void main() {
 
   test("If request body is bound, shows up in documentation for operation with valid ref", () {
     expect(context.schema.hasRegisteredType(AModel), true);
-    expect(collectionOperations["post"].requestBody.content["application/json"].schema.referenceURI, "#/components/schemas/AModel");
+    expect(collectionOperations["post"].requestBody.content["application/json"].schema.referenceURI.path, "/components/schemas/AModel");
   });
 }
 

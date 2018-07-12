@@ -70,7 +70,7 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
    * Helper methods
    */
 
-  ManagedContext contextWithConnectionInfo(DatabaseConnectionConfiguration connectionInfo) {
+  ManagedContext contextWithConnectionInfo(DatabaseConfiguration connectionInfo) {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var psc = new PostgreSQLPersistentStore(connectionInfo.username, connectionInfo.password, connectionInfo.host,
         connectionInfo.port, connectionInfo.databaseName);
@@ -98,8 +98,8 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
 /// Configuration files must have key-value for the properties in this class.
 /// For more documentation on configuration files, see
 /// https://pub.dartlang.org/packages/safe_config.
-class WildfireConfiguration extends ConfigurationItem {
-  WildfireConfiguration(String fileName) : super.fromFile(fileName);
+class WildfireConfiguration extends Configuration {
+  WildfireConfiguration(String fileName) : super.fromFile(new File(fileName));
 
-  DatabaseConnectionConfiguration database;
+  DatabaseConfiguration database;
 }

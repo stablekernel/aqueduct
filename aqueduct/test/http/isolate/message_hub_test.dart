@@ -6,8 +6,6 @@ import 'package:http/http.dart' as http;
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
-const int numberOfIsolates = 3;
-
 void main() {
   group("Happy path", () {
     Application app;
@@ -18,7 +16,7 @@ void main() {
 
     test("A message sent to the hub is received by other channels, but not by sender", () async {
       app = new Application<HubChannel>()..options.port = 8000;
-      await app.start(numberOfInstances: numberOfIsolates);
+      await app.start(numberOfInstances: 3);
 
       var resp = await postMessage("msg1");
       var postingIsolateID = isolateIdentifierFromResponse(resp);
@@ -46,7 +44,7 @@ void main() {
       app = new Application<HubChannel>()
         ..options.port = 8000
         ..options.context = {"sendIn": "prepare"};
-      await app.start(numberOfInstances: numberOfIsolates);
+      await app.start(numberOfInstances: 3);
 
       expect(
           waitForMessages({
@@ -78,7 +76,7 @@ void main() {
       app = new Application<HubChannel>()
         ..options.port = 8000
         ..options.context = {"multipleListeners": true};
-      await app.start(numberOfInstances: numberOfIsolates);
+      await app.start(numberOfInstances: 3);
 
       var resp = await postMessage("msg1");
       var postingIsolateID = isolateIdentifierFromResponse(resp);
@@ -115,7 +113,7 @@ void main() {
 
     test("Send invalid x-isolate data returns error in error stream", () async {
       app = new Application<HubChannel>()..options.port = 8000;
-      await app.start(numberOfInstances: numberOfIsolates);
+      await app.start(numberOfInstances: 3);
 
       var resp = await postMessage("garbage");
       var errors = await getErrorsFromIsolates();
@@ -140,13 +138,13 @@ void main() {
 
 Future<http.Response> postMessage(String message) async {
   return http.post("http://localhost:8000/send",
-      headers: {HttpHeaders.CONTENT_TYPE: ContentType.TEXT.toString()}, body: message);
+      headers: {HttpHeaders.contentTypeHeader: ContentType.text.toString()}, body: message);
 }
 
 Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages, {int butNeverReceiveIn}) async {
   final response = await http.get("http://localhost:8000/messages");
   final respondingIsolateID = isolateIdentifierFromResponse(response);
-  final List<Map<String, dynamic>> messages = json.decode(response.body);
+  final List<dynamic> messages = json.decode(response.body);
 
   if (expectedMessages.containsKey(respondingIsolateID)) {
     final remainingMessagesExpectedForIsolateID = expectedMessages[respondingIsolateID];
@@ -176,14 +174,14 @@ Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages, {i
 }
 
 Future<Map<int, List<Map<String, dynamic>>>> getMessagesFromIsolates() async {
-  var msgs = {};
+  var msgs = <int, List<Map<String, dynamic>>>{};
 
-  while (msgs.length != numberOfIsolates) {
+  while (msgs.length != 3) {
     var resp = await http.get("http://localhost:8000/messages");
     var serverID = isolateIdentifierFromResponse(resp);
 
     if (!msgs.containsKey(serverID)) {
-      msgs[serverID] = json.decode(resp.body);
+      msgs[serverID] = (json.decode(resp.body) as List).cast();
     }
   }
 
@@ -191,14 +189,14 @@ Future<Map<int, List<Map<String, dynamic>>>> getMessagesFromIsolates() async {
 }
 
 Future<Map<int, List<String>>> getErrorsFromIsolates() async {
-  var msgs = {};
+  var msgs = <int, List<String>>{};
 
-  while (msgs.length != numberOfIsolates) {
+  while (msgs.length != 3) {
     var resp = await http.get("http://localhost:8000/errors");
     var serverID = isolateIdentifierFromResponse(resp);
 
     if (!msgs.containsKey(serverID)) {
-      msgs[serverID] = json.decode(resp.body);
+      msgs[serverID] = (json.decode(resp.body) as List).cast();
     }
   }
 
@@ -216,14 +214,14 @@ class HubChannel extends ApplicationChannel {
   @override
   Future prepare() async {
     messageHub.listen((event) {
-      messages.add(event);
+      messages.add(event as Map<String, dynamic>);
     }, onError: (err) {
       errors.add(err.toString());
     });
 
     if (options.context["multipleListeners"] == true) {
       messageHub.listen((event) {
-        messages.add(event);
+        messages.add(event as Map<String, dynamic>);
       }, onError: (err) {
         errors.add(err.toString());
       });

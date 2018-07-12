@@ -7,5 +7,6 @@ export 'exception.dart';
 export 'object.dart';
 export 'property_description.dart';
 export 'set.dart';
-export 'validate.dart';
+export 'package:aqueduct/src/db/managed/validation/metadata.dart';
+export 'validation/managed.dart';
 export 'type.dart';

@@ -1,3 +1,5 @@
+@Tags(const ["cli"])
+
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 import 'cli_helpers.dart';

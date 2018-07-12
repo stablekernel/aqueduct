@@ -1,3 +1,4 @@
+@Timeout(const Duration(seconds: 120))
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
@@ -75,7 +76,7 @@ void main() {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
         var result = await http.get("http://localhost:8888/startup");
-        sum += int.parse(json.decode(result.body));
+        sum += int.parse(json.decode(result.body) as String);
       }
       expect(sum, 10);
     });

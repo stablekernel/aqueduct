@@ -5,6 +5,8 @@ import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:path/path.dart' as path;
 import 'http.dart';
 
+typedef FutureOr<Response> _OnFileNotFound(HTTPFileController controller, Request req);
+
 /// Serves files from a directory on the filesystem.
 ///
 /// See the constructor for usage.
@@ -69,14 +71,14 @@ class HTTPFileController extends Controller {
   ///
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
   HTTPFileController(String pathOfDirectoryToServe,
-      {Future<Response> onFileNotFound(HTTPFileController controller, Request req)})
+      {FutureOr<Response> onFileNotFound(HTTPFileController controller, Request req)})
       : _servingDirectory = new Uri.directory(pathOfDirectoryToServe),
         _onFileNotFound = onFileNotFound;
 
-  Map<String, ContentType> _extensionMap = new Map.from(_defaultExtensionMap);
-  List<_PolicyPair> _policyPairs = [];
+  final Map<String, ContentType> _extensionMap = new Map.from(_defaultExtensionMap);
+  final List<_PolicyPair> _policyPairs = [];
   final Uri _servingDirectory;
-  final Function _onFileNotFound;
+  final _OnFileNotFound _onFileNotFound;
 
   /// Returns a [ContentType] for a file extension.
   ///
@@ -140,7 +142,7 @@ class HTTPFileController extends Controller {
   @override
   Future<RequestOrResponse> handle(Request request) async {
     if (request.method != "GET") {
-      return new Response(HttpStatus.METHOD_NOT_ALLOWED, null, null);
+      return new Response(HttpStatus.methodNotAllowed, null, null);
     }
 
     var relativePath = request.path.remainingPath;
@@ -158,16 +160,16 @@ class HTTPFileController extends Controller {
       }
 
       var response = new Response.notFound();
-      if (request.acceptsContentType(ContentType.HTML)) {
+      if (request.acceptsContentType(ContentType.html)) {
         response
           ..body = "<html><h3>404 Not Found</h3></html>"
-          ..contentType = ContentType.HTML;
+          ..contentType = ContentType.html;
       }
       return response;
     }
 
     var lastModifiedDate = await file.lastModified();
-    var ifModifiedSince = request.raw.headers.value(HttpHeaders.IF_MODIFIED_SINCE);
+    var ifModifiedSince = request.raw.headers.value(HttpHeaders.ifModifiedSinceHeader);
     if (ifModifiedSince != null) {
       var date = HttpDate.parse(ifModifiedSince);
       if (!lastModifiedDate.isAfter(date)) {
@@ -180,7 +182,7 @@ class HTTPFileController extends Controller {
         contentTypeForExtension(path.extension(file.path)) ?? new ContentType("application", "octet-stream");
     var byteStream = file.openRead();
 
-    return new Response.ok(byteStream, headers: {HttpHeaders.LAST_MODIFIED: lastModifiedDateStringValue})
+    return new Response.ok(byteStream, headers: {HttpHeaders.lastModifiedHeader: lastModifiedDateStringValue})
       ..cachePolicy = _policyForFile(file)
       ..encodeBody = false
       ..contentType = contentType;

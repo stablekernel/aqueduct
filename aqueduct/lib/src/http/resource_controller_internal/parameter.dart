@@ -18,7 +18,13 @@ class BoundParameter {
     }
 
     binding = b.binding;
-    boundValueType = mirror.type;
+
+    final type = mirror.type;
+    if (type is! ClassMirror) {
+      throw new StateError("Invalid binding '${MirrorSystem.getName(symbol)}' on '${_methodErrorName(mirror)}': "
+        "parameter type '${type.reflectedType}' cannot be bound.");
+    }
+    boundValueType = type as ClassMirror;
   }
 
   final Symbol symbol;

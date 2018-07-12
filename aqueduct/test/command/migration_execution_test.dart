@@ -1,3 +1,4 @@
+@Tags(const ["cli"])
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
@@ -8,8 +9,8 @@ import 'dart:async';
 import 'cli_helpers.dart';
 
 Terminal terminal;
-DatabaseConnectionConfiguration connectInfo =
-    new DatabaseConnectionConfiguration.withConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
+DatabaseConfiguration connectInfo =
+    new DatabaseConfiguration.withConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
 String connectString = "postgres://${connectInfo.username}:${connectInfo.password}@${connectInfo.host}:${connectInfo
   .port}/${connectInfo.databaseName}";
 
@@ -64,7 +65,7 @@ void main() {
 
     terminal.clearOutput();
     expect(await runMigrationCases(["Case2"]), 0);
-    versionRow = await store.execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
+    versionRow = await store.execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql") as List<List>;
     expect(versionRow.length, 1);
     expect(versionRow.first.last, equals(updateDate));
     expect(terminal.output, contains("already current (version: 1)"));
@@ -156,9 +157,9 @@ void main() {
 }
 
 Future<List<String>> columnsOfTable(PersistentStore persistentStore, String tableName) async {
-  List<List<String>> results = await persistentStore.execute("select column_name from information_schema.columns where "
+  List<List<dynamic>> results = await persistentStore.execute("select column_name from information_schema.columns where "
       "table_name='$tableName'");
-  return results.map((rows) => rows.first).toList();
+  return results.map((rows) => rows.first as String).toList();
 }
 
 Future<bool> tableExists(PersistentStore store, String tableName) async {

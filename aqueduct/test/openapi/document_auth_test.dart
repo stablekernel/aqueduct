@@ -1,10 +1,14 @@
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
+import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
 import '../helpers.dart';
 
 void main() {
+  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
+
   group("Operations and security schemes", () {
     APIDocument doc;
 
@@ -74,19 +78,19 @@ void main() {
 
     test("Bearer Authorizer adds 401 and 403 response to operations", () {
       final noVarPath = doc.paths["/bearer-no-scope"];
-      expect(noVarPath.operations["get"].responses["403"].referenceURI, "#/components/responses/InsufficientScope");
-      expect(noVarPath.operations["get"].responses["401"].referenceURI, "#/components/responses/InsufficientAccess");
-      expect(noVarPath.operations["get"].responses["400"].referenceURI, "#/components/responses/MalformedAuthorizationHeader");
+      expect(noVarPath.operations["get"].responses["403"].referenceURI.path, "/components/responses/InsufficientScope");
+      expect(noVarPath.operations["get"].responses["401"].referenceURI.path, "/components/responses/InsufficientAccess");
+      expect(noVarPath.operations["get"].responses["400"].referenceURI.path, "/components/responses/MalformedAuthorizationHeader");
     });
 
     test("Basic Authorizer adds 401 and 403 response to operations", () {
       final noVarPath = doc.paths["/basic"];
-      expect(noVarPath.operations["get"].responses["403"].referenceURI, "#/components/responses/InsufficientScope");
-      expect(noVarPath.operations["get"].responses["401"].referenceURI, "#/components/responses/InsufficientAccess");
+      expect(noVarPath.operations["get"].responses["403"].referenceURI.path, "/components/responses/InsufficientScope");
+      expect(noVarPath.operations["get"].responses["401"].referenceURI.path, "/components/responses/InsufficientAccess");
 
       final varPath = doc.paths["/basic/{id}"];
-      expect(varPath .operations["get"].responses["403"].referenceURI, "#/components/responses/InsufficientScope");
-      expect(varPath .operations["get"].responses["401"].referenceURI, "#/components/responses/InsufficientAccess");
+      expect(varPath .operations["get"].responses["403"].referenceURI.path, "/components/responses/InsufficientScope");
+      expect(varPath .operations["get"].responses["401"].referenceURI.path, "/components/responses/InsufficientAccess");
     });
   });
 
@@ -153,7 +157,7 @@ class TestChannel extends ApplicationChannel {
 class DocumentedController extends Controller {
   DocumentedController({this.tag});
 
-  String tag;
+  final String tag;
 
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) {

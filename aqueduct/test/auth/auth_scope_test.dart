@@ -238,13 +238,13 @@ void main() {
     test("Empty required always yields true", () {
       expect(AuthScope.verify([], ["scope2", "scope1"].map((s) => new AuthScope(s)).toList()), true);
       expect(AuthScope.verify([], ["scope1"].map((s) => new AuthScope(s)).toList()), true);
-      expect(AuthScope.verify([], [].map((s) => new AuthScope(s)).toList()), true);
+      expect(AuthScope.verify([], <String>[].map((s) => new AuthScope(s)).toList()), true);
     });
 
     test("Null required always yields true", () {
       expect(AuthScope.verify(null, ["scope2", "scope1"].map((s) => new AuthScope(s)).toList()), true);
       expect(AuthScope.verify(null, ["scope1"].map((s) => new AuthScope(s)).toList()), true);
-      expect(AuthScope.verify(null, [].map((s) => new AuthScope(s)).toList()), true);
+      expect(AuthScope.verify(null, <String>[].map((s) => new AuthScope(s)).toList()), true);
     });
   });
 

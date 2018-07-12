@@ -173,7 +173,7 @@ void main() {
       var schema = new Schema.fromDataModel(dm);
 
       var propDesc = new ManagedAttributeDescription(
-          dm.entityForType(GeneratorModel1), "foobar", new ManagedType(reflectType(int)),
+          dm.entityForType(GeneratorModel1), "foobar", new ManagedType(reflectType(int)), null,
           nullable: true);
       var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromProperty(propDesc));
       expect(cmds, ["ALTER TABLE _GeneratorModel1 ADD COLUMN foobar INT NULL"]);
@@ -184,7 +184,7 @@ void main() {
       var schema = new Schema.fromDataModel(dm);
 
       var propDesc = new ManagedAttributeDescription(
-          dm.entityForType(GeneratorModel1), "foobar", new ManagedType(reflectType(int)),
+          dm.entityForType(GeneratorModel1), "foobar", new ManagedType(reflectType(int)), null,
           defaultValue: "4", unique: true, indexed: true, nullable: true, autoincrement: true);
       var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromProperty(propDesc));
       expect(cmds.first, "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar SERIAL NULL DEFAULT 4 UNIQUE");
@@ -199,6 +199,7 @@ void main() {
           dm.entityForType(GeneratorModel1),
           "foobar",
           new ManagedType(reflectType(String)),
+          null,
           dm.entityForType(GeneratorModel2),
           DeleteRule.cascade,
           ManagedRelationshipType.belongsTo,
@@ -426,7 +427,7 @@ class _GenPost {
 
   String text;
 
-  @Relate(#posts, isRequired: false, onDelete: DeleteRule.restrict)
+  @Relate(Symbol('posts'), isRequired: false, onDelete: DeleteRule.restrict)
   GenUser owner;
 }
 
@@ -456,7 +457,7 @@ class _GenAuth {
   @Column(primaryKey: true)
   int id;
 
-  @Relate(#auth, isRequired: false, onDelete: DeleteRule.cascade)
+  @Relate(Symbol('auth'), isRequired: false, onDelete: DeleteRule.cascade)
   GenOwner owner;
 }
 
@@ -484,10 +485,10 @@ class _GenJoin {
   @primaryKey
   int id;
 
-  @Relate(#join)
+  @Relate(Symbol('join'))
   GenLeft left;
 
-  @Relate(#join)
+  @Relate(Symbol('join'))
   GenRight right;
 }
 
@@ -506,7 +507,7 @@ class _GenNotNullable {
   @primaryKey
   int id;
 
-  @Relate(#gen, onDelete: DeleteRule.nullify, isRequired: false)
+  @Relate(Symbol('gen'), onDelete: DeleteRule.nullify, isRequired: false)
   GenObj ref;
 }
 
@@ -537,7 +538,7 @@ class _EnumObject {
 
 class Unique extends ManagedObject<_Unique> {}
 
-@Table.unique(const [#a, #b])
+@Table.unique([Symbol('a'), Symbol('b')])
 class _Unique {
   @primaryKey
   int id;
@@ -556,12 +557,12 @@ class _UniqueContainer {
 }
 
 class UniqueBelongsTo extends ManagedObject<_UniqueBelongsTo> {}
-@Table.unique(const [#a, #container])
+@Table.unique([Symbol('a'), Symbol('container')])
 class _UniqueBelongsTo {
   @primaryKey
   int id;
 
   int a;
-  @Relate(#contains)
+  @Relate(Symbol('contains'))
   UniqueContainer container;
 }

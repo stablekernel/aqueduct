@@ -68,7 +68,7 @@ class _ServiceRegistration<T> {
   T object;
   _CloseFunction<T> onClose;
 
-  Future close() {
-    return onClose(object);
+  Future close() async {
+    await onClose(object);
   }
 }

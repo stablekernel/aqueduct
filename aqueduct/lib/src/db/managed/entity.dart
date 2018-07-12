@@ -2,7 +2,7 @@ import 'dart:mirrors';
 import 'package:aqueduct/src/db/managed/backing.dart';
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
 
 import 'managed.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
@@ -82,7 +82,7 @@ class ManagedEntity implements APIComponentDocumenter {
   /// The string key is the name of the property, case-sensitive. Values will be instances of either [ManagedAttributeDescription]
   /// or [ManagedRelationshipDescription]. This is the concatenation of [attributes] and [relationships].
   Map<String, ManagedPropertyDescription> get properties {
-    var all = new Map.from(attributes) as Map<String, ManagedPropertyDescription>;
+    var all = new Map<String, ManagedPropertyDescription>.from(attributes);
     if (relationships != null) {
       all.addAll(relationships);
     }
@@ -137,7 +137,7 @@ class ManagedEntity implements APIComponentDocumenter {
   }
 
   ManagedAttributeDescription get primaryKeyAttribute {
-    return properties[primaryKey];
+    return attributes[primaryKey];
   }
 
   /// A map from accessor symbol name to property name.
@@ -171,20 +171,21 @@ class ManagedEntity implements APIComponentDocumenter {
 
   /// Creates a new instance of this entity's instance type.
   ///
-  /// By default, the returned object will use a normal value backing map. 
-  ManagedObject newInstance({ManagedBacking backing}) {
+  /// By default, the returned object will use a normal value backing map.
+  /// If [backing] is non-null, it will be the backing map of the returned object.
+  T instanceOf<T extends ManagedObject>({ManagedBacking backing}) {
     if (backing != null) {
-      return ManagedObject.instantiateDynamic(this, backing: backing);
+      return ManagedObject.instantiateDynamic(this, backing: backing) as T;
     }
 
-    return ManagedObject.instantiateDynamic(this);
+    return ManagedObject.instantiateDynamic(this) as T;
   }
 
   /// Returns an attribute in this entity for a property selector.
   ///
   /// Invokes [identifyProperties] with [propertyIdentifier], and ensures that a single attribute
   /// on this entity was selected. Returns that attribute.
-  ManagedAttributeDescription identifyAttribute<T, U>(T propertyIdentifier(U x)) {
+  ManagedAttributeDescription identifyAttribute<T, U extends ManagedObject>(T propertyIdentifier(U x)) {
     final keyPaths = identifyProperties(propertyIdentifier);
     if (keyPaths.length != 1) {
       throw new ArgumentError("Invalid property selector. Cannot access more than one property for this operation.");
@@ -222,7 +223,7 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// Invokes [identifyProperties] with [propertyIdentifier], and ensures that a single relationship
   /// on this entity was selected. Returns that relationship.
-  ManagedRelationshipDescription identifyRelationship<T, U>(T propertyIdentifier(U x)) {
+  ManagedRelationshipDescription identifyRelationship<T, U extends ManagedObject>(T propertyIdentifier(U x)) {
     final keyPaths = identifyProperties(propertyIdentifier);
     if (keyPaths.length != 1) {
       throw new ArgumentError("Invalid property selector. Cannot access more than one property for this operation.");
@@ -251,7 +252,7 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// Invokes [identifyProperties] with [propertyIdentifier], and ensures that a single property
   /// on this entity was selected. Returns that property.
-  KeyPath identifyProperty<T, U>(T propertyIdentifier(U x)) {
+  KeyPath identifyProperty<T, U extends ManagedObject>(T propertyIdentifier(U x)) {
     final properties = identifyProperties(propertyIdentifier);
     if (properties.length != 1) {
       throw new ArgumentError("Invalid property selector. Must reference a single property only.");
@@ -264,10 +265,10 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// Each selected property in [propertiesIdentifier] is returned in a [KeyPath] object that fully identifies the
   /// property relative to this entity.
-  List<KeyPath> identifyProperties<T, U>(T propertiesIdentifier(U x)) {
+  List<KeyPath> identifyProperties<T, U extends ManagedObject>(T propertiesIdentifier(U x)) {
     final tracker = new ManagedAccessTrackingBacking();
-    var obj = newInstance(backing: tracker);
-    propertiesIdentifier(obj as U);
+    var obj = instanceOf<U>(backing: tracker);
+    propertiesIdentifier(obj);
 
     return tracker.keyPaths;
   }

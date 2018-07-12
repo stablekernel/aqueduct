@@ -13,7 +13,7 @@ void main() {
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
-      await app.test();
+      await app.startOnCurrentIsolate();
 
       var now = new DateTime.now().toUtc();
       for (var i = 0; i < 5; i++) {

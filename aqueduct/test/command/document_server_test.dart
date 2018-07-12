@@ -1,3 +1,4 @@
+@Tags(const ["cli"])
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -14,7 +15,6 @@ void main() {
 
   tearDownAll(() async {
     await Terminal.deactivateCLI();
-
   });
 
   setUp(() async {

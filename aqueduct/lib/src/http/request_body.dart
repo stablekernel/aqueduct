@@ -38,7 +38,7 @@ class RequestBody extends BodyDecoder {
     // and just return the original stream.
     if (_hasContentLength) {
       if (_request.headers.contentLength > maxSize) {
-        throw new Response(HttpStatus.REQUEST_ENTITY_TOO_LARGE, null, {"error": "entity length exceeds maximum"});
+        throw new Response(HttpStatus.requestEntityTooLarge, null, {"error": "entity length exceeds maximum"});
       }
 
       return _originalByteStream;
@@ -53,7 +53,7 @@ class RequestBody extends BodyDecoder {
       _originalByteStream.listen((chunk) {
         _bytesRead += chunk.length;
         if (_bytesRead > maxSize) {
-          _bufferingController.addError(new Response(HttpStatus.REQUEST_ENTITY_TOO_LARGE, null, {"error": "entity length exceeds maximum"}));
+          _bufferingController.addError(new Response(HttpStatus.requestEntityTooLarge, null, {"error": "entity length exceeds maximum"}));
           _bufferingController.close();
           return;
         }
@@ -61,7 +61,7 @@ class RequestBody extends BodyDecoder {
         _bufferingController.add(chunk);
       }, onDone: () {
         _bufferingController.close();
-      }, onError: (e, st) {
+      }, onError: (e, StackTrace st) {
         if (!_bufferingController.isClosed) {
           _bufferingController.addError(e, st);
           _bufferingController.close();

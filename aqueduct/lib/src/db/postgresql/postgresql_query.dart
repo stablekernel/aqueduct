@@ -29,7 +29,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<InstanceType> insert() async {
-    validateInput(ValidateOperation.insert);
+    validateInput(Validating.insert);
 
     var builder = new PostgresQueryBuilder(this);
 
@@ -47,15 +47,15 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 
-    var results =
+    List<List<dynamic>> results =
         await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
-    return builder.instancesForRows(results).first;
+    return builder.instancesForRows<InstanceType>(results).first;
   }
 
   @override
   Future<List<InstanceType>> update() async {
-    validateInput(ValidateOperation.update);
+    validateInput(Validating.update);
 
     var builder = new PostgresQueryBuilder(this);
 
@@ -73,7 +73,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 
-    var results =
+    List<List<dynamic>> results =
         await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder.instancesForRows(results);
@@ -106,8 +106,9 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw canModifyAllInstancesError;
     }
 
-    return context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds,
+    final result = await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds,
         returnType: PersistentStoreQueryReturnType.rowCount);
+    return result as int;
   }
 
   @override
@@ -174,7 +175,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("OFFSET $offset ");
     }
 
-    var results =
+    List<List<dynamic>> results =
         await context.persistentStore.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder.instancesForRows(results);

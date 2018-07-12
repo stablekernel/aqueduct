@@ -52,7 +52,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   /// This is equivalent to creating a [Query], assigning [object] to [values], and invoking [insert].
   static Future<T> insertObject<T extends ManagedObject>(ManagedContext context, T object) {
-    final query = new Query.forEntity(object.entity, context)..values = object;
+    final query = new Query<T>(context)..values = object;
     return query.insert();
   }
 
@@ -123,7 +123,6 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// Adding multiple [pageBy]s to an instance has undefined behavior.
   void pageBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order,
       {T boundingValue});
-
 
   /// Configures this instance to sort its results by some property and order.
   ///

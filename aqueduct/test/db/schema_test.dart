@@ -317,7 +317,7 @@ void main() {
       expect(schema.tables.first.name, "_Unique");
       expect(schema.tables.first.uniqueColumnSet, ["a", "b"]);
 
-      var tableMap = schema.asMap()["tables"].first;
+      var tableMap = schema.asMap()["tables"].first as Map<String, dynamic>;
       expect(tableMap["name"], "_Unique");
       expect(tableMap["unique"], ["a", "b"]);
 
@@ -671,7 +671,7 @@ class _DefaultItem {
   @primaryKey
   int id;
 
-  @Relate(#defaultItems)
+  @Relate(Symbol('defaultItems'))
   Container container;
 }
 
@@ -684,7 +684,7 @@ class _LoadedItem {
   @Column(indexed: true)
   String someIndexedThing;
 
-  @Relate(#loadedItems,
+  @Relate(Symbol('loadedItems'),
       onDelete: DeleteRule.restrict, isRequired: false)
   Container container;
 
@@ -697,7 +697,7 @@ class _LoadedSingleItem {
   @primaryKey
   int id;
 
-  @Relate(#loadedSingleItem,
+  @Relate(Symbol('loadedSingleItem'),
       onDelete: DeleteRule.cascade, isRequired: true)
   LoadedItem loadedItem;
 }
@@ -764,7 +764,7 @@ class PartialModel {
 }
 
 class Unique extends ManagedObject<_Unique> implements _Unique {}
-@Table.unique(const [#a, #b])
+@Table.unique([Symbol('a'), Symbol('b')])
 class _Unique {
   @primaryKey
   int id;

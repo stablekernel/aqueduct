@@ -1,6 +1,6 @@
 import 'dart:mirrors';
 import 'managed.dart';
-import 'validate.dart';
+import 'package:aqueduct/src/db/managed/validation/metadata.dart';
 import '../../utilities/mirror_helpers.dart';
 
 // Expanding the list of ivars for each class yields duplicates of
@@ -32,10 +32,38 @@ VariableMirror instanceVariableFromClass(ClassMirror classMirror, Symbol name) {
   return instanceVariablesFromClass(classMirror).firstWhere((dm) => dm.simpleName == name, orElse: () => null);
 }
 
+ClassMirror dartTypeFromDeclaration(DeclarationMirror declaration) {
+  if (declaration is MethodMirror) {
+    TypeMirror type;
+
+    if (declaration.isGetter) {
+      type = declaration.returnType;
+    } else if (declaration.isSetter) {
+      type = declaration.parameters.first.type;
+    }
+
+    if (type is! ClassMirror) {
+      throw ManagedDataModelError("Invalid type for field '${MirrorSystem.getName(declaration.simpleName)}'"
+        " in type '${MirrorSystem.getName(declaration.owner.simpleName)}'.");
+    }
+    return type as ClassMirror;
+  } else if (declaration is VariableMirror) {
+    if (declaration.type is! ClassMirror) {
+      throw ManagedDataModelError("Invalid type for field '${MirrorSystem.getName(declaration.simpleName)}'"
+        " in type '${MirrorSystem.getName(declaration.owner.simpleName)}'.");
+    }
+    return declaration.type as ClassMirror;
+  }
+
+  throw new ManagedDataModelError(
+      "Tried getting property type description from non-property. This is an internal error, "
+      "as this method shouldn't be invoked on non-property or non-accessors.");
+}
+
 ManagedType propertyTypeFromDeclaration(DeclarationMirror declaration) {
   try {
     if (declaration is MethodMirror) {
-      ClassMirror type;
+      TypeMirror type;
 
       if (declaration.isGetter) {
         type = declaration.returnType;
@@ -133,15 +161,15 @@ bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
 }
 
 Table attributesFromTableDefinition(ClassMirror typeMirror) =>
-    firstMetadataOfType(typeMirror.reflectedType, reflectType(Table));
+    firstMetadataOfType(typeMirror, dynamicType: reflectType(Table));
 
-List<Validate> validatorsFromDeclaration(DeclarationMirror dm) => allMetadataOfType(Validate, dm);
+List<Validate> validatorsFromDeclaration(DeclarationMirror dm) => allMetadataOfType<Validate>(dm);
 
-Serialize transientMetadataFromDeclaration(DeclarationMirror dm) => firstMetadataOfType(Serialize, dm);
+Serialize transientMetadataFromDeclaration(DeclarationMirror dm) => firstMetadataOfType(dm);
 
-Column attributeMetadataFromDeclaration(DeclarationMirror dm) => firstMetadataOfType(Column, dm);
+Column attributeMetadataFromDeclaration(DeclarationMirror dm) => firstMetadataOfType(dm);
 
-Relate relationshipMetadataFromProperty(DeclarationMirror dm) => firstMetadataOfType(Relate, dm);
+Relate relationshipMetadataFromProperty(DeclarationMirror dm) => firstMetadataOfType(dm);
 
 Iterable<ClassMirror> classHierarchyForClass(ClassMirror t) sync* {
   var tableDefinitionPtr = t;

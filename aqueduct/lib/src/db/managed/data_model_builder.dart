@@ -28,7 +28,7 @@ class DataModelBuilder {
 
       entity.attributes = attributesForEntity(entity);
       entity.validators = entity.attributes.values
-          .map((desc) => desc.validators.map((v) => new ManagedValidator(desc, v)))
+          .map((desc) => desc.validators.map((v) => v.getValidator(desc)))
           .expand((e) => e)
           .toList();
     });
@@ -76,7 +76,7 @@ class DataModelBuilder {
     if (declaredTableNameClass == null) {
       return MirrorSystem.getName(typeMirror.simpleName);
     }
-    return declaredTableNameClass.invoke(#tableName, []).reflectee;
+    return declaredTableNameClass.invoke(#tableName, []).reflectee as String;
   }
 
   ClassMirror tableDefinitionForType(Type instanceType) {
@@ -89,7 +89,7 @@ class DataModelBuilder {
             (cm) => !cm.superclass.isSubtypeOf(reflectType(ManagedObject)),
             orElse: () => throw ifNotFoundException)
         .typeArguments
-        .first;
+        .first as ClassMirror;
   }
 
   Map<String, ManagedAttributeDescription> attributesForEntity(
@@ -103,7 +103,7 @@ class DataModelBuilder {
         // If there is both a getter and setter declared to represent one transient property,
         // then we need to combine them here. No other reason a property would appear twice.
         map[attribute.name] = new ManagedAttributeDescription.transient(
-            entity, attribute.name, attribute.type, new Serialize(input: true, output: true));
+            entity, attribute.name, attribute.type, attribute.declaredType, new Serialize(input: true, output: true));
       } else {
         map[attribute.name] = attribute;
       }
@@ -120,23 +120,26 @@ class DataModelBuilder {
       var type = propertyTypeFromDeclaration(declaration);
       if (type == null) {
         throw new ManagedDataModelError.invalidType(
-            entity, declaration.simpleName);
+          entity, declaration.simpleName);
       }
-
       var validators = validatorsFromDeclaration(declaration);
       var attributes = attributeMetadataFromDeclaration(declaration);
       var name = propertyNameFromDeclaration(declaration);
-      var enumToPropertyNameMap;
+      Map<String, dynamic> enumToPropertyNameMap;
       var declType = declaration.type;
+      if (declType is! ClassMirror) {
+        throw new ManagedDataModelError("Invalid type for field '${MirrorSystem.getName(declaration.simpleName)}' "
+          "in table definition '${entity.persistentType}'.");
+      }
       if (declType is ClassMirror && declType.isEnum) {
         List<dynamic> enumeratedCases = declType.getField(#values).reflectee;
-        enumToPropertyNameMap = enumeratedCases.fold({}, (m, v) {
+        enumToPropertyNameMap = enumeratedCases.fold(<String, dynamic>{}, (m, v) {
           m[v.toString().split(".").last] = v;
           return m;
         });
       }
 
-      return new ManagedAttributeDescription(entity, name, type,
+      return new ManagedAttributeDescription(entity, name, type, declType as ClassMirror,
           primaryKey: attributes?.isPrimaryKey ?? false,
           defaultValue: attributes?.defaultValue ?? null,
           unique: attributes?.isUnique ?? false,
@@ -169,7 +172,7 @@ class DataModelBuilder {
       }
 
       return new ManagedAttributeDescription.transient(
-          entity, name, type, transience);
+          entity, name, type, dartTypeFromDeclaration(declaration), transience);
     });
   }
 
@@ -250,6 +253,7 @@ class DataModelBuilder {
         owningEntity,
         MirrorSystem.getName(property.simpleName),
         columnType,
+        property.type as ClassMirror,
         destinationEntity,
         relationship.onDelete,
         ManagedRelationshipType.belongsTo,
@@ -281,6 +285,7 @@ class DataModelBuilder {
         owningEntity,
         MirrorSystem.getName(property.simpleName),
         columnType,
+        property.type as ClassMirror,
         destinationEntity,
         managedRelationship?.onDelete,
         relType,

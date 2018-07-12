@@ -236,6 +236,13 @@ class ManagedDataModelError extends Error {
             "the 'tableName' method altogether.");
   }
 
+  factory ManagedDataModelError.conflictingTypes(
+    ManagedEntity entity, String propertyName) {
+    return new ManagedDataModelError(
+      "The entity '${_getInstanceClassName(entity)}' declares two accessors named "
+        "'$propertyName', but they have conflicting types.");
+  }
+
   factory ManagedDataModelError.cyclicReference(
       ManagedEntity entity,
       Symbol property,

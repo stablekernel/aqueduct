@@ -36,9 +36,7 @@ class Authorizer extends Controller {
   ///
   /// If [scopes] is provided, the authorization granted must have access to *all* scopes according to [validator].
   Authorizer(this.validator, {this.parser: const AuthorizationBearerParser(), List<String> scopes})
-      : this.scopes = scopes?.map((s) => new AuthScope(s))?.toList() {
-    policy = null;
-  }
+      : this.scopes = scopes?.map((s) => new AuthScope(s))?.toList();
 
   /// Creates an instance of [Authorizer] with Basic Authentication parsing.
   ///
@@ -83,7 +81,7 @@ class Authorizer extends Controller {
 
   @override
   FutureOr<RequestOrResponse> handle(Request req) async {
-    var authData = req.raw.headers.value(HttpHeaders.AUTHORIZATION);
+    var authData = req.raw.headers.value(HttpHeaders.authorizationHeader);
     if (authData == null) {
       return new Response.unauthorized();
     }

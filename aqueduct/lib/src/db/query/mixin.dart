@@ -41,7 +41,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   @override
   InstanceType get values {
     if (_valueObject == null) {
-      _valueObject = entity.newInstance() as InstanceType;
+      _valueObject = entity.instanceOf() as InstanceType;
       _valueObject.backing = new ManagedBuilderBacking.from(_valueObject.entity, _valueObject.backing);
     }
     return _valueObject;
@@ -49,7 +49,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
   @override
   set values(InstanceType obj) {
-    _valueObject = entity.newInstance(backing: new ManagedBuilderBacking.from(entity, obj.backing));
+    _valueObject = entity.instanceOf(backing: new ManagedBuilderBacking.from(entity, obj.backing));
   }
 
   @override
@@ -68,7 +68,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
   Query<T> join<T extends ManagedObject>({T object(InstanceType x), ManagedSet<T> set(InstanceType x)}) {
     final desc = entity.identifyRelationship(object ?? set);
 
-    return _createSubquery(desc);
+    return _createSubquery<T>(desc);
   }
 
   @override
@@ -96,22 +96,22 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
     _propertiesToFetch = entity.identifyProperties(propertyIdentifiers);
   }
 
-  void validateInput(ValidateOperation op) {
+  void validateInput(Validating op) {
     if (valueMap == null) {
-      if (op == ValidateOperation.insert) {
+      if (op == Validating.insert) {
         values.willInsert();
-      } else if (op == ValidateOperation.update) {
+      } else if (op == Validating.update) {
         values.willUpdate();
       }
 
-      var errors = <String>[];
-      if (!values.validate(forOperation: op, collectErrorsIn: errors)) {
-        throw new ValidationException(errors);
+      final ctx = values.validate(forEvent: op);
+      if (!ctx.isValid) {
+        throw new ValidationException(ctx.errors);
       }
     }
   }
 
-  Query _createSubquery(ManagedRelationshipDescription fromRelationship) {
+  Query<T> _createSubquery<T extends ManagedObject>(ManagedRelationshipDescription fromRelationship) {
     if (subQueries?.containsKey(fromRelationship) ?? false) {
       throw new StateError("Invalid query. Cannot join same property more than once.");
     }
@@ -138,7 +138,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject> implements Query<I
 
     subQueries ??= {};
 
-    var subquery = new Query.forEntity(fromRelationship.destinationEntity, context);
+    var subquery = new Query<T>(context);
     (subquery as QueryMixin)._parentQuery = this;
     subQueries[fromRelationship] = subquery;
 

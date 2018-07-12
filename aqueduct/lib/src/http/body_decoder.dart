@@ -45,7 +45,7 @@ abstract class BodyDecoder {
       throw new StateError("Invalid body decoding. Must decode data prior to calling 'decodedType'.");
     }
 
-    return _decodedData.runtimeType;
+    return (_decodedData as Object).runtimeType;
   }
 
   final Stream<List<int>> _originalByteStream;
@@ -125,7 +125,7 @@ abstract class BodyDecoder {
   /// throws an error [Response].
   ///
   /// For a non-[Future] variant, see [asList].
-  Future<List<Map<String, dynamic>>> decodeAsList() async {
+  Future<List<dynamic>> decodeAsList() async {
     await decodedData;
 
     return asList();

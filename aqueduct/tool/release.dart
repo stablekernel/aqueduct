@@ -29,15 +29,15 @@ Future main(List<String> args) async {
 
 class Runner {
   Runner(this.options) {
-    configuration = new ReleaseConfig(options["config"]);
+    configuration = new ReleaseConfig(options["config"] as String);
   }
 
   ArgResults options;
   ReleaseConfig configuration;
   List<Function> _cleanup = [];
-  bool get isDryRun => options["dry-run"];
-  bool get docsOnly => options["docs-only"];
-  String get name => options["name"];
+  bool get isDryRun => options["dry-run"] as bool;
+  bool get docsOnly => options["docs-only"] as bool;
+  String get name => options["name"] as String;
   Uri baseReferenceURL = Uri.parse("https://www.dartdocs.org/documentation/aqueduct/latest/");
 
   Future cleanup() async {
@@ -57,8 +57,8 @@ class Runner {
     print("Preparing release: '$name'... ${isDryRun ? "(dry-run)":""} ${docsOnly ? "(docs-only)":""}");
 
     var master = await directoryWithBranch("master");
-    var upcomingVersion;
-    var changeset;
+    String upcomingVersion;
+    String changeset;
     if (!docsOnly) {
       var previousVersion = await latestVersion();
       upcomingVersion = await versionFromDirectory(master);
@@ -291,7 +291,7 @@ class Runner {
 
     List<SymbolResolution> resolutions = indexJSON
         .where((m) => m["type"] != "library")
-        .map((obj) => new SymbolResolution.fromMap(obj))
+        .map((obj) => new SymbolResolution.fromMap(obj.cast()))
         .toList();
 
     var qualifiedMap = <String, List<SymbolResolution>>{};
@@ -375,8 +375,8 @@ class Runner {
   }
 }
 
-class ReleaseConfig extends ConfigurationItem {
-  ReleaseConfig(String filename) : super.fromFile(filename);
+class ReleaseConfig extends Configuration {
+  ReleaseConfig(String filename) : super.fromFile(new File(filename));
 
   String githubToken;
 }
@@ -384,7 +384,7 @@ class ReleaseConfig extends ConfigurationItem {
 //////
 
 class SymbolResolution {
-  SymbolResolution.fromMap(Map<String, dynamic> map) {
+  SymbolResolution.fromMap(Map<String, String> map) {
     name = map["name"];
     qualifiedName = map["qualifiedName"];
     link = map["href"];

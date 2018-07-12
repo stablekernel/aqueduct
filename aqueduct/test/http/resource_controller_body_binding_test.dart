@@ -108,7 +108,8 @@ void main() {
       };
       var response = await postJSON(m);
       expect(response.statusCode, 400);
-      expect(json.decode(response.body)["error"], contains("job"));
+      expect(json.decode(response.body)["error"], "entity validation failed");
+      expect(json.decode(response.body)["reasons"].join(","), contains("job"));
     });
 
     test("Body is empty returns 400", () async {
@@ -120,7 +121,8 @@ void main() {
       };
       var response = await postJSON(m);
       expect(response.statusCode, 400);
-      expect(json.decode(response.body)["error"], contains("job"));
+      expect(json.decode(response.body)["error"], "entity validation failed");
+      expect(json.decode(response.body)["reasons"].join(","), contains("job"));
     });
 
     test("Is List when expecting Map returns 400", () async {
@@ -251,10 +253,10 @@ class CrashController extends ResourceController {
 Future<HttpServer> enableController(String pattern, Type controller) async {
   var router = new Router();
   router.route(pattern).link(
-          () => reflectClass(controller).newInstance(new Symbol(""), []).reflectee);
+          () => reflectClass(controller).newInstance(new Symbol(""), []).reflectee as Controller);
   router.didAddToChannel();
 
-  var server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4040);
+  var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
   server.map((httpReq) => new Request(httpReq)).listen(router.receive);
 
   return server;

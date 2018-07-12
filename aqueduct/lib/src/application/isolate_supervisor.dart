@@ -89,7 +89,7 @@ class ApplicationIsolateSupervisor {
       _stopCompleter = null;
     } else if (message is List) {
       logger.fine("ApplicationIsolateSupervisor($identifier) received isolate error ${message.first}");
-      var stacktrace = new StackTrace.fromString(message.last);
+      var stacktrace = new StackTrace.fromString(message.last as String);
       _handleIsolateException(message.first, stacktrace);
     } else if (message is MessageHubMessage) {
       if (!supervisingApplication.isRunning) {
@@ -101,7 +101,7 @@ class ApplicationIsolateSupervisor {
   }
 
   void sendPendingMessages() {
-    var list = new List.from(_pendingMessageQueue);
+    var list = new List<MessageHubMessage>.from(_pendingMessageQueue);
     _pendingMessageQueue.clear();
     list.forEach((m) => _sendMessageToOtherSupervisors(m));
   }

@@ -121,5 +121,5 @@ class TypeRepo {
 }
 
 ClassMirror typeOf(Symbol symbol) {
-  return (reflectClass(TypeRepo).declarations[symbol] as VariableMirror).type;
+  return (reflectClass(TypeRepo).declarations[symbol] as VariableMirror).type as ClassMirror;
 }

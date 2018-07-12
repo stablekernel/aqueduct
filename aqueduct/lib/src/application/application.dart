@@ -28,12 +28,12 @@ class Application<T extends ApplicationChannel> {
 
   /// The [ApplicationServer] listening for HTTP requests while under test.
   ///
-  /// This property is only valid when an application is started via [test].
+  /// This property is only valid when an application is started via [startOnCurrentIsolate].
   ApplicationServer server;
 
   /// The [ApplicationChannel] handling requests while under test.
   ///
-  /// This property is only valid when an application is started via [test]. You use
+  /// This property is only valid when an application is started via [startOnCurrentIsolate]. You use
   /// this value to access elements of your application channel during testing.
   T get channel => server?.channel as T;
 
@@ -56,7 +56,7 @@ class Application<T extends ApplicationChannel> {
 
   /// Whether or not this application is running.
   ///
-  /// This will return true if [start]/[test] have been invoked and completed; i.e. this is the synchronous version of the [Future] returned by [start]/[test].
+  /// This will return true if [start]/[startOnCurrentIsolate] have been invoked and completed; i.e. this is the synchronous version of the [Future] returned by [start]/[startOnCurrentIsolate].
   ///
   /// This value will return to false after [stop] has completed.
   bool get isRunning => _hasFinishedLaunching;
@@ -73,7 +73,7 @@ class Application<T extends ApplicationChannel> {
   /// If your application channel implements [ApplicationChannel.initializeApplication],
   /// it will be invoked prior to any isolate being spawned.
   ///
-  /// See also [test] for starting an application when running automated tests.
+  /// See also [startOnCurrentIsolate] for starting an application when running automated tests.
   Future start({int numberOfInstances: 1, bool consoleLogging: false}) async {
     if (server != null || supervisors.length > 0) {
       throw new StateError("Application error. Cannot invoke 'start' on already running Aqueduct application.");
@@ -81,9 +81,9 @@ class Application<T extends ApplicationChannel> {
 
     if (options.address == null) {
       if (options.isIpv6Only) {
-        options.address = InternetAddress.ANY_IP_V6;
+        options.address = InternetAddress.anyIPv6;
       } else {
-        options.address = InternetAddress.ANY_IP_V4;
+        options.address = InternetAddress.anyIPv4;
       }
     }
 
@@ -105,22 +105,22 @@ class Application<T extends ApplicationChannel> {
     _hasFinishedLaunching = true;
   }
 
-  /// Starts the application for the purpose of running automated tests.
+  /// Starts the application on the current isolate, and does not spawn additional isolates.
   ///
-  /// An application started in this way will run on the same isolate this method is invoked on. Use this method
-  /// to start the application when running tests with the `aqueduct_test` library.
-  Future test() async {
+  /// An application started in this way will run on the same isolate this method is invoked on.
+  /// Performance is limited when running the application with this method; prefer to use [start].
+  Future startOnCurrentIsolate() async {
     if (server != null || supervisors.length > 0) {
       throw new StateError("Application error. Cannot invoke 'test' on already running Aqueduct application.");
     }
 
-    options.address = InternetAddress.LOOPBACK_IP_V4;
+    options.address = InternetAddress.loopbackIPv4;
 
     var channelType = reflectClass(T);
     try {
       await _globalStart(channelType, options);
 
-      server = new ApplicationServer(channelType, options, 1, captureStack: true);
+      server = new ApplicationServer(channelType, options, 1);
 
       await server.start();
       _hasFinishedLaunching = true;
@@ -156,7 +156,7 @@ class Application<T extends ApplicationChannel> {
 
     await _globalStart(channelMirror, config);
 
-    final server = new ApplicationServer(channelMirror, config, 1, captureStack: true);
+    final server = new ApplicationServer(channelMirror, config, 1);
 
     await server.channel.prepare();
 
@@ -170,7 +170,7 @@ class Application<T extends ApplicationChannel> {
   static Future _globalStart(ClassMirror channelType, ApplicationOptions config) {
     var globalStartSymbol = #initializeApplication;
     if (channelType.staticMembers[globalStartSymbol] != null) {
-      return channelType.invoke(globalStartSymbol, [config]).reflectee;
+      return channelType.invoke(globalStartSymbol, [config]).reflectee as Future;
     }
 
     return null;

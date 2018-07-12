@@ -19,7 +19,7 @@ void main() {
     Request request;
 
     setUp(() async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
     });
 
     tearDown(() async {
@@ -47,13 +47,13 @@ void main() {
       test("Request with content-length header shows is not empty", () async {
         var bytes = utf8.encode(json.encode({"k": "v"}));
         var req = await client.openUrl("POST", Uri.parse("http://localhost:8123"));
-        req.headers.add(HttpHeaders.CONTENT_TYPE, ContentType.JSON.toString());
-        req.headers.add(HttpHeaders.CONTENT_LENGTH, bytes.length);
+        req.headers.add(HttpHeaders.contentTypeHeader, ContentType.json.toString());
+        req.headers.add(HttpHeaders.contentLengthHeader, bytes.length);
         req.add(bytes);
         var f = req.close();
 
         var request = await server.first;
-        expect(request.headers.value(HttpHeaders.CONTENT_LENGTH), "${bytes.length}");
+        expect(request.headers.value(HttpHeaders.contentLengthHeader), "${bytes.length}");
         var body = new RequestBody(request);
         expect(body.isEmpty, false);
 
@@ -64,13 +64,13 @@ void main() {
       test("Request with chunked transfer encoding shows not empty", () async {
         var bytes = utf8.encode(json.encode({"k": "v"}));
         var req = await client.openUrl("POST", Uri.parse("http://localhost:8123"));
-        req.headers.add(HttpHeaders.CONTENT_TYPE, ContentType.JSON.toString());
+        req.headers.add(HttpHeaders.contentTypeHeader, ContentType.json.toString());
         req.add(bytes);
         var f = req.close();
 
         var request = await server.first;
-        expect(request.headers.value(HttpHeaders.CONTENT_LENGTH), isNull);
-        expect(request.headers.value(HttpHeaders.TRANSFER_ENCODING), "chunked");
+        expect(request.headers.value(HttpHeaders.contentLengthHeader), isNull);
+        expect(request.headers.value(HttpHeaders.transferEncodingHeader), "chunked");
         var body = new RequestBody(request);
         expect(body.isEmpty, false);
 
@@ -94,7 +94,7 @@ void main() {
     test("Omit charset from known decoder defaults to charset added if exists", () async {
       var client = new HttpClient();
       var req = await client.postUrl(Uri.parse("http://localhost:8123"));
-      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json");
+      req.headers.add(HttpHeaders.contentTypeHeader, "application/json");
       req.add(utf8.encode(json.encode({"a": "val"})));
       req.close().catchError((err) => null);
 
@@ -186,7 +186,7 @@ void main() {
     });
 
     setUp(() async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
     });
 
     tearDown(() async {
@@ -219,7 +219,7 @@ void main() {
     test("Omit charset from added decoder with default charset and match-all subtype", () async {
       var client = new HttpClient();
       var req = await client.postUrl(Uri.parse("http://localhost:8123"));
-      req.headers.add(HttpHeaders.CONTENT_TYPE, "somethingelse/foobar");
+      req.headers.add(HttpHeaders.contentTypeHeader, "somethingelse/foobar");
       req.add(utf8.encode(json.encode({"a": "val"})));
       req.close().catchError((err) => null);
 
@@ -233,7 +233,7 @@ void main() {
     test("Omit charset from added decoder does not add charset decoded if not specified", () async {
       var client = new HttpClient();
       var req = await client.postUrl(Uri.parse("http://localhost:8123"));
-      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/thingy");
+      req.headers.add(HttpHeaders.contentTypeHeader, "application/thingy");
       req.add(utf8.encode(json.encode({"a": "val"})));
       req.close().catchError((err) => null);
 
@@ -257,7 +257,7 @@ void main() {
     HttpServer server;
 
     setUp(() async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
     });
 
     tearDown(() async {
@@ -328,7 +328,7 @@ void main() {
     HttpServer server;
 
     setUp(() async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
     });
 
     tearDown(() async {
@@ -397,7 +397,7 @@ void main() {
     HttpServer server;
 
     setUp(() async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
     });
 
     tearDown(() async {
@@ -475,7 +475,7 @@ void main() {
     HttpServer server;
 
     setUp(() async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
     });
 
     tearDown(() async {
@@ -558,7 +558,7 @@ void main() {
     HttpServer server;
 
     setUp(() async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
     });
 
     tearDown(() async {
@@ -625,7 +625,7 @@ void main() {
 
     setUp(() async {
       client = new HttpClient();
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 8123);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
     });
 
     tearDown(() async {
@@ -646,19 +646,19 @@ void main() {
       });
 
       var req = await client.postUrl(Uri.parse("http://localhost:8123"));
-      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+      req.headers.add(HttpHeaders.contentTypeHeader, "application/json; charset=utf-8");
       var body = {
         "key": new List.generate(8192 * 50, (_) => "a").join(" ")
       };
       var bytes = utf8.encode(json.encode(body));
-      req.headers.add(HttpHeaders.CONTENT_LENGTH, bytes.length);
+      req.headers.add(HttpHeaders.contentLengthHeader, bytes.length);
       req.add(bytes);
 
       var response = await req.close().catchError((err) => null);
       expect(response.statusCode, 413);
 
       req = await client.postUrl(Uri.parse("http://localhost:8123"));
-      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/json; charset=utf-8");
+      req.headers.add(HttpHeaders.contentTypeHeader, "application/json; charset=utf-8");
       body = {
         "key": "a"
       };
@@ -681,15 +681,15 @@ void main() {
 
       var req = await client.postUrl(Uri.parse("http://localhost:8123"));
       var bytes = new List.generate(8192 * 100, (_) => 1);
-      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
-      req.headers.add(HttpHeaders.CONTENT_LENGTH, bytes.length);
+      req.headers.add(HttpHeaders.contentTypeHeader, "application/octet-stream");
+      req.headers.add(HttpHeaders.contentLengthHeader, bytes.length);
       req.add(bytes);
 
       var response = await req.close().catchError((err) => null);
       expect(response.statusCode, 413);
 
       req = await client.postUrl(Uri.parse("http://localhost:8123"));
-      req.headers.add(HttpHeaders.CONTENT_TYPE, "application/octet-stream");
+      req.headers.add(HttpHeaders.contentTypeHeader, "application/octet-stream");
       req.add([1, 2, 3, 4]);
       response = await req.close();
       expect(await response.toList(), [[1, 2, 3, 4]]);

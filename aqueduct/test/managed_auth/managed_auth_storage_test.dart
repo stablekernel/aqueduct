@@ -792,11 +792,11 @@ void main() {
       var exchangedLater = await auth.exchange(
           unusedCodeKeep.code, "com.stablekernel.redirect2", "gibraltar");
       expect(await auth.verify(exchangedLater.accessToken),
-          new isInstanceOf<Authorization>());
+          TypeMatcher<Authorization>());
       expect(await auth.verify(exchangedTokenKeep.accessToken),
-          new isInstanceOf<Authorization>());
+          new TypeMatcher<Authorization>());
       expect(await auth.verify(issuedTokenKeep.accessToken),
-          new isInstanceOf<Authorization>());
+          new TypeMatcher<Authorization>());
 
       var tokenQuery = new Query<ManagedAuthToken>(context);
       expect(await tokenQuery.fetch(), hasLength(3));

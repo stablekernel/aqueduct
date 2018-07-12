@@ -44,7 +44,7 @@ class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
         .entity
         .relationships["resourceOwner"]
         .destinationEntity
-        .newInstance();
+        .instanceOf();
     tokenResourceOwner["id"] = t.resourceOwnerIdentifier;
     this
       ..accessToken = t.accessToken
@@ -53,7 +53,7 @@ class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
       ..expirationDate = t.expirationDate
       ..type = t.type
       ..scope = t.scopes?.map((s) => s.toString())?.join(" ")
-      ..resourceOwner = tokenResourceOwner as dynamic
+      ..resourceOwner = tokenResourceOwner as ResourceOwnerTableDefinition
       ..client = (new ManagedAuthClient()..id = t.clientID);
   }
 
@@ -63,12 +63,12 @@ class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
         .entity
         .relationships["resourceOwner"]
         .destinationEntity
-        .newInstance();
+        .instanceOf();
     tokenResourceOwner["id"] = code.resourceOwnerIdentifier;
 
     this
       ..code = code.code
-      ..resourceOwner = tokenResourceOwner as dynamic
+      ..resourceOwner = tokenResourceOwner as ResourceOwnerTableDefinition
       ..issueDate = code.issueDate
       ..expirationDate = code.expirationDate
       ..scope = code.requestedScopes?.map((s) => s.toString())?.join(" ")
@@ -150,7 +150,7 @@ class _ManagedAuthToken {
   ResourceOwnerTableDefinition resourceOwner;
 
   /// The client this token was issued for.
-  @Relate(#tokens,
+  @Relate(Symbol('tokens'),
       onDelete: DeleteRule.cascade, isRequired: true)
   ManagedAuthClient client;
 

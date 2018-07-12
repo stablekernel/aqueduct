@@ -16,14 +16,14 @@ void main() {
 
     test("Create from app, explicit port", () async {
       app = new Application<SomeChannel>()..options.port = 4111;
-      await app.test();
+      await app.startOnCurrentIsolate();
       var client = new Agent(app);
       expect(client.baseURL, "http://localhost:4111");
     });
 
     test("Create from app, assigned port", () async {
       app = new Application<SomeChannel>()..options.port = 0;
-      await app.test();
+      await app.startOnCurrentIsolate();
 
       var client = new Agent(app);
       var response = await client.request("/").get();
@@ -44,7 +44,7 @@ void main() {
     test("Create from unstarted app, start app, works OK", () async {
       app = new Application<SomeChannel>()..options.port = 0;
       var tc = new Agent(app);
-      await app.test();
+      await app.startOnCurrentIsolate();
 
       expectResponse(await tc.request("/").get(), 200);
     });
@@ -54,7 +54,7 @@ void main() {
         ..port = 2121
         ..address = "foobar.com");
       original.headers["key"] = "value";
-      original.contentType = ContentType.TEXT;
+      original.contentType = ContentType.text;
 
       final clone = new Agent.from(original);
       expect(clone.baseURL, original.baseURL);
@@ -225,7 +225,7 @@ void main() {
     });
 
     test("Responses have body", () async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
       server.listen((req) {
         var resReq = new Request(req);
         resReq.respond(new Response.ok([
@@ -240,7 +240,7 @@ void main() {
     });
 
     test("Responses with no body don't return one", () async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
       server.listen((req) {
         req.response.statusCode = 200;
         req.response.close();
@@ -252,14 +252,14 @@ void main() {
     });
 
     test("Request with accept adds header", () async {
-      server = await HttpServer.bind(InternetAddress.ANY_IP_V4, 4000);
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
       server.listen((req) {
         var resReq = new Request(req);
-        resReq.respond(new Response.ok({"ACCEPT": req.headers.value(HttpHeaders.ACCEPT)}));
+        resReq.respond(new Response.ok({"ACCEPT": req.headers.value(HttpHeaders.acceptHeader)}));
       });
 
       var client = new Agent.onPort(4000);
-      var req = client.request("/foo")..accept = [ContentType.JSON, ContentType.TEXT];
+      var req = client.request("/foo")..accept = [ContentType.json, ContentType.text];
 
       var response = await req.post();
       expect(response.body.asMap(), {"ACCEPT": "application/json; charset=utf-8,text/plain; charset=utf-8"});
