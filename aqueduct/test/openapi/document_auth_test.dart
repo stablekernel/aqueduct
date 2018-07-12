@@ -1,5 +1,3 @@
-@Skip("Waiting on https://github.com/dart-lang/sdk/issues/33207")
-
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/documented_element.dart';
 import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
@@ -159,7 +157,7 @@ class TestChannel extends ApplicationChannel {
 class DocumentedController extends Controller {
   DocumentedController({this.tag});
 
-  String tag;
+  final String tag;
 
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) {

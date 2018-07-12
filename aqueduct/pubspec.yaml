@@ -15,7 +15,7 @@ dependencies:
   logging: ^0.11.3
   isolate_executor: ^2.0.0-dev.2
   meta: ^1.1.5
-  open_api: ^2.0.0-beta.3
+  open_api: ^2.0.0-beta.4
   password_hash: ^2.0.0-beta
   path: ^1.4.1
   postgres: ^1.0.0-beta.1

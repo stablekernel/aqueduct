@@ -1,4 +1,3 @@
-@Skip("Waiting on https://github.com/dart-lang/sdk/issues/33207")
 import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
@@ -109,7 +108,8 @@ void main() {
       };
       var response = await postJSON(m);
       expect(response.statusCode, 400);
-      expect(json.decode(response.body)["error"], contains("job"));
+      expect(json.decode(response.body)["error"], "entity validation failed");
+      expect(json.decode(response.body)["reasons"].join(","), contains("job"));
     });
 
     test("Body is empty returns 400", () async {
@@ -121,7 +121,8 @@ void main() {
       };
       var response = await postJSON(m);
       expect(response.statusCode, 400);
-      expect(json.decode(response.body)["error"], contains("job"));
+      expect(json.decode(response.body)["error"], "entity validation failed");
+      expect(json.decode(response.body)["reasons"].join(","), contains("job"));
     });
 
     test("Is List when expecting Map returns 400", () async {

@@ -125,7 +125,7 @@ void main() {
 
         expect(res.stdout, contains("All tests passed"));
         expect(res.exitCode, 0);
-      }, skip: "Waiting on https://github.com/dart-lang/sdk/issues/33207");
+      });
     }
   });
 }

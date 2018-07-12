@@ -1,14 +1,17 @@
-@Skip("Waiting on https://github.com/dart-lang/sdk/issues/33207")
 import 'dart:async';
 import "dart:core";
 
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/utilities/documented_element.dart';
+import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
 import 'package:test/test.dart';
 
 import '../helpers.dart';
 
 void main() {
+  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
+
   final app = new Application<Channel>();
   Agent client;
 

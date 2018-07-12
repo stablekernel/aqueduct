@@ -1,4 +1,3 @@
-@Skip("Waiting on https://github.com/dart-lang/sdk/issues/33207")
 import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
@@ -19,6 +18,7 @@ void main() {
       ..paths = {}
       ..components = new APIComponents());
     final ac = new A();
+    ac.restore(ac.recycledState);
     ac.didAddToChannel();
     ac.documentComponents(context);
 
@@ -97,7 +97,7 @@ void main() {
 
   test("If request body is bound, shows up in documentation for operation with valid ref", () {
     expect(context.schema.hasRegisteredType(AModel), true);
-    expect(collectionOperations["post"].requestBody.content["application/json"].schema.referenceURI, "#/components/schemas/AModel");
+    expect(collectionOperations["post"].requestBody.content["application/json"].schema.referenceURI.path, "/components/schemas/AModel");
   });
 }
 

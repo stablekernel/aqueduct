@@ -1,4 +1,4 @@
-@Skip("Waiting on https://github.com/dart-lang/sdk/issues/33207")
+
 import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
@@ -527,10 +527,30 @@ void main() {
   });
 
   group("Recycling", () {
-    // Once 33207 fix has made itself into dev channel, addsome additional tests
-    // to ensure that ResourceControllers recycle correctly.
-    test("NYI", () {
-      fail("NYI");
+    test("Multiple requests to same controller yield correct results", () async {
+      server = await enableController("/a/[:id/[:flag]]", TController);
+
+      final List<http.Response> responses = await Future.wait([
+        http.get("http://localhost:4040/a"),
+        http.get("http://localhost:4040/a/foo"),
+        http.get("http://localhost:4040/a/foo/bar"),
+        http.put("http://localhost:4040/a/foo", body: json.encode({"k": "v"}), headers: {"content-type": "application/json;charset=utf-8"}),
+        http.post("http://localhost:4040/a", body: json.encode({"k": "v"}), headers: {"content-type": "application/json;charset=utf-8"}),
+      ]);
+
+      expect(responses[0].statusCode, 200);
+      expect(json.decode(responses[0].body), "getAll");
+
+      expect(responses[1].statusCode, 200);
+      expect(json.decode(responses[1].body), "foo");
+
+      expect(responses[2].statusCode, 200);
+      expect(json.decode(responses[2].body), "foobar");
+
+      expect(responses[3].statusCode, 500);
+
+      expect(responses[4].statusCode, 200);
+      expect(json.decode(responses[4].body), {"k": "v"});
     });
   });
 }
