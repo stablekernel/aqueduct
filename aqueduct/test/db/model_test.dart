@@ -661,7 +661,7 @@ void main() {
     test("Can have constructor with only optional args", () {
       final dm = new ManagedDataModel([DefaultConstructorHasOptionalArgs]);
       final ctx = new ManagedContext(dm, null);
-      final instance = dm.entityForType(DefaultConstructorHasOptionalArgs).newInstance();
+      final instance = dm.entityForType(DefaultConstructorHasOptionalArgs).instanceOf();
       expect(instance is DefaultConstructorHasOptionalArgs, true);
     });
 

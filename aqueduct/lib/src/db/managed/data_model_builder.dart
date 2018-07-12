@@ -129,7 +129,7 @@ class DataModelBuilder {
       var declType = declaration.type;
       if (declType is! ClassMirror) {
         throw new ManagedDataModelError("Invalid type for field '${MirrorSystem.getName(declaration.simpleName)}' "
-          "in table definition '${entity.persistentType}'.");
+          "in table definition '${entity.tableDefinition}'.");
       }
       if (declType is ClassMirror && declType.isEnum) {
         List<dynamic> enumeratedCases = declType.getField(#values).reflectee;
