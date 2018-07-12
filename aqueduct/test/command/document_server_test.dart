@@ -15,7 +15,6 @@ void main() {
 
   tearDownAll(() async {
     await Terminal.deactivateCLI();
-
   });
 
   setUp(() async {

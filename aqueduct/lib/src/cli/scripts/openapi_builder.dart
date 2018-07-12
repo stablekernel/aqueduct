@@ -20,7 +20,7 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
         contactURL = message["contactURL"] != null ? Uri.parse(message["contactURL"] as String) : null,
         licenseURL = message["licenseURL"] != null ? Uri.parse(message["licenseURL"] as String) : null,
         licenseName = message["licenseName"] as String,
-        hosts = (message["hosts"] as List<Uri>)?.map((uri) => new APIServerDescription(uri))?.toList() ?? [],
+        hosts = (message["hosts"] as List<String>)?.map((uri) => new APIServerDescription(Uri.parse(uri)))?.toList() ?? [],
         super(message);
 
   OpenAPIBuilder.input(Map<String, dynamic> variables) : super(variables);
@@ -97,6 +97,8 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
         "package:aqueduct/aqueduct.dart",
         "package:$packageName/$packageName.dart",
         "package:yaml/yaml.dart",
+        "package:aqueduct/src/utilities/documented_element.dart",
+        "package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart",
         "dart:convert",
         "dart:io"
       ];

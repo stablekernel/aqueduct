@@ -9,11 +9,15 @@ import 'package:path/path.dart' as path_lib;
 abstract class CLIProject implements CLICommand {
   @Option("directory", abbr: "d", help: "Project directory to execute command in")
   Directory get projectDirectory {
-    String dir = decode("directory");
-    if (dir == null) {
-      return Directory.current.absolute;
+    if (_projectDirectory == null) {
+      String dir = decode("directory");
+      if (dir == null) {
+        _projectDirectory = Directory.current.absolute;
+      } else {
+        _projectDirectory = new Directory(dir).absolute;
+      }
     }
-    return new Directory(dir).absolute;
+    return _projectDirectory;
   }
 
   Map<String, dynamic> get projectSpecification {
@@ -53,6 +57,7 @@ abstract class CLIProject implements CLICommand {
     return _projectVersion;
   }
 
+  Directory _projectDirectory;
   Map<String, dynamic> _pubspec;
   Version _projectVersion;
 

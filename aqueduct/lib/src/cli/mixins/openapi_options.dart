@@ -56,9 +56,9 @@ abstract class CLIDocumentOptions implements CLICommand {
   }
 
   Future<Map<dynamic, dynamic>> documentProject(Uri projectDirectory, String libraryName, File pubspecFile) async {
-    final variables = {
+    final variables = <String, dynamic>{
       "pubspec": pubspecFile.readAsStringSync(),
-      "hosts": hosts,
+      "hosts": hosts?.map((u) => u.toString())?.toList(),
       "configPath": configurationPath,
       "title": title,
       "description": apiDescription,
@@ -70,6 +70,7 @@ abstract class CLIDocumentOptions implements CLICommand {
       "licenseURL": licenseURL,
       "licenseName": licenseName
     };
+
     return IsolateExecutor.run(OpenAPIBuilder(variables),
         packageConfigURI: projectDirectory.resolve(".packages"),
         imports: OpenAPIBuilder.importsForPackage(libraryName));
