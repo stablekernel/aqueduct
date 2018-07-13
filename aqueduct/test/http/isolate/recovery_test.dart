@@ -25,17 +25,21 @@ void main() {
 
       // Ensure both requests respond with 200, since the failure occurs asynchronously AFTER the response has been generated
       // for the failure case.
+      print("sent requests");
       final responses = await Future.wait([successFuture, failFuture]);
+      print("got responses");
       expect(responses.first.statusCode, 200);
       expect(responses.last.statusCode, 200);
 
       var errorMessage = await app.logger.onRecord.first;
+      print("got log message");
       expect(errorMessage.message, contains("Uncaught exception"));
       expect(errorMessage.error.toString(), contains("foo"));
       expect(errorMessage.stackTrace, isNotNull);
 
       // And then we should make sure everything is working just fine.
       expect((await http.get("http://localhost:8888/")).statusCode, 200);
+      print("succeeded in final request");
     });
 
     test("Application with multiple isolates reports uncaught error, recovers",
