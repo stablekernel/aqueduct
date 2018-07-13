@@ -1,7 +1,6 @@
 branches:
   only:
     - master
-    - 3.0
 
 services:
   - postgresql96

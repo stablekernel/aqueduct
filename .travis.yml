@@ -31,4 +31,3 @@ stages:
 branches:
   only:
     - master
-    - 3.0
