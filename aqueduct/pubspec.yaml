@@ -1,0 +1,35 @@
+name: aqueduct
+version: 3.0.0-beta.1
+description: A modern HTTP server framework
+author: stable|kernel <http://stablekernel.com>
+homepage: https://aqueduct.io
+documentation:
+
+environment:
+  sdk: ">=2.0.0-dev <3.0.0"
+
+dependencies:
+  analyzer: '>=0.32.0 <0.33.0'
+  args: ^1.4.0
+  crypto: ^2.0.0
+  logging: ^0.11.3
+  isolate_executor: ^2.0.0-dev.2
+  meta: ^1.1.5
+  open_api: ^2.0.0-beta.4
+  password_hash: ^2.0.0-beta
+  path: ^1.4.1
+  postgres: ^1.0.0-beta.1
+  pub_cache: '>=0.2.0 <0.3.0'
+  pub_semver: ^1.0.0
+  safe_config: ^2.0.0-beta.1
+  yaml: ^2.1.9
+
+dev_dependencies:
+  matcher: ^0.12.0+2
+  test: ^1.0.0
+  http: ^0.11.3+7
+  aqueduct_test:
+    path: ../aqueduct_test
+
+executables:
+  aqueduct: aqueduct

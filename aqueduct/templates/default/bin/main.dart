@@ -1,0 +1,12 @@
+import 'package:wildfire/wildfire.dart';
+
+Future main() async {
+  var app = new Application<WildfireChannel>()
+      ..options.configurationFilePath = "config.yaml"
+      ..options.port = 8888;
+
+  await app.start(numberOfInstances: Platform.numberOfProcessors);
+
+  print("Application started on port: ${app.options.port}.");
+  print("Use Ctrl-C (SIGINT) to stop running the application.");
+}

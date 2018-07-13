@@ -1,0 +1,14 @@
+name: wildfire
+description: An Aqueduct application with a database connection, data model and OAuth 2.0 endpoints.
+version: 0.0.1
+author: stable|kernel <jobs@stablekernel.com>
+
+environment:
+  sdk: ">=2.0.0-dev <3.0.0"
+
+dependencies:
+  aqueduct: ^3.0.0-beta.1
+
+dev_dependencies:
+  test: ^1.0.0
+  aqueduct_test: ^1.0.0-beta.1
