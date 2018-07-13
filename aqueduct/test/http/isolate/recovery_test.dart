@@ -15,7 +15,14 @@ void main() {
     });
 
     test("Application reports uncaught error, recovers", () async {
+      final errorMsgCompleter = new Completer<LogRecord>();
+      app.logger.onRecord.listen((rec) {
+        if (rec.message.contains("Uncaught exception")) {
+          errorMsgCompleter.complete(rec);
+        }
+      });
       await app.start(numberOfInstances: 1);
+
 
       // This request will generate an uncaught exception
       var failFuture = http.get("http://localhost:8888/?crash=true");
@@ -31,7 +38,7 @@ void main() {
       expect(responses.first.statusCode, 200);
       expect(responses.last.statusCode, 200);
 
-      var errorMessage = await app.logger.onRecord.first;
+      final errorMessage = await errorMsgCompleter.future;
       print("got log message");
       expect(errorMessage.message, contains("Uncaught exception"));
       expect(errorMessage.error.toString(), contains("foo"));
