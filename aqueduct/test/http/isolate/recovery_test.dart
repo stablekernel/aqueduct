@@ -25,10 +25,9 @@ void main() {
 
       // Ensure both requests respond with 200, since the failure occurs asynchronously AFTER the response has been generated
       // for the failure case.
-      var successResponse = await successFuture;
-      var failResponse = await failFuture;
-      expect(successResponse.statusCode, 200);
-      expect(failResponse.statusCode, 200);
+      final responses = await Future.wait([successFuture, failFuture]);
+      expect(responses.first.statusCode, 200);
+      expect(responses.last.statusCode, 200);
 
       var errorMessage = await app.logger.onRecord.first;
       expect(errorMessage.message, contains("Uncaught exception"));
