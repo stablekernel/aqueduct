@@ -15,7 +15,14 @@ void main() {
     });
 
     test("Application reports uncaught error, recovers", () async {
+      final errorMsgCompleter = new Completer<LogRecord>();
+      app.logger.onRecord.listen((rec) {
+        if (rec.message.contains("Uncaught exception")) {
+          errorMsgCompleter.complete(rec);
+        }
+      });
       await app.start(numberOfInstances: 1);
+
 
       // This request will generate an uncaught exception
       var failFuture = http.get("http://localhost:8888/?crash=true");
@@ -25,18 +32,21 @@ void main() {
 
       // Ensure both requests respond with 200, since the failure occurs asynchronously AFTER the response has been generated
       // for the failure case.
-      var successResponse = await successFuture;
-      var failResponse = await failFuture;
-      expect(successResponse.statusCode, 200);
-      expect(failResponse.statusCode, 200);
+      print("sent requests");
+      final responses = await Future.wait([successFuture, failFuture]);
+      print("got responses");
+      expect(responses.first.statusCode, 200);
+      expect(responses.last.statusCode, 200);
 
-      var errorMessage = await app.logger.onRecord.first;
+      final errorMessage = await errorMsgCompleter.future;
+      print("got log message");
       expect(errorMessage.message, contains("Uncaught exception"));
       expect(errorMessage.error.toString(), contains("foo"));
       expect(errorMessage.stackTrace, isNotNull);
 
       // And then we should make sure everything is working just fine.
       expect((await http.get("http://localhost:8888/")).statusCode, 200);
+      print("succeeded in final request");
     });
 
     test("Application with multiple isolates reports uncaught error, recovers",

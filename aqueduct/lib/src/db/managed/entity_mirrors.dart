@@ -19,6 +19,15 @@ List<VariableMirror> instanceVariablesFromClass(ClassMirror classMirror) {
   }).toList();
 }
 
+bool classHasDefaultConstructor(ClassMirror type) {
+  return type.declarations.values.any((dm) {
+    return dm is MethodMirror
+      && dm.isConstructor
+      && dm.constructorName == const Symbol('')
+      && dm.parameters.every((p) => p.isOptional == true);
+  });
+}
+
 VariableMirror instanceVariableFromClass(ClassMirror classMirror, Symbol name) {
   return instanceVariablesFromClass(classMirror).firstWhere((dm) => dm.simpleName == name, orElse: () => null);
 }
@@ -151,8 +160,8 @@ bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
   return false;
 }
 
-Table tableAttributesFromPersistentType(ClassMirror typeMirror) =>
-    firstMetadataOfType(reflectType(Table), dynamicType: typeMirror);
+Table attributesFromTableDefinition(ClassMirror typeMirror) =>
+    firstMetadataOfType(typeMirror, dynamicType: reflectType(Table));
 
 List<Validate> validatorsFromDeclaration(DeclarationMirror dm) => allMetadataOfType<Validate>(dm);
 
@@ -163,9 +172,9 @@ Column attributeMetadataFromDeclaration(DeclarationMirror dm) => firstMetadataOf
 Relate relationshipMetadataFromProperty(DeclarationMirror dm) => firstMetadataOfType(dm);
 
 Iterable<ClassMirror> classHierarchyForClass(ClassMirror t) sync* {
-  var persistentTypePtr = t;
-  while (persistentTypePtr.superclass != null) {
-    yield persistentTypePtr;
-    persistentTypePtr = persistentTypePtr.superclass;
+  var tableDefinitionPtr = t;
+  while (tableDefinitionPtr.superclass != null) {
+    yield tableDefinitionPtr;
+    tableDefinitionPtr = tableDefinitionPtr.superclass;
   }
 }

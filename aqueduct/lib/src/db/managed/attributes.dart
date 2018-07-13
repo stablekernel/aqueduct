@@ -1,9 +1,9 @@
 import 'managed.dart';
 import '../query/query.dart';
 
-/// Metadata to configure underlying table of [ManagedObject] persistent type.
+/// Annotation to configure the table definition of a [ManagedObject].
 ///
-/// Adding this metadata to a persistent type (`T` in `ManagedObject<T>`) configures the behavior of the underlying table.
+/// Adding this metadata to a table definition (`T` in `ManagedObject<T>`) configures the behavior of the underlying table.
 /// For example:
 ///
 ///         class User extends ManagedObject<_User> implements _User {}
@@ -17,21 +17,21 @@ import '../query/query.dart';
 ///           String email;
 ///         }
 class Table {
-  /// Metadata for persistent type.
+  /// Annotation for table definition.
   ///
   /// See also [Table.unique].
   const Table({List<Symbol> uniquePropertySet})
     : this.uniquePropertySet = uniquePropertySet;
 
-  /// Configures each instance of persistent type to be unique for the combination of [properties].
+  /// Configures each instance of a table definition to be unique for the combination of [properties].
   ///
-  /// Adding this metadata to a persistent type requires that all instances of this type
+  /// Adding this metadata to a table definition requires that all instances of this type
   /// must be unique for the combined properties in [properties]. [properties] must contain symbolic names of
-  /// properties declared in the persistent type, and those properties must be either attributes
+  /// properties declared in the table definition, and those properties must be either attributes
   /// or belongs-to relationship properties. See [Table] for example.
   const Table.unique(List<Symbol> properties) : this(uniquePropertySet: properties);
 
-  /// Each instance of the associated persistent type is unique for these properties.
+  /// Each instance of the associated table definition is unique for these properties.
   ///
   /// null if not set.
   final List<Symbol> uniquePropertySet;
@@ -54,7 +54,7 @@ enum DeleteRule {
 
 /// Metadata to configure property of [ManagedObject] as a foreign key column.
 ///
-/// A property in a [ManagedObject]'s persistent type with this metadata will map to a database column
+/// A property in a [ManagedObject]'s table definition with this metadata will map to a database column
 /// that has a foreign key reference to the related [ManagedObject]. Relationships are made up of two [ManagedObject]s, where each
 /// has a property that refers to the other. Only one of those properties may have this metadata. The property with this metadata
 /// resolves to a column in the database. The relationship property without this metadata resolves to a row or rows in the database.
@@ -105,8 +105,8 @@ const Column primaryKey = const Column(
 
 /// Metadata to describe the behavior of the underlying database column of a persistent property in [ManagedObject] subclasses.
 ///
-/// By default, simply declaring a a property in a persistent type will make it a database column
-/// and its database column will be derived from the proprerty's type.
+/// By default, declaring a property in a table definition will make it a database column
+/// and its database column will be derived from the property's type.
 /// If the property needs additional directives - like indexing or uniqueness -  it should be annotated with an instance of this class.
 ///
 ///         class User extends ManagedObject<_User> implements _User {}

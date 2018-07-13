@@ -46,7 +46,7 @@ abstract class ManagedBacking {
 /// This class must be subclassed. A subclass is declared for each table in a database. These subclasses
 /// create the data model of an application.
 ///
-/// A managed object is declared in two parts, the subclass and its "persistent type".
+/// A managed object is declared in two parts, the subclass and its table definition.
 ///
 ///         class User extends ManagedObject<_User> implements _User {
 ///           String name;
@@ -59,13 +59,13 @@ abstract class ManagedBacking {
 ///           String email;
 ///         }
 ///
-/// Persistent types are plain Dart objects that represent a database table. Each property is a column in the database.
+/// Table definitions are plain Dart objects that represent a database table. Each property is a column in the database.
 ///
-/// A subclass of this type must implement its persistent type and use it as the type argument of [ManagedObject]. Properties and methods
+/// A subclass of this type must implement its table definition and use it as the type argument of [ManagedObject]. Properties and methods
 /// declared in the subclass (also called the 'instance type') are not stored in the database.
 ///
 /// See more documentation on defining a data model at http://aqueduct.io/docs/db/modeling_data/
-class ManagedObject<PersistentType> implements HTTPSerializable {
+abstract class ManagedObject<T> implements HTTPSerializable {
   /// Creates a new instance of [entity] with [backing].
   static ManagedObject instantiateDynamic(ManagedEntity entity, {ManagedBacking backing}) {
     ManagedObject object = entity.instanceType.newInstance(const Symbol(""), []).reflectee as ManagedObject;
@@ -77,7 +77,7 @@ class ManagedObject<PersistentType> implements HTTPSerializable {
   }
 
   /// The [ManagedEntity] this instance is described by.
-  ManagedEntity entity = ManagedDataModelManager.findEntity(PersistentType);
+  ManagedEntity entity = ManagedDataModelManager.findEntity(T);
 
   /// The persistent values of this object.
   ///
