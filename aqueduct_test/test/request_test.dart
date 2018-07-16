@@ -24,7 +24,7 @@ void main() {
 
     final received = await server.next();
     expect(received.raw.headers.value("content-type"), "application/json; charset=utf-8");
-    expect(received.body.asMap(), {"k": "v"});
+    expect(received.body.as<Map>(), {"k": "v"});
 
     final req2 = agent.request("/")
       ..contentType = new ContentType("text", "html", charset: "utf-8")
@@ -33,7 +33,7 @@ void main() {
 
     final rec2 = await server.next();
     expect(rec2.raw.headers.value("content-type"), "text/html; charset=utf-8");
-    expect(rec2.body.asString(), "foobar");
+    expect(rec2.body.as<String>(), "foobar");
   });
 
   test("If opting out of body encoding, bytes can be set directly on request", () async {
@@ -44,7 +44,7 @@ void main() {
 
     final received = await server.next();
     expect(received.raw.headers.value("content-type"), "application/json; charset=utf-8");
-    expect(received.body.asMap(), {"k": "v"});
+    expect(received.body.as<Map>(), {"k": "v"});
   });
 
   test("Query parameters get URI encoded", () async {

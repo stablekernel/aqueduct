@@ -18,7 +18,7 @@ void main() {
     var json = {"username": "bob@stablekernel.com", "password": "foobaraxegrind12%"};
 
     final registerResponse = await harness.publicAgent.post("/register", body: json);
-    final accessToken = registerResponse.body.asMap()["access_token"];
+    final accessToken = registerResponse.body.as()["access_token"];
     final userAgent = new Agent.from(harness.agent)..bearerAuthorization = accessToken;
 
     final identityResponse = await userAgent.get("/me");

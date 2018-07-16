@@ -314,7 +314,7 @@ void main() {
 
       var controller = new Controller()
         ..linkFunction((req) async {
-          var body = await req.body.decodeAsMap();
+          var body = await req.body.decode<Map<String, dynamic>>();
           return new Response.ok(body);
         });
       server.listen((req) {
@@ -359,7 +359,7 @@ void main() {
 
       var controller = new Controller()
         ..linkFunction((req) async {
-          var body = await req.body.decodedData;
+          var body = await req.body.decode();
           return new Response.ok(body)..contentType = new ContentType("application", "octet-stream");
         });
       server.listen((req) {

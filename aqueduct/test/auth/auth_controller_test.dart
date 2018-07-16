@@ -80,7 +80,7 @@ void main() {
           resRefresh,
           hasResponse(200, body: {
             "access_token": isString,
-            "refresh_token": resToken.body.asMap()["refresh_token"],
+            "refresh_token": resToken.body.as<Map<String, dynamic>>()["refresh_token"],
             "expires_in": greaterThan(3500),
             "token_type": "bearer"
           }, headers: {
@@ -107,7 +107,7 @@ void main() {
           resRefresh,
           hasResponse(200, body: {
             "access_token": isString,
-            "refresh_token": resToken.body.asMap()["refresh_token"],
+            "refresh_token": resToken.body.as<Map<String, dynamic>>()["refresh_token"],
             "expires_in": greaterThan(3500),
             "token_type": "bearer",
             "scope": "user"
@@ -136,7 +136,7 @@ void main() {
           resRefresh,
           hasResponse(200, body: {
             "access_token": isString,
-            "refresh_token": resToken.body.asMap()["refresh_token"],
+            "refresh_token": resToken.body.as<Map<String, dynamic>>()["refresh_token"],
             "expires_in": greaterThan(3500),
             "token_type": "bearer",
             "scope": "user"
@@ -368,7 +368,7 @@ void main() {
     });
 
     test("refresh_token appears more than once", () async {
-      final grantMap = (await grant("com.stablekernel.app1", "kilimanjaro", user1)).body.asMap();
+      final Map<String, dynamic> grantMap = (await grant("com.stablekernel.app1", "kilimanjaro", user1)).body.as();
       final refreshToken = Uri.encodeQueryComponent(grantMap["refresh_token"] as String);
 
       var req = client.request("/auth/token")
@@ -701,7 +701,7 @@ Map<String, String> substituteUser(Map<String, String> initial, {String username
 }
 
 Map<String, String> refreshTokenMapFromTokenResponse(TestResponse resp) {
-  return {"refresh_token": resp.body.asMap()["refresh_token"] as String};
+  return {"refresh_token": resp.body.as<Map<String, dynamic>>()["refresh_token"] as String};
 }
 
 Map<String, String> get user1 =>

@@ -1,5 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:mirrors';
+import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+
 import 'http.dart';
 
 /// Decodes [bytes] according to [contentType].
@@ -10,6 +13,8 @@ abstract class BodyDecoder {
     : _originalByteStream = bodyByteStream;
 
   /// The stream of bytes to decode.
+  ///
+  /// This stream is consumed during decoding.
   Stream<List<int>> get bytes => _originalByteStream;
 
   /// Determines how [bytes] get decoded.
@@ -27,7 +32,7 @@ abstract class BodyDecoder {
 
   /// Whether or not [bytes] are available as a list after decoding has occurred.
   ///
-  /// By default, invoking [decodedData] (or one of the methods that invokes it) will discard
+  /// By default, invoking [decode] (or one of the methods that invokes it) will discard
   /// the initial bytes and only keep the decoded value. Setting this flag to false
   /// will keep a copy of the original bytes, accessible through [asBytes].
   bool retainOriginalBytes = false;
@@ -46,6 +51,13 @@ abstract class BodyDecoder {
     }
 
     return (_decodedData as Object).runtimeType;
+  }
+
+  List<int> get originalBytes {
+    if (retainOriginalBytes == false) {
+      throw StateError("'originalBytes' were not retained. Set 'retainOriginalBytes' to true prior to decoding.");
+    }
+    return _bytes;
   }
 
   final Stream<List<int>> _originalByteStream;
@@ -68,9 +80,9 @@ abstract class BodyDecoder {
   /// by [contentType]. If there is no codec in [HTTPCodecRepository] for the content type of the
   /// request body being decoded, this method returns the flattened list of bytes directly
   /// from the request body as [List<int>].
-  Future<dynamic> get decodedData async {
+  Future<T> decode<T>() async {
     if (hasBeenDecoded) {
-      return _decodedData;
+      return _cast(_decodedData);
     }
 
     final codec = HTTPCodecRepository.defaultInstance
@@ -83,7 +95,7 @@ abstract class BodyDecoder {
 
     if (codec == null) {
       _decodedData = originalBytes;
-      return _decodedData;
+      return _cast(_decodedData);
     }
 
     try {
@@ -94,181 +106,23 @@ abstract class BodyDecoder {
       throw new Response.badRequest(body: {"error": "request entity could not be decoded"});
     }
 
-    return _decodedData;
+    return _cast(_decodedData);
   }
 
-  /// Returns decoded data as [Map], decoding it if not already decoded.
-  ///
-  /// This method invokes [decodedData] and casts the decoded object as [Map<String, dynamic>].
-  ///
-  /// If there is no body data, this method returns null.
-  ///
-  /// If [decodedData] is not a [Map<String, dynamic>] this method throws an
-  /// error [Response].
-  ///
-  /// For a non-[Future] variant, see [asMap].
-  Future<Map<String, dynamic>> decodeAsMap() async {
-    await decodedData;
-
-    return asMap();
-  }
-
-  /// Returns decoded data as [List], decoding it if not already decoded.
-  ///
-  /// This method invokes [decodedData] and casts the decoded object as a [List].
-  /// Note that this method *may not* be used to return a list of decoded bytes, use
-  /// [decodeAsBytes] instead.
-  ///
-  /// If there is no body data, this method returns null.
-  ///
-  /// If [decodedData] is not a [List] object, this method
-  /// throws an error [Response].
-  ///
-  /// For a non-[Future] variant, see [asList].
-  Future<List<dynamic>> decodeAsList() async {
-    await decodedData;
-
-    return asList();
-  }
-
-  /// Returns decoded data as [String], decoding it if not already decoded.
-  ///
-  /// This method invokes [decodedData] and concatenates each [String] element into a single [String].
-  /// The concatenated [String] is returned from this method as a [Future].
-  ///
-  /// If there is no body data, this method returns null.
-  ///
-  /// If [decodedData] is not a [String], this method
-  /// throws an error [Response].
-  ///
-  /// For a non-[Future] variant, see [asString].
-  Future<String> decodeAsString() async {
-    await decodedData;
-
-    return asString();
-  }
-
-  /// Returns request body as [List] of bytes.
-  ///
-  /// If there is no body data, this method returns null.
-  ///
-  /// This method first invokes [decodedData], potentially decoding the request body
-  /// if there is a codec in [HTTPCodecRepository] for the content-type of the request.
-  ///
-  /// If there is not a codec for the content-type of the request, no decoding occurs and this method returns the
-  /// list of bytes directly from the request body.
-  ///
-  /// If the body was decoded with a codec, this method will throw an exception by default because
-  /// the raw request body bytes are discarded after decoding succeeds to free up memory. You may set
-  /// [retainOriginalBytes] to true prior to decoding to keep a copy of the raw bytes; in which case,
-  /// this method will successfully return the request body bytes.
-  ///
-  /// For a non-[Future] variant, see [asBytes].
-  Future<List<int>> decodeAsBytes() async {
-    await decodedData;
-
-    return asBytes();
-  }
-
-  /// Returns decoded data as [Map] if decoding has already occurred.
-  ///
-  /// If decoding has not yet occurred, this method throws an error.
-  ///
-  /// If decoding as occurred, behavior is the same as [decodeAsMap], but the result is not wrapped in [Future].
-  Map<String, dynamic> asMap() {
+  T as<T>() {
     if (!hasBeenDecoded) {
-      throw new StateError("Invalid body decoding. Body must be decoded before 'asMap' is invoked. Use 'decodeAsMap'.");
+      throw StateError("Attempted to access request body without decoding it.");
     }
 
-    if (_decodedData == null) {
-      return null;
-    }
+    return _cast(_decodedData);
+  }
 
+  static T _cast<T>(dynamic body) {
     try {
-      return _decodedData as Map<String, dynamic>;
+      return runtimeCast(body, reflectType(T)) as T;
     } on CastError {
-      throw new Response(422, null, {"error": "unexpected request entity data type"});
+      throw Response.badRequest(body: {"error": "request entity was unexpected type"});
     }
-  }
-
-  /// Returns decoded data as [List] if decoding has already occurred.
-  ///
-  /// If decoding has not yet occurred, this method throws an error.
-  ///
-  /// If decoding as occurred, behavior is the same as [decodeAsList], but the result is not wrapped in [Future].
-  List<dynamic> asList() {
-    if (!hasBeenDecoded) {
-      throw new StateError("Invalid body decoding. Body must be decoded before 'asList' is invoked. Use 'decodeAsList'.");
-    }
-
-    if (_decodedData == null) {
-      return null;
-    }
-
-    try {
-      return _decodedData as List<dynamic>;
-    } on CastError {
-      throw new Response(422, null, {"error": "unexpected request entity data type"});
-    }
-  }
-
-  /// Returns decoded data as [String] if decoding as already occurred.
-  ///
-  /// If decoding has not yet occurred, this method throws an error.
-  ///
-  /// If decoding as occurred, behavior is the same as [decodeAsString], but the result is not wrapped in [Future].
-  String asString() {
-    if (!hasBeenDecoded) {
-      throw new StateError("Invalid body decoding. Body must be decoded before 'asString' is invoked. Use 'decodeAsString'.");
-    }
-
-    if (_decodedData == null) {
-      return null;
-    }
-
-    try {
-      return _decodedData as String;
-    } on CastError {
-      throw new Response(422, null, {"error": "unexpected request entity data type"});
-    }
-  }
-
-  /// Returns decoded data as a [List] of bytes if decoding has already occurred.
-  ///
-  /// If decoding has not yet occurred, this method throws an error.
-  ///
-  /// If decoding has occurred, behavior is the same as [decodeAsBytes], but the result is not wrapped in [Future].
-  List<int> asBytes() {
-    if (!hasBeenDecoded) {
-      throw new StateError("Invalid body decoding. Body must be decoded before 'asBytes' is invoked. Use 'decodeAsBytes'.");
-    }
-
-    if (_bytes != null) {
-      return _bytes;
-    }
-
-    if (_decodedData == null) {
-      return null;
-    }
-
-    try {
-      return _decodedData as List<int>;
-    } on CastError {
-      throw new StateError("Invalid body decoding. Body was decoded into another type. Set 'retainOriginalBytes' to true. to retain original bytes.");
-    }
-  }
-
-  /// Returns decoded data if decoding has already occurred.
-  ///
-  /// If decoding has not yet occurred, this method throws an error.
-  ///
-  /// If decoding has occurred, behavior is the same as [decodedData], but the result is not wrapped in [Future].
-  dynamic asDynamic() {
-    if (!hasBeenDecoded) {
-      throw new StateError("Invalid body decoding. Body must be decoded before 'asDynamic' is invoked. Use 'decodedData'.");
-    }
-
-    return _decodedData;
   }
 
   Future<List<int>> _readBytes(Stream<List<int>> stream) async {

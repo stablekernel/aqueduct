@@ -171,7 +171,7 @@ class BoundController {
 
     if (!request.body.isEmpty) {
       controller.willDecodeRequestBody(request.body);
-      await request.body.decodedData;
+      await request.body.decode();
       controller.didDecodeRequestBody(request.body);
     }
 

@@ -248,7 +248,7 @@ class HubChannel extends ApplicationChannel {
     });
 
     router.route("/send").linkFunction((req) async {
-      var msg = await req.body.decodeAsString();
+      String msg = await req.body.decode();
       if (msg == "garbage") {
         messageHub.add((x) => x);
       } else {

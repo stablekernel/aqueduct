@@ -132,7 +132,7 @@ void main() {
         "name": "Bob"
       }];
       var response = await postJSON(m);
-      expect(response.statusCode, 422);
+      expect(response.statusCode, 400);
       expect(json.decode(response.body)["error"], contains("unexpected request entity data type"));
     });
 
@@ -143,7 +143,7 @@ void main() {
         "name": "Bob"
       };
       var response = await postJSON(m);
-      expect(response.statusCode, 422);
+      expect(response.statusCode, 400);
       expect(json.decode(response.body)["error"], contains("unexpected request entity data type"));
     });
 
@@ -157,7 +157,7 @@ void main() {
     test("Expect list of objects, got list of strings", () async {
       server = await enableController("/", ListTestController);
       var response = await postJSON(["a", "b"]);
-      expect(response.statusCode, 422);
+      expect(response.statusCode, 400);
       expect(json.decode(response.body)["error"], contains("unexpected request entity data type"));
 
     });

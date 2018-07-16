@@ -143,7 +143,7 @@ class MockHTTPServer extends MockServer<Request> {
     server.map((req) => new Request(req)).listen((req) async {
       add(req);
 
-      await req.body.decodedData;
+      await req.body.decode;
 
       final response = await _dequeue(req);
       if (response != null) {

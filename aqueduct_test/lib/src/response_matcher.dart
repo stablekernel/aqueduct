@@ -36,7 +36,7 @@ class HTTPResponseMatcher extends Matcher {
     }
 
     if (body != null) {
-      if (!body.matches(response.body.asDynamic(), matchState)) {
+      if (!body.matches(response.body.as(), matchState)) {
         matchState["HTTPResponseMatcher.didFailOnBody"] = true;
         success = false;
       }
@@ -93,7 +93,7 @@ class HTTPResponseMatcher extends Matcher {
     }
 
     if (matchState["HTTPResponseMatcher.didFailOnBody"] == true) {
-      body.describeMismatch(response.body.asDynamic(), mismatchDescription, matchState, verbose);
+      body.describeMismatch(response.body.as(), mismatchDescription, matchState, verbose);
     }
 
     return mismatchDescription;

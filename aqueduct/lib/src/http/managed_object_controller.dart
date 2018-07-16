@@ -122,7 +122,7 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
   @Operation.post()
   Future<Response> createObject() async {
     InstanceType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as InstanceType;
-    instance.readFromMap(request.body.asMap());
+    instance.readFromMap(request.body.as());
     _query.values = instance;
 
     _query = await willInsertObjectWithQuery(_query);
@@ -201,7 +201,7 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
     _query.where((o) => o[primaryKey]).equalTo(parsedIdentifier);
 
     InstanceType instance = _query.entity.instanceType.newInstance(new Symbol(""), []).reflectee as InstanceType;
-    instance.readFromMap(request.body.asMap());
+    instance.readFromMap(request.body.as());
     _query.values = instance;
 
     _query = await willUpdateObjectWithQuery(_query);
@@ -355,8 +355,6 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
           "404": new APIResponse("No object found."),
           "400": new APIResponse.schema(
               "Invalid request.", new APISchemaObject.object({"error": new APISchemaObject.string()})),
-          "422": new APIResponse.schema(
-              "Entity in unexpected format", new APISchemaObject.object({"error": new APISchemaObject.string()})),
           "409": new APIResponse.schema(
               "Object already exists", new APISchemaObject.object({"error": new APISchemaObject.string()})),
         };
@@ -365,8 +363,6 @@ class ManagedObjectController<InstanceType extends ManagedObject> extends Resour
           "200": new APIResponse.schema("Returns created object.", context.schema.getObjectWithType(InstanceType)),
           "400": new APIResponse.schema(
               "Invalid request.", new APISchemaObject.object({"error": new APISchemaObject.string()})),
-          "422": new APIResponse.schema(
-              "Entity in unexpected format", new APISchemaObject.object({"error": new APISchemaObject.string()})),
           "409": new APIResponse.schema(
               "Object already exists", new APISchemaObject.object({"error": new APISchemaObject.string()}))
         };

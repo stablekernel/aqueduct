@@ -151,7 +151,7 @@ class BoundQueryParameter extends BoundInput {
     dynamic value = queryParameters[externalName];
     if (value == null) {
       if (requestHasFormData(request)) {
-        value = request.body.asMap()[externalName];
+        value = request.body.as<Map<String, dynamic>>()[externalName];
       }
     }
 
@@ -189,7 +189,7 @@ class BoundBody extends BoundInput {
       }
 
       var value = intoType.newInstance(new Symbol(""), []).reflectee as HTTPSerializable;
-      value.readFromMap(request.body.asMap());
+      value.readFromMap(request.body.as());
 
       return value;
     } else if (intoType.isSubtypeOf(reflectType(List))) {
@@ -197,7 +197,7 @@ class BoundBody extends BoundInput {
         throw new Response(422, null, {"error": "unexpected request entity data type"});
       }
 
-      var bodyList = request.body.asList();
+      List<Map<String, dynamic>> bodyList = request.body.as();
       if (bodyList.isEmpty) {
         return [];
       }

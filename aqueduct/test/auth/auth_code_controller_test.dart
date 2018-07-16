@@ -55,7 +55,7 @@ void main() {
       expect(res, hasResponse(200, body: null, headers: {"content-type": "text/html; charset=utf-8"}));
 
       // The data is actually JSON for purposes of this test, just makes it easier to validate here.
-      expect(json.decode(res.body.asString()), {
+      expect(json.decode(res.body.as<String>()), {
         "response_type": "code",
         "client_id": "com.stablekernel.redirect",
         "state": null,
@@ -75,7 +75,7 @@ void main() {
       var res = await req.get();
       expect(res, hasStatus(200));
       expect(res, hasHeaders({"content-type": "text/html; charset=utf-8"}));
-      expect(json.decode(res.body.asString()), {
+      expect(json.decode(res.body.as<String>()), {
         "response_type": "code",
         "client_id": "com.stablekernel.redirect",
         "state": "Alaska",

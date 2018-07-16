@@ -594,7 +594,7 @@ class TController extends ResourceController {
 
   @Operation.post()
   Future<Response> post() async {
-    var body = this.request.body.asMap();
+    Map<String, dynamic> body = this.request.body.as();
 
     return new Response.ok(body);
   }

@@ -344,7 +344,6 @@ void main() {
       expect(op.responses.length, 4);
 
       expect(op.responses["409"], isNotNull);
-      expect(op.responses["422"], isNotNull);
       expect(op.responses["400"], isNotNull);
       expect(op.responses["200"].content["application/json"].schema.referenceURI.path, "/components/schemas/TestModel");
       expect(op.requestBody.content["application/json"].schema.referenceURI.path, "/components/schemas/TestModel");
@@ -358,7 +357,6 @@ void main() {
 
       expect(op.responses["404"], isNotNull);
       expect(op.responses["409"], isNotNull);
-      expect(op.responses["422"], isNotNull);
       expect(op.responses["400"], isNotNull);
       expect(op.responses["200"].content["application/json"].schema.referenceURI.path, "/components/schemas/TestModel");
       expect(op.requestBody.content["application/json"].schema.referenceURI.path, "/components/schemas/TestModel");
