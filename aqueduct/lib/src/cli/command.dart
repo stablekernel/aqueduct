@@ -25,24 +25,25 @@ enum CLIColor { red, green, blue, boldRed, boldGreen, boldBlue, boldNone, none }
 
 /// A command line interface command.
 abstract class CLICommand {
-  static const _Delimiter = "-- ";
-  static const _Tabs = "    ";
-  static const _ErrorDelimiter = "*** ";
+  static const _delimiter = "-- ";
+  static const _tabs = "    ";
+  static const _errorDelimiter = "*** ";
 
   CLICommand() {
-    final arguments = reflect(this).type.instanceMembers.values.where((m) => m.metadata.any((im) {
-      bool hasArgMetadata = im.type.isAssignableTo(reflectType(Argument));
-      return hasArgMetadata;
-    }));
+    final arguments = reflect(this)
+        .type
+        .instanceMembers
+        .values
+        .where((m) => m.metadata.any((im) => im.type.isAssignableTo(reflectType(Argument))));
 
     arguments.forEach((arg) {
       if (!arg.isGetter) {
-        throw new StateError("Declaration "
-          "${MirrorSystem.getName(arg.owner.simpleName)}.${MirrorSystem.getName(arg.simpleName)} "
-          "has CLI annotation, but is not a getter.");
+        throw StateError("Declaration "
+            "${MirrorSystem.getName(arg.owner.simpleName)}.${MirrorSystem.getName(arg.simpleName)} "
+            "has CLI annotation, but is not a getter.");
       }
 
-      Argument argType = firstMetadataOfType(arg);
+      final Argument argType = firstMetadataOfType(arg);
       argType.addToParser(options);
     });
   }
@@ -77,7 +78,7 @@ abstract class CLICommand {
       defaultsTo: false)
   bool get isMachineOutput => decode("machine");
 
-  Map<String, CLICommand> _commandMap = {};
+  final Map<String, CLICommand> _commandMap = {};
 
   StringSink _outputSink = stdout;
 
@@ -191,18 +192,18 @@ abstract class CLICommand {
   void preProcess() {}
 
   void displayError(String errorMessage, {bool showUsage: false, CLIColor color: CLIColor.boldRed}) {
-    outputSink.writeln("${colorSymbol(color)}$_ErrorDelimiter$errorMessage$defaultColorSymbol");
+    outputSink.writeln("${colorSymbol(color)}$_errorDelimiter$errorMessage$defaultColorSymbol");
     if (showUsage) {
       outputSink.writeln("\n${options.usage}");
     }
   }
 
   void displayInfo(String infoMessage, {CLIColor color: CLIColor.boldNone}) {
-    outputSink.writeln("${colorSymbol(color)}$_Delimiter$infoMessage$defaultColorSymbol");
+    outputSink.writeln("${colorSymbol(color)}$_delimiter$infoMessage$defaultColorSymbol");
   }
 
   void displayProgress(String progressMessage, {CLIColor color: CLIColor.none}) {
-    outputSink.writeln("${colorSymbol(color)}$_Tabs$progressMessage$defaultColorSymbol");
+    outputSink.writeln("${colorSymbol(color)}$_tabs$progressMessage$defaultColorSymbol");
   }
 
   String colorSymbol(CLIColor color) {

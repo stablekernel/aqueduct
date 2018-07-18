@@ -1,6 +1,8 @@
 import 'dart:io';
-import 'application.dart';
+
 import 'package:aqueduct/src/application/channel.dart';
+
+import 'application.dart';
 
 /// An object that contains configuration values for an [Application].
 ///

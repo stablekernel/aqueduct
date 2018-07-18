@@ -19,14 +19,14 @@ class AuthorizationBearerParser extends AuthorizationParser<String> {
   @override
   String parse(String authorizationHeader) {
     if (authorizationHeader == null) {
-      throw new AuthorizationParserException(
+      throw AuthorizationParserException(
           AuthorizationParserExceptionReason.missing);
     }
 
-    var matcher = new RegExp("Bearer (.+)");
-    var match = matcher.firstMatch(authorizationHeader);
+    final matcher = RegExp("Bearer (.+)");
+    final match = matcher.firstMatch(authorizationHeader);
     if (match == null) {
-      throw new AuthorizationParserException(
+      throw AuthorizationParserException(
           AuthorizationParserExceptionReason.malformed);
     }
     return match[1];
@@ -60,34 +60,34 @@ class AuthorizationBasicParser extends AuthorizationParser <AuthBasicCredentials
   @override
   AuthBasicCredentials parse(String authorizationHeader) {
     if (authorizationHeader == null) {
-      throw new AuthorizationParserException(
+      throw AuthorizationParserException(
           AuthorizationParserExceptionReason.missing);
     }
 
-    var matcher = new RegExp("Basic (.+)");
-    var match = matcher.firstMatch(authorizationHeader);
+    final matcher = RegExp("Basic (.+)");
+    final match = matcher.firstMatch(authorizationHeader);
     if (match == null) {
-      throw new AuthorizationParserException(
+      throw AuthorizationParserException(
           AuthorizationParserExceptionReason.malformed);
     }
 
-    var base64String = match[1];
+    final base64String = match[1];
     String decodedCredentials;
     try {
       decodedCredentials =
-          new String.fromCharCodes(new Base64Decoder().convert(base64String));
+          String.fromCharCodes(const Base64Decoder().convert(base64String));
     } catch (e) {
-      throw new AuthorizationParserException(
+      throw AuthorizationParserException(
           AuthorizationParserExceptionReason.malformed);
     }
 
-    var splitCredentials = decodedCredentials.split(":");
+    final splitCredentials = decodedCredentials.split(":");
     if (splitCredentials.length != 2) {
-      throw new AuthorizationParserException(
+      throw AuthorizationParserException(
           AuthorizationParserExceptionReason.malformed);
     }
 
-    return new AuthBasicCredentials()
+    return AuthBasicCredentials()
       ..username = splitCredentials.first
       ..password = splitCredentials.last;
   }

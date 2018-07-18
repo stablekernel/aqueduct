@@ -2,10 +2,11 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:logging/logging.dart';
-import '../http/request.dart';
 import 'package:aqueduct/src/application/channel.dart';
+import 'package:logging/logging.dart';
+
 import '../http/controller.dart';
+import '../http/request.dart';
 import 'application.dart';
 import 'options.dart';
 
@@ -19,9 +20,9 @@ class ApplicationServer {
   ///
   /// You should not need to invoke this method directly.
   ApplicationServer(ClassMirror channelType, this.options, this.identifier) {
-    channel = channelType.newInstance(new Symbol(""), []).reflectee as ApplicationChannel;
-    channel.server = this;
-    channel.options = options;
+    channel = (channelType.newInstance(const Symbol(""), []).reflectee as ApplicationChannel)
+      ..server = this
+      ..options = options;
   }
 
   /// The configuration this instance used to start its [channel].
@@ -52,12 +53,12 @@ class ApplicationServer {
   int identifier;
 
   /// The logger of this instance
-  Logger get logger => new Logger("aqueduct");
+  Logger get logger => Logger("aqueduct");
 
   /// Starts this instance, allowing it to receive HTTP requests.
   ///
   /// Do not invoke this method directly.
-  Future start({bool shareHttpServer: false}) async {
+  Future start({bool shareHttpServer = false}) async {
     logger.fine("ApplicationServer($identifier).start entry");
 
     await channel.prepare();
@@ -66,21 +67,19 @@ class ApplicationServer {
     entryPoint.didAddToChannel();
 
     logger.fine("ApplicationServer($identifier).start binding HTTP");
-    var securityContext = channel.securityContext;
+    final securityContext = channel.securityContext;
     if (securityContext != null) {
       _requiresHTTPS = true;
 
-      server = await HttpServer.bindSecure(options.address,
-          options.port, securityContext,
+      server = await HttpServer.bindSecure(options.address, options.port, securityContext,
           requestClientCertificate: options.isUsingClientCertificate,
           v6Only: options.isIpv6Only,
           shared: shareHttpServer);
     } else {
       _requiresHTTPS = false;
 
-      server = await HttpServer.bind(
-          options.address, options.port,
-          v6Only: options.isIpv6Only, shared: shareHttpServer);
+      server =
+          await HttpServer.bind(options.address, options.port, v6Only: options.isIpv6Only, shared: shareHttpServer);
     }
 
     logger.fine("ApplicationServer($identifier).start bound HTTP");
@@ -103,10 +102,10 @@ class ApplicationServer {
   ///
   /// [ApplicationChannel.willStartReceivingRequests] is invoked after this opening has completed.
   Future didOpen() async {
-    server.serverHeader = "aqueduct/${this.identifier}";
+    server.serverHeader = "aqueduct/$identifier";
 
     logger.fine("ApplicationServer($identifier).didOpen start listening");
-    server.map((baseReq) => new Request(baseReq)).listen(entryPoint.receive);
+    server.map((baseReq) => Request(baseReq)).listen(entryPoint.receive);
 
     channel.willStartReceivingRequests();
     logger.info("Server aqueduct/$identifier started.");

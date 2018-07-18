@@ -1,5 +1,5 @@
-import 'auth.dart';
 import '../http/request.dart';
+import 'auth.dart';
 
 /// Represents an OAuth 2.0 client ID and secret pair.
 ///
@@ -132,16 +132,16 @@ class AuthToken {
 
   /// Whether or not this token is expired by evaluated [expirationDate].
   bool get isExpired {
-    return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
+    return expirationDate.difference(DateTime.now().toUtc()).inSeconds <= 0;
   }
 
   /// Emits this instance as a [Map] according to the OAuth 2.0 specification.
   Map<String, dynamic> asMap() {
-    var map = {
+    final map = {
       "access_token": accessToken,
       "token_type": type,
       "expires_in":
-          expirationDate.difference(new DateTime.now().toUtc()).inSeconds,
+          expirationDate.difference(DateTime.now().toUtc()).inSeconds,
     };
 
     if (refreshToken != null) {
@@ -190,7 +190,7 @@ class AuthCode {
 
   /// Whether or not this code has expired yet, according to its [expirationDate].
   bool get isExpired {
-    return expirationDate.difference(new DateTime.now().toUtc()).inSeconds <= 0;
+    return expirationDate.difference(DateTime.now().toUtc()).inSeconds <= 0;
   }
 }
 
@@ -237,8 +237,8 @@ class Authorization {
   /// This method checks each element in [scopes] for any that gives privileges
   /// to access [scope].
   bool isAuthorizedForScope(String scope) {
-    var asScope = new AuthScope(scope);
-    return scopes?.any((s) => asScope.allowsScope(s)) ?? false;
+    final asScope = AuthScope(scope);
+    return scopes?.any(asScope.allowsScope) ?? false;
   }
 }
 
@@ -281,14 +281,34 @@ class AuthScope {
   /// An example is the 'readonly' modifier above. A route that requires `user:posts.readonly` would allow passage when the token
   /// has `user`, `user:posts` or `user:posts.readonly`. A route that required `user:posts` would not allow `user:posts.readonly`.
   factory AuthScope(String scopeString) {
-    var cached = _cache[scopeString];
+    final cached = _cache[scopeString];
     if (cached != null) {
       return cached;
     }
 
-    var scope = _parse(scopeString);
+    final scope = AuthScope._parse(scopeString);
     _cache[scopeString] = scope;
     return scope;
+  }
+
+  factory AuthScope._parse(String scopeString) {
+    if (scopeString?.isEmpty ?? true) {
+      throw FormatException(
+        "Invalid AuthScope. May not be null or empty string.", scopeString);
+    }
+
+    for (var c in scopeString.codeUnits) {
+      if (!(c == 33 || (c >= 35 && c <= 91) || (c >= 93 && c <= 126))) {
+        throw FormatException("Invalid authorization scope. May only contain "
+          "the following characters: A-Za-z0-9!#\$%&'`()*+,./:;<=>?@[]^_{|}-",
+          scopeString, scopeString.codeUnits.indexOf(c));
+      }
+    }
+
+    final segments = _parseSegments(scopeString);
+    final lastModifier = segments.last.modifier;
+
+    return AuthScope._(scopeString, segments, lastModifier);
   }
 
   const AuthScope._(this._scopeString, this._segments, this._lastModifier);
@@ -296,8 +316,8 @@ class AuthScope {
   /// Signifies 'any' scope in [AuthServerDelegate.getAllowedScopes].
   ///
   /// See [AuthServerDelegate.getAllowedScopes] for more details.
-  static const List<AuthScope> Any = const [
-    const AuthScope._("_scope:_constant:_marker", const [], null)
+  static const List<AuthScope> any = [
+    AuthScope._("_scope:_constant:_marker", [], null)
   ];
 
   /// Returns true if that [providedScopes] fulfills [requiredScopes].
@@ -311,33 +331,13 @@ class AuthScope {
     }
 
     return requiredScopes.every((requiredScope) {
-      var tokenHasValidScope = providedScopes?.any((tokenScope) => requiredScope.allowsScope(tokenScope));
+      final tokenHasValidScope = providedScopes?.any((tokenScope) => requiredScope.allowsScope(tokenScope));
 
       return tokenHasValidScope ?? false;
     });
   }
 
-  static Map<String, AuthScope> _cache = {};
-
-  static AuthScope _parse(String scopeString) {
-    if (scopeString?.isEmpty ?? true) {
-      throw new FormatException(
-          "Invalid AuthScope. May not be null or empty string.", scopeString);
-    }
-
-    for (var c in scopeString.codeUnits) {
-      if (!(c == 33 || (c >= 35 && c <= 91) || (c >= 93 && c <= 126))) {
-        throw new FormatException("Invalid authorization scope. May only contain "
-            "the following characters: A-Za-z0-9!#\$%&'`()*+,./:;<=>?@[]^_{|}-",
-            scopeString, scopeString.codeUnits.indexOf(c));
-      }
-    }
-
-    var segments = _parseSegments(scopeString);
-    var lastModifier = segments.last.modifier;
-
-    return new AuthScope._(scopeString, segments, lastModifier);
-  }
+  static final Map<String, AuthScope> _cache = {};
 
   final String _scopeString;
 
@@ -356,26 +356,26 @@ class AuthScope {
 
   static List<_AuthScopeSegment> _parseSegments(String scopeString) {
     if (scopeString == null || scopeString == "") {
-      throw new FormatException(
+      throw FormatException(
           "Invalid AuthScope. May not be null or empty string.", scopeString);
     }
 
-    var elements = scopeString
+    final elements = scopeString
         .split(":")
-        .map((seg) => new _AuthScopeSegment(seg))
+        .map((seg) => _AuthScopeSegment(seg))
         .toList();
 
     var scannedOffset = 0;
     for (var i = 0; i < elements.length - 1; i++) {
       if (elements[i].modifier != null) {
-        throw new FormatException(
+        throw FormatException(
             "Invalid AuthScope. May only contain modifiers on the last segment.",
             scopeString,
             scannedOffset);
       }
 
       if (elements[i].name == "") {
-        throw new FormatException(
+        throw FormatException(
             "Invalid AuthScope. May not contain empty segments or, leading or trailing colons.",
             scopeString,
             scannedOffset);
@@ -385,7 +385,7 @@ class AuthScope {
     }
 
     if (elements.last.name == "") {
-      throw new FormatException(
+      throw FormatException(
           "Invalid AuthScope. May not contain empty segments.",
           scopeString,
           scannedOffset);
@@ -426,10 +426,10 @@ class AuthScope {
     }
 
     // If we aren't restricted by modifier, let's make sure we have access.
-    var thisIterator = _segments.iterator;
+    final thisIterator = _segments.iterator;
     for (var incomingSegment in incomingScope._segments) {
       thisIterator.moveNext();
-      var current = thisIterator.current;
+      final current = thisIterator.current;
 
       // If the incoming scope is more restrictive than this scope,
       // then it's not allowed.
@@ -451,15 +451,15 @@ class AuthScope {
   ///
   /// Parses an instance of this type from [scopeString] and invokes [allowsScope].
   bool allows(String scopeString) {
-    return allowsScope(new AuthScope(scopeString));
+    return allowsScope(AuthScope(scopeString));
   }
 
   /// Whether or not two scopes are exactly the same.
   bool isExactlyScope(AuthScope scope) {
-    var incomingIterator = scope._segments.iterator;
+    final incomingIterator = scope._segments.iterator;
     for (var segment in _segments) {
       incomingIterator.moveNext();
-      var incomingSegment = incomingIterator.current;
+      final incomingSegment = incomingIterator.current;
       if (incomingSegment == null) {
         return false;
       }
@@ -477,7 +477,7 @@ class AuthScope {
   ///
   /// Parses an instance of this type from [scopeString] and invokes [isExactlyScope].
   bool isExactly(String scopeString) {
-    return isExactlyScope(new AuthScope(scopeString));
+    return isExactlyScope(AuthScope(scopeString));
   }
 
   @override
@@ -486,7 +486,7 @@ class AuthScope {
 
 class _AuthScopeSegment {
   _AuthScopeSegment(String segment) {
-    var split = segment.split(".");
+    final split = segment.split(".");
     if (split.length == 2) {
       name = split.first;
       modifier = split.last;

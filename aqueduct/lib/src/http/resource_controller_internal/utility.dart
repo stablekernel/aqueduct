@@ -19,7 +19,7 @@ bool requestHasFormData(Request request) {
 }
 
 Map<Symbol, dynamic> toSymbolMap(Iterable<BoundValue> boundValues) {
-  return new Map.fromIterable(boundValues.where((v) => v.value != null),
+  return Map.fromIterable(boundValues.where((v) => v.value != null),
       key: (v) => (v as BoundValue).symbol, value: (v) => (v as BoundValue).value);
 }
 
@@ -36,7 +36,7 @@ List<AuthScope> getMethodScopes(DeclarationMirror m) {
   MethodMirror method = m;
   Scope metadata = method.metadata.firstWhere((im) => im.reflectee is Scope, orElse: () => null)?.reflectee;
 
-  return metadata?.scopes?.map((scope) => new AuthScope(scope))?.toList();
+  return metadata?.scopes?.map((scope) => AuthScope(scope))?.toList();
 }
 
 Operation getMethodOperationMetadata(DeclarationMirror m) {

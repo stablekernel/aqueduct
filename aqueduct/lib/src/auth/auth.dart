@@ -21,15 +21,15 @@ class AuthUtility {
   ///
   ///
   static String generatePasswordHash(String password, String salt,
-      {int hashRounds: 1000, int hashLength: 32, Hash hashFunction}) {
-    var generator = new PBKDF2(hashAlgorithm: hashFunction ?? sha256);
+      {int hashRounds = 1000, int hashLength = 32, Hash hashFunction}) {
+    final generator = PBKDF2(hashAlgorithm: hashFunction ?? sha256);
     return generator.generateBase64Key(password, salt, hashRounds, hashLength);
   }
 
   /// A utility method to generate a random base64 salt.
   ///
   ///
-  static String generateRandomSalt({int hashLength: 32}) {
+  static String generateRandomSalt({int hashLength = 32}) {
     return Salt.generateAsBase64String(hashLength);
   }
 
@@ -45,20 +45,20 @@ class AuthUtility {
   /// Note that [secret] is hashed with a randomly generated salt, and therefore cannot be retrieved
   /// later. The plain-text secret must be stored securely elsewhere.
   static AuthClient generateAPICredentialPair(String clientID, String secret,
-      {String redirectURI, int hashLength: 32, int hashRounds: 1000, Hash hashFunction}) {
+      {String redirectURI, int hashLength = 32, int hashRounds = 1000, Hash hashFunction}) {
     if (secret == null) {
       if (redirectURI != null) {
-        throw new ArgumentError("Invalid input to generateAPICredentialPair. Only confidential clients may have 'redirectURI'. "
+        throw ArgumentError("Invalid input to generateAPICredentialPair. Only confidential clients may have 'redirectURI'. "
             "Clients are confidential when 'secret' is not null.");
       }
-      return new AuthClient.withRedirectURI(clientID, null, null, redirectURI);
+      return AuthClient.withRedirectURI(clientID, null, null, redirectURI);
     }
 
-    var salt = generateRandomSalt(hashLength: hashLength);
-    var hashed = generatePasswordHash(secret, salt,
+    final salt = generateRandomSalt(hashLength: hashLength);
+    final hashed = generatePasswordHash(secret, salt,
         hashRounds: hashRounds, hashLength: hashLength, hashFunction: hashFunction);
 
-    return new AuthClient.withRedirectURI(clientID, hashed, salt, redirectURI);
+    return AuthClient.withRedirectURI(clientID, hashed, salt, redirectURI);
   }
 }
 

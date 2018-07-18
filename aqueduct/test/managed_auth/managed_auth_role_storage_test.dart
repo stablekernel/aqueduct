@@ -308,7 +308,7 @@ class RoleBasedAuthStorage extends ManagedAuthDelegate<User> {
   @override
   List<AuthScope> getAllowedScopes(covariant User user) {
     if (user.role == "admin") {
-      return AuthScope.Any;
+      return AuthScope.any;
     } else if (user.role == "user") {
       return [new AuthScope("user")];
     } else if (user.role == "viewer") {

@@ -46,7 +46,7 @@ class AuthCodeController extends ResourceController {
   ///
   /// [authServer] is the required authorization server. If [delegate] is provided, this controller will return a login page for all GET requests.
   AuthCodeController(this.authServer, {this.delegate}) {
-    acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
+    acceptedContentTypes = [ContentType("application", "x-www-form-urlencoded")];
   }
 
   /// A reference to the [AuthServer] used to grant authorization codes.
@@ -88,15 +88,15 @@ class AuthCodeController extends ResourceController {
       /// A space-delimited list of access scopes to be requested by the form submission on the returned page.
       @Bind.query("scope") String scope}) async {
     if (delegate == null) {
-      return new Response(405, {}, null);
+      return Response(405, {}, null);
     }
 
-    var renderedPage = await delegate.render(this, request.raw.uri, responseType, clientID, state, scope);
+    final renderedPage = await delegate.render(this, request.raw.uri, responseType, clientID, state, scope);
     if (renderedPage == null) {
-      return new Response.notFound();
+      return Response.notFound();
     }
 
-    return new Response.ok(renderedPage)..contentType = ContentType.html;
+    return Response.ok(renderedPage)..contentType = ContentType.html;
   }
 
   /// Creates a one-time use authorization code.
@@ -118,29 +118,27 @@ class AuthCodeController extends ResourceController {
 
       /// A space-delimited list of access scopes being requested.
       @Bind.query("scope") String scope}) async {
-    var client = await authServer.getClient(clientID);
+    final client = await authServer.getClient(clientID);
 
     if (state == null) {
-      var exception = new AuthServerException(AuthRequestError.invalidRequest, client);
-      return _redirectResponse(null, null, error: exception);
+      return _redirectResponse(null, null, error: AuthServerException(AuthRequestError.invalidRequest, client));
     }
 
     if (responseType != "code") {
       if (client?.redirectURI == null) {
-        return new Response.badRequest();
+        return Response.badRequest();
       }
 
-      var exception = new AuthServerException(AuthRequestError.invalidRequest, client);
-      return _redirectResponse(null, state, error: exception);
+      return _redirectResponse(null, state, error: AuthServerException(AuthRequestError.invalidRequest, client));
     }
 
     try {
-      var scopes = scope?.split(" ")?.map((s) => new AuthScope(s))?.toList();
+      final scopes = scope?.split(" ")?.map((s) => AuthScope(s))?.toList();
 
-      var authCode = await authServer.authenticateForCode(username, password, clientID, requestedScopes: scopes);
+      final authCode = await authServer.authenticateForCode(username, password, clientID, requestedScopes: scopes);
       return _redirectResponse(client.redirectURI, state, code: authCode.code);
     } on FormatException {
-      return _redirectResponse(null, state, error: new AuthServerException(AuthRequestError.invalidScope, client));
+      return _redirectResponse(null, state, error: AuthServerException(AuthRequestError.invalidScope, client));
     } on AuthServerException catch (e) {
       return _redirectResponse(null, state, error: e);
     }
@@ -175,40 +173,40 @@ class AuthCodeController extends ResourceController {
   Map<String, APIResponse> documentOperationResponses(APIDocumentContext context, Operation operation) {
     if (operation.method == "GET") {
       return {
-        "200": new APIResponse.schema("Serves a login form.", new APISchemaObject.string(), contentTypes: ["text/html"])
+        "200": APIResponse.schema("Serves a login form.", APISchemaObject.string(), contentTypes: ["text/html"])
       };
     } else if (operation.method == "POST") {
       return {
-        "${HttpStatus.movedTemporarily}": new APIResponse(
+        "${HttpStatus.movedTemporarily}": APIResponse(
             "If successful, the query parameter of the redirect URI named 'code' contains authorization code. "
             "Otherwise, the query parameter 'error' is present and contains a error string.",
-            headers: {"Location": new APIHeader()..schema = new APISchemaObject.string(format: "uri")}),
-        "${HttpStatus.badRequest}": new APIResponse.schema(
+            headers: {"Location": APIHeader()..schema = APISchemaObject.string(format: "uri")}),
+        "${HttpStatus.badRequest}": APIResponse.schema(
             "If 'client_id' is invalid, the redirect URI cannot be verified and this response is sent.",
-            new APISchemaObject.object({"error": new APISchemaObject.string()}),
+            APISchemaObject.object({"error": APISchemaObject.string()}),
             contentTypes: ["application/json"])
       };
     }
 
-    throw new StateError("AuthCodeController documentation failed.");
+    throw StateError("AuthCodeController documentation failed.");
   }
 
   @override
   Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
     final ops = super.documentOperations(context, route, path);
-    authServer.documentedAuthorizationCodeFlow.authorizationURL = new Uri(path: route);
+    authServer.documentedAuthorizationCodeFlow.authorizationURL = Uri(path: route);
     return ops;
   }
 
-  static Response _redirectResponse(String uriString, String clientStateOrNull,
+  static Response _redirectResponse(final String inputUri, String clientStateOrNull,
       {String code, AuthServerException error}) {
-    uriString ??= error.client?.redirectURI;
+    final uriString = inputUri ?? error.client?.redirectURI;
     if (uriString == null) {
-      return new Response.badRequest(body: {"error": error.reasonString});
+      return Response.badRequest(body: {"error": error.reasonString});
     }
 
-    var redirectURI = Uri.parse(uriString);
-    Map<String, String> queryParameters = new Map.from(redirectURI.queryParameters);
+    final redirectURI = Uri.parse(uriString);
+    final queryParameters = Map<String, String>.from(redirectURI.queryParameters);
 
     if (code != null) {
       queryParameters["code"] = code;
@@ -220,14 +218,14 @@ class AuthCodeController extends ResourceController {
       queryParameters["error"] = error.reasonString;
     }
 
-    var responseURI = new Uri(
+    final responseURI = Uri(
         scheme: redirectURI.scheme,
         userInfo: redirectURI.userInfo,
         host: redirectURI.host,
         port: redirectURI.port,
         path: redirectURI.path,
         queryParameters: queryParameters);
-    return new Response(
+    return Response(
         HttpStatus.movedTemporarily,
         {
           HttpHeaders.locationHeader: responseURI.toString(),

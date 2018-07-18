@@ -2,26 +2,26 @@ import 'dart:async';
 import 'dart:isolate';
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/application/service_registry.dart';
 import 'package:logging/logging.dart';
 
-import 'package:aqueduct/src/application/service_registry.dart';
 import 'application.dart';
-import 'options.dart';
 import 'isolate_supervisor.dart';
+import 'options.dart';
 
 class ApplicationIsolateServer extends ApplicationServer {
   SendPort supervisingApplicationPort;
   ReceivePort supervisingReceivePort;
 
   ApplicationIsolateServer(ClassMirror channelType, ApplicationOptions configuration, int identifier,
-      this.supervisingApplicationPort, {bool logToConsole: false})
+      this.supervisingApplicationPort, {bool logToConsole = false})
       : super(channelType, configuration, identifier) {
     if (logToConsole) {
       hierarchicalLoggingEnabled = true;
       logger.level = Level.ALL;
-      logger.onRecord.listen((r) => print(r));
+      logger.onRecord.listen(print);
     }
-    supervisingReceivePort = new ReceivePort();
+    supervisingReceivePort = ReceivePort();
     supervisingReceivePort.listen(listener);
 
     logger.fine("ApplicationIsolateServer($identifier) listening, sending port");
@@ -29,10 +29,10 @@ class ApplicationIsolateServer extends ApplicationServer {
   }
 
   @override
-  Future start({bool shareHttpServer: false}) async {
-    var result = await super.start(shareHttpServer: shareHttpServer);
+  Future start({bool shareHttpServer = false}) async {
+    final result = await super.start(shareHttpServer: shareHttpServer);
     logger.fine("ApplicationIsolateServer($identifier) started, sending listen message");
-    supervisingApplicationPort.send(ApplicationIsolateSupervisor.MessageListening);
+    supervisingApplicationPort.send(ApplicationIsolateSupervisor.messageKeyListening);
 
     return result;
   }
@@ -40,14 +40,14 @@ class ApplicationIsolateServer extends ApplicationServer {
   @override
   void sendApplicationEvent(dynamic event) {
     try {
-      supervisingApplicationPort.send(new MessageHubMessage(event));
+      supervisingApplicationPort.send(MessageHubMessage(event));
     } catch (e, st) {
       hubSink?.addError(e, st);
     }
   }
 
   void listener(dynamic message) {
-    if (message == ApplicationIsolateSupervisor.MessageStop) {
+    if (message == ApplicationIsolateSupervisor.messageKeyStop) {
       stop();
     } else if (message is MessageHubMessage) {
       hubSink?.add(message.payload);
@@ -62,15 +62,15 @@ class ApplicationIsolateServer extends ApplicationServer {
     await ApplicationServiceRegistry.defaultInstance.close();
     logger.clearListeners();
     logger.fine("ApplicationIsolateServer($identifier) sending stop acknowledgement");
-    supervisingApplicationPort.send(ApplicationIsolateSupervisor.MessageStop);
+    supervisingApplicationPort.send(ApplicationIsolateSupervisor.messageKeyStop);
   }
 }
 
 void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
-  var channelSourceLibrary = currentMirrorSystem().libraries[params.streamLibraryURI];
-  var channelType = channelSourceLibrary.declarations[new Symbol(params.streamTypeName)] as ClassMirror;
+  final channelSourceLibrary = currentMirrorSystem().libraries[params.streamLibraryURI];
+  final channelType = channelSourceLibrary.declarations[Symbol(params.streamTypeName)] as ClassMirror;
 
-  var server = new ApplicationIsolateServer(channelType,
+  final server = ApplicationIsolateServer(channelType,
       params.configuration, params.identifier, params.parentMessagePort, logToConsole: params.logToConsole);
 
   server.start(shareHttpServer: true);
@@ -86,7 +86,7 @@ class ApplicationInitialServerMessage {
 
   ApplicationInitialServerMessage(
       this.streamTypeName, this.streamLibraryURI, this.configuration, this.identifier, this.parentMessagePort,
-      {this.logToConsole: false});
+      {this.logToConsole = false});
 }
 
 class MessageHubMessage {

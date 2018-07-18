@@ -136,11 +136,11 @@ abstract class AuthServerDelegate {
   /// That [ResourceOwner] is then restricted to only those scopes, even if the authenticating client would allow other scopes
   /// or scopes with higher privileges.
   ///
-  /// By default, this method returns [AuthScope.Any] - any [ResourceOwner] being authenticated has full access to the scopes
+  /// By default, this method returns [AuthScope.any] - any [ResourceOwner] being authenticated has full access to the scopes
   /// available to the authenticating client.
   ///
   /// When overriding this method, it is important to note that (by default) only the properties declared by [ResourceOwner]
   /// will be valid for [owner]. If [owner] has properties that are application-specific (like a `role`),
   /// [getResourceOwner] must also be overridden to ensure those values are fetched.
-  List<AuthScope> getAllowedScopes(ResourceOwner owner) => AuthScope.Any;
+  List<AuthScope> getAllowedScopes(ResourceOwner owner) => AuthScope.any;
 }

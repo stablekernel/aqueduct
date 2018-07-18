@@ -58,12 +58,12 @@ import 'auth.dart';
 ///         }
 ///
 class AuthServer implements AuthValidator, APIComponentDocumenter  {
-  static const String TokenTypeBearer = "bearer";
+  static const String tokenTypeBearer = "bearer";
 
   /// Creates a new instance of an [AuthServer] with a [delegate].
   ///
   /// [hashFunction] defaults to [sha256].
-  AuthServer(this.delegate, {this.hashRounds: 1000, this.hashLength: 32, Hash hashFunction})
+  AuthServer(this.delegate, {this.hashRounds = 1000, this.hashLength = 32, Hash hashFunction})
       : this.hashFunction = hashFunction ?? sha256;
 
   /// The object responsible for carrying out the storage mechanisms of this instance.
@@ -85,10 +85,10 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   final Hash hashFunction;
 
   /// Used during OpenAPI documentation.
-  final APISecuritySchemeOAuth2Flow documentedAuthorizationCodeFlow = new APISecuritySchemeOAuth2Flow.empty()..scopes = {};
+  final APISecuritySchemeOAuth2Flow documentedAuthorizationCodeFlow = APISecuritySchemeOAuth2Flow.empty()..scopes = {};
 
   /// Used during OpenAPI documentation.
-  final APISecuritySchemeOAuth2Flow documentedPasswordFlow = new APISecuritySchemeOAuth2Flow.empty()..scopes = {};
+  final APISecuritySchemeOAuth2Flow documentedPasswordFlow = APISecuritySchemeOAuth2Flow.empty()..scopes = {};
 
   /// Hashes a [password] with [salt] using PBKDF2 algorithm.
   ///
@@ -104,7 +104,7 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   /// [delegate] will store this client for future use.
   Future addClient(AuthClient client) async {
     if (client.redirectURI != null && client.hashedSecret == null) {
-      throw new ArgumentError("A client with a redirectURI must have a client secret.");
+      throw ArgumentError("A client with a redirectURI must have a client secret.");
     }
 
     return delegate.addClient(this, client);
@@ -123,7 +123,7 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   /// Asks [delegate] to remove an [AuthClient] by its ID via [AuthServerDelegate.removeClient].
   Future removeClient(String clientID) async {
     if (clientID == null) {
-      throw new AuthServerException(AuthRequestError.invalidClient, null);
+      throw AuthServerException(AuthRequestError.invalidClient, null);
     }
 
     return delegate.removeClient(this, clientID);
@@ -135,7 +135,7 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   /// will be revoked.
   Future revokeAllGrantsForResourceOwner(dynamic identifier) async {
     if (identifier == null) {
-      throw new ArgumentError.notNull("identifier");
+      throw ArgumentError.notNull("identifier");
     }
 
     await delegate.removeTokens(this, identifier);
@@ -148,44 +148,44 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   ///
   /// After [expiration], this token will no longer be valid.
   Future<AuthToken> authenticate(String username, String password, String clientID, String clientSecret,
-      {Duration expiration: const Duration(hours: 24), List<AuthScope> requestedScopes}) async {
+      {Duration expiration = const Duration(hours: 24), List<AuthScope> requestedScopes}) async {
     if (clientID == null) {
-      throw new AuthServerException(AuthRequestError.invalidClient, null);
+      throw AuthServerException(AuthRequestError.invalidClient, null);
     }
 
     final client = await getClient(clientID);
     if (client == null) {
-      throw new AuthServerException(AuthRequestError.invalidClient, null);
+      throw AuthServerException(AuthRequestError.invalidClient, null);
     }
 
     if (username == null || password == null) {
-      throw new AuthServerException(AuthRequestError.invalidRequest, client);
+      throw AuthServerException(AuthRequestError.invalidRequest, client);
     }
 
     if (client.isPublic) {
       if (!(clientSecret == null || clientSecret == "")) {
-        throw new AuthServerException(AuthRequestError.invalidClient, client);
+        throw AuthServerException(AuthRequestError.invalidClient, client);
       }
     } else {
       if (clientSecret == null) {
-        throw new AuthServerException(AuthRequestError.invalidClient, client);
+        throw AuthServerException(AuthRequestError.invalidClient, client);
       }
 
       if (client.hashedSecret != hashPassword(clientSecret, client.salt)) {
-        throw new AuthServerException(AuthRequestError.invalidClient, client);
+        throw AuthServerException(AuthRequestError.invalidClient, client);
       }
     }
 
     final authenticatable = await delegate.getResourceOwner(this, username);
     if (authenticatable == null) {
-      throw new AuthServerException(AuthRequestError.invalidGrant, client);
+      throw AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
     final dbSalt = authenticatable.salt;
     final dbPassword = authenticatable.hashedPassword;
     final hash = hashPassword(password, dbSalt);
     if (hash != dbPassword) {
-      throw new AuthServerException(AuthRequestError.invalidGrant, client);
+      throw AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
     final validScopes = _validatedScopes(client, authenticatable, requestedScopes);
@@ -202,21 +202,21 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   /// If the token is valid, an [Authorization] object is returned. Otherwise, an [AuthServerException] is thrown.
   Future<Authorization> verify(String accessToken, {List<AuthScope> scopesRequired}) async {
     if (accessToken == null) {
-      throw new AuthServerException(AuthRequestError.invalidRequest, null);
+      throw AuthServerException(AuthRequestError.invalidRequest, null);
     }
 
-    AuthToken t = await delegate.getToken(this, byAccessToken: accessToken);
+    final t = await delegate.getToken(this, byAccessToken: accessToken);
     if (t == null || t.isExpired) {
-      throw new AuthServerException(AuthRequestError.invalidGrant, new AuthClient(t?.clientID, null, null));
+      throw AuthServerException(AuthRequestError.invalidGrant, AuthClient(t?.clientID, null, null));
     }
 
     if (scopesRequired != null) {
       if (!AuthScope.verify(scopesRequired, t.scopes)) {
-        throw new AuthServerException(AuthRequestError.invalidScope, new AuthClient(t.clientID, null, null));
+        throw AuthServerException(AuthRequestError.invalidScope, AuthClient(t.clientID, null, null));
       }
     }
 
-    return new Authorization(t.clientID, t.resourceOwnerIdentifier, this, scopes: t.scopes);
+    return Authorization(t.clientID, t.resourceOwnerIdentifier, this, scopes: t.scopes);
   }
 
   /// Refreshes a valid [AuthToken] instance.
@@ -227,44 +227,44 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   Future<AuthToken> refresh(String refreshToken, String clientID, String clientSecret,
       {List<AuthScope> requestedScopes}) async {
     if (clientID == null) {
-      throw new AuthServerException(AuthRequestError.invalidClient, null);
+      throw AuthServerException(AuthRequestError.invalidClient, null);
     }
 
-    AuthClient client = await getClient(clientID);
+    final client = await getClient(clientID);
     if (client == null) {
-      throw new AuthServerException(AuthRequestError.invalidClient, null);
+      throw AuthServerException(AuthRequestError.invalidClient, null);
     }
 
     if (refreshToken == null) {
-      throw new AuthServerException(AuthRequestError.invalidRequest, client);
+      throw AuthServerException(AuthRequestError.invalidRequest, client);
     }
 
-    var t = await delegate.getToken(this, byRefreshToken: refreshToken);
+    final t = await delegate.getToken(this, byRefreshToken: refreshToken);
     if (t == null || t.clientID != clientID) {
-      throw new AuthServerException(AuthRequestError.invalidGrant, client);
+      throw AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
     if (clientSecret == null) {
-      throw new AuthServerException(AuthRequestError.invalidClient, client);
+      throw AuthServerException(AuthRequestError.invalidClient, client);
     }
 
     if (client.hashedSecret != hashPassword(clientSecret, client.salt)) {
-      throw new AuthServerException(AuthRequestError.invalidClient, client);
+      throw AuthServerException(AuthRequestError.invalidClient, client);
     }
 
     var updatedScopes = t.scopes;
     if ((requestedScopes?.length ?? 0) != 0) {
       // If we do specify scope
       for (var incomingScope in requestedScopes) {
-        var hasExistingScopeOrSuperset =
+        final hasExistingScopeOrSuperset =
             t.scopes.any((existingScope) => incomingScope.isSubsetOrEqualTo(existingScope));
 
         if (!hasExistingScopeOrSuperset) {
-          throw new AuthServerException(AuthRequestError.invalidScope, client);
+          throw AuthServerException(AuthRequestError.invalidScope, client);
         }
 
         if (!client.allowsScope(incomingScope)) {
-          throw new AuthServerException(AuthRequestError.invalidScope, client);
+          throw AuthServerException(AuthRequestError.invalidScope, client);
         }
       }
 
@@ -273,17 +273,17 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
       // Ensure we still have access to same scopes if we didn't specify any
       for (var incomingScope in t.scopes) {
         if (!client.allowsScope(incomingScope)) {
-          throw new AuthServerException(AuthRequestError.invalidScope, client);
+          throw AuthServerException(AuthRequestError.invalidScope, client);
         }
       }
     }
 
-    var diff = t.expirationDate.difference(t.issueDate);
-    var now = new DateTime.now().toUtc();
-    var newToken = new AuthToken()
+    final diff = t.expirationDate.difference(t.issueDate);
+    final now = DateTime.now().toUtc();
+    final newToken = AuthToken()
       ..accessToken = randomStringOfLength(32)
       ..issueDate = now
-      ..expirationDate = now.add(new Duration(seconds: diff.inSeconds)).toUtc()
+      ..expirationDate = now.add(Duration(seconds: diff.inSeconds)).toUtc()
       ..refreshToken = t.refreshToken
       ..type = t.type
       ..scopes = updatedScopes
@@ -302,37 +302,37 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   /// if the credentials are correct. If they are not correct, it will throw the
   /// appropriate [AuthRequestError].
   Future<AuthCode> authenticateForCode(String username, String password, String clientID,
-      {int expirationInSeconds: 600, List<AuthScope> requestedScopes}) async {
+      {int expirationInSeconds = 600, List<AuthScope> requestedScopes}) async {
     if (clientID == null) {
-      throw new AuthServerException(AuthRequestError.invalidClient, null);
+      throw AuthServerException(AuthRequestError.invalidClient, null);
     }
 
-    AuthClient client = await getClient(clientID);
+    final client = await getClient(clientID);
     if (client == null) {
-      throw new AuthServerException(AuthRequestError.invalidClient, null);
+      throw AuthServerException(AuthRequestError.invalidClient, null);
     }
 
     if (username == null || password == null) {
-      throw new AuthServerException(AuthRequestError.invalidRequest, client);
+      throw AuthServerException(AuthRequestError.invalidRequest, client);
     }
 
     if (client.redirectURI == null) {
-      throw new AuthServerException(AuthRequestError.unauthorizedClient, client);
+      throw AuthServerException(AuthRequestError.unauthorizedClient, client);
     }
 
-    var authenticatable = await delegate.getResourceOwner(this, username);
+    final authenticatable = await delegate.getResourceOwner(this, username);
     if (authenticatable == null) {
-      throw new AuthServerException(AuthRequestError.accessDenied, client);
+      throw AuthServerException(AuthRequestError.accessDenied, client);
     }
 
-    var dbSalt = authenticatable.salt;
-    var dbPassword = authenticatable.hashedPassword;
+    final dbSalt = authenticatable.salt;
+    final dbPassword = authenticatable.hashedPassword;
     if (hashPassword(password, dbSalt) != dbPassword) {
-      throw new AuthServerException(AuthRequestError.accessDenied, client);
+      throw AuthServerException(AuthRequestError.accessDenied, client);
     }
 
-    List<AuthScope> validScopes = _validatedScopes(client, authenticatable, requestedScopes);
-    AuthCode authCode = _generateAuthCode(authenticatable.id, client, expirationInSeconds, scopes: validScopes);
+    final validScopes = _validatedScopes(client, authenticatable, requestedScopes);
+    final authCode = _generateAuthCode(authenticatable.id, client, expirationInSeconds, scopes: validScopes);
     await delegate.addCode(this, authCode);
     return authCode;
   }
@@ -343,51 +343,51 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   /// and the client secret is correct, it will return a valid [AuthToken]. Otherwise,
   /// it will throw an appropriate [AuthRequestError].
   Future<AuthToken> exchange(String authCodeString, String clientID, String clientSecret,
-      {int expirationInSeconds: 3600}) async {
+      {int expirationInSeconds = 3600}) async {
     if (clientID == null) {
-      throw new AuthServerException(AuthRequestError.invalidClient, null);
+      throw AuthServerException(AuthRequestError.invalidClient, null);
     }
 
-    AuthClient client = await getClient(clientID);
+    final client = await getClient(clientID);
     if (client == null) {
-      throw new AuthServerException(AuthRequestError.invalidClient, null);
+      throw AuthServerException(AuthRequestError.invalidClient, null);
     }
 
     if (authCodeString == null) {
-      throw new AuthServerException(AuthRequestError.invalidRequest, null);
+      throw AuthServerException(AuthRequestError.invalidRequest, null);
     }
 
     if (clientSecret == null) {
-      throw new AuthServerException(AuthRequestError.invalidClient, client);
+      throw AuthServerException(AuthRequestError.invalidClient, client);
     }
 
     if (client.hashedSecret != hashPassword(clientSecret, client.salt)) {
-      throw new AuthServerException(AuthRequestError.invalidClient, client);
+      throw AuthServerException(AuthRequestError.invalidClient, client);
     }
 
-    AuthCode authCode = await delegate.getCode(this, authCodeString);
+    final authCode = await delegate.getCode(this, authCodeString);
     if (authCode == null) {
-      throw new AuthServerException(AuthRequestError.invalidGrant, client);
+      throw AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
     // check if valid still
     if (authCode.isExpired) {
       await delegate.removeCode(this, authCode.code);
-      throw new AuthServerException(AuthRequestError.invalidGrant, client);
+      throw AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
     // check that client ids match
     if (authCode.clientID != client.id) {
-      throw new AuthServerException(AuthRequestError.invalidGrant, client);
+      throw AuthServerException(AuthRequestError.invalidGrant, client);
     }
 
     // check to see if has already been used
     if (authCode.hasBeenExchanged) {
       await delegate.removeToken(this, authCode);
 
-      throw new AuthServerException(AuthRequestError.invalidGrant, client);
+      throw AuthServerException(AuthRequestError.invalidGrant, client);
     }
-    AuthToken token = _generateToken(authCode.resourceOwnerIdentifier, client.id, expirationInSeconds,
+    final token = _generateToken(authCode.resourceOwnerIdentifier, client.id, expirationInSeconds,
         scopes: authCode.requestedScopes);
     await delegate.addToken(this, token, issuedFrom: authCode);
 
@@ -400,13 +400,13 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
 
   @override
   void documentComponents(APIDocumentContext context) {
-    final basic = new APISecurityScheme.http("basic")
+    final basic = APISecurityScheme.http("basic")
       ..description =
           "This endpoint requires an OAuth2 Client ID and Secret as the Basic Authentication username and password. "
           "If the client ID does not have a secret (public client), the password is the empty string (retain the separating colon, e.g. 'com.aqueduct.app:').";
     context.securitySchemes.register("oauth2-client-authentication", basic);
 
-    final oauth2 = new APISecurityScheme.oauth2({
+    final oauth2 = APISecurityScheme.oauth2({
       "authorizationCode": documentedAuthorizationCodeFlow,
       "password": documentedPasswordFlow
     })..description = "Standard OAuth 2.0";
@@ -435,11 +435,11 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   List<APISecurityRequirement> documentRequirementsForAuthorizer(APIDocumentContext context, Authorizer authorizer, {List<AuthScope> scopes}) {
     if (authorizer.parser is AuthorizationBasicParser) {
       return [
-        new APISecurityRequirement({"oauth2-client-authentication": []})
+        APISecurityRequirement({"oauth2-client-authentication": []})
       ];
     } else if (authorizer.parser is AuthorizationBearerParser) {
       return [
-        new APISecurityRequirement({"oauth2": scopes?.map((s) => s.toString())?.toList() ?? []})
+        APISecurityRequirement({"oauth2": scopes?.map((s) => s.toString())?.toList() ?? []})
       ];
     }
 
@@ -450,38 +450,38 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   FutureOr<Authorization> validate<T>(AuthorizationParser<T> parser, T authorizationData,
       {List<AuthScope> requiredScope}) {
     if (parser is AuthorizationBasicParser) {
-      final creds = authorizationData as AuthBasicCredentials;
-      return _validateClientCredentials(creds);
+      final credentials = authorizationData as AuthBasicCredentials;
+      return _validateClientCredentials(credentials);
     } else if (parser is AuthorizationBearerParser) {
       return verify(authorizationData as String, scopesRequired: requiredScope);
     }
 
-    throw new ArgumentError("Invalid 'parser' for 'AuthServer.validate'. Use 'AuthorizationBasicParser' or 'AuthorizationBearerHeader'.");
+    throw ArgumentError("Invalid 'parser' for 'AuthServer.validate'. Use 'AuthorizationBasicParser' or 'AuthorizationBearerHeader'.");
   }
 
   Future<Authorization> _validateClientCredentials(AuthBasicCredentials credentials) async {
-    var username = credentials.username;
-    var password = credentials.password;
+    final username = credentials.username;
+    final password = credentials.password;
 
-    var client = await getClient(username);
+    final client = await getClient(username);
 
     if (client == null) {
-      throw new AuthServerException(AuthRequestError.invalidClient, null);
+      throw AuthServerException(AuthRequestError.invalidClient, null);
     }
 
     if (client.hashedSecret == null) {
       if (password == "") {
-        return new Authorization(client.id, null, this, credentials: credentials);
+        return Authorization(client.id, null, this, credentials: credentials);
       }
 
-      throw new AuthServerException(AuthRequestError.invalidClient, client);
+      throw AuthServerException(AuthRequestError.invalidClient, client);
     }
 
     if (client.hashedSecret != hashPassword(password, client.salt)) {
-      throw new AuthServerException(AuthRequestError.invalidClient, client);
+      throw AuthServerException(AuthRequestError.invalidClient, client);
     }
 
-    return new Authorization(client.id, null, this, credentials: credentials);
+    return Authorization(client.id, null, this, credentials: credentials);
   }
 
   List<AuthScope> _validatedScopes(
@@ -489,24 +489,24 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
     List<AuthScope> validScopes;
     if (client.supportsScopes) {
       if ((requestedScopes?.length ?? 0) == 0) {
-        throw new AuthServerException(AuthRequestError.invalidScope, client);
+        throw AuthServerException(AuthRequestError.invalidScope, client);
       }
 
       validScopes = requestedScopes.where((incomingScope) => client.allowsScope(incomingScope)).toList();
 
-      if (validScopes.length == 0) {
-        throw new AuthServerException(AuthRequestError.invalidScope, client);
+      if (validScopes.isEmpty) {
+        throw AuthServerException(AuthRequestError.invalidScope, client);
       }
 
-      var validScopesForAuthenticatable = delegate.getAllowedScopes(authenticatable);
-      if (!identical(validScopesForAuthenticatable, AuthScope.Any)) {
+      final validScopesForAuthenticatable = delegate.getAllowedScopes(authenticatable);
+      if (!identical(validScopesForAuthenticatable, AuthScope.any)) {
         validScopes = validScopes
             .where((clientAllowedScope) =>
                 validScopesForAuthenticatable.any((userScope) => userScope.allowsScope(clientAllowedScope)))
             .toList();
 
-        if (validScopes.length == 0) {
-          throw new AuthServerException(AuthRequestError.invalidScope, client);
+        if (validScopes.isEmpty) {
+          throw AuthServerException(AuthRequestError.invalidScope, client);
         }
       }
     }
@@ -515,13 +515,13 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   }
 
   AuthToken _generateToken(dynamic ownerID, String clientID, int expirationInSeconds,
-      {bool allowRefresh: true, List<AuthScope> scopes}) {
-    var now = new DateTime.now().toUtc();
-    AuthToken token = new AuthToken()
+      {bool allowRefresh = true, List<AuthScope> scopes}) {
+    final now = DateTime.now().toUtc();
+    final token = AuthToken()
       ..accessToken = randomStringOfLength(32)
       ..issueDate = now
-      ..expirationDate = now.add(new Duration(seconds: expirationInSeconds))
-      ..type = TokenTypeBearer
+      ..expirationDate = now.add(Duration(seconds: expirationInSeconds))
+      ..type = tokenTypeBearer
       ..resourceOwnerIdentifier = ownerID
       ..scopes = scopes
       ..clientID = clientID;
@@ -534,13 +534,13 @@ class AuthServer implements AuthValidator, APIComponentDocumenter  {
   }
 
   AuthCode _generateAuthCode(dynamic ownerID, AuthClient client, int expirationInSeconds, {List<AuthScope> scopes}) {
-    var now = new DateTime.now().toUtc();
-    return new AuthCode()
+    final now = DateTime.now().toUtc();
+    return AuthCode()
       ..code = randomStringOfLength(32)
       ..clientID = client.id
       ..resourceOwnerIdentifier = ownerID
       ..issueDate = now
       ..requestedScopes = scopes
-      ..expirationDate = now.add(new Duration(seconds: expirationInSeconds));
+      ..expirationDate = now.add(Duration(seconds: expirationInSeconds));
   }
 }
