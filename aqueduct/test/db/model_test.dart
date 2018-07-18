@@ -20,7 +20,10 @@ void main() {
       TransientBelongsTo,
       TransientOwner,
       DocumentTest,
-      ConstructorOverride
+      ConstructorOverride,
+      Top,
+      Middle,
+      Bottom
     ]);
     context = new ManagedContext(dm, ps);
   });
@@ -444,10 +447,7 @@ void main() {
 
   test("If primitive type cannot be parsed into correct type, it fails with validation exception", () {
     try {
-      new TransientTypeTest()
-        ..readFromMap({
-          "transientInt": "a string"
-        });
+      new TransientTypeTest()..readFromMap({"transientInt": "a string"});
       fail('unreachable');
     } on ValidationException {}
   });
@@ -539,6 +539,28 @@ void main() {
       "id": 1,
       "owner": {"id": 1}
     });
+  });
+
+  test("readFromMap correctly invoked for relationships of relationships", () {
+    final t = Top()..readFromMap(wash({
+      "id": 1,
+      "middles": [
+        {
+          "id": 2,
+          "bottom": {"id": 3},
+          "bottoms": [
+            {"id": 4},
+            {"id": 5}
+          ]
+        }
+      ]
+    }));
+
+    expect(t.id, 1);
+    expect(t.middles.first.id, 2);
+    expect(t.middles.first.bottom.id, 3);
+    expect(t.middles.first.bottoms.first.id, 4);
+    expect(t.middles.first.bottoms.last.id, 5);
   });
 
   group("Persistent enum fields", () {
@@ -983,6 +1005,7 @@ class DefaultConstructorHasRequiredArgs extends ManagedObject<_ConstructorTableD
 class DefaultConstructorHasOptionalArgs extends ManagedObject<_ConstructorTableDef> {
   DefaultConstructorHasOptionalArgs({int foo});
 }
+
 class HasNoDefaultConstructor extends ManagedObject<_ConstructorTableDef> {
   HasNoDefaultConstructor.foo();
 }
@@ -990,6 +1013,40 @@ class HasNoDefaultConstructor extends ManagedObject<_ConstructorTableDef> {
 class _ConstructorTableDef {
   @primaryKey
   int id;
+}
+
+class Top extends ManagedObject<_Top> implements _Top {}
+class _Top {
+  @primaryKey
+  int id;
+
+  ManagedSet<Middle> middles;
+}
+
+class Middle extends ManagedObject<_Middle> implements _Middle {}
+
+class _Middle {
+  @primaryKey
+  int id;
+
+  @Relate(#middles)
+  Top top;
+
+  Bottom bottom;
+  ManagedSet<Bottom> bottoms;
+}
+
+class Bottom extends ManagedObject<_Bottom> implements _Bottom {}
+
+class _Bottom {
+  @primaryKey
+  int id;
+
+  @Relate(#bottom)
+  Middle middle;
+
+  @Relate(#bottoms)
+  Middle middles;
 }
 
 T wash<T>(dynamic data) {

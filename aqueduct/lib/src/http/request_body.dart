@@ -3,13 +3,12 @@ import 'dart:io';
 import 'http.dart';
 import 'body_decoder.dart';
 
-/// Instances of this class decode HTTP request bodies according to their content type.
+/// Objects that represent a request body, and can be decoded into Dart objects.
 ///
-/// Every instance of [Request] has a [Request.body] property of this type. [ResourceController]s automatically decode
-/// [Request.body] prior to invoking a operation method. Other [Controller]s should use [decodedData]
-/// or one of the typed methods ([asList], [asMap], [decodeAsMap], [decodeAsList]) to decode HTTP body data.
+/// Every instance of [Request] has a [Request.body] property of this type. Use
+/// [decode] to convert the contents of this object into a Dart type (e.g, [Map] or [List]).
 ///
-/// Default decoders are available for 'application/json', 'application/x-www-form-urlencoded' and 'text/*' content types.
+/// See also [HTTPCodecRepository] for how decoding occurs.
 class RequestBody extends BodyDecoder {
   /// Creates a new instance of this type.
   ///

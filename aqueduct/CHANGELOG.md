@@ -1,6 +1,6 @@
 ## 3.0.0
 
-- Adds `BodyDecoder.asDynamic`.
+- Adds `BodyDecoder.decode<T>` and `BodyDecoder.as<T>`. This replaces existing `decodeAs*` and `as*` methods.
 - `package:aqueduct/test` moved to `package:aqueduct_test/aqueduct_test`, which is a separate dependency than `aqueduct`.
 - Renames methods in `AuthDelegate` to provide consistency.
 - Adds `AuthDelegate.addClient` and `AuthServer.addClient`.

@@ -1,5 +1,6 @@
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
 
 import '../serializable.dart';
@@ -151,7 +152,7 @@ class BoundQueryParameter extends BoundInput {
     dynamic value = queryParameters[externalName];
     if (value == null) {
       if (requestHasFormData(request)) {
-        value = request.body.asMap()[externalName];
+        value = request.body.as<Map<String, dynamic>>()[externalName];
       }
     }
 
@@ -183,39 +184,27 @@ class BoundBody extends BoundInput {
       return null;
     }
 
-    if (intoType.isAssignableTo(reflectType(HTTPSerializable))) {
-      if (!reflectType(request.body.decodedType).isSubtypeOf(reflectType(Map))) {
-        throw new Response(422, null, {"error": "unexpected request entity data type"});
-      }
-
-      var value = intoType.newInstance(new Symbol(""), []).reflectee as HTTPSerializable;
-      value.readFromMap(request.body.asMap());
+    if (intoType.isSubtypeOf(reflectType(HTTPSerializable))) {
+      final value = intoType.newInstance(new Symbol(""), []).reflectee as HTTPSerializable;
+      value.readFromMap(request.body.as());
 
       return value;
     } else if (intoType.isSubtypeOf(reflectType(List))) {
-      if (!reflectType(request.body.decodedType).isSubtypeOf(reflectType(List))) {
-        throw new Response(422, null, {"error": "unexpected request entity data type"});
-      }
-
-      var bodyList = request.body.asList();
+      final bodyList = request.body.as<List<Map<String, dynamic>>>();
       if (bodyList.isEmpty) {
         return [];
       }
 
-      var typeArg = intoType.typeArguments.first as ClassMirror;
+      final typeArg = intoType.typeArguments.first as ClassMirror;
       return bodyList.map((object) {
-        if (!reflectType(object.runtimeType).isSubtypeOf(reflectType(Map))) {
-          throw new Response(422, null, {"error": "unexpected request entity data type"});
-        }
-
-        var value = typeArg.newInstance(new Symbol(""), []).reflectee as HTTPSerializable;
+        final value = typeArg.newInstance(new Symbol(""), []).reflectee as HTTPSerializable;
         value.readFromMap(object);
 
         return value;
       }).toList();
     }
 
-    throw new Response(422, null, {"error": "unexpected request entity data type"});
+    return runtimeCast(request.body.as(), intoType);
   }
 }
 

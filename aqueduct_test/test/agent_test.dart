@@ -122,19 +122,19 @@ void main() {
       msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.method, "POST");
-      expect(msg.body.asMap(), {"foo": "bar"});
+      expect(msg.body.as(), {"foo": "bar"});
 
       expect((await defaultTestClient.execute("PATCH", "/foo", body: {"foo": "bar"})) is TestResponse, true);
       msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.method, "PATCH");
-      expect(msg.body.asMap(), {"foo": "bar"});
+      expect(msg.body.as(), {"foo": "bar"});
 
       expect((await defaultTestClient.put("/foo", body: {"foo": "bar"})) is TestResponse, true);
       msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.method, "PUT");
-      expect(msg.body.asMap(), {"foo": "bar"});
+      expect(msg.body.as<Map<String, dynamic>>(), {"foo": "bar"});
     });
 
     test("Default headers are added to requests", () async {
@@ -235,8 +235,8 @@ void main() {
 
       var defaultTestClient = new Agent.onPort(4000);
       var response = await defaultTestClient.request("/foo").get();
-      expect(response.body.asList().length, 1);
-      expect(response.body.asList().first["a"], "b");
+      expect(response.body.as<List>().length, 1);
+      expect(response.body.as<List>().first["a"], "b");
     });
 
     test("Responses with no body don't return one", () async {
@@ -262,7 +262,7 @@ void main() {
       var req = client.request("/foo")..accept = [ContentType.json, ContentType.text];
 
       var response = await req.post();
-      expect(response.body.asMap(), {"ACCEPT": "application/json; charset=utf-8,text/plain; charset=utf-8"});
+      expect(response.body.as<Map<String, dynamic>>(), {"ACCEPT": "application/json; charset=utf-8,text/plain; charset=utf-8"});
     });
   });
 }

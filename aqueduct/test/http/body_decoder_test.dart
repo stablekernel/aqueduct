@@ -87,7 +87,7 @@ void main() {
           .catchError((err) => null);
 
       request = new Request(await server.first);
-      var body = await request.body.decodedData;
+      Map<String, dynamic> body = await request.body.decode();
       expect(body, {"a": "val"});
     });
 
@@ -101,7 +101,7 @@ void main() {
       request = new Request(await server.first);
       expect(request.raw.headers.contentType.charset, null);
 
-      var body = await request.body.decodedData;
+      Map<String, dynamic> body = await request.body.decode();
       expect(body, {"a": "val"});
     });
 
@@ -114,13 +114,13 @@ void main() {
           .catchError((err) => null);
       var request = new Request(await server.first);
       request.body.retainOriginalBytes = true;
-      var body = await request.body.decodedData;
+      Map<String, dynamic> body = await request.body.decode();
       expect(body, {
         "a": ["b"],
         "c": ["2/4"]
       });
 
-      expect(utf8.decode(request.body.asBytes()), "a=b&c=2%2F4");
+      expect(utf8.decode(request.body.originalBytes), "a=b&c=2%2F4");
     });
 
     test("Any text decoder works on text with charset", () async {
@@ -130,7 +130,7 @@ void main() {
           .catchError((err) => null);
 
       var request = new Request(await server.first);
-      var body = await request.body.decodedData;
+      String body = await request.body.decode();
       expect(body, "foobar");
     });
 
@@ -142,7 +142,7 @@ void main() {
           .catchError((err) => null);
 
       var request = new Request(await server.first);
-      var body = await request.body.decodedData;
+      List<int> body = await request.body.decode();
       expect(body, "foobar".codeUnits);
     });
 
@@ -153,7 +153,7 @@ void main() {
       req.close().catchError((err) => null);
 
       var request = new Request(await server.first);
-      var body = await request.body.decodedData;
+      List<int> body = await request.body.decode();
 
       expect(request.raw.headers.contentType, isNull);
       expect(body, "foobar".codeUnits);
@@ -167,7 +167,7 @@ void main() {
       var request = new Request(await server.first);
 
       try {
-        await request.body.decodedData;
+        await request.body.decode();
         expect(true, false);
       } on Response catch (e) {
         expect(e.statusCode, 400);
@@ -200,7 +200,7 @@ void main() {
               body: json.encode({"key":"value"}))
           .catchError((err) => null);
       var request = new Request(await server.first);
-      var body = await request.body.decodedData;
+      Map<String, dynamic> body = await request.body.decode();
       expect(body, {"key":"value"});
     });
 
@@ -212,7 +212,7 @@ void main() {
           .catchError((err) => null);
 
       var request = new Request(await server.first);
-      var body = await request.body.decodedData;
+      Map<String, dynamic> body = await request.body.decode();
       expect(body, {"key":"value"});
     });
 
@@ -226,7 +226,7 @@ void main() {
       var request = new Request(await server.first);
       expect(request.raw.headers.contentType.charset, null);
 
-      var body = await request.body.decodedData;
+      Map<String, dynamic> body = await request.body.decode();
       expect(body, {"a": "val"});
     });
 
@@ -244,7 +244,7 @@ void main() {
       // Tests run in checked mode, but coverage runs in unchecked mode.
       var data;
       try {
-        data = await request.body.decodedData;
+        data = await request.body.decode();
       } catch (e) {
         expect(e, isNotNull);
       }
@@ -267,16 +267,16 @@ void main() {
     test("Decode valid decodeAsMap", () async {
       postJSON({"a" : "val"});
       var body = new RequestBody(await server.first);
-      expect(await body.decodeAsMap(), {"a": "val"});
+      expect(await body.decode<Map<String, dynamic>>(), {"a": "val"});
     });
 
     test("Return valid asMap from already decoded body", () async {
       postJSON({"a" : "val"});
       var body = new RequestBody(await server.first);
-      await body.decodedData;
-      expect(body.asMap(), {"a": "val"});
+      await body.decode();
+      expect(body.as<Map<String, dynamic>>(), {"a": "val"});
 
-      expect(body.asDynamic(), {"a": "val"});
+      expect(body.as(), {"a": "val"});
     });
 
     test("Call asMap prior to decode throws error", () async {
@@ -284,20 +284,20 @@ void main() {
       var body = new RequestBody(await server.first);
 
       try {
-        body.asMap();
+        body.as<Map<String, dynamic>>();
         expect(true, false);
       } on StateError {}
     });
 
-    test("decodeAsMap with non-map returns 422", () async {
+    test("decodeAsMap with non-map returns 400", () async {
       postJSON("a");
       var body = new RequestBody(await server.first);
 
       try {
-        await body.decodeAsMap();
+        await body.decode<Map<String, dynamic>>();
         expect(true, false);
       } on Response catch (e) {
-        expect(e.statusCode, 422);
+        expect(e.statusCode, 400);
       }
     });
 
@@ -308,7 +308,7 @@ void main() {
           .catchError((err) => null);
       var body = new RequestBody(await server.first);
 
-      expect(await body.decodeAsMap(), null);
+      expect(await body.decode<Map<String, dynamic>>(), null);
       expect(body.hasBeenDecoded, true);
     });
 
@@ -319,8 +319,8 @@ void main() {
           .catchError((err) => null);
 
       var body = new RequestBody(await server.first);
-      await body.decodedData;
-      expect(body.asMap(), null);
+      await body.decode();
+      expect(body.as<Map<String, dynamic>>(), null);
     });
   });
 
@@ -338,14 +338,14 @@ void main() {
     test("Decode valid decodeAsList", () async {
       postJSON([{"a": "val"}]);
       var body = new RequestBody(await server.first);
-      expect(await body.decodeAsList(), [{"a": "val"}]);
+      expect(await body.decode<List<Map<String, dynamic>>>(), [{"a": "val"}]);
     });
 
     test("Return valid asList from already decoded body", () async {
       postJSON([{"a" : "val"}]);
       var body = new RequestBody(await server.first);
-      await body.decodedData;
-      expect(body.asList(), [{"a": "val"}]);
+      await body.decode();
+      expect(body.as<List<Map<String, dynamic>>>(), [{"a": "val"}]);
     });
 
     test("Call asList prior to decode throws exception", () async {
@@ -353,7 +353,7 @@ void main() {
       var body = new RequestBody(await server.first);
 
       try {
-        body.asList();
+        body.as<List<Map<String, dynamic>>>();
         expect(true, false);
       } on StateError {}
     });
@@ -363,10 +363,10 @@ void main() {
       var body = new RequestBody(await server.first);
 
       try {
-        await body.decodeAsList();
+        await body.decode<List<Map<String, dynamic>>>();
         expect(true, false);
       } on Response catch (response) {
-        expect(response.statusCode, 422);
+        expect(response.statusCode, 400);
       }
     });
 
@@ -377,7 +377,7 @@ void main() {
           .catchError((err) => null);
       var body = new RequestBody(await server.first);
 
-      expect(await body.decodeAsList(), null);
+      expect(await body.decode(), null);
       expect(body.hasBeenDecoded, true);
     });
 
@@ -388,8 +388,8 @@ void main() {
           .catchError((err) => null);
 
       var body = new RequestBody(await server.first);
-      await body.decodedData;
-      expect(body.asList(), null);
+      await body.decode();
+      expect(body.as<List<Map<String, dynamic>>>(), null);
     });
   });
 
@@ -407,7 +407,7 @@ void main() {
     test("Decode valid decodeAsString", () async {
       postString("abcdef");
       var body = new RequestBody(await server.first);
-      expect(await body.decodeAsString(), "abcdef");
+      expect(await body.decode<String>(), "abcdef");
     });
 
     test("Decode large string", () async {
@@ -416,14 +416,14 @@ void main() {
 
       postString(largeString);
       var body = new RequestBody(await server.first);
-      expect(await body.decodeAsString(), largeString);
+      expect(await body.decode<String>(), largeString);
     });
 
     test("Return valid asString from already decoded body", () async {
       postString("abcdef");
       var body = new RequestBody(await server.first);
-      await body.decodedData;
-      expect(body.asString(), "abcdef");
+      await body.decode();
+      expect(body.as<String>(), "abcdef");
     });
 
     test("Call asString prior to decode throws exception", () async {
@@ -431,7 +431,7 @@ void main() {
       var body = new RequestBody(await server.first);
 
       try {
-        body.asString();
+        body.as<String>();
         expect(true, false);
       } on StateError {}
     });
@@ -441,10 +441,10 @@ void main() {
       var body = new RequestBody(await server.first);
 
       try {
-        await body.decodeAsString();
+        await body.decode<String>();
         expect(true, false);
       } on Response catch (response) {
-        expect(response.statusCode, 422);
+        expect(response.statusCode, 400);
       }
     });
 
@@ -455,7 +455,7 @@ void main() {
           .catchError((err) => null);
       var body = new RequestBody(await server.first);
 
-      expect(await body.decodeAsString(), null);
+      expect(await body.decode<String>(), null);
       expect(body.hasBeenDecoded, true);
     });
 
@@ -466,8 +466,8 @@ void main() {
           .catchError((err) => null);
 
       var body = new RequestBody(await server.first);
-      await body.decodedData;
-      expect(body.asString(), null);
+      await body.decode();
+      expect(body.as<String>(), null);
     });
   });
 
@@ -485,14 +485,14 @@ void main() {
     test("Decode valid decodeAsBytes", () async {
       postBytes([1, 2, 3, 4]);
       var body = new RequestBody(await server.first);
-      expect(await body.decodeAsBytes(), [1, 2, 3, 4]);
+      expect(await body.decode<List<int>>(), [1, 2, 3, 4]);
     });
 
     test("Return valid asBytes from already decoded body", () async {
       postBytes([1, 2, 3, 4]);
       var body = new RequestBody(await server.first);
-      await body.decodedData;
-      expect(body.asBytes(), [1, 2, 3, 4]);
+      await body.decode();
+      expect(body.as<List<int>>(), [1, 2, 3, 4]);
     });
 
     test("Call asBytes prior to decode throws error", () async {
@@ -500,7 +500,7 @@ void main() {
 
       var body = new RequestBody(await server.first);
       try {
-        body.asBytes();
+        body.as<List<int>>();
         expect(true, false);
       } on StateError {}
     });
@@ -512,7 +512,7 @@ void main() {
           .catchError((err) => null);
       var body = new RequestBody(await server.first);
 
-      expect(await body.decodeAsBytes(), null);
+      expect(await body.decode<List<int>>(), null);
       expect(body.hasBeenDecoded, true);
     });
 
@@ -523,15 +523,15 @@ void main() {
           .catchError((err) => null);
 
       var body = new RequestBody(await server.first);
-      await body.decodedData;
-      expect(body.asBytes(), null);
+      await body.decode();
+      expect(body.as<List<int>>(), null);
     });
 
     test("Throw exception if not retaining bytes and body was decoded", () async {
       postJSON({"k": "v"});
       var body = new RequestBody(await server.first);
       try {
-        await body.decodeAsBytes();
+        body.originalBytes;
         expect(true, false);
       } on StateError {}
     });
@@ -540,17 +540,17 @@ void main() {
       postJSON({"k": "v"});
 
       var body = new RequestBody(await server.first)..retainOriginalBytes = true;
-      await body.decodedData;
-      expect(body.asMap(), {"k": "v"});
-      expect(body.asBytes(), utf8.encode(json.encode({"k":"v"})));
+      await body.decode();
+      expect(body.as<Map<String, dynamic>>(), {"k": "v"});
+      expect(body.originalBytes, utf8.encode(json.encode({"k":"v"})));
     });
 
     test("Retain bytes when no codec is used", () async {
       postBytes([1, 2, 3, 4]);
 
       var body = new RequestBody(await server.first)..retainOriginalBytes = true;
-      await body.decodedData;
-      expect(body.asBytes(), [1, 2, 3, 4]);
+      await body.decode();
+      expect(body.as<List<int>>(), [1, 2, 3, 4]);
     });
   });
 
@@ -574,8 +574,8 @@ void main() {
 
       var request = new Request(await server.first);
 
-      var b1 = await request.body.decodedData;
-      var b2 = await request.body.decodedData;
+      var b1 = await request.body.decode();
+      var b2 = await request.body.decode();
 
       expect(b1, isNotNull);
       expect(identical(b1, b2), true);
@@ -588,7 +588,7 @@ void main() {
         var next = new Controller();
         next.linkFunction((req) async {
           // This'll crash
-          var _ = await req.body.decodedData;
+          var _ = await req.body.decode();
 
           return new Response.ok(200);
         });
@@ -638,7 +638,7 @@ void main() {
 
       var controller = new Controller()
         ..linkFunction((req) async {
-          var body = await req.body.decodeAsMap();
+          var body = await req.body.decode<Map<String, dynamic>>();
           return new Response.ok(body);
         });
       server.listen((req) {
@@ -672,7 +672,7 @@ void main() {
 
       var controller = new Controller()
         ..linkFunction((req) async {
-          var body = await req.body.decodedData;
+          var body = await req.body.decode();
           return new Response.ok(body)..contentType = new ContentType("application", "octet-stream");
         });
       server.listen((req) {

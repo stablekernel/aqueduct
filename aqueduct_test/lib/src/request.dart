@@ -179,7 +179,7 @@ class TestRequest {
     final response = new TestResponse._(rawResponse);
 
     // Trigger body to be decoded
-    await response.body.decodedData;
+    await response.body.decode();
 
     return response;
   }

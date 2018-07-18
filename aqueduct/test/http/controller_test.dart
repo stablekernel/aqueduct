@@ -305,12 +305,12 @@ void main() {
       expect(json.decode(resp.body), {"statusCode": 500});
     });
 
-    test("Failure to decode request body as appropriate type is 422", () async {
+    test("Failure to decode request body as appropriate type is 400", () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => new Request(req)).listen((req) async {
         var next = new Controller();
         next.linkFunction((r) async {
-          await r.body.decodeAsMap();
+          await r.body.decode<Map<String, dynamic>>();
           return new Response.ok(null);
         });
         await next.receive(req);
@@ -319,7 +319,7 @@ void main() {
       var resp = await http.post("http://localhost:8888",
           headers: {"content-type": "application/json"}, body: json.encode(["a"]));
 
-      expect(resp.statusCode, 422);
+      expect(resp.statusCode, 400);
     });
   });
 }

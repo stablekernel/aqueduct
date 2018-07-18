@@ -132,8 +132,8 @@ void main() {
         "name": "Bob"
       }];
       var response = await postJSON(m);
-      expect(response.statusCode, 422);
-      expect(json.decode(response.body)["error"], contains("unexpected request entity data type"));
+      expect(response.statusCode, 400);
+      expect(json.decode(response.body)["error"], contains("request entity was unexpected type"));
     });
 
     test("Is Map when expecting List returns 400", () async {
@@ -143,8 +143,8 @@ void main() {
         "name": "Bob"
       };
       var response = await postJSON(m);
-      expect(response.statusCode, 422);
-      expect(json.decode(response.body)["error"], contains("unexpected request entity data type"));
+      expect(response.statusCode, 400);
+      expect(json.decode(response.body)["error"], contains("request entity was unexpected type"));
     });
 
     test("If required body and no body included, return 400", () async {
@@ -157,8 +157,8 @@ void main() {
     test("Expect list of objects, got list of strings", () async {
       server = await enableController("/", ListTestController);
       var response = await postJSON(["a", "b"]);
-      expect(response.statusCode, 422);
-      expect(json.decode(response.body)["error"], contains("unexpected request entity data type"));
+      expect(response.statusCode, 400);
+      expect(json.decode(response.body)["error"], contains("request entity was unexpected type"));
 
     });
   });
