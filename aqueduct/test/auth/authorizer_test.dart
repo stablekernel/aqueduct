@@ -1,10 +1,12 @@
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
-import 'dart:io';
-import '../helpers.dart';
 import 'dart:async';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:http/http.dart' as http;
+import 'package:test/test.dart';
+
+import '../helpers.dart';
 
 void main() {
   InMemoryAuthStorage delegate;
@@ -21,13 +23,13 @@ void main() {
 
     accessToken = (await authServer.authenticate(
             delegate.users[1].username,
-            InMemoryAuthStorage.DefaultPassword,
+            InMemoryAuthStorage.defaultPassword,
             "com.stablekernel.app1",
             "kilimanjaro"))
         .accessToken;
     expiredErrorToken = (await authServer.authenticate(
             delegate.users[1].username,
-            InMemoryAuthStorage.DefaultPassword,
+            InMemoryAuthStorage.defaultPassword,
             "com.stablekernel.app1",
             "kilimanjaro",
             expiration: Duration(seconds: 0)))
@@ -153,7 +155,7 @@ void main() {
 
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.authorizationHeader:
-            "Basic ${Base64Encoder().convert("abcd:kilimanjaro".codeUnits)}"
+            "Basic ${const Base64Encoder().convert("abcd:kilimanjaro".codeUnits)}"
       });
       expect(res.statusCode, 401);
       expect(res.body, "");
@@ -165,7 +167,7 @@ void main() {
 
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.authorizationHeader:
-            "Basic ${Base64Encoder().convert("com.stablekernel.app1:foobar".codeUnits)}"
+            "Basic ${const Base64Encoder().convert("com.stablekernel.app1:foobar".codeUnits)}"
       });
       expect(res.statusCode, 401);
       expect(res.body, "");
@@ -177,7 +179,7 @@ void main() {
 
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.authorizationHeader:
-            "Basic ${Base64Encoder().convert("com.stablekernel.app1:kilimanjaro".codeUnits)}"
+            "Basic ${const Base64Encoder().convert("com.stablekernel.app1:kilimanjaro".codeUnits)}"
       });
       expect(res.statusCode, 200);
       expect(json.decode(res.body), {
@@ -193,7 +195,7 @@ void main() {
 
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.authorizationHeader:
-            "Basic ${Base64Encoder().convert("com.stablekernel.public:".codeUnits)}"
+            "Basic ${const Base64Encoder().convert("com.stablekernel.public:".codeUnits)}"
       });
       expect(res.statusCode, 200);
       expect(json.decode(res.body), {
@@ -204,7 +206,7 @@ void main() {
 
       res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.authorizationHeader:
-            "Basic ${Base64Encoder().convert("com.stablekernel.public:password".codeUnits)}"
+            "Basic ${const Base64Encoder().convert("com.stablekernel.public:password".codeUnits)}"
       });
       expect(res.statusCode, 401);
     });
@@ -216,13 +218,13 @@ void main() {
 
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.authorizationHeader:
-            "Basic ${Base64Encoder().convert("com.stablekernel.app1:".codeUnits)}"
+            "Basic ${const Base64Encoder().convert("com.stablekernel.app1:".codeUnits)}"
       });
       expect(res.statusCode, 401);
 
       res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.authorizationHeader:
-            "Basic ${Base64Encoder().convert("com.stablekernel.app1".codeUnits)}"
+            "Basic ${const Base64Encoder().convert("com.stablekernel.app1".codeUnits)}"
       });
       expect(res.statusCode, 400);
     });
@@ -237,7 +239,7 @@ void main() {
     setUp(() async {
       userReadOnlyScopedAccessToken = (await authServer.authenticate(
               delegate.users[1].username,
-              InMemoryAuthStorage.DefaultPassword,
+              InMemoryAuthStorage.defaultPassword,
               "com.stablekernel.scoped",
               "kilimanjaro",
               requestedScopes: [AuthScope("user.readonly")]))
@@ -245,7 +247,7 @@ void main() {
 
       userScopedAccessToken = (await authServer.authenticate(
               delegate.users[1].username,
-              InMemoryAuthStorage.DefaultPassword,
+              InMemoryAuthStorage.defaultPassword,
               "com.stablekernel.scoped",
               "kilimanjaro",
               requestedScopes: [AuthScope("user")]))
@@ -253,7 +255,7 @@ void main() {
 
       userAndOtherScopedAccessToken = (await authServer.authenticate(
               delegate.users[1].username,
-              InMemoryAuthStorage.DefaultPassword,
+              InMemoryAuthStorage.defaultPassword,
               "com.stablekernel.scoped",
               "kilimanjaro",
               requestedScopes: [AuthScope("user"), AuthScope("other_scope")]))
@@ -261,7 +263,7 @@ void main() {
 
       userAndOtherReadOnlyScopedAccessToken = (await authServer.authenticate(
               delegate.users[1].username,
-              InMemoryAuthStorage.DefaultPassword,
+              InMemoryAuthStorage.defaultPassword,
               "com.stablekernel.scoped",
               "kilimanjaro",
               requestedScopes: [
@@ -419,7 +421,7 @@ void main() {
       server = await enableAuthorizer(Authorizer.basic(anotherAuthServer));
       var res = await http.get("http://localhost:8000", headers: {
         HttpHeaders.authorizationHeader:
-            "Basic ${Base64Encoder().convert("a:".codeUnits)}"
+            "Basic ${const Base64Encoder().convert("a:".codeUnits)}"
       });
       expect(res.statusCode, 504);
     });

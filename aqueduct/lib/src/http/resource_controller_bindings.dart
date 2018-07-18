@@ -1,8 +1,8 @@
-import 'resource_controller_internal/internal.dart';
-import 'resource_controller.dart';
-import 'request_path.dart';
-import 'serializable.dart';
 import '../db/managed/managed.dart';
+import 'request_path.dart';
+import 'resource_controller.dart';
+import 'resource_controller_internal/internal.dart';
+import 'serializable.dart';
 
 /// Binds an instance method in [ResourceController] to an operation.
 ///

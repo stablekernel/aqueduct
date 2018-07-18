@@ -46,11 +46,9 @@ class CORSPolicy {
   /// You may modify this default policy. All instances of [CORSPolicy] are instantiated
   /// using the values of this default policy. Do not modify this property
   /// unless you want the defaults to change application-wide.
+  // ignore: prefer_constructors_over_static_methods
   static CORSPolicy get defaultPolicy {
-    if (_defaultPolicy == null) {
-      _defaultPolicy = CORSPolicy._defaults();
-    }
-    return _defaultPolicy;
+    return _defaultPolicy ??= CORSPolicy._defaults();
   }
 
   static CORSPolicy _defaultPolicy;
@@ -119,7 +117,7 @@ class CORSPolicy {
     var headers = <String, dynamic>{};
     headers["Access-Control-Allow-Origin"] = origin;
 
-    if (exposedResponseHeaders.length > 0) {
+    if (exposedResponseHeaders.isNotEmpty) {
       headers["Access-Control-Expose-Headers"] =
           exposedResponseHeaders.join(", ");
     }

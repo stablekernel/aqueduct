@@ -1,8 +1,9 @@
-@Timeout(const Duration(seconds: 90))
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
+@Timeout(Duration(seconds: 90))
 import 'dart:async';
+
+import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
+import 'package:test/test.dart';
 
 void main() {
   group("Recovers", () {
@@ -95,7 +96,7 @@ class UncaughtCrashController extends Controller {
   FutureOr<RequestOrResponse> handle(Request req) {
     if (req.raw.uri.queryParameters["crash"] == "true") {
       Future(() {
-        var x;
+        dynamic x;
         x.foo();
       });
       return Response.ok(null);

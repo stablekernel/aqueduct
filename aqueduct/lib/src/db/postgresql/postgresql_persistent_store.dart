@@ -1,12 +1,13 @@
-import 'package:logging/logging.dart';
-import 'package:postgres/postgres.dart';
 import 'dart:async';
 
-import '../postgresql/postgresql_query.dart';
 import 'package:aqueduct/src/application/service_registry.dart';
+import 'package:logging/logging.dart';
+import 'package:postgres/postgres.dart';
+
 import '../managed/managed.dart';
-import '../query/query.dart';
 import '../persistent_store/persistent_store.dart';
+import '../postgresql/postgresql_query.dart';
+import '../query/query.dart';
 import '../schema/schema.dart';
 import 'postgresql_schema_generator.dart';
 
@@ -103,6 +104,7 @@ class PostgreSQLPersistentStore extends PersistentStore
       if (_pendingConnectionCompleter == null) {
         _pendingConnectionCompleter = Completer<PostgreSQLConnection>();
 
+        // ignore: unawaited_futures
         _connect().timeout(connectTimeout).then((conn) {
           _databaseConnection = conn;
           _pendingConnectionCompleter.complete(_databaseConnection);
@@ -143,7 +145,7 @@ class PostgreSQLPersistentStore extends PersistentStore
 
       var mappedRows = rows.map((row) => row.toList()).toList();
       logger.finest(() =>
-          "Query:execute (${(DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $sql -> $mappedRows");
+          "Query:execute (${DateTime.now().toUtc().difference(now).inMilliseconds}ms) $sql -> $mappedRows");
       return mappedRows;
     } on PostgreSQLException catch (e) {
       final interpreted = _interpretException(e);
@@ -166,7 +168,7 @@ class PostgreSQLPersistentStore extends PersistentStore
       Future transactionBlock(ManagedContext transaction)) async {
     final dbConnection = await getDatabaseConnection();
 
-    var rollbackReason;
+    String rollbackReason;
     try {
       await dbConnection.transaction((dbTransactionContext) async {
         transactionContext.persistentStore =
@@ -198,7 +200,7 @@ class PostgreSQLPersistentStore extends PersistentStore
       var values = await execute(
               "SELECT versionNumber, dateOfUpgrade FROM $versionTableName ORDER BY dateOfUpgrade ASC")
           as List<List<dynamic>>;
-      if (values.length == 0) {
+      if (values.isEmpty) {
         return 0;
       }
 
@@ -233,7 +235,7 @@ class PostgreSQLPersistentStore extends PersistentStore
         var existingVersionRows = await ctx.query(
             "SELECT versionNumber, dateOfUpgrade FROM $versionTableName WHERE versionNumber >= @v:int4",
             substitutionValues: {"v": migration.version});
-        if (existingVersionRows.length > 0) {
+        if (existingVersionRows.isNotEmpty) {
           final date = existingVersionRows.first.last;
           throw MigrationException(
               "Trying to upgrade database to version ${migration.version}, but that migration has already been performed on $date.");
@@ -272,7 +274,7 @@ class PostgreSQLPersistentStore extends PersistentStore
     var now = DateTime.now().toUtc();
     try {
       var dbConnection = await _executionContext;
-      var results;
+      dynamic results;
 
       if (returnType == PersistentStoreQueryReturnType.rows) {
         results = await dbConnection.query(formatString,
@@ -283,7 +285,7 @@ class PostgreSQLPersistentStore extends PersistentStore
       }
 
       logger.fine(() =>
-          "Query (${(DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString Substitutes: ${values ?? "{}"} -> $results");
+          "Query (${DateTime.now().toUtc().difference(now).inMilliseconds}ms) $formatString Substitutes: ${values ?? "{}"} -> $results");
 
       return results;
     } on TimeoutException catch (e) {
@@ -291,7 +293,7 @@ class PostgreSQLPersistentStore extends PersistentStore
           underlyingException: e);
     } on PostgreSQLException catch (e) {
       logger.fine(() =>
-          "Query (${(DateTime.now().toUtc().difference(now).inMilliseconds)}ms) $formatString $values");
+          "Query (${DateTime.now().toUtc().difference(now).inMilliseconds}ms) $formatString $values");
       final interpreted = _interpretException(e);
       if (interpreted != null) {
         throw interpreted;

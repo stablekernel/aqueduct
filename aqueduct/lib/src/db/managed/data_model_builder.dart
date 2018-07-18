@@ -1,5 +1,6 @@
-import 'entity_mirrors.dart';
 import 'dart:mirrors';
+
+import 'entity_mirrors.dart';
 import 'managed.dart';
 import 'relationship_type.dart';
 
@@ -109,7 +110,7 @@ class DataModelBuilder {
             attribute.name,
             attribute.type,
             attribute.declaredType,
-            Serialize(input: true, output: true));
+            const Serialize(input: true, output: true));
       } else {
         map[attribute.name] = attribute;
       }
@@ -149,7 +150,7 @@ class DataModelBuilder {
       return ManagedAttributeDescription(
           entity, name, type, declType as ClassMirror,
           primaryKey: attributes?.isPrimaryKey ?? false,
-          defaultValue: attributes?.defaultValue ?? null,
+          defaultValue: attributes?.defaultValue,
           unique: attributes?.isUnique ?? false,
           indexed: attributes?.isIndexed ?? false,
           nullable: attributes?.isNullable ?? false,
@@ -191,9 +192,9 @@ class DataModelBuilder {
     var metadata = transientMetadataFromDeclaration(property);
     MethodMirror m = property as MethodMirror;
     if (m.isGetter && metadata.isAvailableAsOutput) {
-      return Serialize(output: true, input: false);
+      return const Serialize(output: true, input: false);
     } else if (m.isSetter && metadata.isAvailableAsInput) {
-      return Serialize(input: true, output: false);
+      return const Serialize(input: true, output: false);
     }
 
     return null;
@@ -318,7 +319,7 @@ class DataModelBuilder {
           return me.tableDefinition.isSubtypeOf(typeMirror);
         }).toList();
 
-        if (possibleEntities.length == 0) {
+        if (possibleEntities.isEmpty) {
           throw ManagedDataModelError.noDestinationEntity(
               owningEntity, property.simpleName);
         } else if (possibleEntities.length > 1) {
@@ -378,7 +379,7 @@ class DataModelBuilder {
         // This is the belongs to side. Looking for the has-a side, but it is deferred.
         var candidates = propertiesFromEntityWithType(
             destinationEntity, owningEntity.instanceType);
-        if (candidates.length == 0) {
+        if (candidates.isEmpty) {
           throw ManagedDataModelError.missingInverse(
               owningEntity, property.simpleName, destinationEntity, null);
         } else if (candidates.length > 1) {
@@ -399,7 +400,7 @@ class DataModelBuilder {
               .where((p) => relationshipMetadataFromProperty(p) != null)
               .toList();
 
-      if (candidates.length == 0) {
+      if (candidates.isEmpty) {
         throw ManagedDataModelError.missingInverse(
             owningEntity, property.simpleName, destinationEntity, null);
       }
@@ -424,9 +425,9 @@ class DataModelBuilder {
           .where((p) => relationshipMetadataFromProperty(p).isDeferred)
           .where((p) => owningEntity.tableDefinition.isSubtypeOf(p.type))
           .toList();
-      if (deferredCandidates.length == 0) {
+      if (deferredCandidates.isEmpty) {
         VariableMirror candidate;
-        if (candidates.length > 0) {
+        if (candidates.isNotEmpty) {
           candidate = candidates.first;
         }
         throw ManagedDataModelError.missingInverse(owningEntity,
@@ -453,7 +454,7 @@ class DataModelBuilder {
         ?.reflectee;
 
     if (tableAttributes?.uniquePropertySet != null) {
-      if (tableAttributes.uniquePropertySet.length == 0) {
+      if (tableAttributes.uniquePropertySet.isEmpty) {
         throw ManagedDataModelError.emptyEntityUniqueProperties(entity);
       } else if (tableAttributes.uniquePropertySet.length == 1) {
         throw ManagedDataModelError.singleEntityUniqueProperty(

@@ -1,8 +1,8 @@
 import 'package:aqueduct/src/db/managed/key_path.dart';
 
+import '../managed/managed.dart';
 import 'matcher_internal.dart';
 import 'query.dart';
-import '../managed/managed.dart';
 
 /// Contains binary logic operations to be applied to a [QueryExpression].
 class QueryExpressionJunction<T, InstanceType> {
@@ -50,6 +50,7 @@ class QueryExpression<T, InstanceType> {
   bool _invertNext = false;
   PredicateExpression _expression;
 
+  // ignore: use_to_and_as_if_applicable
   QueryExpressionJunction<T, InstanceType> _createJunction() =>
       QueryExpressionJunction<T, InstanceType>._(this);
 

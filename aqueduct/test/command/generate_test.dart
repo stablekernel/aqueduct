@@ -1,4 +1,4 @@
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:io';
 import 'package:test/test.dart';
 import 'cli_helpers.dart';
@@ -25,9 +25,7 @@ class _TestObject {
       """);
     });
 
-    tearDown(() {
-      Terminal.deleteTemporaryDirectory();
-    });
+    tearDown(Terminal.deleteTemporaryDirectory);
 
     test("Run without pub get yields error", () async {
       var res = await terminal.runAqueductCommand("db", ["generate"]);

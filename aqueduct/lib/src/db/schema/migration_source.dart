@@ -6,7 +6,7 @@ import 'package:crypto/crypto.dart';
 class MigrationSource {
   MigrationSource(this.source, this.uri, int nameStartIndex, int nameEndIndex) {
     originalName = source.substring(nameStartIndex, nameEndIndex);
-    name = "M" + md5.convert(source.codeUnits).toString();
+    name = "M${md5.convert(source.codeUnits).toString()}";
     source = source.replaceRange(nameStartIndex, nameEndIndex, name);
   }
 
@@ -28,8 +28,7 @@ class MigrationSource {
     }
 
     final sources = fileUnit.declarations
-        .where((u) => u is ClassDeclaration)
-        .map((cu) => cu as ClassDeclaration)
+        .whereType<ClassDeclaration>()
         .where((ClassDeclaration classDecl) {
       return classDecl.extendsClause.superclass.name.name == "Migration";
     }).map((cu) {

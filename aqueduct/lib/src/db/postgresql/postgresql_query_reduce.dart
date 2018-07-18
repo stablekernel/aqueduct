@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import '../query/query.dart';
 import '../managed/object.dart';
-import 'postgresql_query.dart';
+import '../query/query.dart';
 import 'postgresql_persistent_store.dart';
+import 'postgresql_query.dart';
 import 'query_builder.dart';
 
 class PostgresQueryReduce<T extends ManagedObject>

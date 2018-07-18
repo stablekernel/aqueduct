@@ -30,9 +30,9 @@ class RouteSegment {
       bool matchesAnything = false}) {
     this.literal = literal;
     this.variableName = variableName;
-    this.isRemainingMatcher = matchesAnything;
+    isRemainingMatcher = matchesAnything;
     if (expression != null) {
-      this.matcher = RegExp(expression);
+      matcher = RegExp(expression);
     }
   }
 
@@ -103,8 +103,7 @@ class RouteNode {
           .toList();
       equalityChildren[childSegment] =
           RouteNode(childrenBeginningWithThisSegment, depth: depth + 1);
-      remainingSpecifications.removeWhere(
-          (spec) => childrenBeginningWithThisSegment.contains(spec));
+      remainingSpecifications.removeWhere(childrenBeginningWithThisSegment.contains);
     });
 
     var takeAllSegment = remainingSpecifications.firstWhere(

@@ -1,10 +1,10 @@
 import 'dart:async';
-
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
-import 'dart:io';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:http/http.dart' as http;
+import 'package:test/test.dart';
 
 void main() {
   var defaultSize = RequestBody.maxSize;
@@ -30,6 +30,7 @@ void main() {
 
       sc.add([1, 2, 3, 4]);
       sc.add([5, 6, 7, 8]);
+      // ignore: unawaited_futures
       sc.close();
 
       var result = await resultFuture;
@@ -48,6 +49,7 @@ void main() {
       sc.add([1, 2, 3, 4]);
       sc.add([5, 6, 7, 8]);
       sc.addError(Exception("Whatever"));
+      // ignore: unawaited_futures
       sc.close();
 
       try {
@@ -75,6 +77,7 @@ void main() {
 
       sc.add([1, 2, 3, 4]);
       sc.add([5, 6, 7, 8]);
+      // ignore: unawaited_futures
       sc.close();
 
       // The test fails for a different reason in checked vs. unchecked mode.
@@ -104,6 +107,7 @@ void main() {
 
       sc.add("abcd");
       sc.add("efgh");
+      // ignore: unawaited_futures
       sc.close();
 
       var result = await resultFuture;
@@ -124,6 +128,7 @@ void main() {
 
       sc.add("abcd");
       sc.add("efgh");
+      // ignore: unawaited_futures
       sc.close();
 
       try {
@@ -165,6 +170,7 @@ void main() {
 
       sc.add("abcd");
       sc.add("efgh");
+      // ignore: unawaited_futures
       sc.close();
 
       var resp = await respFuture;
@@ -194,6 +200,7 @@ void main() {
 
       sc.add("abcd");
       sc.add("efgh");
+      // ignore: unawaited_futures
       sc.close();
 
       var resp = await respFuture;
@@ -221,6 +228,7 @@ void main() {
       var respFuture = req.close();
 
       sc.add([1, 2, 3, 4]);
+      // ignore: unawaited_futures
       sc.close();
 
       var resp = await respFuture;
@@ -238,7 +246,7 @@ void main() {
       var sc = StreamController<String>();
       var ct = ContentType("application", "3");
       HTTPCodecRepository.defaultInstance
-          .add(ct, Utf8Codec(), allowCompression: false);
+          .add(ct, const Utf8Codec(), allowCompression: false);
       server =
           await bindAndRespondWith(Response.ok(sc.stream)..contentType = ct);
       var req = await client.getUrl(Uri.parse("http://localhost:8888"));
@@ -247,6 +255,7 @@ void main() {
       var respFuture = req.close();
 
       sc.add("abcd");
+      // ignore: unawaited_futures
       sc.close();
 
       var resp = await respFuture;

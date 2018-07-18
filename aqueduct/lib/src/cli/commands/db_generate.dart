@@ -28,13 +28,13 @@ class CLIDatabaseGenerate extends CLICommand
     var result = await generateMigrationSource(schema, versionNumber);
 
     displayInfo("The following ManagedObject<T> subclasses were found:");
-    result.tablesEvaluated.forEach((t) => displayProgress(t));
+    result.tablesEvaluated.forEach(displayProgress);
     displayProgress("");
     displayProgress(
         "* If you were expecting more declarations, ensure the files are visible in the application library file.");
     displayProgress("");
 
-    result.changeList?.forEach((c) => displayProgress(c));
+    result.changeList?.forEach(displayProgress);
 
     if (result.source.contains("<<set>>")) {
       displayInfo("File requires input.");
@@ -46,7 +46,7 @@ class CLIDatabaseGenerate extends CLICommand
     }
     newMigrationFile.writeAsStringSync(result.source);
 
-    displayInfo("Created new migration file (version ${versionNumber}).",
+    displayInfo("Created new migration file (version $versionNumber).",
         color: CLIColor.boldGreen);
     displayProgress("New file is located at ${newMigrationFile.path}");
 

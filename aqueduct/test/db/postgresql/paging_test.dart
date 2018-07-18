@@ -334,7 +334,7 @@ void main() {
     test("Page by relationship fails", () async {
       try {
         Query<HasMany>(context)
-          ..pageBy((p) => p.objects, QuerySortOrder.ascending);
+          .pageBy((p) => p.objects, QuerySortOrder.ascending);
         expect(true, false);
       } on ArgumentError catch (e) {
         expect(e.toString(),

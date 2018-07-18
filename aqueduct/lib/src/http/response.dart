@@ -1,8 +1,9 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
-import 'http.dart';
+import 'dart:io';
+
 import '../utilities/lowercasing_map.dart';
+import 'http.dart';
 
 /// Represents the information in an HTTP response.
 ///
@@ -92,7 +93,7 @@ class Response implements RequestOrResponse {
   /// This may be any value that can be encoded into an HTTP response body. If this value is a [HTTPSerializable] or a [List] of [HTTPSerializable],
   /// each instance of [HTTPSerializable] will transformed via its [HTTPSerializable.asMap] method before being set.
   set body(dynamic initialResponseBody) {
-    var serializedBody;
+    dynamic serializedBody;
     if (initialResponseBody is HTTPSerializable) {
       serializedBody = initialResponseBody.asMap();
     } else if (initialResponseBody is List<HTTPSerializable>) {

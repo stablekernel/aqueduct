@@ -62,6 +62,7 @@ class Schema {
   // Do not set this directly. Use _tables= instead.
   List<SchemaTable> _tableStorage;
 
+  // ignore: avoid_setters_without_getters
   set _tables(List<SchemaTable> tables) {
     _tableStorage = tables ?? [];
     _tableStorage.forEach((t) => t.schema = this);
@@ -203,7 +204,7 @@ class SchemaDifference {
   /// Whether or not [expectedSchema] and [actualSchema] have differences.
   ///
   /// If false, both [expectedSchema] and [actualSchema], their tables, and those tables' columns are identical.
-  bool get hasDifferences => _differingTables.length > 0;
+  bool get hasDifferences => _differingTables.isNotEmpty;
 
   /// Human-readable messages to describe differences between [expectedSchema] and [actualSchema].
   ///

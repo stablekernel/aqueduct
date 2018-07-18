@@ -241,9 +241,8 @@ Future expectSchema(Schema schema,
       .where((s) => !s.startsWith("import"))
       .join("\n");
 
-  final contents = migrationSource +
-      "\n" +
-      (reflect(schemaByApplyingMigrations) as ClosureMirror).function.source;
+  final functionSource = (reflect(schemaByApplyingMigrations) as ClosureMirror).function.source;
+  final contents = "$migrationSource\n${functionSource}";
 
   final response = await IsolateExecutor.run(MigrateSchema.input(schema),
       packageConfigURI: Directory.current.uri.resolve(".packages"),

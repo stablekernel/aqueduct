@@ -83,21 +83,21 @@ class Authorizer extends Controller {
   final AuthorizationParser parser;
 
   @override
-  FutureOr<RequestOrResponse> handle(Request req) async {
-    final authData = req.raw.headers.value(HttpHeaders.authorizationHeader);
+  FutureOr<RequestOrResponse> handle(Request request) async {
+    final authData = request.raw.headers.value(HttpHeaders.authorizationHeader);
     if (authData == null) {
       return Response.unauthorized();
     }
 
     try {
       final value = parser.parse(authData);
-      req.authorization =
+      request.authorization =
           await validator.validate(parser, value, requiredScope: scopes);
-      if (req.authorization == null) {
+      if (request.authorization == null) {
         return Response.unauthorized();
       }
 
-      _addScopeRequirementModifier(req);
+      _addScopeRequirementModifier(request);
     } on AuthorizationParserException catch (e) {
       return _responseFromParseException(e);
     } on AuthServerException catch (e) {
@@ -111,7 +111,7 @@ class Authorizer extends Controller {
       return Response.unauthorized();
     }
 
-    return req;
+    return request;
   }
 
   Response _responseFromParseException(AuthorizationParserException e) {

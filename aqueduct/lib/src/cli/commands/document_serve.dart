@@ -42,9 +42,9 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
 
     final fileController = HTTPFileController(
         _hostedDirectory.uri.toFilePath(windows: Platform.isWindows))
-      ..addCachePolicy(HTTPCachePolicy(requireConditionalRequest: true),
+      ..addCachePolicy(const HTTPCachePolicy(requireConditionalRequest: true),
           (p) => p.endsWith(".html"))
-      ..addCachePolicy(HTTPCachePolicy(requireConditionalRequest: true),
+      ..addCachePolicy(const HTTPCachePolicy(requireConditionalRequest: true),
           (p) => p.endsWith(".json"))
       ..addCachePolicy(
           HTTPCachePolicy(expirationFromNow: Duration(days: 300)), (p) => true)
@@ -56,9 +56,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
     router.route("/*").link(() => fileController);
     router.didAddToChannel();
 
-    server.map((req) => Request(req)).listen((req) {
-      router.receive(req);
-    });
+    server.map((req) => Request(req)).listen(router.receive);
 
     displayInfo(
         "Document server listening on http://${server.address.host}:${server.port}/.",
@@ -91,7 +89,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
 <!DOCTYPE html>
 <html>
   <head>
-    <title>${packageName} API Reference</title>
+    <title>$packageName API Reference</title>
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>

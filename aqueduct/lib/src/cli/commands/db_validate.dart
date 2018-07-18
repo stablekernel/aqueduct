@@ -29,9 +29,7 @@ class CLIDatabaseValidate extends CLICommand
 
     if (differences.hasDifferences) {
       displayError("Validation failed");
-      differences.errorMessages.forEach((diff) {
-        displayProgress(diff);
-      });
+      differences.errorMessages.forEach(displayProgress);
 
       return 1;
     }

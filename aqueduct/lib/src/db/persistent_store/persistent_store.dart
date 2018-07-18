@@ -1,10 +1,11 @@
 import 'dart:async';
-import '../query/query.dart';
-import '../schema/schema.dart';
-import '../managed/object.dart';
+
 import '../managed/context.dart';
 import '../managed/entity.dart';
+import '../managed/object.dart';
 import '../query/mixin.dart';
+import '../query/query.dart';
+import '../schema/schema.dart';
 
 enum PersistentStoreQueryReturnType { rowCount, rows }
 

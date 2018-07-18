@@ -1,9 +1,10 @@
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
-import 'package:http/http.dart' as http;
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:http/http.dart' as http;
+import 'package:test/test.dart';
 
 void main() {
   group("Linking", () {
@@ -163,6 +164,7 @@ void main() {
       try {
         await http.get("http://localhost:8000/detach");
         expect(true, false);
+        // ignore: empty_catches
       } on http.ClientException {}
 
       expect((await http.get("http://localhost:8000/detach")).statusCode, 200);
@@ -274,7 +276,7 @@ void main() {
       });
 
       // Invalid preflight
-      var req = await (HttpClient().open("OPTIONS", "localhost", 8888, ""));
+      var req = await HttpClient().open("OPTIONS", "localhost", 8888, "");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       req.headers
@@ -282,11 +284,11 @@ void main() {
       var resp = await req.close();
 
       expect(resp.statusCode, 200);
-      expect(json.decode((String.fromCharCodes(await resp.first))),
+      expect(json.decode(String.fromCharCodes(await resp.first)),
           {"statusCode": 403});
 
       // valid preflight
-      req = await (HttpClient().open("OPTIONS", "localhost", 8888, ""));
+      req = await HttpClient().open("OPTIONS", "localhost", 8888, "");
       req.headers.set("Origin", "http://somewhere.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       req.headers
@@ -296,7 +298,7 @@ void main() {
       expect(resp.statusCode, 200);
       expect(resp.headers.value("access-control-allow-methods"),
           "POST, PUT, DELETE, GET");
-      expect(json.decode((String.fromCharCodes(await resp.first))),
+      expect(json.decode(String.fromCharCodes(await resp.first)),
           {"statusCode": 200});
     });
 
@@ -376,7 +378,7 @@ class Always200Controller extends Controller {
     } else if (q == "query_exception") {
       throw QueryException(QueryExceptionEvent.transport);
     } else if (q == "server_error") {
-      throw FormatException("whocares");
+      throw const FormatException("whocares");
     }
     return Response(100, null, null);
   }

@@ -76,19 +76,23 @@ void main() {
     try {
       ManagedType(typeOf(#invalidMapKey));
       fail("unreachable");
+      // ignore: empty_catches
     } on UnsupportedError {}
     try {
       ManagedType(typeOf(#invalidMapValue));
       fail("unreachable");
+      // ignore: empty_catches
     } on UnsupportedError {}
     try {
       ManagedType(typeOf(#invalidList));
       fail("unreachable");
+      // ignore: empty_catches
     } on UnsupportedError {}
 
     try {
       ManagedType(typeOf(#uri));
       fail("unreachable");
+      // ignore: empty_catches
     } on UnsupportedError {}
   });
 }

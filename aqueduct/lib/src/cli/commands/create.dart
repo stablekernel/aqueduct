@@ -25,7 +25,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
   bool get offline => decode("offline");
 
   String get projectName =>
-      remainingArguments.length > 0 ? remainingArguments.first : null;
+      remainingArguments.isNotEmpty ? remainingArguments.first : null;
 
   @override
   Future<int> handle() async {
@@ -105,7 +105,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     ];
 
     var lastComponent = entity.uri.pathSegments.last;
-    if (lastComponent.length == 0) {
+    if (lastComponent.isEmpty) {
       lastComponent =
           entity.uri.pathSegments[entity.uri.pathSegments.length - 2];
     }
@@ -163,11 +163,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
   }
 
   String fileNameForFile(String projectName, File sourceFile) {
-    var fileName = sourceFile.uri.pathSegments.last;
-
-    fileName = fileName.replaceFirst("wildfire", projectName);
-
-    return fileName;
+    return sourceFile.uri.pathSegments.last.replaceFirst("wildfire", projectName);
   }
 
   Directory destinationDirectoryFromPath(String pathString) {
@@ -203,7 +199,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
           "    path:  ${location.toFilePath(windows: Platform.isWindows)}");
     });
 
-    pubspecFile.writeAsStringSync(contents + "\n$overrideBuffer");
+    pubspecFile.writeAsStringSync("$contents\n$overrideBuffer");
   }
 
   void copyProjectFiles(Directory destinationDirectory,
@@ -274,7 +270,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
 
   @override
   String get usage {
-    return super.usage + " <project_name>";
+    return "${super.usage} <project_name>";
   }
 
   @override
@@ -305,13 +301,11 @@ class CLITemplateList extends CLICommand with CLIAqueductGlobal {
         .map((fse) => fse as Directory)
         .toList();
     final templateDescriptions = await Future.wait(
-        templateDirectories.map((dir) => _templateDescription(dir)));
+        templateDirectories.map(_templateDescription));
     displayInfo("Available templates:");
     displayProgress("");
 
-    for (final template in templateDescriptions) {
-      displayProgress(template);
-    }
+    templateDescriptions.forEach(displayProgress);
 
     return 0;
   }
@@ -327,12 +321,11 @@ class CLITemplateList extends CLICommand with CLIAqueductGlobal {
   }
 
   Future<String> _templateDescription(Directory templateDirectory) async {
-    var name = templateDirectory
+    final name = templateDirectory
         .uri.pathSegments[templateDirectory.uri.pathSegments.length - 2];
-    var pubspecContents =
-        await (File.fromUri(templateDirectory.uri.resolve("pubspec.yaml")))
-            .readAsString();
-    var pubspecDefinition = loadYaml(pubspecContents);
+    final pubspecContents =
+        await File.fromUri(templateDirectory.uri.resolve("pubspec.yaml")).readAsString();
+    final pubspecDefinition = loadYaml(pubspecContents);
 
     return "$name | ${pubspecDefinition["description"]}";
   }
@@ -353,6 +346,6 @@ class CLIAqueductGlobal {
   }
 
   Uri getTemplateLocation(String templateName) {
-    return templateDirectory.resolve(templateName + "/");
+    return templateDirectory.resolve("$templateName/");
   }
 }

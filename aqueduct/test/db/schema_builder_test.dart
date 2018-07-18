@@ -158,21 +158,21 @@ void main() {
 
     test("Altering column", () {
       try {
-        builder.alterColumn("_Container", "defaultItem", ((c) {}));
+        builder.alterColumn("_Container", "defaultItem", (c) {});
         expect(true, false);
       } on SchemaException catch (e) {
         expect(e.message, contains("does not exist"));
       }
 
       try {
-        builder.alterColumn("_DefaultItem", "foo", ((c) {}));
+        builder.alterColumn("_DefaultItem", "foo", (c) {});
         expect(true, false);
       } on SchemaException catch (e) {
         expect(e.message, contains("does not exist"));
       }
 
       try {
-        builder.alterColumn("foobar", "id", ((c) {}));
+        builder.alterColumn("foobar", "id", (c) {});
         expect(true, false);
       } on SchemaException catch (e) {
         expect(e.message, contains("does not exist"));

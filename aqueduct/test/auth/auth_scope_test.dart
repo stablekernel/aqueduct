@@ -6,41 +6,49 @@ void main() {
     try {
       AuthScope("");
       expect(true, false);
+      // ignore: empty_catches
     } on FormatException {}
 
     try {
       AuthScope(null);
       expect(true, false);
+      // ignore: empty_catches
     } on FormatException {}
 
     try {
       AuthScope("user.readonly:location");
       expect(true, false);
+      // ignore: empty_catches
     } on FormatException {}
 
     try {
       AuthScope("user:location.readonly:equipment");
       expect(true, false);
+      // ignore: empty_catches
     } on FormatException {}
 
     try {
       AuthScope("user:location:");
       expect(true, false);
+      // ignore: empty_catches
     } on FormatException {}
 
     try {
       AuthScope(":user:location:");
       expect(true, false);
+      // ignore: empty_catches
     } on FormatException {}
 
     try {
       AuthScope(" ab");
       expect(true, false);
+      // ignore: empty_catches
     } on FormatException {}
 
     try {
       AuthScope("ab c");
       expect(true, false);
+      // ignore: empty_catches
     } on FormatException {}
   });
 

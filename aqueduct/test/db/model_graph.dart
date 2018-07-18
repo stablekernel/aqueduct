@@ -5,8 +5,8 @@ class RootObject extends ManagedObject<_RootObject> implements _RootObject {
   static int counter = 1;
   RootObject();
   RootObject.withCounter() {
-    this.value1 = counter;
-    this.value2 = counter;
+    value1 = counter;
+    value2 = counter;
     counter++;
   }
 
@@ -36,8 +36,8 @@ class ChildObject extends ManagedObject<_ChildObject> implements _ChildObject {
   static int counter = 1;
   ChildObject();
   ChildObject.withCounter() {
-    this.value1 = counter;
-    this.value2 = counter;
+    value1 = counter;
+    value2 = counter;
     counter++;
   }
 
@@ -72,8 +72,8 @@ class GrandChildObject extends ManagedObject<_GrandChildObject>
   static int counter = 1;
   GrandChildObject();
   GrandChildObject.withCounter() {
-    this.value1 = counter;
-    this.value2 = counter;
+    value1 = counter;
+    value2 = counter;
     counter++;
   }
 
@@ -105,8 +105,8 @@ class OtherRootObject extends ManagedObject<_OtherRootObject>
   static int counter = 1;
   OtherRootObject();
   OtherRootObject.withCounter() {
-    this.value1 = counter;
-    this.value2 = counter;
+    value1 = counter;
+    value2 = counter;
     counter++;
   }
 

@@ -122,7 +122,7 @@ abstract class ResourceController extends Controller
   /// This method is called after the body has been processed by the decoder, but prior to the request being
   /// handled by the selected operation method. If there is no HTTP request body,
   /// this method is not called.
-  void didDecodeRequestBody(RequestBody decodedObject) {}
+  void didDecodeRequestBody(RequestBody body) {}
 
   @override
   void restore(BoundController state) {
@@ -130,10 +130,10 @@ abstract class ResourceController extends Controller
   }
 
   @override
-  FutureOr<RequestOrResponse> handle(Request req) async {
-    request = req;
+  FutureOr<RequestOrResponse> handle(Request request) async {
+    this.request = request;
 
-    var preprocessedResult = await willProcessRequest(req);
+    var preprocessedResult = await willProcessRequest(request);
     if (preprocessedResult is Request) {
       return _process();
     } else if (preprocessedResult is Response) {
@@ -277,12 +277,12 @@ abstract class ResourceController extends Controller
 
       context.defer(() async {
         if (op.summary == null) {
-          final type = await DocumentedElement.get(this.runtimeType);
+          final type = await DocumentedElement.get(runtimeType);
           op.summary = type[binder.methodSymbol].summary;
         }
 
         if (op.description == null) {
-          final type = await DocumentedElement.get(this.runtimeType);
+          final type = await DocumentedElement.get(runtimeType);
           op.description = type[binder.methodSymbol].description;
         }
         if (method.scopes != null) {

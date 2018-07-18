@@ -79,6 +79,7 @@ void main() {
       try {
         await auth.removeClient(null);
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
 
       var q = Query<ManagedAuthClient>(context);
@@ -146,6 +147,7 @@ void main() {
       try {
         await auth.addClient(client);
         fail('unreachable');
+        // ignore: empty_catches
       } on ArgumentError {}
     });
 
@@ -184,7 +186,7 @@ void main() {
         "Can create token with all information + refresh token if client is confidential",
         () async {
       var token = await auth.authenticate(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
       expect(token.accessToken, isString);
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.app1");
@@ -203,7 +205,7 @@ void main() {
         "Can create token with all information minus refresh token if client is public",
         () async {
       var token = await auth.authenticate(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.public", "");
+          User.defaultPassword, "com.stablekernel.public", "");
       expect(token.accessToken, isString);
       expect(token.refreshToken, isNull);
       expect(token.clientID, "com.stablekernel.public");
@@ -218,7 +220,7 @@ void main() {
       expect(token.expirationDate.isAfter(now), true);
 
       token = await auth.authenticate(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.public", null);
+          User.defaultPassword, "com.stablekernel.public", null);
       expect(token.accessToken, isString);
       expect(token.refreshToken, isNull);
       expect(token.clientID, "com.stablekernel.public");
@@ -235,7 +237,7 @@ void main() {
 
     test("Can create token if client has redirect uri", () async {
       var token = await auth.authenticate(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.redirect", "mckinley");
+          User.defaultPassword, "com.stablekernel.redirect", "mckinley");
       expect(token.accessToken, isString);
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.redirect");
@@ -243,9 +245,10 @@ void main() {
 
     test("Create token fails if username is incorrect", () async {
       try {
-        await auth.authenticate("nonsense", User.DefaultPassword,
+        await auth.authenticate("nonsense", User.defaultPassword,
             "com.stablekernel.app1", "kilimanjaro");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
@@ -254,22 +257,25 @@ void main() {
         await auth.authenticate(createdUser.username, "nonsense",
             "com.stablekernel.app1", "kilimanjaro");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
     test("Create token fails if client ID doesn't exist", () async {
       try {
-        await auth.authenticate(createdUser.username, User.DefaultPassword,
+        await auth.authenticate(createdUser.username, User.defaultPassword,
             "nonsense", "kilimanjaro");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
     test("Create token fails if client secret doesn't match", () async {
       try {
-        await auth.authenticate(createdUser.username, User.DefaultPassword,
+        await auth.authenticate(createdUser.username, User.defaultPassword,
             "com.stablekernel.app1", "nonsense");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
@@ -277,30 +283,33 @@ void main() {
         "Create token fails if client ID is confidential and secret is omitted",
         () async {
       try {
-        await auth.authenticate(createdUser.username, User.DefaultPassword,
+        await auth.authenticate(createdUser.username, User.defaultPassword,
             "com.stablekernel.app1", null);
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
 
       try {
-        await auth.authenticate(createdUser.username, User.DefaultPassword,
+        await auth.authenticate(createdUser.username, User.defaultPassword,
             "com.stablekernel.app1", "");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
     test("Create token fails if client secret provided for public client",
         () async {
       try {
-        await auth.authenticate(createdUser.username, User.DefaultPassword,
+        await auth.authenticate(createdUser.username, User.defaultPassword,
             "com.stablekernel.public", "nonsense");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
     test("Can create token that is verifiable", () async {
       var token = await auth.authenticate(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
       expect((await auth.verify(token.accessToken)) is Authorization, true);
     });
 
@@ -315,7 +324,7 @@ void main() {
 
     test("Expired token cannot be verified", () async {
       var token = await auth.authenticate(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro",
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro",
           expiration: Duration(seconds: 1));
 
       sleep(Duration(seconds: 1));
@@ -330,7 +339,7 @@ void main() {
 
     test("Cannot verify token if owner authentcatable is 'revoked'", () async {
       var token = await auth.authenticate(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
       await auth.revokeAllGrantsForResourceOwner(createdUser.id);
 
       try {
@@ -351,7 +360,7 @@ void main() {
       auth = AuthServer(storage);
       createdUser = (await createUsers(context, 1)).first;
       initialToken = await auth.authenticate(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
     });
 
     test(
@@ -385,7 +394,7 @@ void main() {
 
     test("Can refresh token if client has redirect uri", () async {
       var token = await auth.authenticate(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.redirect", "mckinley");
+          User.defaultPassword, "com.stablekernel.redirect", "mckinley");
 
       var refreshToken = await auth.refresh(
           token.refreshToken, "com.stablekernel.redirect", "mckinley");
@@ -413,6 +422,7 @@ void main() {
       try {
         await auth.refresh("nonsense", "com.stablekernel.app1", "kilimanjaro");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
@@ -420,6 +430,7 @@ void main() {
       try {
         await auth.refresh(null, "com.stablekernel.app1", "kilimanjaro");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
@@ -427,6 +438,7 @@ void main() {
       try {
         await auth.refresh(initialToken.refreshToken, null, "kilimanjaro");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
@@ -436,6 +448,7 @@ void main() {
         await auth.refresh(
             initialToken.refreshToken, "com.stablekernel.app2", "fuji");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
@@ -444,6 +457,7 @@ void main() {
         await auth.refresh(
             initialToken.refreshToken, "com.stablekernel.app1", null);
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
@@ -452,18 +466,20 @@ void main() {
         await auth.refresh(
             initialToken.refreshToken, "com.stablekernel.app1", "nonsense");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
     test("Cannot refresh token if owner authentcatable is 'revoked'", () async {
       var token = await auth.authenticate(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
       await auth.revokeAllGrantsForResourceOwner(createdUser.id);
 
       try {
         await auth.refresh(
             token.accessToken, "com.stablekernel.redirect", "mckinley");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
   });
@@ -479,7 +495,7 @@ void main() {
 
     test("Can create an auth code that can be exchanged for a token", () async {
       var authCode = await auth.authenticateForCode(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.redirect");
+          User.defaultPassword, "com.stablekernel.redirect");
 
       expect(authCode.code.length, greaterThan(0));
       expect(authCode.resourceOwnerIdentifier, createdUser.id);
@@ -508,7 +524,7 @@ void main() {
     test("Generate auth code with bad username fails", () async {
       try {
         await auth.authenticateForCode(
-            "bob+0@stable", User.DefaultPassword, "com.stablekernel.redirect");
+            "bob+0@stable", User.defaultPassword, "com.stablekernel.redirect");
         expect(true, false);
       } on AuthServerException catch (e) {
         expect(e.client.id, "com.stablekernel.redirect");
@@ -530,7 +546,7 @@ void main() {
     test("Generate auth code with unknown client id fails", () async {
       try {
         await auth.authenticateForCode(
-            createdUser.username, User.DefaultPassword, "com.stabl");
+            createdUser.username, User.defaultPassword, "com.stabl");
         expect(true, false);
       } on AuthServerException catch (e) {
         expect(e.client, isNull);
@@ -541,7 +557,7 @@ void main() {
     test("Generate auth code with no redirect uri fails", () async {
       try {
         await auth.authenticateForCode(createdUser.username,
-            User.DefaultPassword, "com.stablekernel.app1");
+            User.defaultPassword, "com.stablekernel.app1");
         expect(true, false);
       } on AuthServerException catch (e) {
         expect(e.client.id, "com.stablekernel.app1");
@@ -552,7 +568,7 @@ void main() {
     test("Generate auth code with no client id", () async {
       try {
         await auth.authenticateForCode(
-            createdUser.username, User.DefaultPassword, null);
+            createdUser.username, User.defaultPassword, null);
         expect(true, false);
       } on AuthServerException catch (e) {
         expect(e.client, isNull);
@@ -563,13 +579,14 @@ void main() {
     test("Code no longer available if owner authentcatable is 'revoked'",
         () async {
       var authCode = await auth.authenticateForCode(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.redirect");
+          User.defaultPassword, "com.stablekernel.redirect");
       await auth.revokeAllGrantsForResourceOwner(createdUser.id);
 
       try {
         await auth.exchange(
             authCode.code, "com.stablekernel.redirect", "mckinley");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
   });
@@ -583,7 +600,7 @@ void main() {
       auth = AuthServer(storage);
       createdUser = (await createUsers(context, 1)).first;
       code = await auth.authenticateForCode(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.redirect");
+          User.defaultPassword, "com.stablekernel.redirect");
     });
 
     test("Can create an auth code that can be exchanged for a token", () async {
@@ -608,6 +625,7 @@ void main() {
         await auth.exchange(null, "com.stablekernel.redirect", "mckinley");
 
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
@@ -616,12 +634,13 @@ void main() {
         await auth.exchange("foobar", "com.stablekernel.redirect", "mckinley");
 
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
     test("Expired code fails and it gets deleted", () async {
       code = await auth.authenticateForCode(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.redirect",
+          User.defaultPassword, "com.stablekernel.redirect",
           expirationInSeconds: 1);
 
       sleep(Duration(seconds: 1));
@@ -630,6 +649,7 @@ void main() {
         await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
 
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
 
       var q = Query<ManagedAuthToken>(context)
@@ -646,6 +666,7 @@ void main() {
         await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
 
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
 
       // Can no longer use issued token
@@ -673,6 +694,7 @@ void main() {
         await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
 
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
 
       // Can no longer use issued token
@@ -701,6 +723,7 @@ void main() {
         await auth.exchange(code.code, null, "mckinley");
 
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
@@ -709,6 +732,7 @@ void main() {
         await auth.exchange(code.code, "nonsense", "mckinley");
 
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
@@ -719,6 +743,7 @@ void main() {
             code.code, "com.stablekernel.redirect2", "gibraltar");
 
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
@@ -727,6 +752,7 @@ void main() {
         await auth.exchange(code.code, "com.stablekernel.redirect", null);
 
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
 
@@ -735,6 +761,7 @@ void main() {
         await auth.exchange(code.code, "com.stablekernel.redirect", "nonsense");
 
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
     });
   });
@@ -753,16 +780,16 @@ void main() {
         () async {
       var unusedCode = await auth.authenticateForCode(
           createdUsers.first.username,
-          User.DefaultPassword,
+          User.defaultPassword,
           "com.stablekernel.redirect");
       var exchangedCode = await auth.authenticateForCode(
           createdUsers.first.username,
-          User.DefaultPassword,
+          User.defaultPassword,
           "com.stablekernel.redirect");
       var exchangedToken = await auth.exchange(
           exchangedCode.code, "com.stablekernel.redirect", "mckinley");
       var issuedToken = await auth.authenticate(createdUsers.first.username,
-          User.DefaultPassword, "com.stablekernel.redirect", "mckinley");
+          User.defaultPassword, "com.stablekernel.redirect", "mckinley");
 
       expect(await auth.verify(issuedToken.accessToken), isNotNull);
 
@@ -771,6 +798,7 @@ void main() {
         await auth.exchange(
             unusedCode.code, "com.stablekernel.redirect", "mckinley");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
 
       try {
@@ -795,38 +823,38 @@ void main() {
         () async {
       var exchangedCodeRevoke = await auth.authenticateForCode(
           createdUsers.first.username,
-          User.DefaultPassword,
+          User.defaultPassword,
           "com.stablekernel.redirect");
       await auth.authenticateForCode(createdUsers.first.username,
-          User.DefaultPassword, "com.stablekernel.redirect");
+          User.defaultPassword, "com.stablekernel.redirect");
       await auth.exchange(
           exchangedCodeRevoke.code, "com.stablekernel.redirect", "mckinley");
-      await auth.authenticate(createdUsers.first.username, User.DefaultPassword,
+      await auth.authenticate(createdUsers.first.username, User.defaultPassword,
           "com.stablekernel.redirect", "mckinley");
 
       var unusedCodeKeep = await auth.authenticateForCode(
           createdUsers.first.username,
-          User.DefaultPassword,
+          User.defaultPassword,
           "com.stablekernel.redirect2");
       var exchangedCodeKeep = await auth.authenticateForCode(
           createdUsers.first.username,
-          User.DefaultPassword,
+          User.defaultPassword,
           "com.stablekernel.redirect2");
       var exchangedTokenKeep = await auth.exchange(
           exchangedCodeKeep.code, "com.stablekernel.redirect2", "gibraltar");
       var issuedTokenKeep = await auth.authenticate(createdUsers.first.username,
-          User.DefaultPassword, "com.stablekernel.redirect2", "gibraltar");
+          User.defaultPassword, "com.stablekernel.redirect2", "gibraltar");
 
       await auth.removeClient("com.stablekernel.redirect");
 
       var exchangedLater = await auth.exchange(
           unusedCodeKeep.code, "com.stablekernel.redirect2", "gibraltar");
       expect(await auth.verify(exchangedLater.accessToken),
-          TypeMatcher<Authorization>());
+          const TypeMatcher<Authorization>());
       expect(await auth.verify(exchangedTokenKeep.accessToken),
-          TypeMatcher<Authorization>());
+          const TypeMatcher<Authorization>());
       expect(await auth.verify(issuedTokenKeep.accessToken),
-          TypeMatcher<Authorization>());
+          const TypeMatcher<Authorization>());
 
       var tokenQuery = Query<ManagedAuthToken>(context);
       expect(await tokenQuery.fetch(), hasLength(3));
@@ -836,13 +864,13 @@ void main() {
       var createdUser = createdUsers.first;
 
       var token = await auth.authenticate(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
       var p1 = await auth.verify(token.accessToken);
       expect(p1.clientID, "com.stablekernel.app1");
       expect(p1.ownerID, createdUser.id);
 
       var code = await auth.authenticateForCode(createdUser.username,
-          User.DefaultPassword, "com.stablekernel.redirect");
+          User.defaultPassword, "com.stablekernel.redirect");
       var token2 = await auth.exchange(
           code.code, "com.stablekernel.redirect", "mckinley");
 
@@ -871,16 +899,16 @@ void main() {
         () async {
       var unusedCode = await auth.authenticateForCode(
           createdUsers.first.username,
-          User.DefaultPassword,
+          User.defaultPassword,
           "com.stablekernel.redirect");
       var exchangedCode = await auth.authenticateForCode(
           createdUsers.first.username,
-          User.DefaultPassword,
+          User.defaultPassword,
           "com.stablekernel.redirect");
       var exchangedToken = await auth.exchange(
           exchangedCode.code, "com.stablekernel.redirect", "mckinley");
       var issuedToken = await auth.authenticate(createdUsers.first.username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
 
       expect(await auth.verify(issuedToken.accessToken), isNotNull);
 
@@ -890,6 +918,7 @@ void main() {
         await auth.exchange(
             unusedCode.code, "com.stablekernel.redirect", "mckinley");
         expect(true, false);
+        // ignore: empty_catches
       } on AuthServerException {}
 
       try {
@@ -925,7 +954,7 @@ void main() {
         () async {
       var exchangedCode = await auth.authenticateForCode(
           createdUsers.first.username,
-          User.DefaultPassword,
+          User.defaultPassword,
           "com.stablekernel.redirect");
       var exchangedToken = await auth.exchange(
           exchangedCode.code, "com.stablekernel.redirect", "mckinley");
@@ -956,14 +985,14 @@ void main() {
       // Insert a code for a different user to make sure it doesn't get pruned.
       var otherUserCode = await auth.authenticateForCode(
           createdUsers[1].username,
-          User.DefaultPassword,
+          User.defaultPassword,
           "com.stablekernel.redirect");
 
       // Insert the max number of codes
       var codes = <AuthCode>[];
       for (var i = 0; i < 3; i++) {
         var c = await auth.authenticateForCode(createdUsers.first.username,
-            User.DefaultPassword, "com.stablekernel.redirect");
+            User.defaultPassword, "com.stablekernel.redirect");
         codes.add(c);
       }
 
@@ -975,7 +1004,7 @@ void main() {
       // Make a new code, should kill the race condition code and the first generated code in the loop.
       // Other user codes remain
       var newCode = await auth.authenticateForCode(createdUsers.first.username,
-          User.DefaultPassword, "com.stablekernel.redirect");
+          User.defaultPassword, "com.stablekernel.redirect");
       var codeQuery = Query<ManagedAuthToken>(context);
       var codesInDB = (await codeQuery.fetch()).map((ac) => ac.code).toList();
 
@@ -990,7 +1019,7 @@ void main() {
 
       // Make a new code, but with a different client, should still kill off the oldest expiring code.
       var lastCode = await auth.authenticateForCode(createdUsers.first.username,
-          User.DefaultPassword, "com.stablekernel.redirect2");
+          User.defaultPassword, "com.stablekernel.redirect2");
       codesInDB = (await codeQuery.fetch()).map((ac) => ac.code).toList();
 
       // These codes are in chronological order
@@ -1029,13 +1058,13 @@ void main() {
 
       // Insert a token for a different user to make sure it doesn't get pruned.
       var otherUserToken = await auth.authenticate(createdUsers[1].username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
 
       // Insert the max number of token
       var tokens = <AuthToken>[];
       for (var i = 0; i < 3; i++) {
         var c = await auth.authenticate(createdUsers.first.username,
-            User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+            User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
         tokens.add(c);
       }
 
@@ -1047,7 +1076,7 @@ void main() {
       // Make a new token, should kill the race condition token and the first generated token in the loop.
       // Other user token remain
       var newToken = await auth.authenticate(createdUsers.first.username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
       var tokenQuery = Query<ManagedAuthToken>(context);
       var tokensInDB =
           (await tokenQuery.fetch()).map((ac) => ac.accessToken).toList();
@@ -1063,7 +1092,7 @@ void main() {
 
       // Make a new token, but with a different client, should still kill off the oldest token code.
       var lastToken = await auth.authenticate(createdUsers.first.username,
-          User.DefaultPassword, "com.stablekernel.app2", "fuji");
+          User.defaultPassword, "com.stablekernel.app2", "fuji");
       tokensInDB =
           (await tokenQuery.fetch()).map((ac) => ac.accessToken).toList();
 
@@ -1078,9 +1107,9 @@ void main() {
 
     test("Ensure users aren't authenticated by other users", () async {
       var t1 = await auth.authenticate(createdUsers[0].username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
       var t2 = await auth.authenticate(createdUsers[4].username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
 
       var permission = await auth.verify(t1.accessToken);
       expect(permission.clientID, "com.stablekernel.app1");
@@ -1095,9 +1124,9 @@ void main() {
         "Revoking tokens/codes for Authenticatable does not impact other Authenticatables",
         () async {
       var t1 = await auth.authenticate(createdUsers[0].username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
       var t2 = await auth.authenticate(createdUsers[4].username,
-          User.DefaultPassword, "com.stablekernel.app1", "kilimanjaro");
+          User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
 
       await auth.revokeAllGrantsForResourceOwner(createdUsers[0].id);
       expect(await auth.verify(t2.accessToken), isNotNull);
@@ -1166,7 +1195,7 @@ void main() {
         "Client can issue tokens for valid scope, only include specified scope",
         () async {
       var token1 = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "all", null,
+          createdUser.username, User.defaultPassword, "all", null,
           requestedScopes: [AuthScope("user")]);
 
       expect(token1.scopes.length, 1);
@@ -1174,7 +1203,7 @@ void main() {
       expect(token1.scopes.first.isExactly("user"), true);
 
       var token2 = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "all", null,
+          createdUser.username, User.defaultPassword, "all", null,
           requestedScopes: [AuthScope("user:sub")]);
 
       expect(token2.scopes.length, 1);
@@ -1186,7 +1215,7 @@ void main() {
         "Client can request multiple scopes and if all are valid, get token and all specified scopes",
         () async {
       var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "all", null,
+          createdUser.username, User.defaultPassword, "all", null,
           requestedScopes: [AuthScope("user"), AuthScope("location:add")]);
 
       expect(token.scopes.length, 2);
@@ -1199,7 +1228,7 @@ void main() {
         "Client that requests multiple scopes for token where one is not valid, only get valid scopes",
         () async {
       var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "all", null,
+          createdUser.username, User.defaultPassword, "all", null,
           requestedScopes: [AuthScope("user"), AuthScope("unknown")]);
 
       expect(token.scopes.length, 1);
@@ -1211,7 +1240,7 @@ void main() {
         "Client that requests multiple scopes where they are subsets of valid scopes, gets subsets back",
         () async {
       var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "all", null,
+          createdUser.username, User.defaultPassword, "all", null,
           requestedScopes: [
             AuthScope("user:sub"),
             AuthScope("location:add:sub")
@@ -1225,7 +1254,7 @@ void main() {
 
     test("Client that requests allowed nested scope gets token", () async {
       var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "subset.multiple", null,
+          createdUser.username, User.defaultPassword, "subset.multiple", null,
           requestedScopes: [
             AuthScope("user:a"),
           ]);
@@ -1234,7 +1263,7 @@ void main() {
       expect(token.scopes.any((s) => s.isExactly("user:a")), true);
 
       token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "subset.multiple", null,
+          createdUser.username, User.defaultPassword, "subset.multiple", null,
           requestedScopes: [
             AuthScope("user:b"),
           ]);
@@ -1244,7 +1273,7 @@ void main() {
 
       try {
         var _ = await auth.authenticate(
-            createdUser.username, User.DefaultPassword, "subset.multiple", null,
+            createdUser.username, User.defaultPassword, "subset.multiple", null,
             requestedScopes: [
               AuthScope("user"),
             ]);
@@ -1257,7 +1286,7 @@ void main() {
     test("Client will reject token request for unknown scope", () async {
       try {
         var _ = await auth.authenticate(
-            createdUser.username, User.DefaultPassword, "all", null,
+            createdUser.username, User.defaultPassword, "all", null,
             requestedScopes: [AuthScope("unknown")]);
 
         expect(true, false);
@@ -1271,7 +1300,7 @@ void main() {
         () async {
       try {
         var _ = await auth.authenticate(
-            createdUser.username, User.DefaultPassword, "all", null,
+            createdUser.username, User.defaultPassword, "all", null,
             requestedScopes: [AuthScope("location")]);
 
         expect(true, false);
@@ -1285,7 +1314,7 @@ void main() {
         () async {
       try {
         var _ = await auth.authenticate(
-            createdUser.username, User.DefaultPassword, "all", null,
+            createdUser.username, User.defaultPassword, "all", null,
             requestedScopes: [AuthScope("admin:settings")]);
 
         expect(true, false);
@@ -1298,7 +1327,7 @@ void main() {
 
     test("Refresh token without scope specified returns same scope", () async {
       var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "all.redirect", "a",
+          createdUser.username, User.defaultPassword, "all.redirect", "a",
           requestedScopes: [AuthScope("user"), AuthScope("location:add")]);
 
       token = await auth.refresh(token.refreshToken, "all.redirect", "a");
@@ -1311,7 +1340,7 @@ void main() {
     test("Refresh token with lesser scope specified returns specified scope",
         () async {
       var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "all.redirect", "a",
+          createdUser.username, User.defaultPassword, "all.redirect", "a",
           requestedScopes: [AuthScope("user"), AuthScope("location:add")]);
 
       token = await auth.refresh(token.refreshToken, "all.redirect", "a",
@@ -1338,7 +1367,7 @@ void main() {
         "Refresh token with new, valid scope fails because refresh can't upgrade scope",
         () async {
       var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "all.redirect", "a",
+          createdUser.username, User.defaultPassword, "all.redirect", "a",
           requestedScopes: [AuthScope("user"), AuthScope("location:add")]);
 
       try {
@@ -1359,7 +1388,7 @@ void main() {
         "Refresh token request with higher privileged scope does not include that scope because refresh can't upgrade scope",
         () async {
       var token = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "all.redirect", "a",
+          createdUser.username, User.defaultPassword, "all.redirect", "a",
           requestedScopes: [AuthScope("user:foo"), AuthScope("location:add")]);
 
       try {
@@ -1377,10 +1406,10 @@ void main() {
         () async {
       // token1 will have explicit refresh scope, token2 will have implicit refresh scope
       var token1 = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "all.redirect", "a",
+          createdUser.username, User.defaultPassword, "all.redirect", "a",
           requestedScopes: [AuthScope("user"), AuthScope("location:add")]);
       var token2 = await auth.authenticate(
-          createdUser.username, User.DefaultPassword, "all.redirect", "a",
+          createdUser.username, User.defaultPassword, "all.redirect", "a",
           requestedScopes: [AuthScope("user"), AuthScope("location:add")]);
 
       var q = Query<ManagedAuthClient>(context)
@@ -1408,7 +1437,7 @@ void main() {
 
     test("Client can issue auth code for valid scope", () async {
       var code1 = await auth.authenticateForCode(
-          createdUser.username, User.DefaultPassword, "all.redirect",
+          createdUser.username, User.defaultPassword, "all.redirect",
           requestedScopes: [AuthScope("user")]);
       var token1 = await auth.exchange(code1.code, "all.redirect", "a");
 
@@ -1417,7 +1446,7 @@ void main() {
       expect(token1.scopes.first.isExactly("user"), true);
 
       var code2 = await auth.authenticateForCode(
-          createdUser.username, User.DefaultPassword, "all.redirect",
+          createdUser.username, User.defaultPassword, "all.redirect",
           requestedScopes: [AuthScope("user:sub")]);
       var token2 = await auth.exchange(code2.code, "all.redirect", "a");
 
@@ -1430,7 +1459,7 @@ void main() {
         "Client that requests multiple scopes for auth code where they are subsets of valid scopes, gets subsets back",
         () async {
       var code = await auth.authenticateForCode(
-          createdUser.username, User.DefaultPassword, "all.redirect",
+          createdUser.username, User.defaultPassword, "all.redirect",
           requestedScopes: [
             AuthScope("user:sub"),
             AuthScope("location:add:sub")
@@ -1447,7 +1476,7 @@ void main() {
         "Client can request multiple scopes and if all are valid, get auth code",
         () async {
       var code = await auth.authenticateForCode(
-          createdUser.username, User.DefaultPassword, "all.redirect",
+          createdUser.username, User.defaultPassword, "all.redirect",
           requestedScopes: [AuthScope("user"), AuthScope("location:add")]);
 
       var token = await auth.exchange(code.code, "all.redirect", "a");
@@ -1462,7 +1491,7 @@ void main() {
         "Client that requests multiple scopes for auth code where one is not valid, only get valid scopes",
         () async {
       var code = await auth.authenticateForCode(
-          createdUser.username, User.DefaultPassword, "all.redirect",
+          createdUser.username, User.defaultPassword, "all.redirect",
           requestedScopes: [AuthScope("user"), AuthScope("unknown")]);
 
       var token = await auth.exchange(code.code, "all.redirect", "a");
@@ -1474,7 +1503,7 @@ void main() {
     test("Client will reject auth code request for unknown scope", () async {
       try {
         var _ = await auth.authenticateForCode(
-            createdUser.username, User.DefaultPassword, "all.redirect",
+            createdUser.username, User.defaultPassword, "all.redirect",
             requestedScopes: [AuthScope("unknown")]);
 
         expect(true, false);
@@ -1488,7 +1517,7 @@ void main() {
         () async {
       try {
         var _ = await auth.authenticateForCode(
-            createdUser.username, User.DefaultPassword, "all.redirect",
+            createdUser.username, User.defaultPassword, "all.redirect",
             requestedScopes: [AuthScope("location")]);
 
         expect(true, false);
@@ -1502,7 +1531,7 @@ void main() {
         () async {
       try {
         var _ = await auth.authenticateForCode(
-            createdUser.username, User.DefaultPassword, "all.redirect",
+            createdUser.username, User.defaultPassword, "all.redirect",
             requestedScopes: [AuthScope("admin:settings")]);
 
         expect(true, false);
@@ -1515,7 +1544,7 @@ void main() {
 
 class User extends ManagedObject<_User>
     implements _User, ManagedAuthResourceOwner<_User> {
-  static const String DefaultPassword = "foobaraxegrind!%12";
+  static const String defaultPassword = "foobaraxegrind!%12";
 }
 
 class _User extends ResourceOwnerTableDefinition {}
@@ -1528,7 +1557,7 @@ Future<List<User>> createUsers(ManagedContext ctx, int count) async {
       ..username = "bob+$i@stablekernel.com"
       ..salt = salt
       ..hashedPassword =
-          AuthUtility.generatePasswordHash(User.DefaultPassword, salt);
+          AuthUtility.generatePasswordHash(User.defaultPassword, salt);
 
     var q = Query<User>(ctx)..values = u;
 

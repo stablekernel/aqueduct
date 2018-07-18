@@ -1,8 +1,8 @@
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
-import 'managed.dart';
 import 'exception.dart';
+import 'managed.dart';
 
 final ArgumentError _invalidValueConstruction = ArgumentError(
     "Invalid property access when building 'Query.values'. "
@@ -119,7 +119,7 @@ class ManagedBuilderBacking extends ManagedBacking {
       if (value == null) {
         contents[property.name] = null;
       } else {
-        final original = (value as ManagedObject);
+        final ManagedObject original = value;
         final replacementBacking = ManagedForeignKeyBuilderBacking.from(
             original.entity, original.backing);
         final replacement =

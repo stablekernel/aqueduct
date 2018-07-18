@@ -1,15 +1,15 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
 
+import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/documented_element.dart';
 import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
+import 'package:test/test.dart';
 
 import '../helpers.dart';
-import 'dart:convert';
 
 void main() {
   DocumentedElement.provider = AnalyzerDocumentedElementProvider();
@@ -119,7 +119,7 @@ void main() {
         "client_id": "com.stablekernel.redirect",
         "state": "Wisconsin@&",
         "username": "bob+0@stablekernel.com",
-        "password": InMemoryAuthStorage.DefaultPassword
+        "password": InMemoryAuthStorage.defaultPassword
       });
 
       expectRedirect(res, Uri.http("stablekernel.com", "/auth/redirect"),
@@ -131,7 +131,7 @@ void main() {
         "client_id": "com.stablekernel.scoped",
         "state": "Wisconsin@&",
         "username": "bob+0@stablekernel.com",
-        "password": InMemoryAuthStorage.DefaultPassword,
+        "password": InMemoryAuthStorage.defaultPassword,
         "scope": "user"
       });
 
@@ -151,7 +151,7 @@ void main() {
         "client_id": "com.stablekernel.scoped",
         "state": "Wisconsin@&",
         "username": "bob+0@stablekernel.com",
-        "password": InMemoryAuthStorage.DefaultPassword,
+        "password": InMemoryAuthStorage.defaultPassword,
         "scope": "user other_scope"
       });
 
@@ -173,7 +173,7 @@ void main() {
       var res = await codeResponse({
         "client_id": "com.stablekernel.redirect",
         "username": "FOOBAR",
-        "password": InMemoryAuthStorage.DefaultPassword,
+        "password": InMemoryAuthStorage.defaultPassword,
         "state": "a"
       });
       expectErrorRedirect(
@@ -185,7 +185,7 @@ void main() {
       var res = await codeResponse({
         "client_id": "com.stablekernel.redirect",
         "username": "",
-        "password": InMemoryAuthStorage.DefaultPassword,
+        "password": InMemoryAuthStorage.defaultPassword,
         "state": "a"
       });
       expectErrorRedirect(
@@ -196,7 +196,7 @@ void main() {
     test("Username is missing returns 302 with error", () async {
       var res = await codeResponse({
         "client_id": "com.stablekernel.redirect",
-        "password": InMemoryAuthStorage.DefaultPassword,
+        "password": InMemoryAuthStorage.defaultPassword,
         "state": "a"
       });
       expectErrorRedirect(res, Uri.http("stablekernel.com", "/auth/redirect"),
@@ -398,7 +398,7 @@ void main() {
       var resp = await codeResponse({
         "client_id": "com.stablekernel.redirect",
         "username": user1["username"],
-        "password": InMemoryAuthStorage.DefaultPassword
+        "password": InMemoryAuthStorage.defaultPassword
       });
 
       expect(resp, hasStatus(HttpStatus.movedTemporarily));
@@ -417,7 +417,7 @@ void main() {
       var res = await codeResponse({
         "client_id": "com.stablekernel.redirect",
         "username": "FOOBAR",
-        "password": InMemoryAuthStorage.DefaultPassword,
+        "password": InMemoryAuthStorage.defaultPassword,
         "state": "xyz"
       });
       expectErrorRedirect(
@@ -459,7 +459,7 @@ void main() {
         "client_id": "com.stablekernel.scoped",
         "state": "Wisconsin@&",
         "username": "bob+0@stablekernel.com",
-        "password": InMemoryAuthStorage.DefaultPassword,
+        "password": InMemoryAuthStorage.defaultPassword,
         "scope": "u\"ser"
       });
 
@@ -473,7 +473,7 @@ void main() {
         "client_id": "com.stablekernel.scoped",
         "state": "Wisconsin@&",
         "username": "bob+0@stablekernel.com",
-        "password": InMemoryAuthStorage.DefaultPassword,
+        "password": InMemoryAuthStorage.defaultPassword,
         "scope": "invalid"
       });
 
@@ -633,15 +633,15 @@ void expectErrorRedirect(TestResponse resp, Uri requestURI, String errorReason,
 
 Map<String, String> get user1 => const {
       "username": "bob+0@stablekernel.com",
-      "password": InMemoryAuthStorage.DefaultPassword
+      "password": InMemoryAuthStorage.defaultPassword
     };
 
 Map<String, String> get user2 => const {
       "username": "bob+1@stablekernel.com",
-      "password": InMemoryAuthStorage.DefaultPassword
+      "password": InMemoryAuthStorage.defaultPassword
     };
 
 Map<String, String> get user3 => const {
       "username": "bob+2@stablekernel.com",
-      "password": InMemoryAuthStorage.DefaultPassword
+      "password": InMemoryAuthStorage.defaultPassword
     };

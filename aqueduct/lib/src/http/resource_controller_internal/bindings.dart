@@ -3,9 +3,9 @@ import 'dart:mirrors';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
 
-import '../serializable.dart';
 import '../request.dart';
 import '../response.dart';
+import '../serializable.dart';
 import 'internal.dart';
 
 /// Parent class for annotations used for optional parameters in controller methods
@@ -199,7 +199,7 @@ class BoundBody extends BoundInput {
 
     if (intoType.isSubtypeOf(reflectType(HTTPSerializable))) {
       final value =
-          intoType.newInstance(Symbol(""), []).reflectee as HTTPSerializable;
+          intoType.newInstance(const Symbol(""), []).reflectee as HTTPSerializable;
       value.readFromMap(request.body.as());
 
       return value;
@@ -212,7 +212,7 @@ class BoundBody extends BoundInput {
       final typeArg = intoType.typeArguments.first as ClassMirror;
       return bodyList.map((object) {
         final value =
-            typeArg.newInstance(Symbol(""), []).reflectee as HTTPSerializable;
+            typeArg.newInstance(const Symbol(""), []).reflectee as HTTPSerializable;
         value.readFromMap(object);
 
         return value;

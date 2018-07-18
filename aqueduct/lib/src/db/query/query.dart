@@ -1,10 +1,9 @@
 import 'dart:async';
 
 import '../managed/managed.dart';
-
+import 'error.dart';
 import 'matcher_expression.dart';
 import 'predicate.dart';
-import 'error.dart';
 import 'reduce.dart';
 
 export 'error.dart';

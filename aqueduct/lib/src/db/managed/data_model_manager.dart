@@ -16,7 +16,7 @@ class ManagedDataModelManager {
 
     if (orElse == null) {
       throw StateError(
-          "No entity found for '${type}. Did you forget to create a 'ManagedContext'?");
+          "No entity found for '$type. Did you forget to create a 'ManagedContext'?");
     }
 
     return orElse();

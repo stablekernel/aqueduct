@@ -1,4 +1,4 @@
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:async';
 import 'dart:io';
 
@@ -50,6 +50,7 @@ void main() {
     var result = await http.get("http://localhost:8888/example");
     expect(result.statusCode, 200);
 
+    // ignore: unawaited_futures
     task.process.stop(0);
     expect(await task.exitCode, 0);
   });
@@ -59,6 +60,7 @@ void main() {
         "import 'package:aqueduct/aqueduct.dart';");
 
     task = terminal.startAqueductCommand("serve", ["-n", "1"]);
+    // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
     expect(terminal.output, contains("No ApplicationChannel subclass"));
@@ -74,6 +76,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
 
     task = terminal.startAqueductCommand("serve", ["-n", "1"]);
 
+    // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
     expect(terminal.output, contains("Application failed to start"));
@@ -123,11 +126,13 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
 
     task = terminal.startAqueductCommand(
         "serve", ["--ssl-key-path", "server.key", "-n", "1"]);
+    // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
 
     task = terminal.startAqueductCommand(
         "serve", ["--ssl-certificate-path", "server.crt", "-n", "1"]);
+    // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
   });
@@ -149,6 +154,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
       "-n",
       "1"
     ]);
+    // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
   });
@@ -166,6 +172,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
       "-n",
       "1"
     ]);
+    // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
   });
@@ -176,6 +183,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
     });
 
     task = terminal.startAqueductCommand("serve", ["-n", "1"]);
+    // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
 
     expect(await task.exitCode, isNot(0));
@@ -190,8 +198,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
       var newContents = c.replaceAll(
           'return new Response.ok({"key": "value"});',
           "return new Response.ok(new File(options.configurationFilePath).readAsStringSync())..contentType = ContentType.TEXT;");
-      newContents = "import 'dart:io';\n$newContents";
-      return newContents;
+      return "import 'dart:io';\n$newContents";
     });
 
     task = terminal.startAqueductCommand(
@@ -209,8 +216,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
       var newContents = c.replaceAll(
           'return new Response.ok({"key": "value"});',
           "return new Response.ok(new File(options.configurationFilePath).readAsStringSync())..contentType = ContentType.TEXT;");
-      newContents = "import 'dart:io';\n$newContents";
-      return newContents;
+      return "import 'dart:io';\n$newContents";
     });
 
     task = terminal.startAqueductCommand("serve", [

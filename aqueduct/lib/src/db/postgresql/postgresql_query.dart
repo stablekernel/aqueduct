@@ -2,8 +2,8 @@ import 'dart:async';
 
 import '../db.dart';
 import '../query/mixin.dart';
-import 'query_builder.dart';
 import 'postgresql_query_reduce.dart';
+import 'query_builder.dart';
 
 class PostgresQuery<InstanceType extends ManagedObject> extends Object
     with QueryMixin<InstanceType>
@@ -85,7 +85,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var results = await update();
     if (results.length == 1) {
       return results.first;
-    } else if (results.length == 0) {
+    } else if (results.isEmpty) {
       return null;
     }
 

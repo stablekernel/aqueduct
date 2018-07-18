@@ -1,11 +1,13 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:aqueduct/src/db/query/mixin.dart';
-import 'package:test/test.dart';
-import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:test/test.dart';
+
 import '../helpers.dart';
 
 void main() {
@@ -23,6 +25,7 @@ void main() {
     router.didAddToChannel();
 
     server.listen((req) async {
+      // ignore: unawaited_futures
       router.receive(Request(req));
     });
   });
@@ -78,7 +81,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values.backing.contents.length != 0) {
+    if (query.values.backing.contents.isNotEmpty) {
       statusCode = 400;
     }
 
@@ -102,7 +105,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values.backing.contents.length != 0) {
+    if (query.values.backing.contents.isNotEmpty) {
       statusCode = 400;
     }
 

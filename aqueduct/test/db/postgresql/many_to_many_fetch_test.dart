@@ -1,9 +1,10 @@
 import 'dart:async';
 
-import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import '../model_graph.dart';
+import 'package:test/test.dart';
+
 import '../../helpers.dart';
+import '../model_graph.dart';
 
 /*
   many to many should just be an extension of tests in belongs_to_fetch, tiered_where, has_many and has_one tests
@@ -35,7 +36,7 @@ void main() {
       var q = Query<RootObject>(ctx)
         ..sortBy((r) => r.rid, QuerySortOrder.ascending);
 
-      q.join(set: (r) => r.join)..join(object: (r) => r.other);
+      q.join(set: (r) => r.join).join(object: (r) => r.other);
       var results = await q.fetch();
       expect(
           results.map((r) => r.asMap()).toList(),
@@ -74,7 +75,7 @@ void main() {
       var q = Query<OtherRootObject>(ctx)
         ..sortBy((o) => o.id, QuerySortOrder.ascending);
 
-      q.join(set: (r) => r.join)..join(object: (r) => r.root);
+      q.join(set: (r) => r.join).join(object: (r) => r.root);
       var results = await q.fetch();
       expect(
           results.map((r) => r.asMap()).toList(),
@@ -215,7 +216,7 @@ void main() {
     test("Can join by one relationship", () async {
       var q = Query<Team>(ctx)..sortBy((t) => t.id, QuerySortOrder.ascending);
 
-      q.join(set: (t) => t.awayGames)..join(object: (g) => g.homeTeam);
+      q.join(set: (t) => t.awayGames).join(object: (g) => g.homeTeam);
 
       var results = await q.fetch();
       expect(
@@ -261,7 +262,7 @@ void main() {
     test("Can join by other relationship", () async {
       var q = Query<Team>(ctx)..sortBy((t) => t.id, QuerySortOrder.ascending);
 
-      q.join(set: (t) => t.homeGames)..join(object: (g) => g.awayTeam);
+      q.join(set: (t) => t.homeGames).join(object: (g) => g.awayTeam);
       var results = await q.fetch();
 
       expect(
@@ -344,7 +345,7 @@ void main() {
       try {
         var q = Query<Team>(ctx);
 
-        q.join(set: (t) => t.homeGames)..join(object: (g) => g.homeTeam);
+        q.join(set: (t) => t.homeGames).join(object: (g) => g.homeTeam);
         expect(true, false);
       } on StateError catch (e) {
         expect(e.toString(), contains("Invalid query construction"));
@@ -424,7 +425,7 @@ void main() {
       // 'All teams and their away games where %Minn% is away team'
       var q = Query<Team>(ctx);
       q.join(set: (t) => t.awayGames)
-        ..where((o) => o.awayTeam.name).contains("Minn");
+        .where((o) => o.awayTeam.name).contains("Minn");
       var results = await q.fetch();
       expect(results.length, 3);
       expect(
@@ -432,20 +433,20 @@ void main() {
       expect(
           results
               .where((t) => t.name != "Minnesota")
-              .every((t) => t.awayGames.length == 0),
+              .every((t) => t.awayGames.isEmpty),
           true);
 
       // All teams and their games played at %Minn%
       q = Query<Team>(ctx);
       q.join(set: (t) => t.awayGames)
-        ..where((o) => o.homeTeam.name).contains("Minn");
+        .where((o) => o.homeTeam.name).contains("Minn");
       results = await q.fetch();
       expect(results.length, 3);
       expect(results.firstWhere((t) => t.name == "Iowa").awayGames.length, 1);
       expect(
           results
               .where((t) => t.name != "Iowa")
-              .every((t) => t.awayGames.length == 0),
+              .every((t) => t.awayGames.isEmpty),
           true);
     });
   });
@@ -455,7 +456,7 @@ void main() {
       // 'All teams and the games they've played at Minnesota'
       var q = Query<Team>(ctx);
       q.join(set: (t) => t.awayGames)
-        ..where((o) => o.homeTeam.name).contains("Minn");
+        .where((o) => o.homeTeam.name).contains("Minn");
       var results = await q.fetch();
 
       expect(

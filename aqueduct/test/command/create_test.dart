@@ -1,10 +1,11 @@
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:io';
 
+import 'package:path/path.dart' as path_lib;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
+
 import 'cli_helpers.dart';
-import 'package:path/path.dart' as path_lib;
 
 void main() {
   Terminal terminal;
@@ -21,63 +22,41 @@ void main() {
     terminal = Terminal(Terminal.temporaryDirectory);
   });
 
-  tearDown(() {
-    Terminal.deleteTemporaryDirectory();
-  });
+  tearDown(Terminal.deleteTemporaryDirectory);
 
   group("Project naming", () {
     test("Appropriately named project gets created correctly", () async {
-      final res = await terminal.runAqueductCommand(
-          "create", ["test_project", "--offline", "--stacktrace"]);
+      final res = await terminal.runAqueductCommand("create", ["test_project", "--offline", "--stacktrace"]);
       expect(res, 0);
 
-      expect(
-          Directory.fromUri(
-                  terminal.workingDirectory.uri.resolve("test_project/"))
-              .existsSync(),
-          true);
+      expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), true);
     });
 
     test("Project name with bad characters fails immediately", () async {
-      final res =
-          await terminal.runAqueductCommand("create", ["!@", "--offline"]);
+      final res = await terminal.runAqueductCommand("create", ["!@", "--offline"]);
       expect(res, isNot(0));
       expect(terminal.output, contains("Invalid project name"));
       expect(terminal.output, contains("snake_case"));
 
-      expect(
-          Directory.fromUri(
-                  terminal.workingDirectory.uri.resolve("test_project/"))
-              .existsSync(),
-          false);
+      expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), false);
     });
 
     test("Project name with uppercase characters fails immediately", () async {
-      final res = await terminal
-          .runAqueductCommand("create", ["ANeatApp", "--offline"]);
+      final res = await terminal.runAqueductCommand("create", ["ANeatApp", "--offline"]);
       expect(res, isNot(0));
       expect(terminal.output, contains("Invalid project name"));
       expect(terminal.output, contains("snake_case"));
 
-      expect(
-          Directory.fromUri(
-                  terminal.workingDirectory.uri.resolve("test_project/"))
-              .existsSync(),
-          false);
+      expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), false);
     });
 
     test("Project name with dashes fails immediately", () async {
-      final res = await terminal
-          .runAqueductCommand("create", ["a-neat-app", "--offline"]);
+      final res = await terminal.runAqueductCommand("create", ["a-neat-app", "--offline"]);
       expect(res, isNot(0));
       expect(terminal.output, contains("Invalid project name"));
       expect(terminal.output, contains("snake_case"));
 
-      expect(
-          Directory.fromUri(
-                  terminal.workingDirectory.uri.resolve("test_project/"))
-              .existsSync(),
-          false);
+      expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), false);
     });
 
     test("Not providing name returns error", () async {
@@ -101,20 +80,17 @@ void main() {
       }
     });
 
-    test("Template gets generated from local path, project points to it",
-        () async {
-      var res = await terminal
-          .runAqueductCommand("create", ["test_project", "--offline"]);
+    test("Template gets generated from local path, project points to it", () async {
+      var res = await terminal.runAqueductCommand("create", ["test_project", "--offline"]);
       expect(res, 0);
 
-      var aqueductLocationString = File.fromUri(terminal.workingDirectory.uri
-              .resolve("test_project/")
-              .resolve(".packages"))
-          .readAsStringSync()
-          .split("\n")
-          .firstWhere((p) => p.startsWith("aqueduct:"))
-          .split("aqueduct:")
-          .last;
+      var aqueductLocationString =
+          File.fromUri(terminal.workingDirectory.uri.resolve("test_project/").resolve(".packages"))
+              .readAsStringSync()
+              .split("\n")
+              .firstWhere((p) => p.startsWith("aqueduct:"))
+              .split("aqueduct:")
+              .last;
 
       var path = path_lib.normalize(path_lib.fromUri(aqueductLocationString));
       expect(path, path_lib.join(Directory.current.path, "lib"));
@@ -123,11 +99,11 @@ void main() {
     /* for every template */
     final templates = Directory("templates")
         .listSync()
-        .where((fse) => fse is Directory)
+        .whereType<Directory>()
         .map((fse) => fse.uri.pathSegments[fse.uri.pathSegments.length - 2])
         .toList();
     final aqueductPubspec = loadYaml(File("pubspec.yaml").readAsStringSync());
-    final aqueductVersionString = "^" + (aqueductPubspec["version"] as String);
+    final aqueductVersionString = "^${aqueductPubspec["version"]}";
 
     for (var template in templates) {
       test("Templates contain most recent version of aqueduct by default", () {
@@ -138,17 +114,13 @@ void main() {
       });
 
       test("Tests run on template generated from local path", () async {
-        expect(
-            (await terminal.runAqueductCommand(
-                "create", ["test_project", "-t", template, "--offline"])),
-            0);
+        expect(await terminal.runAqueductCommand("create", ["test_project", "-t", template, "--offline"]), 0);
 
         final cmd = Platform.isWindows ? "pub.bat" : "pub";
         var res = Process.runSync(cmd, ["run", "test", "-j", "1"],
             runInShell: true,
-            workingDirectory: terminal.workingDirectory.uri
-                .resolve("test_project")
-                .toFilePath(windows: Platform.isWindows));
+            workingDirectory:
+                terminal.workingDirectory.uri.resolve("test_project").toFilePath(windows: Platform.isWindows));
 
         expect(res.stdout, contains("All tests passed"));
         expect(res.exitCode, 0);

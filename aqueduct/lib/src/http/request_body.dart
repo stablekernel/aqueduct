@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
-import 'http.dart';
+
 import 'body_decoder.dart';
+import 'http.dart';
 
 /// Objects that represent a request body, and can be decoded into Dart objects.
 ///

@@ -1,4 +1,4 @@
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:async';
 import 'dart:io';
 
@@ -157,9 +157,7 @@ class _TestObject {
       await terminal.getDependencies(offline: true);
     });
 
-    tearDown(() {
-      Terminal.deleteTemporaryDirectory();
-    });
+    tearDown(Terminal.deleteTemporaryDirectory);
 
     test("If validating with no migration dir, get error", () async {
       var res = await terminal.runAqueductCommand("db", ["validate"]);
@@ -184,7 +182,7 @@ class _TestObject {
 
       terminal.modifyFile("migrations/00000001_Initial.migration.dart",
           (contents) {
-        final upgradeLocation = "upgrade()";
+        const upgradeLocation = "upgrade()";
         final nextLine =
             contents.indexOf("\n", contents.indexOf(upgradeLocation));
         return contents.replaceRange(nextLine, nextLine + 1, """
@@ -205,7 +203,7 @@ class _TestObject {
 
       terminal.modifyFile("migrations/00000001_Initial.migration.dart",
           (contents) {
-        final upgradeLocation = "upgrade()";
+        const upgradeLocation = "upgrade()";
         final nextLine =
             contents.indexOf("\n", contents.indexOf(upgradeLocation));
         return contents.replaceRange(nextLine, nextLine + 1, """

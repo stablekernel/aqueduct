@@ -1,7 +1,8 @@
-import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import '../model_graph.dart';
+import 'package:test/test.dart';
+
 import '../../helpers.dart';
+import '../model_graph.dart';
 
 /*
   The more rigid tests on joining are covered by tiered_where, has_many and has_one tests.
@@ -180,7 +181,7 @@ void main() {
 
     test("Nested join", () async {
       var q = Query<GrandChildObject>(ctx);
-      q.join(object: (c) => c.parents)..join(object: (c) => c.parents);
+      q.join(object: (c) => c.parents).join(object: (c) => c.parents);
       var results = await q.fetch();
 
       expect(
@@ -383,7 +384,7 @@ void main() {
       var q = Query<GrandChildObject>(ctx)
         ..sortBy((g) => g.gid, QuerySortOrder.ascending);
 
-      q.join(object: (c) => c.parent)..join(object: (c) => c.parent);
+      q.join(object: (c) => c.parent).join(object: (c) => c.parent);
 
       var results = await q.fetch();
 

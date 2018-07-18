@@ -1,6 +1,7 @@
-import 'schema.dart';
-import '../managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
+
+import '../managed/managed.dart';
+import 'schema.dart';
 
 /// A portable representation of a database table.
 ///
@@ -9,7 +10,7 @@ class SchemaTable {
   /// Creates an instance of this type with a [name], [columns] and [uniqueColumnSetNames].
   SchemaTable(this.name, List<SchemaColumn> columns,
       {List<String> uniqueColumnSetNames}) {
-    this.uniqueColumnSet = uniqueColumnSetNames;
+    uniqueColumnSet = uniqueColumnSetNames;
     _columns = columns;
   }
 
@@ -80,6 +81,7 @@ class SchemaTable {
   List<SchemaColumn> _columnStorage;
   List<String> _uniqueColumnSet;
 
+  // ignore: avoid_setters_without_getters
   set _columns(List<SchemaColumn> columns) {
     _columnStorage = columns;
     _columnStorage.forEach((c) => c.table = this);
@@ -184,8 +186,8 @@ class SchemaTableDifference {
   SchemaTableDifference(this.expectedTable, this.actualTable) {
     if (expectedTable != null && actualTable != null) {
       for (var expectedColumn in expectedTable.columns) {
-        var actualColumn =
-            (actualTable != null ? actualTable[expectedColumn.name] : null);
+        final actualColumn =
+            actualTable != null ? actualTable[expectedColumn.name] : null;
         if (actualColumn == null) {
           _differingColumns.add(SchemaColumnDifference(expectedColumn, null));
         } else {
@@ -224,7 +226,7 @@ class SchemaTableDifference {
 
   /// Whether or not [expectedTable] and [actualTable] are the same.
   bool get hasDifferences =>
-      _differingColumns.length > 0 ||
+      _differingColumns.isNotEmpty ||
       expectedTable?.name?.toLowerCase() != actualTable?.name?.toLowerCase() ||
       (expectedTable == null && actualTable != null) ||
       (actualTable == null && expectedTable != null) ||
@@ -331,7 +333,7 @@ class SchemaTableUniqueSetDifference {
       return true;
     }
 
-    return !expectedColumnNames.every((s) => actualColumnNames.contains(s));
+    return !expectedColumnNames.every(actualColumnNames.contains);
   }
 
   /// Human-readable list of differences between [expectedColumnNames] and [actualColumnNames].

@@ -1,4 +1,4 @@
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:convert';
 
 import 'package:test/test.dart';

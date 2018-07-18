@@ -1,8 +1,8 @@
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
-
-import '../db.dart';
 import 'package:aqueduct/src/db/postgresql/builders/column.dart';
 import 'package:aqueduct/src/db/postgresql/builders/table.dart';
+
+import '../db.dart';
 
 class RowInstantiator {
   RowInstantiator(this.rootTableBuilder, this.returningValues);

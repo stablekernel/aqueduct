@@ -1,7 +1,7 @@
 import 'package:aqueduct/src/http/http.dart';
 
-import 'query.dart';
 import '../persistent_store/persistent_store.dart';
+import 'query.dart';
 
 /// An exception describing an issue with a query.
 ///

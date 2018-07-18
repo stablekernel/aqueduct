@@ -252,7 +252,7 @@ class ServerRoot {
 class DefaultController extends Controller {
   @override
   FutureOr<RequestOrResponse> handle(Request req) {
-    return Response.ok(<String, dynamic>{"hashCode": this.hashCode});
+    return Response.ok(<String, dynamic>{"hashCode": hashCode});
   }
 }
 
@@ -262,7 +262,7 @@ class DefaultRecyclable extends Controller implements Recyclable<String> {
 
   @override
   FutureOr<RequestOrResponse> handle(Request req) {
-    return Response.ok({"hashCode": this.hashCode, "state": state});
+    return Response.ok({"hashCode": hashCode, "state": state});
   }
 
   @override

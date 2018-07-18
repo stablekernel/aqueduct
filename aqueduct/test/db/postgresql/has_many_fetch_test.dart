@@ -1,6 +1,8 @@
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:test/test.dart';
+
 import '../../helpers.dart';
 
 /*
@@ -305,7 +307,7 @@ void main() {
       var childJoin = q.join(set: (p) => p.children)
         ..join(object: (c) => c.toy);
       childJoin.join(set: (c) => c.vaccinations)
-        ..where((o) => o.kind).equalTo("V1");
+        .where((o) => o.kind).equalTo("V1");
 
       var results = await q.fetch();
 
@@ -345,7 +347,7 @@ void main() {
       var childJoin = q.join(set: (p) => p.children)
         ..join(object: (c) => c.toy);
       childJoin.join(set: (c) => c.vaccinations)
-        ..where((o) => o.kind).equalTo("V1");
+        .where((o) => o.kind).equalTo("V1");
 
       var results = await q.fetch();
       expect(results.length, 0);
@@ -445,7 +447,7 @@ void main() {
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
       try {
-        Query<Parent>(context)..returningProperties((p) => [p.pid, p.children]);
+        Query<Parent>(context).returningProperties((p) => [p.pid, p.children]);
       } on ArgumentError catch (e) {
         expect(
             e.toString(),
@@ -460,7 +462,7 @@ void main() {
       try {
         final q = Query<Parent>(context);
         q.join(set: (p) => p.children)
-          ..returningProperties((p) => [p.cid, p.vaccinations]);
+          .returningProperties((p) => [p.cid, p.vaccinations]);
 
         expect(true, false);
       } on ArgumentError catch (e) {
@@ -530,10 +532,10 @@ Future<List<Parent>> populate(ManagedContext context) async {
         Child()
           ..name = "C1"
           ..toy = (Toy()..name = "T1")
-          ..vaccinations = (ManagedSet<Vaccine>.from([
+          ..vaccinations = ManagedSet<Vaccine>.from([
             Vaccine()..kind = "V1",
             Vaccine()..kind = "V2",
-          ])),
+          ]),
         Child()
           ..name = "C2"
           ..toy = (Toy()..name = "T2")
@@ -543,7 +545,7 @@ Future<List<Parent>> populate(ManagedContext context) async {
       ..children = ManagedSet<Child>.from([
         Child()
           ..name = "C3"
-          ..vaccinations = (ManagedSet<Vaccine>.from([Vaccine()..kind = "V3"])),
+          ..vaccinations = ManagedSet<Vaccine>.from([Vaccine()..kind = "V3"]),
         Child()..name = "C4"
       ]),
     Parent()

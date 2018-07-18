@@ -128,7 +128,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   @Operation.post()
   Future<Response> createObject() async {
     InstanceType instance = _query.entity.instanceType
-        .newInstance(Symbol(""), []).reflectee as InstanceType;
+        .newInstance(const Symbol(""), []).reflectee as InstanceType;
     instance.readFromMap(request.body.as());
     _query.values = instance;
 
@@ -212,7 +212,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     _query.where((o) => o[primaryKey]).equalTo(parsedIdentifier);
 
     InstanceType instance = _query.entity.instanceType
-        .newInstance(Symbol(""), []).reflectee as InstanceType;
+        .newInstance(const Symbol(""), []).reflectee as InstanceType;
     instance.readFromMap(request.body.as());
     _query.values = instance;
 
@@ -364,7 +364,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       APIDocumentContext context, Operation operation) {
     switch (operation.method) {
       case "GET":
-        if (operation.pathVariables.length == 0) {
+        if (operation.pathVariables.isEmpty) {
           return {
             "200": APIResponse.schema(
                 "Returns a list of objects.",

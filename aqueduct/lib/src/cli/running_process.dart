@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-typedef Future _StopProcess(String reason);
+typedef _StopProcess = Future Function(String reason);
 
 class StoppableProcess {
   StoppableProcess(Future onStop(String reason)) : _stop = onStop {

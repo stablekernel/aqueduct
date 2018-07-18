@@ -1,11 +1,11 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
 
 import 'http.dart';
-import 'route_specification.dart';
 import 'route_node.dart';
+import 'route_specification.dart';
 
 /// Determines which [Controller] should receive a [Request] based on its path.
 ///
@@ -140,17 +140,17 @@ class Router extends Controller {
   }
 
   @override
-  Map<String, APIPath> documentPaths(APIDocumentContext components) {
+  Map<String, APIPath> documentPaths(APIDocumentContext context) {
     return _routeControllers.fold(<String, APIPath>{}, (prev, elem) {
-      prev.addAll(elem.documentPaths(components));
+      prev.addAll(elem.documentPaths(context));
       return prev;
     });
   }
 
   @override
-  void documentComponents(APIDocumentContext components) {
+  void documentComponents(APIDocumentContext context) {
     _routeControllers.forEach((_RouteController controller) {
-      controller.documentComponents(components);
+      controller.documentComponents(context);
     });
   }
 
@@ -193,16 +193,16 @@ class _RouteController extends Controller {
   @override
   Map<String, APIPath> documentPaths(APIDocumentContext components) {
     return specifications.fold(<String, APIPath>{}, (pathMap, spec) {
-      final pathKey = "/" +
-          spec.segments.map((rs) {
-            if (rs.isLiteralMatcher) {
-              return rs.literal;
-            } else if (rs.isVariable) {
-              return "{${rs.variableName}}";
-            } else if (rs.isRemainingMatcher) {
-              return "{path}";
-            }
-          }).join("/");
+      final elements = spec.segments.map((rs) {
+        if (rs.isLiteralMatcher) {
+          return rs.literal;
+        } else if (rs.isVariable) {
+          return "{${rs.variableName}}";
+        } else if (rs.isRemainingMatcher) {
+          return "{path}";
+        }
+      }).join("/");
+      final pathKey = "/$elements";
 
       final path = APIPath()
         ..parameters = spec.variableNames

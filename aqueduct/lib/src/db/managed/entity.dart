@@ -1,12 +1,13 @@
 import 'dart:mirrors';
+
 import 'package:aqueduct/src/db/managed/backing.dart';
 import 'package:aqueduct/src/db/managed/key_path.dart';
+import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/documented_element.dart';
 
-import 'managed.dart';
-import 'package:aqueduct/src/openapi/documentable.dart';
 import '../query/query.dart';
+import 'managed.dart';
 import 'relationship_type.dart';
 
 /// Mapping information between a table in a database and a [ManagedObject] object.
@@ -213,12 +214,12 @@ class ManagedEntity implements APIComponentDocumenter {
       if (relationships.containsKey(propertyName)) {
         throw ArgumentError(
             "Invalid property selection. Property '$propertyName' on "
-            "'${name}' "
+            "'$name' "
             "is a relationship and cannot be selected for this operation.");
       } else {
         throw ArgumentError(
             "Invalid property selection. Column '$propertyName' does not "
-            "exist on table '${tableName}'.");
+            "exist on table '$tableName'.");
       }
     }
 
@@ -254,7 +255,7 @@ class ManagedEntity implements APIComponentDocumenter {
     var desc = relationships[propertyName];
     if (desc == null) {
       throw ArgumentError(
-          "Invalid property selection. Relationship named '$propertyName' on table '${tableName}' is not a relationship.");
+          "Invalid property selection. Relationship named '$propertyName' on table '$tableName' is not a relationship.");
     }
 
     return desc;
@@ -302,14 +303,14 @@ class ManagedEntity implements APIComponentDocumenter {
   @override
   void documentComponents(APIDocumentContext context) {
     final schemaProperties = <String, APISchemaObject>{};
-    final obj = APISchemaObject.object(schemaProperties)..title = "${name}";
+    final obj = APISchemaObject.object(schemaProperties)..title = "$name";
 
     // Documentation comments
     context.defer(() async {
       final entityDocs =
           await DocumentedElement.get(instanceType.reflectedType);
       obj.description = entityDocs.description ?? "";
-      if (!(entityDocs.summary.isEmpty)) {
+      if (entityDocs.summary.isNotEmpty) {
         obj.title = entityDocs.summary;
       }
 

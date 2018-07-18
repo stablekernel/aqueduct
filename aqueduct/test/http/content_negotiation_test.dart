@@ -1,8 +1,8 @@
 import 'dart:async';
-
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
 import 'dart:io';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:test/test.dart';
 
 void main() {
   HttpServer server;
@@ -27,6 +27,7 @@ void main() {
   });
 
   test("No accept header returns [], all are allowed", () async {
+    // ignore: unawaited_futures
     getWithTypes(client, null);
     request = Request(await server.first);
     expect(request.acceptableContentTypes, []);
@@ -36,6 +37,7 @@ void main() {
   });
 
   test("Empty Accept header returns [], all are allowed", () async {
+    // ignore: unawaited_futures
     getWithTypes(client, []);
     request = Request(await server.first);
 
@@ -48,6 +50,7 @@ void main() {
   test(
       "Two implicitly equal q-values order is defined by their position in request",
       () async {
+    // ignore: unawaited_futures
     getWithTypes(client, ["text/plain", "text/html"]);
     request = Request(await server.first);
     expect(
@@ -67,6 +70,7 @@ void main() {
   test(
       "Two explicitly equal q-values order is defined by their position in request",
       () async {
+        // ignore: unawaited_futures
     getWithTypes(client, ["text/plain; q=1.0", "text/html; q=1.0"]);
     request = Request(await server.first);
     expect(
@@ -84,6 +88,7 @@ void main() {
   });
 
   test("Q-value with explicit 1 (not 1.0) is interpreted as 1.0", () async {
+    // ignore: unawaited_futures
     getWithTypes(client, ["text/plain; q=1.0", "text/html; q=1"]);
     request = Request(await server.first);
     expect(
@@ -102,6 +107,7 @@ void main() {
 
   test("Two equal q-values but primary type is * prefers to other type",
       () async {
+        // ignore: unawaited_futures
     getWithTypes(client, ["*/*", "text/html"]);
     request = Request(await server.first);
     expect(
@@ -119,6 +125,7 @@ void main() {
   });
 
   test("Two equal q-values but subtype is * prefers to other type", () async {
+    // ignore: unawaited_futures
     getWithTypes(client, ["text/*", "text/html"]);
     request = Request(await server.first);
     expect(
@@ -136,6 +143,7 @@ void main() {
   });
 
   test("Sorted by q-value if all content-types are fully defined", () async {
+    // ignore: unawaited_futures
     getWithTypes(client, [
       "text/plain; q=0.4",
       "text/html; q=0.8",

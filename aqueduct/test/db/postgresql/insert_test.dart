@@ -1,7 +1,8 @@
-import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import '../../helpers.dart';
 import 'package:postgres/postgres.dart';
+import 'package:test/test.dart';
+
+import '../../helpers.dart';
 
 void main() {
   ManagedContext context;

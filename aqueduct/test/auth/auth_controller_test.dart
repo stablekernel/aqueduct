@@ -287,7 +287,7 @@ void main() {
       var code = await authenticationServer.authenticateForCode(
           user1["username"], user1["password"], "com.stablekernel.redirect");
       var res = await exchange(
-          "com.stablekernel.redirect", "mckinley", "a" + code.code);
+          "com.stablekernel.redirect", "mckinley", "a${code.code}");
       expect(res, hasResponse(400, body: {"error": "invalid_grant"}));
     });
 
@@ -368,7 +368,7 @@ void main() {
     });
 
     test("Duplicate grant_type", () async {
-      client..setBasicAuthorization("com.stablekernel.redirect", "mckinley");
+      client.setBasicAuthorization("com.stablekernel.redirect", "mckinley");
 
       var req = client.request("/auth/token")
         ..encodeBody = false
@@ -445,7 +445,7 @@ void main() {
       var resToken = await grant("com.stablekernel.app1", "kilimanjaro", user1);
 
       var m = refreshTokenMapFromTokenResponse(resToken);
-      m["refresh_token"] = m["refresh_token"] + "a";
+      m["refresh_token"] = "${m["refresh_token"]}a";
       var resRefresh = await refresh("com.stablekernel.app1", "kilimanjaro", m);
       expect(resRefresh, hasResponse(400, body: {"error": "invalid_grant"}));
     });
@@ -832,17 +832,17 @@ Map<String, String> refreshTokenMapFromTokenResponse(TestResponse resp) {
 
 Map<String, String> get user1 => const {
       "username": "bob+0@stablekernel.com",
-      "password": InMemoryAuthStorage.DefaultPassword
+      "password": InMemoryAuthStorage.defaultPassword
     };
 
 Map<String, String> get user2 => const {
       "username": "bob+1@stablekernel.com",
-      "password": InMemoryAuthStorage.DefaultPassword
+      "password": InMemoryAuthStorage.defaultPassword
     };
 
 Map<String, String> get user3 => const {
       "username": "bob+2@stablekernel.com",
-      "password": InMemoryAuthStorage.DefaultPassword
+      "password": InMemoryAuthStorage.defaultPassword
     };
 
 dynamic get bearerTokenMatcher => {

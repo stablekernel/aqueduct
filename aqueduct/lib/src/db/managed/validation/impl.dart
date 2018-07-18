@@ -111,14 +111,14 @@ class LengthValidator extends ManagedValidator {
   final List<ValidationExpression> expressions;
 
   @override
-  void validate(ValidationContext context, dynamic input) {
-    if (input is! String) {
+  void validate(ValidationContext context, dynamic value) {
+    if (value is! String) {
       context.addError("unexpected value type");
       return;
     }
 
     expressions
-        .forEach((expr) => expr.compare(context, (input as String).length));
+        .forEach((expr) => expr.compare(context, (value as String).length));
   }
 
   int parse(dynamic referenceValue) {
@@ -175,13 +175,13 @@ class ComparisonValidator extends ManagedValidator {
   final List<ValidationExpression> expressions;
 
   @override
-  void validate(ValidationContext context, dynamic input) {
-    if (input.runtimeType != input.runtimeType) {
+  void validate(ValidationContext context, dynamic value) {
+    if (value.runtimeType != value.runtimeType) {
       context.addError("unexpected value type");
       return;
     }
 
-    expressions.forEach((expr) => expr.compare(context, input));
+    expressions.forEach((expr) => expr.compare(context, value));
   }
 
   Comparable parse(dynamic referenceValue) {
@@ -189,7 +189,12 @@ class ComparisonValidator extends ManagedValidator {
       if (referenceValue is String) {
         try {
           return DateTime.parse(referenceValue);
-        } on FormatException {}
+        } on FormatException {
+          throw ManagedDataModelError.invalidValidator(
+            attribute.entity,
+            attribute.name,
+            "'$referenceValue' cannot be parsed as DateTime, or is not a String.");
+        }
       }
 
       throw ManagedDataModelError.invalidValidator(

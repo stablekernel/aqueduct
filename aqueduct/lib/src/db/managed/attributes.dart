@@ -1,5 +1,5 @@
-import 'managed.dart';
 import '../query/query.dart';
+import 'managed.dart';
 
 /// Annotation to configure the table definition of a [ManagedObject].
 ///
@@ -20,8 +20,7 @@ class Table {
   /// Annotation for table definition.
   ///
   /// See also [Table.unique].
-  const Table({List<Symbol> uniquePropertySet})
-      : this.uniquePropertySet = uniquePropertySet;
+  const Table({this.uniquePropertySet});
 
   /// Configures each instance of a table definition to be unique for the combination of [properties].
   ///

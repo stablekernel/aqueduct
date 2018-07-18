@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors' hide Comment;
 import 'dart:isolate';
+import 'dart:mirrors' hide Comment;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:aqueduct/src/utilities/documented_element.dart';
@@ -16,8 +16,7 @@ class AnalyzerDocumentedElementProvider implements DocumentedElementProvider {
         parseDartFile(resolvedUri.toFilePath(windows: Platform.isWindows));
 
     var classDeclaration = fileUnit.declarations
-        .where((u) => u is ClassDeclaration)
-        .map((cu) => cu as ClassDeclaration)
+        .whereType<ClassDeclaration>()
         .firstWhere((ClassDeclaration classDecl) {
       return classDecl.name.token.lexeme ==
           MirrorSystem.getName(reflectedType.simpleName);
@@ -77,7 +76,7 @@ class AnalyzerDocumentedElement extends DocumentedElement {
             ?.toList() ??
         [];
 
-    if (lines.length > 0) {
+    if (lines.isNotEmpty) {
       summary = lines.first;
     } else {
       summary = "";

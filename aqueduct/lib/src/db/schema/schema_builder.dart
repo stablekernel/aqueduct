@@ -1,5 +1,5 @@
-import 'schema.dart';
 import '../persistent_store/persistent_store.dart';
+import 'schema.dart';
 
 /// Used during migration to modify a schema.
 class SchemaBuilder {
@@ -12,9 +12,7 @@ class SchemaBuilder {
   SchemaBuilder.toSchema(this.store, Schema targetSchema,
       {this.isTemporary = false}) {
     schema = Schema.empty();
-    targetSchema.dependencyOrderedTables.forEach((t) {
-      createTable(t);
-    });
+    targetSchema.dependencyOrderedTables.forEach(createTable);
   }
 
   /// The starting schema of this builder.

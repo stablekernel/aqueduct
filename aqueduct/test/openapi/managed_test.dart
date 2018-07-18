@@ -83,8 +83,8 @@ void main() {
     test(
         "If property is not in default set, it should not be included in schema",
         () {
-      final model = Model3;
-      final propName = "notIncluded";
+      const model = Model3;
+      const propName = "notIncluded";
 
       // just make sure we're right that Model3.notIncluded is actually a property...
       expect(dataModel.entityForType(model).attributes[propName], isNotNull);

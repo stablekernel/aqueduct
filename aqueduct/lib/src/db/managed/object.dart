@@ -3,10 +3,10 @@ import 'dart:mirrors';
 import 'package:aqueduct/src/db/managed/data_model_manager.dart';
 
 import '../../http/serializable.dart';
-import 'managed.dart';
-import 'backing.dart';
 import '../query/query.dart';
+import 'backing.dart';
 import 'exception.dart';
+import 'managed.dart';
 
 /// Instances of this class provide storage for [ManagedObject]s.
 ///

@@ -1,9 +1,10 @@
-@Tags(const ["cli"])
+@Tags(["cli"])
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:test/test.dart';
-import 'cli_helpers.dart';
 import 'package:postgres/postgres.dart';
+import 'package:test/test.dart';
+
+import 'cli_helpers.dart';
 
 void main() {
   group("Schema diffs", () {

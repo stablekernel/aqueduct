@@ -1,8 +1,10 @@
-import 'package:aqueduct/aqueduct.dart';
-import 'package:test/test.dart';
 import 'dart:mirrors';
-import '../helpers.dart';
+
+import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
+import 'package:test/test.dart';
+
+import '../helpers.dart';
 
 void main() {
   group("Valid data model", () {
@@ -643,6 +645,7 @@ class TransientTest extends ManagedObject<_TransientTest>
   set defaultedText(String str) {
     text = str.split(" ").last;
   }
+
 
   @Serialize(input: true, output: false)
   set inputOnly(String s) {

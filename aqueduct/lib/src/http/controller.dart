@@ -7,8 +7,8 @@ import 'package:logging/logging.dart';
 
 import 'http.dart';
 
-typedef Controller _ControllerGeneratorClosure();
-typedef FutureOr<RequestOrResponse> _Handler(Request request);
+typedef _ControllerGeneratorClosure = Controller Function();
+typedef _Handler = FutureOr<RequestOrResponse> Function(Request request);
 
 /// The unifying protocol for [Request] and [Response] classes.
 ///
@@ -146,8 +146,7 @@ class Controller
   /// See [link] for a variant of this method that takes an object instead of a closure.
   @override
   Linkable linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
-    _nextController = Controller(handle);
-    return _nextController;
+    return _nextController = Controller(handle);
   }
 
   /// Lifecycle callback, invoked after added to channel, but before any requests are served.
@@ -199,6 +198,7 @@ class Controller
         return null;
       }
     } catch (any, stacktrace) {
+      // ignore: unawaited_futures
       handleError(req, any, stacktrace);
 
       if (letUncaughtExceptionsEscape) {
@@ -219,18 +219,18 @@ class Controller
   ///
   /// Subclasses override this method to provide their specific handling of a request.
   ///
-  /// If this method returns a [Response], it will be sent as the response for [req] and [req] will not be passed to any other controllers.
+  /// If this method returns a [Response], it will be sent as the response for [request] and [request] will not be passed to any other controllers.
   ///
-  /// If this method returns [req], [req] will be passed to [nextController].
+  /// If this method returns [request], [request] will be passed to [nextController].
   ///
-  /// If this method returns null, [req] is not passed to any other controller and is not responded to. You must respond to [req]
+  /// If this method returns null, [request] is not passed to any other controller and is not responded to. You must respond to [request]
   /// through [Request.raw].
-  FutureOr<RequestOrResponse> handle(Request req) {
+  FutureOr<RequestOrResponse> handle(Request request) {
     if (_handler != null) {
-      return _handler(req);
+      return _handler(request);
     }
 
-    return req;
+    return request;
   }
 
   /// Executed prior to [Response] being sent.
@@ -254,6 +254,7 @@ class Controller
       logger.severe("${request.toDebugString(includeHeaders: true)}",
           caughtValue.underlyingException, caughtValue.trace);
 
+      // ignore: unawaited_futures
       request.response.close().catchError((_) => null);
 
       return;
@@ -277,6 +278,7 @@ class Controller
           "${request.toDebugString(includeHeaders: true)}", caughtValue, trace);
     } catch (e) {
       logger.severe("Failed to send response, draining request. Reason: $e");
+      // ignore: unawaited_futures
       request.raw.drain().catchError((_) => null);
     }
   }
@@ -368,7 +370,7 @@ class Controller
 class _ControllerRecycler<T> extends Controller {
   _ControllerRecycler(this.generator, Recyclable<T> instance) {
     recycleState = instance.recycledState;
-    this.nextInstanceToReceive = instance;
+    nextInstanceToReceive = instance;
   }
 
   _ControllerGeneratorClosure generator;

@@ -34,7 +34,7 @@ class CLIAuthScopeClient extends CLICommand
       displayError("Option --id required.");
       return 1;
     }
-    if ((scopes?.isEmpty ?? true)) {
+    if (scopes?.isEmpty ?? true) {
       displayError("Option --scopes required.");
       return 1;
     }

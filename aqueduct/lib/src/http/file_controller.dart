@@ -5,7 +5,7 @@ import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:path/path.dart' as path;
 import 'http.dart';
 
-typedef FutureOr<Response> _OnFileNotFound(
+typedef _OnFileNotFound = FutureOr<Response> Function(
     HTTPFileController controller, Request req);
 
 /// Serves files from a directory on the filesystem.
@@ -159,7 +159,7 @@ class HTTPFileController extends Controller {
       file = File.fromUri(fileUri);
     }
 
-    if (!(await file.exists())) {
+    if (!file.existsSync()) {
       if (_onFileNotFound != null) {
         return _onFileNotFound(this, request);
       }
@@ -173,7 +173,7 @@ class HTTPFileController extends Controller {
       return response;
     }
 
-    var lastModifiedDate = await file.lastModified();
+    var lastModifiedDate = file.lastModifiedSync();
     var ifModifiedSince =
         request.raw.headers.value(HttpHeaders.ifModifiedSinceHeader);
     if (ifModifiedSince != null) {
@@ -197,7 +197,7 @@ class HTTPFileController extends Controller {
 
   @override
   Map<String, APIOperation> documentOperations(
-      APIDocumentContext components, String route, APIPath path) {
+      APIDocumentContext context, String route, APIPath path) {
     return {
       "get": APIOperation(
           "getFile",
@@ -214,7 +214,7 @@ class HTTPFileController extends Controller {
   HTTPCachePolicy _policyForFile(File file) => cachePolicyForPath(file.path);
 }
 
-typedef bool _ShouldApplyToPath(String path);
+typedef _ShouldApplyToPath = bool Function(String path);
 
 class _PolicyPair {
   _PolicyPair(this.policy, this.shouldApplyToPath);

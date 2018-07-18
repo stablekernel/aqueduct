@@ -124,8 +124,8 @@ class TableBuilder implements Returnable {
       variables.addAll(predicate.parameters);
     }
 
-    returning.where((r) => r is TableBuilder).forEach((r) {
-      (r as TableBuilder).finalize(variables);
+    returning.whereType<TableBuilder>().forEach((r) {
+      r.finalize(variables);
     });
   }
 
@@ -200,8 +200,8 @@ class TableBuilder implements Returnable {
       return this;
     } else {
       final ManagedRelationshipDescription head = keyPath[0];
-      TableBuilder join = returning.where((r) => r is TableBuilder).firstWhere(
-          (m) => (m as TableBuilder).isJoinOnProperty(head),
+      TableBuilder join = returning.whereType<TableBuilder>().firstWhere(
+          (m) => m.isJoinOnProperty(head),
           orElse: () => null);
       if (join == null) {
         join = TableBuilder.implicit(this, head);
@@ -218,7 +218,7 @@ class TableBuilder implements Returnable {
     // the foreign key from the columns returning from this table.
     // They are the same value, but this guarantees the row instantiator
     // that it only sees the value once and makes its logic more straightforward.
-    if (r.returning.length > 0) {
+    if (r.returning.isNotEmpty) {
       returning.removeWhere((m) {
         if (m is ColumnBuilder) {
           return identical(m.property, r.joinedBy);
@@ -247,8 +247,8 @@ class TableBuilder implements Returnable {
 
   String get sqlInnerSelect {
     var nestedJoins = returning
-        .where((m) => m is TableBuilder)
-        .map((rm) => (rm as TableBuilder).sqlJoin)
+        .whereType<TableBuilder>()
+        .map((t) => t.sqlJoin)
         .join(" ");
 
     var flattenedColumns = flattenedColumnsToReturn;
@@ -269,15 +269,15 @@ class TableBuilder implements Returnable {
   String get sqlJoin {
     if (parent == null) {
       return returning
-          .where((e) => e is TableBuilder)
-          .map((e) => (e as TableBuilder).sqlJoin)
+          .whereType<TableBuilder>()
+          .map((e) => e.sqlJoin)
           .join(" ");
     }
 
     // At this point, we know that this table is being joined.
     // If we have a predicate that references a column in a joined table,
     // then we can't use a simple join, we have to use an inner select.
-    final joinedTables = returning.where((r) => r is TableBuilder).toList();
+    final joinedTables = returning.whereType<TableBuilder>().toList();
     if (expressionBuilders.any((e) => joinedTables.contains(e.table))) {
       return sqlInnerSelect;
     }
@@ -288,8 +288,8 @@ class TableBuilder implements Returnable {
         "LEFT OUTER JOIN $sqlTableName ON ${totalJoinPredicate.format}";
 
     if (returning.any((p) => p is TableBuilder)) {
-      var nestedJoins = returning.where((p) => p is TableBuilder).map((p) {
-        return (p as TableBuilder).sqlJoin;
+      var nestedJoins = returning.whereType<TableBuilder>().map((p) {
+        return p.sqlJoin;
       }).toList();
       nestedJoins.insert(0, thisJoin);
       return nestedJoins.join(" ");

@@ -352,7 +352,7 @@ class SchemaColumnDifference {
 
   /// Whether or not [expectedColumn] and [actualColumn] are different.
   bool get hasDifferences =>
-      _differingProperties.length > 0 ||
+      _differingProperties.isNotEmpty ||
       (expectedColumn == null && actualColumn != null) ||
       (actualColumn == null && expectedColumn != null);
 

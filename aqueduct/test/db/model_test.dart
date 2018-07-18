@@ -1,8 +1,9 @@
 import 'dart:convert';
+import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
-import 'dart:mirrors';
+
 import '../helpers.dart';
 
 void main() {
@@ -43,6 +44,7 @@ void main() {
       reflect(user).invoke(#foo, []);
 
       expect(true, false);
+      // ignore: empty_catches
     } on NoSuchMethodError {}
   });
 
@@ -196,7 +198,7 @@ void main() {
 
   test("Reading from map with non-assignable type fails", () {
     try {
-      User()..readFromMap(wash({"id": "foo"}));
+      User().readFromMap(wash({"id": "foo"}));
       expect(true, false);
     } on ValidationException catch (e) {
       expectError(e, contains("invalid input value for 'id'"));
@@ -337,42 +339,49 @@ void main() {
 
   test("Transient properties are type checked in readMap", () {
     try {
-      TransientTest()..readFromMap(wash({"id": 1, "defaultedText": 2}));
+      TransientTest().readFromMap(wash({"id": 1, "defaultedText": 2}));
 
       throw 'Unreachable';
+      // ignore: empty_catches
     } on ValidationException {}
 
     try {
-      TransientTest()..readFromMap(wash({"id": 1, "inputInt": "foo"}));
+      TransientTest().readFromMap(wash({"id": 1, "inputInt": "foo"}));
 
       throw 'Unreachable';
+      // ignore: empty_catches
     } on ValidationException {}
   });
 
   test("Properties that aren't mappableInput are not read in readMap", () {
     try {
-      TransientTest()..readFromMap(wash({"outputOnly": "foo"}));
+      TransientTest().readFromMap(wash({"outputOnly": "foo"}));
       throw 'Unreachable';
+      // ignore: empty_catches
     } on ValidationException {}
 
     try {
-      TransientTest()..readFromMap(wash({"invalidOutput": "foo"}));
+      TransientTest().readFromMap(wash({"invalidOutput": "foo"}));
       throw 'Unreachable';
+      // ignore: empty_catches
     } on ValidationException {}
 
     try {
-      TransientTest()..readFromMap(wash({"invalidInput": "foo"}));
+      TransientTest().readFromMap(wash({"invalidInput": "foo"}));
       throw 'Unreachable';
+      // ignore: empty_catches
     } on ValidationException {}
 
     try {
-      TransientTest()..readFromMap(wash({"bothButOnlyOnOne": "foo"}));
+      TransientTest().readFromMap(wash({"bothButOnlyOnOne": "foo"}));
       throw 'Unreachable';
+      // ignore: empty_catches
     } on ValidationException {}
 
     try {
-      TransientTest()..readFromMap(wash({"outputInt": "foo"}));
+      TransientTest().readFromMap(wash({"outputInt": "foo"}));
       throw 'Unreachable';
+      // ignore: empty_catches
     } on ValidationException {}
   });
 
@@ -456,8 +465,9 @@ void main() {
       "If primitive type cannot be parsed into correct type, it fails with validation exception",
       () {
     try {
-      TransientTypeTest()..readFromMap({"transientInt": "a string"});
+      TransientTypeTest().readFromMap({"transientInt": "a string"});
       fail('unreachable');
+      // ignore: empty_catches
     } on ValidationException {}
   });
 
@@ -466,54 +476,60 @@ void main() {
       () {
     try {
       TransientTypeTest()
-        ..readFromMap({
+        .readFromMap({
           "deepList": wash([
             {"str": 1}
           ])
         });
       fail('unreachable');
+      // ignore: empty_catches
     } on ValidationException {}
 
     try {
       TransientTypeTest()
-        ..readFromMap({
+        .readFromMap({
           "deepList": wash([
             {"str": "val"},
             {"int": 2}
           ])
         });
       fail('unreachable');
+      // ignore: empty_catches
     } on ValidationException {}
 
     try {
       TransientTypeTest()
-        ..readFromMap({
+        .readFromMap({
           "deepList": wash(["str"])
         });
       fail('unreachable');
+      // ignore: empty_catches
     } on ValidationException {}
 
     try {
       TransientTypeTest()
-        ..readFromMap({
+        .readFromMap({
           "deepMap": wash({"str": 1})
         });
       fail('unreachable');
+      // ignore: empty_catches
     } on ValidationException {}
 
     try {
       TransientTypeTest()
-        ..readFromMap({
+        .readFromMap({
           "deepMap": wash({
             "key": {"str": "val", "int": 2}
           })
         });
       fail('unreachable');
+      // ignore: empty_catches
     } on ValidationException {}
 
     try {
-      TransientTypeTest()..readFromMap({"deepMap": wash("str")});
+      TransientTypeTest().readFromMap({"deepMap": wash("str")});
       fail('unreachable');
+      // ignore: empty_catches
     } on ValidationException {}
   });
 
@@ -538,6 +554,7 @@ void main() {
     try {
       t.readFromMap(wash({"notAnAttribute": true}));
       expect(true, false);
+      // ignore: empty_catches
     } on ValidationException {}
 
     t.notAnAttribute = "foo";
@@ -700,7 +717,7 @@ void main() {
   group("Constructors", () {
     test("Can have constructor with only optional args", () {
       final dm = ManagedDataModel([DefaultConstructorHasOptionalArgs]);
-      final ctx = ManagedContext(dm, null);
+      final _ = ManagedContext(dm, null);
       final instance =
           dm.entityForType(DefaultConstructorHasOptionalArgs).instanceOf();
       expect(instance is DefaultConstructorHasOptionalArgs, true);
@@ -877,7 +894,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
   Map<String, String> get transientMap {
     List<String> pairs = backingMapString.split(",");
 
-    var returnMap = Map<String, String>();
+    var returnMap = <String, String>{};
 
     pairs.forEach((String pair) {
       List<String> pairList = pair.split(":");
@@ -899,7 +916,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
 
   @Serialize(input: false, output: true)
   List<int> get transientList {
-    return backingListString.split(",").map((s) => int.parse(s)).toList();
+    return backingListString.split(",").map(int.parse).toList();
   }
 
   @Serialize(input: true, output: false)
@@ -1026,11 +1043,13 @@ class _ConstructorOverride {
 
 class DefaultConstructorHasRequiredArgs
     extends ManagedObject<_ConstructorTableDef> {
+  // ignore: avoid_unused_constructor_parameters
   DefaultConstructorHasRequiredArgs(int foo);
 }
 
 class DefaultConstructorHasOptionalArgs
     extends ManagedObject<_ConstructorTableDef> {
+  // ignore: avoid_unused_constructor_parameters
   DefaultConstructorHasOptionalArgs({int foo});
 }
 

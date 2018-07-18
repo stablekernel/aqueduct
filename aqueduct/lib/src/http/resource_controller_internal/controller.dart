@@ -4,10 +4,10 @@ import 'dart:mirrors';
 import 'package:aqueduct/src/auth/auth.dart';
 import 'package:logging/logging.dart';
 
-import '../response.dart';
+import '../request.dart';
 import '../resource_controller.dart';
 import '../resource_controller_bindings.dart';
-import '../request.dart';
+import '../response.dart';
 import 'internal.dart';
 
 class BoundOperation {
@@ -48,13 +48,13 @@ class BoundController {
         .map((decl) => BoundMethod(decl))
         .toList();
 
-    if (conflictingOperations.length > 0) {
+    if (conflictingOperations.isNotEmpty) {
       final opNames = conflictingOperations.map((s) => "'$s'").join(", ");
       throw StateError(
           "Invalid controller. Controller '${controllerType.toString()}' has ambiguous operations. Offending operating methods: $opNames.");
     }
 
-    if (unsatisfiableOperations.length > 0) {
+    if (unsatisfiableOperations.isNotEmpty) {
       final opNames = unsatisfiableOperations.map((s) => "'$s'").join(", ");
       throw StateError(
           "Invalid controller. Controller '${controllerType.toString()}' has operations where "

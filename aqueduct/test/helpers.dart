@@ -102,7 +102,7 @@ class TestToken implements AuthToken, AuthCode {
 }
 
 class InMemoryAuthStorage extends AuthServerDelegate {
-  static const String DefaultPassword = "foobaraxegrind21%";
+  static const String defaultPassword = "foobaraxegrind21%";
 
   InMemoryAuthStorage() {
     reset();
@@ -120,7 +120,7 @@ class InMemoryAuthStorage extends AuthServerDelegate {
         ..username = "bob+$i@stablekernel.com"
         ..salt = salt
         ..hashedPassword =
-            AuthUtility.generatePasswordHash(DefaultPassword, salt);
+            AuthUtility.generatePasswordHash(defaultPassword, salt);
 
       users[i + 1] = u;
     }

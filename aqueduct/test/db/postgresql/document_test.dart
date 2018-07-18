@@ -44,7 +44,7 @@ void main() {
         ..values.document = Document({"k": "v"});
       await q.insert();
 
-      final o = await (Query<Obj>(context)).fetch();
+      final o = await Query<Obj>(context).fetch();
       expect(o.first.document.data, {"k": "v"});
     });
 
@@ -57,7 +57,7 @@ void main() {
         ]);
       await q.insert();
 
-      final o = await (Query<Obj>(context)).fetch();
+      final o = await Query<Obj>(context).fetch();
       expect(o.first.document.data, [
         {"k": "v"},
         1

@@ -1,3 +1,4 @@
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
 import 'package:aqueduct/src/db/postgresql/builders/sort.dart';
 import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 import 'package:aqueduct/src/db/postgresql/builders/value.dart';
@@ -5,13 +6,10 @@ import 'package:aqueduct/src/db/postgresql/postgresql_query.dart';
 
 import '../db.dart';
 import 'row_instantiator.dart';
-import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
 class PostgresQueryBuilder extends TableBuilder {
   PostgresQueryBuilder(PostgresQuery query) : super(query) {
-    (query.valueMap ?? query.values?.backing?.contents).forEach((key, value) {
-      addColumnValueBuilder(key, value);
-    });
+    (query.valueMap ?? query.values?.backing?.contents).forEach(addColumnValueBuilder);
 
     columnValueBuilders.forEach((cv) {
       variables[cv.sqlColumnName(withPrefix: valueKeyPrefix)] = cv.value;
@@ -111,11 +109,11 @@ class PostgresQueryBuilder extends TableBuilder {
     var allSorts = List<ColumnSortBuilder>.from(columnSortBuilders);
 
     var nestedSorts = returning
-        .where((m) => m is TableBuilder)
-        .expand((m) => (m as TableBuilder).columnSortBuilders);
+        .whereType<TableBuilder>()
+        .expand((m) => m.columnSortBuilders);
     allSorts.addAll(nestedSorts);
 
-    if (allSorts.length == 0) {
+    if (allSorts.isEmpty) {
       return "";
     }
 

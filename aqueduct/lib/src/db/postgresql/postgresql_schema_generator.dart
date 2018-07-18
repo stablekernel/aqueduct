@@ -1,5 +1,5 @@
-import '../schema/schema.dart';
 import '../managed/managed.dart';
+import '../schema/schema.dart';
 
 class PostgreSQLSchemaGenerator {
   String get versionTableName => "_aqueduct_version_pgsql";
@@ -9,7 +9,7 @@ class PostgreSQLSchemaGenerator {
 
     // Create table command
     var columnString =
-        table.columns.map((col) => _columnStringForColumn(col)).join(",");
+        table.columns.map(_columnStringForColumn).join(",");
     commands.add(
         "CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} ($columnString)");
 

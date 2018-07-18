@@ -1,11 +1,13 @@
-import "package:test/test.dart";
+import 'dart:async';
+import 'dart:convert';
 import "dart:core";
 import "dart:io";
-import 'package:http/http.dart' as http;
-import 'package:aqueduct/aqueduct.dart';
-import 'dart:convert';
-import 'dart:async';
 import 'dart:mirrors';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:http/http.dart' as http;
+import "package:test/test.dart";
+
 import '../helpers.dart';
 
 void main() {
@@ -597,7 +599,7 @@ class TController extends ResourceController {
 
   @Operation.post()
   Future<Response> post() async {
-    Map<String, dynamic> body = this.request.body.as();
+    Map<String, dynamic> body = request.body.as();
 
     return Response.ok(body);
   }
@@ -808,7 +810,7 @@ class UnboundController extends ResourceController {
 Future<HttpServer> enableController(String pattern, Type controller) async {
   var router = Router();
   router.route(pattern).link(() => reflectClass(controller)
-      .newInstance(Symbol(""), []).reflectee as Controller);
+      .newInstance(const Symbol(""), []).reflectee as Controller);
   router.didAddToChannel();
 
   var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);

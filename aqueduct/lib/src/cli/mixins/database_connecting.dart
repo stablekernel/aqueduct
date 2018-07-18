@@ -9,7 +9,7 @@ import 'package:safe_config/safe_config.dart';
 import 'package:aqueduct/src/cli/command.dart';
 
 abstract class CLIDatabaseConnectingCommand implements CLICommand, CLIProject {
-  static const String FlavorPostgreSQL = "postgres";
+  static const String flavorPostgreSQL = "postgres";
 
   DatabaseConfiguration connectedDatabase;
 
@@ -52,7 +52,7 @@ abstract class CLIDatabaseConnectingCommand implements CLICommand, CLIProject {
       throw CLIException("No database flavor selected. See --flavor.");
     }
 
-    if (databaseFlavor == FlavorPostgreSQL) {
+    if (databaseFlavor == flavorPostgreSQL) {
       if (databaseConnectionString != null) {
         try {
           connectedDatabase = DatabaseConfiguration();
@@ -85,14 +85,13 @@ abstract class CLIDatabaseConnectingCommand implements CLICommand, CLIProject {
         }
       }
 
-      _persistentStore = PostgreSQLPersistentStore(
+      return _persistentStore = PostgreSQLPersistentStore(
           connectedDatabase.username,
           connectedDatabase.password,
           connectedDatabase.host,
           connectedDatabase.port,
           connectedDatabase.databaseName,
           useSSL: useSSL);
-      return _persistentStore;
     }
 
     throw CLIException("Invalid flavor $databaseFlavor");

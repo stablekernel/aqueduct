@@ -189,7 +189,7 @@ void main() {
     test(
         "Return 200 if there is an actual endpoint for OPTIONS (No CORS Headers)",
         () async {
-      var req = await (HttpClient().open("OPTIONS", "localhost", 8000, "opts"));
+      var req = await HttpClient().open("OPTIONS", "localhost", 8000, "opts");
       req.headers.set("Authorization", "Bearer auth");
       var resp = await req.close();
       await resp.drain();
@@ -201,7 +201,7 @@ void main() {
     test(
         "Return 401 if there is an actual endpoint for OPTIONS and request is unauthorized (No CORS Headers)",
         () async {
-      var req = await (HttpClient().open("OPTIONS", "localhost", 8000, "opts"));
+      var req = await HttpClient().open("OPTIONS", "localhost", 8000, "opts");
       var resp = await req.close();
       await resp.drain();
 
@@ -212,7 +212,7 @@ void main() {
     test("Return 404 if there is no endpoint for OPTIONS (No CORS Headers)",
         () async {
       var req =
-          await (HttpClient().open("OPTIONS", "localhost", 8000, "foobar"));
+          await HttpClient().open("OPTIONS", "localhost", 8000, "foobar");
       var resp = await req.close();
       await resp.drain();
 
@@ -224,7 +224,7 @@ void main() {
         "Return 405 if there is an endpoint, but OPTIONS not supported (No CORS Headers)",
         () async {
       var req =
-          await (HttpClient().open("OPTIONS", "localhost", 8000, "nopolicy"));
+          await HttpClient().open("OPTIONS", "localhost", 8000, "nopolicy");
       var resp = await req.close();
       await resp.drain();
 
@@ -239,8 +239,8 @@ void main() {
     // This group ensures that if the Origin is invalid, we return a 403.
 
     test("If origin is correct, get 200 from OPTIONS", () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "restrictive"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "restrictive");
       req.headers.set("Origin", "http://exclusive.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       var resp = await req.close();
@@ -259,8 +259,8 @@ void main() {
     test(
         "If origin is invalid because of case-sensitivity, get 403 from OPTIONS",
         () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "restrictive"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "restrictive");
       req.headers.set("Origin", "http://Exclusive.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       var resp = await req.close();
@@ -270,8 +270,8 @@ void main() {
     });
 
     test("If origin is invalid, get 403 from OPTIONS", () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "restrictive"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "restrictive");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       var resp = await req.close();
@@ -282,7 +282,7 @@ void main() {
 
     test("If no policy defined, return 403", () async {
       var req =
-          await (HttpClient().open("OPTIONS", "localhost", 8000, "nopolicy"));
+          await HttpClient().open("OPTIONS", "localhost", 8000, "nopolicy");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       var resp = await req.close();
@@ -295,8 +295,8 @@ void main() {
   group("Preflight: Validate headers and methods", () {
     // This group ensures that if the Origin is valid, but there is no Access-Control-Request-Method, we return a 403.
     test("If allow method is not available", () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "defaultpolicy");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "PATCH");
       var resp = await req.close();
@@ -306,8 +306,8 @@ void main() {
     });
 
     test("If allow method is available", () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "defaultpolicy");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       var resp = await req.close();
@@ -324,8 +324,8 @@ void main() {
     });
 
     test("Just one allowed method returns that", () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "single_method"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "single_method");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "GET");
       var resp = await req.close();
@@ -342,8 +342,8 @@ void main() {
     });
 
     test("If one allow header is available", () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "defaultpolicy");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       req.headers.set("Access-Control-Request-Headers", "authorization");
@@ -361,8 +361,8 @@ void main() {
     });
 
     test("Headers are case insensitive", () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "defaultpolicy");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       req.headers.set("Access-Control-Request-Headers",
@@ -381,8 +381,8 @@ void main() {
     });
 
     test("If multiple allow header is available", () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "defaultpolicy");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       req.headers.set("Access-Control-Request-Headers",
@@ -401,8 +401,8 @@ void main() {
     });
 
     test("If allow header is a simple header, return 200", () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "defaultpolicy");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       req.headers
@@ -422,8 +422,8 @@ void main() {
 
     test("If one allow header is not available, but others are, get a 403",
         () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "defaultpolicy");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       req.headers.set("Access-Control-Request-Headers",
@@ -436,8 +436,8 @@ void main() {
 
     test("If one specified allow headers are not available, get a 403",
         () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "defaultpolicy");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       req.headers.set("Access-Control-Request-Headers", "x-foo");
@@ -449,8 +449,8 @@ void main() {
 
     test("If all specified allow headers are not available, get a 403",
         () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "defaultpolicy");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       req.headers.set("Access-Control-Request-Headers", "x-foo, x-bar");
@@ -468,8 +468,8 @@ void main() {
     test(
         "If valid origin and endpoint allows credentials, add allow origin/creds",
         () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "defaultpolicy");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       req.headers
@@ -490,8 +490,8 @@ void main() {
     test(
         "If valid origin and endpoint do not allow credentials, add allow origin but not creds",
         () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "restrictive_nocreds"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "restrictive_nocreds");
       req.headers.set("Origin", "http://exclusive.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       var resp = await req.close();
@@ -513,8 +513,8 @@ void main() {
     test(
         "If valid origin and endpoint allows credentials, add allow origin/creds",
         () async {
-      var req = await (HttpClient()
-          .open("OPTIONS", "localhost", 8000, "defaultpolicy"));
+      var req = await HttpClient()
+          .open("OPTIONS", "localhost", 8000, "defaultpolicy");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       req.headers

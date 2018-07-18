@@ -15,7 +15,7 @@ class CLIDatabaseSchema extends CLICommand
     if (isMachineOutput) {
       outputSink.write("${json.encode(map)}");
     } else {
-      var encoder = JsonEncoder.withIndent("  ");
+      const encoder = JsonEncoder.withIndent("  ");
       outputSink.write("${encoder.convert(map)}");
     }
     return 0;

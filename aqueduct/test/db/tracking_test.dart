@@ -46,6 +46,7 @@ void main() {
     test("cannot select multiple attributes", () {
       try {
         context.entityForType(Child).identifyAttribute((Child p) {
+          // ignore: unnecessary_statements
           p.document;
           return p.field;
         });
@@ -124,6 +125,7 @@ void main() {
     test("cannot select multiple attributes", () {
       try {
         context.entityForType(Child).identifyRelationship((Child p) {
+          // ignore: unnecessary_statements
           p.parent;
           return p.grandchild;
         });

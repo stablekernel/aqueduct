@@ -1,13 +1,14 @@
 import 'dart:mirrors';
+
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
 
-import 'managed.dart';
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
-import 'relationship_type.dart';
 import 'exception.dart';
+import 'managed.dart';
+import 'relationship_type.dart';
 import 'type.dart';
 
 /// Contains database column information and metadata for a property of a [ManagedObject] object.
@@ -16,10 +17,8 @@ import 'type.dart';
 /// about the property such as its name and type. Those properties are represented by concrete subclasses of this class, [ManagedRelationshipDescription]
 /// and [ManagedAttributeDescription].
 abstract class ManagedPropertyDescription {
-  ManagedPropertyDescription(
-      this.entity, this.name, this.type, this.declaredType,
-      {String explicitDatabaseType,
-      bool unique = false,
+  ManagedPropertyDescription(this.entity, this.name, this.type, this.declaredType,
+      {bool unique = false,
       bool indexed = false,
       bool nullable = false,
       bool includedInDefaultResultSet = true,
@@ -108,8 +107,7 @@ abstract class ManagedPropertyDescription {
       case ManagedPropertyType.boolean:
         return APISchemaObject.boolean();
       case ManagedPropertyType.list:
-        return APISchemaObject.array(
-            ofSchema: _typedSchemaObject(type.elements));
+        return APISchemaObject.array(ofSchema: _typedSchemaObject(type.elements));
       case ManagedPropertyType.map:
         return APISchemaObject.map(ofSchema: _typedSchemaObject(type.elements));
       case ManagedPropertyType.document:
@@ -131,8 +129,7 @@ abstract class ManagedPropertyDescription {
 /// Each scalar property [ManagedObject] object persists is described by an instance of [ManagedAttributeDescription]. This class
 /// adds two properties to [ManagedPropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class ManagedAttributeDescription extends ManagedPropertyDescription {
-  ManagedAttributeDescription(ManagedEntity entity, String name,
-      ManagedType type, ClassMirror declaredType,
+  ManagedAttributeDescription(ManagedEntity entity, String name, ManagedType type, ClassMirror declaredType,
       {Serialize transientStatus,
       bool primaryKey = false,
       String defaultValue,
@@ -155,18 +152,14 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
             includedInDefaultResultSet: includedInDefaultResultSet,
             autoincrement: autoincrement);
 
-  ManagedAttributeDescription.transient(ManagedEntity entity, String name,
-      ManagedType type, ClassMirror declaredType, this.transientStatus)
+  ManagedAttributeDescription.transient(
+      ManagedEntity entity, String name, ManagedType type, ClassMirror declaredType, this.transientStatus)
       : this.isPrimaryKey = false,
         this.enumerationValueMap = null,
         this.defaultValue = null,
         this._validators = [],
         super(entity, name, type, declaredType,
-            unique: false,
-            indexed: false,
-            nullable: false,
-            includedInDefaultResultSet: false,
-            autoincrement: false);
+            unique: false, indexed: false, nullable: false, includedInDefaultResultSet: false, autoincrement: false);
 
   /// Whether or not this attribute is the primary key for its [ManagedEntity].
   ///
@@ -227,18 +220,15 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
     validators.forEach((v) => v.constrainSchemaObject(context, prop));
 
     if (isTransient) {
-      if (transientStatus.isAvailableAsInput &&
-          !transientStatus.isAvailableAsOutput) {
+      if (transientStatus.isAvailableAsInput && !transientStatus.isAvailableAsOutput) {
         prop.isWriteOnly = true;
-      } else if (!transientStatus.isAvailableAsInput &&
-          transientStatus.isAvailableAsOutput) {
+      } else if (!transientStatus.isAvailableAsInput && transientStatus.isAvailableAsOutput) {
         prop.isReadOnly = true;
       }
     }
 
     if (isUnique) {
-      prop.description +=
-          "\nNo two objects may have the same value for this field.";
+      prop.description += "\nNo two objects may have the same value for this field.";
     }
     if (isPrimaryKey) {
       prop.description += "\nThis is the primary identifier for this object.";
@@ -285,12 +275,12 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       if (value is! String) {
         throw ValidationException(["invalid input value for '$name'"]);
       }
-      value = DateTime.parse(value as String);
+      return DateTime.parse(value as String);
     } else if (type.kind == ManagedPropertyType.doublePrecision) {
       if (value is! num) {
         throw ValidationException(["invalid input value for '$name'"]);
       }
-      value = value.toDouble();
+      return value.toDouble();
     } else if (isEnumeratedValue) {
       if (!enumerationValueMap.containsKey(value)) {
         throw ValidationException(["invalid option for key '$name'"]);
@@ -298,8 +288,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       return enumerationValueMap[value];
     } else if (type.kind == ManagedPropertyType.document) {
       return Document(value);
-    } else if (type.kind == ManagedPropertyType.list ||
-        type.kind == ManagedPropertyType.map) {
+    } else if (type.kind == ManagedPropertyType.list || type.kind == ManagedPropertyType.map) {
       try {
         return runtimeCast(value, type.mirror);
       } on CastError catch (_) {
@@ -307,27 +296,15 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       }
     }
 
-    // no need to check type here - gets checked by managed backing
-
     return value;
   }
 }
 
 /// Contains information for a relationship property of a [ManagedObject].
 class ManagedRelationshipDescription extends ManagedPropertyDescription {
-  ManagedRelationshipDescription(
-      ManagedEntity entity,
-      String name,
-      ManagedType type,
-      ClassMirror declaredType,
-      this.destinationEntity,
-      this.deleteRule,
-      this.relationshipType,
-      this.inverseKey,
-      {bool unique = false,
-      bool indexed = false,
-      bool nullable = false,
-      bool includedInDefaultResultSet = true})
+  ManagedRelationshipDescription(ManagedEntity entity, String name, ManagedType type, ClassMirror declaredType,
+      this.destinationEntity, this.deleteRule, this.relationshipType, this.inverseKey,
+      {bool unique = false, bool indexed = false, bool nullable = false, bool includedInDefaultResultSet = true})
       : super(entity, name, type, declaredType,
             unique: unique,
             indexed: indexed,
@@ -347,8 +324,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   final Symbol inverseKey;
 
   /// The [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
-  ManagedRelationshipDescription get inverse =>
-      destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
+  ManagedRelationshipDescription get inverse => destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
 
   /// Whether or not this relationship is on the belonging side.
   bool get isBelongsTo => relationshipType == ManagedRelationshipType.belongsTo;
@@ -372,17 +348,13 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   @override
   dynamic convertToPrimitiveValue(dynamic value) {
     if (value is ManagedSet) {
-      return value
-          .map((ManagedObject innerValue) => innerValue.asMap())
-          .toList();
+      return value.map((ManagedObject innerValue) => innerValue.asMap()).toList();
     } else if (value is ManagedObject) {
       // If we're only fetching the foreign key, don't do a full asMap
       if (relationshipType == ManagedRelationshipType.belongsTo &&
           value.backing.contents.length == 1 &&
           value.backing.contents.containsKey(destinationEntity.primaryKey)) {
-        return {
-          destinationEntity.primaryKey: value[destinationEntity.primaryKey]
-        };
+        return {destinationEntity.primaryKey: value[destinationEntity.primaryKey]};
       }
 
       return value.asMap();
@@ -400,14 +372,12 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       return null;
     }
 
-    if (relationshipType == ManagedRelationshipType.belongsTo ||
-        relationshipType == ManagedRelationshipType.hasOne) {
+    if (relationshipType == ManagedRelationshipType.belongsTo || relationshipType == ManagedRelationshipType.hasOne) {
       if (value is! Map<String, dynamic>) {
         throw ValidationException(["invalid input type for '$name'"]);
       }
 
-      ManagedObject instance =
-          destinationEntity.instanceType.newInstance(Symbol(""), []).reflectee;
+      ManagedObject instance = destinationEntity.instanceType.newInstance(const Symbol(""), []).reflectee;
       instance.readFromMap(value as Map<String, dynamic>);
 
       return instance;
@@ -423,8 +393,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       if (m is! Map<String, dynamic>) {
         throw ValidationException(["invalid input type for '$name'"]);
       }
-      ManagedObject instance =
-          destinationEntity.instanceType.newInstance(Symbol(""), []).reflectee;
+      ManagedObject instance = destinationEntity.instanceType.newInstance(const Symbol(""), []).reflectee;
       instance.readFromMap(m as Map<String, dynamic>);
       return instance;
     };
@@ -433,8 +402,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
 
   @override
   APISchemaObject documentSchemaObject(APIDocumentContext context) {
-    final relatedType = context.schema
-        .getObjectWithType(inverse.entity.instanceType.reflectedType);
+    final relatedType = context.schema.getObjectWithType(inverse.entity.instanceType.reflectedType);
 
     if (relationshipType == ManagedRelationshipType.hasMany) {
       return APISchemaObject.array(ofSchema: relatedType);

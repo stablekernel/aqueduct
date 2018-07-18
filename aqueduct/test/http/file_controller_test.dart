@@ -277,7 +277,7 @@ void main() {
         "Fetch file with If-Modified-Since after last modified date, returns 304 with no body",
         () async {
       var response = await getCacheableFile("/file.html",
-          ifModifiedSince: DateTime.now().add(Duration(hours: 1)));
+          ifModifiedSince: DateTime.now().add(const Duration(hours: 1)));
       expect(response.statusCode, 304);
       expect(response.headers["content-type"], isNull);
       expect(response.headers["content-encoding"], isNull);
@@ -333,7 +333,7 @@ Future serverHasNoMoreConnections(HttpServer server) async {
     return null;
   }
 
-  await Future.delayed(Duration(milliseconds: 100));
+  await Future.delayed(const Duration(milliseconds: 100));
 
   return serverHasNoMoreConnections(server);
 }

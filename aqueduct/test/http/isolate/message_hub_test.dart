@@ -126,7 +126,7 @@ void main() {
           contains("Illegal argument in isolate message"));
 
       // Make sure that we can still send messages from the isolate that encountered the error
-      var resendID;
+      dynamic resendID;
       while (resendID != serverID) {
         resp = await postMessage("ok");
         resendID = isolateIdentifierFromResponse(resp);
@@ -168,7 +168,7 @@ Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages,
 
       if (firstMatchedMessage != null) {
         remainingMessagesExpectedForIsolateID.remove(firstMatchedMessage);
-        if (remainingMessagesExpectedForIsolateID.length == 0) {
+        if (remainingMessagesExpectedForIsolateID.isEmpty) {
           expectedMessages.remove(respondingIsolateID);
         }
       }
@@ -176,7 +176,7 @@ Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages,
   }
 
   if (butNeverReceiveIn != null &&
-      messages.length > 0 &&
+      messages.isNotEmpty &&
       respondingIsolateID == butNeverReceiveIn) {
     throw Exception("Received unexpected message from butNeverReceivedIn");
   }

@@ -1,4 +1,4 @@
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:io';
 
 import 'package:aqueduct/aqueduct.dart';

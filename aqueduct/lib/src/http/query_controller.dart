@@ -36,7 +36,7 @@ abstract class QueryController<InstanceType extends ManagedObject>
 
   @override
   FutureOr<RequestOrResponse> willProcessRequest(Request req) {
-    if (req.path.orderedVariableNames.length > 0) {
+    if (req.path.orderedVariableNames.isNotEmpty) {
       var firstVarName = req.path.orderedVariableNames.first;
       var idValue = req.path.variables[firstVarName];
 

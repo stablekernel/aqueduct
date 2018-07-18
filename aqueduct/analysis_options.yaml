@@ -12,8 +12,6 @@ linter:
     - always_require_non_null_named_parameters
     - annotate_overrides
     - avoid_bool_literals_in_conditional_expressions
-    - avoid_catching_errors
-    - avoid_classes_with_only_static_members
     - avoid_double_and_int_checks
     - avoid_empty_else
     - avoid_field_initializers_in_const_classes
@@ -24,8 +22,6 @@ linter:
     - avoid_renaming_method_parameters
     - avoid_return_types_on_setters
     - avoid_returning_null
-    - avoid_returning_this
-    - avoid_setters_without_getters
     - avoid_single_cascade_in_expression_statements
     - avoid_slow_async_io
     - avoid_types_as_parameter_names
@@ -51,12 +47,9 @@ linter:
     - library_prefixes
     - list_remove_unrelated_type
     - literal_only_boolean_expressions
-    - no_adjacent_strings_in_list
     - no_duplicate_case_values
     - non_constant_identifier_names
     - null_closures
-    - only_throw_errors
-    - overridden_fields
     - package_api_docs
     - package_names
     - package_prefixed_library_names
@@ -73,12 +66,10 @@ linter:
     - prefer_constructors_over_static_methods
     - prefer_contains
     - prefer_equal_for_default_values
-    - prefer_final_fields
-    - prefer_final_locals
+#    - prefer_final_fields
+#    - prefer_final_locals
     - prefer_foreach
-    - prefer_function_declarations_over_variables
     - prefer_generic_function_type_aliases
-    - prefer_initializing_formals
     - prefer_interpolation_to_compose_strings
     - prefer_is_empty
     - prefer_is_not_empty
@@ -94,7 +85,6 @@ linter:
     - type_annotate_public_apis
     - type_init_formals
     - unawaited_futures
-    - unnecessary_brace_in_string_interps
     - unnecessary_const
     - unnecessary_getters_setters
     - unnecessary_lambdas
@@ -107,7 +97,6 @@ linter:
     - unnecessary_this
     - unrelated_type_equality_checks
     - use_rethrow_when_possible
-    - use_setters_to_change_properties
     - use_string_buffers
     - use_to_and_as_if_applicable
     - valid_regexps

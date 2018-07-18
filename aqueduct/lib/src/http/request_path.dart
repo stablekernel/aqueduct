@@ -77,5 +77,5 @@ class RequestPath {
   /// The path of the requested URI.
   ///
   /// Always contains a leading '/', but never a trailing '/'.
-  String get string => "/" + segments.join("/");
+  String get string => "/${segments.join("/")}";
 }

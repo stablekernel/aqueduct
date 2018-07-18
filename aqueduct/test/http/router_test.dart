@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
-import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
-import 'dart:async';
-import 'package:http/http.dart' as http;
+
 import 'package:aqueduct/aqueduct.dart';
+import 'package:http/http.dart' as http;
+import "package:test/test.dart";
 
 void main() {
   group("Router basics", () {
@@ -51,8 +52,8 @@ void main() {
 
       server = await enableRouter(router);
 
-      var response = await http.get("http://localhost:4040/notplayer",
-          headers: {HttpHeaders.acceptHeader: "application/json"});
+      var response =
+          await http.get("http://localhost:4040/notplayer", headers: {HttpHeaders.acceptHeader: "application/json"});
       expect(response.statusCode, equals(404));
       expect(response.headers[HttpHeaders.contentTypeHeader], isNull);
       expect(response.body.isEmpty, true);
@@ -98,9 +99,11 @@ void main() {
     test("Router matches right route when many are similar", () async {
       var router = Router();
       router.route("/a/[:id]").linkFunction((req) async {
+        // ignore: unawaited_futures
         req.respond(Response(200, null, null));
       });
       router.route("/a/:id/f").linkFunction((req) async {
+        // ignore: unawaited_futures
         req.respond(Response(201, null, null));
       });
 
@@ -118,8 +121,7 @@ void main() {
 
     test("Base API + Route Variables correctly identifies segment", () async {
       final router = Router(basePath: "/api/")
-        ..route(("/a/[:id]"))
-            .linkFunction((req) async => Response.ok(req.path.variables));
+        ..route("/a/[:id]").linkFunction((req) async => Response.ok(req.path.variables));
       server = await enableRouter(router);
 
       var response = await http.get("http://localhost:4040/api/a/1");
@@ -137,29 +139,25 @@ void main() {
     var router = Router();
     setUpAll(() async {
       router.route("/").linkFunction((req) async {
-        req.respond(Response(200, null, "/"));
+        return Response(200, null, "/");
       });
       router.route("/users/[:id]").linkFunction((req) async {
-        req.respond(Response(200, null, "/users/${req.path.variables["id"]}"));
+        return Response(200, null, "/users/${req.path.variables["id"]}");
       });
       router.route("/locations[/:id]").linkFunction((req) async {
-        req.respond(
-            Response(200, null, "/locations/${req.path.variables["id"]}"));
+        return Response(200, null, "/locations/${req.path.variables["id"]}");
       });
       router.route("/locations/:id/vacation").linkFunction((req) async {
-        req.respond(Response(
-            200, null, "/locations/${req.path.variables["id"]}/vacation"));
+        return Response(200, null, "/locations/${req.path.variables["id"]}/vacation");
       });
       router.route("/locations/:id/alarms[/*]").linkFunction((req) async {
-        req.respond(Response(200, null,
-            "/locations/${req.path.variables["id"]}/alarms/${req.path.remainingPath}"));
+        return Response(200, null, "/locations/${req.path.variables["id"]}/alarms/${req.path.remainingPath}");
       });
       router.route("/equipment/[:id[/:property]]").linkFunction((req) async {
-        req.respond(Response(200, null,
-            "/equipment/${req.path.variables["id"]}/${req.path.variables["property"]}"));
+        return Response(200, null, "/equipment/${req.path.variables["id"]}/${req.path.variables["property"]}");
       });
       router.route("/file/*").linkFunction((req) async {
-        req.respond(Response(200, null, "/file/${req.path.remainingPath}"));
+        return Response(200, null, "/file/${req.path.remainingPath}");
       });
       server = await enableRouter(router);
     });
@@ -216,8 +214,7 @@ void main() {
       response = await http.get("http://localhost:4040/locations/1/alarms");
       expect(response.body, '"/locations/1/alarms/null"');
 
-      response =
-          await http.get("http://localhost:4040/locations/1/alarms/code");
+      response = await http.get("http://localhost:4040/locations/1/alarms/code");
       expect(response.body, '"/locations/1/alarms/code"');
 
       response = await http.get("http://localhost:4040/equipment/1/code");
@@ -229,8 +226,7 @@ void main() {
     HttpServer server;
     var router = Router();
     setUpAll(() async {
-      router.route("/*").linkFunction(
-          (req) async => Response.ok("*${req.path.remainingPath}"));
+      router.route("/*").linkFunction((req) async => Response.ok("*${req.path.remainingPath}"));
       router.route("/a").linkFunction((req) async => Response.ok("a"));
 
       server = await enableRouter(router);
@@ -264,9 +260,7 @@ void main() {
 
     test("Router can be linked to", () async {
       final root = Controller((req) async => req);
-      final router = Router()
-        ..route("/1").link(() => NumberEmitter(1))
-        ..route("/2").link(() => NumberEmitter(2));
+      final router = Router()..route("/1").link(() => NumberEmitter(1))..route("/2").link(() => NumberEmitter(2));
 
       root.link(() => router);
 

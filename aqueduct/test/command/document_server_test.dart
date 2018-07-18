@@ -1,4 +1,4 @@
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:io';
 
 import 'package:test/test.dart';
@@ -39,6 +39,7 @@ void main() {
     var response = await http.get("http://localhost:8111");
     expect(response.body, contains("redoc spec-url='swagger.json'"));
 
+    // ignore: unawaited_futures
     task.process.stop(0);
     expect(await task.exitCode, 0);
     expect(

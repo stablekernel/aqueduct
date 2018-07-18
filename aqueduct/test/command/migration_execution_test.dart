@@ -1,11 +1,12 @@
-@Tags(const ["cli"])
+import 'dart:async';
+@Tags(["cli"])
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/db/schema/migration_source.dart';
 import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
-import 'dart:async';
+
 import 'cli_helpers.dart';
 
 Terminal terminal;
@@ -199,9 +200,8 @@ List<MigrationSource> getOrderedTestMigrations(List<String> names,
   final fileUnit = parseDartFile("test/command/migration_execution_test.dart");
 
   final migrations = fileUnit.declarations
-      .where((u) => u is ClassDeclaration)
-      .map((cu) => cu as ClassDeclaration)
-      .where((ClassDeclaration classDecl) {
+      .whereType<ClassDeclaration>()
+      .where((classDecl) {
         return classDecl.extendsClause.superclass.name.name == "Migration";
       })
       .map((cu) {

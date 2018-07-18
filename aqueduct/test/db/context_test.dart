@@ -25,8 +25,8 @@ void main() {
       var q = Query<T>(ctx1)..values.name = "bob";
       await q.insert();
 
-      final t1 = await (Query<T>(ctx1)).fetch();
-      final t2 = await (Query<T>(ctx2)).fetch();
+      final t1 = await Query<T>(ctx1).fetch();
+      final t2 = await Query<T>(ctx2).fetch();
 
       expect(t1.length, 1);
       expect(t1.first.name, "bob");
@@ -43,7 +43,7 @@ void main() {
       q = Query<T>(ctx2)..values.name = "fred";
       await q.insert();
 
-      final t2 = await (Query<T>(ctx2)).fetch();
+      final t2 = await Query<T>(ctx2).fetch();
 
       expect(t2.length, 1);
       expect(t2.first.name, "fred");
@@ -65,8 +65,8 @@ void main() {
     });
 
     test("Queries are sent to the appropriate database", () async {
-      final t1 = await (Query<T>(ctx1)).fetch();
-      final t2 = await (Query<U>(ctx2)).fetch();
+      final t1 = await Query<T>(ctx1).fetch();
+      final t2 = await Query<U>(ctx2).fetch();
 
       expect(t1.length, 0);
       expect(t2.length, 0);

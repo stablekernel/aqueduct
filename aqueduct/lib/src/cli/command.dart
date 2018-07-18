@@ -11,7 +11,7 @@ import 'package:yaml/yaml.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Exceptions thrown by command line interfaces.
-class CLIException {
+class CLIException implements Exception {
   CLIException(this.message, {this.instructions});
 
   final List<String> instructions;
@@ -125,13 +125,9 @@ abstract class CLICommand {
   /// Do not override this method. This method invokes [handle] within a try-catch block
   /// and will invoke [cleanup] when complete.
   Future<int> process(args.ArgResults results,
-      {List<String> parentCommandNames}) async {
+      {List<String> parentCommandNames = const []}) async {
     if (results.command != null) {
-      if (parentCommandNames == null) {
-        parentCommandNames = [name];
-      } else {
-        parentCommandNames.add(name);
-      }
+      parentCommandNames.add(name);
       return _commandMap[results.command.name]
           .process(results.command, parentCommandNames: parentCommandNames);
     }
@@ -160,9 +156,7 @@ abstract class CLICommand {
       return await handle();
     } on CLIException catch (e, st) {
       displayError(e.message);
-      e.instructions?.forEach((instruction) {
-        displayProgress(instruction);
-      });
+      e.instructions?.forEach(displayProgress);
 
       if (showStacktrace) {
         printStackTrace(st);
@@ -230,7 +224,7 @@ abstract class CLICommand {
 
   String get usage {
     var buf = StringBuffer(name);
-    if (_commandMap.length > 0) {
+    if (_commandMap.isNotEmpty) {
       buf.write(" <command>");
     }
     buf.write(" [arguments]");
@@ -270,7 +264,7 @@ abstract class CLICommand {
     print("Options:");
     print("${options.usage}");
 
-    if (options.commands.length > 0) {
+    if (options.commands.isNotEmpty) {
       print("Available sub-commands:");
 
       var commandNames = options.commands.keys.toList();

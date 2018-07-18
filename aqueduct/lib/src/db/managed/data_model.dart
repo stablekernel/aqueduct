@@ -1,10 +1,11 @@
 import 'dart:mirrors';
+
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/utilities/reference_counting_list.dart';
 
-import 'managed.dart';
-import 'data_model_builder.dart';
 import '../query/query.dart';
+import 'data_model_builder.dart';
+import 'managed.dart';
 
 /// Instances of this class contain descriptions and metadata for mapping [ManagedObject]s to database rows.
 ///
@@ -113,7 +114,7 @@ class ManagedDataModelError extends Error {
   factory ManagedDataModelError.invalidMetadata(
       ManagedEntity entity, Symbol property, ManagedEntity destinationEntity) {
     return ManagedDataModelError("Relationship '${_getName(property)}' on "
-        "'${_getPersistentClassName(entity)}' "
+        "'${_getPersistentClassName(entity)}' (to '${_getPersistentClassName(destinationEntity)}') "
         "cannot both have 'Column' and 'Relationship' metadata. "
         "To add flags for indexing or nullability to a relationship, see the constructor "
         "for 'Relationship'.");
@@ -179,7 +180,7 @@ class ManagedDataModelError extends Error {
         "has more than one inverse property declared in "
         "${_getPersistentClassName(destinationEntity)}, but can only"
         "have one. The properties that claim to be an inverse "
-        "are ${inversePropertyCandidates.map((s) => _getName(s)).join(",")}.");
+        "are ${inversePropertyCandidates.map(_getName).join(",")}.");
   }
 
   factory ManagedDataModelError.noDestinationEntity(
@@ -203,7 +204,7 @@ class ManagedDataModelError extends Error {
         "'${_getPersistentClassName(entity)}' expects that just one "
         "'ManagedObject' subclass uses a table definition that extends "
         "'${_getName(destType)}. But the following implementations were found: "
-        "${possibleEntities.map((e) => _getInstanceClassName(e))}. That's just "
+        "${possibleEntities.map(_getInstanceClassName)}. That's just "
         "how it is for now.");
   }
 

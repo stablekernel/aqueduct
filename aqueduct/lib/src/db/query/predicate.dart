@@ -1,5 +1,5 @@
-import 'query.dart';
 import '../persistent_store/persistent_store.dart';
+import 'query.dart';
 
 /// A predicate contains instructions for filtering rows when performing a [Query].
 ///
@@ -48,7 +48,7 @@ class QueryPredicate {
   ///
   /// If [predicates] is null or empty, an empty predicate is returned. If [predicates] contains only
   /// one predicate, that predicate is returned.
-  static QueryPredicate and(Iterable<QueryPredicate> predicates) {
+  factory QueryPredicate.and(Iterable<QueryPredicate> predicates) {
     var predicateList = predicates
         ?.where((p) => p?.format != null && p.format.isNotEmpty)
         ?.toList();
@@ -56,7 +56,7 @@ class QueryPredicate {
       return QueryPredicate.empty();
     }
 
-    if (predicateList.length == 0) {
+    if (predicateList.isEmpty) {
       return QueryPredicate.empty();
     }
 
@@ -74,11 +74,11 @@ class QueryPredicate {
               ?.toList() ??
           [];
 
-      if (duplicateKeys.length > 0) {
+      if (duplicateKeys.isNotEmpty) {
         var fmt = predicate.format;
         Map<String, String> dupeMap = {};
         duplicateKeys.forEach((key) {
-          final replacementKey = "${key}$dupeCounter";
+          final replacementKey = "$key$dupeCounter";
           fmt = fmt.replaceAll("@$key", "@$replacementKey");
           dupeMap[key] = replacementKey;
           dupeCounter++;
@@ -94,8 +94,7 @@ class QueryPredicate {
       }
     }
 
-    var predicateFormat = "(" + allFormatStrings.join(" AND ") + ")";
-
+    final predicateFormat = "(${allFormatStrings.join(" AND ")})";
     return QueryPredicate(predicateFormat, valueMap);
   }
 }

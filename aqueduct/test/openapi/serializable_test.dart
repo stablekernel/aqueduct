@@ -23,6 +23,7 @@ void main() {
     try {
       HTTPSerializable.document(ctx, String);
       fail("unreachable");
+      // ignore: empty_catches
     } on ArgumentError {}
   });
 

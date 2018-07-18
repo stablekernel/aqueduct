@@ -165,7 +165,7 @@ web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port \$PORT --no
             "Database is not accepting connections. Ensure that PostgreSQL is running locally.");
 
         return -1;
-      } else if ((result.stderr as String).length > 0) {
+      } else if ((result.stderr as String).isNotEmpty) {
         displayError("Unknown error: ${result.stderr}");
         return -1;
       }

@@ -28,7 +28,7 @@ class CLIDatabaseUpgrade extends CLICommand
         migrations.where((mig) => mig.versionNumber <= currentVersion).toList();
     final migrationsToExecute =
         migrations.where((mig) => mig.versionNumber > currentVersion).toList();
-    if (migrationsToExecute.length == 0) {
+    if (migrationsToExecute.isEmpty) {
       displayInfo(
           "Database version is already current (version: $currentVersion).");
       return 0;

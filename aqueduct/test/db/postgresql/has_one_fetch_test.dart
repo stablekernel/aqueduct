@@ -1,6 +1,8 @@
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:test/test.dart';
+
 import '../../helpers.dart';
 
 /*
@@ -241,7 +243,7 @@ void main() {
       var childJoin = q.join(object: (p) => p.child)
         ..join(object: (c) => c.toy);
       childJoin.join(set: (c) => c.vaccinations)
-        ..where((o) => o.kind).equalTo("V1");
+        .where((o) => o.kind).equalTo("V1");
 
       var results = await q.fetch();
 
@@ -267,7 +269,7 @@ void main() {
       var childJoin = q.join(object: (p) => p.child)
         ..join(object: (c) => c.toy);
       childJoin.join(set: (c) => c.vaccinations)
-        ..where((o) => o.kind).equalTo("V1");
+        .where((o) => o.kind).equalTo("V1");
       var results = await q.fetch();
       expect(results.length, 0);
     });
@@ -309,7 +311,7 @@ void main() {
       var childQuery = q.join(object: (p) => p.child)
         ..returningProperties((c) => [c.name]);
       childQuery.join(set: (c) => c.vaccinations)
-        ..returningProperties((v) => [v.kind]);
+        .returningProperties((v) => [v.kind]);
 
       var parents = await q.fetch();
       for (var p in parents) {
@@ -337,7 +339,7 @@ void main() {
         ..returningProperties((c) => [c.cid]);
 
       childQuery.join(set: (c) => c.vaccinations)
-        ..returningProperties((v) => [v.vid]);
+        .returningProperties((v) => [v.vid]);
 
       var parents = await q.fetch();
       for (var p in parents) {
@@ -394,7 +396,7 @@ void main() {
     test("Trying to fetch hasOne relationship through resultProperties fails",
         () async {
       try {
-        Query<Parent>(context)..returningProperties((p) => [p.pid, p.child]);
+        Query<Parent>(context).returningProperties((p) => [p.pid, p.child]);
         expect(true, false);
       } on ArgumentError catch (e) {
         expect(
@@ -406,7 +408,7 @@ void main() {
       try {
         var q = Query<Parent>(context);
         q.join(object: (p) => p.child)
-          ..returningProperties((c) => [c.cid, c.toy]);
+          .returningProperties((c) => [c.cid, c.toy]);
         expect(true, false);
       } on ArgumentError catch (e) {
         expect(
@@ -496,15 +498,15 @@ Future<List<Parent>> populate(ManagedContext context) async {
       ..child = (Child()
         ..name = "C1"
         ..toy = (Toy()..name = "T1")
-        ..vaccinations = (ManagedSet<Vaccine>.from([
+        ..vaccinations = ManagedSet<Vaccine>.from([
           Vaccine()..kind = "V1",
           Vaccine()..kind = "V2",
-        ]))),
+        ])),
     Parent()
       ..name = "B"
       ..child = (Child()
         ..name = "C2"
-        ..vaccinations = (ManagedSet<Vaccine>.from([Vaccine()..kind = "V3"]))),
+        ..vaccinations = ManagedSet<Vaccine>.from([Vaccine()..kind = "V3"])),
     Parent()
       ..name = "C"
       ..child = (Child()..name = "C3"),

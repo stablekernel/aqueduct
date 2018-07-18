@@ -134,9 +134,7 @@ class HTTPCodecRepository {
       contentCodec = subtypes[contentType.subType];
     }
 
-    if (contentCodec == null) {
-      contentCodec = _primaryTypeCodecs[contentType.primaryType];
-    }
+    contentCodec ??= _primaryTypeCodecs[contentType.primaryType];
 
     if ((contentType?.charset?.length ?? 0) > 0) {
       charsetCodec = _codecForCharset(contentType.charset);

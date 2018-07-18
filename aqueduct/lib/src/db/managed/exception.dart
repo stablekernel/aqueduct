@@ -13,8 +13,8 @@ class ValidationException implements HandlerException {
 
   @override
   String toString() {
-    return (response.body["error"] as String) +
-        " " +
-        (response.body["reasons"] as List).join(", ");
+    final errorString = response.body["error"] as String;
+    final reasons = (response.body["reasons"] as List).join(", ");
+    return "$errorString $reasons";
   }
 }

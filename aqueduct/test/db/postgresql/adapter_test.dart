@@ -1,8 +1,8 @@
+import 'dart:async';
 import 'dart:io';
 
-import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'dart:async';
+import 'package:test/test.dart';
 
 void main() {
   group("Behavior", () {
@@ -64,7 +64,7 @@ void main() {
       var expectedValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
       var values = await Future.wait(expectedValues.map(
           (i) => persistentStore.execute("select $i").catchError((e) => e)));
-      expect(values, everyElement(TypeMatcher<QueryException>()));
+      expect(values, everyElement(const TypeMatcher<QueryException>()));
     });
 
     test(
@@ -76,7 +76,7 @@ void main() {
       var expectedValues = [1, 2, 3, 4, 5];
       var values = await Future.wait(expectedValues.map(
           (i) => persistentStore.execute("select $i").catchError((e) => e)));
-      expect(values, everyElement(TypeMatcher<QueryException>()));
+      expect(values, everyElement(const TypeMatcher<QueryException>()));
 
       proxy = SocketProxy(5433, 5432);
       await proxy.open();
@@ -101,6 +101,7 @@ void main() {
       try {
         await persistentStore.executeQuery("SELECT 1", null, 20);
         expect(true, false);
+        // ignore: empty_catches
       } on QueryException {}
 
       proxy = SocketProxy(5433, 5432);

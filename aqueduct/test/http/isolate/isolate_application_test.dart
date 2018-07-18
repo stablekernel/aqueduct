@@ -1,10 +1,11 @@
-@Timeout(const Duration(seconds: 120))
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
+@Timeout(Duration(seconds: 120))
 import 'dart:async';
-import 'package:http/http.dart' as http;
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:http/http.dart' as http;
+import 'package:test/test.dart';
 
 void main() {
   group("Lifecycle", () {
@@ -47,6 +48,7 @@ void main() {
       var responses = <http.Response>[];
       for (int i = 0; i < 20; i++) {
         var req = http.get("http://localhost:8888/t");
+        // ignore: unawaited_futures
         req.then((resp) {
           responses.add(resp);
         });
@@ -70,6 +72,7 @@ void main() {
 
       try {
         await http.get("http://localhost:8888/t");
+        // ignore: empty_catches
       } on SocketException {}
 
       await app.start(numberOfInstances: 2, consoleLogging: true);

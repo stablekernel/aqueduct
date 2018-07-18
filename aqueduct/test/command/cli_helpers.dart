@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/cli/runner.dart';
 import 'dart:io';
 
+import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/cli/runner.dart';
 import 'package:aqueduct/src/cli/running_process.dart';
 
 class Terminal {
@@ -108,15 +108,14 @@ class Terminal {
     final relativeDirectoryComponents =
         pathComponents.sublist(0, pathComponents.length - 1);
     final directory = Directory.fromUri(relativeDirectoryComponents.fold(
-        workingDirectory.uri, (Uri prev, elem) => prev.resolve(elem + "/")));
+        workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/")));
     if (!directory.existsSync()) {
       directory.createSync(recursive: true);
     }
 
     final file = File.fromUri(directory.uri.resolve(pathComponents.last));
     file.writeAsStringSync(
-        "${importAqueduct ? "import 'package:aqueduct/aqueduct.dart';\n" : ""}" +
-            contents);
+        "${importAqueduct ? "import 'package:aqueduct/aqueduct.dart';\n" : ""}$contents");
   }
 
   void modifyFile(String path, String contents(String current)) {
@@ -124,7 +123,7 @@ class Terminal {
     final relativeDirectoryComponents =
         pathComponents.sublist(0, pathComponents.length - 1);
     final directory = Directory.fromUri(relativeDirectoryComponents.fold(
-        workingDirectory.uri, (Uri prev, elem) => prev.resolve(elem + "/")));
+        workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/")));
     final file = File.fromUri(directory.uri.resolve(pathComponents.last));
     if (!file.existsSync()) {
       throw ArgumentError("File at '${file.uri}' doesn't exist.");
@@ -254,7 +253,7 @@ class Terminal {
     return task;
   }
 
-  static final _emptyProjectPubspec = """
+  static const _emptyProjectPubspec = """
 name: application_test
 description: A web server application.
 version: 0.0.1
@@ -270,12 +269,12 @@ dev_dependencies:
   test: ^1.0.0  
   """;
 
-  static final _emptyProjectLibrary = """
+  static const _emptyProjectLibrary = """
 export 'package:aqueduct/aqueduct.dart';
 export 'channel.dart';  
   """;
 
-  static final _emptyProjectChannel = """
+  static const _emptyProjectChannel = """
 import 'dart:async';
 import 'application_test.dart';
 import 'package:aqueduct/aqueduct.dart';

@@ -1,9 +1,10 @@
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
-import 'package:http/http.dart' as http;
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:http/http.dart' as http;
+import 'package:test/test.dart';
 
 void main() {
   HttpServer server;
@@ -78,7 +79,7 @@ void main() {
       () async {
     HTTPCodecRepository.defaultInstance.add(ContentType("a", "*"), ByteCodec());
     HTTPCodecRepository.defaultInstance
-        .add(ContentType("a", "specific"), JsonCodec());
+        .add(ContentType("a", "specific"), const JsonCodec());
 
     var serverResponse = Response.ok({"key": "value"})
       ..contentType = ContentType("a", "specific", charset: "utf-8");
@@ -222,7 +223,7 @@ void main() {
         () async {
       var ct = ContentType("application", "3", charset: "utf-8");
       HTTPCodecRepository.defaultInstance
-          .add(ct, JsonCodec(), allowCompression: false);
+          .add(ct, const JsonCodec(), allowCompression: false);
       server =
           await bindAndRespondWith(Response.ok({"a": "b"})..contentType = ct);
       var req = await client.getUrl(Uri.parse("http://localhost:8888"));

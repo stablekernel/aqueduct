@@ -138,7 +138,7 @@ void main() {
     context = await contextWithModels([TestModel]);
     try {
       Query<TestModel>(context)
-        ..sortBy((u) => u["nonexisting"], QuerySortOrder.ascending);
+        .sortBy((u) => u["nonexisting"], QuerySortOrder.ascending);
       expect(true, false);
     } on ArgumentError catch (e) {
       expect(
@@ -154,7 +154,7 @@ void main() {
   test("Cannot sort by relationship property", () async {
     context = await contextWithModels([GenUser, GenPost]);
     try {
-      Query<GenUser>(context)..sortBy((u) => u.posts, QuerySortOrder.ascending);
+      Query<GenUser>(context).sortBy((u) => u.posts, QuerySortOrder.ascending);
       expect(true, false);
     } on ArgumentError catch (e) {
       expect(
@@ -365,7 +365,7 @@ void main() {
   test("Can use public accessor to private property", () async {
     context = await contextWithModels([PrivateField]);
 
-    await (Query<PrivateField>(context)).insert();
+    await Query<PrivateField>(context).insert();
     var q = Query<PrivateField>(context);
     var result = await q.fetchOne();
     expect(result.public, "x");
@@ -416,7 +416,7 @@ void main() {
     context = await contextWithModels([GenUser, GenPost]);
 
     try {
-      Query<GenUser>(context)..returningProperties((p) => [p.posts]);
+      Query<GenUser>(context).returningProperties((p) => [p.posts]);
       fail("unreachable");
     } on ArgumentError catch (e) {
       expect(

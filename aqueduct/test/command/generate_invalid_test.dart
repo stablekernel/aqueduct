@@ -1,4 +1,4 @@
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'package:test/test.dart';
 import 'cli_helpers.dart';
 
@@ -10,9 +10,7 @@ void main() {
       terminal = await Terminal.createProject();
     });
 
-    tearDown(() {
-      Terminal.deleteTemporaryDirectory();
-    });
+    tearDown(Terminal.deleteTemporaryDirectory);
 
     test("Cannot delete primary key column", () async {
       final code = [

@@ -1,11 +1,11 @@
+import 'dart:async';
 import 'dart:mirrors';
 
+import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/documented_element.dart';
 import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
-import 'dart:async';
 
 /*
 These tests handle the core behavior of document generation. Types that extend doc-gen behavior, e.g. AuthServer, ResourceController, etc.
@@ -14,7 +14,7 @@ will have their own tests. It does test Router, though.
 
 void main() {
   DocumentedElement.provider = AnalyzerDocumentedElementProvider();
-  group(("Default channel"), () {
+  group("Default channel", () {
     APIDocument doc;
     DateTime controllerDocumented;
     DateTime controllerPrepared;
@@ -26,10 +26,13 @@ void main() {
       DefaultChannel.controllerPrepared = Completer();
       DefaultChannel.appPrepared = Completer();
 
+      // ignore: unawaited_futures
       DefaultChannel.appPrepared.future
           .then((_) => appPrepared = DateTime.now());
+      // ignore: unawaited_futures
       DefaultChannel.controllerPrepared.future
           .then((_) => controllerPrepared = DateTime.now());
+      // ignore: unawaited_futures
       DefaultChannel.controllerDocumented.future
           .then((_) => controllerDocumented = DateTime.now());
       doc = await Application.document(DefaultChannel, ApplicationOptions(), {
@@ -87,7 +90,7 @@ void main() {
       final completer = Completer();
 
       ctx.defer(() {
-        return Future(() => completer.complete());
+        return Future(completer.complete);
       });
 
       await ctx.finalize();
@@ -97,9 +100,7 @@ void main() {
     test("Can defer sync functions", () async {
       final completer = Completer();
 
-      ctx.defer(() {
-        completer.complete();
-      });
+      ctx.defer(completer.complete);
 
       await ctx.finalize();
       expect(completer.future, completes);
@@ -359,6 +360,7 @@ void main() {
       try {
         APIComponentDocumenter.documentType(ctx, reflectClass(DefaultChannel));
         fail("unreachable");
+        // ignore: empty_catches
       } on ArgumentError {}
     });
 
@@ -369,6 +371,7 @@ void main() {
             (reflectClass(ComplexTypes).declarations[#x] as VariableMirror).type
                 as ClassMirror);
         fail("unreachable");
+        // ignore: empty_catches
       } on ArgumentError {}
     });
 
@@ -379,6 +382,7 @@ void main() {
             (reflectClass(ComplexTypes).declarations[#y] as VariableMirror).type
                 as ClassMirror);
         fail("unreachable");
+        // ignore: empty_catches
       } on ArgumentError {}
     });
 
@@ -389,6 +393,7 @@ void main() {
             (reflectClass(ComplexTypes).declarations[#z] as VariableMirror).type
                 as ClassMirror);
         fail("unreachable");
+        // ignore: empty_catches
       } on ArgumentError {}
     });
 
@@ -581,7 +586,7 @@ class Endpoint extends Controller {
       APIDocumentContext registry, String route, APIPath path) {
     documented?.complete();
 
-    if (path.parameters.length >= 1) {
+    if (path.parameters.isNotEmpty) {
       return {
         "get": APIOperation("get1", {
           "200": APIResponse("get/1-200"),

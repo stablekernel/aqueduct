@@ -165,7 +165,7 @@ class Subclass extends ManagedObjectController<TestModel> {
   @override
   Future<Query<TestModel>> willInsertObjectWithQuery(
       Query<TestModel> query) async {
-    query.values.name = "Mr. " + query.values.name;
+    query.values.name = "Mr. ${query.values.name}";
     return query;
   }
 
@@ -196,7 +196,7 @@ class Subclass extends ManagedObjectController<TestModel> {
   @override
   Future<Query<TestModel>> willUpdateObjectWithQuery(
       Query<TestModel> query) async {
-    query.values.name = "Mr. " + query.values.name;
+    query.values.name = "Mr. ${query.values.name}";
     return query;
   }
 

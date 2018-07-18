@@ -155,7 +155,7 @@ void main() {
 
     expect(updatedObject.emailAddress, "3@a.com");
 
-    var allUsers = await (Query<TestModel>(context)).fetch();
+    var allUsers = await Query<TestModel>(context).fetch();
     expect(allUsers.length, 2);
     expect(allUsers.firstWhere((m) => m.id == m1.id).emailAddress, "3@a.com");
     expect(allUsers.firstWhere((m) => m.id != m1.id).emailAddress, "2@a.com");

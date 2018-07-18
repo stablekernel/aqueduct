@@ -354,6 +354,7 @@ void main() {
       try {
         cmds = psc.alterColumnNullability(schema.tables.first, col, null);
         expect(true, false);
+        // ignore: empty_catches
       } on SchemaException {}
 
       cmds = psc.alterColumnNullability(schema.tables.first, col, "'foo'");

@@ -1,15 +1,14 @@
 import 'dart:async';
+import 'dart:developer';
 import 'dart:io';
 import 'dart:isolate';
 
+import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/metadata.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:aqueduct/src/cli/running_process.dart';
 import 'package:aqueduct/src/cli/scripts/get_channel_type.dart';
 import 'package:isolate_executor/isolate_executor.dart';
-
-import 'package:aqueduct/src/cli/command.dart';
-import 'dart:developer';
 
 class CLIServer extends CLICommand with CLIProject {
   String derivedChannelType;

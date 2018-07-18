@@ -3,8 +3,8 @@ import 'dart:mirrors';
 import 'package:aqueduct/src/auth/auth.dart';
 import 'package:aqueduct/src/http/resource_controller_scope.dart';
 
-import '../resource_controller_bindings.dart';
 import '../request.dart';
+import '../resource_controller_bindings.dart';
 import 'bindings.dart';
 
 bool requestHasFormData(Request request) {
