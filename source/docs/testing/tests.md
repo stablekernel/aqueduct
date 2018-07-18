@@ -72,7 +72,7 @@ test("After POST to /thing, GET /thing/:id returns created thing", () async {
   final postResponse = await harness.agent.post("/thing", body: {"key": "value"});
   expectResponse(postResponse, 200);
 
-  final thingId = postResponse.body.asMap()["id"];
+  final thingId = postResponse.body.as<Map>()["id"];
   final getResponse = await harness.agent.get("/thing/$thingId");
   expectResponse(getResponse, 200, body: {
     "id": thingId,
@@ -174,7 +174,7 @@ test("POST /employees adds an audit log record", () async {
 
   final context = harness.channel.context;
   final query = new Query<AuditRecord>(context)
-    ..where((record) => record.user.id).equalTo(response.body.asMap()['id']);
+    ..where((record) => record.user.id).equalTo(response.body.as<Map>()['id']);
   final record = await query.fetchOne();
   expect(record, isNotNull);
 });

@@ -19,9 +19,6 @@ These actions are primarily described by the request method (like GET, POST, OR 
 
 It turns out, we can create a lot of incredible behavior by just combining these methods and a request path. More importantly, by following these specifications, client applications can use generic libraries to access any HTTP API with very little effort. This allows us to create complex systems that are easily made available to a browser, mobile phone or any other internet-connected device.
 
-!!! note "But is it REST?"
-    REST is a set of design patterns for HTTP 1.0 that made a lot of sense. Version 1.1 of HTTP - the one that we use today - codifies the  principles of REST. Therefore, HTTP 1.1 is effectively REST; just a lot easier to say. HTTP 2.0 doesn't change the semantics of HTTP 1.1, it just changes the transmission format.
-
 ## Inserting Data
 
 We'll start by adding behavior that allows for new heroes to be inserted into the database. Following our previous discussion, the HTTP request must take the form `POST /heroes` - we are appending a new hero to the collection of heroes. This request will contain the JSON representation of a hero in its body, for example:
@@ -37,7 +34,7 @@ Our `HeroesController` will handle this operation. In general, a single endpoint
 ```dart
 @Operation.post()
 Future<Response> createHero() async {
-  final body = request.body.asMap();
+  Map<String, dynamic> body = await request.body.decode();
   final query = new Query<Hero>(context)
     ..values.name = body['name'];
 
@@ -47,7 +44,7 @@ Future<Response> createHero() async {
 }
 ```
 
-This operation method grabs the hero from the request's body, constructs a query that inserts that hero, and then returns it in the response.
+This operation method decodes the hero from the request's body, constructs a query that inserts that hero, and then returns it in the response.
 
 Using a `Query<Hero>` to insert a row isn't very different than using one to fetch rows. When inserting a row, we execute `query.insert()` instead of `query.fetch()`. Instead of applying expressions with `where`, we set the properties of `values`. The `values` of a query is an empty instance of the type being inserted.
 
@@ -112,20 +109,19 @@ Types that implement `HTTPSerializable` may also be body objects. Objects that i
 
 `ManagedObject` implements the `HTTPSerializable` interface, and therefore all managed objects (and lists of managed objects) can be body objects.
 
-### Request Body Encoding
+### Request Body Decoding
 
-You read the body of a request through a `RequestBody` object. A `RequestBody` object decodes the contents of the request body into Dart objects that you use in your application. This decoding is performed by a `Codec` that has been registered for the request's content-type. The decoded object is determined by the format of the data. For example, a JSON array decodes into a `List`, a JSON object into a `Map`.
+Every `Request` has a `body` property of type `RequestBody`. A `RequestBody` decodes the contents of the request body into Dart objects that you use in your application. This decoding is performed by the `Codec` that is associated with the request's content-type. The decoded object is determined by the format of the data - for example, a JSON array decodes into a `List`, a JSON object into a `Map`.
 
-When you write code to read a request body, you are also writing code that validates the request body is in the expected format. For example, your `HeroesController` invokes `asMap`:
+When you write code to decode a request body, you are also validating the request body is in the expected format. For example, your `HeroesController` invokes `decode` like this:
 
 ```dart
-// request.body is a RequestBody instance
-final body = request.body.asMap();
+Map<String, dynamic> body = await request.body.decode();
 ```
 
-If the decoded body is not a `Map`, an exception is thrown that automatically sends an appropriate error response to the client.
+The `decode` method has a type argument that is inferred to be a `Map<String, dynamic>`. If the decoded body is not a `Map`, an exception is thrown that sends an appropriate error response to the client.
 
-You may also bind the body of a request to an operation method parameter. This allows you to create types (or use existing types) in your application that the populated with data from a request body. Let's bind a `Hero` instance to a request body in our `HeroesController`. Update the code in that file to the following:
+You may also bind the body of a request to an operation method parameter. Let's bind a `Hero` instance to a request body in our `HeroesController`. Update the code in that file to the following:
 
 ```dart
 @Operation.post()

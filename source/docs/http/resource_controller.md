@@ -344,18 +344,16 @@ class UserController extends ResourceController {
 
 If a request is made with a content type other than the accepted content types, the controller automatically responds with a 415 Unsupported Media Type response.
 
-The body of an HTTP request is decoded if the content type is accepted and there exists a operation method to handle the request. This means two things. First, the body is not decoded if the request is going to be discarded because no operation method was found.
-
-Second, methods on `RequestBody` have two flavors: those that return the contents as a `Future` or those that return the already decoded body. Operation methods can access the already decoded body without awaiting on the `Future`-flavored variants of `RequestBody`:
+The body of an HTTP request is decoded if the content type is accepted and there exists a operation method to handle the request. The body is not decoded if there is not a matching operation method for the request. The body is decoded by `ResourceController` prior to your operation method being invoked. Therefore, you can always use the synchronous `RequestBody.as` method to access the body from within an operation method:
 
 ```dart
 @Operation.post()
 Future<Response> createThing() async {
   // do this:
-  var bodyMap = request.body.asMap();
+  Map<String, dynamic> bodyMap = request.body.as();
 
   // no need to do this:
-  var bodyMap = await request.body.decodeAsMap();
+  Map<String, dynamic> bodyMap = await request.body.decode();
 
   return ...;
 }
