@@ -341,7 +341,7 @@ void main() {
       var op = collectionOperations["post"];
       expect(op.id, "createTestModel");
 
-      expect(op.responses.length, 4);
+      expect(op.responses.length, 3);
 
       expect(op.responses["409"], isNotNull);
       expect(op.responses["400"], isNotNull);
@@ -353,7 +353,7 @@ void main() {
       var op = idOperations["put"];
       expect(op.id, "updateTestModel");
 
-      expect(op.responses.length, 5);
+      expect(op.responses.length, 4);
 
       expect(op.responses["404"], isNotNull);
       expect(op.responses["409"], isNotNull);

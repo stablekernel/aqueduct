@@ -120,7 +120,7 @@ void main() {
         "c": ["2/4"]
       });
 
-      expect(utf8.decode(request.body.as<List<int>>()), "a=b&c=2%2F4");
+      expect(utf8.decode(request.body.originalBytes), "a=b&c=2%2F4");
     });
 
     test("Any text decoder works on text with charset", () async {
@@ -142,7 +142,7 @@ void main() {
           .catchError((err) => null);
 
       var request = new Request(await server.first);
-      String body = await request.body.decode();
+      List<int> body = await request.body.decode();
       expect(body, "foobar".codeUnits);
     });
 
@@ -153,7 +153,7 @@ void main() {
       req.close().catchError((err) => null);
 
       var request = new Request(await server.first);
-      String body = await request.body.decode();
+      List<int> body = await request.body.decode();
 
       expect(request.raw.headers.contentType, isNull);
       expect(body, "foobar".codeUnits);
@@ -531,7 +531,7 @@ void main() {
       postJSON({"k": "v"});
       var body = new RequestBody(await server.first);
       try {
-        await body.decode<List<int>>();
+        body.originalBytes;
         expect(true, false);
       } on StateError {}
     });
@@ -542,7 +542,7 @@ void main() {
       var body = new RequestBody(await server.first)..retainOriginalBytes = true;
       await body.decode();
       expect(body.as<Map<String, dynamic>>(), {"k": "v"});
-      expect(body.as<List<int>>(), utf8.encode(json.encode({"k":"v"})));
+      expect(body.originalBytes, utf8.encode(json.encode({"k":"v"})));
     });
 
     test("Retain bytes when no codec is used", () async {
