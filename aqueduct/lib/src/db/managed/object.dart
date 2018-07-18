@@ -67,8 +67,10 @@ abstract class ManagedBacking {
 /// See more documentation on defining a data model at http://aqueduct.io/docs/db/modeling_data/
 abstract class ManagedObject<T> implements HTTPSerializable {
   /// Creates a new instance of [entity] with [backing].
-  static ManagedObject instantiateDynamic(ManagedEntity entity, {ManagedBacking backing}) {
-    ManagedObject object = entity.instanceType.newInstance(const Symbol(""), []).reflectee as ManagedObject;
+  static ManagedObject instantiateDynamic(ManagedEntity entity,
+      {ManagedBacking backing}) {
+    ManagedObject object = entity.instanceType
+        .newInstance(const Symbol(""), []).reflectee as ManagedObject;
     if (backing != null) {
       object.backing = backing;
     }
@@ -87,13 +89,13 @@ abstract class ManagedObject<T> implements HTTPSerializable {
   ///
   /// You rarely need to use [backing] directly. There are many implementations of [ManagedBacking]
   /// for fulfilling the behavior of the ORM, so you cannot rely on its behavior.
-  ManagedBacking backing = new ManagedValueBacking();
+  ManagedBacking backing = ManagedValueBacking();
 
   /// Retrieves a value by property name from [backing].
   dynamic operator [](String propertyName) {
     final prop = entity.properties[propertyName];
     if (prop == null) {
-      throw new ArgumentError("Invalid property access for '${entity.name}'. "
+      throw ArgumentError("Invalid property access for '${entity.name}'. "
           "Property '$propertyName' does not exist on '${entity.name}'.");
     }
 
@@ -104,7 +106,7 @@ abstract class ManagedObject<T> implements HTTPSerializable {
   void operator []=(String propertyName, dynamic value) {
     final prop = entity.properties[propertyName];
     if (prop == null) {
-      throw new ArgumentError("Invalid property access for '${entity.name}'. "
+      throw ArgumentError("Invalid property access for '${entity.name}'. "
           "Property '$propertyName' does not exist on '${entity.name}'.");
     }
 
@@ -181,7 +183,7 @@ abstract class ManagedObject<T> implements HTTPSerializable {
   ///
   ///           return context;
   ///         }
-  ValidationContext validate({Validating forEvent: Validating.insert}) {
+  ValidationContext validate({Validating forEvent = Validating.insert}) {
     return ManagedValidator.run(this, event: forEvent);
   }
 
@@ -194,7 +196,8 @@ abstract class ManagedObject<T> implements HTTPSerializable {
 
       return this[_getPropertyNameFromInvocation(invocation)];
     } else if (invocation.isSetter) {
-      this[_getPropertyNameFromInvocation(invocation)] = invocation.positionalArguments.first;
+      this[_getPropertyNameFromInvocation(invocation)] =
+          invocation.positionalArguments.first;
 
       return null;
     }
@@ -207,10 +210,10 @@ abstract class ManagedObject<T> implements HTTPSerializable {
     // But it also may occur for private ivars, in which case, we reconstruct the symbol and try that.
 
     var name = entity.symbolMap[invocation.memberName] ??
-        entity.symbolMap[new Symbol(MirrorSystem.getName(invocation.memberName))];
+        entity.symbolMap[Symbol(MirrorSystem.getName(invocation.memberName))];
 
     if (name == null) {
-      throw new ArgumentError("Invalid property access for '${entity.name}'. "
+      throw ArgumentError("Invalid property access for '${entity.name}'. "
           "Property '${MirrorSystem.getName(invocation.memberName)}' does not exist on '${entity.name}'.");
     }
 
@@ -238,27 +241,29 @@ abstract class ManagedObject<T> implements HTTPSerializable {
       var property = entity.properties[k];
 
       if (property == null) {
-        throw new ValidationException(["invalid input key '$k'"]);
+        throw ValidationException(["invalid input key '$k'"]);
       }
 
       if (property is ManagedAttributeDescription) {
         if (!property.isTransient) {
-          backing.setValueForProperty(property, property.convertFromPrimitiveValue(v));
+          backing.setValueForProperty(
+              property, property.convertFromPrimitiveValue(v));
         } else {
           if (!property.transientStatus.isAvailableAsInput) {
-            throw new ValidationException(["invalid input key '$k'"]);
+            throw ValidationException(["invalid input key '$k'"]);
           }
 
           var decodedValue = property.convertFromPrimitiveValue(v);
 
           if (!property.isAssignableWith(decodedValue)) {
-            throw new ValidationException(["invalid input type for key '$k'"]);
+            throw ValidationException(["invalid input type for key '$k'"]);
           }
 
-          mirror.setField(new Symbol(k), decodedValue);
+          mirror.setField(Symbol(k), decodedValue);
         }
       } else {
-        backing.setValueForProperty(property, property.convertFromPrimitiveValue(v));
+        backing.setValueForProperty(
+            property, property.convertFromPrimitiveValue(v));
       }
     });
   }
@@ -283,8 +288,10 @@ abstract class ManagedObject<T> implements HTTPSerializable {
     });
 
     var reflectedThis = reflect(this);
-    entity.attributes.values.where((attr) => attr.transientStatus?.isAvailableAsOutput ?? false).forEach((attr) {
-      var value = reflectedThis.getField(new Symbol(attr.name)).reflectee;
+    entity.attributes.values
+        .where((attr) => attr.transientStatus?.isAvailableAsOutput ?? false)
+        .forEach((attr) {
+      var value = reflectedThis.getField(Symbol(attr.name)).reflectee;
       if (value != null) {
         outputMap[attr.name] = value;
       }
@@ -293,5 +300,6 @@ abstract class ManagedObject<T> implements HTTPSerializable {
     return outputMap;
   }
 
-  static bool _isPropertyPrivate(String propertyName) => propertyName.startsWith("_");
+  static bool _isPropertyPrivate(String propertyName) =>
+      propertyName.startsWith("_");
 }

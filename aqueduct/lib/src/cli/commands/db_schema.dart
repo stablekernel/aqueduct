@@ -7,14 +7,15 @@ import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:aqueduct/src/cli/scripts/get_schema.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
-class CLIDatabaseSchema extends CLICommand with CLIDatabaseManagingCommand, CLIProject {
+class CLIDatabaseSchema extends CLICommand
+    with CLIDatabaseManagingCommand, CLIProject {
   @override
   Future<int> handle() async {
     var map = await getSchema();
     if (isMachineOutput) {
       outputSink.write("${json.encode(map)}");
     } else {
-      var encoder = new JsonEncoder.withIndent("  ");
+      var encoder = JsonEncoder.withIndent("  ");
       outputSink.write("${encoder.convert(map)}");
     }
     return 0;

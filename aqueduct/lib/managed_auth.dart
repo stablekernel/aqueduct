@@ -34,16 +34,13 @@ import 'package:aqueduct/aqueduct.dart';
 /// need to use this class directly.
 class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
     implements _ManagedAuthToken {
-
   /// Empty instance.
   ManagedAuthToken() : super();
 
   /// Instance from an [AuthToken].
   ManagedAuthToken.fromToken(AuthToken t) : super() {
-    final tokenResourceOwner = entity
-        .relationships["resourceOwner"]
-        .destinationEntity
-        .instanceOf();
+    final tokenResourceOwner =
+        entity.relationships["resourceOwner"].destinationEntity.instanceOf();
     tokenResourceOwner["id"] = t.resourceOwnerIdentifier;
     this
       ..accessToken = t.accessToken
@@ -58,10 +55,8 @@ class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
 
   /// Instance from an [AuthCode].
   ManagedAuthToken.fromCode(AuthCode code) : super() {
-    final tokenResourceOwner = entity
-        .relationships["resourceOwner"]
-        .destinationEntity
-        .instanceOf();
+    final tokenResourceOwner =
+        entity.relationships["resourceOwner"].destinationEntity.instanceOf();
     tokenResourceOwner["id"] = code.resourceOwnerIdentifier;
 
     this
@@ -143,13 +138,11 @@ class _ManagedAuthToken {
   ///
   /// [ResourceOwnerTableDefinition] must be implemented by some [ManagedObject] subclass in an application.
   /// That subclass will be the 'owner' of tokens. See [ResourceOwnerTableDefinition] for more details.
-  @Relate.deferred(DeleteRule.cascade,
-      isRequired: true)
+  @Relate.deferred(DeleteRule.cascade, isRequired: true)
   ResourceOwnerTableDefinition resourceOwner;
 
   /// The client this token was issued for.
-  @Relate(Symbol('tokens'),
-      onDelete: DeleteRule.cascade, isRequired: true)
+  @Relate(Symbol('tokens'), onDelete: DeleteRule.cascade, isRequired: true)
   ManagedAuthClient client;
 
   /// The value 'bearer'.
@@ -183,10 +176,7 @@ class ManagedAuthClient extends ManagedObject<_ManagedAuthClient>
 
   /// As an [AuthClient].
   AuthClient asClient() {
-    final scopes = allowedScope
-        ?.split(" ")
-        ?.map((s) => AuthScope(s))
-        ?.toList();
+    final scopes = allowedScope?.split(" ")?.map((s) => AuthScope(s))?.toList();
 
     return AuthClient.withRedirectURI(id, hashedSecret, salt, redirectURI,
         allowedScopes: scopes);
@@ -299,7 +289,6 @@ abstract class ManagedAuthResourceOwner<T>
 ///
 class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
     extends AuthServerDelegate {
-
   /// Creates an instance of this type.
   ///
   /// [context]'s [ManagedDataModel] must contain [T], [ManagedAuthToken] and [ManagedAuthClient].
@@ -314,8 +303,7 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
   final int tokenLimit;
 
   @override
-  Future removeTokens(
-      AuthServer server, dynamic resourceOwnerID) {
+  Future removeTokens(AuthServer server, dynamic resourceOwnerID) {
     final tokenQuery = Query<ManagedAuthToken>(context)
       ..where((o) => o.resourceOwner).identifiedBy(resourceOwnerID);
 
@@ -323,10 +311,11 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
   }
 
   @override
-  Future<AuthToken> getToken(
-      AuthServer server, {String byAccessToken, String byRefreshToken}) async {
+  Future<AuthToken> getToken(AuthServer server,
+      {String byAccessToken, String byRefreshToken}) async {
     if (byAccessToken != null && byRefreshToken != null) {
-      throw ArgumentError("Exactly one of 'byAccessToken' or 'byRefreshToken' must be non-null.");
+      throw ArgumentError(
+          "Exactly one of 'byAccessToken' or 'byRefreshToken' must be non-null.");
     }
 
     final query = Query<ManagedAuthToken>(context);
@@ -335,7 +324,8 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
     } else if (byRefreshToken != null) {
       query.where((o) => o.refreshToken).equalTo(byRefreshToken);
     } else {
-      throw ArgumentError("Exactly one of 'byAccessToken' or 'byRefreshToken' must be non-null.");
+      throw ArgumentError(
+          "Exactly one of 'byAccessToken' or 'byRefreshToken' must be non-null.");
     }
 
     final token = await query.fetchOne();
@@ -347,14 +337,16 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
   Future<T> getResourceOwner(AuthServer server, String username) {
     final query = Query<T>(context)
       ..where((o) => o.username).equalTo(username)
-      ..returningProperties((t) => [t.id, t.hashedPassword, t.salt, t.username]);
+      ..returningProperties(
+          (t) => [t.id, t.hashedPassword, t.salt, t.username]);
 
     return query.fetchOne();
   }
 
   @override
   Future removeToken(AuthServer server, AuthCode grantedByCode) {
-    final query = Query<ManagedAuthToken>(context)..where((o) => o.code).equalTo(grantedByCode.code);
+    final query = Query<ManagedAuthToken>(context)
+      ..where((o) => o.code).equalTo(grantedByCode.code);
 
     return query.delete();
   }
@@ -409,7 +401,8 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
 
   @override
   Future<AuthCode> getCode(AuthServer server, String code) async {
-    final query = Query<ManagedAuthToken>(context)..where((o) => o.code).equalTo(code);
+    final query = Query<ManagedAuthToken>(context)
+      ..where((o) => o.code).equalTo(code);
 
     final storage = await query.fetchOne();
     return storage?.asAuthCode();
@@ -417,11 +410,11 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
 
   @override
   Future removeCode(AuthServer server, String code) {
-    final query = Query<ManagedAuthToken>(context)..where((o) => o.code).equalTo(code);
+    final query = Query<ManagedAuthToken>(context)
+      ..where((o) => o.code).equalTo(code);
 
     return query.delete();
   }
-
 
   @override
   Future addClient(AuthServer server, AuthClient client) async {
@@ -432,7 +425,8 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
 
   @override
   Future<AuthClient> getClient(AuthServer server, String clientID) async {
-    final query = Query<ManagedAuthClient>(context)..where((o) => o.id).equalTo(clientID);
+    final query = Query<ManagedAuthClient>(context)
+      ..where((o) => o.id).equalTo(clientID);
 
     final storage = await query.fetchOne();
 
@@ -441,7 +435,8 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
 
   @override
   Future removeClient(AuthServer server, String clientID) {
-    final query = Query<ManagedAuthClient>(context)..where((o) => o.id).equalTo(clientID);
+    final query = Query<ManagedAuthClient>(context)
+      ..where((o) => o.id).equalTo(clientID);
 
     return query.delete();
   }
@@ -466,7 +461,8 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
     if (results.length == 1) {
       final deleteQ = Query<ManagedAuthToken>(context)
         ..where((o) => o.resourceOwner).identifiedBy(resourceOwnerIdentifier)
-        ..where((o) => o.expirationDate).lessThanEqualTo(results.first.expirationDate);
+        ..where((o) => o.expirationDate)
+            .lessThanEqualTo(results.first.expirationDate);
 
       return deleteQ.delete();
     }

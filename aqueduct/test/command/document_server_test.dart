@@ -7,7 +7,7 @@ import 'package:http/http.dart' as http;
 import 'cli_helpers.dart';
 
 void main() {
-  Terminal terminal = new Terminal(Terminal.temporaryDirectory);
+  Terminal terminal = Terminal(Terminal.temporaryDirectory);
 
   setUpAll(() async {
     await Terminal.activateCLI();
@@ -30,13 +30,21 @@ void main() {
     final task = terminal.startAqueductCommand("document", ["serve"]);
     await task.hasStarted;
 
-    expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve(".aqueduct_spec/")).existsSync(), true);
+    expect(
+        Directory.fromUri(
+                terminal.workingDirectory.uri.resolve(".aqueduct_spec/"))
+            .existsSync(),
+        true);
 
     var response = await http.get("http://localhost:8111");
     expect(response.body, contains("redoc spec-url='swagger.json'"));
 
     task.process.stop(0);
     expect(await task.exitCode, 0);
-    expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve(".aqueduct_spec/")).existsSync(), false);
+    expect(
+        Directory.fromUri(
+                terminal.workingDirectory.uri.resolve(".aqueduct_spec/"))
+            .existsSync(),
+        false);
   });
 }

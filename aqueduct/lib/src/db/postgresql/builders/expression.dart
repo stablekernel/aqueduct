@@ -5,8 +5,9 @@ import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:aqueduct/src/db/query/query.dart';
 
 class ColumnExpressionBuilder extends ColumnBuilder {
-  ColumnExpressionBuilder(TableBuilder table, ManagedPropertyDescription property, this.expression,
-      {this.prefix: ""})
+  ColumnExpressionBuilder(
+      TableBuilder table, ManagedPropertyDescription property, this.expression,
+      {this.prefix = ""})
       : super(table, property);
 
   final String prefix;
@@ -25,18 +26,21 @@ class ColumnExpressionBuilder extends ColumnBuilder {
     } else if (expr is SetMembershipExpression) {
       return containsPredicate(expr.within, expr.values);
     } else if (expr is StringExpression) {
-      return stringPredicate(expr.operator, expr.value, expr.caseSensitive, expr.invertOperator);
+      return stringPredicate(
+          expr.operator, expr.value, expr.caseSensitive, expr.invertOperator);
     }
 
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "Unknown expression applied to 'Query'. '${expr.runtimeType}' is not supported by 'PostgreSQL'.");
   }
 
-  QueryPredicate comparisonPredicate(PredicateOperator operator, dynamic value) {
+  QueryPredicate comparisonPredicate(
+      PredicateOperator operator, dynamic value) {
     var name = sqlColumnName(withTableNamespace: true);
     var variableName = sqlColumnName(withPrefix: defaultPrefix);
 
-    return new QueryPredicate("$name ${ColumnBuilder.symbolTable[operator]} @$variableName$sqlTypeSuffix",
+    return QueryPredicate(
+        "$name ${ColumnBuilder.symbolTable[operator]} @$variableName$sqlTypeSuffix",
         {variableName: convertValueForStorage(value)});
   }
 
@@ -57,26 +61,31 @@ class ColumnExpressionBuilder extends ColumnBuilder {
 
     var name = sqlColumnName(withTableNamespace: true);
     var keyword = within ? "IN" : "NOT IN";
-    return new QueryPredicate("$name $keyword (${tokenList.join(",")})", pairedMap);
+    return QueryPredicate("$name $keyword (${tokenList.join(",")})", pairedMap);
   }
 
   QueryPredicate nullPredicate(bool isNull) {
     var name = sqlColumnName(withTableNamespace: true);
-    return new QueryPredicate("$name ${isNull ? "ISNULL" : "NOTNULL"}", {});
+    return QueryPredicate("$name ${isNull ? "ISNULL" : "NOTNULL"}", {});
   }
 
-  QueryPredicate rangePredicate(dynamic lhsValue, dynamic rhsValue, bool insideRange) {
+  QueryPredicate rangePredicate(
+      dynamic lhsValue, dynamic rhsValue, bool insideRange) {
     var name = sqlColumnName(withTableNamespace: true);
     var lhsName = sqlColumnName(withPrefix: "${defaultPrefix}lhs_");
     var rhsName = sqlColumnName(withPrefix: "${defaultPrefix}rhs_");
     var operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
 
-    return new QueryPredicate("$name $operation @$lhsName$sqlTypeSuffix AND @$rhsName$sqlTypeSuffix",
-        {lhsName: convertValueForStorage(lhsValue), rhsName: convertValueForStorage(rhsValue)});
+    return QueryPredicate(
+        "$name $operation @$lhsName$sqlTypeSuffix AND @$rhsName$sqlTypeSuffix",
+        {
+          lhsName: convertValueForStorage(lhsValue),
+          rhsName: convertValueForStorage(rhsValue)
+        });
   }
 
-  QueryPredicate stringPredicate(
-      PredicateStringOperator operator, dynamic value, bool caseSensitive, bool invertOperator) {
+  QueryPredicate stringPredicate(PredicateStringOperator operator,
+      dynamic value, bool caseSensitive, bool invertOperator) {
     var n = sqlColumnName(withTableNamespace: true);
     var variableName = sqlColumnName(withPrefix: defaultPrefix);
 
@@ -99,6 +108,7 @@ class ColumnExpressionBuilder extends ColumnBuilder {
         break;
     }
 
-    return new QueryPredicate("$n $operation @$variableName$sqlTypeSuffix", {variableName: matchValue});
+    return QueryPredicate("$n $operation @$variableName$sqlTypeSuffix",
+        {variableName: matchValue});
   }
 }

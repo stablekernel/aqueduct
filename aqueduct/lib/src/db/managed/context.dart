@@ -48,13 +48,14 @@ class ManagedContext implements APIComponentDocumenter {
   /// on this context if its type is in [dataModel].
   ManagedContext(this.dataModel, this.persistentStore) {
     ManagedDataModelManager.add(dataModel);
-    ApplicationServiceRegistry.defaultInstance.register<ManagedContext>(this, (o) => o.close());
+    ApplicationServiceRegistry.defaultInstance
+        .register<ManagedContext>(this, (o) => o.close());
   }
 
   /// Creates a child context from [parentContext].
-  ManagedContext.childOf(ManagedContext parentContext) :
-    persistentStore = parentContext.persistentStore,
-    dataModel = parentContext.dataModel;
+  ManagedContext.childOf(ManagedContext parentContext)
+      : persistentStore = parentContext.persistentStore,
+        dataModel = parentContext.dataModel;
 
   /// The persistent store that [Query]s on this context are executed through.
   PersistentStore persistentStore;
@@ -88,8 +89,10 @@ class ManagedContext implements APIComponentDocumenter {
   ///            await q.insert();
   ///            ...
   ///         });
-  Future<dynamic> transaction(Future transactionBlock(ManagedContext transaction)) {
-    return persistentStore.transaction(new ManagedContext.childOf(this), transactionBlock);
+  Future<dynamic> transaction(
+      Future transactionBlock(ManagedContext transaction)) {
+    return persistentStore.transaction(
+        ManagedContext.childOf(this), transactionBlock);
   }
 
   /// Closes this context and release its underlying resources.
@@ -109,7 +112,8 @@ class ManagedContext implements APIComponentDocumenter {
   }
 
   @override
-  void documentComponents(APIDocumentContext context) => dataModel.documentComponents(context);
+  void documentComponents(APIDocumentContext context) =>
+      dataModel.documentComponents(context);
 }
 
 /// Throw this object to roll back a [ManagedContext.transaction].

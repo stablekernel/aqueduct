@@ -74,8 +74,8 @@ abstract class AuthServerDelegate {
   /// If no match is found, return null.
   ///
   /// [server] is the [AuthServer] requesting the [AuthToken].
-  FutureOr<AuthToken> getToken(
-      AuthServer server, {String byAccessToken, String byRefreshToken});
+  FutureOr<AuthToken> getToken(AuthServer server,
+      {String byAccessToken, String byRefreshToken});
 
   /// This method must delete all [AuthToken] and [AuthCode]s for a [ResourceOwner].
   ///

@@ -6,63 +6,62 @@ import 'dart:io';
 
 void main() {
   tearDownAll(() {
-    new Logger("aqueduct").clearListeners();
+    Logger("aqueduct").clearListeners();
   });
 
   group("Failures", () {
     test(
         "Application start fails and logs appropriate message if request stream doesn't open",
-            () async {
-          var crashingApp = new Application<CrashChannel>();
+        () async {
+      var crashingApp = Application<CrashChannel>();
 
-          try {
-            crashingApp.options.context = {"crashIn": "addRoutes"};
-            await crashingApp.start(consoleLogging: true);
-            expect(true, false);
-          } on ApplicationStartupException catch (e) {
-            expect(e.toString(), contains("TestException: addRoutes"));
-          }
+      try {
+        crashingApp.options.context = {"crashIn": "addRoutes"};
+        await crashingApp.start(consoleLogging: true);
+        expect(true, false);
+      } on ApplicationStartupException catch (e) {
+        expect(e.toString(), contains("TestException: addRoutes"));
+      }
 
-          try {
-            crashingApp.options.context = {"crashIn": "prepare"};
-            await crashingApp.start(consoleLogging: true);
-            expect(true, false);
-          } on ApplicationStartupException catch (e) {
-            expect(e.toString(), contains("TestException: prepare"));
-          }
+      try {
+        crashingApp.options.context = {"crashIn": "prepare"};
+        await crashingApp.start(consoleLogging: true);
+        expect(true, false);
+      } on ApplicationStartupException catch (e) {
+        expect(e.toString(), contains("TestException: prepare"));
+      }
 
-          crashingApp.options.context = {"crashIn": "dontCrash"};
-          await crashingApp.start(consoleLogging: true);
-          var response = await http.get("http://localhost:8888/t");
-          expect(response.statusCode, 200);
-          await crashingApp.stop();
-        });
+      crashingApp.options.context = {"crashIn": "dontCrash"};
+      await crashingApp.start(consoleLogging: true);
+      var response = await http.get("http://localhost:8888/t");
+      expect(response.statusCode, 200);
+      await crashingApp.stop();
+    });
 
     test(
         "Application that fails to open because port is bound fails gracefully",
-            () async {
-          var server = await HttpServer.bind(InternetAddress.anyIPv4, 8888);
-          server.listen((req) {});
+        () async {
+      var server = await HttpServer.bind(InternetAddress.anyIPv4, 8888);
+      server.listen((req) {});
 
-          var conflictingApp = new Application<TestChannel>();
-          conflictingApp.options.port = 8888;
+      var conflictingApp = Application<TestChannel>();
+      conflictingApp.options.port = 8888;
 
-          try {
-            await conflictingApp.start(consoleLogging: true);
-            expect(true, false);
-          } on ApplicationStartupException catch (e) {
-            expect(e.toString(), contains("Failed to create server socket"));
-          }
+      try {
+        await conflictingApp.start(consoleLogging: true);
+        expect(true, false);
+      } on ApplicationStartupException catch (e) {
+        expect(e.toString(), contains("Failed to create server socket"));
+      }
 
-          await server.close(force: true);
-        });
+      await server.close(force: true);
+    });
 
-    test("Isolate timeout kills application when first isolate fails", () async {
-      var timeoutApp = new Application<TimeoutChannel>()
-        ..isolateStartupTimeout = new Duration(seconds: 4)
-        ..options.context = {
-          "timeout1" : 10
-        };
+    test("Isolate timeout kills application when first isolate fails",
+        () async {
+      var timeoutApp = Application<TimeoutChannel>()
+        ..isolateStartupTimeout = Duration(seconds: 4)
+        ..options.context = {"timeout1": 10};
 
       try {
         await timeoutApp.start(numberOfInstances: 2, consoleLogging: true);
@@ -75,12 +74,12 @@ void main() {
       print("-- test completes");
     });
 
-    test("Isolate timeout kills application when first isolate succeeds, but next fails", () async {
-      var timeoutApp = new Application<TimeoutChannel>()
-        ..isolateStartupTimeout = new Duration(seconds: 4)
-        ..options.context = {
-          "timeout2" : 10
-        };
+    test(
+        "Isolate timeout kills application when first isolate succeeds, but next fails",
+        () async {
+      var timeoutApp = Application<TimeoutChannel>()
+        ..isolateStartupTimeout = Duration(seconds: 4)
+        ..options.context = {"timeout2": 10};
 
       try {
         await timeoutApp.start(numberOfInstances: 2, consoleLogging: true);
@@ -100,7 +99,7 @@ class TimeoutChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    return new Router();
+    return Router();
   }
 
   @override
@@ -110,9 +109,9 @@ class TimeoutChannel extends ApplicationChannel {
       return;
     }
 
-    var completer = new Completer();
+    var completer = Completer();
     var elapsed = 0;
-    timer = new Timer.periodic(new Duration(milliseconds: 500), (t) {
+    timer = Timer.periodic(Duration(milliseconds: 500), (t) {
       elapsed += 500;
       print("waiting...");
       if (elapsed > timeoutLength * 1000) {
@@ -143,18 +142,18 @@ class TestException implements Exception {
 class CrashChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
     if (options.context["crashIn"] == "addRoutes") {
-      throw new TestException("addRoutes");
+      throw TestException("addRoutes");
     }
-    router.route("/t").linkFunction((req) async => new Response.ok("t_ok"));
+    router.route("/t").linkFunction((req) async => Response.ok("t_ok"));
     return router;
   }
 
   @override
   Future prepare() async {
     if (options.context["crashIn"] == "prepare") {
-      throw new TestException("prepare");
+      throw TestException("prepare");
     }
   }
 }
@@ -168,12 +167,12 @@ class TestChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    final router = new Router();
-    router.route("/t").linkFunction((req) async => new Response.ok("t_ok"));
-    router.route("/r").linkFunction((req) async => new Response.ok("r_ok"));
+    final router = Router();
+    router.route("/t").linkFunction((req) async => Response.ok("t_ok"));
+    router.route("/r").linkFunction((req) async => Response.ok("r_ok"));
     router.route("startup").linkFunction((r) async {
       var total = options.context["startup"].fold(0, (a, b) => a + b);
-      return new Response.ok("$total");
+      return Response.ok("$total");
     });
     return router;
   }

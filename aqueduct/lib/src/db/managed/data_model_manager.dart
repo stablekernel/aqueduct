@@ -3,7 +3,8 @@ import 'package:aqueduct/src/db/managed/entity.dart';
 import 'package:aqueduct/src/utilities/reference_counting_list.dart';
 
 class ManagedDataModelManager {
-  static ReferenceCountingList<ManagedDataModel> dataModels = new ReferenceCountingList<ManagedDataModel>();
+  static ReferenceCountingList<ManagedDataModel> dataModels =
+      ReferenceCountingList<ManagedDataModel>();
 
   static ManagedEntity findEntity(Type type, {ManagedEntity orElse()}) {
     for (final d in ManagedDataModelManager.dataModels) {
@@ -14,9 +15,9 @@ class ManagedDataModelManager {
     }
 
     if (orElse == null) {
-      throw new StateError("No entity found for '${type}. Did you forget to create a 'ManagedContext'?");
+      throw StateError(
+          "No entity found for '${type}. Did you forget to create a 'ManagedContext'?");
     }
-
 
     return orElse();
   }

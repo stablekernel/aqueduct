@@ -5,15 +5,19 @@ import '../resource_controller_bindings.dart';
 import 'internal.dart';
 
 class BoundParameter {
-  BoundParameter(VariableMirror mirror, {this.isRequired: false}) : symbol = mirror.simpleName {
-    Bind b = mirror.metadata.firstWhere((im) => im.reflectee is Bind, orElse: () => null)?.reflectee;
+  BoundParameter(VariableMirror mirror, {this.isRequired = false})
+      : symbol = mirror.simpleName {
+    Bind b = mirror.metadata
+        .firstWhere((im) => im.reflectee is Bind, orElse: () => null)
+        ?.reflectee;
     if (b == null) {
-      throw new StateError("Invalid operation method parameter '${MirrorSystem.getName(symbol)}' on '${_methodErrorName(
-          mirror)}': Must have @Bind annotation.");
+      throw StateError(
+          "Invalid operation method parameter '${MirrorSystem.getName(symbol)}' on '${_methodErrorName(mirror)}': Must have @Bind annotation.");
     }
 
     if (!b.binding.validateType(mirror.type)) {
-      throw new StateError("Invalid binding '${MirrorSystem.getName(symbol)}' on '${_methodErrorName(mirror)}': "
+      throw StateError(
+          "Invalid binding '${MirrorSystem.getName(symbol)}' on '${_methodErrorName(mirror)}': "
           "'${MirrorSystem.getName(mirror.type.simpleName)}' may not be bound to ${b.binding.type}.");
     }
 
@@ -21,8 +25,9 @@ class BoundParameter {
 
     final type = mirror.type;
     if (type is! ClassMirror) {
-      throw new StateError("Invalid binding '${MirrorSystem.getName(symbol)}' on '${_methodErrorName(mirror)}': "
-        "parameter type '${type.reflectedType}' cannot be bound.");
+      throw StateError(
+          "Invalid binding '${MirrorSystem.getName(symbol)}' on '${_methodErrorName(mirror)}': "
+          "parameter type '${type.reflectedType}' cannot be bound.");
     }
     boundValueType = type as ClassMirror;
   }

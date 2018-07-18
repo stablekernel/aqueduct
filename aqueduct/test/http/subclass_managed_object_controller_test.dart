@@ -6,23 +6,23 @@ import 'package:aqueduct/aqueduct.dart';
 
 void main() {
   group("Standard operations", () {
-    var app = new Application<TestChannel>();
+    var app = Application<TestChannel>();
     Controller.letUncaughtExceptionsEscape = true;
     app.options.port = 8888;
-    var client = new Agent.onPort(app.options.port);
+    var client = Agent.onPort(app.options.port);
     List<TestModel> allObjects = [];
 
     setUpAll(() async {
       await app.startOnCurrentIsolate();
 
-      var now = new DateTime.now().toUtc();
+      var now = DateTime.now().toUtc();
       for (var i = 0; i < 5; i++) {
-        var q = new Query<TestModel>(app.channel.context)
+        var q = Query<TestModel>(app.channel.context)
           ..values.createdAt = now
           ..values.name = "$i";
         allObjects.add(await q.insert());
 
-        now = now.add(new Duration(seconds: 1));
+        now = now.add(Duration(seconds: 1));
       }
     });
 
@@ -44,7 +44,10 @@ void main() {
     test("Can get all objects", () async {
       var resp = await client.request("/controller").get();
       var sublist = allObjects.sublist(1);
-      expect(resp, hasResponse(200, body: {"data" : sublist.map((m) => m.asMap()).toList()}));
+      expect(
+          resp,
+          hasResponse(200,
+              body: {"data": sublist.map((m) => m.asMap()).toList()}));
     });
 
     test("Can update an object", () async {
@@ -55,14 +58,14 @@ void main() {
       };
 
       var resp = await (client.request("/controller/2")
-        ..body = {"name": "Fred"})
+            ..body = {"name": "Fred"})
           .put();
       expect(resp, hasResponse(200, body: {"data": expectedMap}));
     });
 
     test("Missing object for update returns overridden status code", () async {
       var resp = await (client.request("/controller/25")
-        ..body = {"name": "Fred"})
+            ..body = {"name": "Fred"})
           .put();
 
       expect(resp, hasStatus(403));
@@ -70,16 +73,16 @@ void main() {
 
     test("Can create an object", () async {
       var resp = await (client.request("/controller")
-        ..body = {
-          "name": "John",
-          "createdAt": new DateTime(2000, 12, 12).toUtc().toIso8601String()
-        })
+            ..body = {
+              "name": "John",
+              "createdAt": DateTime(2000, 12, 12).toUtc().toIso8601String()
+            })
           .post();
 
       var expectedMap = {
         "id": allObjects.length + 1,
         "name": "Mr. John",
-        "createdAt": new DateTime(2000, 12, 12).toUtc().toIso8601String()
+        "createdAt": DateTime(2000, 12, 12).toUtc().toIso8601String()
       };
       expect(resp, hasResponse(200, body: {"data": expectedMap}));
     });
@@ -105,13 +108,13 @@ class TestChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    var dataModel = new ManagedDataModel([TestModel]);
-    var persistentStore = new PostgreSQLPersistentStore(
+    var dataModel = ManagedDataModel([TestModel]);
+    var persistentStore = PostgreSQLPersistentStore(
         "dart", "dart", "localhost", 5432, "dart_test");
-    context = new ManagedContext(dataModel, persistentStore);
+    context = ManagedContext(dataModel, persistentStore);
 
-    var targetSchema = new Schema.fromDataModel(context.dataModel);
-    var schemaBuilder = new SchemaBuilder.toSchema(
+    var targetSchema = Schema.fromDataModel(context.dataModel);
+    var schemaBuilder = SchemaBuilder.toSchema(
         context.persistentStore, targetSchema,
         isTemporary: true);
 
@@ -123,10 +126,8 @@ class TestChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    final router = new Router();
-    router
-        .route("/controller/[:id]")
-        .link(() => new Subclass(context));
+    final router = Router();
+    router.route("/controller/[:id]").link(() => Subclass(context));
     return router;
   }
 }
@@ -153,12 +154,12 @@ class Subclass extends ManagedObjectController<TestModel> {
 
   @override
   Future<Response> didFindObject(TestModel result) async {
-    return new Response.ok({"data": result.asMap()});
+    return Response.ok({"data": result.asMap()});
   }
 
   @override
   Future<Response> didNotFindObject() async {
-    return new Response.forbidden();
+    return Response.forbidden();
   }
 
   @override
@@ -170,26 +171,26 @@ class Subclass extends ManagedObjectController<TestModel> {
 
   @override
   Future<Response> didInsertObject(TestModel object) async {
-    return new Response.ok({"data" : object.asMap()});
+    return Response.ok({"data": object.asMap()});
   }
 
   @override
   Future<Query<TestModel>> willDeleteObjectWithQuery(
       Query<TestModel> query) async {
     if (request.path.variables["id"] == "3") {
-      throw new Response(301, null, {"error": "invalid"});
+      throw Response(301, null, {"error": "invalid"});
     }
     return query;
   }
 
   @override
   Future<Response> didDeleteObjectWithID(dynamic id) async {
-    return new Response.accepted();
+    return Response.accepted();
   }
 
   @override
   Future<Response> didNotFindObjectToDeleteWithID(dynamic id) async {
-    return new Response.forbidden();
+    return Response.forbidden();
   }
 
   @override
@@ -201,12 +202,12 @@ class Subclass extends ManagedObjectController<TestModel> {
 
   @override
   Future<Response> didUpdateObject(TestModel object) async {
-    return new Response.ok({"data": object.asMap()});
+    return Response.ok({"data": object.asMap()});
   }
 
   @override
   Future<Response> didNotFindObjectToUpdateWithID(dynamic id) async {
-    return new Response.forbidden();
+    return Response.forbidden();
   }
 
   @override
@@ -218,7 +219,6 @@ class Subclass extends ManagedObjectController<TestModel> {
 
   @override
   Future<Response> didFindObjects(List<TestModel> objects) async {
-    return new Response.ok({"data" : objects.map((t) => t.asMap()).toList()});
+    return Response.ok({"data": objects.map((t) => t.asMap()).toList()});
   }
-
 }

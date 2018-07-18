@@ -23,19 +23,24 @@ class Schema {
   /// This is preferred method of creating an instance of this type. Each [ManagedEntity]
   /// in [dataModel] will correspond to a [SchemaTable] in [tables].
   Schema.fromDataModel(ManagedDataModel dataModel) {
-    _tables = dataModel.entities.map((e) => new SchemaTable.fromEntity(e)).toList();
+    _tables = dataModel.entities.map((e) => SchemaTable.fromEntity(e)).toList();
   }
 
   /// Creates a deep copy of [otherSchema].
   Schema.from(Schema otherSchema) {
-    _tables = otherSchema?.tables?.map((table) => new SchemaTable.from(table))?.toList() ?? [];
+    _tables = otherSchema?.tables
+            ?.map((table) => SchemaTable.from(table))
+            ?.toList() ??
+        [];
   }
 
   /// Creates a instance of this type from [map].
   ///
   /// [map] is typically created from [asMap].
   Schema.fromMap(Map<String, dynamic> map) {
-    _tables = (map["tables"] as List<Map<String, dynamic>>).map((t) => new SchemaTable.fromMap(t)).toList();
+    _tables = (map["tables"] as List<Map<String, dynamic>>)
+        .map((t) => SchemaTable.fromMap(t))
+        .toList();
   }
 
   /// Creates an empty schema.
@@ -46,7 +51,7 @@ class Schema {
   /// The tables in this database.
   ///
   /// Returns an immutable list of tables in this schema.
-  List<SchemaTable> get tables => new List.unmodifiable(_tableStorage ?? []);
+  List<SchemaTable> get tables => List.unmodifiable(_tableStorage ?? []);
 
   /// An ordered list of tables in this schema.
   ///
@@ -72,7 +77,7 @@ class Schema {
   /// In the return value, the receiver is the [SchemaDifference.expectedSchema]
   /// and [otherSchema] is [SchemaDifference.actualSchema].
   SchemaDifference differenceFrom(Schema otherSchema) {
-    return new SchemaDifference(this, otherSchema);
+    return SchemaDifference(this, otherSchema);
   }
 
   /// Adds a table to this instance.
@@ -80,7 +85,7 @@ class Schema {
   /// Sets [table]'s [SchemaTable.schema] to this instance.
   void addTable(SchemaTable table) {
     if (this[table.name] != null) {
-      throw new SchemaException("Table ${table.name} already exists.");
+      throw SchemaException("Table ${table.name} already exists.");
     }
 
     _tableStorage.add(table);
@@ -88,7 +93,7 @@ class Schema {
   }
 
   void renameTable(SchemaTable table, String newName) {
-    throw new SchemaException("Renaming a table not yet implemented!");
+    throw SchemaException("Renaming a table not yet implemented!");
 //
 //    if (tableForName(newName) != null) {
 //      throw new SchemaException("Table ${newName} already exist.");
@@ -106,8 +111,10 @@ class Schema {
   ///
   /// Sets [table]'s [SchemaTable.schema] to null.
   void removeTable(SchemaTable table) {
-    var toRemove = tables.firstWhere((t) => t.name.toLowerCase() == table.name.toLowerCase(),
-        orElse: () => throw new SchemaException("Table ${table.name} does not exist in schema."));
+    var toRemove = tables.firstWhere(
+        (t) => t.name.toLowerCase() == table.name.toLowerCase(),
+        orElse: () => throw SchemaException(
+            "Table ${table.name} does not exist in schema."));
 
     toRemove.schema = null;
     _tableStorage.remove(toRemove);
@@ -123,7 +130,8 @@ class Schema {
   SchemaTable tableForName(String name) {
     var lowercaseName = name.toLowerCase();
 
-    return tables.firstWhere((t) => t.name.toLowerCase() == lowercaseName, orElse: () => null);
+    return tables.firstWhere((t) => t.name.toLowerCase() == lowercaseName,
+        orElse: () => null);
   }
 
   /// Emits this instance as a transportable [Map].
@@ -131,26 +139,32 @@ class Schema {
     return {"tables": tables.map((t) => t.asMap()).toList()};
   }
 
-  static List<SchemaTable> _orderedTables(List<SchemaTable> tablesAccountedFor, List<SchemaTable> remainingTables) {
+  static List<SchemaTable> _orderedTables(
+      List<SchemaTable> tablesAccountedFor, List<SchemaTable> remainingTables) {
     if (remainingTables.isEmpty) {
       return tablesAccountedFor;
     }
 
     var tableIsReady = (SchemaTable t) {
-      var foreignKeyColumns = t.columns.where((sc) => sc.relatedTableName != null).toList();
+      var foreignKeyColumns =
+          t.columns.where((sc) => sc.relatedTableName != null).toList();
 
       if (foreignKeyColumns.isEmpty) {
         return true;
       }
 
-      return foreignKeyColumns
-          .map((sc) => sc.relatedTableName)
-          .every((tableName) => tablesAccountedFor.map((st) => st.name).contains(tableName));
+      return foreignKeyColumns.map((sc) => sc.relatedTableName).every(
+          (tableName) =>
+              tablesAccountedFor.map((st) => st.name).contains(tableName));
     };
 
     tablesAccountedFor.addAll(remainingTables.where(tableIsReady));
 
-    return _orderedTables(tablesAccountedFor, remainingTables.where((st) => !tablesAccountedFor.contains(st)).toList());
+    return _orderedTables(
+        tablesAccountedFor,
+        remainingTables
+            .where((st) => !tablesAccountedFor.contains(st))
+            .toList());
   }
 }
 
@@ -164,7 +178,7 @@ class SchemaDifference {
     for (var expectedTable in expectedSchema.tables) {
       var actualTable = actualSchema[expectedTable.name];
       if (actualTable == null) {
-        _differingTables.add(new SchemaTableDifference(expectedTable, null));
+        _differingTables.add(SchemaTableDifference(expectedTable, null));
       } else {
         var diff = expectedTable.differenceFrom(actualTable);
         if (diff.hasDifferences) {
@@ -173,8 +187,10 @@ class SchemaDifference {
       }
     }
 
-    _differingTables.addAll(actualSchema.tables.where((t) => expectedSchema[t.name] == null).map((unexpectedTable) {
-      return new SchemaTableDifference(null, unexpectedTable);
+    _differingTables.addAll(actualSchema.tables
+        .where((t) => expectedSchema[t.name] == null)
+        .map((unexpectedTable) {
+      return SchemaTableDifference(null, unexpectedTable);
     }));
   }
 
@@ -192,13 +208,14 @@ class SchemaDifference {
   /// Human-readable messages to describe differences between [expectedSchema] and [actualSchema].
   ///
   /// Empty is [hasDifferences] is false.
-  List<String> get errorMessages => _differingTables.expand((diff) => diff.errorMessages).toList();
+  List<String> get errorMessages =>
+      _differingTables.expand((diff) => diff.errorMessages).toList();
 
   List<SchemaTableDifference> _differingTables = [];
 
   /// Returns Dart code to change [expectedSchema] to [actualSchema].
   String generateUpgradeSource({List<String> changeList}) {
-    var builder = new StringBuffer();
+    var builder = StringBuffer();
 
     var tablesToAdd = _differingTables
         .where((diff) => diff.expectedTable == null && diff.actualTable != null)
@@ -216,13 +233,16 @@ class SchemaDifference {
         .map((diff) => diff.expectedTable)
         .toList();
     expectedSchema.dependencyOrderedTables.reversed
-        .where((t) => tablesToRemove.map((toRemove) => toRemove.name).contains(t.name))
+        .where((t) =>
+            tablesToRemove.map((toRemove) => toRemove.name).contains(t.name))
         .forEach((t) {
       changeList?.add("Deleting table '${t.name}'");
       builder.writeln(deleteTableSource(t));
     });
 
-    _differingTables.where((diff) => diff.expectedTable != null && diff.actualTable != null).forEach((tableDiff) {
+    _differingTables
+        .where((diff) => diff.expectedTable != null && diff.actualTable != null)
+        .forEach((tableDiff) {
       var lines = tableDiff.generateUpgradeSource(changeList: changeList);
       builder.writeln(lines);
     });
@@ -231,7 +251,7 @@ class SchemaDifference {
   }
 
   static String createTableSource(SchemaTable table) {
-    var builder = new StringBuffer();
+    var builder = StringBuffer();
     builder.writeln('database.createTable(new SchemaTable("${table.name}", [');
     table.columns.forEach((col) {
       builder.writeln("${col.source},");

@@ -14,7 +14,9 @@ import 'dart:developer';
 class CLIServer extends CLICommand with CLIProject {
   String derivedChannelType;
 
-  @Option("timeout", help: "Number of seconds to wait to ensure startup succeeded.", defaultsTo: "45")
+  @Option("timeout",
+      help: "Number of seconds to wait to ensure startup succeeded.",
+      defaultsTo: "45")
   int get startupTimeout => decode("timeout");
 
   @Option("ssl-key-path",
@@ -30,10 +32,16 @@ class CLIServer extends CLICommand with CLIProject {
   @Flag("observe", help: "Enables Dart Observatory", defaultsTo: false)
   bool get shouldRunObservatory => decode("observe");
 
-  @Flag("ipv6-only", help: "Limits listening to IPv6 connections only.", negatable: false, defaultsTo: false)
+  @Flag("ipv6-only",
+      help: "Limits listening to IPv6 connections only.",
+      negatable: false,
+      defaultsTo: false)
   bool get ipv6Only => decode("ipv6-only");
 
-  @Option("port", abbr: "p", help: "The port number to listen for HTTP requests on.", defaultsTo: "8888")
+  @Option("port",
+      abbr: "p",
+      help: "The port number to listen for HTTP requests on.",
+      defaultsTo: "8888")
   int get port => decode("port");
 
   @Option("isolates", abbr: "n", help: "Number of isolates processing requests")
@@ -54,20 +62,22 @@ class CLIServer extends CLICommand with CLIProject {
 
   @Option("channel",
       abbr: "s",
-      help: "The name of the ApplicationChannel subclass to be instantiated to serve requests. "
+      help:
+          "The name of the ApplicationChannel subclass to be instantiated to serve requests. "
           "By default, this subclass is determined by reflecting on the application library in the [directory] being served.")
   String get channelType => decode("channel") ?? derivedChannelType;
 
   @Option("config-path",
       abbr: "c",
-      help: "The path to a configuration file. This File is available in the ApplicationOptions"
+      help:
+          "The path to a configuration file. This File is available in the ApplicationOptions"
           "for a ApplicationChannel to use to read application-specific configuration values. Relative paths are relative to [directory].",
       defaultsTo: "config.yaml")
-  File get configurationFile => new File(decode("config-path")).absolute;
+  File get configurationFile => File(decode("config-path")).absolute;
 
   ReceivePort messagePort;
   ReceivePort errorPort;
-  Completer<int> exitCode = new Completer<int>();
+  Completer<int> exitCode = Completer<int>();
 
   @override
   StoppableProcess runningProcess;
@@ -113,12 +123,13 @@ class CLIServer extends CLICommand with CLIProject {
     displayProgress("Config: ${configurationFile?.path}");
     displayProgress("Port: $port");
 
-    errorPort = new ReceivePort();
-    messagePort = new ReceivePort();
+    errorPort = ReceivePort();
+    messagePort = ReceivePort();
 
     final generatedStartScript = createScriptSource(replacements);
-    final dataUri = Uri.parse("data:application/dart;charset=utf-8,${Uri.encodeComponent(generatedStartScript)}");
-    final startupCompleter = new Completer<SendPort>();
+    final dataUri = Uri.parse(
+        "data:application/dart;charset=utf-8,${Uri.encodeComponent(generatedStartScript)}");
+    final startupCompleter = Completer<SendPort>();
 
     final isolate = await Isolate.spawnUri(dataUri, [], messagePort.sendPort,
         errorsAreFatal: true,
@@ -128,7 +139,8 @@ class CLIServer extends CLICommand with CLIProject {
 
     errorPort.listen((msg) {
       if (msg is List) {
-        startupCompleter.completeError(msg.first, new StackTrace.fromString(msg.last as String));
+        startupCompleter.completeError(
+            msg.first, StackTrace.fromString(msg.last as String));
       }
     });
 
@@ -156,8 +168,9 @@ class CLIServer extends CLICommand with CLIProject {
       }
     }
 
-    final sendPort = await startupCompleter.future.timeout(new Duration(seconds: startupTimeout));
-    final process = new StoppableProcess((reason) async {
+    final sendPort = await startupCompleter.future
+        .timeout(Duration(seconds: startupTimeout));
+    final process = StoppableProcess((reason) async {
       displayInfo("Stopping application.");
       displayProgress("Reason: $reason");
       sendPort.send({"command": "stop"});
@@ -172,7 +185,8 @@ class CLIServer extends CLICommand with CLIProject {
         imports: GetChannelExecutable.importsForPackage(libraryName),
         logHandler: displayProgress);
     if (name == null) {
-      throw new CLIException("No ApplicationChannel subclass found in $packageName/$libraryName");
+      throw CLIException(
+          "No ApplicationChannel subclass found in $packageName/$libraryName");
     }
 
     return name;
@@ -180,10 +194,12 @@ class CLIServer extends CLICommand with CLIProject {
 
   Future prepare() async {
     if (keyPath != null && certificatePath == null) {
-      throw new CLIException("Configuration error: --ssl-key-path was specified, but --ssl-certificate-path was not.");
+      throw CLIException(
+          "Configuration error: --ssl-key-path was specified, but --ssl-certificate-path was not.");
     }
     if (keyPath == null && certificatePath != null) {
-      throw new CLIException("Configuration error: --ssl-certificate-path was specified, but --ssl-key-path was not.");
+      throw CLIException(
+          "Configuration error: --ssl-certificate-path was specified, but --ssl-key-path was not.");
     }
 
     displayInfo("Preparing...");
@@ -195,11 +211,13 @@ class CLIServer extends CLICommand with CLIProject {
     if (values["ADDRESS"] == null) {
       addressString = "";
     }
-    var configString = "..configurationFilePath = r\"___CONFIGURATION_FILE_PATH___\"";
+    var configString =
+        "..configurationFilePath = r\"___CONFIGURATION_FILE_PATH___\"";
     if (values["CONFIGURATION_FILE_PATH"] == null) {
       configString = "";
     }
-    var certificateString = "..certificateFilePath = r\"___SSL_CERTIFICATE_PATH___\"";
+    var certificateString =
+        "..certificateFilePath = r\"___SSL_CERTIFICATE_PATH___\"";
     if (values["SSL_CERTIFICATE_PATH"] == null) {
       certificateString = "";
     }
@@ -232,7 +250,7 @@ Future main(List<String> args, dynamic sendPort) async {
 }
     """;
 
-    return contents.replaceAllMapped(new RegExp("___([A-Za-z0-9_-]+)___"), (match) {
+    return contents.replaceAllMapped(RegExp("___([A-Za-z0-9_-]+)___"), (match) {
       return values[match.group(1)].toString();
     });
   }

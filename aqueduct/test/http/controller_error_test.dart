@@ -13,8 +13,8 @@ void main() {
   });
 
   test("Response thrown during normal handling is sent as response", () async {
-    server = await enableController(new Controller((req) {
-      throw new Response.ok(null);
+    server = await enableController(Controller((req) {
+      throw Response.ok(null);
     }));
 
     final r = await http.get("http://localhost:4040");
@@ -22,8 +22,8 @@ void main() {
   });
 
   test("Unknown error thrown during handling returns 500", () async {
-    server = await enableController(new Controller((req) {
-      throw new StateError("error");
+    server = await enableController(Controller((req) {
+      throw StateError("error");
     }));
 
     final r = await http.get("http://localhost:4040");
@@ -31,17 +31,18 @@ void main() {
   });
 
   test("HandlerException thrown in handle returns its response", () async {
-    server = await enableController(new Controller((req) {
-      throw new HandlerException(new Response.ok(null));
+    server = await enableController(Controller((req) {
+      throw HandlerException(Response.ok(null));
     }));
 
     final r = await http.get("http://localhost:4040");
     expect(r.statusCode, 200);
   });
 
-  test("Throw exception when sending HandlerException response sends 500", () async {
-    server = await enableController(new Controller((req) {
-      throw new CrashingTestHandlerException();
+  test("Throw exception when sending HandlerException response sends 500",
+      () async {
+    server = await enableController(Controller((req) {
+      throw CrashingTestHandlerException();
     }));
 
     final r = await http.get("http://localhost:4040");
@@ -49,9 +50,9 @@ void main() {
   });
 
   test("Throw exception when sending thrown Response sends 500", () async {
-    server = await enableController(new Controller((req) {
+    server = await enableController(Controller((req) {
       // nonsense body to trigger exception when encoding
-      throw new Response.ok(new Controller());
+      throw Response.ok(Controller());
     }));
 
     final r = await http.get("http://localhost:4040");
@@ -64,12 +65,12 @@ Future<HttpServer> enableController(Controller controller) async {
 
   controller.didAddToChannel();
 
-  server.map((httpReq) => new Request(httpReq)).listen(controller.receive);
+  server.map((httpReq) => Request(httpReq)).listen(controller.receive);
 
   return server;
 }
 
 class CrashingTestHandlerException implements HandlerException {
   @override
-  Response get response => throw new StateError("");
+  Response get response => throw StateError("");
 }

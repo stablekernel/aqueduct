@@ -18,22 +18,25 @@ abstract class PersistentStore {
   /// Subclasses override this method to provide a concrete implementation of [Query]
   /// specific to this type. Objects returned from this method must implement [Query]. They
   /// should mixin [QueryMixin] to most of the behavior provided by a query.
-  Query<T> newQuery<T extends ManagedObject>(ManagedContext context, ManagedEntity entity);
+  Query<T> newQuery<T extends ManagedObject>(
+      ManagedContext context, ManagedEntity entity);
 
   /// Executes an arbitrary command.
   Future execute(String sql, {Map<String, dynamic> substitutionValues});
 
-  Future<dynamic> executeQuery(String formatString, Map<String, dynamic> values, int timeoutInSeconds,
+  Future<dynamic> executeQuery(
+      String formatString, Map<String, dynamic> values, int timeoutInSeconds,
       {PersistentStoreQueryReturnType returnType});
 
-  Future<dynamic> transaction(ManagedContext transactionContext, Future transactionBlock(ManagedContext transaction));
+  Future<dynamic> transaction(ManagedContext transactionContext,
+      Future transactionBlock(ManagedContext transaction));
 
   /// Closes the underlying database connection.
   Future close();
 
   // -- Schema Ops --
 
-  List<String> createTable(SchemaTable table, {bool isTemporary: false});
+  List<String> createTable(SchemaTable table, {bool isTemporary = false});
 
   List<String> renameTable(SchemaTable table, String name);
 
@@ -43,13 +46,16 @@ abstract class PersistentStore {
 
   List<String> deleteTableUniqueColumnSet(SchemaTable table);
 
-  List<String> addColumn(SchemaTable table, SchemaColumn column, {String unencodedInitialValue});
+  List<String> addColumn(SchemaTable table, SchemaColumn column,
+      {String unencodedInitialValue});
 
   List<String> deleteColumn(SchemaTable table, SchemaColumn column);
 
-  List<String> renameColumn(SchemaTable table, SchemaColumn column, String name);
+  List<String> renameColumn(
+      SchemaTable table, SchemaColumn column, String name);
 
-  List<String> alterColumnNullability(SchemaTable table, SchemaColumn column, String unencodedInitialValue);
+  List<String> alterColumnNullability(
+      SchemaTable table, SchemaColumn column, String unencodedInitialValue);
 
   List<String> alterColumnUniqueness(SchemaTable table, SchemaColumn column);
 
@@ -59,11 +65,13 @@ abstract class PersistentStore {
 
   List<String> addIndexToColumn(SchemaTable table, SchemaColumn column);
 
-  List<String> renameIndex(SchemaTable table, SchemaColumn column, String newIndexName);
+  List<String> renameIndex(
+      SchemaTable table, SchemaColumn column, String newIndexName);
 
   List<String> deleteIndexFromColumn(SchemaTable table, SchemaColumn column);
 
   Future<int> get schemaVersion;
 
-  Future<Schema> upgrade(Schema fromSchema, List<Migration> withMigrations, {bool temporary: false});
+  Future<Schema> upgrade(Schema fromSchema, List<Migration> withMigrations,
+      {bool temporary = false});
 }

@@ -4,8 +4,8 @@ import 'package:test/test.dart';
 void main() {
   group("Generation", () {
     test("A single, simple model", () {
-      var dataModel = new ManagedDataModel([SimpleModel]);
-      var schema = new Schema.fromDataModel(dataModel);
+      var dataModel = ManagedDataModel([SimpleModel]);
+      var schema = Schema.fromDataModel(dataModel);
       expect(schema.tables.length, 1);
       var t = schema.tables.first;
 
@@ -27,13 +27,14 @@ void main() {
         "indexed": false
       });
 
-      expect(new Schema.fromMap(schema.asMap()).differenceFrom(schema).hasDifferences,
+      expect(
+          Schema.fromMap(schema.asMap()).differenceFrom(schema).hasDifferences,
           false);
     });
 
     test("An extensive model", () {
-      var dataModel = new ManagedDataModel([ExtensiveModel]);
-      var schema = new Schema.fromDataModel(dataModel);
+      var dataModel = ManagedDataModel([ExtensiveModel]);
+      var schema = Schema.fromDataModel(dataModel);
       expect(schema.tables.length, 1);
 
       var table = schema.tables.first;
@@ -156,7 +157,8 @@ void main() {
         "indexed": true
       });
 
-      expect(new Schema.fromMap(schema.asMap()).differenceFrom(schema).hasDifferences,
+      expect(
+          Schema.fromMap(schema.asMap()).differenceFrom(schema).hasDifferences,
           false);
     });
 
@@ -167,8 +169,8 @@ void main() {
         LoadedItem,
         Container
       ];
-      var dataModel = new ManagedDataModel(intentionallyUnorderedModelTypes);
-      var schema = new Schema.fromDataModel(dataModel);
+      var dataModel = ManagedDataModel(intentionallyUnorderedModelTypes);
+      var schema = Schema.fromDataModel(dataModel);
 
       expect(schema.tables.length, 4);
       expect(schema.dependencyOrderedTables.map((t) => t.name).toList(),
@@ -306,13 +308,14 @@ void main() {
         "indexed": true
       });
 
-      expect(new Schema.fromMap(schema.asMap()).differenceFrom(schema).hasDifferences,
+      expect(
+          Schema.fromMap(schema.asMap()).differenceFrom(schema).hasDifferences,
           false);
     });
 
     test("Can specify unique across multiple columns", () {
-      var dataModel = new ManagedDataModel([Unique]);
-      var schema = new Schema.fromDataModel(dataModel);
+      var dataModel = ManagedDataModel([Unique]);
+      var schema = Schema.fromDataModel(dataModel);
       expect(schema.tables.length, 1);
       expect(schema.tables.first.name, "_Unique");
       expect(schema.tables.first.uniqueColumnSet, ["a", "b"]);
@@ -321,26 +324,27 @@ void main() {
       expect(tableMap["name"], "_Unique");
       expect(tableMap["unique"], ["a", "b"]);
 
-      var tableFromMap = new SchemaTable.fromMap(tableMap);
-      expect(tableFromMap.differenceFrom(schema.tables.first).hasDifferences, false);
+      var tableFromMap = SchemaTable.fromMap(tableMap);
+      expect(tableFromMap.differenceFrom(schema.tables.first).hasDifferences,
+          false);
     });
   });
 
   group("Constructors work appropriately", () {
     test("Encoding/decoding is pristine", () {
-      var dataModel = new ManagedDataModel(
+      var dataModel = ManagedDataModel(
           [LoadedSingleItem, DefaultItem, LoadedItem, Container]);
-      var baseSchema = new Schema.fromDataModel(dataModel);
-      var newSchema = new Schema.fromMap(baseSchema.asMap());
+      var baseSchema = Schema.fromDataModel(dataModel);
+      var newSchema = Schema.fromMap(baseSchema.asMap());
       expect(newSchema.differenceFrom(baseSchema).hasDifferences, false);
       expect(baseSchema.differenceFrom(newSchema).hasDifferences, false);
     });
 
     test("Copying is pristine", () {
-      var dataModel = new ManagedDataModel(
+      var dataModel = ManagedDataModel(
           [LoadedSingleItem, DefaultItem, LoadedItem, Container]);
-      var baseSchema = new Schema.fromDataModel(dataModel);
-      var newSchema = new Schema.from(baseSchema);
+      var baseSchema = Schema.fromDataModel(dataModel);
+      var newSchema = Schema.from(baseSchema);
       expect(newSchema.differenceFrom(baseSchema).hasDifferences, false);
       expect(baseSchema.differenceFrom(newSchema).hasDifferences, false);
     });
@@ -349,14 +353,14 @@ void main() {
   group("Matching", () {
     Schema baseSchema;
     setUp(() {
-      var dataModel = new ManagedDataModel(
+      var dataModel = ManagedDataModel(
           [LoadedSingleItem, DefaultItem, LoadedItem, Container, Unique]);
-      baseSchema = new Schema.fromDataModel(dataModel);
+      baseSchema = Schema.fromDataModel(dataModel);
     });
 
     test("Additional table show up as error", () {
-      var newSchema = new Schema.from(baseSchema);
-      newSchema.addTable(new SchemaTable("foo", []));
+      var newSchema = Schema.from(baseSchema);
+      newSchema.addTable(SchemaTable("foo", []));
 
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
@@ -365,8 +369,9 @@ void main() {
     });
 
     test("Missing table show up as error", () {
-      var newSchema = new Schema.from(baseSchema);
-      newSchema.removeTable(newSchema.tables.firstWhere((t) => t.name == "_DefaultItem"));
+      var newSchema = Schema.from(baseSchema);
+      newSchema.removeTable(
+          newSchema.tables.firstWhere((t) => t.name == "_DefaultItem"));
 
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
@@ -375,7 +380,7 @@ void main() {
     });
 
     test("Same table but renamed shows up as error", () {
-      var newSchema = new Schema.from(baseSchema);
+      var newSchema = Schema.from(baseSchema);
       newSchema.tables.firstWhere((t) => t.name == "_DefaultItem").name =
           "DefaultItem";
 
@@ -389,31 +394,27 @@ void main() {
     });
 
     test("Table with different unique shows up as error", () {
-      var newSchema = new Schema.from(baseSchema);
+      var newSchema = Schema.from(baseSchema);
       newSchema.tableForName("_Unique").uniqueColumnSet = ["a", "b", "c"];
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
       expect(diff.errorMessages.length, 1);
-      expect(diff.errorMessages,
-          contains(contains("'_Unique' is expected")));
-      expect(diff.errorMessages,
-          contains(contains("'a', 'b', 'c'")));
+      expect(diff.errorMessages, contains(contains("'_Unique' is expected")));
+      expect(diff.errorMessages, contains(contains("'a', 'b', 'c'")));
 
-      newSchema = new Schema.from(baseSchema);
+      newSchema = Schema.from(baseSchema);
       newSchema.tableForName("_Unique").uniqueColumnSet = ["a", "c"];
       diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
       expect(diff.errorMessages.length, 1);
-      expect(diff.errorMessages,
-          contains(contains("'_Unique' is expected")));
-      expect(diff.errorMessages,
-          contains(contains("'a', 'c'")));
+      expect(diff.errorMessages, contains(contains("'_Unique' is expected")));
+      expect(diff.errorMessages, contains(contains("'a', 'c'")));
     });
 
     test("Table with same unique, but unordered, shows as equal", () {
       expect(baseSchema.tableForName("_Unique").uniqueColumnSet, ["a", "b"]);
 
-      var newSchema = new Schema.from(baseSchema);
+      var newSchema = Schema.from(baseSchema);
       newSchema.tableForName("_Unique").uniqueColumnSet = ["b", "a"];
 
       var diff = baseSchema.differenceFrom(newSchema);
@@ -421,25 +422,32 @@ void main() {
     });
 
     test("Table with no unique/unique show up as error", () {
-      var newSchema = new Schema.from(baseSchema);
+      var newSchema = Schema.from(baseSchema);
       newSchema.tableForName("_Unique").uniqueColumnSet = null;
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
-      expect(diff.errorMessages, contains(contains("NOT created by migration files")));
-      expect(diff.errorMessages, contains(contains("Multi-column unique constraint on table '_Unique'")));
+      expect(diff.errorMessages,
+          contains(contains("NOT created by migration files")));
+      expect(
+          diff.errorMessages,
+          contains(
+              contains("Multi-column unique constraint on table '_Unique'")));
 
-      var nextSchema = new Schema.from(newSchema);
+      var nextSchema = Schema.from(newSchema);
       nextSchema.tableForName("_Unique").uniqueColumnSet = ["a", "b"];
       diff = newSchema.differenceFrom(nextSchema);
       expect(diff.hasDifferences, true);
-      expect(diff.errorMessages, contains(contains("is created by migration files")));
-      expect(diff.errorMessages, contains(contains("Multi-column unique constraint on table '_Unique'")));
+      expect(diff.errorMessages,
+          contains(contains("is created by migration files")));
+      expect(
+          diff.errorMessages,
+          contains(
+              contains("Multi-column unique constraint on table '_Unique'")));
     });
 
     test("Missing column shows up as error", () {
-      var newSchema = new Schema.from(baseSchema);
-      var t = newSchema.tables
-          .firstWhere((t) => t.name == "_DefaultItem");
+      var newSchema = Schema.from(baseSchema);
+      var t = newSchema.tables.firstWhere((t) => t.name == "_DefaultItem");
       var c = t.columnForName("id");
       t.removeColumn(c);
 
@@ -451,10 +459,10 @@ void main() {
     });
 
     test("Additional column shows up as error", () {
-      var newSchema = new Schema.from(baseSchema);
+      var newSchema = Schema.from(baseSchema);
       newSchema.tables
           .firstWhere((t) => t.name == "_DefaultItem")
-          .addColumn(new SchemaColumn("foo", ManagedPropertyType.integer));
+          .addColumn(SchemaColumn("foo", ManagedPropertyType.integer));
 
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
@@ -464,7 +472,7 @@ void main() {
     });
 
     test("Same column but with wrong name shows up as error", () {
-      var newSchema = new Schema.from(baseSchema);
+      var newSchema = Schema.from(baseSchema);
       newSchema.tables
           .firstWhere((t) => t.name == "_DefaultItem")
           .columns
@@ -485,7 +493,7 @@ void main() {
     });
 
     test("Column differences show up as errors", () {
-      var newSchema = new Schema.from(baseSchema);
+      var newSchema = Schema.from(baseSchema);
       var column = newSchema.tables
           .firstWhere((t) => t.name == "_DefaultItem")
           .columns
@@ -578,10 +586,10 @@ void main() {
     });
 
     test("Multiple reasons all show up", () {
-      var newSchema = new Schema.from(baseSchema);
-      newSchema.addTable(new SchemaTable("foo", []));
+      var newSchema = Schema.from(baseSchema);
+      newSchema.addTable(SchemaTable("foo", []));
       var df = newSchema.tables.firstWhere((t) => t.name == "_DefaultItem");
-      df.addColumn(new SchemaColumn("foobar", ManagedPropertyType.integer));
+      df.addColumn(SchemaColumn("foobar", ManagedPropertyType.integer));
       df.columns.firstWhere((sc) => sc.name == "id").isPrimaryKey = false;
 
       var diff = baseSchema.differenceFrom(newSchema);
@@ -602,14 +610,14 @@ void main() {
     });
 
     test("Tables and columns are case-insensitive", () {
-      var lowercaseSchema = new Schema([
-        new SchemaTable("table",
-            [new SchemaColumn("column", ManagedPropertyType.bigInteger)])
+      var lowercaseSchema = Schema([
+        SchemaTable(
+            "table", [SchemaColumn("column", ManagedPropertyType.bigInteger)])
       ]);
 
-      var uppercaseSchema = new Schema([
-        new SchemaTable("TABLE",
-            [new SchemaColumn("COLUMN", ManagedPropertyType.bigInteger)])
+      var uppercaseSchema = Schema([
+        SchemaTable(
+            "TABLE", [SchemaColumn("COLUMN", ManagedPropertyType.bigInteger)])
       ]);
 
       expect(lowercaseSchema.differenceFrom(uppercaseSchema).hasDifferences,
@@ -617,8 +625,8 @@ void main() {
     });
 
     test("A model with an overridden property from a partial", () {
-      var dataModel = new ManagedDataModel([OverriddenModel]);
-      var schema = new Schema.fromDataModel(dataModel);
+      var dataModel = ManagedDataModel([OverriddenModel]);
+      var schema = Schema.fromDataModel(dataModel);
       expect(schema.tables.length, 1);
       var t = schema.tables.first;
 
@@ -716,8 +724,7 @@ class ExtensiveModel extends ManagedObject<_ExtensiveModel>
 }
 
 class _ExtensiveModel {
-  @Column(
-      primaryKey: true, databaseType: ManagedPropertyType.string)
+  @Column(primaryKey: true, databaseType: ManagedPropertyType.string)
   String id;
 
   DateTime startDate;
@@ -747,11 +754,13 @@ class _ExtensiveModel {
   int loadedValue;
 }
 
-class OverriddenModel extends ManagedObject<_OverriddenModel> implements _OverriddenModel {}
+class OverriddenModel extends ManagedObject<_OverriddenModel>
+    implements _OverriddenModel {}
+
 class _OverriddenModel extends PartialModel {
   @override
   @Column(indexed: true, unique: true)
-  @Validate.oneOf(const ["a", "b"])
+  @Validate.oneOf(["a", "b"])
   String field;
 }
 
@@ -764,6 +773,7 @@ class PartialModel {
 }
 
 class Unique extends ManagedObject<_Unique> implements _Unique {}
+
 @Table.unique([Symbol('a'), Symbol('b')])
 class _Unique {
   @primaryKey

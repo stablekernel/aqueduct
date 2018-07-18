@@ -20,7 +20,8 @@ class ApplicationServer {
   ///
   /// You should not need to invoke this method directly.
   ApplicationServer(ClassMirror channelType, this.options, this.identifier) {
-    channel = (channelType.newInstance(const Symbol(""), []).reflectee as ApplicationChannel)
+    channel = (channelType.newInstance(const Symbol(""), []).reflectee
+        as ApplicationChannel)
       ..server = this
       ..options = options;
   }
@@ -71,15 +72,16 @@ class ApplicationServer {
     if (securityContext != null) {
       _requiresHTTPS = true;
 
-      server = await HttpServer.bindSecure(options.address, options.port, securityContext,
+      server = await HttpServer.bindSecure(
+          options.address, options.port, securityContext,
           requestClientCertificate: options.isUsingClientCertificate,
           v6Only: options.isIpv6Only,
           shared: shareHttpServer);
     } else {
       _requiresHTTPS = false;
 
-      server =
-          await HttpServer.bind(options.address, options.port, v6Only: options.isIpv6Only, shared: shareHttpServer);
+      server = await HttpServer.bind(options.address, options.port,
+          v6Only: options.isIpv6Only, shared: shareHttpServer);
     }
 
     logger.fine("ApplicationServer($identifier).start bound HTTP");

@@ -57,13 +57,15 @@ abstract class Linkable {
 ///
 /// This class is intended to be subclassed. [ApplicationChannel], [Router], [ResourceController] are all examples of this type.
 /// Subclasses should implement [handle] to respond to, modify or forward requests.
-class Controller implements APIComponentDocumenter, APIOperationDocumenter, Linkable {
+class Controller
+    implements APIComponentDocumenter, APIOperationDocumenter, Linkable {
   /// Default constructor.
   ///
   /// For subclasses, override [handle] and do not provide [handler].
   ///
   /// For controllers that are simple, provide a [handler] or use [linkFunction].
-  Controller([FutureOr<RequestOrResponse> handler(Request request)]) : _handler = handler;
+  Controller([FutureOr<RequestOrResponse> handler(Request request)])
+      : _handler = handler;
 
   /// Returns a stacktrace and additional details about how the request's processing in the HTTP response.
   ///
@@ -90,10 +92,10 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
   Controller get nextController => _nextController;
 
   /// An instance of the 'aqueduct' logger.
-  Logger get logger => new Logger("aqueduct");
+  Logger get logger => Logger("aqueduct");
 
   /// The CORS policy of this controller.
-  CORSPolicy policy = new CORSPolicy();
+  CORSPolicy policy = CORSPolicy();
 
   Controller _nextController;
   final _Handler _handler;
@@ -102,7 +104,8 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
     // We have a whitelist for a few things declared in controller that can't be final.
     final whitelist = ['policy=', '_nextController='];
     final members = reflectClass(controllerType).instanceMembers;
-    final fieldKeys = members.keys.where((sym) => !whitelist.contains(MirrorSystem.getName(sym)));
+    final fieldKeys = members.keys
+        .where((sym) => !whitelist.contains(MirrorSystem.getName(sym)));
     return fieldKeys.any((key) => members[key].isSetter);
   }
 
@@ -124,7 +127,7 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
   Linkable link(Controller instantiator()) {
     final instance = instantiator();
     if (instance is Recyclable) {
-      _nextController = new _ControllerRecycler(instantiator, instance);
+      _nextController = _ControllerRecycler(instantiator, instance);
     } else {
       if (_isControllerTypeMutable(instance.runtimeType)) {
         throw ArgumentError("Invalid controller '${instance.runtimeType}'. "
@@ -143,7 +146,7 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
   /// See [link] for a variant of this method that takes an object instead of a closure.
   @override
   Linkable linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
-    _nextController = new Controller(handle);
+    _nextController = Controller(handle);
     return _nextController;
   }
 
@@ -245,10 +248,11 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
   /// Note: If [caughtValue]'s implements [HandlerException], this method is not called.
   ///
   /// If you override this method, it must not throw.
-  Future handleError(Request request, dynamic caughtValue, StackTrace trace) async {
+  Future handleError(
+      Request request, dynamic caughtValue, StackTrace trace) async {
     if (caughtValue is HTTPStreamingException) {
-      logger.severe(
-          "${request.toDebugString(includeHeaders: true)}", caughtValue.underlyingException, caughtValue.trace);
+      logger.severe("${request.toDebugString(includeHeaders: true)}",
+          caughtValue.underlyingException, caughtValue.trace);
 
       request.response.close().catchError((_) => null);
 
@@ -257,14 +261,20 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
 
     try {
       final body = includeErrorDetailsInServerErrorResponses
-          ? {"controller": "$runtimeType", "error": "$caughtValue.", "stacktrace": trace?.toString()}
+          ? {
+              "controller": "$runtimeType",
+              "error": "$caughtValue.",
+              "stacktrace": trace?.toString()
+            }
           : null;
 
-      final response = new Response.serverError(body: body)..contentType = ContentType.json;
+      final response = Response.serverError(body: body)
+        ..contentType = ContentType.json;
 
       await _sendResponse(request, response, includeCORSHeaders: true);
 
-      logger.severe("${request.toDebugString(includeHeaders: true)}", caughtValue, trace);
+      logger.severe(
+          "${request.toDebugString(includeHeaders: true)}", caughtValue, trace);
     } catch (e) {
       logger.severe("Failed to send response, draining request. Reason: $e");
       request.raw.drain().catchError((_) => null);
@@ -284,15 +294,16 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
   }
 
   @override
-  Map<String, APIPath> documentPaths(APIDocumentContext context) => nextController?.documentPaths(context);
+  Map<String, APIPath> documentPaths(APIDocumentContext context) =>
+      nextController?.documentPaths(context);
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
+  Map<String, APIOperation> documentOperations(
+      APIDocumentContext context, String route, APIPath path) {
     if (nextController == null) {
       if (_handler == null) {
-        throw new StateError(
-            "Invalid documenter '${runtimeType}'. Reached end of controller chain and found no operations. Path has summary '${path
-                .summary}'.");
+        throw StateError(
+            "Invalid documenter '${runtimeType}'. Reached end of controller chain and found no operations. Path has summary '${path.summary}'.");
       }
       return {};
     }
@@ -301,7 +312,8 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
   }
 
   @override
-  void documentComponents(APIDocumentContext context) => nextController?.documentComponents(context);
+  void documentComponents(APIDocumentContext context) =>
+      nextController?.documentComponents(context);
 
   Future _handlePreflightRequest(Request req) async {
     Controller controllerToDictatePolicy;
@@ -312,7 +324,7 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
       } else {
         if (policy != null) {
           if (!policy.validatePreflightRequest(req.raw)) {
-            await _sendResponse(req, new Response.forbidden());
+            await _sendResponse(req, Response.forbidden());
             logger.info(req.toDebugString(includeHeaders: true));
           } else {
             await _sendResponse(req, policy.preflightResponse(req));
@@ -322,7 +334,7 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
           return null;
         } else {
           // If we don't have a policy, then a preflight request makes no sense.
-          await _sendResponse(req, new Response.forbidden());
+          await _sendResponse(req, Response.forbidden());
           logger.info(req.toDebugString(includeHeaders: true));
           return null;
         }
@@ -334,7 +346,8 @@ class Controller implements APIComponentDocumenter, APIOperationDocumenter, Link
     return controllerToDictatePolicy?.receive(req);
   }
 
-  Future _sendResponse(Request request, Response response, {bool includeCORSHeaders: false}) {
+  Future _sendResponse(Request request, Response response,
+      {bool includeCORSHeaders = false}) {
     if (includeCORSHeaders) {
       applyCORSHeadersIfNecessary(request, response);
     }
@@ -414,12 +427,15 @@ class _ControllerRecycler<T> extends Controller {
   }
 
   @override
-  void documentComponents(APIDocumentContext components) => nextInstanceToReceive.documentComponents(components);
+  void documentComponents(APIDocumentContext components) =>
+      nextInstanceToReceive.documentComponents(components);
 
   @override
-  Map<String, APIPath> documentPaths(APIDocumentContext components) => nextInstanceToReceive.documentPaths(components);
+  Map<String, APIPath> documentPaths(APIDocumentContext components) =>
+      nextInstanceToReceive.documentPaths(components);
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) =>
+  Map<String, APIOperation> documentOperations(
+          APIDocumentContext components, String route, APIPath path) =>
       nextInstanceToReceive.documentOperations(components, route, path);
 }

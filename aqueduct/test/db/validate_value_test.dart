@@ -4,7 +4,8 @@ import 'package:aqueduct/aqueduct.dart';
 import '../helpers.dart';
 
 void main() {
-  final ctx = new ManagedContext(new ManagedDataModel([T, U, V, EnumObject]), new DefaultPersistentStore());
+  final ctx = ManagedContext(
+      ManagedDataModel([T, U, V, EnumObject]), DefaultPersistentStore());
 
   tearDownAll(() async {
     await ctx.close();
@@ -12,24 +13,24 @@ void main() {
 
   group("Validate.matches", () {
     test("Valid regex reports match", () {
-      var t = new T()
+      var t = T()
         ..regex = "OIASDJKASD"
         ..contain = "XcontainY";
       expect(t.validate().isValid, true);
     });
 
     test("Invalid regex reports failure", () {
-      var t = new T()..regex = "OiASDJKASD";
+      var t = T()..regex = "OiASDJKASD";
       expect(t.validate().isValid, false);
 
-      t = new T()..contain = "abcde";
+      t = T()..contain = "abcde";
       expect(t.validate().isValid, false);
     });
   });
 
   group("Validate.compare", () {
     test("lessThan/int", () {
-      var t = new T()..compareIntLessThan1 = 0;
+      var t = T()..compareIntLessThan1 = 0;
       expect(t.validate().isValid, true);
       t.compareIntLessThan1 = 1;
       expect(t.validate().isValid, false);
@@ -38,7 +39,7 @@ void main() {
     });
 
     test("lessThanEqual/string", () {
-      var t = new T()..compareStringLessThanEqualToBar = "abc";
+      var t = T()..compareStringLessThanEqualToBar = "abc";
       expect(t.validate().isValid, true);
       t.compareStringLessThanEqualToBar = "bar";
       expect(t.validate().isValid, true);
@@ -47,7 +48,7 @@ void main() {
     });
 
     test("greaterThan/double", () {
-      var t = new T()..compareDoubleGreaterThan1 = 2.0;
+      var t = T()..compareDoubleGreaterThan1 = 2.0;
       expect(t.validate().isValid, true);
       t.compareDoubleGreaterThan1 = 1.0;
       expect(t.validate().isValid, false);
@@ -56,23 +57,23 @@ void main() {
     });
 
     test("greaterThanEqual/date", () {
-      var t = new T()..compareDateGreaterThanEqualTo1990 = new DateTime(2000);
+      var t = T()..compareDateGreaterThanEqualTo1990 = DateTime(2000);
       expect(t.validate().isValid, true);
-      t.compareDateGreaterThanEqualTo1990 = new DateTime(1990);
+      t.compareDateGreaterThanEqualTo1990 = DateTime(1990);
       expect(t.validate().isValid, true);
-      t.compareDateGreaterThanEqualTo1990 = new DateTime(1980);
+      t.compareDateGreaterThanEqualTo1990 = DateTime(1980);
       expect(t.validate().isValid, false);
     });
 
     test("equal", () {
-      var t = new T()..compareIntEqualTo5 = 5;
+      var t = T()..compareIntEqualTo5 = 5;
       expect(t.validate().isValid, true);
       t.compareIntEqualTo5 = 4;
       expect(t.validate().isValid, false);
     });
 
     test("Combine two yields and of both", () {
-      var t = new T()..compareIntBetween6And10 = 6;
+      var t = T()..compareIntBetween6And10 = 6;
       expect(t.validate().isValid, true);
       t.compareIntBetween6And10 = 10;
       expect(t.validate().isValid, true);
@@ -86,7 +87,7 @@ void main() {
 
   group("Validate.length", () {
     test("lessThan", () {
-      var t = new T()..lengthLessThan5 = "abc";
+      var t = T()..lengthLessThan5 = "abc";
       expect(t.validate().isValid, true);
       t.lengthLessThan5 = "abcde";
       expect(t.validate().isValid, false);
@@ -95,7 +96,7 @@ void main() {
     });
 
     test("lessThanEqual", () {
-      var t = new T()..lengthLessThanEqualTo5 = "abc";
+      var t = T()..lengthLessThanEqualTo5 = "abc";
       expect(t.validate().isValid, true);
       t.lengthLessThanEqualTo5 = "abcde";
       expect(t.validate().isValid, true);
@@ -104,7 +105,7 @@ void main() {
     });
 
     test("greaterThan", () {
-      var t = new T()..lengthGreaterThan5 = "abcdefghi";
+      var t = T()..lengthGreaterThan5 = "abcdefghi";
       expect(t.validate().isValid, true);
       t.lengthGreaterThan5 = "abcde";
       expect(t.validate().isValid, false);
@@ -113,7 +114,7 @@ void main() {
     });
 
     test("greaterThanEqual", () {
-      var t = new T()..lengthGreaterThanEqualTo5 = "abcdefgh";
+      var t = T()..lengthGreaterThanEqualTo5 = "abcdefgh";
       expect(t.validate().isValid, true);
       t.lengthGreaterThanEqualTo5 = "abcde";
       expect(t.validate().isValid, true);
@@ -122,14 +123,14 @@ void main() {
     });
 
     test("equal", () {
-      var t = new T()..lengthEqualTo2 = "ab";
+      var t = T()..lengthEqualTo2 = "ab";
       expect(t.validate().isValid, true);
       t.lengthEqualTo2 = "c";
       expect(t.validate().isValid, false);
     });
 
     test("Combine two yields and of both", () {
-      var t = new T()..lengthBetween6And10 = "abcdef";
+      var t = T()..lengthBetween6And10 = "abcdef";
       expect(t.validate().isValid, true);
       t.lengthBetween6And10 = "abcdefghij";
       expect(t.validate().isValid, true);
@@ -143,28 +144,28 @@ void main() {
 
   group("Validate.present", () {
     test("Ensures key exists", () {
-      var u = new U();
+      var u = U();
       expect(u.validate().isValid, false);
       u.present = 1;
       expect(u.validate().isValid, true);
     });
 
     test("Does not care about null, as long as present", () {
-      var u = new U()..present = null;
+      var u = U()..present = null;
       expect(u.validate().isValid, true);
     });
   });
 
   group("Validate.absent", () {
     test("Ensures key is absent", () {
-      var u = new U()..present = 1;
+      var u = U()..present = 1;
       expect(u.validate().isValid, true);
       u.absent = 1;
       expect(u.validate().isValid, false);
     });
 
     test("Does not treat null as absent", () {
-      var u = new U()
+      var u = U()
         ..present = 1
         ..absent = null;
       expect(u.validate().isValid, false);
@@ -173,21 +174,21 @@ void main() {
 
   group("Validate.oneOf", () {
     test("Works with String", () {
-      var t = new T()..oneOfAB = "A";
+      var t = T()..oneOfAB = "A";
       expect(t.validate().isValid, true);
       t.oneOfAB = "C";
       expect(t.validate().isValid, false);
     });
 
     test("Works with int", () {
-      var t = new T()..oneOf12 = 1;
+      var t = T()..oneOf12 = 1;
       expect(t.validate().isValid, true);
       t.oneOf12 = 3;
       expect(t.validate().isValid, false);
     });
 
     test("Implicitly added to enum types", () {
-      var e = new EnumObject()..backing.contents["enumValues"] = "foobar";
+      var e = EnumObject()..backing.contents["enumValues"] = "foobar";
       expect(e.validate().isValid, false);
       e.enumValues = EnumValues.abcd;
       expect(e.validate().isValid, true);
@@ -196,7 +197,7 @@ void main() {
 
   group("Operation", () {
     test("Specify update only, only runs on update", () {
-      var t = new T()..mustBeZeroOnUpdate = 10;
+      var t = T()..mustBeZeroOnUpdate = 10;
       expect(ManagedValidator.run(t, event: Validating.insert).isValid, true);
 
       t.mustBeZeroOnUpdate = 10;
@@ -207,7 +208,7 @@ void main() {
     });
 
     test("Specify insert only, only runs on insert", () {
-      var t = new T()..mustBeZeroOnInsert = 10;
+      var t = T()..mustBeZeroOnInsert = 10;
       expect(ManagedValidator.run(t, event: Validating.update).isValid, true);
 
       t.mustBeZeroOnInsert = 10;
@@ -218,7 +219,7 @@ void main() {
     });
 
     test("More than one matcher", () {
-      var t = new T()..mustBeBayOrBaz = "bay";
+      var t = T()..mustBeBayOrBaz = "bay";
       expect(t.validate().isValid, true);
       t.mustBeBayOrBaz = "baz";
       expect(t.validate().isValid, true);
@@ -228,8 +229,9 @@ void main() {
       expect(t.validate().isValid, false);
     });
 
-    test("ManagedObject can provide add'l validations by overriding validate", () async {
-      var v = new V()..aOrbButReallyOnlyA = "a";
+    test("ManagedObject can provide add'l validations by overriding validate",
+        () async {
+      var v = V()..aOrbButReallyOnlyA = "a";
       expect(v.validate().isValid, true);
       v.aOrbButReallyOnlyA = "b";
       expect(v.validate().isValid, false);
@@ -238,7 +240,7 @@ void main() {
 
   group("Custom validator verify", () {
     test("Custom validator correctly validates a value", () {
-      var t = new T()..mustByXYZ = "XYZ";
+      var t = T()..mustByXYZ = "XYZ";
       expect(t.validate().isValid, true);
       t.mustByXYZ = "not";
       expect(t.validate().isValid, false);
@@ -248,7 +250,7 @@ void main() {
   group("Data model compilation failures", () {
     test("DateTime fails to parse", () {
       try {
-        new ManagedDataModel([FailingDateTime]);
+        ManagedDataModel([FailingDateTime]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("19x34"));
@@ -260,7 +262,7 @@ void main() {
 
     test("Non-string Validate.matches", () {
       try {
-        new ManagedDataModel([FailingRegex]);
+        ManagedDataModel([FailingRegex]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("must be String"));
@@ -271,7 +273,7 @@ void main() {
 
     test("Non-string Validate.length", () {
       try {
-        new ManagedDataModel([FailingLength]);
+        ManagedDataModel([FailingLength]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("must annotate 'String'"));
@@ -282,32 +284,41 @@ void main() {
 
     test("Unsupported type, date, for oneOf", () {
       try {
-        new ManagedDataModel([UnsupportedDateOneOf]);
+        ManagedDataModel([UnsupportedDateOneOf]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("has invalid validator for property"));
-        expect(e.toString(), contains("Validate.oneOf value must be a List, where each element matches the type of the decorated attribute"));
+        expect(
+            e.toString(),
+            contains(
+                "Validate.oneOf value must be a List, where each element matches the type of the decorated attribute"));
         expect(e.toString(), contains("compareDateOneOf20162017"));
       }
     });
 
     test("Unsupported type, double, for oneOf", () {
       try {
-        new ManagedDataModel([UnsupportedDoubleOneOf]);
+        ManagedDataModel([UnsupportedDoubleOneOf]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("has invalid validator for property"));
-        expect(e.toString(), contains("Validate.oneOf value must be a List, where each element matches the type of the decorated attribute"));
+        expect(
+            e.toString(),
+            contains(
+                "Validate.oneOf value must be a List, where each element matches the type of the decorated attribute"));
         expect(e.toString(), contains("someFloatingNumber"));
       }
     });
 
     test("Non-matching type for oneOf", () {
       try {
-        new ManagedDataModel([FailingOneOf]);
+        ManagedDataModel([FailingOneOf]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("Validate.oneOf value must be a List, where each element matches the type of the decorated attribute"));
+        expect(
+            e.toString(),
+            contains(
+                "Validate.oneOf value must be a List, where each element matches the type of the decorated attribute"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FOO"));
       }
@@ -315,7 +326,7 @@ void main() {
 
     test("Empty oneOf", () {
       try {
-        new ManagedDataModel([FailingEmptyOneOf]);
+        ManagedDataModel([FailingEmptyOneOf]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("must have at least one element"));
@@ -326,10 +337,13 @@ void main() {
 
     test("Heterogenous oneOf", () {
       try {
-        new ManagedDataModel([FailingHeterogenous]);
+        ManagedDataModel([FailingHeterogenous]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("Validate.oneOf value must be a List, where each element matches the type of the decorated attribute"));
+        expect(
+            e.toString(),
+            contains(
+                "Validate.oneOf value must be a List, where each element matches the type of the decorated attribute"));
         expect(e.toString(), contains("'d'"));
         expect(e.toString(), contains("_FH"));
       }
@@ -338,6 +352,7 @@ void main() {
 }
 
 class T extends ManagedObject<_T> implements _T {}
+
 class _T {
   @primaryKey
   int id;
@@ -384,10 +399,10 @@ class _T {
   @Validate.length(lessThan: 11, greaterThan: 5)
   String lengthBetween6And10;
 
-  @Validate.oneOf(const ["A", "B"])
+  @Validate.oneOf(["A", "B"])
   String oneOfAB;
 
-  @Validate.oneOf(const [1, 2])
+  @Validate.oneOf([1, 2])
   int oneOf12;
 
   @Validate.compare(equalTo: 0, onInsert: true, onUpdate: false)
@@ -397,7 +412,7 @@ class _T {
   int mustBeZeroOnUpdate;
 
   @Validate.compare(greaterThan: "bar")
-  @Validate.oneOf(const ["baa", "bar", "bay", "baz"])
+  @Validate.oneOf(["baa", "bar", "bay", "baz"])
   String mustBeBayOrBaz;
 
   @CustomValidate()
@@ -405,6 +420,7 @@ class _T {
 }
 
 class U extends ManagedObject<_U> implements _U {}
+
 class _U {
   @primaryKey
   int id;
@@ -417,8 +433,8 @@ class _U {
 }
 
 class CustomValidate extends Validate {
-  const CustomValidate({bool onUpdate: true, bool onInsert: true})
-    : super(onUpdate: onUpdate, onInsert: onInsert);
+  const CustomValidate({bool onUpdate = true, bool onInsert = true})
+      : super(onUpdate: onUpdate, onInsert: onInsert);
 
   @override
   void validate(ValidationContext context, dynamic input) {
@@ -429,6 +445,7 @@ class CustomValidate extends Validate {
 }
 
 class FailingDateTime extends ManagedObject<_FDT> {}
+
 class _FDT {
   @primaryKey
   int id;
@@ -438,6 +455,7 @@ class _FDT {
 }
 
 class FailingRegex extends ManagedObject<_FRX> {}
+
 class _FRX {
   @primaryKey
   int id;
@@ -447,6 +465,7 @@ class _FRX {
 }
 
 class FailingLength extends ManagedObject<_FLEN> {}
+
 class _FLEN {
   @primaryKey
   int id;
@@ -456,47 +475,52 @@ class _FLEN {
 }
 
 class FailingEmptyOneOf extends ManagedObject<_FEO> {}
+
 class _FEO {
   @primaryKey
   int id;
 
-  @Validate.oneOf(const [])
+  @Validate.oneOf([])
   int d;
 }
 
 class FailingOneOf extends ManagedObject<_FOO> {}
+
 class _FOO {
   @primaryKey
   int id;
 
-  @Validate.oneOf(const ["x", "y"])
+  @Validate.oneOf(["x", "y"])
   int d;
 }
 
 class UnsupportedDateOneOf extends ManagedObject<_UDAOO> {}
+
 class _UDAOO {
   @primaryKey
   int id;
 
-  @Validate.oneOf(const ["2016-01-01T00:00:00", "2017-01-01T00:00:00"])
+  @Validate.oneOf(["2016-01-01T00:00:00", "2017-01-01T00:00:00"])
   DateTime compareDateOneOf20162017;
 }
 
 class UnsupportedDoubleOneOf extends ManagedObject<_UDOOO> {}
+
 class _UDOOO {
   @primaryKey
   int id;
 
-  @Validate.oneOf(const ["3.14159265359", "2.71828"])
+  @Validate.oneOf(["3.14159265359", "2.71828"])
   double someFloatingNumber;
 }
 
 class FailingHeterogenous extends ManagedObject<_FH> {}
+
 class _FH {
   @primaryKey
   int id;
 
-  @Validate.oneOf(const ["x", 1])
+  @Validate.oneOf(["x", 1])
   int d;
 }
 
@@ -504,6 +528,7 @@ class FailingTransient extends ManagedObject<_FT> {
   @Validate.compare(greaterThanEqualTo: 1)
   int d;
 }
+
 class _FT {
   @primaryKey
   int id;
@@ -511,7 +536,7 @@ class _FT {
 
 class V extends ManagedObject<_V> implements _V {
   @override
-  ValidationContext validate({Validating forEvent: Validating.insert}) {
+  ValidationContext validate({Validating forEvent = Validating.insert}) {
     final context = super.validate(forEvent: forEvent);
 
     if (aOrbButReallyOnlyA == "b") {
@@ -526,12 +551,12 @@ class _V {
   @primaryKey
   int id;
 
-  @Validate.oneOf(const ["a", "b"])
+  @Validate.oneOf(["a", "b"])
   String aOrbButReallyOnlyA;
 }
 
-
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
+
 class _EnumObject {
   @primaryKey
   int id;
@@ -539,6 +564,4 @@ class _EnumObject {
   EnumValues enumValues;
 }
 
-enum EnumValues {
-  abcd, efgh, other18
-}
+enum EnumValues { abcd, efgh, other18 }

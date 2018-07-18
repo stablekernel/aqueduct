@@ -9,7 +9,8 @@ import 'package:crypto/crypto.dart';
 import 'package:aqueduct/managed_auth.dart';
 import 'package:aqueduct/aqueduct.dart';
 
-class CLIAuthAddClient extends CLICommand with CLIDatabaseConnectingCommand, CLIDatabaseManagingCommand, CLIProject {
+class CLIAuthAddClient extends CLICommand
+    with CLIDatabaseConnectingCommand, CLIDatabaseManagingCommand, CLIProject {
   @Option("id", abbr: "i", help: "The client ID to insert.")
   String get clientID => decode("id");
 
@@ -20,11 +21,14 @@ class CLIAuthAddClient extends CLICommand with CLIDatabaseConnectingCommand, CLI
   String get secret => decode("secret");
 
   @Option("redirect-uri",
-      abbr: "r", help: "The redirect URI of the client if it supports the authorization code flow. May be omitted.")
+      abbr: "r",
+      help:
+          "The redirect URI of the client if it supports the authorization code flow. May be omitted.")
   String get redirectUri => decode("redirect-uri");
 
   @Option("hash-function",
-      help: "Hash function to apply when hashing secret. Must match AuthServer.hashFunction.",
+      help:
+          "Hash function to apply when hashing secret. Must match AuthServer.hashFunction.",
       defaultsTo: "sha256",
       allowed: ["sha256", "sha1", "md5"])
   Hash get hashFunction {
@@ -36,20 +40,27 @@ class CLIAuthAddClient extends CLICommand with CLIDatabaseConnectingCommand, CLI
       case "md5":
         return md5;
       default:
-        throw new CLIException("Value '${decode("hash-function")}' is not valid for option hash-function.");
+        throw CLIException(
+            "Value '${decode("hash-function")}' is not valid for option hash-function.");
     }
   }
 
   @Option("hash-rounds",
-      help: "Number of hash rounds to apply to secret. Must match AuthServer.hashRounds.", defaultsTo: "1000")
+      help:
+          "Number of hash rounds to apply to secret. Must match AuthServer.hashRounds.",
+      defaultsTo: "1000")
   int get hashRounds => decode("hash-rounds");
 
   @Option("hash-length",
-      help: "Length in bytes of secret key after hashing. Must match AuthServer.hashLength.", defaultsTo: "32")
+      help:
+          "Length in bytes of secret key after hashing. Must match AuthServer.hashLength.",
+      defaultsTo: "32")
   int get hashLength => decode("hash-length");
 
   @Option("allowed-scopes",
-      help: "A space-delimited list of allowed scopes. Omit if application does not support scopes.", defaultsTo: "")
+      help:
+          "A space-delimited list of allowed scopes. Omit if application does not support scopes.",
+      defaultsTo: "")
   List<String> get allowedScopes {
     String v = decode("allowed-scopes") as String;
     if (v.isEmpty) {
@@ -68,22 +79,27 @@ class CLIAuthAddClient extends CLICommand with CLIDatabaseConnectingCommand, CLI
     }
 
     if (secret == null && redirectUri != null) {
-      displayError("A client that supports the authorization code flow must be a confidential client");
+      displayError(
+          "A client that supports the authorization code flow must be a confidential client");
       displayProgress(
           "Using option --redirect-uri creates a client that supports the authorization code flow. Either provide --secret or remove --redirect-uri.");
       return 1;
     }
 
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    context = new ManagedContext(dataModel, persistentStore);
+    var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    context = ManagedContext(dataModel, persistentStore);
 
     var credentials = AuthUtility.generateAPICredentialPair(clientID, secret,
-        redirectURI: redirectUri, hashLength: hashLength, hashRounds: hashRounds, hashFunction: hashFunction)
-      ..allowedScopes = allowedScopes?.map((s) => new AuthScope(s))?.toList();
+        redirectURI: redirectUri,
+        hashLength: hashLength,
+        hashRounds: hashRounds,
+        hashFunction: hashFunction)
+      ..allowedScopes = allowedScopes?.map((s) => AuthScope(s))?.toList();
 
-    var managedCredentials = new ManagedAuthClient.fromClient(credentials);
+    var managedCredentials = ManagedAuthClient.fromClient(credentials);
 
-    final query = new Query<ManagedAuthClient>(context)..values = managedCredentials;
+    final query = Query<ManagedAuthClient>(context)
+      ..values = managedCredentials;
 
     try {
       await query.insert();
@@ -91,7 +107,8 @@ class CLIAuthAddClient extends CLICommand with CLIDatabaseConnectingCommand, CLI
       displayInfo("Success", color: CLIColor.green);
       displayProgress("Client with ID '$clientID' has been added.");
       if (secret != null) {
-        displayProgress("The client secret has been hashed. You must store it elsewhere, as it cannot be retrieved.");
+        displayProgress(
+            "The client secret has been hashed. You must store it elsewhere, as it cannot be retrieved.");
       }
       if (managedCredentials.allowedScope != null) {
         displayProgress("Allowed scope: ${managedCredentials.allowedScope}");

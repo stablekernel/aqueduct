@@ -20,36 +20,40 @@ class ColumnBuilder extends Returnable {
     int primaryKeyIndex;
     for (var i = 0; i < keys.length; i++) {
       final firstElement = keys[i].path.first;
-      if (firstElement is ManagedAttributeDescription && firstElement.isPrimaryKey) {
+      if (firstElement is ManagedAttributeDescription &&
+          firstElement.isPrimaryKey) {
         primaryKeyIndex = i;
         break;
       }
     }
 
     if (primaryKeyIndex == null) {
-      keys.insert(0, new KeyPath(entity.primaryKeyAttribute));
+      keys.insert(0, KeyPath(entity.primaryKeyAttribute));
     } else if (primaryKeyIndex > 0) {
       keys.removeAt(primaryKeyIndex);
-      keys.insert(0, new KeyPath(entity.primaryKeyAttribute));
+      keys.insert(0, KeyPath(entity.primaryKeyAttribute));
     }
 
-    return new List.from(keys.map((key) {
-      return new ColumnBuilder(table, propertyForName(entity, key.path.first.name), documentKeyPath: key.dynamicElements);
+    return List.from(keys.map((key) {
+      return ColumnBuilder(table, propertyForName(entity, key.path.first.name),
+          documentKeyPath: key.dynamicElements);
     }));
   }
 
-  static ManagedPropertyDescription propertyForName(ManagedEntity entity, String propertyName) {
+  static ManagedPropertyDescription propertyForName(
+      ManagedEntity entity, String propertyName) {
     var property = entity.properties[propertyName];
 
     if (property == null) {
-      throw new ArgumentError(
+      throw ArgumentError(
           "Could not construct query. Column '$propertyName' does not exist for table '${entity.tableName}'.");
     }
 
-    if (property is ManagedRelationshipDescription && property.relationshipType != ManagedRelationshipType.belongsTo) {
-      throw new ArgumentError(
+    if (property is ManagedRelationshipDescription &&
+        property.relationshipType != ManagedRelationshipType.belongsTo) {
+      throw ArgumentError(
           "Could not construct query. Column '$propertyName' does not exist for table '${entity.tableName}'. "
-              "'$propertyName' recognized as ORM relationship, use 'Query.join' instead.");
+          "'$propertyName' recognized as ORM relationship, use 'Query.join' instead.");
     }
 
     return property;
@@ -90,7 +94,8 @@ class ColumnBuilder extends Returnable {
           return value;
         }
 
-        throw new ArgumentError("Invalid data type for 'Document'. Must be 'Document', 'Map', or 'List'.");
+        throw ArgumentError(
+            "Invalid data type for 'Document'. Must be 'Document', 'Map', or 'List'.");
       }
     }
 
@@ -106,11 +111,11 @@ class ColumnBuilder extends Returnable {
       ManagedAttributeDescription p = property;
       if (p.isEnumeratedValue) {
         if (!p.enumerationValueMap.containsKey(value)) {
-          throw new ValidationException(["invalid option for key '${p.name}'"]);
+          throw ValidationException(["invalid option for key '${p.name}'"]);
         }
         return p.enumerationValueMap[value];
       } else if (p.type.kind == ManagedPropertyType.document) {
-        return new Document(value);
+        return Document(value);
       }
     }
 
@@ -118,7 +123,8 @@ class ColumnBuilder extends Returnable {
   }
 
   String get sqlTypeSuffix {
-    var type = PostgreSQLFormat.dataTypeStringForDataType(typeMap[property.type.kind]);
+    var type =
+        PostgreSQLFormat.dataTypeStringForDataType(typeMap[property.type.kind]);
     if (type != null) {
       return ":$type";
     }
@@ -126,14 +132,20 @@ class ColumnBuilder extends Returnable {
     return "";
   }
 
-  String sqlColumnName({bool withTypeSuffix: false, bool withTableNamespace: false, String withPrefix}) {
+  String sqlColumnName(
+      {bool withTypeSuffix = false,
+      bool withTableNamespace = false,
+      String withPrefix}) {
     var name = property.name;
 
     if (property is ManagedRelationshipDescription) {
-      var relatedPrimaryKey = (property as ManagedRelationshipDescription).destinationEntity.primaryKey;
+      var relatedPrimaryKey = (property as ManagedRelationshipDescription)
+          .destinationEntity
+          .primaryKey;
       name = "${name}_$relatedPrimaryKey";
     } else if (documentKeyPath != null) {
-      final keys = documentKeyPath.map((k) => k is String ? "'$k'" : k).join("->");
+      final keys =
+          documentKeyPath.map((k) => k is String ? "'$k'" : k).join("->");
       name = "$name->$keys";
     }
 
@@ -150,4 +162,3 @@ class ColumnBuilder extends Returnable {
     return name;
   }
 }
-

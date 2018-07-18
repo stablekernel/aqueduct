@@ -13,25 +13,33 @@ abstract class CLIDatabaseConnectingCommand implements CLICommand, CLIProject {
 
   DatabaseConfiguration connectedDatabase;
 
-  @Flag("use-ssl", help: "Whether or not the database connection should use SSL", defaultsTo: false)
+  @Flag("use-ssl",
+      help: "Whether or not the database connection should use SSL",
+      defaultsTo: false)
   bool get useSSL => decode("use-ssl");
 
   @Option("connect",
-    abbr: "c",
-    help: "A database connection URI string. If this option is set, database-config is ignored.",
-    valueHelp: "postgres://user:password@localhost:port/databaseName")
+      abbr: "c",
+      help:
+          "A database connection URI string. If this option is set, database-config is ignored.",
+      valueHelp: "postgres://user:password@localhost:port/databaseName")
   String get databaseConnectionString => decode("connect");
 
   @Option("flavor",
-    abbr: "f", help: "The database driver flavor to use.", defaultsTo: "postgres", allowed: ["postgres"])
+      abbr: "f",
+      help: "The database driver flavor to use.",
+      defaultsTo: "postgres",
+      allowed: ["postgres"])
   String get databaseFlavor => decode("flavor");
 
   @Option("database-config",
-    help: "A configuration file that provides connection information for the database. "
-      "Paths are relative to project directory. If the connect option is set, this value is ignored. "
-      "See 'aqueduct db -h' for details.",
-    defaultsTo: "database.yaml")
-  File get databaseConfigurationFile => fileInProjectDirectory(decode("database-config"));
+      help:
+          "A configuration file that provides connection information for the database. "
+          "Paths are relative to project directory. If the connect option is set, this value is ignored. "
+          "See 'aqueduct db -h' for details.",
+      defaultsTo: "database.yaml")
+  File get databaseConfigurationFile =>
+      fileInProjectDirectory(decode("database-config"));
 
   PersistentStore _persistentStore;
 
@@ -41,47 +49,53 @@ abstract class CLIDatabaseConnectingCommand implements CLICommand, CLIProject {
     }
 
     if (decode("flavor") == null) {
-      throw new CLIException("No database flavor selected. See --flavor.");
+      throw CLIException("No database flavor selected. See --flavor.");
     }
 
     if (databaseFlavor == FlavorPostgreSQL) {
       if (databaseConnectionString != null) {
         try {
-          connectedDatabase = new DatabaseConfiguration();
+          connectedDatabase = DatabaseConfiguration();
           connectedDatabase.decode(databaseConnectionString);
         } catch (_) {
-          throw new CLIException("Invalid database configuration.", instructions: [
+          throw CLIException("Invalid database configuration.", instructions: [
             "Invalid connection string was: $databaseConnectionString",
             "Expected format:               database://user:password@host:port/databaseName"
           ]);
         }
       } else {
         if (!databaseConfigurationFile.existsSync()) {
-          throw new CLIException("No database configuration file found.", instructions: [
-            "Expected file at: ${databaseConfigurationFile.path}.",
-            "See --connect and --database-config. If not using --connect, "
-              "this tool expects a YAML configuration file with the following format:\n$_dbConfigFormat"
-          ]);
+          throw CLIException("No database configuration file found.",
+              instructions: [
+                "Expected file at: ${databaseConfigurationFile.path}.",
+                "See --connect and --database-config. If not using --connect, "
+                    "this tool expects a YAML configuration file with the following format:\n$_dbConfigFormat"
+              ]);
         }
 
         try {
-          connectedDatabase = new DatabaseConfiguration.fromFile(databaseConfigurationFile);
+          connectedDatabase =
+              DatabaseConfiguration.fromFile(databaseConfigurationFile);
         } catch (_) {
-          throw new CLIException("Invalid database configuration.", instructions: [
+          throw CLIException("Invalid database configuration.", instructions: [
             "File located at ${databaseConfigurationFile.path}.",
             "See --connect and --database-config. If not using --connect, "
-              "this tool expects a YAML configuration file with the following format:\n$_dbConfigFormat"
+                "this tool expects a YAML configuration file with the following format:\n$_dbConfigFormat"
           ]);
         }
       }
 
-      _persistentStore = new PostgreSQLPersistentStore(connectedDatabase.username, connectedDatabase.password,
-        connectedDatabase.host, connectedDatabase.port, connectedDatabase.databaseName,
-        useSSL: useSSL);
+      _persistentStore = PostgreSQLPersistentStore(
+          connectedDatabase.username,
+          connectedDatabase.password,
+          connectedDatabase.host,
+          connectedDatabase.port,
+          connectedDatabase.databaseName,
+          useSSL: useSSL);
       return _persistentStore;
     }
 
-    throw new CLIException("Invalid flavor $databaseFlavor");
+    throw CLIException("Invalid flavor $databaseFlavor");
   }
 
   @override

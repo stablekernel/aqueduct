@@ -78,33 +78,26 @@ class T {
   set setter(String s) {}
 
   // A normal comment
-  void normalComment() {
+  void normalComment() {}
 
-  }
-
-  void noDocs() {
-
-  }
+  void noDocs() {}
 
   /// Just a summary.
-  void summaryDocs() {
-
-  }
+  void summaryDocs() {}
 
   /// A summary.
   ///
   /// A description across
   /// multiple
   /// lines
-  void fullDocs(String a, {String b}) {
-
-  }
+  void fullDocs(String a, {String b}) {}
 
   void args(
-      /// arg a
-      String a, {
-        /// arg b
-        String b}) {
 
-  }
+      /// arg a
+      String a,
+      {
+
+      /// arg b
+      String b}) {}
 }

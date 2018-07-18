@@ -13,7 +13,8 @@ void main() {
     PostgreSQLConnection connection;
 
     setUp(() async {
-      connection = new PostgreSQLConnection("localhost", 5432, "dart_test", username: "dart", password: "dart");
+      connection = PostgreSQLConnection("localhost", 5432, "dart_test",
+          username: "dart", password: "dart");
       await connection.open();
       terminal = await Terminal.createProject();
       await terminal.getDependencies();
@@ -36,14 +37,16 @@ void main() {
 
     test("New column in destination schema emits addColumn", () async {
       var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)]),
+        Schema.empty(),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+          ]),
         ]),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: true)
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("x", ManagedPropertyType.integer, isNullable: true)
           ]),
         ])
       ];
@@ -68,17 +71,21 @@ void main() {
       ]);
     });
 
-    test("New non-nullable column with default value can be upgraded to, default value provided for existing columns",
+    test(
+        "New non-nullable column with default value can be upgraded to, default value provided for existing columns",
         () async {
       var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)]),
+        Schema.empty(),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+          ]),
         ]),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: false, defaultValue: "2")
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("x", ManagedPropertyType.integer,
+                isNullable: false, defaultValue: "2")
           ]),
         ])
       ];
@@ -100,16 +107,21 @@ void main() {
       ]);
     });
 
-    test("Adding non-nullable column without default value requires initialValue", () async {
+    test(
+        "Adding non-nullable column without default value requires initialValue",
+        () async {
       var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)]),
+        Schema.empty(),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+          ]),
         ]),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: false, defaultValue: null)
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("x", ManagedPropertyType.integer,
+                isNullable: false, defaultValue: null)
           ]),
         ])
       ];
@@ -124,31 +136,37 @@ void main() {
       expect(res, isNot(0));
 
       // Update generated source code to add initialValue,
-      var lastMigrationFile = new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("2.migration.dart"));
-      var contents = lastMigrationFile.readAsStringSync().replaceFirst(r"<<set>>", "'2'");
+      var lastMigrationFile = File.fromUri(
+          terminal.defaultMigrationDirectory.uri.resolve("2.migration.dart"));
+      var contents =
+          lastMigrationFile.readAsStringSync().replaceFirst(r"<<set>>", "'2'");
       lastMigrationFile.writeAsStringSync(contents);
       res = await terminal.executeMigrations();
       expect(res, 0);
 
       await connection.query("INSERT INTO t (id, x) VALUES (2, 3)");
-      var results = await connection.query("SELECT id, x FROM t ORDER BY id ASC");
+      var results =
+          await connection.query("SELECT id, x FROM t ORDER BY id ASC");
       expect(results, [
         [1, 2],
         [2, 3]
       ]);
     });
 
-    test("Add multiple columns in destination schema, emits multiple addColumn", () async {
+    test("Add multiple columns in destination schema, emits multiple addColumn",
+        () async {
       var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)]),
+        Schema.empty(),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+          ]),
         ]),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: true),
-            new SchemaColumn("y", ManagedPropertyType.string, isNullable: true),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("x", ManagedPropertyType.integer, isNullable: true),
+            SchemaColumn("y", ManagedPropertyType.string, isNullable: true),
           ]),
         ])
       ];
@@ -156,7 +174,8 @@ void main() {
       await terminal.writeMigrations(schemas);
       await terminal.executeMigrations();
 
-      var results = await connection.query("INSERT INTO t (id, x, y) VALUES (1, 2, 'a') RETURNING id, x, y");
+      var results = await connection.query(
+          "INSERT INTO t (id, x, y) VALUES (1, 2, 'a') RETURNING id, x, y");
       expect(results, [
         [1, 2, 'a']
       ]);
@@ -164,17 +183,17 @@ void main() {
 
     test("Remove column from destination schema, emits deleteColumn", () async {
       var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer),
-            new SchemaColumn("y", ManagedPropertyType.string),
+        Schema.empty(),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("x", ManagedPropertyType.integer),
+            SchemaColumn("y", ManagedPropertyType.string),
           ]),
         ]),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
           ]),
         ])
       ];
@@ -182,7 +201,8 @@ void main() {
       await terminal.writeMigrations(schemas);
       await terminal.executeMigrations();
 
-      var results = await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
+      var results =
+          await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id");
       expect(results, [
         [1]
       ]);
@@ -191,25 +211,30 @@ void main() {
         await connection.query("INSERT INTO t (id, x, y) VALUES (1, 2, 'a')");
         expect(true, false);
       } on PostgreSQLException catch (e) {
-        expect(e.message, contains("column \"x\" of relation \"t\" does not exist"));
+        expect(e.message,
+            contains("column \"x\" of relation \"t\" does not exist"));
       }
     });
 
     test("Alter column's indexable", () async {
       var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasIndexed", ManagedPropertyType.integer, isIndexed: true),
-            new SchemaColumn("nowIndexed", ManagedPropertyType.string, isIndexed: false),
+        Schema.empty(),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("wasIndexed", ManagedPropertyType.integer,
+                isIndexed: true),
+            SchemaColumn("nowIndexed", ManagedPropertyType.string,
+                isIndexed: false),
           ]),
         ]),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasIndexed", ManagedPropertyType.integer, isIndexed: false),
-            new SchemaColumn("nowIndexed", ManagedPropertyType.string, isIndexed: true),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("wasIndexed", ManagedPropertyType.integer,
+                isIndexed: false),
+            SchemaColumn("nowIndexed", ManagedPropertyType.string,
+                isIndexed: true),
           ]),
         ]),
       ];
@@ -217,8 +242,8 @@ void main() {
       await terminal.writeMigrations(schemas);
       await terminal.executeMigrations();
 
-      var results = await connection
-          .query("SELECT indexname, indexdef FROM pg_indexes where tablename = 't' ORDER BY indexname ASC");
+      var results = await connection.query(
+          "SELECT indexname, indexdef FROM pg_indexes where tablename = 't' ORDER BY indexname ASC");
       expect(results.length, 2);
       expect(results[0][0], "t_nowindexed_idx");
       expect(results[0][1], startsWith("CREATE INDEX"));
@@ -230,19 +255,23 @@ void main() {
 
     test("Alter column's nullability, with default values", () async {
       var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasNullable", ManagedPropertyType.integer, isNullable: true),
-            new SchemaColumn("nowNullable", ManagedPropertyType.string, isNullable: false),
+        Schema.empty(),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("wasNullable", ManagedPropertyType.integer,
+                isNullable: true),
+            SchemaColumn("nowNullable", ManagedPropertyType.string,
+                isNullable: false),
           ]),
         ]),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasNullable", ManagedPropertyType.integer, isNullable: false, defaultValue: "2"),
-            new SchemaColumn("nowNullable", ManagedPropertyType.string, isNullable: true),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("wasNullable", ManagedPropertyType.integer,
+                isNullable: false, defaultValue: "2"),
+            SchemaColumn("nowNullable", ManagedPropertyType.string,
+                isNullable: true),
           ]),
         ]),
       ];
@@ -250,7 +279,8 @@ void main() {
       await terminal.writeMigrations(schemas);
       await terminal.executeMigrations();
 
-      var results = await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id, wasNullable, nowNullable");
+      var results = await connection.query(
+          "INSERT INTO t (id) VALUES (1) RETURNING id, wasNullable, nowNullable");
       expect(results, [
         [1, 2, null]
       ]);
@@ -258,17 +288,19 @@ void main() {
 
     test("Alter column's nullability, with initial values", () async {
       var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: true, defaultValue: null)
+        Schema.empty(),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("x", ManagedPropertyType.integer,
+                isNullable: true, defaultValue: null)
           ]),
         ]),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: false, defaultValue: null)
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("x", ManagedPropertyType.integer,
+                isNullable: false, defaultValue: null)
           ]),
         ])
       ];
@@ -286,14 +318,17 @@ void main() {
       expect(res, isNot(0));
 
       // Update generated source code to add initialValue,
-      var lastMigrationFile = new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("2.migration.dart"));
-      var contents = lastMigrationFile.readAsStringSync().replaceFirst(r"<<set>>", "'2'");
+      var lastMigrationFile = File.fromUri(
+          terminal.defaultMigrationDirectory.uri.resolve("2.migration.dart"));
+      var contents =
+          lastMigrationFile.readAsStringSync().replaceFirst(r"<<set>>", "'2'");
       lastMigrationFile.writeAsStringSync(contents);
       res = await terminal.executeMigrations();
       expect(res, 0);
 
       await connection.query("INSERT INTO t (id, x) VALUES (3, 3)");
-      var results = await connection.query("SELECT id, x FROM t ORDER BY id ASC");
+      var results =
+          await connection.query("SELECT id, x FROM t ORDER BY id ASC");
       expect(results, [
         [1, 2],
         [2, 7],
@@ -303,19 +338,23 @@ void main() {
 
     test("Alter column's uniqueness", () async {
       var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasUnique", ManagedPropertyType.integer, isUnique: true),
-            new SchemaColumn("nowUnique", ManagedPropertyType.string, isUnique: false),
+        Schema.empty(),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("wasUnique", ManagedPropertyType.integer,
+                isUnique: true),
+            SchemaColumn("nowUnique", ManagedPropertyType.string,
+                isUnique: false),
           ]),
         ]),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasUnique", ManagedPropertyType.integer, isUnique: false),
-            new SchemaColumn("nowUnique", ManagedPropertyType.string, isUnique: true),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("wasUnique", ManagedPropertyType.integer,
+                isUnique: false),
+            SchemaColumn("nowUnique", ManagedPropertyType.string,
+                isUnique: true),
           ]),
         ]),
       ];
@@ -323,8 +362,8 @@ void main() {
       await terminal.writeMigrations(schemas);
       await terminal.executeMigrations();
 
-      var results = await connection
-          .query("SELECT indexname, indexdef FROM pg_indexes where tablename = 't' ORDER BY indexname ASC");
+      var results = await connection.query(
+          "SELECT indexname, indexdef FROM pg_indexes where tablename = 't' ORDER BY indexname ASC");
       expect(results.length, 2);
       expect(results[0][0], "t_nowunique_key");
       expect(results[0][1], startsWith("CREATE UNIQUE INDEX"));
@@ -336,19 +375,23 @@ void main() {
 
     test("Alter column's defaultValue", () async {
       var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasDefault", ManagedPropertyType.integer, defaultValue: "2"),
-            new SchemaColumn("nowDefault", ManagedPropertyType.string, defaultValue: null),
+        Schema.empty(),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("wasDefault", ManagedPropertyType.integer,
+                defaultValue: "2"),
+            SchemaColumn("nowDefault", ManagedPropertyType.string,
+                defaultValue: null),
           ]),
         ]),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("wasDefault", ManagedPropertyType.integer, defaultValue: null),
-            new SchemaColumn("nowDefault", ManagedPropertyType.string, defaultValue: "'default'"),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("wasDefault", ManagedPropertyType.integer,
+                defaultValue: null),
+            SchemaColumn("nowDefault", ManagedPropertyType.string,
+                defaultValue: "'default'"),
           ]),
         ]),
       ];
@@ -356,8 +399,8 @@ void main() {
       await terminal.writeMigrations(schemas);
       await terminal.executeMigrations();
 
-      var results =
-          await connection.query("INSERT INTO t (id, wasDefault) VALUES (1, 1) RETURNING id, wasDefault, nowDefault");
+      var results = await connection.query(
+          "INSERT INTO t (id, wasDefault) VALUES (1, 1) RETURNING id, wasDefault, nowDefault");
       expect(results, [
         [1, 1, "default"]
       ]);
@@ -372,25 +415,29 @@ void main() {
 
     test("Alter column's deleteRule", () async {
       var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+        Schema.empty(),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
           ]),
-          new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
-                relatedTableName: "t", relatedColumnName: "id", rule: DeleteRule.nullify)
+          SchemaTable("u", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+                relatedTableName: "t",
+                relatedColumnName: "id",
+                rule: DeleteRule.nullify)
           ])
         ]),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
           ]),
-          new SchemaTable("u", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn.relationship("ref", ManagedPropertyType.integer,
-                relatedTableName: "t", relatedColumnName: "id", rule: DeleteRule.cascade)
+          SchemaTable("u", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+                relatedTableName: "t",
+                relatedColumnName: "id",
+                rule: DeleteRule.cascade)
           ])
         ]),
       ];
@@ -407,17 +454,18 @@ void main() {
 
     test("Alter many properties of a column", () async {
       var schemas = [
-        new Schema.empty(),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: false),
+        Schema.empty(),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("x", ManagedPropertyType.integer, isNullable: false),
           ]),
         ]),
-        new Schema([
-          new SchemaTable("t", [
-            new SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
-            new SchemaColumn("x", ManagedPropertyType.integer, isNullable: true, defaultValue: "2"),
+        Schema([
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("x", ManagedPropertyType.integer,
+                isNullable: true, defaultValue: "2"),
           ]),
         ]),
       ];
@@ -425,12 +473,14 @@ void main() {
       await terminal.writeMigrations(schemas);
       await terminal.executeMigrations();
 
-      var results = await connection.query("INSERT INTO t (id) VALUES (1) RETURNING id, x");
+      var results = await connection
+          .query("INSERT INTO t (id) VALUES (1) RETURNING id, x");
       expect(results, [
         [1, 2]
       ]);
 
-      results = await connection.query("INSERT INTO t (id, x) VALUES (2, null) RETURNING id, x");
+      results = await connection
+          .query("INSERT INTO t (id, x) VALUES (2, null) RETURNING id, x");
       expect(results, [
         [2, null]
       ]);

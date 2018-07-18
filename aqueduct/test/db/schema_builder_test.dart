@@ -5,26 +5,31 @@ void main() {
   group("Alterations", () {
     SchemaBuilder builder;
     setUp(() {
-      var dataModel = new ManagedDataModel(
-          [LoadedSingleItem, DefaultItem, LoadedItem, Container, ExtensiveModel]);
-      Schema baseSchema = new Schema.fromDataModel(dataModel);
-      builder = new SchemaBuilder(null, baseSchema);
+      var dataModel = ManagedDataModel([
+        LoadedSingleItem,
+        DefaultItem,
+        LoadedItem,
+        Container,
+        ExtensiveModel
+      ]);
+      Schema baseSchema = Schema.fromDataModel(dataModel);
+      builder = SchemaBuilder(null, baseSchema);
     });
 
     test("Adding a table", () {
-      builder.createTable(new SchemaTable("foobar", []));
+      builder.createTable(SchemaTable("foobar", []));
       expect(builder.schema.tables.firstWhere((st) => st.name == "foobar"),
           isNotNull);
 
       try {
-        builder.createTable(new SchemaTable("foobar", []));
+        builder.createTable(SchemaTable("foobar", []));
         expect(true, false);
       } on SchemaException catch (e) {
         expect(e.message, contains("already exists"));
       }
 
       try {
-        builder.createTable(new SchemaTable("_defaultITEM", []));
+        builder.createTable(SchemaTable("_defaultITEM", []));
         expect(true, false);
       } on SchemaException catch (e) {
         expect(e.message, contains("already exists"));
@@ -57,8 +62,7 @@ void main() {
         t.uniqueColumnSet = ["startDate", "indexedValue"];
       });
 
-      expect(
-          builder.schema.tableForName("_ExtensiveModel").uniqueColumnSet,
+      expect(builder.schema.tableForName("_ExtensiveModel").uniqueColumnSet,
           ["indexedValue", "startDate"]);
     });
 
@@ -70,8 +74,7 @@ void main() {
         t.uniqueColumnSet = null;
       });
 
-      expect(
-          builder.schema.tableForName("_ExtensiveModel").uniqueColumnSet,
+      expect(builder.schema.tableForName("_ExtensiveModel").uniqueColumnSet,
           isNull);
     });
 
@@ -83,24 +86,22 @@ void main() {
         t.uniqueColumnSet = ["startDate", "autoincrementValue"];
       });
 
-      expect(
-          builder.schema.tableForName("_ExtensiveModel").uniqueColumnSet,
+      expect(builder.schema.tableForName("_ExtensiveModel").uniqueColumnSet,
           ["autoincrementValue", "startDate"]);
 
       builder.alterTable("_ExtensiveModel", (t) {
         t.uniqueColumnSet = ["startDate", "autoincrementValue", "indexedValue"];
       });
 
-      expect(
-          builder.schema.tableForName("_ExtensiveModel").uniqueColumnSet,
+      expect(builder.schema.tableForName("_ExtensiveModel").uniqueColumnSet,
           ["autoincrementValue", "indexedValue", "startDate"]);
     });
 
     test("Adding column", () {
-      builder.addColumn("_DefaultItem",
-          new SchemaColumn("col1", ManagedPropertyType.integer));
-      builder.addColumn("_defaultITEM",
-          new SchemaColumn("col2", ManagedPropertyType.integer));
+      builder.addColumn(
+          "_DefaultItem", SchemaColumn("col1", ManagedPropertyType.integer));
+      builder.addColumn(
+          "_defaultITEM", SchemaColumn("col2", ManagedPropertyType.integer));
       expect(
           builder.schema
               .tableForName("_DefaultItem")
@@ -115,8 +116,8 @@ void main() {
           isNotNull);
 
       try {
-        builder.addColumn("_DefaultItem",
-            new SchemaColumn("col1", ManagedPropertyType.integer));
+        builder.addColumn(
+            "_DefaultItem", SchemaColumn("col1", ManagedPropertyType.integer));
         expect(true, false);
       } on SchemaException catch (e) {
         expect(e.message, contains("already exists"));
@@ -124,7 +125,7 @@ void main() {
 
       try {
         builder.addColumn(
-            "foobar", new SchemaColumn("col3", ManagedPropertyType.integer));
+            "foobar", SchemaColumn("col3", ManagedPropertyType.integer));
         expect(true, false);
       } on SchemaException catch (e) {
         expect(e.message, contains("does not exist"));
@@ -326,8 +327,7 @@ class ExtensiveModel extends ManagedObject<_ExtensiveModel>
 }
 
 class _ExtensiveModel {
-  @Column(
-      primaryKey: true, databaseType: ManagedPropertyType.string)
+  @Column(primaryKey: true, databaseType: ManagedPropertyType.string)
   String id;
 
   DateTime startDate;

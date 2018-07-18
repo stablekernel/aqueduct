@@ -76,7 +76,8 @@ class Application<T extends ApplicationChannel> {
   /// See also [startOnCurrentIsolate] for starting an application when running automated tests.
   Future start({int numberOfInstances = 1, bool consoleLogging = false}) async {
     if (server != null || supervisors.isNotEmpty) {
-      throw StateError("Application error. Cannot invoke 'start' on already running Aqueduct application.");
+      throw StateError(
+          "Application error. Cannot invoke 'start' on already running Aqueduct application.");
     }
 
     if (options.address == null) {
@@ -92,7 +93,8 @@ class Application<T extends ApplicationChannel> {
       await _globalStart(channelType, options);
 
       for (var i = 0; i < numberOfInstances; i++) {
-        final supervisor = await _spawn(channelType, options, i + 1, logToConsole: consoleLogging);
+        final supervisor = await _spawn(channelType, options, i + 1,
+            logToConsole: consoleLogging);
         supervisors.add(supervisor);
         await supervisor.resume();
       }
@@ -111,7 +113,8 @@ class Application<T extends ApplicationChannel> {
   /// Performance is limited when running the application with this method; prefer to use [start].
   Future startOnCurrentIsolate() async {
     if (server != null || supervisors.isNotEmpty) {
-      throw StateError("Application error. Cannot invoke 'test' on already running Aqueduct application.");
+      throw StateError(
+          "Application error. Cannot invoke 'test' on already running Aqueduct application.");
     }
 
     options.address = InternetAddress.loopbackIPv4;
@@ -151,7 +154,8 @@ class Application<T extends ApplicationChannel> {
   /// Creates an [APIDocument] from an [ApplicationChannel].
   ///
   /// [channelType] must be a subclass [ApplicationChannel]. This method is called by the `aqueduct document` CLI.
-  static Future<APIDocument> document(Type channelType, ApplicationOptions config, Map<String, dynamic> projectSpec) async {
+  static Future<APIDocument> document(Type channelType,
+      ApplicationOptions config, Map<String, dynamic> projectSpec) async {
     final channelMirror = reflectClass(channelType);
 
     await _globalStart(channelMirror, config);
@@ -167,28 +171,33 @@ class Application<T extends ApplicationChannel> {
     return doc;
   }
 
-  static Future _globalStart(ClassMirror channelType, ApplicationOptions config) {
+  static Future _globalStart(
+      ClassMirror channelType, ApplicationOptions config) {
     const globalStartSymbol = #initializeApplication;
     if (channelType.staticMembers[globalStartSymbol] != null) {
-      return channelType.invoke(globalStartSymbol, [config]).reflectee as Future;
+      return channelType.invoke(globalStartSymbol, [config]).reflectee
+          as Future;
     }
 
     return null;
   }
 
-  Future<ApplicationIsolateSupervisor> _spawn(ClassMirror channelTypeMirror, ApplicationOptions config, int identifier,
+  Future<ApplicationIsolateSupervisor> _spawn(
+      ClassMirror channelTypeMirror, ApplicationOptions config, int identifier,
       {bool logToConsole = false}) async {
     final receivePort = ReceivePort();
 
     final streamLibraryURI = (channelTypeMirror.owner as LibraryMirror).uri;
     final streamTypeName = MirrorSystem.getName(channelTypeMirror.simpleName);
 
-    final initialMessage = ApplicationInitialServerMessage(
-        streamTypeName, streamLibraryURI, config, identifier, receivePort.sendPort,
+    final initialMessage = ApplicationInitialServerMessage(streamTypeName,
+        streamLibraryURI, config, identifier, receivePort.sendPort,
         logToConsole: logToConsole);
-    final isolate = await Isolate.spawn(isolateServerEntryPoint, initialMessage, paused: true);
+    final isolate = await Isolate.spawn(isolateServerEntryPoint, initialMessage,
+        paused: true);
 
-    return ApplicationIsolateSupervisor(this, isolate, receivePort, identifier, logger,
+    return ApplicationIsolateSupervisor(
+        this, isolate, receivePort, identifier, logger,
         startupTimeout: isolateStartupTimeout);
   }
 }

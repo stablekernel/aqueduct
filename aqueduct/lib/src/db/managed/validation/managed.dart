@@ -15,8 +15,9 @@ abstract class ManagedValidator {
   ///
   /// This method does not invoke [ManagedObject.validate] - any customization provided
   /// by a [ManagedObject] subclass that overrides this method will not be invoked.
-  static ValidationContext run(ManagedObject object, {Validating event: Validating.insert}) {
-    final context = new ValidationContext();
+  static ValidationContext run(ManagedObject object,
+      {Validating event = Validating.insert}) {
+    final context = ValidationContext();
 
     object.entity.validators.forEach((validator) {
       context.attribute = validator.attribute;
@@ -31,13 +32,15 @@ abstract class ManagedValidator {
 
       if (validator is PresentValidator) {
         if (!object.backing.contents.containsKey(validator.attribute.name)) {
-          context.addError("Value for '${validator.attribute.name}' must be included "
-            "for ${_getEventName(event)}s.");
+          context.addError(
+              "Value for '${validator.attribute.name}' must be included "
+              "for ${_getEventName(event)}s.");
         }
       } else if (validator is AbsentValidator) {
         if (object.backing.contents.containsKey(validator.attribute.name)) {
-          context.addError("Value for '${validator.attribute.name}' may not be included "
-            "for ${_getEventName(event)}s.");
+          context.addError(
+              "Value for '${validator.attribute.name}' may not be included "
+              "for ${_getEventName(event)}s.");
         }
       } else {
         var value = object.backing.contents[validator.attribute.name];
@@ -59,7 +62,6 @@ abstract class ManagedValidator {
   void validate(ValidationContext context, dynamic value) {
     definition.validate(context, value);
   }
-
 
   static String _getEventName(Validating op) {
     switch (op) {

@@ -3,7 +3,7 @@ import 'dart:convert';
 abstract class AuthorizationParser<T> {
   const AuthorizationParser();
 
-  T parse (String authorizationHeader);
+  T parse(String authorizationHeader);
 }
 
 /// Parses a Bearer token from an Authorization header.
@@ -48,7 +48,8 @@ class AuthBasicCredentials {
 }
 
 /// Parses a Basic Authorization header.
-class AuthorizationBasicParser extends AuthorizationParser <AuthBasicCredentials> {
+class AuthorizationBasicParser
+    extends AuthorizationParser<AuthBasicCredentials> {
   const AuthorizationBasicParser();
 
   /// Returns a [AuthBasicCredentials] containing the username and password

@@ -8,19 +8,19 @@ class DataModelBuilder {
     instanceTypes.forEach((type) {
       final typeMirror = reflectClass(type);
       if (!classHasDefaultConstructor(typeMirror)) {
-        throw new ManagedDataModelError.noConstructor(typeMirror);
+        throw ManagedDataModelError.noConstructor(typeMirror);
       }
 
       final backingMirror = tableDefinitionForType(type);
       final name = tableNameFromClass(backingMirror);
-      final entity = new ManagedEntity(dataModel, name, typeMirror, backingMirror);
+      final entity = ManagedEntity(dataModel, name, typeMirror, backingMirror);
 
-      final existingEntityWithThisTableName = entities
-          .values
-          .firstWhere((e) => e.tableName == entity.tableName,
-            orElse: () => null);
+      final existingEntityWithThisTableName = entities.values.firstWhere(
+          (e) => e.tableName == entity.tableName,
+          orElse: () => null);
       if (existingEntityWithThisTableName != null) {
-        throw new ManagedDataModelError.duplicateTables(existingEntityWithThisTableName, entity);
+        throw ManagedDataModelError.duplicateTables(
+            existingEntityWithThisTableName, entity);
       }
 
       entities[type] = entity;
@@ -42,11 +42,14 @@ class DataModelBuilder {
       entity.relationships.forEach((_, rel) {
         if (rel.relationshipType == ManagedRelationshipType.belongsTo) {
           var foreignKey = rel.destinationEntity.relationships?.values
-              ?.firstWhere((r) => r.relationshipType == ManagedRelationshipType.belongsTo
-                              && r.destinationEntity == entity, orElse: () => null);
+              ?.firstWhere(
+                  (r) =>
+                      r.relationshipType == ManagedRelationshipType.belongsTo &&
+                      r.destinationEntity == entity,
+                  orElse: () => null);
           if (foreignKey != null) {
-            throw new ManagedDataModelError.cyclicReference(
-                entity, new Symbol(rel.name), foreignKey.entity, new Symbol(foreignKey.name));
+            throw ManagedDataModelError.cyclicReference(entity,
+                Symbol(rel.name), foreignKey.entity, Symbol(foreignKey.name));
           }
         }
       });
@@ -55,12 +58,12 @@ class DataModelBuilder {
 
       entity.symbolMap = {};
       entity.attributes.forEach((name, _) {
-        entity.symbolMap[new Symbol(name)] = name;
-        entity.symbolMap[new Symbol("$name=")] = name;
+        entity.symbolMap[Symbol(name)] = name;
+        entity.symbolMap[Symbol("$name=")] = name;
       });
       entity.relationships.forEach((name, _) {
-        entity.symbolMap[new Symbol(name)] = name;
-        entity.symbolMap[new Symbol("$name=")] = name;
+        entity.symbolMap[Symbol(name)] = name;
+        entity.symbolMap[Symbol("$name=")] = name;
       });
     });
   }
@@ -80,9 +83,8 @@ class DataModelBuilder {
   }
 
   ClassMirror tableDefinitionForType(Type instanceType) {
-    var ifNotFoundException = new ManagedDataModelError(
-        "Invalid instance type '$instanceType' '${reflectClass(instanceType)
-            .simpleName}' is not subclass of 'ManagedObject'.");
+    var ifNotFoundException = ManagedDataModelError(
+        "Invalid instance type '$instanceType' '${reflectClass(instanceType).simpleName}' is not subclass of 'ManagedObject'.");
 
     return classHierarchyForClass(reflectClass(instanceType))
         .firstWhere(
@@ -102,8 +104,12 @@ class DataModelBuilder {
       if (map.containsKey(attribute.name)) {
         // If there is both a getter and setter declared to represent one transient property,
         // then we need to combine them here. No other reason a property would appear twice.
-        map[attribute.name] = new ManagedAttributeDescription.transient(
-            entity, attribute.name, attribute.type, attribute.declaredType, new Serialize(input: true, output: true));
+        map[attribute.name] = ManagedAttributeDescription.transient(
+            entity,
+            attribute.name,
+            attribute.type,
+            attribute.declaredType,
+            Serialize(input: true, output: true));
       } else {
         map[attribute.name] = attribute;
       }
@@ -119,8 +125,7 @@ class DataModelBuilder {
         .map((declaration) {
       var type = propertyTypeFromDeclaration(declaration);
       if (type == null) {
-        throw new ManagedDataModelError.invalidType(
-          entity, declaration.simpleName);
+        throw ManagedDataModelError.invalidType(entity, declaration.simpleName);
       }
       var validators = validatorsFromDeclaration(declaration);
       var attributes = attributeMetadataFromDeclaration(declaration);
@@ -128,18 +133,21 @@ class DataModelBuilder {
       Map<String, dynamic> enumToPropertyNameMap;
       var declType = declaration.type;
       if (declType is! ClassMirror) {
-        throw new ManagedDataModelError("Invalid type for field '${MirrorSystem.getName(declaration.simpleName)}' "
-          "in table definition '${entity.tableDefinition}'.");
+        throw ManagedDataModelError(
+            "Invalid type for field '${MirrorSystem.getName(declaration.simpleName)}' "
+            "in table definition '${entity.tableDefinition}'.");
       }
       if (declType is ClassMirror && declType.isEnum) {
         List<dynamic> enumeratedCases = declType.getField(#values).reflectee;
-        enumToPropertyNameMap = enumeratedCases.fold(<String, dynamic>{}, (m, v) {
+        enumToPropertyNameMap =
+            enumeratedCases.fold(<String, dynamic>{}, (m, v) {
           m[v.toString().split(".").last] = v;
           return m;
         });
       }
 
-      return new ManagedAttributeDescription(entity, name, type, declType as ClassMirror,
+      return ManagedAttributeDescription(
+          entity, name, type, declType as ClassMirror,
           primaryKey: attributes?.isPrimaryKey ?? false,
           defaultValue: attributes?.defaultValue ?? null,
           unique: attributes?.isUnique ?? false,
@@ -160,18 +168,17 @@ class DataModelBuilder {
         .map((declaration) {
       var type = propertyTypeFromDeclaration(declaration);
       if (type == null) {
-        throw new ManagedDataModelError.invalidType(
-            entity, declaration.simpleName);
+        throw ManagedDataModelError.invalidType(entity, declaration.simpleName);
       }
 
       var name = propertyNameFromDeclaration(declaration);
       var transience = transienceForProperty(declaration);
       if (transience == null) {
-        throw new ManagedDataModelError.invalidTransient(
+        throw ManagedDataModelError.invalidTransient(
             entity, declaration.simpleName);
       }
 
-      return new ManagedAttributeDescription.transient(
+      return ManagedAttributeDescription.transient(
           entity, name, type, dartTypeFromDeclaration(declaration), transience);
     });
   }
@@ -184,11 +191,9 @@ class DataModelBuilder {
     var metadata = transientMetadataFromDeclaration(property);
     MethodMirror m = property as MethodMirror;
     if (m.isGetter && metadata.isAvailableAsOutput) {
-      return new Serialize(
-          output: true, input: false);
+      return Serialize(output: true, input: false);
     } else if (m.isSetter && metadata.isAvailableAsInput) {
-      return new Serialize(
-          input: true, output: false);
+      return Serialize(input: true, output: false);
     }
 
     return null;
@@ -211,7 +216,7 @@ class DataModelBuilder {
     var destinationEntity = matchingEntityForProperty(owningEntity, property);
 
     if (attributeMetadataFromDeclaration(property) != null) {
-      throw new ManagedDataModelError.invalidMetadata(
+      throw ManagedDataModelError.invalidMetadata(
           owningEntity, property.simpleName, destinationEntity);
     }
 
@@ -233,7 +238,7 @@ class DataModelBuilder {
     // Make sure the relationship parameters are valid
     if (relationship.onDelete == DeleteRule.nullify &&
         relationship.isRequired) {
-      throw new ManagedDataModelError.incompatibleDeleteRule(
+      throw ManagedDataModelError.incompatibleDeleteRule(
           owningEntity, property.simpleName);
     }
 
@@ -242,14 +247,14 @@ class DataModelBuilder {
 
     // Make sure we didn't annotate both sides
     if (relationshipMetadataFromProperty(inverseProperty) != null) {
-      throw new ManagedDataModelError.dualMetadata(owningEntity,
+      throw ManagedDataModelError.dualMetadata(owningEntity,
           property.simpleName, destinationEntity, inverseProperty.simpleName);
     }
 
     var columnType =
         destinationEntity.attributes[destinationEntity.primaryKey].type;
 
-    return new ManagedRelationshipDescription(
+    return ManagedRelationshipDescription(
         owningEntity,
         MirrorSystem.getName(property.simpleName),
         columnType,
@@ -281,7 +286,7 @@ class DataModelBuilder {
     var columnType =
         destinationEntity.attributes[destinationEntity.primaryKey].type;
 
-    return new ManagedRelationshipDescription(
+    return ManagedRelationshipDescription(
         owningEntity,
         MirrorSystem.getName(property.simpleName),
         columnType,
@@ -314,16 +319,16 @@ class DataModelBuilder {
         }).toList();
 
         if (possibleEntities.length == 0) {
-          throw new ManagedDataModelError.noDestinationEntity(
+          throw ManagedDataModelError.noDestinationEntity(
               owningEntity, property.simpleName);
         } else if (possibleEntities.length > 1) {
-          throw new ManagedDataModelError.multipleDestinationEntities(
+          throw ManagedDataModelError.multipleDestinationEntities(
               owningEntity, property.simpleName, possibleEntities);
         }
 
         destinationEntity = possibleEntities.first;
       } else {
-        throw new ManagedDataModelError.noDestinationEntity(
+        throw ManagedDataModelError.noDestinationEntity(
             owningEntity, property.simpleName);
       }
     }
@@ -356,12 +361,12 @@ class DataModelBuilder {
         var destinationProperty = instanceVariableFromClass(
             destinationEntity.tableDefinition, metadata.inversePropertyName);
         if (destinationProperty == null) {
-          throw new ManagedDataModelError.missingInverse(
+          throw ManagedDataModelError.missingInverse(
               owningEntity, property.simpleName, destinationEntity, null);
         }
 
         if (relationshipMetadataFromProperty(destinationProperty) != null) {
-          throw new ManagedDataModelError.dualMetadata(
+          throw ManagedDataModelError.dualMetadata(
               owningEntity,
               property.simpleName,
               destinationEntity,
@@ -374,10 +379,10 @@ class DataModelBuilder {
         var candidates = propertiesFromEntityWithType(
             destinationEntity, owningEntity.instanceType);
         if (candidates.length == 0) {
-          throw new ManagedDataModelError.missingInverse(
+          throw ManagedDataModelError.missingInverse(
               owningEntity, property.simpleName, destinationEntity, null);
         } else if (candidates.length > 1) {
-          throw new ManagedDataModelError.duplicateInverse(
+          throw ManagedDataModelError.duplicateInverse(
               owningEntity,
               property.simpleName,
               destinationEntity,
@@ -395,20 +400,22 @@ class DataModelBuilder {
               .toList();
 
       if (candidates.length == 0) {
-        throw new ManagedDataModelError.missingInverse(
+        throw ManagedDataModelError.missingInverse(
             owningEntity, property.simpleName, destinationEntity, null);
       }
 
       var specificInverses = candidates.where((p) {
         return relationshipMetadataFromProperty(p).inversePropertyName ==
-            property.simpleName &&
-        owningEntity.instanceType.isSubtypeOf(p.type);
+                property.simpleName &&
+            owningEntity.instanceType.isSubtypeOf(p.type);
       }).toList();
       if (specificInverses.length == 1) {
         return specificInverses.first;
       } else if (specificInverses.length > 1) {
-        throw new ManagedDataModelError.duplicateInverse(
-            owningEntity, property.simpleName, destinationEntity,
+        throw ManagedDataModelError.duplicateInverse(
+            owningEntity,
+            property.simpleName,
+            destinationEntity,
             candidates.map((vm) => vm.simpleName).toList());
       }
 
@@ -422,12 +429,12 @@ class DataModelBuilder {
         if (candidates.length > 0) {
           candidate = candidates.first;
         }
-        throw new ManagedDataModelError.missingInverse(
-            owningEntity, property.simpleName, destinationEntity, candidate?.simpleName);
+        throw ManagedDataModelError.missingInverse(owningEntity,
+            property.simpleName, destinationEntity, candidate?.simpleName);
       }
 
       if (deferredCandidates.length > 1) {
-        throw new ManagedDataModelError.duplicateInverse(
+        throw ManagedDataModelError.duplicateInverse(
             owningEntity,
             property.simpleName,
             destinationEntity,
@@ -438,35 +445,35 @@ class DataModelBuilder {
     }
   }
 
-  List<ManagedPropertyDescription> instanceUniquePropertiesForEntity(ManagedEntity entity) {
+  List<ManagedPropertyDescription> instanceUniquePropertiesForEntity(
+      ManagedEntity entity) {
     Table tableAttributes = entity.tableDefinition.metadata
         .firstWhere((im) => im.type.isSubtypeOf(reflectType(Table)),
-          orElse: () => null)?.reflectee;
+            orElse: () => null)
+        ?.reflectee;
 
     if (tableAttributes?.uniquePropertySet != null) {
       if (tableAttributes.uniquePropertySet.length == 0) {
-        throw new ManagedDataModelError.emptyEntityUniqueProperties(entity);
+        throw ManagedDataModelError.emptyEntityUniqueProperties(entity);
       } else if (tableAttributes.uniquePropertySet.length == 1) {
-        throw new ManagedDataModelError.singleEntityUniqueProperty(
+        throw ManagedDataModelError.singleEntityUniqueProperty(
             entity, tableAttributes.uniquePropertySet.first);
       }
 
-      return tableAttributes
-          .uniquePropertySet
-          .map((sym) {
-            var prop = entity.properties[MirrorSystem.getName(sym)];
-            if (prop == null) {
-              throw new ManagedDataModelError.invalidEntityUniqueProperty(entity, sym);
-            }
+      return tableAttributes.uniquePropertySet.map((sym) {
+        var prop = entity.properties[MirrorSystem.getName(sym)];
+        if (prop == null) {
+          throw ManagedDataModelError.invalidEntityUniqueProperty(entity, sym);
+        }
 
-            if (prop is ManagedRelationshipDescription
-            && prop.relationshipType != ManagedRelationshipType.belongsTo) {
-              throw new ManagedDataModelError.relationshipEntityUniqueProperty(entity, sym);
-            }
+        if (prop is ManagedRelationshipDescription &&
+            prop.relationshipType != ManagedRelationshipType.belongsTo) {
+          throw ManagedDataModelError.relationshipEntityUniqueProperty(
+              entity, sym);
+        }
 
-            return prop;
-          })
-          .toList();
+        return prop;
+      }).toList();
     }
 
     return null;

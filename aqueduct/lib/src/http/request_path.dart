@@ -13,9 +13,9 @@ class RequestPath {
   /// There is no need to invoke this constructor manually.
   RequestPath(this.segments);
 
-  void setSpecification(RouteSpecification spec, {int segmentOffset: 0}) {
+  void setSpecification(RouteSpecification spec, {int segmentOffset = 0}) {
     var requestIterator = segments.iterator;
-    for (var i = 0; i < segmentOffset; i ++) {
+    for (var i = 0; i < segmentOffset; i++) {
       requestIterator.moveNext();
     }
 

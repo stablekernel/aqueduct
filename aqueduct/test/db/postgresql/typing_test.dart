@@ -17,14 +17,14 @@ void main() {
   test("Values get typed when used in predicate", () async {
     context = await contextWithModels([TestModel]);
 
-    final q = new Query<TestModel>(context)
+    final q = Query<TestModel>(context)
       ..where((o) => o.id).equalTo(1)
       ..where((o) => o.n).equalTo("a")
-      ..where((o) => o.t).equalTo(new DateTime.now())
+      ..where((o) => o.t).equalTo(DateTime.now())
       ..where((o) => o.l).equalTo(1)
       ..where((o) => o.b).equalTo(true)
       ..where((o) => o.d).equalTo(1.0)
-      ..where((o) => o.doc).equalTo(new Document({"k":"v"}));
+      ..where((o) => o.doc).equalTo(Document({"k": "v"}));
 
     var builder = (q as PostgresQuery).createFetchBuilder();
     expect(builder.predicate.format, contains("id:int8"));
@@ -39,16 +39,16 @@ void main() {
   test("Values get typed when used as insertion values", () async {
     context = await contextWithModels([TestModel]);
 
-    final q = new Query<TestModel>(context)
+    final q = Query<TestModel>(context)
       ..values.id = 1
       ..values.n = "a"
-      ..values.t = new DateTime.now()
+      ..values.t = DateTime.now()
       ..values.l = 1
       ..values.b = true
       ..values.d = 1.0
-      ..values.doc = new Document({"k":"v"});
+      ..values.doc = Document({"k": "v"});
 
-    var builder = new PostgresQueryBuilder(q as PostgresQuery);
+    var builder = PostgresQueryBuilder(q as PostgresQuery);
     var insertString = builder.sqlValuesToInsert;
     expect(insertString, contains("id:int8"));
     expect(insertString, contains("n:text"));
@@ -60,13 +60,13 @@ void main() {
   });
 
   test("Have access to type args in Map", () {
-    final type = new ManagedType(typeOf(#mapOfInts));
+    final type = ManagedType(typeOf(#mapOfInts));
     expect(type.kind, ManagedPropertyType.map);
     expect(type.elements.kind, ManagedPropertyType.integer);
   });
 
   test("Have access to type args in list of maps", () {
-    final type = new ManagedType(typeOf(#listOfIntMaps));
+    final type = ManagedType(typeOf(#listOfIntMaps));
     expect(type.kind, ManagedPropertyType.list);
     expect(type.elements.kind, ManagedPropertyType.map);
     expect(type.elements.elements.kind, ManagedPropertyType.integer);
@@ -74,27 +74,26 @@ void main() {
 
   test("Cannot create ManagedType from invalid types", () {
     try {
-      new ManagedType(typeOf(#invalidMapKey));
+      ManagedType(typeOf(#invalidMapKey));
       fail("unreachable");
     } on UnsupportedError {}
     try {
-      new ManagedType(typeOf(#invalidMapValue));
+      ManagedType(typeOf(#invalidMapValue));
       fail("unreachable");
     } on UnsupportedError {}
     try {
-      new ManagedType(typeOf(#invalidList));
+      ManagedType(typeOf(#invalidList));
       fail("unreachable");
     } on UnsupportedError {}
 
     try {
-      new ManagedType(typeOf(#uri));
+      ManagedType(typeOf(#uri));
       fail("unreachable");
     } on UnsupportedError {}
   });
 }
 
-class TestModel extends ManagedObject<_TestModel> implements _TestModel {
-}
+class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
   @primaryKey
@@ -121,5 +120,6 @@ class TypeRepo {
 }
 
 ClassMirror typeOf(Symbol symbol) {
-  return (reflectClass(TypeRepo).declarations[symbol] as VariableMirror).type as ClassMirror;
+  return (reflectClass(TypeRepo).declarations[symbol] as VariableMirror).type
+      as ClassMirror;
 }

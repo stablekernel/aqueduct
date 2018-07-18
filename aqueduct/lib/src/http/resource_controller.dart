@@ -64,10 +64,11 @@ import 'resource_controller_internal/internal.dart';
 /// Bindings will automatically parse values into other types and validate that requests have the desired values. See [Bind] for all possible bindings and https://aqueduct.io/docs/http/resource_controller/ for more details.
 ///
 /// To access the request directly, use [request]. Note that the [Request.body] of [request] will be decoded prior to invoking an operation method.
-abstract class ResourceController extends Controller implements Recyclable<BoundController> {
+abstract class ResourceController extends Controller
+    implements Recyclable<BoundController> {
   @override
   BoundController get recycledState {
-    return new BoundController(reflect(this).type.reflectedType);
+    return BoundController(reflect(this).type.reflectedType);
   }
 
   /// The request being processed by this [ResourceController].
@@ -139,7 +140,7 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
       return preprocessedResult;
     }
 
-    throw new StateError(
+    throw StateError(
         "'$runtimeType' returned invalid object from 'willProcessRequest'. Must return 'Request' or 'Response'.");
   }
 
@@ -149,9 +150,12 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
   /// If an operation method requires additional parameters that cannot be bound using [Bind] annotations, override
   /// this method. When overriding this method, call the superclass' implementation and add the additional parameters
   /// to the returned list before returning the combined list.
-  List<APIParameter> documentOperationParameters(APIDocumentContext context, Operation operation) {
+  List<APIParameter> documentOperationParameters(
+      APIDocumentContext context, Operation operation) {
     bool usesFormEncodedData = operation.method == "POST" &&
-        acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
+        acceptedContentTypes.any((ct) =>
+            ct.primaryType == "application" &&
+            ct.subType == "x-www-form-urlencoded");
 
     return _bound
         .parametersForOperation(operation)
@@ -173,7 +177,8 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
   ///
   /// By default, this method returns null and the summary is derived from documentation comments
   /// above the operation method. You may override this method to manually add a summary to an operation.
-  String documentOperationSummary(APIDocumentContext context, Operation operation) {
+  String documentOperationSummary(
+      APIDocumentContext context, Operation operation) {
     return null;
   }
 
@@ -181,7 +186,8 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
   ///
   /// By default, this method returns null and the description is derived from documentation comments
   /// above the operation method. You may override this method to manually add a description to an operation.
-  String documentOperationDescription(APIDocumentContext context, Operation operation) {
+  String documentOperationDescription(
+      APIDocumentContext context, Operation operation) {
     return null;
   }
 
@@ -190,20 +196,26 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
   /// If an operation method binds an [Bind.body] argument or accepts form data, this method returns a [APIRequestBody]
   /// that describes the bound body type. You may override this method to take an alternative approach or to augment the
   /// automatically generated request body documentation.
-  APIRequestBody documentOperationRequestBody(APIDocumentContext context, Operation operation) {
+  APIRequestBody documentOperationRequestBody(
+      APIDocumentContext context, Operation operation) {
     final binder = _boundMethodForOperation(operation);
     final usesFormEncodedData = operation.method == "POST" &&
-        acceptedContentTypes.any((ct) => ct.primaryType == "application" && ct.subType == "x-www-form-urlencoded");
-    final boundBody = binder.positionalParameters.firstWhere((p) => p.binding is BoundBody, orElse: () => null) ??
-        binder.optionalParameters.firstWhere((p) => p.binding is BoundBody, orElse: () => null);
+        acceptedContentTypes.any((ct) =>
+            ct.primaryType == "application" &&
+            ct.subType == "x-www-form-urlencoded");
+    final boundBody = binder.positionalParameters
+            .firstWhere((p) => p.binding is BoundBody, orElse: () => null) ??
+        binder.optionalParameters
+            .firstWhere((p) => p.binding is BoundBody, orElse: () => null);
 
     if (boundBody != null) {
       final type = boundBody.boundValueType.reflectedType;
-      return new APIRequestBody.schema(context.schema.getObjectWithType(type),
-          contentTypes: acceptedContentTypes.map((ct) => "${ct.primaryType}/${ct.subType}"),
+      return APIRequestBody.schema(context.schema.getObjectWithType(type),
+          contentTypes: acceptedContentTypes
+              .map((ct) => "${ct.primaryType}/${ct.subType}"),
           required: boundBody.isRequired);
     } else if (usesFormEncodedData) {
-      final boundController = new BoundController(runtimeType);
+      final boundController = BoundController(runtimeType);
       final Map<String, APISchemaObject> props = boundController
           .parametersForOperation(operation)
           .where((p) => p.binding is BoundQueryParameter)
@@ -213,7 +225,7 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
         return prev;
       });
 
-      return new APIRequestBody.schema(new APISchemaObject.object(props),
+      return APIRequestBody.schema(APISchemaObject.object(props),
           contentTypes: ["application/x-www-form-urlencoded"], required: true);
     }
 
@@ -225,8 +237,9 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
   /// To provide documentation for an operation, you must override this method and return a map of
   /// possible responses. The key is a [String] representation of a status code (e.g., "200") and the value
   /// is an [APIResponse] object.
-  Map<String, APIResponse> documentOperationResponses(APIDocumentContext context, Operation operation) {
-    return {"200": new APIResponse("Successful response.")};
+  Map<String, APIResponse> documentOperationResponses(
+      APIDocumentContext context, Operation operation) {
+    return {"200": APIResponse("Successful response.")};
   }
 
   /// Returns a list of tags for [operation].
@@ -235,21 +248,25 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
   /// defined by this controller in the same tag. You may override this method
   /// to provide additional tags. You should call the superclass' implementation to retain
   /// the controller grouping tag.
-  List<String> documentOperationTags(APIDocumentContext context, Operation operation) {
+  List<String> documentOperationTags(
+      APIDocumentContext context, Operation operation) {
     final tag = "$runtimeType".replaceAll("Controller", "");
     return [tag];
   }
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
-    final operations =
-        new BoundController(runtimeType).methods.where((method) => path.containsPathParameters(method.pathVariables));
+  Map<String, APIOperation> documentOperations(
+      APIDocumentContext context, String route, APIPath path) {
+    final operations = BoundController(runtimeType)
+        .methods
+        .where((method) => path.containsPathParameters(method.pathVariables));
 
     return operations.fold(<String, APIOperation>{}, (prev, method) {
-      Operation operation = firstMetadataOfType(reflect(this).type.instanceMembers[method.methodSymbol]);
+      Operation operation = firstMetadataOfType(
+          reflect(this).type.instanceMembers[method.methodSymbol]);
 
-      final op = new APIOperation(
-          MirrorSystem.getName(method.methodSymbol), documentOperationResponses(context, operation),
+      final op = APIOperation(MirrorSystem.getName(method.methodSymbol),
+          documentOperationResponses(context, operation),
           summary: documentOperationSummary(context, operation),
           description: documentOperationDescription(context, operation),
           parameters: documentOperationParameters(context, operation),
@@ -272,7 +289,8 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
           op.security?.forEach((sec) {
             sec.requirements.forEach((name, operationScopes) {
               final secType = context.document.components.securitySchemes[name];
-              if (secType?.type == APISecuritySchemeType.oauth2 || secType?.type == APISecuritySchemeType.openID) {
+              if (secType?.type == APISecuritySchemeType.oauth2 ||
+                  secType?.type == APISecuritySchemeType.openID) {
                 _mergeScopes(operationScopes, method.scopes);
               }
             });
@@ -287,7 +305,7 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
 
   @override
   void documentComponents(APIDocumentContext context) {
-    final binders = new BoundController(runtimeType).methods;
+    final binders = BoundController(runtimeType).methods;
     binders.forEach((b) {
       [b.positionalParameters, b.optionalParameters]
           .expand((b) => b)
@@ -296,7 +314,8 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
           .forEach((b) {
         final type = b.reflectedType;
         if (!context.schema.hasRegisteredType(type)) {
-          context.schema.register(MirrorSystem.getName(b.simpleName), HTTPSerializable.document(context, type),
+          context.schema.register(MirrorSystem.getName(b.simpleName),
+              HTTPSerializable.document(context, type),
               representation: type);
         }
       });
@@ -307,8 +326,9 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
   ///
   /// If [methodScopes] has a more demanding scope than one in [operationScopes],
   /// that scope is replaced in [operationScopes] by the one in [methodScopes].
-  void _mergeScopes(List<String> operationScopes, List<AuthScope> methodScopes) {
-    final existingScopes = operationScopes.map((s) => new AuthScope(s)).toList();
+  void _mergeScopes(
+      List<String> operationScopes, List<AuthScope> methodScopes) {
+    final existingScopes = operationScopes.map((s) => AuthScope(s)).toList();
 
     methodScopes.forEach((methodScope) {
       for (var existingScope in existingScopes) {
@@ -321,17 +341,24 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
     });
   }
 
-  APIParameter _documentParameter(APIDocumentContext context, Operation operation, BoundParameter param) {
-    final schema = APIComponentDocumenter.documentType(context, param.boundValueType);
-    final documentedParameter = new APIParameter(param.name, param.binding.location,
-        schema: schema, required: param.isRequired, allowEmptyValue: schema.type == APIType.boolean);
+  APIParameter _documentParameter(
+      APIDocumentContext context, Operation operation, BoundParameter param) {
+    final schema =
+        APIComponentDocumenter.documentType(context, param.boundValueType);
+    final documentedParameter = APIParameter(param.name, param.binding.location,
+        schema: schema,
+        required: param.isRequired,
+        allowEmptyValue: schema.type == APIType.boolean);
 
     context.defer(() async {
       final controllerDocs = await DocumentedElement.get(runtimeType);
-      final operationDocs = controllerDocs[_boundMethodForOperation(operation).methodSymbol];
-      final documentation = controllerDocs[param.symbol] ?? operationDocs[param.symbol];
+      final operationDocs =
+          controllerDocs[_boundMethodForOperation(operation).methodSymbol];
+      final documentation =
+          controllerDocs[param.symbol] ?? operationDocs[param.symbol];
       if (documentation != null) {
-        documentedParameter.description = "${documentation.summary ?? ""} ${documentation.description ?? ""}";
+        documentedParameter.description =
+            "${documentation.summary ?? ""} ${documentation.description ?? ""}";
       }
     });
 
@@ -359,7 +386,8 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
   bool _requestContentTypeIsSupported(Request req) {
     var incomingContentType = request.raw.headers.contentType;
     return acceptedContentTypes.firstWhere((ct) {
-          return ct.primaryType == incomingContentType.primaryType && ct.subType == incomingContentType.subType;
+          return ct.primaryType == incomingContentType.primaryType &&
+              ct.subType == incomingContentType.subType;
         }, orElse: () => null) !=
         null;
   }
@@ -367,7 +395,7 @@ abstract class ResourceController extends Controller implements Recyclable<Bound
   Future<Response> _process() async {
     if (!request.body.isEmpty) {
       if (!_requestContentTypeIsSupported(request)) {
-        return new Response(HttpStatus.unsupportedMediaType, null, null);
+        return Response(HttpStatus.unsupportedMediaType, null, null);
       }
     }
 

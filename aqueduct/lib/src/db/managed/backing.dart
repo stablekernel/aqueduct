@@ -4,7 +4,8 @@ import 'package:aqueduct/src/db/managed/relationship_type.dart';
 import 'managed.dart';
 import 'exception.dart';
 
-final ArgumentError _invalidValueConstruction = new ArgumentError("Invalid property access when building 'Query.values'. "
+final ArgumentError _invalidValueConstruction = ArgumentError(
+    "Invalid property access when building 'Query.values'. "
     "May only assign values to properties backed by a column of the table being inserted into. "
     "This prohibits 'ManagedObject' and 'ManagedSet' properties, except for 'ManagedObject' "
     "properties with a 'Relate' annotation. For 'Relate' properties, you may only set their "
@@ -23,7 +24,8 @@ class ManagedValueBacking extends ManagedBacking {
   void setValueForProperty(ManagedPropertyDescription property, dynamic value) {
     if (value != null) {
       if (!property.isAssignableWith(value)) {
-        throw new ValidationException(["invalid input value for '${property.name}'"]);
+        throw ValidationException(
+            ["invalid input value for '${property.name}'"]);
       }
     }
 
@@ -33,7 +35,8 @@ class ManagedValueBacking extends ManagedBacking {
 
 class ManagedForeignKeyBuilderBacking extends ManagedBacking {
   ManagedForeignKeyBuilderBacking();
-  ManagedForeignKeyBuilderBacking.from(ManagedEntity entity, ManagedBacking backing) {
+  ManagedForeignKeyBuilderBacking.from(
+      ManagedEntity entity, ManagedBacking backing) {
     if (backing.contents.containsKey(entity.primaryKey)) {
       contents[entity.primaryKey] = backing.contents[entity.primaryKey];
     }
@@ -66,13 +69,15 @@ class ManagedBuilderBacking extends ManagedBacking {
   ManagedBuilderBacking();
   ManagedBuilderBacking.from(ManagedEntity entity, ManagedBacking original) {
     if (original is! ManagedValueBacking) {
-      throw new ArgumentError("Invalid 'ManagedObject' assignment to 'Query.values'. Object must be created through default constructor.");
+      throw ArgumentError(
+          "Invalid 'ManagedObject' assignment to 'Query.values'. Object must be created through default constructor.");
     }
 
     original.contents.forEach((key, value) {
       final prop = entity.properties[key];
       if (prop == null) {
-        throw new ArgumentError("Invalid 'ManagedObject' assignment to 'Query.values'. Property '$key' does not exist for '${entity.name}'.");
+        throw ArgumentError(
+            "Invalid 'ManagedObject' assignment to 'Query.values'. Property '$key' does not exist for '${entity.name}'.");
       }
 
       if (prop is ManagedRelationshipDescription) {
@@ -95,8 +100,9 @@ class ManagedBuilderBacking extends ManagedBacking {
         throw _invalidValueConstruction;
       }
 
-      if(!contents.containsKey(property.name)) {
-        contents[property.name] = property.inverse.entity.instanceOf(backing: new ManagedForeignKeyBuilderBacking());
+      if (!contents.containsKey(property.name)) {
+        contents[property.name] = property.inverse.entity
+            .instanceOf(backing: ManagedForeignKeyBuilderBacking());
       }
     }
 
@@ -114,8 +120,10 @@ class ManagedBuilderBacking extends ManagedBacking {
         contents[property.name] = null;
       } else {
         final original = (value as ManagedObject);
-        final replacementBacking = new ManagedForeignKeyBuilderBacking.from(original.entity, original.backing);
-        final replacement = original.entity.instanceOf(backing: replacementBacking);
+        final replacementBacking = ManagedForeignKeyBuilderBacking.from(
+            original.entity, original.backing);
+        final replacement =
+            original.entity.instanceOf(backing: replacementBacking);
         contents[property.name] = replacement;
       }
     } else {
@@ -139,9 +147,8 @@ class ManagedAccessTrackingBacking extends ManagedBacking {
       return forward(property, workingKeyPath);
     }
 
-
     keyPaths ??= [];
-    final keyPath = new KeyPath(property);
+    final keyPath = KeyPath(property);
     keyPaths.add(keyPath);
 
     return forward(property, keyPath);
@@ -154,15 +161,16 @@ class ManagedAccessTrackingBacking extends ManagedBacking {
 
   dynamic forward(ManagedPropertyDescription property, KeyPath keyPath) {
     if (property is ManagedRelationshipDescription) {
-      final tracker = new ManagedAccessTrackingBacking()
-        ..workingKeyPath = keyPath;
+      final tracker = ManagedAccessTrackingBacking()..workingKeyPath = keyPath;
       if (property.relationshipType == ManagedRelationshipType.hasMany) {
-        return property.declaredType.newInstance(const Symbol(''), []).reflectee;
+        return property.declaredType
+            .newInstance(const Symbol(''), []).reflectee;
       } else {
         return property.inverse.entity.instanceOf(backing: tracker);
       }
-    } else if (property is ManagedAttributeDescription && property.type.kind == ManagedPropertyType.document) {
-      return new DocumentAccessTracker(keyPath);
+    } else if (property is ManagedAttributeDescription &&
+        property.type.kind == ManagedPropertyType.document) {
+      return DocumentAccessTracker(keyPath);
     }
 
     return null;

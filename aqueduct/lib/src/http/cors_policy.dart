@@ -18,11 +18,11 @@ class CORSPolicy {
   /// Values are set to match [defaultPolicy].
   CORSPolicy() {
     var def = defaultPolicy;
-    allowedOrigins = new List.from(def.allowedOrigins);
+    allowedOrigins = List.from(def.allowedOrigins);
     allowCredentials = def.allowCredentials;
-    exposedResponseHeaders = new List.from(def.exposedResponseHeaders);
-    allowedMethods = new List.from(def.allowedMethods);
-    allowedRequestHeaders = new List.from(def.allowedRequestHeaders);
+    exposedResponseHeaders = List.from(def.exposedResponseHeaders);
+    allowedMethods = List.from(def.allowedMethods);
+    allowedRequestHeaders = List.from(def.allowedRequestHeaders);
     cacheInSeconds = def.cacheInSeconds;
   }
 
@@ -48,7 +48,7 @@ class CORSPolicy {
   /// unless you want the defaults to change application-wide.
   static CORSPolicy get defaultPolicy {
     if (_defaultPolicy == null) {
-      _defaultPolicy = new CORSPolicy._defaults();
+      _defaultPolicy = CORSPolicy._defaults();
     }
     return _defaultPolicy;
   }
@@ -58,7 +58,7 @@ class CORSPolicy {
   /// List of 'Simple' CORS headers.
   ///
   /// These are headers that are considered acceptable as part of any CORS request and cannot be changed.
-  static const List<String> simpleRequestHeaders = const [
+  static const List<String> simpleRequestHeaders = [
     "accept",
     "accept-language",
     "content-language",
@@ -68,7 +68,7 @@ class CORSPolicy {
   /// List of 'Simple' CORS Response headers.
   ///
   /// These headers can be returned in a response without explicitly exposing them and cannot be changed.
-  static const List<String> simpleResponseHeaders = const [
+  static const List<String> simpleResponseHeaders = [
     "cache-control",
     "content-language",
     "content-type",
@@ -199,6 +199,6 @@ class CORSPolicy {
       headers["Access-Control-Max-Age"] = "$cacheInSeconds";
     }
 
-    return new Response.ok(null, headers: headers);
+    return Response.ok(null, headers: headers);
   }
 }

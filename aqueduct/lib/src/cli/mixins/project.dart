@@ -7,14 +7,15 @@ import 'package:yaml/yaml.dart';
 import 'package:path/path.dart' as path_lib;
 
 abstract class CLIProject implements CLICommand {
-  @Option("directory", abbr: "d", help: "Project directory to execute command in")
+  @Option("directory",
+      abbr: "d", help: "Project directory to execute command in")
   Directory get projectDirectory {
     if (_projectDirectory == null) {
       String dir = decode("directory");
       if (dir == null) {
         _projectDirectory = Directory.current.absolute;
       } else {
-        _projectDirectory = new Directory(dir).absolute;
+        _projectDirectory = Directory(dir).absolute;
       }
     }
     return _projectDirectory;
@@ -24,7 +25,8 @@ abstract class CLIProject implements CLICommand {
     if (_pubspec == null) {
       final file = projectSpecificationFile;
       if (!file.existsSync()) {
-        throw new CLIException("Failed to locate pubspec.yaml in project directory '${projectDirectory.path}'");
+        throw CLIException(
+            "Failed to locate pubspec.yaml in project directory '${projectDirectory.path}'");
       }
       var yamlContents = file.readAsStringSync();
       final Map<dynamic, dynamic> yaml = loadYaml(yamlContents);
@@ -34,7 +36,8 @@ abstract class CLIProject implements CLICommand {
     return _pubspec;
   }
 
-  File get projectSpecificationFile => new File.fromUri(projectDirectory.uri.resolve("pubspec.yaml"));
+  File get projectSpecificationFile =>
+      File.fromUri(projectDirectory.uri.resolve("pubspec.yaml"));
 
   Uri get packageConfigUri => projectDirectory.uri.resolve(".packages");
 
@@ -44,14 +47,15 @@ abstract class CLIProject implements CLICommand {
 
   Version get projectVersion {
     if (_projectVersion == null) {
-      var lockFile = new File.fromUri(projectDirectory.uri.resolve("pubspec.lock"));
+      var lockFile = File.fromUri(projectDirectory.uri.resolve("pubspec.lock"));
       if (!lockFile.existsSync()) {
-        throw new CLIException("No pubspec.lock file. Run `pub get`.");
+        throw CLIException("No pubspec.lock file. Run `pub get`.");
       }
 
       Map lockFileContents = loadYaml(lockFile.readAsStringSync());
-      String projectVersion = lockFileContents["packages"]["aqueduct"]["version"];
-      _projectVersion = new Version.parse(projectVersion);
+      String projectVersion =
+          lockFileContents["packages"]["aqueduct"]["version"];
+      _projectVersion = Version.parse(projectVersion);
     }
 
     return _projectVersion;
@@ -63,10 +67,10 @@ abstract class CLIProject implements CLICommand {
 
   static File fileInDirectory(Directory directory, String name) {
     if (path_lib.isRelative(name)) {
-      return new File.fromUri(directory.uri.resolve(name));
+      return File.fromUri(directory.uri.resolve(name));
     }
 
-    return new File.fromUri(directory.uri);
+    return File.fromUri(directory.uri);
   }
 
   File fileInProjectDirectory(String name) {

@@ -15,8 +15,8 @@ typedef void _ResponseModifier(Response resp);
 class Request implements RequestOrResponse {
   /// Creates an instance of [Request], no need to do so manually.
   Request(this.raw)
-      : path = new RequestPath(raw.uri.pathSegments),
-        body = new RequestBody(raw);
+      : path = RequestPath(raw.uri.pathSegments),
+        body = RequestBody(raw);
 
   /// The underlying [HttpRequest] of this instance.
   ///
@@ -119,7 +119,8 @@ class Request implements RequestOrResponse {
 
         _cachedAcceptableTypes = contentTypes;
       } catch (_) {
-        throw new Response.badRequest(body: {"error": "accept header is malformed"});
+        throw Response.badRequest(
+            body: {"error": "accept header is malformed"});
       }
     }
     return _cachedAcceptableTypes;
@@ -166,7 +167,9 @@ class Request implements RequestOrResponse {
   ///
   /// This is true if the request HTTP method is OPTIONS and the headers contains Access-Control-Request-Method.
   bool get isPreflightRequest {
-    return isCORSRequest && raw.method == "OPTIONS" && raw.headers.value("access-control-request-method") != null;
+    return isCORSRequest &&
+        raw.method == "OPTIONS" &&
+        raw.headers.value("access-control-request-method") != null;
   }
 
   /// Container for any data a [Controller] wants to attach to this request for the purpose of being used by a later [Controller].
@@ -175,7 +178,7 @@ class Request implements RequestOrResponse {
   Map<dynamic, dynamic> attachments = {};
 
   /// The timestamp for when this request was received.
-  DateTime receivedDate = new DateTime.now().toUtc();
+  DateTime receivedDate = DateTime.now().toUtc();
 
   /// The timestamp for when this request was responded to.
   ///
@@ -204,7 +207,7 @@ class Request implements RequestOrResponse {
   }
 
   String get _sanitizedHeaders {
-    StringBuffer buf = new StringBuffer("{");
+    StringBuffer buf = StringBuffer("{");
 
     raw?.headers?.forEach((k, v) {
       buf.write("${_truncatedString(k)} : ${_truncatedString(v.join(","))}\\n");
@@ -214,11 +217,12 @@ class Request implements RequestOrResponse {
     return buf.toString();
   }
 
-  String _truncatedString(String originalString, {int charSize: 128}) {
+  String _truncatedString(String originalString, {int charSize = 128}) {
     if (originalString.length <= charSize) {
       return originalString;
     }
-    return originalString.substring(0, charSize) + " ... (${originalString.length - charSize} truncated bytes)";
+    return originalString.substring(0, charSize) +
+        " ... (${originalString.length - charSize} truncated bytes)";
   }
 
   /// Sends a [Response] to this [Request]'s client.
@@ -232,7 +236,7 @@ class Request implements RequestOrResponse {
   /// Content-Type in the [aqueductResponse]'s [Response.headers].
   ///
   Future respond(Response aqueductResponse) {
-    respondDate = new DateTime.now().toUtc();
+    respondDate = DateTime.now().toUtc();
 
     final modifiers = _responseModifiers;
     _responseModifiers = null;
@@ -240,7 +244,7 @@ class Request implements RequestOrResponse {
       modifier(aqueductResponse);
     });
 
-    _Reference<String> compressionType = new _Reference(null);
+    _Reference<String> compressionType = _Reference(null);
     var body = aqueductResponse.body;
     if (body is! Stream) {
       // Note: this pre-encodes the body in memory, such that encoding fails this will throw and we can return a 500
@@ -254,7 +258,8 @@ class Request implements RequestOrResponse {
     });
 
     if (aqueductResponse.cachePolicy != null) {
-      response.headers.add(HttpHeaders.cacheControlHeader, aqueductResponse.cachePolicy.headerValue);
+      response.headers.add(HttpHeaders.cacheControlHeader,
+          aqueductResponse.cachePolicy.headerValue);
     }
 
     if (body == null) {
@@ -262,11 +267,13 @@ class Request implements RequestOrResponse {
       return response.close();
     }
 
-    response.headers.add(HttpHeaders.contentTypeHeader, aqueductResponse.contentType.toString());
+    response.headers.add(
+        HttpHeaders.contentTypeHeader, aqueductResponse.contentType.toString());
 
     if (body is List<int>) {
       if (compressionType.value != null) {
-        response.headers.add(HttpHeaders.contentEncodingHeader, compressionType.value);
+        response.headers
+            .add(HttpHeaders.contentEncodingHeader, compressionType.value);
       }
       response.headers.add(HttpHeaders.contentLengthHeader, body.length);
 
@@ -277,7 +284,8 @@ class Request implements RequestOrResponse {
       // Otherwise, body is stream
       final bodyStream = _responseBodyStream(aqueductResponse, compressionType);
       if (compressionType.value != null) {
-        response.headers.add(HttpHeaders.contentEncodingHeader, compressionType.value);
+        response.headers
+            .add(HttpHeaders.contentEncodingHeader, compressionType.value);
       }
       response.headers.add(HttpHeaders.transferEncodingHeader, "chunked");
       response.bufferOutput = aqueductResponse.bufferOutput;
@@ -292,26 +300,29 @@ class Request implements RequestOrResponse {
     throw StateError("Invalid response body. Could not encode.");
   }
 
-  List<int> _responseBodyBytes(Response resp, _Reference<String> compressionType) {
+  List<int> _responseBodyBytes(
+      Response resp, _Reference<String> compressionType) {
     if (resp.body == null) {
       return null;
     }
 
     Codec<dynamic, List<int>> codec;
     if (resp.encodeBody) {
-      codec = HTTPCodecRepository.defaultInstance.codecForContentType(resp.contentType);
+      codec = HTTPCodecRepository.defaultInstance
+          .codecForContentType(resp.contentType);
     }
 
     // todo(joeconwaystk): Set minimum threshold on number of bytes needed to perform gzip, do not gzip otherwise.
     // There isn't a great way of doing this that I can think of except splitting out gzip from the fused codec,
     // have to measure the value of fusing vs the cost of gzipping smaller data.
-    var canGzip =
-        HTTPCodecRepository.defaultInstance.isContentTypeCompressable(resp.contentType) && _acceptsGzipResponseBody;
+    var canGzip = HTTPCodecRepository.defaultInstance
+            .isContentTypeCompressable(resp.contentType) &&
+        _acceptsGzipResponseBody;
 
     if (codec == null) {
       if (resp.body is! List<int>) {
-        throw new StateError("Invalid response body. Body of type '${resp
-            .body.runtimeType}' cannot be encoded as content-type '${resp.contentType}'.");
+        throw StateError(
+            "Invalid response body. Body of type '${resp.body.runtimeType}' cannot be encoded as content-type '${resp.contentType}'.");
       }
 
       final bytes = resp.body as List<int>;
@@ -330,18 +341,21 @@ class Request implements RequestOrResponse {
     return codec.encode(resp.body);
   }
 
-  Stream<List<int>> _responseBodyStream(Response resp, _Reference<String> compressionType) {
+  Stream<List<int>> _responseBodyStream(
+      Response resp, _Reference<String> compressionType) {
     Codec<dynamic, List<int>> codec;
     if (resp.encodeBody) {
-      codec = HTTPCodecRepository.defaultInstance.codecForContentType(resp.contentType);
+      codec = HTTPCodecRepository.defaultInstance
+          .codecForContentType(resp.contentType);
     }
 
-    var canGzip =
-        HTTPCodecRepository.defaultInstance.isContentTypeCompressable(resp.contentType) && _acceptsGzipResponseBody;
+    var canGzip = HTTPCodecRepository.defaultInstance
+            .isContentTypeCompressable(resp.contentType) &&
+        _acceptsGzipResponseBody;
     if (codec == null) {
       if (resp.body is! Stream<List<int>>) {
-        throw new StateError("Invalid response body. Body of type '${resp
-            .body.runtimeType}' cannot be encoded as content-type '${resp.contentType}'.");
+        throw StateError(
+            "Invalid response body. Body of type '${resp.body.runtimeType}' cannot be encoded as content-type '${resp.contentType}'.");
       }
 
       final stream = resp.body as Stream<List<int>>;
@@ -362,7 +376,8 @@ class Request implements RequestOrResponse {
   }
 
   bool get _acceptsGzipResponseBody {
-    return raw.headers[HttpHeaders.acceptEncodingHeader]?.any((v) => v.split(",").any((s) => s.trim() == "gzip")) ??
+    return raw.headers[HttpHeaders.acceptEncodingHeader]
+            ?.any((v) => v.split(",").any((s) => s.trim() == "gzip")) ??
         false;
   }
 
@@ -375,14 +390,14 @@ class Request implements RequestOrResponse {
   ///
   /// Note: Setting includeRequestIP to true creates a significant performance penalty.
   String toDebugString(
-      {bool includeElapsedTime: true,
-      bool includeRequestIP: false,
-      bool includeMethod: true,
-      bool includeResource: true,
-      bool includeStatusCode: true,
-      bool includeContentSize: false,
-      bool includeHeaders: false}) {
-    var builder = new StringBuffer();
+      {bool includeElapsedTime = true,
+      bool includeRequestIP = false,
+      bool includeMethod = true,
+      bool includeResource = true,
+      bool includeStatusCode = true,
+      bool includeContentSize = false,
+      bool includeHeaders = false}) {
+    var builder = StringBuffer();
     if (includeRequestIP) {
       builder.write("${raw.connectionInfo?.remoteAddress?.address} ");
     }
@@ -393,7 +408,8 @@ class Request implements RequestOrResponse {
       builder.write("${raw.uri} ");
     }
     if (includeElapsedTime && respondDate != null) {
-      builder.write("${respondDate.difference(receivedDate).inMilliseconds}ms ");
+      builder
+          .write("${respondDate.difference(receivedDate).inMilliseconds}ms ");
     }
     if (includeStatusCode) {
       builder.write("${raw.response.statusCode} ");

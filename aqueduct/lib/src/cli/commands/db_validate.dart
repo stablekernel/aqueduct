@@ -7,7 +7,8 @@ import 'package:aqueduct/src/cli/scripts/get_schema.dart';
 import 'package:aqueduct/src/db/schema/schema.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
-class CLIDatabaseValidate extends CLICommand with CLIDatabaseManagingCommand, CLIProject {
+class CLIDatabaseValidate extends CLICommand
+    with CLIDatabaseManagingCommand, CLIProject {
   @override
   Future<int> handle() async {
     var migrations = projectMigrations;
@@ -16,11 +17,13 @@ class CLIDatabaseValidate extends CLICommand with CLIDatabaseManagingCommand, CL
       return 1;
     }
 
-    final currentSchema = new Schema.fromMap(await IsolateExecutor.run(GetSchemaExecutable({}),
+    final currentSchema = Schema.fromMap(await IsolateExecutor.run(
+        GetSchemaExecutable({}),
         imports: GetSchemaExecutable.importsForPackage(libraryName),
         packageConfigURI: packageConfigUri,
         logHandler: displayProgress));
-    var schemaFromMigrationFiles = await schemaByApplyingMigrationSources(migrations);
+    var schemaFromMigrationFiles =
+        await schemaByApplyingMigrationSources(migrations);
 
     var differences = currentSchema.differenceFrom(schemaFromMigrationFiles);
 

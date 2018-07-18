@@ -9,28 +9,24 @@ void main() {
   InMemoryAuthStorage delegate;
 
   setUp(() async {
-    delegate = new InMemoryAuthStorage();
+    delegate = InMemoryAuthStorage();
   });
 
   test("isTokenExpired works correctly", () {
-    var oldToken = new AuthToken()
-      ..expirationDate =
-          new DateTime.now().toUtc().subtract(new Duration(seconds: 1));
-    var futureToken = new AuthToken()
-      ..expirationDate =
-          new DateTime.now().toUtc().add(new Duration(seconds: 10));
+    var oldToken = AuthToken()
+      ..expirationDate = DateTime.now().toUtc().subtract(Duration(seconds: 1));
+    var futureToken = AuthToken()
+      ..expirationDate = DateTime.now().toUtc().add(Duration(seconds: 10));
 
     expect(oldToken.isExpired, true);
     expect(futureToken.isExpired, false);
   });
 
   test("isAuthCodeExpired works correctly", () {
-    var oldCode = new AuthCode()
-      ..expirationDate =
-          new DateTime.now().toUtc().subtract(new Duration(seconds: 1));
-    var futureCode = new AuthCode()
-      ..expirationDate =
-          new DateTime.now().toUtc().add(new Duration(seconds: 10));
+    var oldCode = AuthCode()
+      ..expirationDate = DateTime.now().toUtc().subtract(Duration(seconds: 1));
+    var futureCode = AuthCode()
+      ..expirationDate = DateTime.now().toUtc().add(Duration(seconds: 10));
 
     expect(oldCode.isExpired, true);
     expect(futureCode.isExpired, false);
@@ -40,7 +36,7 @@ void main() {
     AuthServer auth;
 
     setUp(() async {
-      auth = new AuthServer(delegate);
+      auth = AuthServer(delegate);
     });
 
     test("Get client for ID", () async {
@@ -49,8 +45,8 @@ void main() {
     });
 
     test("Revoked client can no longer be accessed", () async {
-      expect((await auth.getClient("com.stablekernel.app1")) is AuthClient,
-          true);
+      expect(
+          (await auth.getClient("com.stablekernel.app1")) is AuthClient, true);
       await auth.removeClient("com.stablekernel.app1");
       expect(await auth.getClient("com.stablekernel.app1"), isNull);
     });
@@ -67,7 +63,7 @@ void main() {
     AuthServer auth;
     TestUser createdUser;
     setUp(() async {
-      auth = new AuthServer(delegate);
+      auth = AuthServer(delegate);
       delegate.createUsers(1);
       createdUser = delegate.users[1];
     });
@@ -85,14 +81,12 @@ void main() {
       expect(token.clientID, "com.stablekernel.app1");
       expect(token.resourceOwnerIdentifier, createdUser.id);
 
-      final now = new DateTime.now().toUtc();
+      final now = DateTime.now().toUtc();
+      expect(token.issueDate.difference(now).inSeconds.abs(), lessThan(5));
       expect(
-          token.issueDate
-              .difference(now)
-              .inSeconds
-              .abs(),
-          lessThan(5));
-      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+          token.issueDate.isBefore(now) ||
+              token.issueDate.isAtSameMomentAs(now),
+          true);
       expect(token.expirationDate.isAfter(now), true);
       expect(token.type, "bearer");
 
@@ -112,8 +106,11 @@ void main() {
       expect(token.clientID, "com.stablekernel.public");
       expect(token.resourceOwnerIdentifier, createdUser.id);
 
-      var now = new DateTime.now().toUtc();
-      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      var now = DateTime.now().toUtc();
+      expect(
+          token.issueDate.isBefore(now) ||
+              token.issueDate.isAtSameMomentAs(now),
+          true);
       expect(token.expirationDate.isAfter(now), true);
       expect(token.type, "bearer");
 
@@ -124,8 +121,11 @@ void main() {
       expect(token.clientID, "com.stablekernel.public");
       expect(token.resourceOwnerIdentifier, createdUser.id);
 
-      now = new DateTime.now().toUtc();
-      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      now = DateTime.now().toUtc();
+      expect(
+          token.issueDate.isBefore(now) ||
+              token.issueDate.isAtSameMomentAs(now),
+          true);
       expect(token.expirationDate.isAfter(now), true);
       expect(token.type, "bearer");
     });
@@ -217,9 +217,9 @@ void main() {
           InMemoryAuthStorage.DefaultPassword,
           "com.stablekernel.app1",
           "kilimanjaro",
-          expiration: new Duration(seconds: 1));
+          expiration: Duration(seconds: 1));
 
-      sleep(new Duration(seconds: 1));
+      sleep(Duration(seconds: 1));
 
       try {
         await auth.verify(token.accessToken);
@@ -236,7 +236,7 @@ void main() {
     AuthToken initialToken;
 
     setUp(() async {
-      auth = new AuthServer(delegate);
+      auth = AuthServer(delegate);
       delegate.createUsers(1);
       createdUser = delegate.users[1];
       initialToken = await auth.authenticate(
@@ -257,26 +257,27 @@ void main() {
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.app1");
       expect(token.resourceOwnerIdentifier, createdUser.id);
-      expect(
-          token.issueDate
-              .difference(new DateTime.now().toUtc())
-              .inSeconds
-              .abs(),
+      expect(token.issueDate.difference(DateTime.now().toUtc()).inSeconds.abs(),
           lessThan(5));
 
-      final now = new DateTime.now().toUtc();
-      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      final now = DateTime.now().toUtc();
+      expect(
+          token.issueDate.isBefore(now) ||
+              token.issueDate.isAtSameMomentAs(now),
+          true);
       expect(token.expirationDate.isAfter(now), true);
       expect(token.type, "bearer");
 
-      expect(token.issueDate.isAfter(initialToken.issueDate) || token.issueDate.isAtSameMomentAs(initialToken.issueDate), true);
+      expect(
+          token.issueDate.isAfter(initialToken.issueDate) ||
+              token.issueDate.isAtSameMomentAs(initialToken.issueDate),
+          true);
       expect(token.issueDate.difference(token.expirationDate),
           initialToken.issueDate.difference(initialToken.expirationDate));
 
       var authorization = await auth.verify(token.accessToken);
       expect(authorization.clientID, "com.stablekernel.app1");
-      expect(authorization.ownerID,
-          initialToken.resourceOwnerIdentifier);
+      expect(authorization.ownerID, initialToken.resourceOwnerIdentifier);
     });
 
     test("After refresh, the previous token cannot be used", () async {
@@ -343,7 +344,7 @@ void main() {
     TestUser createdUser;
 
     setUp(() async {
-      auth = new AuthServer(delegate);
+      auth = AuthServer(delegate);
       delegate.createUsers(1);
       createdUser = delegate.users[1];
     });
@@ -353,14 +354,12 @@ void main() {
           InMemoryAuthStorage.DefaultPassword, "com.stablekernel.redirect");
 
       expect(authCode.code.length, greaterThan(0));
-      final now = new DateTime.now().toUtc();
+      final now = DateTime.now().toUtc();
+      expect(authCode.issueDate.difference(now).inSeconds.abs(), lessThan(5));
       expect(
-          authCode.issueDate
-              .difference(now)
-              .inSeconds
-              .abs(),
-          lessThan(5));
-      expect(authCode.issueDate.isBefore(now) || authCode.issueDate.isAtSameMomentAs(now), true);
+          authCode.issueDate.isBefore(now) ||
+              authCode.issueDate.isAtSameMomentAs(now),
+          true);
       expect(authCode.resourceOwnerIdentifier, createdUser.id);
       expect(authCode.clientID, "com.stablekernel.redirect");
       expect(authCode.expirationDate.isAfter(now), true);
@@ -444,7 +443,7 @@ void main() {
     AuthCode code;
 
     setUp(() async {
-      auth = new AuthServer(delegate);
+      auth = AuthServer(delegate);
       delegate.createUsers(1);
       createdUser = delegate.users[1];
       code = await auth.authenticateForCode(createdUser.username,
@@ -458,8 +457,11 @@ void main() {
       expect(token.refreshToken, isString);
       expect(token.clientID, "com.stablekernel.redirect");
       expect(token.resourceOwnerIdentifier, createdUser.id);
-      final now = new DateTime.now().toUtc();
-      expect(token.issueDate.isBefore(now) || token.issueDate.isAtSameMomentAs(now), true);
+      final now = DateTime.now().toUtc();
+      expect(
+          token.issueDate.isBefore(now) ||
+              token.issueDate.isAtSameMomentAs(now),
+          true);
       expect(token.expirationDate.isAfter(now), true);
       expect(token.type, "bearer");
     });
@@ -485,7 +487,7 @@ void main() {
           InMemoryAuthStorage.DefaultPassword, "com.stablekernel.redirect",
           expirationInSeconds: 1);
 
-      sleep(new Duration(seconds: 1));
+      sleep(Duration(seconds: 1));
 
       try {
         await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
@@ -588,7 +590,7 @@ void main() {
   });
 
   test("Clients have separate tokens", () async {
-    var auth = new AuthServer(delegate);
+    var auth = AuthServer(delegate);
 
     delegate.createUsers(1);
     TestUser createdUser = delegate.users[1];
@@ -614,7 +616,7 @@ void main() {
   });
 
   test("Ensure users aren't authenticated by other users", () async {
-    var auth = new AuthServer(delegate);
+    var auth = AuthServer(delegate);
     delegate.createUsers(10);
     var users = delegate.users.values.toList();
     var t1 = await auth.authenticate(

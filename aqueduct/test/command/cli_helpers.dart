@@ -14,18 +14,20 @@ class Terminal {
 
   final Directory workingDirectory;
 
-  static Directory get temporaryDirectory => new Directory.fromUri(Directory.current.uri.resolve("tmp/"));
+  static Directory get temporaryDirectory =>
+      Directory.fromUri(Directory.current.uri.resolve("tmp/"));
 
-  static Directory get emptyProjectDirectory =>
-      new Directory.fromUri(Directory.current.uri.resolve("test/").resolve("empty_project/"));
+  static Directory get emptyProjectDirectory => Directory.fromUri(
+      Directory.current.uri.resolve("test/").resolve("empty_project/"));
 
   List<String> defaultAqueductArgs;
   String get output {
     return _output.toString();
   }
-  StringBuffer _output = new StringBuffer();
 
-  static Future activateCLI({String path: "."}) {
+  StringBuffer _output = StringBuffer();
+
+  static Future activateCLI({String path = "."}) {
     final cmd = Platform.isWindows ? "pub.bat" : "pub";
 
     return Process.run(cmd, ["global", "activate", "-spath", path]);
@@ -37,25 +39,32 @@ class Terminal {
     return Process.run(cmd, ["global", "deactivate", "aqueduct"]);
   }
 
-  static Future<Terminal> createProject({String name: "application_test", String template, bool offline: true}) async {
+  static Future<Terminal> createProject(
+      {String name = "application_test",
+      String template,
+      bool offline = true}) async {
     if (template == null) {
       // Copy empty project
-      final projectDir = new Directory.fromUri(temporaryDirectory.uri.resolve(name));
-      final libDir = new Directory.fromUri(projectDir.uri.resolve("lib/"));
+      final projectDir =
+          Directory.fromUri(temporaryDirectory.uri.resolve(name));
+      final libDir = Directory.fromUri(projectDir.uri.resolve("lib/"));
       libDir.createSync(recursive: true);
 
-      new File.fromUri(projectDir.uri.resolve("pubspec.yaml")).writeAsStringSync(_emptyProjectPubspec);
-      new File.fromUri(libDir.uri.resolve("channel.dart")).writeAsStringSync(_emptyProjectChannel);
-      new File.fromUri(libDir.uri.resolve("application_test.dart")).writeAsStringSync(_emptyProjectLibrary);
+      File.fromUri(projectDir.uri.resolve("pubspec.yaml"))
+          .writeAsStringSync(_emptyProjectPubspec);
+      File.fromUri(libDir.uri.resolve("channel.dart"))
+          .writeAsStringSync(_emptyProjectChannel);
+      File.fromUri(libDir.uri.resolve("application_test.dart"))
+          .writeAsStringSync(_emptyProjectLibrary);
 
-      return new Terminal(projectDir);
+      return Terminal(projectDir);
     }
 
     try {
       temporaryDirectory.createSync();
     } catch (_) {}
 
-    final creator = new Terminal(temporaryDirectory);
+    final creator = Terminal(temporaryDirectory);
 
     final args = <String>[];
     if (template != null) {
@@ -71,7 +80,8 @@ class Terminal {
     await creator.runAqueductCommand("create", args);
     print("${creator.output}");
 
-    return new Terminal(new Directory.fromUri(temporaryDirectory.uri.resolve("$name/")));
+    return Terminal(
+        Directory.fromUri(temporaryDirectory.uri.resolve("$name/")));
   }
 
   static void deleteTemporaryDirectory() {
@@ -81,46 +91,54 @@ class Terminal {
   }
 
   Directory get defaultMigrationDirectory {
-    return new Directory.fromUri(workingDirectory.uri.resolve("migrations/"));
+    return Directory.fromUri(workingDirectory.uri.resolve("migrations/"));
   }
 
   Directory get libraryDirectory {
-    return new Directory.fromUri(workingDirectory.uri.resolve("lib/"));
+    return Directory.fromUri(workingDirectory.uri.resolve("lib/"));
   }
 
   void clearOutput() {
     _output.clear();
   }
 
-  void addOrReplaceFile(String path, String contents, {bool importAqueduct: true}) {
+  void addOrReplaceFile(String path, String contents,
+      {bool importAqueduct = true}) {
     final pathComponents = path.split("/");
-    final relativeDirectoryComponents = pathComponents.sublist(0, pathComponents.length - 1);
-    final directory = new Directory.fromUri(
-        relativeDirectoryComponents.fold(workingDirectory.uri, (Uri prev, elem) => prev.resolve(elem + "/")));
+    final relativeDirectoryComponents =
+        pathComponents.sublist(0, pathComponents.length - 1);
+    final directory = Directory.fromUri(relativeDirectoryComponents.fold(
+        workingDirectory.uri, (Uri prev, elem) => prev.resolve(elem + "/")));
     if (!directory.existsSync()) {
       directory.createSync(recursive: true);
     }
 
-    final file = new File.fromUri(directory.uri.resolve(pathComponents.last));
-    file.writeAsStringSync("${importAqueduct ? "import 'package:aqueduct/aqueduct.dart';\n" : ""}" + contents);
+    final file = File.fromUri(directory.uri.resolve(pathComponents.last));
+    file.writeAsStringSync(
+        "${importAqueduct ? "import 'package:aqueduct/aqueduct.dart';\n" : ""}" +
+            contents);
   }
 
   void modifyFile(String path, String contents(String current)) {
     final pathComponents = path.split("/");
-    final relativeDirectoryComponents = pathComponents.sublist(0, pathComponents.length - 1);
-    final directory = new Directory.fromUri(
-        relativeDirectoryComponents.fold(workingDirectory.uri, (Uri prev, elem) => prev.resolve(elem + "/")));
-    final file = new File.fromUri(directory.uri.resolve(pathComponents.last));
+    final relativeDirectoryComponents =
+        pathComponents.sublist(0, pathComponents.length - 1);
+    final directory = Directory.fromUri(relativeDirectoryComponents.fold(
+        workingDirectory.uri, (Uri prev, elem) => prev.resolve(elem + "/")));
+    final file = File.fromUri(directory.uri.resolve(pathComponents.last));
     if (!file.existsSync()) {
-      throw new ArgumentError("File at '${file.uri}' doesn't exist.");
+      throw ArgumentError("File at '${file.uri}' doesn't exist.");
     }
 
     final output = contents(file.readAsStringSync());
     file.writeAsStringSync(output);
   }
 
-  Future<int> executeMigrations({String connectString: "postgres://dart:dart@localhost:5432/dart_test"}) async {
-    final res = await runAqueductCommand("db", ["upgrade", "--connect", connectString]);
+  Future<int> executeMigrations(
+      {String connectString =
+          "postgres://dart:dart@localhost:5432/dart_test"}) async {
+    final res =
+        await runAqueductCommand("db", ["upgrade", "--connect", connectString]);
     if (res != 0) {
       print("executeMigrations failed: $output");
     }
@@ -131,33 +149,34 @@ class Terminal {
     try {
       defaultMigrationDirectory.createSync();
     } catch (_) {}
-    var currentNumberOfMigrations =
-        defaultMigrationDirectory
-            .listSync()
-            .where((e) => e.path.endsWith("migration.dart"))
-            .length;
+    var currentNumberOfMigrations = defaultMigrationDirectory
+        .listSync()
+        .where((e) => e.path.endsWith("migration.dart"))
+        .length;
 
     for (var i = 1; i < schemas.length; i++) {
-      var source = Migration.sourceForSchemaUpgrade(schemas[i - 1], schemas[i], i);
+      var source =
+          Migration.sourceForSchemaUpgrade(schemas[i - 1], schemas[i], i);
 
-      var file = new File.fromUri(defaultMigrationDirectory.uri.resolve("${i + currentNumberOfMigrations}.migration.dart"));
+      var file = File.fromUri(defaultMigrationDirectory.uri
+          .resolve("${i + currentNumberOfMigrations}.migration.dart"));
       file.writeAsStringSync(source);
     }
   }
 
-  Future<ProcessResult> getDependencies({bool offline: true}) async {
+  Future<ProcessResult> getDependencies({bool offline = true}) async {
     var args = ["get", "--no-packages-dir"];
     if (offline) {
       args.add("--offline");
     }
 
     final cmd = Platform.isWindows ? "pub.bat" : "pub";
-    var result = await Process
-        .run(cmd, args, workingDirectory: workingDirectory.absolute.path, runInShell: true)
-        .timeout(new Duration(seconds: 45));
+    var result = await Process.run(cmd, args,
+            workingDirectory: workingDirectory.absolute.path, runInShell: true)
+        .timeout(Duration(seconds: 45));
 
     if (result.exitCode != 0) {
-      throw new Exception("${result.stderr}");
+      throw Exception("${result.stderr}");
     }
 
     return result;
@@ -172,8 +191,7 @@ class Terminal {
     final saved = Directory.current;
     Directory.current = workingDirectory;
 
-    var cmd = new Runner()
-      ..outputSink = _output;
+    var cmd = Runner()..outputSink = _output;
     var results = cmd.options.parse(args);
 
     final exitCode = await cmd.process(results);
@@ -196,13 +214,12 @@ class Terminal {
     final saved = Directory.current;
     Directory.current = workingDirectory;
 
-    var cmd = new Runner()
-      ..outputSink = _output;
+    var cmd = Runner()..outputSink = _output;
     var results = cmd.options.parse(args);
 
-    final task = new CLITask();
+    final task = CLITask();
     var elapsed = 0.0;
-    final timer = new Timer.periodic(new Duration(milliseconds: 100), (t) {
+    final timer = Timer.periodic(Duration(milliseconds: 100), (t) {
       if (cmd.runningProcess != null) {
         t.cancel();
         Directory.current = saved;
@@ -213,7 +230,8 @@ class Terminal {
         if (elapsed > 60000) {
           Directory.current = saved;
           t.cancel();
-          task._processStarted.completeError(new TimeoutException("Timed out after 30 seconds"));
+          task._processStarted
+              .completeError(TimeoutException("Timed out after 30 seconds"));
         }
       }
     });
@@ -278,7 +296,7 @@ class TestChannel extends ApplicationChannel {
 
 class CLIResult {
   int exitCode;
-  StringBuffer collectedOutput = new StringBuffer();
+  StringBuffer collectedOutput = StringBuffer();
 
   String get output => collectedOutput.toString();
 }
@@ -289,6 +307,6 @@ class CLITask {
   Future get hasStarted => _processStarted.future;
   Future<int> get exitCode => _processFinished.future;
 
-  Completer<int> _processFinished = new Completer<int>();
-  Completer<bool> _processStarted = new Completer<bool>();
+  Completer<int> _processFinished = Completer<int>();
+  Completer<bool> _processStarted = Completer<bool>();
 }

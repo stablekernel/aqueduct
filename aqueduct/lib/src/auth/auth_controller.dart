@@ -24,7 +24,9 @@ class AuthController extends ResourceController {
   ///
   /// [authServer] is the required authorization server that grants tokens.
   AuthController(this.authServer) {
-    acceptedContentTypes = [ContentType("application", "x-www-form-urlencoded")];
+    acceptedContentTypes = [
+      ContentType("application", "x-www-form-urlencoded")
+    ];
   }
 
   /// A reference to the [AuthServer] this controller uses to grant tokens.
@@ -74,13 +76,15 @@ class AuthController extends ResourceController {
       final scopes = scope?.split(" ")?.map((s) => AuthScope(s))?.toList();
 
       if (grantType == "password") {
-        final token = await authServer.authenticate(username, password, basicRecord.username, basicRecord.password,
+        final token = await authServer.authenticate(
+            username, password, basicRecord.username, basicRecord.password,
             requestedScopes: scopes);
 
         return AuthController.tokenResponse(token);
       } else if (grantType == "refresh_token") {
-        final token =
-            await authServer.refresh(refreshToken, basicRecord.username, basicRecord.password, requestedScopes: scopes);
+        final token = await authServer.refresh(
+            refreshToken, basicRecord.username, basicRecord.password,
+            requestedScopes: scopes);
 
         return AuthController.tokenResponse(token);
       } else if (grantType == "authorization_code") {
@@ -88,7 +92,8 @@ class AuthController extends ResourceController {
           return _responseForError(AuthRequestError.invalidRequest);
         }
 
-        final token = await authServer.exchange(authCode, basicRecord.username, basicRecord.password);
+        final token = await authServer.exchange(
+            authCode, basicRecord.username, basicRecord.password);
 
         return AuthController.tokenResponse(token);
       } else if (grantType == null) {
@@ -106,7 +111,8 @@ class AuthController extends ResourceController {
   /// Transforms a [AuthToken] into a [Response] object with an RFC6749 compliant JSON token
   /// as the HTTP response body.
   static Response tokenResponse(AuthToken token) {
-    return Response(HttpStatus.ok, {"Cache-Control": "no-store", "Pragma": "no-cache"}, token.asMap());
+    return Response(HttpStatus.ok,
+        {"Cache-Control": "no-store", "Pragma": "no-cache"}, token.asMap());
   }
 
   @override
@@ -119,30 +125,38 @@ class AuthController extends ResourceController {
       if (body != null && body["error"] is String) {
         final errorMessage = body["error"] as String;
         if (errorMessage.startsWith("multiple values")) {
-          response.body = {"error": AuthServerException.errorString(AuthRequestError.invalidRequest)};
+          response.body = {
+            "error":
+                AuthServerException.errorString(AuthRequestError.invalidRequest)
+          };
         }
       }
     }
   }
 
-
   @override
-  List<APIParameter> documentOperationParameters(APIDocumentContext context, Operation operation) {
+  List<APIParameter> documentOperationParameters(
+      APIDocumentContext context, Operation operation) {
     final parameters = super.documentOperationParameters(context, operation);
     parameters.removeWhere((p) => p.name == HttpHeaders.authorizationHeader);
     return parameters;
   }
 
   @override
-  APIRequestBody documentOperationRequestBody(APIDocumentContext context, Operation operation) {
+  APIRequestBody documentOperationRequestBody(
+      APIDocumentContext context, Operation operation) {
     final body = super.documentOperationRequestBody(context, operation);
-    body.content["application/x-www-form-urlencoded"].schema.required = ["grant_type"];
-    body.content["application/x-www-form-urlencoded"].schema.properties["password"].format = "password";
+    body.content["application/x-www-form-urlencoded"].schema.required = [
+      "grant_type"
+    ];
+    body.content["application/x-www-form-urlencoded"].schema
+        .properties["password"].format = "password";
     return body;
   }
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
+  Map<String, APIOperation> documentOperations(
+      APIDocumentContext context, String route, APIPath path) {
     final operations = super.documentOperations(context, route, path);
 
     operations.forEach((_, op) {
@@ -161,7 +175,8 @@ class AuthController extends ResourceController {
   }
 
   @override
-  Map<String, APIResponse> documentOperationResponses(APIDocumentContext context, Operation operation) {
+  Map<String, APIResponse> documentOperationResponses(
+      APIDocumentContext context, Operation operation) {
     return {
       "200": APIResponse.schema(
           "Successfully exchanged credentials for token",
@@ -180,6 +195,7 @@ class AuthController extends ResourceController {
   }
 
   Response _responseForError(AuthRequestError error) {
-    return Response.badRequest(body: {"error": AuthServerException.errorString(error)});
+    return Response.badRequest(
+        body: {"error": AuthServerException.errorString(error)});
   }
 }

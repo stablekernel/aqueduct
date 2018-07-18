@@ -3,7 +3,6 @@ import 'dart:async';
 import '../db/db.dart';
 import 'http.dart';
 
-
 /// A partial class for implementing an [ResourceController] that has a few conveniences
 /// for executing [Query]s.
 ///
@@ -22,9 +21,9 @@ abstract class QueryController<InstanceType extends ManagedObject>
     extends ResourceController {
   /// Create an instance of [QueryController].
   QueryController(ManagedContext context) : super() {
-    query = new Query<InstanceType>(context);
+    query = Query<InstanceType>(context);
   }
-  
+
   /// A query representing the values received from the [request] being processed.
   ///
   /// You may execute this [query] as is or modify it. The following is true of this property:
@@ -48,12 +47,14 @@ abstract class QueryController<InstanceType extends ManagedObject>
         } else if (primaryKeyDesc.type.kind == ManagedPropertyType.bigInteger ||
             primaryKeyDesc.type.kind == ManagedPropertyType.integer) {
           try {
-            query.where((o) => o[query.entity.primaryKey]).equalTo(int.parse(idValue));
-          } on FormatException {            
-            return new Response.notFound();
+            query
+                .where((o) => o[query.entity.primaryKey])
+                .equalTo(int.parse(idValue));
+          } on FormatException {
+            return Response.notFound();
           }
         } else {
-          return new Response.notFound();
+          return Response.notFound();
         }
       }
     }

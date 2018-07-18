@@ -9,22 +9,22 @@ import 'schema.dart';
 class SchemaColumn {
   /// Creates an instance of this type from [name], [type] and other properties.
   SchemaColumn(this.name, ManagedPropertyType type,
-      {this.isIndexed: false,
-      this.isNullable: false,
-      this.autoincrement: false,
-      this.isUnique: false,
+      {this.isIndexed = false,
+      this.isNullable = false,
+      this.autoincrement = false,
+      this.isUnique = false,
       this.defaultValue,
-      this.isPrimaryKey: false}) {
+      this.isPrimaryKey = false}) {
     _type = typeStringForType(type);
   }
 
   /// A convenience constructor for properties that represent foreign key relationships.
   SchemaColumn.relationship(this.name, ManagedPropertyType type,
-      {this.isNullable: true,
-      this.isUnique: false,
+      {this.isNullable = true,
+      this.isUnique = false,
       this.relatedTableName,
       this.relatedColumnName,
-      DeleteRule rule: DeleteRule.nullify}) {
+      DeleteRule rule = DeleteRule.nullify}) {
     isIndexed = true;
     _type = typeStringForType(type);
     _deleteRule = deleteRuleStringForDeleteRule(rule);
@@ -155,7 +155,7 @@ class SchemaColumn {
 
   /// The differences between two columns.
   SchemaColumnDifference differenceFrom(SchemaColumn column) {
-    return new SchemaColumnDifference(this, column);
+    return SchemaColumnDifference(this, column);
   }
 
   /// Returns string representation of [ManagedPropertyType].
@@ -256,7 +256,7 @@ class SchemaColumn {
 
   /// Returns Dart code to create this instance again in a script.
   String get source {
-    var builder = new StringBuffer();
+    var builder = StringBuffer();
     if (relatedTableName != null) {
       builder.write('new SchemaColumn.relationship("${name}", ${type}');
       builder.write(", relatedTableName: \"${relatedTableName}\"");
@@ -305,7 +305,7 @@ class SchemaColumn {
 /// This class is used for comparing database columns for validation and migration.
 class SchemaColumnDifference {
   /// List of comparable properties of a [SchemaColumn].
-  static const List<Symbol> symbols = const [
+  static const List<Symbol> symbols = [
     #name,
     #isIndexed,
     #type,
@@ -362,19 +362,19 @@ class SchemaColumnDifference {
   List<String> get errorMessages {
     if (expectedColumn == null && actualColumn != null) {
       return [
-        "Column '${actualColumn.name}' in table '${actualColumn.table
-            .name}' should NOT exist, but is created by migration files"
+        "Column '${actualColumn.name}' in table '${actualColumn.table.name}' should NOT exist, but is created by migration files"
       ];
     } else if (expectedColumn != null && actualColumn == null) {
       return [
-        "Column '${expectedColumn.name}' in table '${expectedColumn.table
-            .name}' should exist, but is NOT created by migration files"
+        "Column '${expectedColumn.name}' in table '${expectedColumn.table.name}' should exist, but is NOT created by migration files"
       ];
     }
 
     return _differingProperties.map((propertyName) {
-      var expectedValue = reflect(expectedColumn).getField(new Symbol(propertyName)).reflectee;
-      var actualValue = reflect(actualColumn).getField(new Symbol(propertyName)).reflectee;
+      var expectedValue =
+          reflect(expectedColumn).getField(Symbol(propertyName)).reflectee;
+      var actualValue =
+          reflect(actualColumn).getField(Symbol(propertyName)).reflectee;
 
       return "Column '${expectedColumn.name}' in table '${actualColumn.table.name}' expected "
           "'$expectedValue' for '$propertyName', but migration files yield '$actualValue'";
@@ -386,30 +386,34 @@ class SchemaColumnDifference {
   /// Dart code to upgrade [expectedColumn] to [actualColumn].
   String generateUpgradeSource({List<String> changeList}) {
     if (actualColumn.isPrimaryKey != expectedColumn.isPrimaryKey) {
-      throw new SchemaException("Cannot change primary key of '${expectedColumn.table.name}'");
+      throw SchemaException(
+          "Cannot change primary key of '${expectedColumn.table.name}'");
     }
 
     if (actualColumn.relatedColumnName != expectedColumn.relatedColumnName) {
-      throw new SchemaException(
+      throw SchemaException(
           "Cannot change Relationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
     }
 
     if (actualColumn.relatedTableName != expectedColumn.relatedTableName) {
-      throw new SchemaException("Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
+      throw SchemaException(
+          "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
     }
 
     if (actualColumn.type != expectedColumn.type) {
-      throw new SchemaException("Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
+      throw SchemaException(
+          "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
     }
 
     if (actualColumn.autoincrement != expectedColumn.autoincrement) {
-      throw new SchemaException(
+      throw SchemaException(
           "Cannot change autoincrement behavior of '${expectedColumn.table.name}.${expectedColumn.name}'");
     }
 
-    var builder = new StringBuffer();
+    var builder = StringBuffer();
 
-    builder.writeln('database.alterColumn("${expectedColumn.table.name}", "${expectedColumn.name}", (c) {');
+    builder.writeln(
+        'database.alterColumn("${expectedColumn.table.name}", "${expectedColumn.name}", (c) {');
 
     if (expectedColumn.isIndexed != actualColumn.isIndexed) {
       builder.writeln("c.isIndexed = ${actualColumn.isIndexed};");
@@ -431,7 +435,9 @@ class SchemaColumnDifference {
       builder.writeln("c.isNullable = ${actualColumn.isNullable};");
     }
 
-    if (expectedColumn.isNullable == true && actualColumn.isNullable == false && actualColumn.defaultValue == null) {
+    if (expectedColumn.isNullable == true &&
+        actualColumn.isNullable == false &&
+        actualColumn.defaultValue == null) {
       builder.writeln("}, unencodedInitialValue: <<set>>);");
     } else {
       builder.writeln("});");

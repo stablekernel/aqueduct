@@ -15,7 +15,7 @@ void main() {
       () async {
     context = await contextWithModels([TestModel]);
 
-    var q = new Query<TestModel>(context)..values.id = 1;
+    var q = Query<TestModel>(context)..values.id = 1;
 
     expect(q.values.id, 1);
   });
@@ -23,7 +23,7 @@ void main() {
   test("Insert Bad Key", () async {
     context = await contextWithModels([TestModel]);
 
-    var insertReq = new Query<TestModel>(context)
+    var insertReq = Query<TestModel>(context)
       ..valueMap = {
         "name": "bob",
         "emailAddress": "bk@a.com",
@@ -34,14 +34,14 @@ void main() {
       await insertReq.insert();
       expect(true, false);
     } on ArgumentError catch (e) {
-      expect(
-          e.toString(), contains("Column 'bad_key' does not exist for table 'simple'"));
+      expect(e.toString(),
+          contains("Column 'bad_key' does not exist for table 'simple'"));
     }
   });
 
   test("Insert from static method", () async {
     context = await contextWithModels([TestModel]);
-    final o = await Query.insertObject(context, new TestModel()..name = "Bob");
+    final o = await Query.insertObject(context, TestModel()..name = "Bob");
     expect(o.id, isNotNull);
     expect(o.name, "Bob");
   });
@@ -49,14 +49,14 @@ void main() {
   test("Inserting an object that violated a unique constraint fails", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()
+    var m = TestModel()
       ..name = "bob"
       ..emailAddress = "dup@a.com";
 
-    var insertReq = new Query<TestModel>(context)..values = m;
+    var insertReq = Query<TestModel>(context)..values = m;
     await insertReq.insert();
 
-    var insertReqDup = new Query<TestModel>(context)..values = m;
+    var insertReqDup = Query<TestModel>(context)..values = m;
 
     var successful = false;
     try {
@@ -69,29 +69,31 @@ void main() {
     expect(successful, false);
 
     m.emailAddress = "dup1@a.com";
-    var insertReqFollowup = new Query<TestModel>(context)..values = m;
+    var insertReqFollowup = Query<TestModel>(context)..values = m;
 
     var result = await insertReqFollowup.insert();
 
     expect(result.emailAddress, "dup1@a.com");
   });
 
-  test("Insert an object that violates a unique set constraint fails with conflict", () async {
+  test(
+      "Insert an object that violates a unique set constraint fails with conflict",
+      () async {
     context = await contextWithModels([MultiUnique]);
 
-    var q = new Query<MultiUnique>(context)
+    var q = Query<MultiUnique>(context)
       ..values.a = "a"
       ..values.b = "b";
 
     await q.insert();
 
-    q = new Query<MultiUnique>(context)
+    q = Query<MultiUnique>(context)
       ..values.a = "a"
       ..values.b = "a";
 
     await q.insert();
 
-    q = new Query<MultiUnique>(context)
+    q = Query<MultiUnique>(context)
       ..values.a = "a"
       ..values.b = "b";
     try {
@@ -105,11 +107,11 @@ void main() {
   test("Inserting an object works and returns the object", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()
+    var m = TestModel()
       ..name = "bob"
       ..emailAddress = "1@a.com";
 
-    var insertReq = new Query<TestModel>(context)..values = m;
+    var insertReq = Query<TestModel>(context)..values = m;
 
     var result = await insertReq.insert();
 
@@ -122,17 +124,17 @@ void main() {
   test("Inserting an object works", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()
+    var m = TestModel()
       ..name = "bob"
       ..emailAddress = "2@a.com";
 
-    var insertReq = new Query<TestModel>(context)..values = m;
+    var insertReq = Query<TestModel>(context)..values = m;
 
     var result = await insertReq.insert();
 
-    var readReq = new Query<TestModel>(context)
+    var readReq = Query<TestModel>(context)
       ..predicate =
-          new QueryPredicate("emailAddress = @email", {"email": "2@a.com"});
+          QueryPredicate("emailAddress = @email", {"email": "2@a.com"});
 
     result = await readReq.fetchOne();
     expect(result.name, "bob");
@@ -141,9 +143,9 @@ void main() {
   test("Inserting an object without required key fails", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel()..emailAddress = "required@a.com";
+    var m = TestModel()..emailAddress = "required@a.com";
 
-    var insertReq = new Query<TestModel>(context)..values = m;
+    var insertReq = Query<TestModel>(context)..values = m;
 
     var successful = false;
     try {
@@ -161,7 +163,7 @@ void main() {
       () async {
     context = await contextWithModels([TestModel]);
 
-    var insertReq = new Query<TestModel>(context)
+    var insertReq = Query<TestModel>(context)
       ..valueMap = {"id": 20, "name": "Bob"}
       ..returningProperties((t) => [t.id, t.name]);
 
@@ -170,7 +172,7 @@ void main() {
     expect(value.name, "Bob");
     expect(value.asMap().containsKey("emailAddress"), false);
 
-    insertReq = new Query<TestModel>(context)
+    insertReq = Query<TestModel>(context)
       ..valueMap = {"id": 21, "name": "Bob"}
       ..returningProperties((t) => [t.id, t.name, t.emailAddress]);
 
@@ -185,14 +187,14 @@ void main() {
   test("Inserting object with relationship returns embedded object", () async {
     context = await contextWithModels([GenUser, GenPost]);
 
-    var u = new GenUser()..name = "Joe";
-    var q = new Query<GenUser>(context)..values = u;
+    var u = GenUser()..name = "Joe";
+    var q = Query<GenUser>(context)..values = u;
     u = await q.insert();
 
-    var p = new GenPost()
+    var p = GenPost()
       ..owner = u
       ..text = "1";
-    var pq = new Query<GenPost>(context)..values = p;
+    var pq = Query<GenPost>(context)..values = p;
     p = await pq.insert();
 
     expect(p.id, greaterThan(0));
@@ -202,40 +204,38 @@ void main() {
   test("Timestamp inserted correctly by default", () async {
     context = await contextWithModels([GenTime]);
 
-    var t = new GenTime()..text = "hey";
+    var t = GenTime()..text = "hey";
 
-    var q = new Query<GenTime>(context)..values = t;
+    var q = Query<GenTime>(context)..values = t;
 
     var result = await q.insert();
 
     expect(result.dateCreated is DateTime, true);
-    expect(
-        result.dateCreated.difference(new DateTime.now()).inSeconds <= 0, true);
+    expect(result.dateCreated.difference(DateTime.now()).inSeconds <= 0, true);
   });
 
   test("Can insert timestamp manually", () async {
     context = await contextWithModels([GenTime]);
 
-    var dt = new DateTime.now();
-    var t = new GenTime()
+    var dt = DateTime.now();
+    var t = GenTime()
       ..dateCreated = dt
       ..text = "hey";
 
-    var q = new Query<GenTime>(context)..values = t;
+    var q = Query<GenTime>(context)..values = t;
 
     var result = await q.insert();
 
     expect(result.dateCreated is DateTime, true);
-    expect(
-        result.dateCreated.difference(dt).inSeconds == 0, true);
+    expect(result.dateCreated.difference(dt).inSeconds == 0, true);
   });
 
   test("Transient values work correctly", () async {
     context = await contextWithModels([TransientModel]);
 
-    var t = new TransientModel()..value = "foo";
+    var t = TransientModel()..value = "foo";
 
-    var q = new Query<TransientModel>(context)..values = t;
+    var q = Query<TransientModel>(context)..values = t;
     var result = await q.insert();
     expect(result.transientValue, null);
   });
@@ -250,23 +250,23 @@ void main() {
       ]
     };
 
-    var u = new GenUser()..readFromMap(json);
+    var u = GenUser()..readFromMap(json);
 
-    var q = new Query<GenUser>(context)..values = u;
+    var q = Query<GenUser>(context)..values = u;
 
     var result = await q.insert();
     expect(result.id, greaterThan(0));
     expect(result.name, "Bob");
     expect(result.posts, isNull);
 
-    var pq = new Query<GenPost>(context);
+    var pq = Query<GenPost>(context);
     expect(await pq.fetch(), hasLength(0));
   });
 
   test("Insert object with no keys", () async {
     context = await contextWithModels([BoringObject]);
 
-    var q = new Query<BoringObject>(context);
+    var q = Query<BoringObject>(context);
     var result = await q.insert();
     expect(result.id, greaterThan(0));
   });
@@ -274,8 +274,8 @@ void main() {
   test("Can use insert private properties", () async {
     context = await contextWithModels([PrivateField]);
 
-    await (new Query<PrivateField>(context)..values.public = "abc").insert();
-    var q = new Query<PrivateField>(context);
+    await (Query<PrivateField>(context)..values.public = "abc").insert();
+    var q = Query<PrivateField>(context);
     var result = await q.fetch();
     expect(result.first.public, "abc");
   });
@@ -283,8 +283,7 @@ void main() {
   test("Can use enum to set property to be stored in db", () async {
     context = await contextWithModels([EnumObject]);
 
-    var q = new Query<EnumObject>(context)
-      ..values.enumValues = EnumValues.efgh;
+    var q = Query<EnumObject>(context)..values.enumValues = EnumValues.efgh;
 
     var result = await q.insert();
     expect(result.enumValues, EnumValues.efgh);
@@ -352,19 +351,23 @@ class _Transient {
   String value;
 }
 
-class BoringObject extends ManagedObject<_BoringObject> implements _BoringObject {}
+class BoringObject extends ManagedObject<_BoringObject>
+    implements _BoringObject {}
+
 class _BoringObject {
   @primaryKey
   int id;
 }
 
-class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField {
+class PrivateField extends ManagedObject<_PrivateField>
+    implements _PrivateField {
   set public(String p) {
     _private = p;
   }
 
   String get public => _private;
 }
+
 class _PrivateField {
   @primaryKey
   int id;
@@ -373,6 +376,7 @@ class _PrivateField {
 }
 
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
+
 class _EnumObject {
   @primaryKey
   int id;
@@ -381,6 +385,7 @@ class _EnumObject {
 }
 
 class MultiUnique extends ManagedObject<_MultiUnique> implements _MultiUnique {}
+
 @Table.unique([Symbol('a'), Symbol('b')])
 class _MultiUnique {
   @primaryKey
@@ -390,6 +395,4 @@ class _MultiUnique {
   String b;
 }
 
-enum EnumValues {
-  abcd, efgh, other18
-}
+enum EnumValues { abcd, efgh, other18 }

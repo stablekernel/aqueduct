@@ -1,19 +1,24 @@
-
 import 'package:aqueduct/src/http/http.dart';
 
 import 'query.dart';
 import '../persistent_store/persistent_store.dart';
 
-
 /// An exception describing an issue with a query.
 ///
 /// A suggested HTTP status code based on the type of exception will always be available.
 class QueryException<T> implements HandlerException {
-  QueryException(this.event, {this.message, this.underlyingException, this.offendingItems});
+  QueryException(this.event,
+      {this.message, this.underlyingException, this.offendingItems});
 
-  QueryException.input(this.message, this.offendingItems, {this.underlyingException}) : event = QueryExceptionEvent.input;
-  QueryException.transport(this.message, {this.underlyingException}) : event = QueryExceptionEvent.transport, offendingItems = null;
-  QueryException.conflict(this.message, this.offendingItems, {this.underlyingException}) : event = QueryExceptionEvent.conflict;
+  QueryException.input(this.message, this.offendingItems,
+      {this.underlyingException})
+      : event = QueryExceptionEvent.input;
+  QueryException.transport(this.message, {this.underlyingException})
+      : event = QueryExceptionEvent.transport,
+        offendingItems = null;
+  QueryException.conflict(this.message, this.offendingItems,
+      {this.underlyingException})
+      : event = QueryExceptionEvent.conflict;
 
   final String message;
 
@@ -27,7 +32,8 @@ class QueryException<T> implements HandlerException {
 
   @override
   Response get response {
-    return new Response(_getStatus(event), null, {"error": message ?? "query failed"});
+    return Response(
+        _getStatus(event), null, {"error": message ?? "query failed"});
   }
 
   static int _getStatus(QueryExceptionEvent event) {

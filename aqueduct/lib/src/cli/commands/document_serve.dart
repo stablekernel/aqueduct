@@ -18,7 +18,8 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
   @override
   StoppableProcess runningProcess;
 
-  Directory get _hostedDirectory => new Directory.fromUri(projectDirectory.uri.resolve(".aqueduct_spec"));
+  Directory get _hostedDirectory =>
+      Directory.fromUri(projectDirectory.uri.resolve(".aqueduct_spec"));
 
   @override
   Future<int> handle() async {
@@ -39,27 +40,32 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
   Future<StoppableProcess> _listen() async {
     final server = await HttpServer.bind(InternetAddress.anyIPv4, port);
 
-    final fileController = new HTTPFileController(_hostedDirectory.uri.toFilePath(windows: Platform.isWindows))
-      ..addCachePolicy(new HTTPCachePolicy(requireConditionalRequest: true), (p) => p.endsWith(".html"))
-      ..addCachePolicy(new HTTPCachePolicy(requireConditionalRequest: true), (p) => p.endsWith(".json"))
-      ..addCachePolicy(new HTTPCachePolicy(expirationFromNow: new Duration(days: 300)), (p) => true)
+    final fileController = HTTPFileController(
+        _hostedDirectory.uri.toFilePath(windows: Platform.isWindows))
+      ..addCachePolicy(HTTPCachePolicy(requireConditionalRequest: true),
+          (p) => p.endsWith(".html"))
+      ..addCachePolicy(HTTPCachePolicy(requireConditionalRequest: true),
+          (p) => p.endsWith(".json"))
+      ..addCachePolicy(
+          HTTPCachePolicy(expirationFromNow: Duration(days: 300)), (p) => true)
       ..logger.onRecord.listen((rec) {
         outputSink.writeln("${rec.message} ${rec.stackTrace ?? ""}");
       });
 
-    final router = new Router();
+    final router = Router();
     router.route("/*").link(() => fileController);
     router.didAddToChannel();
 
-    server.map((req) => new Request(req)).listen((req) {
+    server.map((req) => Request(req)).listen((req) {
       router.receive(req);
     });
 
-    displayInfo("Document server listening on http://${server.address.host}:${server.port}/.",
+    displayInfo(
+        "Document server listening on http://${server.address.host}:${server.port}/.",
         color: CLIColor.boldGreen);
     displayProgress("Use Ctrl-C (SIGINT) to stop running the server.");
 
-    return new StoppableProcess((reason) async {
+    return StoppableProcess((reason) async {
       displayInfo("Shutting down.");
       displayProgress("Reason: $reason");
       await server.close();
@@ -70,11 +76,13 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
   Future _build() async {
     _hostedDirectory.createSync();
 
-    final documentJSON = json.encode(await documentProject(projectDirectory.uri, libraryName, projectSpecificationFile));
-    final jsonSpecFile = new File.fromUri(_hostedDirectory.uri.resolve("swagger.json"));
+    final documentJSON = json.encode(await documentProject(
+        projectDirectory.uri, libraryName, projectSpecificationFile));
+    final jsonSpecFile =
+        File.fromUri(_hostedDirectory.uri.resolve("swagger.json"));
     jsonSpecFile.writeAsStringSync(documentJSON);
 
-    var htmlFile = new File.fromUri(_hostedDirectory.uri.resolve("index.html"));
+    var htmlFile = File.fromUri(_hostedDirectory.uri.resolve("index.html"));
     htmlFile.writeAsStringSync(_htmlSource);
   }
 

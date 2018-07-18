@@ -10,12 +10,12 @@ import 'package:aqueduct/src/cli/commands/setup.dart';
 
 class Runner extends CLICommand {
   Runner() {
-    registerCommand(new CLITemplateCreator());
-    registerCommand(new CLIDatabase());
-    registerCommand(new CLIServer());
-    registerCommand(new CLISetup());
-    registerCommand(new CLIAuth());
-    registerCommand(new CLIDocument());
+    registerCommand(CLITemplateCreator());
+    registerCommand(CLIDatabase());
+    registerCommand(CLIServer());
+    registerCommand(CLISetup());
+    registerCommand(CLIAuth());
+    registerCommand(CLIDocument());
   }
 
   @override

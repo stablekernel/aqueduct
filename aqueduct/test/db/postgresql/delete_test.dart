@@ -14,22 +14,22 @@ void main() {
   test("Deleting an object works", () async {
     context = await contextWithModels([TestModel, RefModel]);
 
-    var m = new TestModel()
+    var m = TestModel()
       ..email = "a@a.com"
       ..name = "joe";
-    var req = new Query<TestModel>(context)..values = m;
+    var req = Query<TestModel>(context)..values = m;
 
     var inserted = await req.insert();
     expect(inserted.id, greaterThan(0));
 
-    req = new Query<TestModel>(context)
-      ..predicate = new QueryPredicate("id = @id", {"id": inserted.id});
+    req = Query<TestModel>(context)
+      ..predicate = QueryPredicate("id = @id", {"id": inserted.id});
 
     var count = await req.delete();
     expect(count, 1);
 
-    req = new Query<TestModel>(context)
-      ..predicate = new QueryPredicate("id = @id", {"id": inserted.id});
+    req = Query<TestModel>(context)
+      ..predicate = QueryPredicate("id = @id", {"id": inserted.id});
 
     var result = await req.fetch();
 
@@ -41,25 +41,25 @@ void main() {
     context = await contextWithModels([TestModel, RefModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel()
+      var m = TestModel()
         ..email = "$i@a.com"
         ..name = "joe";
 
-      var req = new Query<TestModel>(context)..values = m;
+      var req = Query<TestModel>(context)..values = m;
 
       await req.insert();
     }
 
-    var req = new Query<TestModel>(context);
+    var req = Query<TestModel>(context);
     var result = await req.fetch();
     expect(result.length, 10);
 
-    req = new Query<TestModel>(context)
-      ..predicate = new QueryPredicate("id = @id", {"id": 1});
+    req = Query<TestModel>(context)
+      ..predicate = QueryPredicate("id = @id", {"id": 1});
     var count = await req.delete();
     expect(count, 1);
 
-    req = new Query<TestModel>(context);
+    req = Query<TestModel>(context);
     result = await req.fetch();
     expect(result.length, 9);
   });
@@ -69,24 +69,24 @@ void main() {
     context = await contextWithModels([TestModel, RefModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel()
+      var m = TestModel()
         ..email = "$i@a.com"
         ..name = "joe";
 
-      var req = new Query<TestModel>(context)..values = m;
+      var req = Query<TestModel>(context)..values = m;
 
       await req.insert();
     }
 
-    var req = new Query<TestModel>(context);
+    var req = Query<TestModel>(context);
     var result = await req.fetch();
     expect(result.length, 10);
 
-    req = new Query<TestModel>(context)..canModifyAllInstances = true;
+    req = Query<TestModel>(context)..canModifyAllInstances = true;
     var count = await req.delete();
     expect(count, 10);
 
-    req = new Query<TestModel>(context);
+    req = Query<TestModel>(context);
     result = await req.fetch();
     expect(result.length, 0);
   });
@@ -96,27 +96,27 @@ void main() {
     context = await contextWithModels([TestModel, RefModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel()
+      var m = TestModel()
         ..email = "$i@a.com"
         ..name = "joe";
 
-      var req = new Query<TestModel>(context)..values = m;
+      var req = Query<TestModel>(context)..values = m;
 
       await req.insert();
     }
 
-    var req = new Query<TestModel>(context);
+    var req = Query<TestModel>(context);
     var result = await req.fetch();
     expect(result.length, 10);
 
     try {
-      req = new Query<TestModel>(context);
+      req = Query<TestModel>(context);
       await req.delete();
     } on StateError catch (e) {
       expect(e.toString(), contains("'canModifyAllInstances'"));
     }
 
-    req = new Query<TestModel>(context);
+    req = Query<TestModel>(context);
     result = await req.fetch();
     expect(result.length, 10);
   });
@@ -124,19 +124,19 @@ void main() {
   test("Deleting a related object w/nullify sets property to null", () async {
     context = await contextWithModels([TestModel, RefModel]);
 
-    var testModelObject = new TestModel()..name = "a";
-    var testModelReq = new Query<TestModel>(context)..values = testModelObject;
+    var testModelObject = TestModel()..name = "a";
+    var testModelReq = Query<TestModel>(context)..values = testModelObject;
     var testObj = await testModelReq.insert();
 
-    var refModelObject = new RefModel()..test = testObj;
-    var refModelReq = new Query<RefModel>(context)..values = refModelObject;
+    var refModelObject = RefModel()..test = testObj;
+    var refModelReq = Query<RefModel>(context)..values = refModelObject;
     var refObj = await refModelReq.insert();
 
-    testModelReq = new Query<TestModel>(context)..canModifyAllInstances = true;
+    testModelReq = Query<TestModel>(context)..canModifyAllInstances = true;
     var count = await testModelReq.delete();
     expect(count, 1);
 
-    refModelReq = new Query<RefModel>(context)
+    refModelReq = Query<RefModel>(context)
       ..returningProperties((r) => [r.id, r.test]);
     refObj = await refModelReq.fetchOne();
     expect(refObj.test, null);
@@ -145,17 +145,17 @@ void main() {
   test("Deleting a related object w/restrict fails", () async {
     context = await contextWithModels([GRestrict, GRestrictInverse]);
 
-    var griObject = new GRestrictInverse()..name = "a";
-    var griReq = new Query<GRestrictInverse>(context)..values = griObject;
+    var griObject = GRestrictInverse()..name = "a";
+    var griReq = Query<GRestrictInverse>(context)..values = griObject;
     var testObj = await griReq.insert();
 
-    var grObject = new GRestrict()..test = testObj;
-    var grReq = new Query<GRestrict>(context)..values = grObject;
+    var grObject = GRestrict()..test = testObj;
+    var grReq = Query<GRestrict>(context)..values = grObject;
     await grReq.insert();
 
     var successful = false;
     try {
-      griReq = new Query<GRestrictInverse>(context)..canModifyAllInstances = true;
+      griReq = Query<GRestrictInverse>(context)..canModifyAllInstances = true;
       await griReq.delete();
       successful = true;
     } on QueryException catch (e) {
@@ -168,19 +168,19 @@ void main() {
   test("Deleting cascade object deletes other object", () async {
     context = await contextWithModels([GCascade, GCascadeInverse]);
 
-    var obj = new GCascadeInverse()..name = "a";
-    var req = new Query<GCascadeInverse>(context)..values = obj;
+    var obj = GCascadeInverse()..name = "a";
+    var req = Query<GCascadeInverse>(context)..values = obj;
     var testObj = await req.insert();
 
-    var cascadeObj = new GCascade()..test = testObj;
-    var cascadeReq = new Query<GCascade>(context)..values = cascadeObj;
+    var cascadeObj = GCascade()..test = testObj;
+    var cascadeReq = Query<GCascade>(context)..values = cascadeObj;
     await cascadeReq.insert();
 
-    req = new Query<GCascadeInverse>(context)..canModifyAllInstances = true;
+    req = Query<GCascadeInverse>(context)..canModifyAllInstances = true;
     var count = await req.delete();
     expect(count, 1);
 
-    cascadeReq = new Query<GCascade>(context);
+    cascadeReq = Query<GCascade>(context);
     var res = await cascadeReq.fetch();
     expect(res.length, 0);
   });
@@ -215,8 +215,7 @@ class _RefModel {
   @primaryKey
   int id;
 
-  @Relate(Symbol('ref'),
-      isRequired: false, onDelete: DeleteRule.nullify)
+  @Relate(Symbol('ref'), isRequired: false, onDelete: DeleteRule.nullify)
   TestModel test;
 }
 
@@ -238,8 +237,7 @@ class _GRestrict {
   @primaryKey
   int id;
 
-  @Relate(Symbol('test'),
-      isRequired: false, onDelete: DeleteRule.restrict)
+  @Relate(Symbol('test'), isRequired: false, onDelete: DeleteRule.restrict)
   GRestrictInverse test;
 }
 
@@ -261,7 +259,6 @@ class _GCascade {
   @primaryKey
   int id;
 
-  @Relate(Symbol('test'),
-      isRequired: false, onDelete: DeleteRule.cascade)
+  @Relate(Symbol('test'), isRequired: false, onDelete: DeleteRule.cascade)
   GCascadeInverse test;
 }

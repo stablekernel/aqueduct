@@ -12,41 +12,44 @@ void main() {
   test("Fetching an object gets entire object", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel(name: "Joe", email: "a@a.com");
-    var req = new Query<TestModel>(context)..values = m;
+    var m = TestModel(name: "Joe", email: "a@a.com");
+    var req = Query<TestModel>(context)..values = m;
     var item = await req.insert();
 
-    req = new Query<TestModel>(context)
-      ..predicate = new QueryPredicate("id = @id", {"id": item.id});
+    req = Query<TestModel>(context)
+      ..predicate = QueryPredicate("id = @id", {"id": item.id});
     item = await req.fetchOne();
 
     expect(item.name, "Joe");
     expect(item.email, "a@a.com");
   });
 
-  test("Query with dynamic entity and mis-matched context throws exception", () async {
+  test("Query with dynamic entity and mis-matched context throws exception",
+      () async {
     context = await contextWithModels([TestModel]);
 
-    var someOtherContext = new ManagedContext(new ManagedDataModel([]), null);
+    var someOtherContext = ManagedContext(ManagedDataModel([]), null);
     try {
-      new Query.forEntity(context.dataModel.entityForType(TestModel), someOtherContext);
+      Query.forEntity(
+          context.dataModel.entityForType(TestModel), someOtherContext);
       expect(true, false);
     } on StateError catch (e) {
-      expect(e.toString(), allOf([contains("'simple'"), contains("is from different context")]));
+      expect(e.toString(),
+          allOf([contains("'simple'"), contains("is from different context")]));
     }
   });
 
   test("Specifying resultProperties works", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel(name: "Joe", email: "b@a.com");
-    var req = new Query<TestModel>(context)..values = m;
+    var m = TestModel(name: "Joe", email: "b@a.com");
+    var req = Query<TestModel>(context)..values = m;
 
     var item = await req.insert();
     var id = item.id;
 
-    req = new Query<TestModel>(context)
-      ..predicate = new QueryPredicate("id = @id", {"id": item.id})
+    req = Query<TestModel>(context)
+      ..predicate = QueryPredicate("id = @id", {"id": item.id})
       ..returningProperties((t) => [t.id, t.name]);
 
     item = await req.fetchOne();
@@ -59,20 +62,22 @@ void main() {
   test("Returning properties for undefined attributes fails", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel(name: "Joe", email: "b@a.com");
-    var req = new Query<TestModel>(context)..values = m;
+    var m = TestModel(name: "Joe", email: "b@a.com");
+    var req = Query<TestModel>(context)..values = m;
 
     await req.insert();
 
     try {
-      req = new Query<TestModel>(context)
+      req = Query<TestModel>(context)
         ..returningProperties((t) => [t.id, t["foobar"]]);
       fail("unreachable");
     } on ArgumentError catch (e) {
-      expect(e.toString(), allOf([
-        contains("'foobar'"),
-        contains("'TestModel'"),
-      ]));
+      expect(
+          e.toString(),
+          allOf([
+            contains("'foobar'"),
+            contains("'TestModel'"),
+          ]));
     }
   });
 
@@ -80,14 +85,14 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel(name: "Joe$i", email: "asc$i@a.com");
-      var req = new Query<TestModel>(context)..values = m;
+      var m = TestModel(name: "Joe$i", email: "asc$i@a.com");
+      var req = Query<TestModel>(context)..values = m;
       await req.insert();
     }
 
-    var req = new Query<TestModel>(context)
+    var req = Query<TestModel>(context)
       ..sortBy((t) => t.email, QuerySortOrder.ascending)
-      ..predicate = new QueryPredicate("email like @key", {"key": "asc%"});
+      ..predicate = QueryPredicate("email like @key", {"key": "asc%"});
 
     var result = await req.fetch();
 
@@ -95,7 +100,8 @@ void main() {
       expect(result[i].email, "asc$i@a.com");
     }
 
-    req = new Query<TestModel>(context)..sortBy((t) => t.id, QuerySortOrder.ascending);
+    req = Query<TestModel>(context)
+      ..sortBy((t) => t.id, QuerySortOrder.ascending);
     result = await req.fetch();
 
     int idIndex = 0;
@@ -110,16 +116,16 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel(name: "Joe$i", email: "desc$i@a.com");
+      var m = TestModel(name: "Joe$i", email: "desc$i@a.com");
 
-      var req = new Query<TestModel>(context)..values = m;
+      var req = Query<TestModel>(context)..values = m;
 
       await req.insert();
     }
 
-    var req = new Query<TestModel>(context)
+    var req = Query<TestModel>(context)
       ..sortBy((t) => t.email, QuerySortOrder.descending)
-      ..predicate = new QueryPredicate("email like @key", {"key": "desc%"});
+      ..predicate = QueryPredicate("email like @key", {"key": "desc%"});
     var result = await req.fetch();
 
     for (int i = 0; i < 10; i++) {
@@ -131,30 +137,33 @@ void main() {
   test("Cannot sort by property that doesn't exist", () async {
     context = await contextWithModels([TestModel]);
     try {
-      new Query<TestModel>(context)
+      Query<TestModel>(context)
         ..sortBy((u) => u["nonexisting"], QuerySortOrder.ascending);
       expect(true, false);
     } on ArgumentError catch (e) {
-      expect(e.toString(), allOf([
-        contains("does not exist on"),
-        contains("'nonexisting'"),
-        contains("'TestModel'"),
-      ]));
+      expect(
+          e.toString(),
+          allOf([
+            contains("does not exist on"),
+            contains("'nonexisting'"),
+            contains("'TestModel'"),
+          ]));
     }
   });
 
   test("Cannot sort by relationship property", () async {
     context = await contextWithModels([GenUser, GenPost]);
     try {
-      new Query<GenUser>(context)
-          ..sortBy((u) => u.posts, QuerySortOrder.ascending);
+      Query<GenUser>(context)..sortBy((u) => u.posts, QuerySortOrder.ascending);
       expect(true, false);
     } on ArgumentError catch (e) {
-      expect(e.toString(), allOf([
-        contains("'posts'"),
-        contains("'GenUser'"),
-        contains("is a relationship"),
-      ]));
+      expect(
+          e.toString(),
+          allOf([
+            contains("'posts'"),
+            contains("'GenUser'"),
+            contains("is a relationship"),
+          ]));
     }
   });
 
@@ -162,17 +171,17 @@ void main() {
     context = await contextWithModels([TestModel]);
 
     for (int i = 0; i < 10; i++) {
-      var m = new TestModel(name: "Joe${i%2}", email: "multi$i@a.com");
+      var m = TestModel(name: "Joe${i % 2}", email: "multi$i@a.com");
 
-      var req = new Query<TestModel>(context)..values = m;
+      var req = Query<TestModel>(context)..values = m;
 
       await req.insert();
     }
 
-    var req = new Query<TestModel>(context)
+    var req = Query<TestModel>(context)
       ..sortBy((t) => t.name, QuerySortOrder.ascending)
       ..sortBy((t) => t.email, QuerySortOrder.descending)
-      ..predicate = new QueryPredicate("email like @key", {"key": "multi%"});
+      ..predicate = QueryPredicate("email like @key", {"key": "multi%"});
 
     var result = await req.fetch();
 
@@ -210,42 +219,42 @@ void main() {
   test("Fetching an invalid key fails", () async {
     context = await contextWithModels([TestModel]);
 
-    var m = new TestModel(name: "invkey", email: "invkey@a.com");
+    var m = TestModel(name: "invkey", email: "invkey@a.com");
 
-    var req = new Query<TestModel>(context)..values = m;
+    var req = Query<TestModel>(context)..values = m;
     await req.insert();
 
-
     try {
-      req = new Query<TestModel>(context)
+      req = Query<TestModel>(context)
         ..returningProperties((t) => [t.id, t["badkey"]]);
 
       fail("unreachable");
     } on ArgumentError catch (e) {
-      expect(e.toString(), contains("Property 'badkey' does not exist on 'TestModel'"));
+      expect(e.toString(),
+          contains("Property 'badkey' does not exist on 'TestModel'"));
     }
   });
 
   test("Value for foreign key in predicate", () async {
     context = await contextWithModels([GenUser, GenPost]);
 
-    var u1 = new GenUser()..name = "Joe";
-    var u2 = new GenUser()..name = "Fred";
-    u1 = await (new Query<GenUser>(context)..values = u1).insert();
-    u2 = await (new Query<GenUser>(context)..values = u2).insert();
+    var u1 = GenUser()..name = "Joe";
+    var u2 = GenUser()..name = "Fred";
+    u1 = await (Query<GenUser>(context)..values = u1).insert();
+    u2 = await (Query<GenUser>(context)..values = u2).insert();
 
     for (int i = 0; i < 5; i++) {
-      var p1 = new GenPost()..text = "${2 * i}";
+      var p1 = GenPost()..text = "${2 * i}";
       p1.owner = u1;
-      await (new Query<GenPost>(context)..values = p1).insert();
+      await (Query<GenPost>(context)..values = p1).insert();
 
-      var p2 = new GenPost()..text = "${2 * i + 1}";
+      var p2 = GenPost()..text = "${2 * i + 1}";
       p2.owner = u2;
-      await (new Query<GenPost>(context)..values = p2).insert();
+      await (Query<GenPost>(context)..values = p2).insert();
     }
 
-    var req = new Query<GenPost>(context)
-      ..predicate = new QueryPredicate("owner_id = @id", {"id": u1.id});
+    var req = Query<GenPost>(context)
+      ..predicate = QueryPredicate("owner_id = @id", {"id": u1.id});
     var res = await req.fetch();
     expect(res.length, 5);
     expect(
@@ -256,7 +265,7 @@ void main() {
             .length,
         5);
 
-    var query = new Query<GenPost>(context);
+    var query = Query<GenPost>(context);
     query.where((o) => o.owner).identifiedBy(u1.id);
     res = await query.fetch();
 
@@ -274,10 +283,10 @@ void main() {
 
   test("Fetch object with null reference", () async {
     context = await contextWithModels([GenUser, GenPost]);
-    var p1 = await (new Query<GenPost>(context)..values = (new GenPost()..text = "1"))
+    var p1 = await (Query<GenPost>(context)..values = (GenPost()..text = "1"))
         .insert();
 
-    var req = new Query<GenPost>(context);
+    var req = Query<GenPost>(context);
     p1 = await req.fetchOne();
 
     expect(p1.owner, isNull);
@@ -286,14 +295,14 @@ void main() {
   test("Omits specific keys", () async {
     context = await contextWithModels([Omit]);
 
-    var iq = new Query<Omit>(context)..values = (new Omit()..text = "foobar");
+    var iq = Query<Omit>(context)..values = (Omit()..text = "foobar");
 
     var result = await iq.insert();
     expect(result.id, greaterThan(0));
     expect(result.backing.contents["text"], isNull);
 
-    var fq = new Query<Omit>(context)
-      ..predicate = new QueryPredicate("id=@id", {"id": result.id});
+    var fq = Query<Omit>(context)
+      ..predicate = QueryPredicate("id=@id", {"id": result.id});
 
     var fResult = await fq.fetchOne();
     expect(fResult.id, result.id);
@@ -305,22 +314,21 @@ void main() {
       () async {
     context = await contextWithModels([GenUser, GenPost]);
 
-    var objects = [new GenUser()..name = "Joe", new GenUser()..name = "Bob"];
+    var objects = [GenUser()..name = "Joe", GenUser()..name = "Bob"];
 
     for (var o in objects) {
-      var req = new Query<GenUser>(context)..values = o;
+      var req = Query<GenUser>(context)..values = o;
       await req.insert();
     }
 
     try {
-      var q = new Query<GenUser>(context)..join(set: (u) => u.posts);
+      var q = Query<GenUser>(context)..join(set: (u) => u.posts);
 
       await q.fetchOne();
 
       expect(true, false);
     } on StateError catch (e) {
-      expect(
-          e.toString(),
+      expect(e.toString(),
           contains("'fetchOne' returned more than one row from 'GenUser'"));
     }
   });
@@ -330,22 +338,23 @@ void main() {
       () async {
     context = await contextWithModels([GenUser, GenPost]);
 
-    var u1 = await (new Query<GenUser>(context)..values.name = "Joe").insert();
+    var u1 = await (Query<GenUser>(context)..values.name = "Joe").insert();
 
-    await (new Query<GenPost>(context)
+    await (Query<GenPost>(context)
           ..values.text = "text"
           ..values.owner = u1)
         .insert();
 
-    var q = new Query<GenPost>(context)..returningProperties((p) => [p.id, p.owner]);
+    var q = Query<GenPost>(context)
+      ..returningProperties((p) => [p.id, p.owner]);
 
     var result = await q.fetchOne();
     expect(result.owner.id, 1);
     expect(result.owner.backing.contents.length, 1);
 
-
     try {
-      q = new Query<GenPost>(context)..returningProperties((p) => [p.id, p["owner_id"]]);
+      q = Query<GenPost>(context)
+        ..returningProperties((p) => [p.id, p["owner_id"]]);
       expect(true, false);
     } on ArgumentError catch (e) {
       expect(e.toString(),
@@ -356,31 +365,32 @@ void main() {
   test("Can use public accessor to private property", () async {
     context = await contextWithModels([PrivateField]);
 
-    await (new Query<PrivateField>(context)).insert();
-    var q = new Query<PrivateField>(context);
+    await (Query<PrivateField>(context)).insert();
+    var q = Query<PrivateField>(context);
     var result = await q.fetchOne();
     expect(result.public, "x");
   });
 
-  test("When fetching valid enum value from db, is available as enum value and in where", () async {
+  test(
+      "When fetching valid enum value from db, is available as enum value and in where",
+      () async {
     context = await contextWithModels([EnumObject]);
 
-    var q = new Query<EnumObject>(context)
-      ..values.enumValues = EnumValues.abcd;
+    var q = Query<EnumObject>(context)..values.enumValues = EnumValues.abcd;
 
     await q.insert();
 
-    q = new Query<EnumObject>(context);
+    q = Query<EnumObject>(context);
     var result = await q.fetchOne();
     expect(result.enumValues, EnumValues.abcd);
     expect(result.asMap()["enumValues"], "abcd");
 
-    q = new Query<EnumObject>(context)
+    q = Query<EnumObject>(context)
       ..where((o) => o.enumValues).equalTo(EnumValues.abcd);
     result = await q.fetchOne();
     expect(result, isNotNull);
 
-    q = new Query<EnumObject>(context)
+    q = Query<EnumObject>(context)
       ..where((o) => o.enumValues).equalTo(EnumValues.efgh);
     result = await q.fetchOne();
     expect(result, isNull);
@@ -389,10 +399,11 @@ void main() {
   test("When fetching invalid enum value from db, throws error", () async {
     context = await contextWithModels([EnumObject]);
 
-    await context.persistentStore.execute("INSERT INTO _enumobject (enumValues) VALUES ('foobar')");
+    await context.persistentStore
+        .execute("INSERT INTO _enumobject (enumValues) VALUES ('foobar')");
 
     try {
-      var q = new Query<EnumObject>(context);
+      var q = Query<EnumObject>(context);
       await q.fetch();
       expect(true, false);
     } on StateError catch (e) {
@@ -405,14 +416,15 @@ void main() {
     context = await contextWithModels([GenUser, GenPost]);
 
     try {
-      new Query<GenUser>(context)
-        ..returningProperties((p) => [p.posts]);
+      Query<GenUser>(context)..returningProperties((p) => [p.posts]);
       fail("unreachable");
     } on ArgumentError catch (e) {
-      expect(e.toString(), contains("Cannot select has-many or has-one relationship properties")) ;
+      expect(
+          e.toString(),
+          contains(
+              "Cannot select has-many or has-one relationship properties"));
     }
   });
-
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {
@@ -464,8 +476,7 @@ class _GenPost {
 
   String text;
 
-  @Relate(Symbol('posts'),
-      onDelete: DeleteRule.cascade, isRequired: false)
+  @Relate(Symbol('posts'), onDelete: DeleteRule.cascade, isRequired: false)
   GenUser owner;
 }
 
@@ -479,7 +490,8 @@ class _Omit {
   String text;
 }
 
-class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField {
+class PrivateField extends ManagedObject<_PrivateField>
+    implements _PrivateField {
   PrivateField() : super() {
     _private = "x";
   }
@@ -490,6 +502,7 @@ class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField
 
   String get public => _private;
 }
+
 class _PrivateField {
   @primaryKey
   int id;
@@ -498,6 +511,7 @@ class _PrivateField {
 }
 
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
+
 class _EnumObject {
   @primaryKey
   int id;
@@ -505,6 +519,4 @@ class _EnumObject {
   EnumValues enumValues;
 }
 
-enum EnumValues {
-  abcd, efgh, other18
-}
+enum EnumValues { abcd, efgh, other18 }

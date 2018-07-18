@@ -15,13 +15,13 @@ void main() {
   ManagedDataModel dataModel;
 
   setUpAll(() async {
-    dataModel = new ManagedDataModel([Model1, Model2, Model3]);
-    final dbCtx = new ManagedContext(dataModel, new DefaultPersistentStore());
-    doc = new APIDocument()
-      ..info = new APIInfo("x", "1.0.0")
+    dataModel = ManagedDataModel([Model1, Model2, Model3]);
+    final dbCtx = ManagedContext(dataModel, DefaultPersistentStore());
+    doc = APIDocument()
+      ..info = APIInfo("x", "1.0.0")
       ..paths = {}
-      ..components = new APIComponents();
-    final ctx = new APIDocumentContext(doc);
+      ..components = APIComponents();
+    final ctx = APIDocumentContext(doc);
     dbCtx.documentComponents(ctx);
     await ctx.finalize();
   });
@@ -31,7 +31,8 @@ void main() {
       expect(doc.components.schemas.length, 3);
     });
 
-    test("Schema object contains all persistent attributes with correct types", () {
+    test("Schema object contains all persistent attributes with correct types",
+        () {
       final entity = doc.components.schemas["Model1"];
       expect(entity.properties["string"].type, APIType.string);
       expect(entity.properties["dateTime"].type, APIType.string);
@@ -59,30 +60,37 @@ void main() {
     test("Schema contains to-many relationships", () {
       final entity = doc.components.schemas["Model1"];
       expect(entity.properties["model2s"].type, APIType.array);
-      expect(entity.properties["model2s"].items.referenceURI.path, "/components/schemas/Model2");
+      expect(entity.properties["model2s"].items.referenceURI.path,
+          "/components/schemas/Model2");
     });
 
     test("Schema contains to-one relationships", () {
       final entity = doc.components.schemas["Model1"];
-      expect(entity.properties["model3"].referenceURI.path, "/components/schemas/Model3");
+      expect(entity.properties["model3"].referenceURI.path,
+          "/components/schemas/Model3");
     });
 
     test("Schema contains belongs-to relationships", () {
       final model2 = doc.components.schemas["Model2"];
-      expect(model2.properties["model1"].referenceURI.path, "/components/schemas/Model1");
+      expect(model2.properties["model1"].referenceURI.path,
+          "/components/schemas/Model1");
 
       final model3 = doc.components.schemas["Model3"];
-      expect(model3.properties["model1"].referenceURI.path, "/components/schemas/Model1");
+      expect(model3.properties["model1"].referenceURI.path,
+          "/components/schemas/Model1");
     });
 
-    test("If property is not in default set, it should not be included in schema", () {
+    test(
+        "If property is not in default set, it should not be included in schema",
+        () {
       final model = Model3;
       final propName = "notIncluded";
 
       // just make sure we're right that Model3.notIncluded is actually a property...
       expect(dataModel.entityForType(model).attributes[propName], isNotNull);
 
-      final model3 = doc.components.schemas[MirrorSystem.getName(reflectType(model).simpleName)];
+      final model3 = doc.components
+          .schemas[MirrorSystem.getName(reflectType(model).simpleName)];
       // ... since we're checking that it doesn't exist in the spec
       expect(model3.properties[propName], isNull);
     });
@@ -115,7 +123,9 @@ void main() {
       expect(schema.properties["lessThan"].exclusiveMinimum, isNull);
     });
 
-    test("Schema object contains maximumExclusive if min exclusive value in validator", () {
+    test(
+        "Schema object contains maximumExclusive if min exclusive value in validator",
+        () {
       expect(schema.properties["lessThanEqualTo"].maximum, 1);
       expect(schema.properties["lessThanEqualTo"].exclusiveMaximum, false);
       expect(schema.properties["lessThanEqualTo"].minimum, isNull);
@@ -129,7 +139,9 @@ void main() {
       expect(schema.properties["greaterThan"].exclusiveMinimum, true);
     });
 
-    test("Schema object contains minimumExclusive if max exclusive value in validator", () {
+    test(
+        "Schema object contains minimumExclusive if max exclusive value in validator",
+        () {
       expect(schema.properties["greaterThanEqualTo"].maximum, isNull);
       expect(schema.properties["greaterThanEqualTo"].exclusiveMaximum, isNull);
       expect(schema.properties["greaterThanEqualTo"].minimum, 1);
@@ -143,7 +155,8 @@ void main() {
       expect(schema.properties["range"].exclusiveMinimum, false);
     });
 
-    test("Schema object has equal max/min length if equals length validator", () {
+    test("Schema object has equal max/min length if equals length validator",
+        () {
       expect(schema.properties["lengthEqualTo"].maxLength, 20);
       expect(schema.properties["lengthEqualTo"].minLength, 20);
     });
@@ -175,7 +188,8 @@ void main() {
     test("Entity itself has docs pre-prended with comments", () {
       expect(schema.title, "title");
       expect(schema.description, contains("description"));
-      expect(schema.description, contains("No two objects may have the same value for all of"));
+      expect(schema.description,
+          contains("No two objects may have the same value for all of"));
     });
 
     test("Entity has notes even if it doesn't have comments", () {
@@ -184,28 +198,34 @@ void main() {
           "\nNo two objects may have the same value for all of: 'matches', 'lessThan'.");
     });
 
-    test("Title and description contain docs, even if no docs added by auto-generated docs", () {
+    test(
+        "Title and description contain docs, even if no docs added by auto-generated docs",
+        () {
       expect(schema.properties["getter"].title, "title");
       expect(schema.properties["getter"].description, "description");
     });
 
-    test("Title and description are pre-pended to docs auto-generate for property", () {
+    test(
+        "Title and description are pre-pended to docs auto-generate for property",
+        () {
       expect(schema.properties["string"].title, "title");
       expect(schema.properties["string"].description, contains("description"));
-      expect(
-          schema.properties["string"].description, contains("No two objects may have the same value for this field."));
+      expect(schema.properties["string"].description,
+          contains("No two objects may have the same value for this field."));
     });
 
     test("Description contains 'unique identifier' for primary key", () {
-      expect(schema.properties["id"].description, contains("This is the primary identifier for this object."));
+      expect(schema.properties["id"].description,
+          contains("This is the primary identifier for this object."));
     });
 
     test("Description contains note if has unique constraint", () {
-      expect(
-          schema.properties["string"].description, contains("No two objects may have the same value for this field."));
+      expect(schema.properties["string"].description,
+          contains("No two objects may have the same value for this field."));
     });
 
-    test("No autogenerated doc comments yields null for property description", () {
+    test("No autogenerated doc comments yields null for property description",
+        () {
       expect(schema.properties["dateTime"].title, "");
       expect(schema.properties["dateTime"].description, "");
     });
@@ -304,7 +324,7 @@ class _Model3 {
   @Validate.length(lessThan: 20, greaterThanEqualTo: 10)
   String lengthRange;
 
-  @Validate.oneOf(const ["1", "2"])
+  @Validate.oneOf(["1", "2"])
   String oneOf;
 
   @Validate.compare(greaterThan: "hello")
@@ -323,7 +343,8 @@ class CustomValidate extends Validate {
   }
 
   @override
-  void constrainSchemaObject(APIDocumentContext context, APISchemaObject object) {
+  void constrainSchemaObject(
+      APIDocumentContext context, APISchemaObject object) {
     object.maxProperties = 2;
   }
 }

@@ -9,12 +9,13 @@ import 'package:aqueduct/src/cli/commands/document_serve.dart';
 
 class CLIDocument extends CLICommand with CLIProject, CLIDocumentOptions {
   CLIDocument() {
-    registerCommand(new CLIDocumentServe());
+    registerCommand(CLIDocumentServe());
   }
 
   @override
   Future<int> handle() async {
-    var documentMap = await documentProject(projectDirectory.uri, libraryName, projectSpecificationFile);
+    var documentMap = await documentProject(
+        projectDirectory.uri, libraryName, projectSpecificationFile);
 
     outputSink.writeln("${json.encode(documentMap)}");
 

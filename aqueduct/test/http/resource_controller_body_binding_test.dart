@@ -12,8 +12,7 @@ void main() {
   HttpServer server;
 
   setUpAll(() {
-    new ManagedContext(
-        new ManagedDataModel([TestModel]), new DefaultPersistentStore());
+    ManagedContext(ManagedDataModel([TestModel]), DefaultPersistentStore());
   });
 
   tearDown(() async {
@@ -22,28 +21,20 @@ void main() {
   });
 
   group("Happy path", () {
-    test("Can read Map body object into HTTPSerializable",  () async {
+    test("Can read Map body object into HTTPSerializable", () async {
       server = await enableController("/", TestController);
-      var m = {
-        "id": 2,
-        "name": "Bob"
-      };
+      var m = {"id": 2, "name": "Bob"};
       var response = await postJSON(m);
       expect(response.statusCode, 200);
       expect(json.decode(response.body), m);
     });
 
-    test("Can read List<Map> body object into List<HTTPSerializable>", () async {
+    test("Can read List<Map> body object into List<HTTPSerializable>",
+        () async {
       server = await enableController("/", ListTestController);
       var m = [
-        {
-          "id": 2,
-          "name": "Bob"
-        },
-        {
-          "id": 3,
-          "name": "Fred"
-        }
+        {"id": 2, "name": "Bob"},
+        {"id": 3, "name": "Fred"}
       ];
       var response = await postJSON(m);
       expect(response.statusCode, 200);
@@ -60,10 +51,7 @@ void main() {
 
     test("Body arg can be optional", () async {
       server = await enableController("/", OptionalTestController);
-      var m = {
-        "id": 2,
-        "name": "Bob"
-      };
+      var m = {"id": 2, "name": "Bob"};
       var response = await postJSON(m);
       expect(response.statusCode, 200);
       expect(json.decode(response.body), m);
@@ -76,10 +64,7 @@ void main() {
 
     test("Can read body object declared as property", () async {
       server = await enableController("/", PropertyTestController);
-      var m = {
-        "id": 2,
-        "name": "Bob"
-      };
+      var m = {"id": 2, "name": "Bob"};
       var response = await postJSON(m);
       expect(response.statusCode, 200);
       expect(json.decode(response.body), m);
@@ -89,10 +74,7 @@ void main() {
   group("Programmer error cases", () {
     test("fromMap throws uncaught error should return a 500", () async {
       server = await enableController("/", CrashController);
-      var m = {
-        "id": 1,
-        "name": "Crash"
-      };
+      var m = {"id": 1, "name": "Crash"};
       var response = await postJSON(m);
       expect(response.statusCode, 500);
     });
@@ -101,11 +83,7 @@ void main() {
   group("Input error cases", () {
     test("Provide unknown key returns 400", () async {
       server = await enableController("/", TestController);
-      var m = {
-        "id": 2,
-        "name": "Bob",
-        "job": "programmer"
-      };
+      var m = {"id": 2, "name": "Bob", "job": "programmer"};
       var response = await postJSON(m);
       expect(response.statusCode, 400);
       expect(json.decode(response.body)["error"], "entity validation failed");
@@ -114,11 +92,7 @@ void main() {
 
     test("Body is empty returns 400", () async {
       server = await enableController("/", TestController);
-      var m = {
-        "id": 2,
-        "name": "Bob",
-        "job": "programmer"
-      };
+      var m = {"id": 2, "name": "Bob", "job": "programmer"};
       var response = await postJSON(m);
       expect(response.statusCode, 400);
       expect(json.decode(response.body)["error"], "entity validation failed");
@@ -127,58 +101,57 @@ void main() {
 
     test("Is List when expecting Map returns 400", () async {
       server = await enableController("/", TestController);
-      var m = [{
-        "id": 2,
-        "name": "Bob"
-      }];
+      var m = [
+        {"id": 2, "name": "Bob"}
+      ];
       var response = await postJSON(m);
       expect(response.statusCode, 400);
-      expect(json.decode(response.body)["error"], contains("request entity was unexpected type"));
+      expect(json.decode(response.body)["error"],
+          contains("request entity was unexpected type"));
     });
 
     test("Is Map when expecting List returns 400", () async {
       server = await enableController("/", ListTestController);
-      var m = {
-        "id": 2,
-        "name": "Bob"
-      };
+      var m = {"id": 2, "name": "Bob"};
       var response = await postJSON(m);
       expect(response.statusCode, 400);
-      expect(json.decode(response.body)["error"], contains("request entity was unexpected type"));
+      expect(json.decode(response.body)["error"],
+          contains("request entity was unexpected type"));
     });
 
     test("If required body and no body included, return 400", () async {
       server = await enableController("/", TestController);
       var response = await postJSON(null);
       expect(response.statusCode, 400);
-      expect(json.decode(response.body)["error"], contains("missing required Body"));
+      expect(json.decode(response.body)["error"],
+          contains("missing required Body"));
     });
 
     test("Expect list of objects, got list of strings", () async {
       server = await enableController("/", ListTestController);
       var response = await postJSON(["a", "b"]);
       expect(response.statusCode, 400);
-      expect(json.decode(response.body)["error"], contains("request entity was unexpected type"));
-
+      expect(json.decode(response.body)["error"],
+          contains("request entity was unexpected type"));
     });
   });
 }
 
 Future<http.Response> postJSON(dynamic body) {
   if (body == null) {
-    return http
-        .post("http://localhost:4040",
-        headers: {"Content-Type": "application/json"})
-        .catchError((err) => null);
+    return http.post("http://localhost:4040", headers: {
+      "Content-Type": "application/json"
+    }).catchError((err) => null);
   }
   return http
       .post("http://localhost:4040",
-      headers: {"Content-Type": "application/json"},
-      body: json.encode(body))
+          headers: {"Content-Type": "application/json"},
+          body: json.encode(body))
       .catchError((err) => null);
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
+
 class _TestModel {
   @primaryKey
   int id;
@@ -189,7 +162,7 @@ class _TestModel {
 class CrashModel extends HTTPSerializable {
   @override
   void readFromMap(dynamic requestBody) {
-    throw new Exception("whatever");
+    throw Exception("whatever");
   }
 
   @override
@@ -201,21 +174,21 @@ class CrashModel extends HTTPSerializable {
 class TestController extends ResourceController {
   @Operation.post()
   Future<Response> create(@Bind.body() TestModel tm) async {
-    return new Response.ok(tm);
+    return Response.ok(tm);
   }
 }
 
 class ListTestController extends ResourceController {
   @Operation.post()
   Future<Response> create(@Bind.body() List<TestModel> tms) async {
-    return new Response.ok(tms);
+    return Response.ok(tms);
   }
 }
 
 class OptionalTestController extends ResourceController {
   @Operation.post()
   Future<Response> create({@Bind.body() TestModel tm}) async {
-    return new Response.ok(tm);
+    return Response.ok(tm);
   }
 }
 
@@ -225,39 +198,39 @@ class PropertyTestController extends ResourceController {
 
   @Operation.post()
   Future<Response> create() async {
-    return new Response.ok(tm);
+    return Response.ok(tm);
   }
 }
 
 class NotSerializableController extends ResourceController {
   @Operation.post()
   Future<Response> create(@Bind.body() Uri uri) async {
-    return new Response.ok(null);
+    return Response.ok(null);
   }
 }
 
 class ListNotSerializableController extends ResourceController {
   @Operation.post()
   Future<Response> create(@Bind.body() List<Uri> uri) async {
-    return new Response.ok(null);
+    return Response.ok(null);
   }
 }
 
 class CrashController extends ResourceController {
   @Operation.post()
   Future<Response> create(@Bind.body() CrashModel tm) async {
-    return new Response.ok(null);
+    return Response.ok(null);
   }
 }
 
 Future<HttpServer> enableController(String pattern, Type controller) async {
-  var router = new Router();
-  router.route(pattern).link(
-          () => reflectClass(controller).newInstance(new Symbol(""), []).reflectee as Controller);
+  var router = Router();
+  router.route(pattern).link(() => reflectClass(controller)
+      .newInstance(Symbol(""), []).reflectee as Controller);
   router.didAddToChannel();
 
   var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
-  server.map((httpReq) => new Request(httpReq)).listen(router.receive);
+  server.map((httpReq) => Request(httpReq)).listen(router.receive);
 
   return server;
 }

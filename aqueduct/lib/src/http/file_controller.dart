@@ -5,7 +5,8 @@ import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:path/path.dart' as path;
 import 'http.dart';
 
-typedef FutureOr<Response> _OnFileNotFound(HTTPFileController controller, Request req);
+typedef FutureOr<Response> _OnFileNotFound(
+    HTTPFileController controller, Request req);
 
 /// Serves files from a directory on the filesystem.
 ///
@@ -13,34 +14,34 @@ typedef FutureOr<Response> _OnFileNotFound(HTTPFileController controller, Reques
 class HTTPFileController extends Controller {
   static Map<String, ContentType> _defaultExtensionMap = {
     /* Web content */
-    "html": new ContentType("text", "html", charset: "utf-8"),
-    "css": new ContentType("text", "css", charset: "utf-8"),
-    "js": new ContentType("application", "javascript", charset: "utf-8"),
-    "json": new ContentType("application", "json", charset: "utf-8"),
+    "html": ContentType("text", "html", charset: "utf-8"),
+    "css": ContentType("text", "css", charset: "utf-8"),
+    "js": ContentType("application", "javascript", charset: "utf-8"),
+    "json": ContentType("application", "json", charset: "utf-8"),
 
     /* Images */
-    "jpg": new ContentType("image", "jpeg"),
-    "jpeg": new ContentType("image", "jpeg"),
-    "eps": new ContentType("application", "postscript"),
-    "png": new ContentType("image", "png"),
-    "gif": new ContentType("image", "gif"),
-    "bmp": new ContentType("image", "bmp"),
-    "tiff": new ContentType("image", "tiff"),
-    "tif": new ContentType("image", "tiff"),
-    "ico": new ContentType("image", "x-icon"),
-    "svg": new ContentType("image", "svg+xml"),
+    "jpg": ContentType("image", "jpeg"),
+    "jpeg": ContentType("image", "jpeg"),
+    "eps": ContentType("application", "postscript"),
+    "png": ContentType("image", "png"),
+    "gif": ContentType("image", "gif"),
+    "bmp": ContentType("image", "bmp"),
+    "tiff": ContentType("image", "tiff"),
+    "tif": ContentType("image", "tiff"),
+    "ico": ContentType("image", "x-icon"),
+    "svg": ContentType("image", "svg+xml"),
 
     /* Documents */
-    "rtf": new ContentType("application", "rtf"),
-    "pdf": new ContentType("application", "pdf"),
-    "csv": new ContentType("text", "plain", charset: "utf-8"),
-    "md": new ContentType("text", "plain", charset: "utf-8"),
+    "rtf": ContentType("application", "rtf"),
+    "pdf": ContentType("application", "pdf"),
+    "csv": ContentType("text", "plain", charset: "utf-8"),
+    "md": ContentType("text", "plain", charset: "utf-8"),
 
     /* Fonts */
-    "ttf": new ContentType("font", "ttf"),
-    "eot": new ContentType("application", "vnd.ms-fontobject"),
-    "woff": new ContentType("font", "woff"),
-    "otf": new ContentType("font", "otf"),
+    "ttf": ContentType("font", "ttf"),
+    "eot": ContentType("application", "vnd.ms-fontobject"),
+    "woff": ContentType("font", "woff"),
+    "otf": ContentType("font", "otf"),
   };
 
   /// Creates a controller that serves files from [pathOfDirectoryToServe].
@@ -71,11 +72,12 @@ class HTTPFileController extends Controller {
   ///
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
   HTTPFileController(String pathOfDirectoryToServe,
-      {FutureOr<Response> onFileNotFound(HTTPFileController controller, Request req)})
-      : _servingDirectory = new Uri.directory(pathOfDirectoryToServe),
+      {FutureOr<Response> onFileNotFound(
+          HTTPFileController controller, Request req)})
+      : _servingDirectory = Uri.directory(pathOfDirectoryToServe),
         _onFileNotFound = onFileNotFound;
 
-  final Map<String, ContentType> _extensionMap = new Map.from(_defaultExtensionMap);
+  final Map<String, ContentType> _extensionMap = Map.from(_defaultExtensionMap);
   final List<_PolicyPair> _policyPairs = [];
   final Uri _servingDirectory;
   final _OnFileNotFound _onFileNotFound;
@@ -127,8 +129,9 @@ class HTTPFileController extends Controller {
   ///
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
   ///
-  void addCachePolicy(HTTPCachePolicy policy, bool shouldApplyToPath(String path)) {
-    _policyPairs.add(new _PolicyPair(policy, shouldApplyToPath));
+  void addCachePolicy(
+      HTTPCachePolicy policy, bool shouldApplyToPath(String path)) {
+    _policyPairs.add(_PolicyPair(policy, shouldApplyToPath));
   }
 
   /// Returns the [HTTPCachePolicy] for [path].
@@ -136,22 +139,24 @@ class HTTPFileController extends Controller {
   /// Evaluates each policy added by [addCachePolicy] against the [path] and
   /// returns it if exists.
   HTTPCachePolicy cachePolicyForPath(String path) {
-    return _policyPairs.firstWhere((pair) => pair.shouldApplyToPath(path), orElse: () => null)?.policy;
+    return _policyPairs
+        .firstWhere((pair) => pair.shouldApplyToPath(path), orElse: () => null)
+        ?.policy;
   }
 
   @override
   Future<RequestOrResponse> handle(Request request) async {
     if (request.method != "GET") {
-      return new Response(HttpStatus.methodNotAllowed, null, null);
+      return Response(HttpStatus.methodNotAllowed, null, null);
     }
 
     var relativePath = request.path.remainingPath;
     var fileUri = _servingDirectory.resolve(relativePath);
     File file;
     if (FileSystemEntity.isDirectorySync(fileUri.toFilePath())) {
-      file = new File.fromUri(fileUri.resolve("index.html"));
+      file = File.fromUri(fileUri.resolve("index.html"));
     } else {
-      file = new File.fromUri(fileUri);
+      file = File.fromUri(fileUri);
     }
 
     if (!(await file.exists())) {
@@ -159,7 +164,7 @@ class HTTPFileController extends Controller {
         return _onFileNotFound(this, request);
       }
 
-      var response = new Response.notFound();
+      var response = Response.notFound();
       if (request.acceptsContentType(ContentType.html)) {
         response
           ..body = "<html><h3>404 Not Found</h3></html>"
@@ -169,34 +174,37 @@ class HTTPFileController extends Controller {
     }
 
     var lastModifiedDate = await file.lastModified();
-    var ifModifiedSince = request.raw.headers.value(HttpHeaders.ifModifiedSinceHeader);
+    var ifModifiedSince =
+        request.raw.headers.value(HttpHeaders.ifModifiedSinceHeader);
     if (ifModifiedSince != null) {
       var date = HttpDate.parse(ifModifiedSince);
       if (!lastModifiedDate.isAfter(date)) {
-        return new Response.notModified(lastModifiedDate, _policyForFile(file));
+        return Response.notModified(lastModifiedDate, _policyForFile(file));
       }
     }
 
     var lastModifiedDateStringValue = HttpDate.format(lastModifiedDate);
-    var contentType =
-        contentTypeForExtension(path.extension(file.path)) ?? new ContentType("application", "octet-stream");
+    var contentType = contentTypeForExtension(path.extension(file.path)) ??
+        ContentType("application", "octet-stream");
     var byteStream = file.openRead();
 
-    return new Response.ok(byteStream, headers: {HttpHeaders.lastModifiedHeader: lastModifiedDateStringValue})
+    return Response.ok(byteStream,
+        headers: {HttpHeaders.lastModifiedHeader: lastModifiedDateStringValue})
       ..cachePolicy = _policyForFile(file)
       ..encodeBody = false
       ..contentType = contentType;
   }
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext components, String route, APIPath path) {
+  Map<String, APIOperation> documentOperations(
+      APIDocumentContext components, String route, APIPath path) {
     return {
-      "get": new APIOperation(
+      "get": APIOperation(
           "getFile",
           {
-            "200": new APIResponse("Successful file fetch.",
-                content: {"*/*": new APIMediaType(schema: new APISchemaObject.file())}),
-            "404": new APIResponse("No file exists at path.")
+            "200": APIResponse("Successful file fetch.",
+                content: {"*/*": APIMediaType(schema: APISchemaObject.file())}),
+            "404": APIResponse("No file exists at path.")
           },
           description: "Content-Type is determined by the suffix of the file.",
           summary: "Returns the contents of a file on the server's filesystem.")

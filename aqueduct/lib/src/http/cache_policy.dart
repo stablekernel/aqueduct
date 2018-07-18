@@ -10,9 +10,10 @@ class HTTPCachePolicy {
   /// headers to that response. See properties for definitions of arguments
   /// to this constructor.
   const HTTPCachePolicy(
-      {this.preventIntermediateProxyCaching: false,
-        this.preventCaching: false, this.requireConditionalRequest: false,
-        this.expirationFromNow});
+      {this.preventIntermediateProxyCaching = false,
+      this.preventCaching = false,
+      this.requireConditionalRequest = false,
+      this.expirationFromNow});
 
   /// Prevents a response from being cached by an intermediate proxy.
   ///
@@ -61,5 +62,4 @@ class HTTPCachePolicy {
 
     return items.join(", ");
   }
-
 }

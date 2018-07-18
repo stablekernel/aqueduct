@@ -8,11 +8,13 @@ class GetSchemaExecutable extends Executable<Map<String, dynamic>> {
 
   @override
   Future<Map<String, dynamic>> execute() async {
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var schema = new Schema.fromDataModel(dataModel);
+    var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    var schema = Schema.fromDataModel(dataModel);
     return schema.asMap();
   }
 
-  static List<String> importsForPackage(String packageName) =>
-      ["package:aqueduct/aqueduct.dart", "package:$packageName/$packageName.dart"];
+  static List<String> importsForPackage(String packageName) => [
+        "package:aqueduct/aqueduct.dart",
+        "package:$packageName/$packageName.dart"
+      ];
 }

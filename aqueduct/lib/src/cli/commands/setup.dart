@@ -9,27 +9,27 @@ class CLISetup extends CLICommand with CLIProject {
   bool get shouldSetupHeroku => herokuName != null;
 
   @Option("heroku",
-  help:
-  "Sets up the project in the current directory for deplying to Heroku.",
-  valueHelp: "The name of the Heroku application.")
+      help:
+          "Sets up the project in the current directory for deplying to Heroku.",
+      valueHelp: "The name of the Heroku application.")
   String get herokuName => decode("heroku");
 
   @Flag("tests",
-    help:
-    "Sets up a local database to run application tests. If no other option is on, the command defaults to this flag.")
+      help:
+          "Sets up a local database to run application tests. If no other option is on, the command defaults to this flag.")
   bool get shouldSetupTests => decode("tests");
 
   @Flag("confirm",
-    abbr: "c",
-    negatable: false,
-    help: "Confirms that you wish to carry out this setup.")
+      abbr: "c",
+      negatable: false,
+      help: "Confirms that you wish to carry out this setup.")
   bool get confirm => decode("confirm");
 
   @Option("granting-user",
-    abbr: "u",
-    defaultsTo: "postgres",
-    help:
-    "The username of the PostgreSQL user that has privileges to create a new test user and test database.")
+      abbr: "u",
+      defaultsTo: "postgres",
+      help:
+          "The username of the PostgreSQL user that has privileges to create a new test user and test database.")
   String get grantingUser => decode("granting-user");
 
   @override
@@ -83,16 +83,15 @@ class CLISetup extends CLICommand with CLIProject {
       var result = await Process.run("heroku", cmd,
           workingDirectory: projectDirectory.path);
       if (result.exitCode != 0) {
-        throw new CLIException("Heroku command failed",
+        throw CLIException("Heroku command failed",
             instructions: ["${result.stdout} ${result.stderr}"]);
       }
     }
 
     displayProgress("Removing config.yaml from .gitignore");
     var gitIgnore = fileInProjectDirectory(".gitignore");
-    var contents = gitIgnore
-        .readAsStringSync()
-        .replaceAll(new RegExp("config.yaml\\n"), "");
+    var contents =
+        gitIgnore.readAsStringSync().replaceAll(RegExp("config.yaml\\n"), "");
     gitIgnore.writeAsStringSync(contents);
 
     var procFile = fileInProjectDirectory("Procfile");

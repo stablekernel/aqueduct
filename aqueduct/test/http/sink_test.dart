@@ -11,8 +11,8 @@ void main() {
 class TestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
-    final router = new Router();
-    router.route("/controller/[:id]").link(() =>new FailingController());
+    final router = Router();
+    router.route("/controller/[:id]").link(() => FailingController());
     return router;
   }
 }
@@ -20,6 +20,6 @@ class TestChannel extends ApplicationChannel {
 class FailingController extends ResourceController {
   @Operation.get()
   Future<Response> get() async {
-    return new Response.ok(null);
+    return Response.ok(null);
   }
 }

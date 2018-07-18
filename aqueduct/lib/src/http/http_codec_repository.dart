@@ -12,18 +12,21 @@ import 'http.dart';
 /// to add mappings in an application's [ApplicationChannel] subclass constructor.
 class HTTPCodecRepository {
   HTTPCodecRepository._() {
-    add(new ContentType("application", "json", charset: "utf-8"), const JsonCodec(), allowCompression: true);
-    add(new ContentType("application", "x-www-form-urlencoded", charset: "utf-8"), const _FormCodec(), allowCompression: true);
-    setAllowsCompression(new ContentType("text", "*"), true);
-    setAllowsCompression(new ContentType("application", "javascript"), true);
-    setAllowsCompression(new ContentType("text", "event-stream"), false);
+    add(ContentType("application", "json", charset: "utf-8"), const JsonCodec(),
+        allowCompression: true);
+    add(ContentType("application", "x-www-form-urlencoded", charset: "utf-8"),
+        const _FormCodec(),
+        allowCompression: true);
+    setAllowsCompression(ContentType("text", "*"), true);
+    setAllowsCompression(ContentType("application", "javascript"), true);
+    setAllowsCompression(ContentType("text", "event-stream"), false);
   }
 
   /// The instance used by Aqueduct to encode and decode HTTP bodies.
   ///
   /// Custom codecs must be added to this instance. This value is guaranteed to be non-null.
   static HTTPCodecRepository get defaultInstance => _defaultInstance;
-  static HTTPCodecRepository _defaultInstance = new HTTPCodecRepository._();
+  static HTTPCodecRepository _defaultInstance = HTTPCodecRepository._();
 
   Map<String, Codec> _primaryTypeCodecs = {};
   Map<String, Map<String, Codec>> _fullySpecificedCodecs = {};
@@ -62,7 +65,8 @@ class HTTPCodecRepository {
   /// In the event that a request is sent without a charset, the codec will automatically apply a UTF8 decode step because of this default.
   ///
   /// Only use default charsets when the codec must first be decoded into a [String].
-  void add(ContentType contentType, Codec codec, {bool allowCompression: true}) {
+  void add(ContentType contentType, Codec codec,
+      {bool allowCompression = true}) {
     if (contentType.subType == "*") {
       _primaryTypeCodecs[contentType.primaryType] = codec;
       _primaryTypeCompressionMap[contentType.primaryType] = allowCompression;
@@ -71,7 +75,8 @@ class HTTPCodecRepository {
       innerCodecs[contentType.subType] = codec;
       _fullySpecificedCodecs[contentType.primaryType] = innerCodecs;
 
-      var innerCompress = _fullySpecifiedCompressionMap[contentType.primaryType] ?? {};
+      var innerCompress =
+          _fullySpecifiedCompressionMap[contentType.primaryType] ?? {};
       innerCompress[contentType.subType] = allowCompression;
       _fullySpecifiedCompressionMap[contentType.primaryType] = innerCompress;
     }
@@ -91,7 +96,8 @@ class HTTPCodecRepository {
     if (contentType.subType == "*") {
       _primaryTypeCompressionMap[contentType.primaryType] = allowed;
     } else {
-      var innerCompress = _fullySpecifiedCompressionMap[contentType.primaryType] ?? {};
+      var innerCompress =
+          _fullySpecifiedCompressionMap[contentType.primaryType] ?? {};
       innerCompress[contentType.subType] = allowed;
       _fullySpecifiedCompressionMap[contentType.primaryType] = innerCompress;
     }
@@ -101,7 +107,8 @@ class HTTPCodecRepository {
   ///
   /// See also [setAllowsCompression].
   bool isContentTypeCompressable(ContentType contentType) {
-    var subtypeCompress = _fullySpecifiedCompressionMap[contentType.primaryType];
+    var subtypeCompress =
+        _fullySpecifiedCompressionMap[contentType.primaryType];
     if (subtypeCompress != null) {
       if (subtypeCompress.containsKey(contentType.subType)) {
         return subtypeCompress[contentType.subType];
@@ -144,7 +151,7 @@ class HTTPCodecRepository {
         return contentCodec.fuse(charsetCodec);
       }
       if (contentCodec is! Codec<dynamic, List<int>>) {
-        throw new StateError("Invalid codec selected. Does not emit 'List<int>'.");
+        throw StateError("Invalid codec selected. Does not emit 'List<int>'.");
       }
       return contentCodec as Codec<dynamic, List<int>>;
     }
@@ -159,7 +166,7 @@ class HTTPCodecRepository {
   Codec<String, List<int>> _codecForCharset(String charset) {
     var encoding = Encoding.getByName(charset);
     if (encoding == null) {
-      throw new Response(415, null, {"error": "invalid charset '$charset'"});
+      throw Response(415, null, {"error": "invalid charset '$charset'"});
     }
 
     return encoding;
@@ -210,14 +217,14 @@ class _FormDecoder extends Converter<String, Map<String, dynamic>> {
 
   @override
   Map<String, dynamic> convert(String data) {
-    var parsed = new Uri(query: data);
+    var parsed = Uri(query: data);
 
     return parsed.queryParametersAll;
   }
 
   @override
   _FormSink startChunkedConversion(Sink<Map<String, dynamic>> outSink) {
-    return new _FormSink(outSink);
+    return _FormSink(outSink);
   }
 }
 
@@ -226,7 +233,7 @@ class _FormSink extends ChunkedConversionSink<String> {
 
   final _FormDecoder decoder = const _FormDecoder();
   final Sink<Map<String, dynamic>> _outSink;
-  final StringBuffer _buffer = new StringBuffer();
+  final StringBuffer _buffer = StringBuffer();
 
   @override
   void add(String data) {

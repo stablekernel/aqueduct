@@ -11,7 +11,7 @@ void main() {
     Application<TestChannel> app;
 
     setUp(() async {
-      app = new Application<TestChannel>();
+      app = Application<TestChannel>();
       await app.start(numberOfInstances: 2, consoleLogging: true);
       print("started");
     });
@@ -55,8 +55,14 @@ void main() {
 
       await Future.wait(reqs);
 
-      expect(responses.any((http.Response resp) => resp.headers["server"] == "aqueduct/1"), true);
-      expect(responses.any((http.Response resp) => resp.headers["server"] == "aqueduct/2"), true);
+      expect(
+          responses.any(
+              (http.Response resp) => resp.headers["server"] == "aqueduct/1"),
+          true);
+      expect(
+          responses.any(
+              (http.Response resp) => resp.headers["server"] == "aqueduct/2"),
+          true);
     });
 
     test("Application stops", () async {
@@ -72,7 +78,9 @@ void main() {
       expect(resp.statusCode, 200);
     });
 
-    test("Application runs app startup function once, regardless of isolate count", () async {
+    test(
+        "Application runs app startup function once, regardless of isolate count",
+        () async {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
         var result = await http.get("http://localhost:8888/startup");
@@ -89,8 +97,10 @@ void main() {
       await app?.stop();
     });
 
-    test("didFinishLaunching is false before launch, true after, false after stop", () async {
-      app = new Application<TestChannel>();
+    test(
+        "didFinishLaunching is false before launch, true after, false after stop",
+        () async {
+      app = Application<TestChannel>();
       expect(app.isRunning, false);
 
       var future = app.start(numberOfInstances: 2, consoleLogging: true);
@@ -113,12 +123,12 @@ class TestChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    final router = new Router();
-    router.route("/t").linkFunction((req) async => new Response.ok("t_ok"));
-    router.route("/r").linkFunction((req) async => new Response.ok("r_ok"));
+    final router = Router();
+    router.route("/t").linkFunction((req) async => Response.ok("t_ok"));
+    router.route("/r").linkFunction((req) async => Response.ok("r_ok"));
     router.route("startup").linkFunction((r) async {
       var total = options.context["startup"].fold(0, (a, b) => a + b);
-      return new Response.ok("$total");
+      return Response.ok("$total");
     });
     return router;
   }

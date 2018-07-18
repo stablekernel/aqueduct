@@ -193,75 +193,75 @@ class _RootJoinObject {
 
 Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
   var rootObjects = <RootObject>[
-    new RootObject.withCounter() // 1
-      ..join = new ManagedSet.from([
-        new RootJoinObject() // 1
-          ..other = new OtherRootObject.withCounter(), // 1
-        new RootJoinObject() // 2
-          ..other = new OtherRootObject.withCounter() // 2
+    RootObject.withCounter() // 1
+      ..join = ManagedSet.from([
+        RootJoinObject() // 1
+          ..other = OtherRootObject.withCounter(), // 1
+        RootJoinObject() // 2
+          ..other = OtherRootObject.withCounter() // 2
       ])
-      ..child = (new ChildObject.withCounter() // 1
-        ..grandChild = new GrandChildObject.withCounter() // 1
-        ..grandChildren = new ManagedSet.from([
-          new GrandChildObject.withCounter(), // 2
-          new GrandChildObject.withCounter() // 3
+      ..child = (ChildObject.withCounter() // 1
+        ..grandChild = GrandChildObject.withCounter() // 1
+        ..grandChildren = ManagedSet.from([
+          GrandChildObject.withCounter(), // 2
+          GrandChildObject.withCounter() // 3
         ]))
-      ..children = new ManagedSet.from([
-        (new ChildObject.withCounter() // 2
-          ..grandChild = new GrandChildObject.withCounter() // 4
-          ..grandChildren = new ManagedSet.from([
-            new GrandChildObject.withCounter(), // 5
-            new GrandChildObject.withCounter() // 6
+      ..children = ManagedSet.from([
+        (ChildObject.withCounter() // 2
+          ..grandChild = GrandChildObject.withCounter() // 4
+          ..grandChildren = ManagedSet.from([
+            GrandChildObject.withCounter(), // 5
+            GrandChildObject.withCounter() // 6
           ])),
-        (new ChildObject.withCounter() // 3
-              ..grandChild = new GrandChildObject.withCounter() // 7
+        (ChildObject.withCounter() // 3
+              ..grandChild = GrandChildObject.withCounter() // 7
             ),
-        (new ChildObject.withCounter() // 4
-          ..grandChildren = new ManagedSet.from([
-            new GrandChildObject.withCounter() // 8
+        (ChildObject.withCounter() // 4
+          ..grandChildren = ManagedSet.from([
+            GrandChildObject.withCounter() // 8
           ])),
-        new ChildObject.withCounter() // 5
+        ChildObject.withCounter() // 5
       ]),
-    new RootObject.withCounter() // 2
-      ..join = new ManagedSet.from([
-        new RootJoinObject() // 3
-          ..other = new OtherRootObject.withCounter(), // 3
+    RootObject.withCounter() // 2
+      ..join = ManagedSet.from([
+        RootJoinObject() // 3
+          ..other = OtherRootObject.withCounter(), // 3
       ])
-      ..child = new ChildObject.withCounter() // 6
-      ..children = new ManagedSet.from([
-        new ChildObject.withCounter() // 7
+      ..child = ChildObject.withCounter() // 6
+      ..children = ManagedSet.from([
+        ChildObject.withCounter() // 7
       ]),
-    new RootObject.withCounter() // 3
-      ..child = new ChildObject.withCounter(), // 8
-    new RootObject.withCounter() // 4
-      ..children = new ManagedSet.from([
-        new ChildObject.withCounter() // 9
+    RootObject.withCounter() // 3
+      ..child = ChildObject.withCounter(), // 8
+    RootObject.withCounter() // 4
+      ..children = ManagedSet.from([
+        ChildObject.withCounter() // 9
       ]),
-    new RootObject.withCounter() // 5
+    RootObject.withCounter() // 5
   ];
 
   for (var root in rootObjects) {
-    var q = new Query<RootObject>(ctx)..values = root;
+    var q = Query<RootObject>(ctx)..values = root;
     var r = await q.insert();
     root.rid = r.rid;
 
     if (root.child != null) {
       var child = root.child;
       child.parent = root;
-      var cQ = new Query<ChildObject>(ctx)..values = child;
+      var cQ = Query<ChildObject>(ctx)..values = child;
       child.cid = (await cQ.insert()).cid;
 
       if (child.grandChild != null) {
         var gc = child.grandChild;
         gc.parent = child;
-        var gq = new Query<GrandChildObject>(ctx)..values = gc;
+        var gq = Query<GrandChildObject>(ctx)..values = gc;
         gc.gid = (await gq.insert()).gid;
       }
 
       if (child?.grandChildren != null) {
         for (var gc in child.grandChildren) {
           gc.parents = child;
-          var gq = new Query<GrandChildObject>(ctx)..values = gc;
+          var gq = Query<GrandChildObject>(ctx)..values = gc;
           gc.gid = (await gq.insert()).gid;
         }
       }
@@ -270,20 +270,20 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
     if (root.children != null) {
       for (var child in root.children) {
         child.parents = root;
-        var cQ = new Query<ChildObject>(ctx)..values = child;
+        var cQ = Query<ChildObject>(ctx)..values = child;
         child.cid = (await cQ.insert()).cid;
 
         if (child.grandChild != null) {
           var gc = child.grandChild;
           gc.parent = child;
-          var gq = new Query<GrandChildObject>(ctx)..values = gc;
+          var gq = Query<GrandChildObject>(ctx)..values = gc;
           gc.gid = (await gq.insert()).gid;
         }
 
         if (child?.grandChildren != null) {
           for (var gc in child.grandChildren) {
             gc.parents = child;
-            var gq = new Query<GrandChildObject>(ctx)..values = gc;
+            var gq = Query<GrandChildObject>(ctx)..values = gc;
             gc.gid = (await gq.insert()).gid;
           }
         }
@@ -292,12 +292,12 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
 
     if (root.join != null) {
       for (var join in root.join) {
-        var otherQ = new Query<OtherRootObject>(ctx)..values = join.other;
+        var otherQ = Query<OtherRootObject>(ctx)..values = join.other;
         join.other.id = (await otherQ.insert()).id;
 
-        join.root = new RootObject()..rid = root.rid;
+        join.root = RootObject()..rid = root.rid;
 
-        var joinQ = new Query<RootJoinObject>(ctx)..values = join;
+        var joinQ = Query<RootJoinObject>(ctx)..values = join;
         await joinQ.insert();
       }
     }

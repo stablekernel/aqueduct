@@ -33,7 +33,9 @@ class QueryPredicate {
     parameters ??= {};
   }
 
-  QueryPredicate.empty() : format = "", parameters = {};
+  QueryPredicate.empty()
+      : format = "",
+        parameters = {};
 
   /// Combines [predicates] with 'AND' keyword.
   ///
@@ -51,11 +53,11 @@ class QueryPredicate {
         ?.where((p) => p?.format != null && p.format.isNotEmpty)
         ?.toList();
     if (predicateList == null) {
-      return new QueryPredicate.empty();
+      return QueryPredicate.empty();
     }
 
     if (predicateList.length == 0) {
-      return new QueryPredicate.empty();
+      return QueryPredicate.empty();
     }
 
     if (predicateList.length == 1) {
@@ -67,7 +69,10 @@ class QueryPredicate {
     final allFormatStrings = [];
     final valueMap = <String, dynamic>{};
     for (var predicate in predicateList) {
-      final duplicateKeys = predicate.parameters?.keys?.where((k) => valueMap.keys.contains(k))?.toList() ?? [];
+      final duplicateKeys = predicate.parameters?.keys
+              ?.where((k) => valueMap.keys.contains(k))
+              ?.toList() ??
+          [];
 
       if (duplicateKeys.length > 0) {
         var fmt = predicate.format;
@@ -76,7 +81,7 @@ class QueryPredicate {
           final replacementKey = "${key}$dupeCounter";
           fmt = fmt.replaceAll("@$key", "@$replacementKey");
           dupeMap[key] = replacementKey;
-          dupeCounter ++;
+          dupeCounter++;
         });
 
         allFormatStrings.add(fmt);
@@ -89,9 +94,8 @@ class QueryPredicate {
       }
     }
 
-    var predicateFormat =
-        "(" + allFormatStrings.join(" AND ") + ")";
+    var predicateFormat = "(" + allFormatStrings.join(" AND ") + ")";
 
-    return new QueryPredicate(predicateFormat, valueMap);
+    return QueryPredicate(predicateFormat, valueMap);
   }
 }

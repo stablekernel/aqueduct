@@ -15,7 +15,7 @@ class Response implements RequestOrResponse {
   /// and you should prefer to use those.
   Response(int statusCode, Map<String, dynamic> headers, dynamic body) {
     this.body = body;
-    this.headers = new LowercaseMap.fromMap(headers ?? {});
+    this.headers = LowercaseMap.fromMap(headers ?? {});
     this.statusCode = statusCode;
   }
 
@@ -28,8 +28,10 @@ class Response implements RequestOrResponse {
   /// The [location] is a URI that is added as the Location header.
   Response.created(String location,
       {dynamic body, Map<String, dynamic> headers})
-      : this(HttpStatus.created,
-      _headersWith(headers, {HttpHeaders.locationHeader: location}), body);
+      : this(
+            HttpStatus.created,
+            _headersWith(headers, {HttpHeaders.locationHeader: location}),
+            body);
 
   /// Represents a 202 response.
   Response.accepted({Map<String, dynamic> headers})
@@ -94,11 +96,13 @@ class Response implements RequestOrResponse {
     if (initialResponseBody is HTTPSerializable) {
       serializedBody = initialResponseBody.asMap();
     } else if (initialResponseBody is List<HTTPSerializable>) {
-      serializedBody = initialResponseBody.map((value) => value.asMap()).toList();
+      serializedBody =
+          initialResponseBody.map((value) => value.asMap()).toList();
     }
 
     _body = serializedBody ?? initialResponseBody;
   }
+
   dynamic _body;
 
   /// Whether or not this instance should buffer its output or send it right away.
@@ -123,10 +127,10 @@ class Response implements RequestOrResponse {
   /// See [contentType] for behavior when setting 'content-type' in this property.
   Map<String, dynamic> get headers => _headers;
   set headers(Map<String, dynamic> h) {
-    _headers = new LowercaseMap.fromMap(h);
+    _headers = LowercaseMap.fromMap(h);
   }
 
-  Map<String, dynamic> _headers = new LowercaseMap();
+  Map<String, dynamic> _headers = LowercaseMap();
 
   /// The HTTP status code of this response.
   int statusCode;
@@ -167,7 +171,8 @@ class Response implements RequestOrResponse {
       return ContentType.parse(inHeaders);
     }
 
-    throw new StateError("Invalid content-type response header. Is not 'String' or 'ContentType'.");
+    throw StateError(
+        "Invalid content-type response header. Is not 'String' or 'ContentType'.");
   }
 
   set contentType(ContentType t) {
@@ -193,7 +198,7 @@ class Response implements RequestOrResponse {
 
   static Map<String, dynamic> _headersWith(
       Map<String, dynamic> inputHeaders, Map<String, dynamic> otherHeaders) {
-    var m = new LowercaseMap.fromMap(inputHeaders ?? {});
+    var m = LowercaseMap.fromMap(inputHeaders ?? {});
     m.addAll(otherHeaders);
     return m;
   }

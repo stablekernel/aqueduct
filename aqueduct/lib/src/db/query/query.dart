@@ -12,7 +12,6 @@ export 'matcher_expression.dart';
 export 'predicate.dart';
 export 'reduce.dart';
 
-
 /// An object for configuring and executing a database query.
 ///
 /// Queries are used to fetch, update, insert, delete and count [InstanceType]s in a database.
@@ -28,7 +27,8 @@ abstract class Query<InstanceType extends ManagedObject> {
   factory Query(ManagedContext context) {
     final entity = context.dataModel.entityForType(InstanceType);
     if (entity == null) {
-      throw new ArgumentError("Invalid context. The data model of 'context' does not contain '$InstanceType'.");
+      throw ArgumentError(
+          "Invalid context. The data model of 'context' does not contain '$InstanceType'.");
     }
 
     return context.persistentStore.newQuery<InstanceType>(context, entity);
@@ -42,7 +42,8 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// If [entity] is not in [context]'s [ManagedContext.dataModel], throws a internal failure [QueryException].
   factory Query.forEntity(ManagedEntity entity, ManagedContext context) {
     if (!context.dataModel.entities.any((e) => identical(entity, e))) {
-      throw new StateError("Invalid query construction. Entity for '${entity.tableName}' is from different context than specified for query.");
+      throw StateError(
+          "Invalid query construction. Entity for '${entity.tableName}' is from different context than specified for query.");
     }
 
     return context.persistentStore.newQuery<InstanceType>(context, entity);
@@ -51,8 +52,9 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// Inserts [object] into the database managed by [context].
   ///
   /// This is equivalent to creating a [Query], assigning [object] to [values], and invoking [insert].
-  static Future<T> insertObject<T extends ManagedObject>(ManagedContext context, T object) {
-    final query = new Query<T>(context)..values = object;
+  static Future<T> insertObject<T extends ManagedObject>(
+      ManagedContext context, T object) {
+    final query = Query<T>(context)..values = object;
     return query.insert();
   }
 
@@ -97,7 +99,8 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///           ..where.dateCreatedAt = whereGreaterThan(someDate);
   ///
   /// This mechanism only works on [fetch] and [fetchOne] execution methods. You *must not* execute a subquery created by this method.
-  Query<T> join<T extends ManagedObject>({T object(InstanceType x), ManagedSet<T> set(InstanceType x)});
+  Query<T> join<T extends ManagedObject>(
+      {T object(InstanceType x), ManagedSet<T> set(InstanceType x)});
 
   /// Configures this instance to fetch a section of a larger result set.
   ///
@@ -174,7 +177,8 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///         final query = new Query<Employee>()
   ///           ..where((e) => e.manager.name).equalTo("Sally");
   ///
-  QueryExpression<T, InstanceType> where<T>(T propertyIdentifier(InstanceType x));
+  QueryExpression<T, InstanceType> where<T>(
+      T propertyIdentifier(InstanceType x));
 
   /// Confirms that a query has no predicate before executing it.
   ///

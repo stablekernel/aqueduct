@@ -6,17 +6,17 @@ import 'package:isolate_executor/isolate_executor.dart';
 
 class SchemaBuilderExecutable extends Executable<Map<String, dynamic>> {
   SchemaBuilderExecutable(Map<String, dynamic> message)
-      : inputSchema = new Schema.fromMap(message["schema"] as Map<String, dynamic>),
+      : inputSchema = Schema.fromMap(message["schema"] as Map<String, dynamic>),
         sources = (message["sources"] as List<Map>)
-            .map((m) => new MigrationSource.fromMap(m as Map<String, dynamic>))
+            .map((m) => MigrationSource.fromMap(m as Map<String, dynamic>))
             .toList(),
         super(message);
 
-  SchemaBuilderExecutable.input(this.sources, this.inputSchema) :
-    super({
-      "schema": inputSchema.asMap(),
-      "sources": sources.map((source) => source.asMap()).toList()
-    });
+  SchemaBuilderExecutable.input(this.sources, this.inputSchema)
+      : super({
+          "schema": inputSchema.asMap(),
+          "sources": sources.map((source) => source.asMap()).toList()
+        });
 
   final List<MigrationSource> sources;
   final Schema inputSchema;
@@ -25,18 +25,21 @@ class SchemaBuilderExecutable extends Executable<Map<String, dynamic>> {
   Future<Map<String, dynamic>> execute() async {
     hierarchicalLoggingEnabled = true;
     PostgreSQLPersistentStore.logger.level = Level.ALL;
-    PostgreSQLPersistentStore.logger.onRecord.listen((r) => log("${r.message}"));
+    PostgreSQLPersistentStore.logger.onRecord
+        .listen((r) => log("${r.message}"));
 
     var outputSchema = inputSchema;
     for (var source in sources) {
       Migration instance = instanceOf(source.name);
-      instance.database = new SchemaBuilder(null, outputSchema);
+      instance.database = SchemaBuilder(null, outputSchema);
       await instance.upgrade();
       outputSchema = instance.currentSchema;
     }
     return outputSchema.asMap();
   }
 
-  static List<String> get imports =>
-      ["package:aqueduct/aqueduct.dart", "package:aqueduct/src/db/schema/migration_source.dart"];
+  static List<String> get imports => [
+        "package:aqueduct/aqueduct.dart",
+        "package:aqueduct/src/db/schema/migration_source.dart"
+      ];
 }

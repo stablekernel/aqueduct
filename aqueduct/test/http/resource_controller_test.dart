@@ -1,4 +1,3 @@
-
 import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
@@ -13,8 +12,7 @@ void main() {
   HttpServer server;
 
   setUpAll(() {
-    new ManagedContext(
-        new ManagedDataModel([TestModel]), new DefaultPersistentStore());
+    ManagedContext(ManagedDataModel([TestModel]), DefaultPersistentStore());
   });
 
   tearDown(() async {
@@ -49,13 +47,11 @@ void main() {
     expect(json.decode(res.body), "123active");
   });
 
-
   test("Can get path variable without binding", () async {
     server = await enableController("/:id", NoBindController);
     var response = await http.get("http://localhost:4040/foo");
     expect(json.decode(response.body), {"id": "foo"});
   });
-
 
   group("Unsupported method", () {
     test("Returns status code 405 with Allow response header", () async {
@@ -84,7 +80,9 @@ void main() {
     });
   });
 
-  test("Bound path variable in operation method without specifying in operation throws exception", () async {
+  test(
+      "Bound path variable in operation method without specifying in operation throws exception",
+      () async {
     try {
       server = await enableController("/foo/", UnboundController);
       expect(true, false);
@@ -313,11 +311,9 @@ void main() {
     var resp = await http.get("http://localhost:4040/a");
     expect(json.decode(resp.body), {"didDecode": false});
 
-    resp = await http.post("http://localhost:4040/a", headers: {
-      HttpHeaders.contentTypeHeader: ContentType.json.toString()
-    }, body: json.encode({
-      "k":"v"
-    }));
+    resp = await http.post("http://localhost:4040/a",
+        headers: {HttpHeaders.contentTypeHeader: ContentType.json.toString()},
+        body: json.encode({"k": "v"}));
     expect(json.decode(resp.body), {"didDecode": true});
   });
 
@@ -410,7 +406,8 @@ void main() {
       });
 
       expect(resp.statusCode, 400);
-      expect(json.decode(resp.body), {"error": "missing required Header 'Cookie'"});
+      expect(json.decode(resp.body),
+          {"error": "missing required Header 'Cookie'"});
     });
 
     test("missing require method query param fails", () async {
@@ -471,7 +468,8 @@ void main() {
 
       expect(resp.statusCode, 400);
 
-      expect(json.decode(resp.body)["error"], contains("missing required Query Parameter"));
+      expect(json.decode(resp.body)["error"],
+          contains("missing required Query Parameter"));
       expect(json.decode(resp.body)["error"], contains("Table"));
       expect(json.decode(resp.body)["error"], contains("Shaqs"));
     });
@@ -527,15 +525,20 @@ void main() {
   });
 
   group("Recycling", () {
-    test("Multiple requests to same controller yield correct results", () async {
+    test("Multiple requests to same controller yield correct results",
+        () async {
       server = await enableController("/a/[:id/[:flag]]", TController);
 
       final List<http.Response> responses = await Future.wait([
         http.get("http://localhost:4040/a"),
         http.get("http://localhost:4040/a/foo"),
         http.get("http://localhost:4040/a/foo/bar"),
-        http.put("http://localhost:4040/a/foo", body: json.encode({"k": "v"}), headers: {"content-type": "application/json;charset=utf-8"}),
-        http.post("http://localhost:4040/a", body: json.encode({"k": "v"}), headers: {"content-type": "application/json;charset=utf-8"}),
+        http.put("http://localhost:4040/a/foo",
+            body: json.encode({"k": "v"}),
+            headers: {"content-type": "application/json;charset=utf-8"}),
+        http.post("http://localhost:4040/a",
+            body: json.encode({"k": "v"}),
+            headers: {"content-type": "application/json;charset=utf-8"}),
       ]);
 
       expect(responses[0].statusCode, 200);
@@ -558,13 +561,13 @@ void main() {
 class FilteringController extends ResourceController {
   @Operation.get()
   Future<Response> getAll() async {
-    return new Response.ok(null);
+    return Response.ok(null);
   }
 
   @override
   Future<RequestOrResponse> willProcessRequest(Request req) async {
     if (req.raw.headers.value("ignore") != null) {
-      return new Response.badRequest(body: "ignored");
+      return Response.badRequest(body: "ignored");
     }
     return super.willProcessRequest(req);
   }
@@ -573,30 +576,30 @@ class FilteringController extends ResourceController {
 class TController extends ResourceController {
   @Operation.get()
   Future<Response> getAll() async {
-    return new Response.ok("getAll");
+    return Response.ok("getAll");
   }
 
   @Operation.get("id")
   Future<Response> getOne(@Bind.path("id") String id) async {
-    return new Response.ok("$id");
+    return Response.ok("$id");
   }
 
   @Operation.get("id", "flag")
   Future<Response> getBoth(
       @Bind.path("id") String id, @Bind.path("flag") String flag) async {
-    return new Response.ok("$id$flag");
+    return Response.ok("$id$flag");
   }
 
   @Operation.put("id")
   Future<Response> putOne(@Bind.path("id") String id) async {
-    throw new Exception("Exception!");
+    throw Exception("Exception!");
   }
 
   @Operation.post()
   Future<Response> post() async {
     Map<String, dynamic> body = this.request.body.as();
 
-    return new Response.ok(body);
+    return Response.ok(body);
   }
 }
 
@@ -604,66 +607,68 @@ class QController extends ResourceController {
   @Operation.get()
   Future<Response> getAll({@Bind.query("opt") String opt}) async {
     if (opt == null) {
-      return new Response.ok("NOT");
+      return Response.ok("NOT");
     }
 
-    return new Response.ok("OK");
+    return Response.ok("OK");
   }
 
   @Operation.get("id")
   Future<Response> getOne(@Bind.path("id") String id,
       {@Bind.query("opt") String opt}) async {
     if (opt == null) {
-      return new Response.ok("NOT");
+      return Response.ok("NOT");
     }
 
-    return new Response.ok("OK");
+    return Response.ok("OK");
   }
 }
 
 class IntController extends ResourceController {
   IntController() {
-    acceptedContentTypes = [new ContentType("application", "x-www-form-urlencoded")];
+    acceptedContentTypes = [
+      ContentType("application", "x-www-form-urlencoded")
+    ];
   }
   @Operation.get("id")
   Future<Response> getOne(@Bind.path("id") int id) async {
-    return new Response.ok("${id * 2}");
+    return Response.ok("${id * 2}");
   }
 
   @Operation.get()
   Future<Response> getAll({@Bind.query("opt") int opt}) async {
-    return new Response.ok("$opt");
+    return Response.ok("$opt");
   }
 
   @Operation.post()
   Future<Response> create({@Bind.query("opt") int opt}) async {
-    return new Response.ok("$opt");
+    return Response.ok("$opt");
   }
 }
 
 class DateTimeController extends ResourceController {
   @Operation.get("time")
   Future<Response> getOne(@Bind.path("time") DateTime time) async {
-    return new Response.ok("${time.add(new Duration(seconds: 5))}");
+    return Response.ok("${time.add(Duration(seconds: 5))}");
   }
 
   @Operation.get()
   Future<Response> getAll({@Bind.query("opt") DateTime opt}) async {
-    return new Response.ok("$opt");
+    return Response.ok("$opt");
   }
 }
 
 class MultiQueryParamController extends ResourceController {
   @Operation.get()
   Future<Response> get({@Bind.query("params") List<String> params}) async {
-    return new Response.ok(params.join(","));
+    return Response.ok(params.join(","));
   }
 }
 
 class BooleanQueryParamController extends ResourceController {
   @Operation.get()
-  Future<Response> get({@Bind.query("param") bool param: false}) async {
-    return new Response.ok(param ? "true" : "false");
+  Future<Response> get({@Bind.query("param") bool param = false}) async {
+    return Response.ok(param ? "true" : "false");
   }
 }
 
@@ -684,7 +689,7 @@ class HTTPParameterController extends ResourceController {
       @Bind.query("Table") String tableBrand,
       {@Bind.header("Milk") String milkBrand,
       @Bind.query("table_legs") int numberOfTableLegs}) async {
-    return new Response.ok({
+    return Response.ok({
       "location": location,
       "x-request-id": requestId,
       "number": number,
@@ -701,35 +706,35 @@ class ModelEncodeController extends ResourceController {
   @Operation.get("thing")
   Future<Response> getThings(@Bind.path("thing") String thing) async {
     if (thing == "list") {
-      return new Response.ok([
+      return Response.ok([
         {"id": 1},
         {"id": 2}
       ]);
     }
 
     if (thing == "model") {
-      var m = new TestModel()
+      var m = TestModel()
         ..id = 1
         ..name = "Bob";
-      return new Response.ok(m);
+      return Response.ok(m);
     }
 
     if (thing == "modellist") {
-      var m1 = new TestModel()
+      var m1 = TestModel()
         ..id = 1
         ..name = "Bob";
-      var m2 = new TestModel()
+      var m2 = TestModel()
         ..id = 2
         ..name = "Fred";
 
-      return new Response.ok([m1, m2]);
+      return Response.ok([m1, m2]);
     }
 
     if (thing == "null") {
-      return new Response.ok(null);
+      return Response.ok(null);
     }
 
-    return new Response.serverError();
+    return Response.serverError();
   }
 }
 
@@ -737,14 +742,13 @@ class ContentTypeController extends ResourceController {
   @Operation.get()
   Future<Response> getThing(@Bind.query("opt") String opt) async {
     if (opt == "responseContentType") {
-      responseContentType = new ContentType("text", "plain");
-      return new Response.ok("body");
+      responseContentType = ContentType("text", "plain");
+      return Response.ok("body");
     } else if (opt == "direct") {
-      return new Response.ok("body")
-        ..contentType = new ContentType("text", "plain");
+      return Response.ok("body")..contentType = ContentType("text", "plain");
     }
 
-    return new Response.serverError();
+    return Response.serverError();
   }
 }
 
@@ -752,7 +756,7 @@ class DuplicateParamController extends ResourceController {
   @Operation.get()
   Future<Response> getThing(@Bind.query("list") List<String> list,
       @Bind.query("single") String single) async {
-    return new Response.ok({"list": list, "single": single});
+    return Response.ok({"list": list, "single": single});
   }
 }
 
@@ -761,12 +765,12 @@ class DecodeCallbackController extends ResourceController {
 
   @Operation.get()
   Future<Response> getThing() async {
-    return new Response.ok({"didDecode": didDecode});
+    return Response.ok({"didDecode": didDecode});
   }
 
   @Operation.post()
   Future<Response> postThing() async {
-    return new Response.ok({"didDecode": didDecode});
+    return Response.ok({"didDecode": didDecode});
   }
 
   @override
@@ -778,37 +782,37 @@ class DecodeCallbackController extends ResourceController {
 class AmbiguousController extends ResourceController {
   @Operation.get("id")
   Future<Response> get1(@Bind.path("id") int id) async {
-    return new Response.ok(null);
+    return Response.ok(null);
   }
 
   @Operation.get("id")
   Future<Response> get2(@Bind.path("id") int id) async {
-    return new Response.ok(null);
+    return Response.ok(null);
   }
 }
 
 class NoBindController extends ResourceController {
   @Operation.get("id")
   Future<Response> getOne() async {
-    return new Response.ok({"id": request.path.variables["id"]});
+    return Response.ok({"id": request.path.variables["id"]});
   }
 }
 
 class UnboundController extends ResourceController {
   @Operation.get()
   Future<Response> getOne(@Bind.path("id") int id) async {
-    return new Response.ok(null);
+    return Response.ok(null);
   }
 }
 
 Future<HttpServer> enableController(String pattern, Type controller) async {
-  var router = new Router();
-  router.route(pattern).link(
-      () => reflectClass(controller).newInstance(new Symbol(""), []).reflectee as Controller);
+  var router = Router();
+  router.route(pattern).link(() => reflectClass(controller)
+      .newInstance(Symbol(""), []).reflectee as Controller);
   router.didAddToChannel();
 
   var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
-  server.map((httpReq) => new Request(httpReq)).listen(router.receive);
+  server.map((httpReq) => Request(httpReq)).listen(router.receive);
 
   return server;
 }

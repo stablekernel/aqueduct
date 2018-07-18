@@ -4,14 +4,14 @@ import '../persistent_store/persistent_store.dart';
 /// Used during migration to modify a schema.
 class SchemaBuilder {
   /// Creates a builder starting from an existing schema.
-  SchemaBuilder(this.store, this.inputSchema, {this.isTemporary: false}) {
-    schema = new Schema.from(inputSchema);
+  SchemaBuilder(this.store, this.inputSchema, {this.isTemporary = false}) {
+    schema = Schema.from(inputSchema);
   }
 
   /// Creates a builder starting from the empty schema.
   SchemaBuilder.toSchema(this.store, Schema targetSchema,
-      {this.isTemporary: false}) {
-    schema = new Schema.empty();
+      {this.isTemporary = false}) {
+    schema = Schema.empty();
     targetSchema.dependencyOrderedTables.forEach((t) {
       createTable(t);
     });
@@ -45,7 +45,7 @@ class SchemaBuilder {
   void renameTable(String currentTableName, String newName) {
     var table = schema.tableForName(currentTableName);
     if (table == null) {
-      throw new SchemaException("Table $currentTableName does not exist.");
+      throw SchemaException("Table $currentTableName does not exist.");
     }
 
     schema.renameTable(table, newName);
@@ -58,7 +58,7 @@ class SchemaBuilder {
   void deleteTable(String tableName) {
     var table = schema.tableForName(tableName);
     if (table == null) {
-      throw new SchemaException("Table $tableName does not exist.");
+      throw SchemaException("Table $tableName does not exist.");
     }
 
     schema.removeTable(table);
@@ -71,24 +71,29 @@ class SchemaBuilder {
   void alterTable(String tableName, void modify(SchemaTable targetTable)) {
     var existingTable = schema.tableForName(tableName);
     if (existingTable == null) {
-      throw new SchemaException("Table $tableName does not exist.");
+      throw SchemaException("Table $tableName does not exist.");
     }
 
-    var newTable = new SchemaTable.from(existingTable);
+    var newTable = SchemaTable.from(existingTable);
     modify(newTable);
     schema.removeTable(existingTable);
     schema.addTable(newTable);
 
     if (store != null) {
-      var shouldAddUnique = existingTable.uniqueColumnSet == null && newTable.uniqueColumnSet != null;
-      var shouldRemoveUnique = existingTable.uniqueColumnSet != null && newTable.uniqueColumnSet == null;
+      var shouldAddUnique = existingTable.uniqueColumnSet == null &&
+          newTable.uniqueColumnSet != null;
+      var shouldRemoveUnique = existingTable.uniqueColumnSet != null &&
+          newTable.uniqueColumnSet == null;
       if (shouldAddUnique) {
         commands.addAll(store.addTableUniqueColumnSet(newTable));
       } else if (shouldRemoveUnique) {
         commands.addAll(store.deleteTableUniqueColumnSet(newTable));
-      } else if (existingTable.uniqueColumnSet != null && newTable.uniqueColumnSet != null) {
-        var haveSameLength = existingTable.uniqueColumnSet.length == newTable.uniqueColumnSet.length;
-        var haveSameKeys = existingTable.uniqueColumnSet.every((s) => newTable.uniqueColumnSet.contains(s));
+      } else if (existingTable.uniqueColumnSet != null &&
+          newTable.uniqueColumnSet != null) {
+        var haveSameLength = existingTable.uniqueColumnSet.length ==
+            newTable.uniqueColumnSet.length;
+        var haveSameKeys = existingTable.uniqueColumnSet
+            .every((s) => newTable.uniqueColumnSet.contains(s));
 
         if (!haveSameKeys || !haveSameLength) {
           commands.addAll(store.deleteTableUniqueColumnSet(newTable));
@@ -99,15 +104,17 @@ class SchemaBuilder {
   }
 
   /// Validates and adds a column to a table in [schema].
-  void addColumn(String tableName, SchemaColumn column, {String unencodedInitialValue}) {
+  void addColumn(String tableName, SchemaColumn column,
+      {String unencodedInitialValue}) {
     var table = schema.tableForName(tableName);
     if (table == null) {
-      throw new SchemaException("Table $tableName does not exist.");
+      throw SchemaException("Table $tableName does not exist.");
     }
 
     table.addColumn(column);
     if (store != null) {
-      commands.addAll(store.addColumn(table, column, unencodedInitialValue: unencodedInitialValue));
+      commands.addAll(store.addColumn(table, column,
+          unencodedInitialValue: unencodedInitialValue));
     }
   }
 
@@ -115,12 +122,12 @@ class SchemaBuilder {
   void deleteColumn(String tableName, String columnName) {
     var table = schema.tableForName(tableName);
     if (table == null) {
-      throw new SchemaException("Table $tableName does not exist.");
+      throw SchemaException("Table $tableName does not exist.");
     }
 
     var column = table.columnForName(columnName);
     if (column == null) {
-      throw new SchemaException("Column $columnName does not exists.");
+      throw SchemaException("Column $columnName does not exists.");
     }
 
     table.removeColumn(column);
@@ -134,12 +141,12 @@ class SchemaBuilder {
   void renameColumn(String tableName, String columnName, String newName) {
     var table = schema.tableForName(tableName);
     if (table == null) {
-      throw new SchemaException("Table $tableName does not exist.");
+      throw SchemaException("Table $tableName does not exist.");
     }
 
     var column = table.columnForName(columnName);
     if (column == null) {
-      throw new SchemaException("Column $columnName does not exists.");
+      throw SchemaException("Column $columnName does not exists.");
     }
 
     table.renameColumn(column, newName);
@@ -166,39 +173,39 @@ class SchemaBuilder {
       {String unencodedInitialValue}) {
     var table = schema.tableForName(tableName);
     if (table == null) {
-      throw new SchemaException("Table $tableName does not exist.");
+      throw SchemaException("Table $tableName does not exist.");
     }
 
     var existingColumn = table[columnName];
     if (existingColumn == null) {
-      throw new SchemaException("Column $columnName does not exist.");
+      throw SchemaException("Column $columnName does not exist.");
     }
 
-    var newColumn = new SchemaColumn.from(existingColumn);
+    var newColumn = SchemaColumn.from(existingColumn);
     modify(newColumn);
 
     if (existingColumn.type != newColumn.type) {
-      throw new SchemaException(
+      throw SchemaException(
           "May not change column type for '${existingColumn.name}' in '$tableName' (${existingColumn.typeString} -> ${newColumn.typeString})");
     }
 
     if (existingColumn.autoincrement != newColumn.autoincrement) {
-      throw new SchemaException(
+      throw SchemaException(
           "May not change column autoincrementing behavior for '${existingColumn.name}' in '$tableName'");
     }
 
     if (existingColumn.isPrimaryKey != newColumn.isPrimaryKey) {
-      throw new SchemaException(
+      throw SchemaException(
           "May not change column primary key status for '${existingColumn.name}' in '$tableName'");
     }
 
     if (existingColumn.relatedTableName != newColumn.relatedTableName) {
-      throw new SchemaException(
+      throw SchemaException(
           "May not change reference table for foreign key column '${existingColumn.name}' in '$tableName' (${existingColumn.relatedTableName} -> ${newColumn.relatedTableName})");
     }
 
     if (existingColumn.relatedColumnName != newColumn.relatedColumnName) {
-      throw new SchemaException(
+      throw SchemaException(
           "May not change reference column for foreign key column '${existingColumn.name}' in '$tableName' (${existingColumn.relatedColumnName} -> ${newColumn.relatedColumnName})");
     }
 
@@ -210,7 +217,7 @@ class SchemaBuilder {
         newColumn.isNullable == false &&
         unencodedInitialValue == null &&
         newColumn.defaultValue == null) {
-      throw new SchemaException(
+      throw SchemaException(
           "May not change column '${existingColumn.name}' in '$tableName' to be nullable without defaultValue or unencodedInitialValue.");
     }
 
