@@ -23,11 +23,6 @@ class QueryExpressionJunction<T, InstanceType> {
 class QueryExpression<T, InstanceType> {
   QueryExpression(this.keyPath);
 
-  QueryExpression.forNestedProperty(
-      QueryExpression<T, InstanceType> original, int offset)
-      : keyPath = KeyPath.byRemovingFirstNKeys(original.keyPath, 1),
-        _expression = original.expression;
-
   QueryExpression.byAddingKey(QueryExpression<T, InstanceType> original,
       ManagedPropertyDescription byAdding)
       : keyPath = KeyPath.byAddingKey(original.keyPath, byAdding),
@@ -272,7 +267,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).between(80000, 100000);
   QueryExpressionJunction<T, InstanceType> between(T lhs, T rhs) {
-    expression = RangeExpression(lhs, rhs, true);
+    expression = RangeExpression(lhs, rhs, within: true);
 
     return _createJunction();
   }
@@ -290,7 +285,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).outsideOf(80000, 100000);
   QueryExpressionJunction<T, InstanceType> outsideOf(T lhs, T rhs) {
-    expression = RangeExpression(lhs, rhs, false);
+    expression = RangeExpression(lhs, rhs, within: false);
 
     return _createJunction();
   }
@@ -321,7 +316,7 @@ class QueryExpression<T, InstanceType> {
   ///       var q = new Query<Employee>()
   ///         ..where((e) => e.manager).isNull();
   QueryExpressionJunction<T, InstanceType> isNull() {
-    expression = const NullCheckExpression(true);
+    expression = const NullCheckExpression(shouldBeNull: true);
 
     return _createJunction();
   }
@@ -337,7 +332,7 @@ class QueryExpression<T, InstanceType> {
   ///       var q = new Query<Employee>()
   ///         ..where((e) => e.manager).isNotNull();
   QueryExpressionJunction<T, InstanceType> isNotNull() {
-    expression = const NullCheckExpression(false);
+    expression = const NullCheckExpression(shouldBeNull: false);
 
     return _createJunction();
   }

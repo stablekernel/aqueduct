@@ -148,6 +148,7 @@ class ParseSet extends ResourceController {
 
 class BoolBind extends ResourceController {
   @Operation.get('id')
+  // ignore: avoid_positional_boolean_parameters
   Future<Response> get1(@Bind.query("foo") bool a) async {
     return Response.ok(null);
   }
@@ -206,6 +207,7 @@ class ErrorDefault extends ResourceController {
 
 class ErrorDefaultBool extends ResourceController {
   @Operation.get()
+  // ignore: avoid_positional_boolean_parameters
   Future<Response> get1(@Bind.header("foo") bool x) async {
     return Response.ok(null);
   }

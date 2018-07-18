@@ -12,8 +12,6 @@ class ColumnBuilder extends Returnable {
   ColumnBuilder(this.table, this.property, {this.documentKeyPath});
 
   static List<Returnable> fromKeys(TableBuilder table, List<KeyPath> keys) {
-    keys ??= [];
-
     final entity = table.entity;
 
     // Ensure the primary key is always available and at 0th index.

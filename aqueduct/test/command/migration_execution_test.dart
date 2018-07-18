@@ -1,5 +1,7 @@
+// ignore: unnecessary_const
+@Tags(const ["cli"])
+
 import 'dart:async';
-@Tags(["cli"])
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';

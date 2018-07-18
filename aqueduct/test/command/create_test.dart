@@ -1,4 +1,5 @@
-@Tags(["cli"])
+// ignore: unnecessary_const
+@Tags(const ["cli"])
 import 'dart:io';
 
 import 'package:path/path.dart' as path_lib;

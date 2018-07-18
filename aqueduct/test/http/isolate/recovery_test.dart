@@ -1,4 +1,5 @@
-@Timeout(Duration(seconds: 90))
+// ignore: unnecessary_const
+@Timeout(const Duration(seconds: 90))
 import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';

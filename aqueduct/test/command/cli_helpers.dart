@@ -203,9 +203,8 @@ class Terminal {
     return exitCode;
   }
 
-  CLITask startAqueductCommand(String command, List<String> args) {
-    print(command);
-    args ??= [];
+  CLITask startAqueductCommand(String command, List<String> inputArgs) {
+    final args = inputArgs ?? [];
     args.insert(0, command);
     args.addAll(defaultAqueductArgs ?? []);
 

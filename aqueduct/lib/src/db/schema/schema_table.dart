@@ -132,8 +132,7 @@ class SchemaTable {
   ///
   /// Sets [column]'s [SchemaColumn.table] to null.
   void removeColumn(SchemaColumn column) {
-    column = this[column.name];
-    if (column == null) {
+    if (!columns.contains(column)) {
       throw SchemaException("Column ${column.name} does not exist on $name.");
     }
 
@@ -143,8 +142,7 @@ class SchemaTable {
 
   /// Replaces [existingColumn] with [newColumn] in this table.
   void replaceColumn(SchemaColumn existingColumn, SchemaColumn newColumn) {
-    existingColumn = this[existingColumn.name];
-    if (existingColumn == null) {
+    if (!columns.contains(existingColumn)) {
       throw SchemaException(
           "Column ${existingColumn.name} does not exist on $name.");
     }

@@ -20,14 +20,14 @@ class ColumnExpressionBuilder extends ColumnBuilder {
     if (expr is ComparisonExpression) {
       return comparisonPredicate(expr.operator, expr.value);
     } else if (expr is RangeExpression) {
-      return rangePredicate(expr.lhs, expr.rhs, expr.within);
+      return rangePredicate(expr.lhs, expr.rhs, insideRange: expr.within);
     } else if (expr is NullCheckExpression) {
-      return nullPredicate(expr.shouldBeNull);
+      return nullPredicate(isNull: expr.shouldBeNull);
     } else if (expr is SetMembershipExpression) {
-      return containsPredicate(expr.within, expr.values);
+      return containsPredicate(expr.values, within: expr.within);
     } else if (expr is StringExpression) {
       return stringPredicate(
-          expr.operator, expr.value, expr.caseSensitive, expr.invertOperator);
+          expr.operator, expr.value, caseSensitive: expr.caseSensitive, invertOperator: expr.invertOperator);
     }
 
     throw UnsupportedError(
@@ -44,7 +44,7 @@ class ColumnExpressionBuilder extends ColumnBuilder {
         {variableName: convertValueForStorage(value)});
   }
 
-  QueryPredicate containsPredicate(bool within, Iterable<dynamic> values) {
+  QueryPredicate containsPredicate(Iterable<dynamic> values, {bool within = true}) {
     var tokenList = [];
     var pairedMap = <String, dynamic>{};
 
@@ -64,13 +64,13 @@ class ColumnExpressionBuilder extends ColumnBuilder {
     return QueryPredicate("$name $keyword (${tokenList.join(",")})", pairedMap);
   }
 
-  QueryPredicate nullPredicate(bool isNull) {
+  QueryPredicate nullPredicate({bool isNull = true}) {
     var name = sqlColumnName(withTableNamespace: true);
     return QueryPredicate("$name ${isNull ? "ISNULL" : "NOTNULL"}", {});
   }
 
   QueryPredicate rangePredicate(
-      dynamic lhsValue, dynamic rhsValue, bool insideRange) {
+      dynamic lhsValue, dynamic rhsValue, {bool insideRange = true}) {
     var name = sqlColumnName(withTableNamespace: true);
     var lhsName = sqlColumnName(withPrefix: "${defaultPrefix}lhs_");
     var rhsName = sqlColumnName(withPrefix: "${defaultPrefix}rhs_");
@@ -85,7 +85,7 @@ class ColumnExpressionBuilder extends ColumnBuilder {
   }
 
   QueryPredicate stringPredicate(PredicateStringOperator operator,
-      dynamic value, bool caseSensitive, bool invertOperator) {
+      dynamic value, {bool caseSensitive = true, bool invertOperator = false}) {
     var n = sqlColumnName(withTableNamespace: true);
     var variableName = sqlColumnName(withPrefix: defaultPrefix);
 

@@ -48,25 +48,25 @@ class ComparisonExpression implements PredicateExpression {
 }
 
 class RangeExpression implements PredicateExpression {
-  const RangeExpression(this.lhs, this.rhs, this.within);
+  const RangeExpression(this.lhs, this.rhs, {this.within = true});
 
   final bool within;
   final dynamic lhs, rhs;
 
   @override
   PredicateExpression get inverse {
-    return RangeExpression(lhs, rhs, !within);
+    return RangeExpression(lhs, rhs, within: !within);
   }
 }
 
 class NullCheckExpression implements PredicateExpression {
-  const NullCheckExpression(this.shouldBeNull);
+  const NullCheckExpression({this.shouldBeNull = true});
 
   final bool shouldBeNull;
 
   @override
   PredicateExpression get inverse {
-    return NullCheckExpression(!shouldBeNull);
+    return NullCheckExpression(shouldBeNull: !shouldBeNull);
   }
 }
 

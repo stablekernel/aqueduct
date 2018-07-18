@@ -90,7 +90,7 @@ class HTTPFileController extends Controller {
   /// Returns null if there is no entry for [extension]. Entries can be added with [setContentTypeForExtension].
   ContentType contentTypeForExtension(String extension) {
     if (extension.startsWith(".")) {
-      extension = extension.substring(1);
+      return _extensionMap[extension.substring(1)];
     }
     return _extensionMap[extension];
   }

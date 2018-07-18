@@ -1,5 +1,5 @@
-@Tags(["cli"])
-
+// ignore: unnecessary_const
+@Tags(const ["cli"])
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';

@@ -34,7 +34,8 @@ class RouteSpecification {
   String toString() => segments.join("/");
 }
 
-List<String> _pathsFromRoutePattern(String routePattern) {
+List<String> _pathsFromRoutePattern(final String inputPattern) {
+  var routePattern = inputPattern;
   var endingOptionalCloseCount = 0;
   while (routePattern.endsWith("]")) {
     routePattern = routePattern.substring(0, routePattern.length - 1);
@@ -95,7 +96,8 @@ List<String> _pathsFromRoutePattern(String routePattern) {
   return patterns;
 }
 
-List<RouteSegment> _splitPathSegments(String path) {
+List<RouteSegment> _splitPathSegments(String inputPath) {
+  var path = inputPath;
   // Once we've gotten into this method, the path has been validated for optionals and regex and optionals have been removed.
 
   // Trim leading and trailing

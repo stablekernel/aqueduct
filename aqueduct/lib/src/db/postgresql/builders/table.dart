@@ -18,7 +18,7 @@ class TableBuilder implements Returnable {
     if (parent != null) {
       tableAlias = createTableAlias();
     }
-    returning = ColumnBuilder.fromKeys(this, query.propertiesToFetch);
+    returning = ColumnBuilder.fromKeys(this, query.propertiesToFetch ?? []);
 
     columnSortBuilders = query.sortDescriptors
             ?.map((s) => ColumnSortBuilder(this, s.key, s.order))

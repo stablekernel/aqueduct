@@ -475,13 +475,12 @@ class APIReferenceTransformer extends Transformer {
     return utf8.encode(contents);
   }
 
-  SymbolResolution bestGuessForSymbol(String symbol) {
+  SymbolResolution bestGuessForSymbol(String inputSymbol) {
     if (symbolMap.isEmpty) {
       return null;
     }
 
-
-    symbol = symbol.replaceAll("<T>", "").replaceAll("@", "").replaceAll("()", "");
+    final symbol = inputSymbol.replaceAll("<T>", "").replaceAll("@", "").replaceAll("()", "");
 
     var possible = symbolMap["qualified"][symbol];
     possible ??= symbolMap["name"][symbol];

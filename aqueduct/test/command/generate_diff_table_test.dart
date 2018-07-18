@@ -1,4 +1,5 @@
-@Tags(["cli"])
+// ignore: unnecessary_const
+@Tags(const ["cli"])
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:postgres/postgres.dart';

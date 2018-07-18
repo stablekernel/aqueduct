@@ -92,6 +92,7 @@ class HTTPCodecRepository {
   ///
   /// Use this method when wanting to compress a [Response.body], but there is no need for a [Codec] to transform
   /// the body object.
+  // ignore: avoid_positional_boolean_parameters
   void setAllowsCompression(ContentType contentType, bool allowed) {
     if (contentType.subType == "*") {
       _primaryTypeCompressionMap[contentType.primaryType] = allowed;
