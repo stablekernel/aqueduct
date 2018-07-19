@@ -110,15 +110,15 @@ class Schema {
 
   /// Removes a table from this instance.
   ///
+  /// [table] must be an instance in [tables] or an exception is thrown.
   /// Sets [table]'s [SchemaTable.schema] to null.
   void removeTable(SchemaTable table) {
-    var toRemove = tables.firstWhere(
-        (t) => t.name.toLowerCase() == table.name.toLowerCase(),
-        orElse: () => throw SchemaException(
-            "Table ${table.name} does not exist in schema."));
-
-    toRemove.schema = null;
-    _tableStorage.remove(toRemove);
+    if (!tables.contains(table)) {
+      throw SchemaException(
+        "Table ${table.name} does not exist in schema.");
+    }
+    table.schema = null;
+    _tableStorage.remove(table);
   }
 
   /// Returns a [SchemaTable] for [name].

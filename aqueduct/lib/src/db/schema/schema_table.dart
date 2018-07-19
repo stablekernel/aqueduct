@@ -130,6 +130,7 @@ class SchemaTable {
 
   /// Removes [column] from this table.
   ///
+  /// Exact [column] must be in this table, else an exception is thrown.
   /// Sets [column]'s [SchemaColumn.table] to null.
   void removeColumn(SchemaColumn column) {
     if (!columns.contains(column)) {

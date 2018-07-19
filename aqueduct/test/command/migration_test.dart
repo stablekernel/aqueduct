@@ -53,13 +53,12 @@ void main() {
       final outSchema = await store.upgrade(schema, [mig], temporary: true);
 
       // 'Sync up' that schema to compare it
-      schema.tableForName("tableToKeep").addColumn(SchemaColumn(
+      final tableToKeep = schema.tableForName("tableToKeep");
+      tableToKeep.addColumn(SchemaColumn(
           "addedColumn", ManagedPropertyType.integer,
           defaultValue: "2"));
-      schema.tableForName("tableToKeep").removeColumn(
-          SchemaColumn("columnToDelete", ManagedPropertyType.integer));
-      schema
-          .tableForName("tableToKeep")
+      tableToKeep.removeColumn(tableToKeep.columnForName("columnToDelete"));
+      tableToKeep
           .columnForName("columnToEdit")
           .defaultValue = "'foo'";
 
