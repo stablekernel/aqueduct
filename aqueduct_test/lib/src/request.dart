@@ -66,7 +66,7 @@ class TestRequest {
   /// This value is derived from [baseURL], [path], and [query].
   String get requestURL {
     if (path == null || baseURL == null) {
-      throw new StateError("TestRequest must have non-null path and baseURL.");
+      throw StateError("TestRequest must have non-null path and baseURL.");
     }
 
     var actualPath = path;
@@ -85,7 +85,7 @@ class TestRequest {
         }
       });
 
-      url = url + "?${pairs.join("&")}";
+      url = "$url?${pairs.join("&")}";
     }
 
     return url;
@@ -97,7 +97,8 @@ class TestRequest {
   ///
   ///         Authorization: Basic Base64(username:password)
   void setBasicAuthorization(String username, String password) {
-    headers[HttpHeaders.authorizationHeader] = "Basic ${new Base64Encoder().convert("$username:$password".codeUnits)}";
+    headers[HttpHeaders.authorizationHeader] =
+        "Basic ${const Base64Encoder().convert("$username:$password".codeUnits)}";
   }
 
   /// Sets the Authorization header of this request.
@@ -111,7 +112,8 @@ class TestRequest {
 
   /// Sets the Accept header of this request.
   set accept(List<ContentType> contentTypes) {
-    headers[HttpHeaders.acceptHeader] = contentTypes.map((ct) => ct.toString()).join(",");
+    headers[HttpHeaders.acceptHeader] =
+        contentTypes.map((ct) => ct.toString()).join(",");
   }
 
   /// Executes this request with HTTP POST.
@@ -155,14 +157,16 @@ class TestRequest {
   }
 
   Future<TestResponse> _executeRequest(String method) async {
-    var uri = Uri.parse(requestURL);
-    var lowercasedMethod = method.toLowerCase();
+    final uri = Uri.parse(requestURL);
+    final lowercasedMethod = method.toLowerCase();
 
-    if (body != null && (lowercasedMethod == "get" || lowercasedMethod == "head")) {
-      throw new StateError("Cannot set 'body' when using HTTP '${method.toUpperCase()}'.");
+    if (body != null &&
+        (lowercasedMethod == "get" || lowercasedMethod == "head")) {
+      throw StateError(
+          "Cannot set 'body' when using HTTP '${method.toUpperCase()}'.");
     }
 
-    var request = await _client.openUrl(method.toUpperCase(), uri);
+    final request = await _client.openUrl(method.toUpperCase(), uri);
 
     headers?.forEach((headerKey, headerValue) {
       request.headers.add(headerKey, headerValue);
@@ -176,7 +180,7 @@ class TestRequest {
     }
 
     final rawResponse = await request.close();
-    final response = new TestResponse._(rawResponse);
+    final response = TestResponse._(rawResponse);
 
     // Trigger body to be decoded
     await response.body.decode();
@@ -190,19 +194,20 @@ class TestRequest {
     }
 
     if (!encodeBody) {
-      return body;
+      return body as List<int>;
     }
 
-    var codec = HTTPCodecRepository.defaultInstance.codecForContentType(contentType);
+    final codec =
+        HTTPCodecRepository.defaultInstance.codecForContentType(contentType);
 
     if (codec == null) {
       // this check doesn't truly work, but if its a list, it's probably a list of bytes.
       // if its not, we'll get an exception when we try and write to the response
       if (body is! List<int>) {
-        throw new StateError("No codec for content type '$contentType'.");
+        throw StateError("No codec for content type '$contentType'.");
       }
 
-      return body;
+      return body as List<int>;
     }
 
     return codec.encode(body);

@@ -26,7 +26,7 @@ class PartialMapMatcher extends Matcher {
     });
   }
 
-  Map<dynamic, Matcher> _matcherMap = {};
+  final Map<dynamic, Matcher> _matcherMap = {};
 
   @override
   bool matches(dynamic item, Map matchState) {
@@ -35,7 +35,7 @@ class PartialMapMatcher extends Matcher {
       return false;
     }
 
-    var mismatches = <String>[];
+    final mismatches = <String>[];
     matchState["PartialMatcher.mismatches"] = mismatches;
 
     var foundMismatch = false;
@@ -49,7 +49,7 @@ class PartialMapMatcher extends Matcher {
         return;
       }
 
-      var value = item[bodyKey];
+      final value = item[bodyKey];
       if (!valueMatcher.matches(value, matchState)) {
         mismatches.add(bodyKey);
         foundMismatch = true;
@@ -74,21 +74,23 @@ class PartialMapMatcher extends Matcher {
   }
 
   @override
-  Description describeMismatch(
-      dynamic item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(dynamic item, Description mismatchDescription,
+      Map matchState, bool verbose) {
     if (matchState["PartialMatcher.runtimeType"] != null) {
       mismatchDescription.add("is not a map");
       return mismatchDescription;
     }
 
-    List<String> mismatches = matchState["PartialMatcher.mismatches"] ?? [];
-    if (mismatches.length > 0) {
-      mismatchDescription.add("the following keys differ from partial matcher: \n");
+    final List<String> mismatches = matchState["PartialMatcher.mismatches"] ?? <String>[];
+    if (mismatches.isNotEmpty) {
+      mismatchDescription
+          .add("the following keys differ from partial matcher: \n");
       mismatches.forEach((s) {
-        var matcher = _matcherMap[s];
-        var value = item[s];
+        final matcher = _matcherMap[s];
+        final value = item[s];
         mismatchDescription.add("  - '$s' ");
-        matcher.describeMismatch(value, mismatchDescription, matchState, verbose);
+        matcher.describeMismatch(
+            value, mismatchDescription, matchState, verbose);
         mismatchDescription.add("\n");
       });
     }

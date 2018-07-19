@@ -1,15 +1,15 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
 class HTMLRenderer {
-  Map<String, String> _cache = {};
+  final Map<String, String> _cache = {};
 
   Future<String> renderHTML(
-      String path, Map<String, dynamic> templateVariables) async {
-    var template = await _loadHTMLTemplate(path);
+      String path, Map<String, String> templateVariables) async {
+    final template = await _loadHTMLTemplate(path);
 
-    return template.replaceAllMapped(new RegExp("{{([a-zA-Z_]+)}}"), (match) {
-      var key = match.group(1);
+    return template.replaceAllMapped(RegExp("{{([a-zA-Z_]+)}}"), (match) {
+      final key = match.group(1);
       return templateVariables[key] ?? "null";
     });
   }
@@ -18,7 +18,7 @@ class HTMLRenderer {
     var contents = _cache[path];
     if (contents == null) {
       try {
-        var file = new File(path);
+        final file = File(path);
         contents = file.readAsStringSync();
         _cache[path] = contents;
       } catch (_) {}

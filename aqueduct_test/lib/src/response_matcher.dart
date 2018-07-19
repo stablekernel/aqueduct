@@ -1,7 +1,8 @@
 import 'package:matcher/matcher.dart';
+
 import 'agent.dart';
-import 'header_matcher.dart';
 import 'body_matcher.dart';
+import 'header_matcher.dart';
 import 'matchers.dart';
 
 /// A test matcher that matches a response from an HTTP server.
@@ -21,7 +22,7 @@ class HTTPResponseMatcher extends Matcher {
       return false;
     }
 
-    var response = item as TestResponse;
+    final response = item as TestResponse;
     if (statusCode != null && response.statusCode != statusCode) {
       matchState["statusCode"] = response.statusCode;
       return false;
@@ -73,27 +74,29 @@ class HTTPResponseMatcher extends Matcher {
   }
 
   @override
-  Description describeMismatch(
-      dynamic item, Description mismatchDescription, Map matchState, bool verbose) {
-    var responseTypeMismatch = matchState["runtimeType"];
+  Description describeMismatch(dynamic item, Description mismatchDescription,
+      Map matchState, bool verbose) {
+    final responseTypeMismatch = matchState["runtimeType"];
     if (responseTypeMismatch != null) {
-      mismatchDescription.add(
-          "Is not an instance of TestResponse");
+      mismatchDescription.add("Is not an instance of TestResponse");
       return mismatchDescription;
     }
 
-    var response = item as TestResponse;
-    var statusMismatch = matchState["statusCode"];
+    final response = item as TestResponse;
+    final statusMismatch = matchState["statusCode"];
     if (statusMismatch != null) {
-      mismatchDescription.add("Status codes are different. Expected: $statusCode. Actual: $statusMismatch");
+      mismatchDescription.add(
+          "Status codes are different. Expected: $statusCode. Actual: $statusMismatch");
     }
 
     if (matchState["HTTPResponseMatcher.didFailOnHeaders"] == true) {
-      headers.describeMismatch(response.headers, mismatchDescription, matchState, verbose);
+      headers.describeMismatch(
+          response.headers, mismatchDescription, matchState, verbose);
     }
 
     if (matchState["HTTPResponseMatcher.didFailOnBody"] == true) {
-      body.describeMismatch(response.body.as(), mismatchDescription, matchState, verbose);
+      body.describeMismatch(
+          response.body.as(), mismatchDescription, matchState, verbose);
     }
 
     return mismatchDescription;

@@ -8,7 +8,7 @@ import 'package:aqueduct/aqueduct.dart';
 /// Concrete implementations - like [MockHTTPServer] - are used to validate messages send to remote servers during testing. This allows
 /// your tests to verify any messages sent as a side-effect of an endpoint. You should be sure to close instances of this class during tearDown functions.
 abstract class MockServer<T> {
-  List _queue = [];
+  List<T> _queue = [];
   List<Completer<T>> _completerQueue = [];
 
   /// Whether or not there are any messages that have been sent to this instance but have yet to be read.
@@ -22,9 +22,8 @@ abstract class MockServer<T> {
 
   /// Adds an event to this server.
   void add(T value) {
-    if (_completerQueue.length > 0) {
-      var nextEventCompleter = _completerQueue.removeAt(0);
-      nextEventCompleter.complete(value);
+    if (_completerQueue.isNotEmpty) {
+      _completerQueue.removeAt(0).complete(value);
     } else {
       _queue.add(value);
     }
@@ -42,13 +41,12 @@ abstract class MockServer<T> {
   /// complete when the next event is added.
   Future<T> next() {
     if (_queue.isEmpty) {
-      var c = new Completer<T>();
+      final c = Completer<T>();
       _completerQueue.add(c);
       return c.future;
     }
 
-    var val = _queue.removeAt(0);
-    return new Future.value(val);
+    return Future.value(_queue.removeAt(0));
   }
 }
 
@@ -93,7 +91,7 @@ class MockHTTPServer extends MockServer<Request> {
   /// The response to be returned if there are no queued responses
   ///
   /// The default response is a 503 with a JSON Error body
-  Response defaultResponse = new Response(503, {}, {"error": "No queued requests"});
+  Response defaultResponse = Response(503, {}, {"error": "No queued requests"});
 
   /// The delay to be used for responses where a delay is not set
   ///
@@ -105,7 +103,7 @@ class MockHTTPServer extends MockServer<Request> {
   /// The number of currently queued responses
   int get queuedResponseCount => _responseQueue.length;
 
-  List<_MockServerResponse> _responseQueue = [];
+  final List<_MockServerResponse> _responseQueue = [];
 
   /// Enqueues a response for the next request.
   ///
@@ -113,7 +111,8 @@ class MockHTTPServer extends MockServer<Request> {
   /// response before sending it. Optionally includes a [delay] before sending
   /// the response to simulate long-running tasks or network issues.
   void queueResponse(Response resp, {Duration delay}) {
-    _responseQueue.add(new _MockServerResponse(object: resp, delay: delay ?? defaultDelay));
+    _responseQueue
+        .add(_MockServerResponse(object: resp, delay: delay ?? defaultDelay));
   }
 
   /// Enqueues a function that creates a response for the next request.
@@ -124,7 +123,8 @@ class MockHTTPServer extends MockServer<Request> {
   ///
   /// Optionally includes a [delay] before sending the response to simulate long-running tasks or network issues.
   void queueHandler(Response handler(Request request), {Duration delay}) {
-    _responseQueue.add(new _MockServerResponse(handler: handler, delay: delay ?? defaultDelay));
+    _responseQueue.add(
+        _MockServerResponse(handler: handler, delay: delay ?? defaultDelay));
   }
 
   /// Enqueues an outage; the next request will not receive a response.
@@ -132,15 +132,15 @@ class MockHTTPServer extends MockServer<Request> {
   /// Adds an outage event to the response queue. Each request removes the earliest enqueued response
   /// before sending it. When an outage is encountered, no response is sent. Specify number of outage events
   /// with [count].
-  void queueOutage({int count: 1}) {
-    _responseQueue.add(new _MockServerResponse(outageCount: count));
+  void queueOutage({int count = 1}) {
+    _responseQueue.add(_MockServerResponse(outageCount: count));
   }
 
   /// Begins listening for HTTP requests on [port].
   @override
   Future open() async {
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
-    server.map((req) => new Request(req)).listen((req) async {
+    server.map((req) => Request(req)).listen((req) async {
       add(req);
 
       await req.body.decode();
@@ -159,22 +159,22 @@ class MockHTTPServer extends MockServer<Request> {
   }
 
   Future<Response> _dequeue(Request incoming) async {
-    if (_responseQueue.length == 0) {
+    if (_responseQueue.isEmpty) {
       if (defaultDelay != null) {
-        await new Future.delayed(defaultDelay);
+        await Future.delayed(defaultDelay);
       }
       return defaultResponse;
     }
 
     final resp = _responseQueue.first;
     if (resp.outageCount > 0) {
-      resp.outageCount --;
+      resp.outageCount--;
       if (resp.outageCount == 0) {
         _responseQueue.removeAt(0);
       }
 
       if (defaultDelay != null) {
-        await new Future.delayed(defaultDelay);
+        await Future.delayed(defaultDelay);
       }
 
       return null;
@@ -185,10 +185,11 @@ class MockHTTPServer extends MockServer<Request> {
   }
 }
 
-typedef Response _MockRequestHandler(Request request);
+typedef _MockRequestHandler = Response Function(Request request);
 
 class _MockServerResponse {
-  _MockServerResponse({this.object, this.handler, this.delay, this.outageCount: 0});
+  _MockServerResponse(
+      {this.object, this.handler, this.delay, this.outageCount = 0});
 
   final Duration delay;
 
@@ -198,7 +199,7 @@ class _MockServerResponse {
 
   Future<Response> respond(Request req) async {
     if (delay != null) {
-      await new Future.delayed(delay);
+      await Future.delayed(delay);
     }
 
     if (handler != null) {

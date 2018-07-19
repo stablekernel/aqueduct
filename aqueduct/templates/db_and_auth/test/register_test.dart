@@ -1,7 +1,7 @@
 import 'harness/app.dart';
 
 void main() {
-  Harness harness = new Harness()..install();
+  final harness = Harness()..install();
 
   tearDown(() async {
     await harness.resetData();
@@ -15,11 +15,11 @@ void main() {
   });
 
   test("Created user has email is also username", () async {
-    var json = {"username": "bob@stablekernel.com", "password": "foobaraxegrind12%"};
+    final json = {"username": "bob@stablekernel.com", "password": "foobaraxegrind12%"};
 
     final registerResponse = await harness.publicAgent.post("/register", body: json);
-    final accessToken = registerResponse.body.as()["access_token"];
-    final userAgent = new Agent.from(harness.agent)..bearerAuthorization = accessToken;
+    final String accessToken = registerResponse.body.as()["access_token"];
+    final userAgent = Agent.from(harness.agent)..bearerAuthorization = accessToken;
 
     final identityResponse = await userAgent.get("/me");
     expect(identityResponse, hasResponse(200, body: partial({"email": json["username"]})));
@@ -35,7 +35,7 @@ void main() {
   });
 
   test("Omit password fails", () async {
-    var response = await harness.publicAgent.post("/register", body: {
+    final response = await harness.publicAgent.post("/register", body: {
       "username": "bobby.bones@stablekernel.com",
     });
 
@@ -43,7 +43,7 @@ void main() {
   });
 
   test("Omit username fails", () async {
-    var response = await harness.publicAgent.post("/register", body: {"username": "foobaraxegrind12%"});
+    final response = await harness.publicAgent.post("/register", body: {"username": "foobaraxegrind12%"});
 
     expect(response, hasStatus(400));
   });

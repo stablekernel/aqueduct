@@ -6,10 +6,10 @@ import 'package:aqueduct_test/aqueduct_test.dart';
 
 void main() {
   MockHTTPServer server;
-  final agent = new Agent.onPort(8000);
+  final agent = Agent.onPort(8000);
 
   setUp(() async {
-    server = new MockHTTPServer(8000);
+    server = MockHTTPServer(8000);
     await server.open();
   });
 
@@ -18,16 +18,16 @@ void main() {
   });
 
   test("Body is encoded according to content-type, default is json", () async {
-    final req = agent.request("/")
-      ..body = {"k": "v"};
+    final req = agent.request("/")..body = {"k": "v"};
     await req.post();
 
     final received = await server.next();
-    expect(received.raw.headers.value("content-type"), "application/json; charset=utf-8");
+    expect(received.raw.headers.value("content-type"),
+        "application/json; charset=utf-8");
     expect(received.body.as<Map>(), {"k": "v"});
 
     final req2 = agent.request("/")
-      ..contentType = new ContentType("text", "html", charset: "utf-8")
+      ..contentType = ContentType("text", "html", charset: "utf-8")
       ..body = "foobar";
     await req2.post();
 
@@ -36,20 +36,21 @@ void main() {
     expect(rec2.body.as<String>(), "foobar");
   });
 
-  test("If opting out of body encoding, bytes can be set directly on request", () async {
+  test("If opting out of body encoding, bytes can be set directly on request",
+      () async {
     final req = agent.request("/")
       ..encodeBody = false
       ..body = utf8.encode(json.encode({"k": "v"}));
     await req.post();
 
     final received = await server.next();
-    expect(received.raw.headers.value("content-type"), "application/json; charset=utf-8");
+    expect(received.raw.headers.value("content-type"),
+        "application/json; charset=utf-8");
     expect(received.body.as<Map>(), {"k": "v"});
   });
 
   test("Query parameters get URI encoded", () async {
-    final req = agent.request("/")
-      ..query = {"k": "v v"};
+    final req = agent.request("/")..query = {"k": "v v"};
     await req.get();
 
     final received = await server.next();

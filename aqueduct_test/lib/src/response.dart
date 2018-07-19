@@ -9,8 +9,7 @@ part of aqueduct_test.client;
 /// Prefer to use methods like [expectResponse], [hasResponse] and [hasStatus] when
 /// validating response properties.
 class TestResponse {
-  TestResponse._(this._innerResponse)
-    : body = new TestResponseBody(_innerResponse);
+  TestResponse._(this._innerResponse) : body = TestResponseBody(_innerResponse);
 
   final HttpClientResponse _innerResponse;
 
@@ -35,11 +34,11 @@ class TestResponse {
 
   @override
   String toString() {
-    var buffer = new StringBuffer();
+    final buffer = StringBuffer();
     buffer.writeln("-----------\n- Status code is $statusCode");
     buffer.writeln("- Headers are the following:");
 
-    var headerItems = headers.toString().split("\n");
+    final headerItems = headers.toString().split("\n");
     headerItems.removeWhere((str) => str == "");
     headerItems.forEach((header) {
       buffer.writeln("  - $header");
@@ -69,8 +68,8 @@ class TestResponseBody extends BodyDecoder {
   TestResponseBody(HttpClientResponse response)
       : this._response = response,
         super(response) {
-    _hasContent = (response.headers.contentLength ?? 0) > 0
-        || response.headers.chunkedTransferEncoding;
+    _hasContent = (response.headers.contentLength ?? 0) > 0 ||
+        response.headers.chunkedTransferEncoding;
   }
 
   final HttpClientResponse _response;
@@ -86,6 +85,4 @@ class TestResponseBody extends BodyDecoder {
   String toString() {
     return as().toString();
   }
-
-
 }

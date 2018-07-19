@@ -11,14 +11,14 @@ class HTTPValueMatcherWrapper extends Matcher {
     }
   }
 
-   Matcher _matcher;
+  Matcher _matcher;
 
   @override
   bool matches(dynamic item, Map matchState) {
     // Try as just a String first. If that fails, see if we can parse it as anything
     // If we can, try that one.
 
-    var tempMatchState = {};
+    final tempMatchState = {};
     try {
       if (_matcher.matches(item, tempMatchState)) {
         matchState.addAll(tempMatchState);
@@ -42,8 +42,7 @@ class HTTPValueMatcherWrapper extends Matcher {
     try {
       v = HttpDate.parse(item);
       matchState["HTTPValueWrapper.parsedAs"] = HttpDate;
-    } on FormatException {
-    } on HttpException {}
+    } on FormatException {} on HttpException {}
 
     try {
       v = DateTime.parse(item);
@@ -64,9 +63,9 @@ class HTTPValueMatcherWrapper extends Matcher {
   }
 
   @override
-  Description describeMismatch(
-      dynamic item, Description mismatchDescription, Map matchState, bool verbose) {
-    var parsedAs = matchState["HTTPValueWrapper.parsedAs"];
+  Description describeMismatch(dynamic item, Description mismatchDescription,
+      Map matchState, bool verbose) {
+    final parsedAs = matchState["HTTPValueWrapper.parsedAs"];
     if (parsedAs != null) {
       item = parsedAs.parse(item);
     }

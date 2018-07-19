@@ -55,7 +55,7 @@ class TestHarness<T extends ApplicationChannel> {
   /// Values must be set in [beforeStart] for changes to have an effect on running application.
   ///
   /// Default values: [ApplicationOptions.port] is `0`, and [ApplicationOptions.configurationFilePath] is `config.src.yaml`.
-  ApplicationOptions options = new ApplicationOptions()
+  ApplicationOptions options = ApplicationOptions()
     ..port = 0
     ..configurationFilePath = "config.src.yaml";
 
@@ -85,11 +85,11 @@ class TestHarness<T extends ApplicationChannel> {
   Future setUp() async {
     Controller.letUncaughtExceptionsEscape = true;
 
-    _application = new Application<T>()..options = options;
+    _application = Application<T>()..options = options;
 
     await beforeStart();
     await application.startOnCurrentIsolate();
-    agent = new Agent(application);
+    agent = Agent(application);
     await afterStart();
   }
 
@@ -112,7 +112,6 @@ class TestHarness<T extends ApplicationChannel> {
   ///
   /// By default, does nothing.
   Future beforeStart() async {}
-
 
   /// Override this method to provide post-startup behavior for the application under test.
   ///

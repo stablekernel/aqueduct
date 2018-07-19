@@ -15,24 +15,24 @@ void main() {
     });
 
     test("Create from app, explicit port", () async {
-      app = new Application<SomeChannel>()..options.port = 4111;
+      app = Application<SomeChannel>()..options.port = 4111;
       await app.startOnCurrentIsolate();
-      var client = new Agent(app);
+      final client = Agent(app);
       expect(client.baseURL, "http://localhost:4111");
     });
 
     test("Create from app, assigned port", () async {
-      app = new Application<SomeChannel>()..options.port = 0;
+      app = Application<SomeChannel>()..options.port = 0;
       await app.startOnCurrentIsolate();
 
-      var client = new Agent(app);
-      var response = await client.request("/").get();
+      final client = Agent(app);
+      final response = await client.request("/").get();
       expect(response, hasStatus(200));
     });
 
     test("Create from unstarted app throws useful exception", () async {
-      app = new Application<SomeChannel>();
-      var tc = new Agent(app);
+      app = Application<SomeChannel>();
+      final tc = Agent(app);
       try {
         await tc.request("/").get();
         expect(true, false);
@@ -42,21 +42,23 @@ void main() {
     });
 
     test("Create from unstarted app, start app, works OK", () async {
-      app = new Application<SomeChannel>()..options.port = 0;
-      var tc = new Agent(app);
+      app = Application<SomeChannel>()..options.port = 0;
+      final tc = Agent(app);
       await app.startOnCurrentIsolate();
 
       expectResponse(await tc.request("/").get(), 200);
     });
 
-    test("Create agent from another agent has same request URL, contentType and headers", () {
-      final original = new Agent.fromOptions(new ApplicationOptions()
+    test(
+        "Create agent from another agent has same request URL, contentType and headers",
+        () {
+      final original = Agent.fromOptions(ApplicationOptions()
         ..port = 2121
         ..address = "foobar.com");
       original.headers["key"] = "value";
       original.contentType = ContentType.text;
 
-      final clone = new Agent.from(original);
+      final clone = Agent.from(original);
       expect(clone.baseURL, original.baseURL);
       expect(clone.headers, original.headers);
       expect(clone.contentType, original.contentType);
@@ -64,7 +66,7 @@ void main() {
   });
 
   group("Request building", () {
-    var server = new MockHTTPServer(4040);
+    final server = MockHTTPServer(4040);
     setUp(() async {
       await server.open();
     });
@@ -74,13 +76,14 @@ void main() {
     });
 
     test("Host created correctly", () {
-      var defaultTestClient = new Agent.onPort(4040);
-      var portConfiguredClient = new Agent.fromOptions(new ApplicationOptions()..port = 2121);
-      var hostPortConfiguredClient = new Agent.fromOptions(new ApplicationOptions()
+      final defaultTestClient = Agent.onPort(4040);
+      final portConfiguredClient =
+          Agent.fromOptions(ApplicationOptions()..port = 2121);
+      final hostPortConfiguredClient = Agent.fromOptions(ApplicationOptions()
         ..port = 2121
         ..address = "foobar.com");
-      var hostPortSSLConfiguredClient = new Agent.fromOptions(
-          new ApplicationOptions()
+      final hostPortSSLConfiguredClient = Agent.fromOptions(
+          ApplicationOptions()
             ..port = 2121
             ..address = "foobar.com",
           useHTTPS: true);
@@ -91,46 +94,69 @@ void main() {
     });
 
     test("Request URLs are created correctly", () {
-      var defaultTestClient = new Agent.onPort(4040);
+      final defaultTestClient = Agent.onPort(4040);
 
-      expect(defaultTestClient.request("/foo").requestURL, "http://localhost:4040/foo");
-      expect(defaultTestClient.request("foo").requestURL, "http://localhost:4040/foo");
-      expect(defaultTestClient.request("foo/bar").requestURL, "http://localhost:4040/foo/bar");
+      expect(defaultTestClient.request("/foo").requestURL,
+          "http://localhost:4040/foo");
+      expect(defaultTestClient.request("foo").requestURL,
+          "http://localhost:4040/foo");
+      expect(defaultTestClient.request("foo/bar").requestURL,
+          "http://localhost:4040/foo/bar");
 
       expect(
-          (defaultTestClient.request("/foo")..query = {"baz": "bar"}).requestURL, "http://localhost:4040/foo?baz=bar");
-      expect((defaultTestClient.request("/foo")..query = {"baz": 2}).requestURL, "http://localhost:4040/foo?baz=2");
-      expect((defaultTestClient.request("/foo")..query = {"baz": null}).requestURL, "http://localhost:4040/foo?baz");
-      expect((defaultTestClient.request("/foo")..query = {"baz": true}).requestURL, "http://localhost:4040/foo?baz");
-      expect((defaultTestClient.request("/foo")..query = {"baz": true, "boom": 7}).requestURL,
+          (defaultTestClient.request("/foo")..query = {"baz": "bar"})
+              .requestURL,
+          "http://localhost:4040/foo?baz=bar");
+      expect((defaultTestClient.request("/foo")..query = {"baz": 2}).requestURL,
+          "http://localhost:4040/foo?baz=2");
+      expect(
+          (defaultTestClient.request("/foo")..query = {"baz": null}).requestURL,
+          "http://localhost:4040/foo?baz");
+      expect(
+          (defaultTestClient.request("/foo")..query = {"baz": true}).requestURL,
+          "http://localhost:4040/foo?baz");
+      expect(
+          (defaultTestClient.request("/foo")..query = {"baz": true, "boom": 7})
+              .requestURL,
           "http://localhost:4040/foo?baz&boom=7");
     });
 
     test("HTTP requests are issued", () async {
-      var defaultTestClient = new Agent.onPort(4040);
-      expect((await defaultTestClient.request("/foo").get()) is TestResponse, true);
+      final defaultTestClient = Agent.onPort(4040);
+      expect((await defaultTestClient.request("/foo").get()) is TestResponse,
+          true);
       var msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.method, "GET");
 
-      expect((await defaultTestClient.request("/foo").delete()) is TestResponse, true);
+      expect((await defaultTestClient.request("/foo").delete()) is TestResponse,
+          true);
       msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.method, "DELETE");
 
-      expect((await defaultTestClient.post("/foo", body: {"foo": "bar"})) is TestResponse, true);
+      expect(
+          (await defaultTestClient.post("/foo", body: {"foo": "bar"}))
+              is TestResponse,
+          true);
       msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.method, "POST");
       expect(msg.body.as(), {"foo": "bar"});
 
-      expect((await defaultTestClient.execute("PATCH", "/foo", body: {"foo": "bar"})) is TestResponse, true);
+      expect(
+          (await defaultTestClient
+              .execute("PATCH", "/foo", body: {"foo": "bar"})) is TestResponse,
+          true);
       msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.method, "PATCH");
       expect(msg.body.as(), {"foo": "bar"});
 
-      expect((await defaultTestClient.put("/foo", body: {"foo": "bar"})) is TestResponse, true);
+      expect(
+          (await defaultTestClient.put("/foo", body: {"foo": "bar"}))
+              is TestResponse,
+          true);
       msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.method, "PUT");
@@ -138,28 +164,28 @@ void main() {
     });
 
     test("Default headers are added to requests", () async {
-      var defaultTestClient = new Agent.onPort(4040)
+      final defaultTestClient = Agent.onPort(4040)
         ..headers["X-Int"] = 1
         ..headers["X-String"] = "1";
 
       await defaultTestClient.get("/foo");
 
-      var msg = await server.next();
+      final msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.raw.headers.value("x-int"), "1");
       expect(msg.raw.headers.value("x-string"), "1");
     });
 
     test("Default headers can be overridden", () async {
-      var defaultTestClient = new Agent.onPort(4040)
+      final defaultTestClient = Agent.onPort(4040)
         ..headers["X-Int"] = 1
         ..headers["X-String"] = "1";
 
       await (defaultTestClient.request("/foo")
-        ..headers = {
-          "X-Int": [1, 2]
-        })
-        .get();
+            ..headers = {
+              "X-Int": [1, 2]
+            })
+          .get();
 
       final msg = await server.next();
       expect(msg.path.string, "/foo");
@@ -167,50 +193,53 @@ void main() {
     });
 
     test("Client can expect array of JSON", () async {
-      Agent client = new Agent.onPort(8888);
-      HttpServer server = await HttpServer.bind("localhost", 8888, v6Only: false, shared: false);
-      var router = new Router();
-      router.route("/na").link(() => new TestController());
+      final client = Agent.onPort(8888);
+      final server = await HttpServer.bind("localhost", 8888,
+          v6Only: false, shared: false);
+      final router = Router();
+      router.route("/na").link(() => TestController());
       router.didAddToChannel();
-      server.map((req) => new Request(req)).listen(router.receive);
+      server.map((req) => Request(req)).listen(router.receive);
 
-      var resp = await client.request("/na").get();
-      expect(resp, hasResponse(200, body: everyElement({"id": greaterThan(0)})));
+      final resp = await client.request("/na").get();
+      expect(
+          resp, hasResponse(200, body: everyElement({"id": greaterThan(0)})));
 
       await server?.close(force: true);
     });
 
     test("Query parameters are provided when using execute", () async {
-      var defaultTestClient = new Agent.onPort(4040);
+      final defaultTestClient = Agent.onPort(4040);
 
       await defaultTestClient.get("/foo", query: {"k": "v"});
 
-      var msg = await server.next();
+      final msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.raw.uri.query, "k=v");
     });
 
     test("Basic authorization adds header to all requests", () async {
-      var defaultTestClient = new Agent.onPort(4040)
+      final defaultTestClient = Agent.onPort(4040)
         ..headers["k"] = "v"
         ..setBasicAuthorization("username", "password");
 
       await defaultTestClient.get("/foo");
 
-      var msg = await server.next();
+      final msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.raw.headers.value("k"), "v");
-      expect(msg.raw.headers.value("authorization"), "Basic ${base64.encode("username:password".codeUnits)}");
+      expect(msg.raw.headers.value("authorization"),
+          "Basic ${base64.encode("username:password".codeUnits)}");
     });
 
     test("Bearer authorization adds header to all requests", () async {
-      var defaultTestClient = new Agent.onPort(4040)
+      final defaultTestClient = Agent.onPort(4040)
         ..headers["k"] = "v"
         ..bearerAuthorization = "token";
 
       await defaultTestClient.get("/foo");
 
-      var msg = await server.next();
+      final msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.raw.headers.value("k"), "v");
       expect(msg.raw.headers.value("authorization"), "Bearer token");
@@ -227,14 +256,14 @@ void main() {
     test("Responses have body", () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
       server.listen((req) {
-        var resReq = new Request(req);
-        resReq.respond(new Response.ok([
+        final resReq = Request(req);
+        resReq.respond(Response.ok([
           {"a": "b"}
         ]));
       });
 
-      var defaultTestClient = new Agent.onPort(4000);
-      var response = await defaultTestClient.request("/foo").get();
+      final defaultTestClient = Agent.onPort(4000);
+      final response = await defaultTestClient.request("/foo").get();
       expect(response.body.as<List>().length, 1);
       expect(response.body.as<List>().first["a"], "b");
     });
@@ -246,23 +275,27 @@ void main() {
         req.response.close();
       });
 
-      var defaultTestClient = new Agent.onPort(4000);
-      var response = await defaultTestClient.request("/foo").get();
+      final defaultTestClient = Agent.onPort(4000);
+      final response = await defaultTestClient.request("/foo").get();
       expect(response.body.isEmpty, true);
     });
 
     test("Request with accept adds header", () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
       server.listen((req) {
-        var resReq = new Request(req);
-        resReq.respond(new Response.ok({"ACCEPT": req.headers.value(HttpHeaders.acceptHeader)}));
+        final resReq = Request(req);
+        resReq.respond(Response.ok(
+            {"ACCEPT": req.headers.value(HttpHeaders.acceptHeader)}));
       });
 
-      var client = new Agent.onPort(4000);
-      var req = client.request("/foo")..accept = [ContentType.json, ContentType.text];
+      final  client = Agent.onPort(4000);
+      final  req = client.request("/foo")
+        ..accept = [ContentType.json, ContentType.text];
 
-      var response = await req.post();
-      expect(response.body.as<Map<String, dynamic>>(), {"ACCEPT": "application/json; charset=utf-8,text/plain; charset=utf-8"});
+      final response = await req.post();
+      expect(response.body.as<Map<String, dynamic>>(), {
+        "ACCEPT": "application/json; charset=utf-8,text/plain; charset=utf-8"
+      });
     });
   });
 }
@@ -270,8 +303,8 @@ void main() {
 class SomeChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
-    final r = new Router();
-    r.route("/").linkFunction((r) async => new Response.ok(null));
+    final r = Router();
+    r.route("/").linkFunction((r) async => Response.ok(null));
     return r;
   }
 }
@@ -279,7 +312,7 @@ class SomeChannel extends ApplicationChannel {
 class TestController extends ResourceController {
   @Operation.get()
   Future<Response> get() async {
-    return new Response.ok([
+    return Response.ok([
       {"id": 1},
       {"id": 2}
     ]);

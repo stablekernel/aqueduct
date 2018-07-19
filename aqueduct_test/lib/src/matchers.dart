@@ -2,12 +2,12 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 
-import 'mock_server.dart';
 import 'agent.dart';
-import 'response_matcher.dart';
 import 'body_matcher.dart';
 import 'header_matcher.dart';
+import 'mock_server.dart';
 import 'partial_matcher.dart';
+import 'response_matcher.dart';
 
 /// Validates that value is a [num].
 ///
@@ -16,7 +16,7 @@ import 'partial_matcher.dart';
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, {"id": isNumber}));
 ///
-const TypeMatcher<num> isNumber = const TypeMatcher<num>();
+const TypeMatcher<num> isNumber = TypeMatcher<num>();
 
 /// Validates that value is an [int].
 ///
@@ -25,7 +25,7 @@ const TypeMatcher<num> isNumber = const TypeMatcher<num>();
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, {"id": isInteger}));
 ///
-const TypeMatcher<int> isInteger = const TypeMatcher<int>();
+const TypeMatcher<int> isInteger = TypeMatcher<int>();
 
 /// Validates that value is a [double].
 ///
@@ -34,7 +34,7 @@ const TypeMatcher<int> isInteger = const TypeMatcher<int>();
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, {"id": isDouble}));
 ///
-const TypeMatcher<double> isDouble = const TypeMatcher<double>();
+const TypeMatcher<double> isDouble = TypeMatcher<double>();
 
 /// Validates that value is a [String].
 ///
@@ -43,7 +43,7 @@ const TypeMatcher<double> isDouble = const TypeMatcher<double>();
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, {"id": isString}));
 ///
-const TypeMatcher<String> isString = const TypeMatcher<String>();
+const TypeMatcher<String> isString = TypeMatcher<String>();
 
 /// Validates that value is a [bool].
 ///
@@ -52,7 +52,7 @@ const TypeMatcher<String> isString = const TypeMatcher<String>();
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, {"isActive": isBoolean}));
 ///
-const TypeMatcher<bool> isBoolean = const TypeMatcher<bool>();
+const TypeMatcher<bool> isBoolean = TypeMatcher<bool>();
 
 /// Validates that a [DateTime] is after [date].
 ///
@@ -62,7 +62,8 @@ const TypeMatcher<bool> isBoolean = const TypeMatcher<bool>();
 ///
 ///         expectResponse(response, 200, headers: {"x-timestamp": isAfter(new DateTime())});
 Matcher isAfter(DateTime date) {
-  return predicate((DateTime d) => d.isAfter(date), "after ${date.toIso8601String()}");
+  return predicate(
+      (DateTime d) => d.isAfter(date), "after ${date.toIso8601String()}");
 }
 
 /// Validates that a [DateTime] is before [date].
@@ -73,7 +74,8 @@ Matcher isAfter(DateTime date) {
 ///
 ///         expectResponse(response, 200, headers: {"x-timestamp": isBefore(new DateTime())});
 Matcher isBefore(DateTime date) {
-  return predicate((DateTime d) => d.isBefore(date), "before ${date.toIso8601String()}");
+  return predicate(
+      (DateTime d) => d.isBefore(date), "before ${date.toIso8601String()}");
 }
 
 /// Validates that a [DateTime] is before or the same moment as [date].
@@ -84,7 +86,8 @@ Matcher isBefore(DateTime date) {
 ///
 ///         expectResponse(response, 200, headers: {"x-timestamp": isBeforeOrSameMomentAs(new DateTime())});
 Matcher isBeforeOrSameMomentAs(DateTime date) {
-  return predicate((DateTime d) => d.isBefore(date) || d == date, "before or same moment as ${date.toIso8601String()}");
+  return predicate((DateTime d) => d.isBefore(date) || d == date,
+      "before or same moment as ${date.toIso8601String()}");
 }
 
 /// Validates that a [DateTime] is after or the same moment as [date].
@@ -95,7 +98,8 @@ Matcher isBeforeOrSameMomentAs(DateTime date) {
 ///
 ///         expectResponse(response, 200, headers: {"x-timestamp": isAfterOrSameMomentAs(new DateTime())});
 Matcher isAfterOrSameMomentAs(DateTime date) {
-  return predicate((DateTime d) => d.isAfter(date) || d == date, "after or same moment as ${date.toIso8601String()}");
+  return predicate((DateTime d) => d.isAfter(date) || d == date,
+      "after or same moment as ${date.toIso8601String()}");
 }
 
 /// Validates that a [DateTime] is the same moment as [date].
@@ -106,7 +110,8 @@ Matcher isAfterOrSameMomentAs(DateTime date) {
 ///
 ///         expectResponse(response, 200, headers: {"x-timestamp": isSameMomentAs(new DateTime())});
 Matcher isSameMomentAs(DateTime date) {
-  return predicate((DateTime d) => d == date, "same moment as ${date.toIso8601String()}");
+  return predicate(
+      (DateTime d) => d == date, "same moment as ${date.toIso8601String()}");
 }
 
 /// Validates that a value is a ISO8601 timestamp.
@@ -115,10 +120,9 @@ Matcher isSameMomentAs(DateTime date) {
 ///
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasResponse(200, {"createdDate": isTimestamp}));
-Matcher isTimestamp = predicate((str) {
+Matcher isTimestamp = predicate((String str) {
   try {
-    var value = DateTime.parse(str);
-    return value != null;
+    return DateTime.parse(str) != null;
   } catch (e) {
     return false;
   }
@@ -154,19 +158,20 @@ Matcher isTimestamp = predicate((str) {
 ///         "id": isInteger,
 ///         "name": isNotPresent
 ///       })); // fails because 'name' is present
-Matcher partial(Map map) => new PartialMapMatcher(map);
+Matcher partial(Map map) => PartialMapMatcher(map);
 
 /// Validates that a key is not present when using [partial].
 ///
 /// This matcher has no effect when used outside of [partial].
 /// See [partial] for usage.
-const Matcher isNotPresent = const NotPresentMatcher();
+const Matcher isNotPresent = NotPresentMatcher();
 
 /// Validates that [TestResponse] has a status code of [statusCode].
 ///
 ///         var response = await client.request("/foo").get();
 ///         expect(response, hasStatus(404));
-Matcher hasStatus(int statusCode) => new HTTPResponseMatcher(statusCode, null, null);
+Matcher hasStatus(int statusCode) =>
+    HTTPResponseMatcher(statusCode, null, null);
 
 /// Validates that [TestResponse] has a decoded body that matches [bodyMatcher].
 ///
@@ -180,7 +185,8 @@ Matcher hasStatus(int statusCode) => new HTTPResponseMatcher(statusCode, null, n
 ///       expect(response, hasBody({
 ///         "key": "value"
 ///       ));
-Matcher hasBody(dynamic bodyMatcher) => new HTTPResponseMatcher(null, null, new HTTPBodyMatcher(bodyMatcher));
+Matcher hasBody(dynamic bodyMatcher) =>
+    HTTPResponseMatcher(null, null, HTTPBodyMatcher(bodyMatcher));
 
 /// Validates that [TestResponse] has headers that match [headerMatcher].
 ///
@@ -198,10 +204,15 @@ Matcher hasBody(dynamic bodyMatcher) => new HTTPResponseMatcher(null, null, new 
 /// You may pass [failIfContainsUnmatchedHeader] as true to force evaluate every
 /// header in the response - but recall that many requests contain headers
 /// that do not need to be tested or may change depending on the environment.
-Matcher hasHeaders(Map<String, dynamic> headerMatcher, {bool failIfContainsUnmatchedHeader: false}) =>
-    new HTTPResponseMatcher(null, new HTTPHeaderMatcher(headerMatcher, failIfContainsUnmatchedHeader), null);
+Matcher hasHeaders(Map<String, dynamic> headerMatcher,
+        {bool failIfContainsUnmatchedHeader = false}) =>
+    HTTPResponseMatcher(
+        null,
+        HTTPHeaderMatcher(headerMatcher,
+            shouldFailIfOthersPresent: failIfContainsUnmatchedHeader),
+        null);
 
-/// Validates that [TestResponse] has the same status code, headers and body as [statusCode], [bodyMatcher], and [headerMatcher].
+/// Validates that [TestResponse] has matching [statusCode], [body], and [headers].
 ///
 /// This method composes [hasStatus], [hasBody], and [hasHeaders] into a single matcher. See
 /// each of these individual method for behavior details.
@@ -218,11 +229,16 @@ Matcher hasHeaders(Map<String, dynamic> headerMatcher, {bool failIfContainsUnmat
 ///
 /// For details on [failIfContainsUnmatchedHeader], see [hasHeaders].
 Matcher hasResponse(int statusCode,
-    {dynamic body, Map<String, dynamic> headers, bool failIfContainsUnmatchedHeader: false}) {
-  return new HTTPResponseMatcher(
+    {dynamic body,
+    Map<String, dynamic> headers,
+    bool failIfContainsUnmatchedHeader = false}) {
+  return HTTPResponseMatcher(
       statusCode,
-      (headers != null ? new HTTPHeaderMatcher(headers, failIfContainsUnmatchedHeader) : null),
-      (body != null ? new HTTPBodyMatcher(body) : null));
+      headers != null
+          ? HTTPHeaderMatcher(headers,
+              shouldFailIfOthersPresent: failIfContainsUnmatchedHeader)
+          : null,
+      body != null ? HTTPBodyMatcher(body) : null);
 }
 
 /// A convenience for [expect] with [hasResponse].
@@ -237,7 +253,8 @@ Matcher hasResponse(int statusCode,
 ///           await client.request("/foo").get(),
 ///           200, body: "foo", headers: {"x-foo": "foo"});
 ///         print("$response");
-TestResponse expectResponse(TestResponse response, int statusCode, {dynamic body, Map<String, dynamic> headers}) {
+TestResponse expectResponse(TestResponse response, int statusCode,
+    {dynamic body, Map<String, dynamic> headers}) {
   expect(response, hasResponse(statusCode, body: body, headers: headers));
   return response;
 }
@@ -255,11 +272,28 @@ TestResponse expectResponse(TestResponse response, int statusCode, {dynamic body
 ///         await client.request("/path").post(...);
 ///
 ///         expect(await server.next(), hasRequest(method: "POST", path: "/analytics/event"));
-Matcher hasRequest({String method, dynamic path, Map<String, dynamic> query, Map<String, dynamic> headers, dynamic body}) {
+Matcher hasRequest(
+    {String method,
+    dynamic path,
+    Map<String, dynamic> query,
+    Map<String, dynamic> headers,
+    dynamic body}) {
   return null;
 }
 
-Request expectRequest(Request request, {String method, String path, Map<String, dynamic> query, Map<String, dynamic> headers, dynamic body}) {
-  expect(request, hasRequest(method: method, path: path, query: query, headers: headers, body: body));
+Request expectRequest(Request request,
+    {String method,
+    String path,
+    Map<String, dynamic> query,
+    Map<String, dynamic> headers,
+    dynamic body}) {
+  expect(
+      request,
+      hasRequest(
+          method: method,
+          path: path,
+          query: query,
+          headers: headers,
+          body: body));
   return request;
 }

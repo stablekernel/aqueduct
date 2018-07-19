@@ -1,21 +1,23 @@
 import 'dart:io';
 
 import 'package:matcher/matcher.dart';
-import 'partial_matcher.dart';
+
 import 'http_value_wrapper.dart';
+import 'partial_matcher.dart';
 
 class HTTPHeaderMatcher extends Matcher {
-  HTTPHeaderMatcher(Map<String, dynamic> headerMatchSpecifications, this.shouldFailIfOthersPresent) {
+  HTTPHeaderMatcher(Map<String, dynamic> headerMatchSpecifications,
+      {this.shouldFailIfOthersPresent = false}) {
     headerMatchSpecifications.forEach((k, v) {
       if (v is! Matcher) {
         if (v is ContentType) {
-          _matchHeaders[k] = new HTTPValueMatcherWrapper(equals(v.toString()));
+          _matchHeaders[k] = HTTPValueMatcherWrapper(equals(v.toString()));
         } else {
-          _matchHeaders[k] = new HTTPValueMatcherWrapper(equals(v));
+          _matchHeaders[k] = HTTPValueMatcherWrapper(equals(v));
         }
       } else {
         if (v is! NotPresentMatcher) {
-          _matchHeaders[k] = new HTTPValueMatcherWrapper(v);
+          _matchHeaders[k] = HTTPValueMatcherWrapper(v);
         } else {
           _matchHeaders[k] = v;
         }
@@ -23,12 +25,12 @@ class HTTPHeaderMatcher extends Matcher {
     });
   }
 
-  Map<String, Matcher> _matchHeaders = {};
-  bool shouldFailIfOthersPresent;
+  final Map<String, Matcher> _matchHeaders = {};
+  final bool shouldFailIfOthersPresent;
 
   @override
   bool matches(dynamic item, Map matchState) {
-    HttpHeaders headers = item;
+    final HttpHeaders headers = item;
     final mismatches = <String>[];
     matchState["HTTPHeaderMatcher.mismatches"] = mismatches;
 
@@ -43,7 +45,7 @@ class HTTPHeaderMatcher extends Matcher {
         return;
       }
 
-      var headerValue = headers.value(headerKey.toLowerCase());
+      final headerValue = headers.value(headerKey.toLowerCase());
       if (!valueMatcher.matches(headerValue, matchState)) {
         mismatches.add(headerKey);
         foundMismatchInHeaders = true;
@@ -55,7 +57,7 @@ class HTTPHeaderMatcher extends Matcher {
     }
 
     if (shouldFailIfOthersPresent) {
-      var extraHeaders = <String>[];
+      final extraHeaders = <String>[];
       matchState["HTTPHeaderMatcher.extra"] = extraHeaders;
       headers.forEach((key, _) {
         if (!_matchHeaders.containsKey(key)) {
@@ -89,17 +91,21 @@ class HTTPHeaderMatcher extends Matcher {
   }
 
   @override
-  Description describeMismatch(
-      dynamic item, Description mismatchDescription, Map matchState, bool verbose) {
-    List<String> extraKeys = matchState["HTTPHeaderMatcher.extra"] ?? <String>[];
-    if (extraKeys.length > 0) {
-      mismatchDescription.add("actual has extra headers: ").add(extraKeys.join(", ")).add("\n");
+  Description describeMismatch(dynamic item, Description mismatchDescription,
+      Map matchState, bool verbose) {
+    final List<String> extraKeys =
+        matchState["HTTPHeaderMatcher.extra"] ?? <String>[];
+    if (extraKeys.isNotEmpty) {
+      mismatchDescription
+          .add("actual has extra headers: ")
+          .add(extraKeys.join(", "))
+          .add("\n");
     }
 
-    List<String> mismatches = matchState["HTTPHeaderMatcher.mismatches"] ?? <String>[];
-    if (mismatches.length > 0) {
-      mismatchDescription.add(
-          "the following headers differ: "
+    final List<String> mismatches =
+        matchState["HTTPHeaderMatcher.mismatches"] ?? <String>[];
+    if (mismatches.isNotEmpty) {
+      mismatchDescription.add("the following headers differ: "
           "${mismatches.map((s) => "'$s'").join(", ")}");
     }
 

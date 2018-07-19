@@ -1,17 +1,16 @@
-import 'wildfire.dart';
-
 import 'controller/identity_controller.dart';
 import 'controller/register_controller.dart';
 import 'controller/user_controller.dart';
 import 'model/user.dart';
 import 'utility/html_template.dart';
+import 'wildfire.dart';
 
 /// This type initializes an application.
 ///
 /// Override methods in this class to set up routes and initialize services like
 /// database connections. See http://aqueduct.io/docs/http/channel/.
 class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDelegate {
-  HTMLRenderer htmlRenderer = new HTMLRenderer();
+  final HTMLRenderer htmlRenderer = HTMLRenderer();
   AuthServer authServer;
   ManagedContext context;
 
@@ -25,12 +24,12 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
   Future prepare() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
-    var config = new WildfireConfiguration(options.configurationFilePath);
+    final config = WildfireConfiguration(options.configurationFilePath);
 
     context = contextWithConnectionInfo(config.database);
 
-    var authStorage = new ManagedAuthDelegate<User>(context);
-    authServer = new AuthServer(authStorage);
+    final authStorage = ManagedAuthDelegate<User>(context);
+    authServer = AuthServer(authStorage);
   }
 
   /// Construct the request channel.
@@ -41,27 +40,27 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
   /// This method is invoked after [prepare].
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     /* OAuth 2.0 Endpoints */
-    router.route("/auth/token").link(() => new AuthController(authServer));
+    router.route("/auth/token").link(() => AuthController(authServer));
 
-    router.route("/auth/code").link(() => new AuthCodeController(authServer, delegate: this));
+    router.route("/auth/code").link(() => AuthCodeController(authServer, delegate: this));
 
     /* Create an account */
     router
         .route("/register")
-        .link(() => new Authorizer.basic(authServer))
-        .link(() => new RegisterController(context, authServer));
+        .link(() => Authorizer.basic(authServer))
+        .link(() => RegisterController(context, authServer));
 
     /* Gets profile for user with bearer token */
-    router.route("/me").link(() => new Authorizer.bearer(authServer)).link(() => new IdentityController(context));
+    router.route("/me").link(() => Authorizer.bearer(authServer)).link(() => IdentityController(context));
 
     /* Gets all users or one specific user by id */
     router
         .route("/users/[:id]")
-        .link(() => new Authorizer.bearer(authServer))
-        .link(() => new UserController(context, authServer));
+        .link(() => Authorizer.bearer(authServer))
+        .link(() => UserController(context, authServer));
 
     return router;
   }
@@ -71,17 +70,17 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
    */
 
   ManagedContext contextWithConnectionInfo(DatabaseConfiguration connectionInfo) {
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore(connectionInfo.username, connectionInfo.password, connectionInfo.host,
+    final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    final psc = PostgreSQLPersistentStore(connectionInfo.username, connectionInfo.password, connectionInfo.host,
         connectionInfo.port, connectionInfo.databaseName);
 
-    return new ManagedContext(dataModel, psc);
+    return ManagedContext(dataModel, psc);
   }
 
   @override
   Future<String> render(AuthCodeController forController, Uri requestUri, String responseType, String clientID,
       String state, String scope) async {
-    var map = {"response_type": responseType, "client_id": clientID, "state": state};
+    final map = {"response_type": responseType, "client_id": clientID, "state": state};
 
     map["path"] = requestUri.path;
     if (scope != null) {
@@ -99,7 +98,7 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
 /// For more documentation on configuration files, see
 /// https://pub.dartlang.org/packages/safe_config.
 class WildfireConfiguration extends Configuration {
-  WildfireConfiguration(String fileName) : super.fromFile(new File(fileName));
+  WildfireConfiguration(String fileName) : super.fromFile(File(fileName));
 
   DatabaseConfiguration database;
 }

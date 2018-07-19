@@ -24,14 +24,14 @@ class WildfireChannel extends ApplicationChannel {
   /// This method is invoked after [prepare].
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     // Prefer to use `link` instead of `linkFunction`.
     // See: https://aqueduct.io/docs/http/request_controller/
     router
       .route("/example")
       .linkFunction((request) async {
-        return new Response.ok({"key": "value"});
+        return Response.ok({"key": "value"});
       });
 
     return router;

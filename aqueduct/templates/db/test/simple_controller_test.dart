@@ -1,14 +1,14 @@
 import 'harness/app.dart';
 
 Future main() async {
-  Harness harness = new Harness()..install();
+  final harness = Harness()..install();
 
   tearDown(() async {
     await harness.resetData();
   });
 
   test("POST /model", () async {
-    var response = await harness.agent.post("/model", body: {"name": "Bob"});
+    final response = await harness.agent.post("/model", body: {"name": "Bob"});
     expect(response, hasResponse(200, body: {"id": isNotNull, "name": "Bob", "createdAt": isTimestamp}));
   });
 

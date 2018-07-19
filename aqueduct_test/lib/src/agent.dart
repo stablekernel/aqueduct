@@ -41,7 +41,7 @@ class Agent {
   Agent.onPort(this._port);
 
   /// Configures a new agent that sends requests to a server configured by [config].
-  Agent.fromOptions(ApplicationOptions config, {bool useHTTPS: false})
+  Agent.fromOptions(ApplicationOptions config, {bool useHTTPS = false})
       : _scheme = useHTTPS ? "https" : "http",
         _host = "localhost",
         _port = config.port;
@@ -60,7 +60,7 @@ class Agent {
   String _host = "localhost";
   int _port = 0;
   Application _application;
-  HttpClient _client = new HttpClient();
+  HttpClient _client = HttpClient();
 
   /// Default headers to be added to requests made by this agent.
   ///
@@ -85,10 +85,9 @@ class Agent {
   String get baseURL {
     if (_application != null) {
       if (!_application.isRunning) {
-        throw new StateError("Application under test is not running.");
+        throw StateError("Application under test is not running.");
       }
-      return "${_application.server.requiresHTTPS ? "https" : "http"}://localhost:${_application.channel.server.server
-        .port}";
+      return "${_application.server.requiresHTTPS ? "https" : "http"}://localhost:${_application.channel.server.server.port}";
     }
 
     return "$_scheme://$_host:$_port";
@@ -99,7 +98,8 @@ class Agent {
   /// Base-64 encodes username and password with a colon separator, and sets it
   /// for the key 'authorization' in [headers].
   void setBasicAuthorization(String username, String password) {
-    headers["authorization"] = "Basic ${base64.encode("$username:${password ?? ""}".codeUnits)}";
+    headers["authorization"] =
+        "Basic ${base64.encode("$username:${password ?? ""}".codeUnits)}";
   }
 
   /// Adds bearer authorization to requests from this agent.
@@ -111,7 +111,8 @@ class Agent {
 
   /// Adds Accept header to requests from this agent.
   set accept(List<ContentType> contentTypes) {
-    headers[HttpHeaders.acceptHeader] = contentTypes.map((ct) => ct.toString()).join(",");
+    headers[HttpHeaders.acceptHeader] =
+        contentTypes.map((ct) => ct.toString()).join(",");
   }
 
   /// Creates a request object for [path] that can be configured and executed later.
@@ -121,8 +122,8 @@ class Agent {
   ///
   /// The [path] will be appended to [baseURL]. Leading and trailing slashes are ignored.
   TestRequest request(String path) {
-    TestRequest r = new TestRequest._(this._client)
-      ..baseURL = this.baseURL
+    final r = TestRequest._(_client)
+      ..baseURL = baseURL
       ..path = path
       .._client = _client
       ..contentType = contentType;
@@ -140,28 +141,38 @@ class Agent {
   /// Makes a GET request with this agent.
   ///
   /// Calls [execute] with "GET" method.
-  Future<TestResponse> get(String path, {Map<String, dynamic> headers, Map<String, dynamic> query}) {
+  Future<TestResponse> get(String path,
+      {Map<String, dynamic> headers, Map<String, dynamic> query}) {
     return execute("GET", path, headers: headers, query: query);
   }
 
   /// Makes a POST request with this agent.
   ///
   /// Calls [execute] with "POST" method.
-  Future<TestResponse> post(String path, {dynamic body, Map<String, dynamic> headers, Map<String, dynamic> query}) {
+  Future<TestResponse> post(String path,
+      {dynamic body,
+      Map<String, dynamic> headers,
+      Map<String, dynamic> query}) {
     return execute("POST", path, body: body, headers: headers, query: query);
   }
 
   /// Makes a DELETE request with this agent.
   ///
   /// Calls [execute] with "DELETE" method.
-  Future<TestResponse> delete(String path, {dynamic body, Map<String, dynamic> headers, Map<String, dynamic> query}) {
+  Future<TestResponse> delete(String path,
+      {dynamic body,
+      Map<String, dynamic> headers,
+      Map<String, dynamic> query}) {
     return execute("DELETE", path, body: body, headers: headers, query: query);
   }
 
   /// Makes a PUT request with this agent.
   ///
   /// Calls [execute] with "PUT" method.
-  Future<TestResponse> put(String path, {dynamic body, Map<String, dynamic> headers, Map<String, dynamic> query}) {
+  Future<TestResponse> put(String path,
+      {dynamic body,
+      Map<String, dynamic> headers,
+      Map<String, dynamic> query}) {
     return execute("PUT", path, body: body, headers: headers, query: query);
   }
 
@@ -178,7 +189,10 @@ class Agent {
   /// are only those in [Agent.headers].
   ///
   /// If [query] is non-null, each value is URI-encoded and then the map is encoding as the request URI's  query string.
-  Future<TestResponse> execute(String method, String path, {dynamic body, Map<String, dynamic> headers, Map<String, dynamic> query}) {
+  Future<TestResponse> execute(String method, String path,
+      {dynamic body,
+      Map<String, dynamic> headers,
+      Map<String, dynamic> query}) {
     final req = request(path)
       ..body = body
       ..query = query;
@@ -190,5 +204,3 @@ class Agent {
     return req.method(method);
   }
 }
-
-

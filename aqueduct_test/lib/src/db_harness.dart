@@ -33,7 +33,6 @@ abstract class TestHarnessORMMixin {
   /// Return the context from this method.
   ManagedContext get context;
 
-
   /// Must override this method to insert static data for each test run.
   ///
   /// This method gets invoked after [resetData] is called to re-provisioning static
@@ -65,7 +64,8 @@ abstract class TestHarnessORMMixin {
   /// This method executes database commands to create temporary tables in the test database.
   /// It is invoked by [resetData].
   Future addSchema({Logger logger}) async {
-    var builder = new SchemaBuilder.toSchema(context.persistentStore, new Schema.fromDataModel(context.dataModel),
+    var builder = SchemaBuilder.toSchema(
+        context.persistentStore, Schema.fromDataModel(context.dataModel),
         isTemporary: true);
 
     for (var cmd in builder.commands) {
