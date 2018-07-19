@@ -124,12 +124,13 @@ abstract class CLICommand {
   ///
   /// Do not override this method. This method invokes [handle] within a try-catch block
   /// and will invoke [cleanup] when complete.
-  Future<int> process(args.ArgResults results,
-      {List<String> parentCommandNames = const []}) async {
+  Future<int> process(args.ArgResults results, {List<String> commandPath}) async {
+    final parentCommandNames = commandPath ?? <String>[];
+
     if (results.command != null) {
       parentCommandNames.add(name);
       return _commandMap[results.command.name]
-          .process(results.command, parentCommandNames: parentCommandNames);
+          .process(results.command, commandPath: parentCommandNames);
     }
 
     try {
