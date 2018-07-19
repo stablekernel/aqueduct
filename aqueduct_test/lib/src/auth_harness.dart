@@ -44,16 +44,9 @@ abstract class TestHarnessAuthMixin<T extends ApplicationChannel>
   ///             AuthServer get authServer => channel.authServer;
   AuthServer get authServer;
 
-  /// Must override to return [Application] under test.
-  ///
-  /// Override this method to return the application under test from the [TestHarness].
-  ///
-  ///             Application<MyChannel> get application => channel.application;
-  Application<T> get application;
-
   /// Creates a new OAuth2 client identifier and returns an [Agent] that makes requests on behalf of that client.
   ///
-  /// A new [ManagedAuthClient] is added to the [authServer]'s database. Returns an [Agent] that will
+  /// A new [AuthClient] is added to the [authServer]'s database. Returns an [Agent] that will
   /// execute requests with a basic authorization header that contains [id] and [secret].
   ///
   /// If [secret] is null, [redirectUri] is ignored (public clients cannot have a redirect URI).

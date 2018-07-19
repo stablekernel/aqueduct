@@ -3,13 +3,14 @@ library aqueduct_test.client;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'package:aqueduct/aqueduct.dart';
-import 'matchers.dart';
-import 'harness.dart';
 
-part 'response.dart';
+import 'package:aqueduct/aqueduct.dart';
+
+import 'harness.dart';
+import 'matchers.dart';
 
 part 'request.dart';
+part 'response.dart';
 
 /// Executes HTTP requests during application testing.
 ///
@@ -35,16 +36,16 @@ part 'request.dart';
 ///         }
 class Agent {
   /// Configures a new agent that sends requests to [app].
-  Agent(Application app) : _application = app;
+  Agent(Application app) : _application = app, _host = null, _port = null, _scheme = null;
 
   /// Configures a new agent that sends requests to 'http://localhost:[_port]'.
-  Agent.onPort(this._port);
+  Agent.onPort(this._port) : _scheme = "http", _host = "localhost", _application = null;
 
   /// Configures a new agent that sends requests to a server configured by [config].
   Agent.fromOptions(ApplicationOptions config, {bool useHTTPS = false})
       : _scheme = useHTTPS ? "https" : "http",
         _host = "localhost",
-        _port = config.port;
+        _port = config.port, _application = null;
 
   /// Configures a new agent with the same properties as [original].
   Agent.from(Agent original)
@@ -53,14 +54,14 @@ class Agent {
         _port = original._port,
         contentType = original.contentType,
         _application = original._application {
-    this.headers.addAll(original?.headers ?? {});
+    headers.addAll(original?.headers ?? {});
   }
 
-  String _scheme = "http";
-  String _host = "localhost";
-  int _port = 0;
-  Application _application;
-  HttpClient _client = HttpClient();
+  final String _scheme;
+  final String _host;
+  final int _port;
+  final Application _application;
+  final HttpClient _client = HttpClient();
 
   /// Default headers to be added to requests made by this agent.
   ///

@@ -64,7 +64,7 @@ abstract class TestHarnessORMMixin {
   /// This method executes database commands to create temporary tables in the test database.
   /// It is invoked by [resetData].
   Future addSchema({Logger logger}) async {
-    var builder = SchemaBuilder.toSchema(
+    final builder = SchemaBuilder.toSchema(
         context.persistentStore, Schema.fromDataModel(context.dataModel),
         isTemporary: true);
 

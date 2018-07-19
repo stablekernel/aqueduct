@@ -14,8 +14,8 @@
 library aqueduct_test;
 
 export 'src/agent.dart';
-export 'src/harness.dart';
-export 'src/db_harness.dart';
 export 'src/auth_harness.dart';
-export 'src/mock_server.dart';
+export 'src/db_harness.dart';
+export 'src/harness.dart';
 export 'src/matchers.dart';
+export 'src/mock_server.dart';
