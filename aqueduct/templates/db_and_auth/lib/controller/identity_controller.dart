@@ -1,5 +1,5 @@
-import '../wildfire.dart';
 import '../model/user.dart';
+import '../wildfire.dart';
 
 class IdentityController extends ResourceController {
   IdentityController(this.context);
@@ -8,14 +8,14 @@ class IdentityController extends ResourceController {
 
   @Operation.get()
   Future<Response> getIdentity() async {
-    var q = new Query<User>(context)
+    final q = Query<User>(context)
       ..where((o) => o.id).equalTo(request.authorization.ownerID);
 
-    var u = await q.fetchOne();
+    final u = await q.fetchOne();
     if (u == null) {
-      return new Response.notFound();
+      return Response.notFound();
     }
 
-    return new Response.ok(u);
+    return Response.ok(u);
   }
 }

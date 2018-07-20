@@ -10,7 +10,7 @@ void main() {
   HarnessSubclass harness;
 
   setUpAll(() async {
-    harness = new HarnessSubclass();
+    harness = HarnessSubclass();
     await harness.setUp();
   });
 
@@ -24,62 +24,82 @@ void main() {
 
   test("Can use public client to authenticate", () async {
     final public = await harness.addClient("id");
-    expect(public.headers["authorization"], "Basic " + base64.encode("id:".codeUnits));
+    expect(public.headers["authorization"],
+        "Basic ${base64.encode("id:".codeUnits)}");
 
     final user = await harness.createUser();
-    final userClient = await harness.loginUser(public, user.username, "password");
-    final authHeader = userClient.headers["authorization"];
+    final userClient =
+        await harness.loginUser(public, user.username, "password");
+    final String authHeader = userClient.headers["authorization"];
     expect(authHeader, startsWith("Bearer"));
 
-    final q = new Query<ManagedAuthToken>(harness.context)
+    final q = Query<ManagedAuthToken>(harness.context)
       ..where((o) => o.accessToken).equalTo(authHeader.substring(7));
     final token = await q.fetchOne();
     expect(token.client.id, "id");
   });
 
   test("Can use confidental client to authenticate", () async {
-    final confidential = await harness.addClient("confidential-id", secret: "secret");
-    expect(confidential.headers["authorization"], "Basic " + base64.encode("confidential-id:secret".codeUnits));
+    final confidential =
+        await harness.addClient("confidential-id", secret: "secret");
+    expect(confidential.headers["authorization"],
+        "Basic ${base64.encode("confidential-id:secret".codeUnits)}");
 
     final user = await harness.createUser();
-    final userClient = await harness.loginUser(confidential, user.username, "password");
-    final authHeader = userClient.headers["authorization"];
+    final userClient =
+        await harness.loginUser(confidential, user.username, "password");
+    final String authHeader = userClient.headers["authorization"];
     expect(authHeader, startsWith("Bearer"));
 
-    final q = new Query<ManagedAuthToken>(harness.context)
+    final q = Query<ManagedAuthToken>(harness.context)
       ..where((o) => o.accessToken).equalTo(authHeader.substring(7));
     final token = await q.fetchOne();
     expect(token.client.id, "confidential-id");
   });
 
-  test("Can authenticate user with client and access protected route", () async {
-    final scopeAgent  = await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
-    expect(scopeAgent.headers["authorization"], "Basic " + base64.encode("scope:".codeUnits));
+  test("Can authenticate user with client and access protected route",
+      () async {
+    final scopeAgent =
+        await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
+    expect(scopeAgent.headers["authorization"],
+        "Basic ${base64.encode("scope:".codeUnits)}");
 
     final user = await harness.createUser();
 
-    final userWithCorrectScope = await harness.loginUser(scopeAgent, user.username, "password", scopes: ["scope"]);
+    final userWithCorrectScope = await harness
+        .loginUser(scopeAgent, user.username, "password", scopes: ["scope"]);
     expectResponse(await userWithCorrectScope.request("/endpoint").get(), 200);
 
-    final userWithIncorrectScope = await harness.loginUser(scopeAgent, user.username, "password", scopes: ["not-scope"]);
-    expectResponse(await userWithIncorrectScope.request("/endpoint").get(), 403);
+    final userWithIncorrectScope = await harness.loginUser(
+        scopeAgent, user.username, "password",
+        scopes: ["not-scope"]);
+    expectResponse(
+        await userWithIncorrectScope.request("/endpoint").get(), 403);
   });
 
-  test("Can authenticate user with client and access scope-protected route", () async {
-    final scopeAgent  = await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
-    expect(scopeAgent.headers["authorization"], "Basic " + base64.encode("scope:".codeUnits));
+  test("Can authenticate user with client and access scope-protected route",
+      () async {
+    final scopeAgent =
+        await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
+    expect(scopeAgent.headers["authorization"],
+        "Basic ${base64.encode("scope:".codeUnits)}");
 
     final user = await harness.createUser();
 
-    final userWithCorrectScope = await harness.loginUser(scopeAgent, user.username, "password", scopes: ["scope"]);
+    final userWithCorrectScope = await harness
+        .loginUser(scopeAgent, user.username, "password", scopes: ["scope"]);
     expectResponse(await userWithCorrectScope.request("/endpoint").get(), 200);
 
-    final userWithIncorrectScope = await harness.loginUser(scopeAgent, user.username, "password", scopes: ["not-scope"]);
-    expectResponse(await userWithIncorrectScope.request("/endpoint").get(), 403);
+    final userWithIncorrectScope = await harness.loginUser(
+        scopeAgent, user.username, "password",
+        scopes: ["not-scope"]);
+    expectResponse(
+        await userWithIncorrectScope.request("/endpoint").get(), 403);
   });
 
   test("If password is incorrect, throw reasonable error message", () async {
-    final scopeAgent  = await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
+    final scopeAgent =
+        await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
     final user = await harness.createUser();
     try {
       await harness.loginUser(scopeAgent, user.username, "incorrect");
@@ -89,14 +109,18 @@ void main() {
     }
   });
 
-  test("If requested scope is unavailable, throw reasonable error message", () async {
-    final scopeAgent  = await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
+  test("If requested scope is unavailable, throw reasonable error message",
+      () async {
+    final scopeAgent =
+        await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
     final user = await harness.createUser();
     try {
-      await harness.loginUser(scopeAgent, user.username, "password", scopes: ["whatever"]);
+      await harness.loginUser(scopeAgent, user.username, "password",
+          scopes: ["whatever"]);
       fail('unreachable');
     } on ArgumentError catch (e) {
-      expect(e.toString(), contains("Scope not permitted for client identifier and/or user."));
+      expect(e.toString(),
+          contains("Scope not permitted for client identifier and/or user."));
     }
   });
 }
@@ -107,30 +131,33 @@ class Channel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    context = new ManagedContext(new ManagedDataModel.fromCurrentMirrorSystem(),
-        new PostgreSQLPersistentStore("dart", "dart", "localhost", 5432, "dart_test"));
-    authServer = new AuthServer(new ManagedAuthDelegate<User>(context));
+    context = ManagedContext(
+        ManagedDataModel.fromCurrentMirrorSystem(),
+        PostgreSQLPersistentStore(
+            "dart", "dart", "localhost", 5432, "dart_test"));
+    authServer = AuthServer(ManagedAuthDelegate<User>(context));
   }
 
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
     router
         .route("/endpoint")
-        .link(() => new Authorizer.bearer(authServer, scopes: ["scope"]))
-        .linkFunction((req) async => new Response.ok({"key": "value"}));
+        .link(() => Authorizer.bearer(authServer, scopes: ["scope"]))
+        .linkFunction((req) async => Response.ok({"key": "value"}));
     return router;
   }
 }
 
-class HarnessSubclass extends TestHarness<Channel> with TestHarnessAuthMixin<Channel>, TestHarnessORMMixin {
+class HarnessSubclass extends TestHarness<Channel>
+    with TestHarnessAuthMixin<Channel>, TestHarnessORMMixin {
   @override
   Future afterStart() async {
     await resetData();
   }
 
-  Future seed() async {
-  }
+  @override
+  Future seed() async {}
 
   @override
   AuthServer get authServer => channel.authServer;
@@ -138,9 +165,10 @@ class HarnessSubclass extends TestHarness<Channel> with TestHarnessAuthMixin<Cha
   @override
   ManagedContext get context => channel.context;
 
-  Future<User> createUser({String username: "username", String password: "password"}) {
+  Future<User> createUser(
+      {String username = "username", String password = "password"}) {
     final salt = AuthUtility.generateRandomSalt();
-    final user = new User()
+    final user = User()
       ..username = username
       ..salt = salt
       ..hashedPassword = AuthUtility.generatePasswordHash(password, salt);
@@ -148,6 +176,7 @@ class HarnessSubclass extends TestHarness<Channel> with TestHarnessAuthMixin<Cha
   }
 }
 
-class User extends ManagedObject<_User> implements _User, ManagedAuthResourceOwner<_User> {}
+class User extends ManagedObject<_User>
+    implements _User, ManagedAuthResourceOwner<_User> {}
 
 class _User extends ResourceOwnerTableDefinition {}

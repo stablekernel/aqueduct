@@ -16,7 +16,7 @@ class NotPresentMatcher extends Matcher {
 }
 
 class PartialMapMatcher extends Matcher {
-  PartialMapMatcher(Map m) {
+  PartialMapMatcher(Map<String, dynamic> m) {
     m.forEach((key, val) {
       if (val is Matcher) {
         _matcherMap[key] = val;
@@ -26,22 +26,22 @@ class PartialMapMatcher extends Matcher {
     });
   }
 
-  Map<dynamic, Matcher> _matcherMap = {};
+  final Map<String, Matcher> _matcherMap = {};
 
   @override
   bool matches(dynamic item, Map matchState) {
-    if (item is! Map) {
+    if (item is! Map<String, dynamic>) {
       matchState["PartialMatcher.runtimeType"] = item.runtimeType;
       return false;
     }
 
-    var mismatches = <String>[];
+    final inputMap = item as Map<String, dynamic>;
+    final mismatches = <String>[];
     matchState["PartialMatcher.mismatches"] = mismatches;
-
     var foundMismatch = false;
     _matcherMap.forEach((bodyKey, valueMatcher) {
       if (valueMatcher is NotPresentMatcher) {
-        if (item.containsKey(bodyKey)) {
+        if (inputMap.containsKey(bodyKey)) {
           mismatches.add(bodyKey);
           foundMismatch = true;
         }
@@ -49,7 +49,7 @@ class PartialMapMatcher extends Matcher {
         return;
       }
 
-      var value = item[bodyKey];
+      final value = inputMap[bodyKey];
       if (!valueMatcher.matches(value, matchState)) {
         mismatches.add(bodyKey);
         foundMismatch = true;
@@ -74,19 +74,18 @@ class PartialMapMatcher extends Matcher {
   }
 
   @override
-  Description describeMismatch(
-      dynamic item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(dynamic item, Description mismatchDescription, Map matchState, bool verbose) {
     if (matchState["PartialMatcher.runtimeType"] != null) {
       mismatchDescription.add("is not a map");
       return mismatchDescription;
     }
 
-    List<String> mismatches = matchState["PartialMatcher.mismatches"] ?? [];
-    if (mismatches.length > 0) {
+    final List<String> mismatches = matchState["PartialMatcher.mismatches"] ?? <String>[];
+    if (mismatches.isNotEmpty) {
       mismatchDescription.add("the following keys differ from partial matcher: \n");
       mismatches.forEach((s) {
-        var matcher = _matcherMap[s];
-        var value = item[s];
+        final matcher = _matcherMap[s];
+        final value = item[s];
         mismatchDescription.add("  - '$s' ");
         matcher.describeMismatch(value, mismatchDescription, matchState, verbose);
         mismatchDescription.add("\n");

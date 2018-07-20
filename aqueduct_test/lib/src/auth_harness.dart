@@ -34,7 +34,8 @@ import 'package:aqueduct_test/aqueduct_test.dart';
 ///               publicAgent = await addClient("com.public.client");
 ///             }
 ///         }
-abstract class TestHarnessAuthMixin<T extends ApplicationChannel> implements TestHarness<T> {
+abstract class TestHarnessAuthMixin<T extends ApplicationChannel>
+    implements TestHarness<T> {
   /// Must override to return [authServer] of application under test.
   ///
   /// An [ApplicationChannel] should expose its [AuthServer] service as a property.
@@ -43,24 +44,19 @@ abstract class TestHarnessAuthMixin<T extends ApplicationChannel> implements Tes
   ///             AuthServer get authServer => channel.authServer;
   AuthServer get authServer;
 
-  /// Must override to return [Application] under test.
-  ///
-  /// Override this method to return the application under test from the [TestHarness].
-  ///
-  ///             Application<MyChannel> get application => channel.application;
-  Application<T> get application;
-
   /// Creates a new OAuth2 client identifier and returns an [Agent] that makes requests on behalf of that client.
   ///
-  /// A new [ManagedAuthClient] is added to the [authServer]'s database. Returns an [Agent] that will
+  /// A new [AuthClient] is added to the [authServer]'s database. Returns an [Agent] that will
   /// execute requests with a basic authorization header that contains [id] and [secret].
   ///
   /// If [secret] is null, [redirectUri] is ignored (public clients cannot have a redirect URI).
   ///
   /// NOTE: This method adds rows to a database table managed by your test application and [TestHarnessORMMixin.resetData]
   /// will delete those rows. To ensure clients exist for all tests, add clients in [TestHarnessORMMixin.seed].
-  Future<Agent> addClient(String id, {String secret, String redirectUri, List<String> allowedScope}) async {
-    final client = new AuthClient.public(id, allowedScopes: allowedScope?.map((s) => new AuthScope(s))?.toList());
+  Future<Agent> addClient(String id,
+      {String secret, String redirectUri, List<String> allowedScope}) async {
+    final client = AuthClient.public(id,
+        allowedScopes: allowedScope?.map((s) => AuthScope(s))?.toList());
 
     if (secret != null) {
       client
@@ -71,8 +67,9 @@ abstract class TestHarnessAuthMixin<T extends ApplicationChannel> implements Tes
 
     await authServer.addClient(client);
 
-    final authorizationHeader = "Basic ${base64.encode("$id:${secret ?? ""}".codeUnits)}";
-    return new Agent.from(agent)..headers["authorization"] = authorizationHeader;
+    final authorizationHeader =
+        "Basic ${base64.encode("$id:${secret ?? ""}".codeUnits)}";
+    return Agent.from(agent)..headers["authorization"] = authorizationHeader;
   }
 
   /// Authenticates a user for [username] and [password].
@@ -82,20 +79,24 @@ abstract class TestHarnessAuthMixin<T extends ApplicationChannel> implements Tes
   ///
   /// [fromAgent] must be a client authenticated agent, typically created by [addClient]. If [scopes] is non-null,
   /// the access token will have the included scope if valid.
-  Future<Agent> loginUser(Agent fromAgent, String username, String password, {List<String> scopes}) async {
-    final authorizationHeader = fromAgent.headers["authorization"];
-    final parser = const AuthorizationBasicParser();
+  Future<Agent> loginUser(Agent fromAgent, String username, String password,
+      {List<String> scopes}) async {
+    final String authorizationHeader = fromAgent.headers["authorization"];
+    const parser = AuthorizationBasicParser();
     final credentials = parser.parse(authorizationHeader);
 
     try {
-      final token = await authServer.authenticate(username, password, credentials.username, credentials.password,
-          requestedScopes: scopes?.map((s) => new AuthScope(s))?.toList());
-      return new Agent.from(fromAgent)..headers["authorization"] = "Bearer ${token.accessToken}";
+      final token = await authServer.authenticate(
+          username, password, credentials.username, credentials.password,
+          requestedScopes: scopes?.map((s) => AuthScope(s))?.toList());
+      return Agent.from(fromAgent)
+        ..headers["authorization"] = "Bearer ${token.accessToken}";
     } on AuthServerException catch (e) {
       if (e.reason == AuthRequestError.invalidGrant) {
-        throw new ArgumentError("Invalid username/password.");
+        throw ArgumentError("Invalid username/password.");
       } else if (e.reason == AuthRequestError.invalidScope) {
-        throw new ArgumentError("Scope not permitted for client identifier and/or user.");
+        throw ArgumentError(
+            "Scope not permitted for client identifier and/or user.");
       }
 
       rethrow;

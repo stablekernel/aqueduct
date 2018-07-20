@@ -7,10 +7,10 @@ import 'package:test/test.dart';
 
 void main() {
   MockHTTPServer server;
-  final agent = new Agent.onPort(8000);
+  final agent = Agent.onPort(8000);
 
   setUp(() async {
-    server = new MockHTTPServer(8000);
+    server = MockHTTPServer(8000);
     await server.open();
   });
 
@@ -18,16 +18,18 @@ void main() {
     await server.close();
   });
 
-  test("Mismatched body shows decoded body and teh reason for the mismatch", () async {
+  test("Mismatched body shows decoded body and teh reason for the mismatch",
+      () async {
     server.queueHandler((req) {
-      return new Response.ok({"key": "value"});
+      return Response.ok({"key": "value"});
     });
 
     final response = await agent.get("/");
-    final responseMatcher = new HTTPResponseMatcher(200, null, new HTTPBodyMatcher(equals({"notkey": "bar"})));
+    final responseMatcher = HTTPResponseMatcher(
+        200, null, HTTPBodyMatcher(equals({"notkey": "bar"})));
     expect(responseMatcher.matches(response, {}), false);
 
-    final desc = new StringDescription();
+    final desc = StringDescription();
     responseMatcher.describe(desc);
     expect(desc.toString(), contains("Status code must be 200"));
     expect(desc.toString(), contains("{'notkey': 'bar'}"));

@@ -1,6 +1,5 @@
-import 'wildfire.dart';
-
 import 'model/model.dart';
+import 'wildfire.dart';
 
 /// This type initializes an application.
 ///
@@ -19,7 +18,7 @@ class WildfireChannel extends ApplicationChannel {
   Future prepare() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
-    var config = new WildfireConfiguration(options.configurationFilePath);
+    final config = WildfireConfiguration(options.configurationFilePath);
     context = contextWithConnectionInfo(config.database);
   }
 
@@ -31,9 +30,9 @@ class WildfireChannel extends ApplicationChannel {
   /// This method is invoked after [prepare].
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
-    router.route("/model/[:id]").link(() => new ManagedObjectController<Model>(context));
+    router.route("/model/[:id]").link(() => ManagedObjectController<Model>(context));
 
     return router;
   }
@@ -43,11 +42,11 @@ class WildfireChannel extends ApplicationChannel {
    */
 
   ManagedContext contextWithConnectionInfo(DatabaseConfiguration connectionInfo) {
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore(connectionInfo.username, connectionInfo.password, connectionInfo.host,
+    final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    final psc = PostgreSQLPersistentStore(connectionInfo.username, connectionInfo.password, connectionInfo.host,
         connectionInfo.port, connectionInfo.databaseName);
 
-    return new ManagedContext(dataModel, psc);
+    return ManagedContext(dataModel, psc);
   }
 }
 
@@ -58,7 +57,7 @@ class WildfireChannel extends ApplicationChannel {
 /// For more documentation on configuration files, see https://aqueduct.io/docs/configure/ and
 /// https://pub.dartlang.org/packages/safe_config.
 class WildfireConfiguration extends Configuration {
-  WildfireConfiguration(String fileName) : super.fromFile(new File(fileName));
+  WildfireConfiguration(String fileName) : super.fromFile(File(fileName));
 
   DatabaseConfiguration database;
 }

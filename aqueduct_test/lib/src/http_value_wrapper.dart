@@ -3,22 +3,16 @@ import 'dart:io';
 import 'package:matcher/matcher.dart';
 
 class HTTPValueMatcherWrapper extends Matcher {
-  HTTPValueMatcherWrapper(dynamic matcherOrValue) {
-    if (matcherOrValue is! Matcher) {
-      _matcher = equals(matcherOrValue);
-    } else {
-      _matcher = matcherOrValue;
-    }
-  }
+  HTTPValueMatcherWrapper(this._matcher);
 
-   Matcher _matcher;
+  final Matcher _matcher;
 
   @override
   bool matches(dynamic item, Map matchState) {
     // Try as just a String first. If that fails, see if we can parse it as anything
     // If we can, try that one.
 
-    var tempMatchState = {};
+    final tempMatchState = {};
     try {
       if (_matcher.matches(item, tempMatchState)) {
         matchState.addAll(tempMatchState);
@@ -34,28 +28,34 @@ class HTTPValueMatcherWrapper extends Matcher {
       return false;
     }
 
-    var v;
-    try {
-      v = num.parse(item);
-      matchState["HTTPValueWrapper.parsedAs"] = num;
-    } on FormatException {}
-    try {
-      v = HttpDate.parse(item);
-      matchState["HTTPValueWrapper.parsedAs"] = HttpDate;
-    } on FormatException {
-    } on HttpException {}
-
-    try {
-      v = DateTime.parse(item);
-      matchState["HTTPValueWrapper.parsedAs"] = DateTime;
-    } on FormatException {}
-
-    if (v == null) {
-      matchState.addAll(tempMatchState);
-      return false;
+    if (item is! String) {
+      throw StateError("Header response value is not a String.");
     }
 
-    return _matcher.matches(v, matchState);
+    final onSuccess = (v) {
+      if (v == null) {
+        matchState.addAll(tempMatchState);
+        return false;
+      }
+      return _matcher.matches(v, matchState);
+    };
+
+    try {
+      return onSuccess(num.parse(item as String));
+      // ignore: empty_catches
+    } on FormatException {}
+
+    try {
+      return onSuccess(HttpDate.parse(item as String));
+      // ignore: empty_catches
+    } on FormatException {} on HttpException {}
+
+    try {
+      return onSuccess(DateTime.parse(item as String));
+      // ignore: empty_catches
+    } on FormatException {}
+
+    return false;
   }
 
   @override
@@ -64,13 +64,8 @@ class HTTPValueMatcherWrapper extends Matcher {
   }
 
   @override
-  Description describeMismatch(
-      dynamic item, Description mismatchDescription, Map matchState, bool verbose) {
-    var parsedAs = matchState["HTTPValueWrapper.parsedAs"];
-    if (parsedAs != null) {
-      item = parsedAs.parse(item);
-    }
-
+  Description describeMismatch(dynamic item, Description mismatchDescription,
+      Map matchState, bool verbose) {
     _matcher.describeMismatch(item, mismatchDescription, matchState, verbose);
 
     return mismatchDescription;

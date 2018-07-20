@@ -3,13 +3,13 @@ import 'package:wildfire/model/user.dart';
 import 'harness/app.dart';
 
 Future main() async {
-  Harness harness = new Harness()..install();
+  final harness = Harness()..install();
 
   Agent userClient;
   User defaultUser;
 
   setUp(() async {
-    defaultUser = new User()
+    defaultUser = User()
       ..username = "bob@stablekernel.com"
       ..password = "foobaraxegrind12%";
     userClient = await harness.registerUser(defaultUser);

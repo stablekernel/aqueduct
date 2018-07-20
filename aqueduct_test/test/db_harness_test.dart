@@ -8,7 +8,7 @@ void main() {
   HarnessSubclass harness;
 
   setUp(() async {
-    harness = new HarnessSubclass();
+    harness = HarnessSubclass();
     await harness.setUp();
   });
 
@@ -16,16 +16,20 @@ void main() {
     await harness.tearDown();
   });
 
-  test("afterStart that invokes resetData sets up database and invokes seed", () async {
-    final q = new Query<Model>(harness.channel.context);
+  test("afterStart that invokes resetData sets up database and invokes seed",
+      () async {
+    final q = Query<Model>(harness.channel.context);
     final results = await q.fetch();
     expect(results.map((m) => m.name).toList(), ["bob"]);
   });
 
-  test("Calling resetData clears persistent data but retains schema and seeded data", () async {
-    final q = new Query<Model>(harness.channel.context)..sortBy((o) => o.name, QuerySortOrder.ascending);
+  test(
+      "Calling resetData clears persistent data but retains schema and seeded data",
+      () async {
+    final q = Query<Model>(harness.channel.context)
+      ..sortBy((o) => o.name, QuerySortOrder.ascending);
 
-    await Query.insertObject(harness.channel.context, new Model()..name = "fred");
+    await Query.insertObject(harness.channel.context, Model()..name = "fred");
     expect((await q.fetch()).map((m) => m.name).toList(), ["bob", "fred"]);
 
     await harness.resetData();
@@ -38,16 +42,18 @@ class Channel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    context = new ManagedContext(
-        new ManagedDataModel([Model]), new PostgreSQLPersistentStore("dart", "dart", "localhost", 5432, "dart_test"));
+    context = ManagedContext(
+        ManagedDataModel([Model]),
+        PostgreSQLPersistentStore(
+            "dart", "dart", "localhost", 5432, "dart_test"));
   }
 
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
     router.route("/endpoint").linkFunction((req) async {
-      final q = new Query<Model>(context);
-      return new Response.ok(await q.fetch());
+      final q = Query<Model>(context);
+      return Response.ok(await q.fetch());
     });
     return router;
   }
@@ -59,8 +65,9 @@ class HarnessSubclass extends TestHarness<Channel> with TestHarnessORMMixin {
     await resetData();
   }
 
+  @override
   Future seed() async {
-    await Query.insertObject(context, new Model()..name = "bob");
+    await Query.insertObject(context, Model()..name = "bob");
   }
 
   @override
