@@ -12,11 +12,11 @@ class BoundMethod {
 
     positionalParameters = mirror.parameters
         .where((pm) => !pm.isOptional)
-        .map((pm) => new BoundParameter(pm, isRequired: true))
+        .map((pm) => BoundParameter(pm, isRequired: true))
         .toList();
     optionalParameters = mirror.parameters
         .where((pm) => pm.isOptional)
-        .map((pm) => new BoundParameter(pm, isRequired: false))
+        .map((pm) => BoundParameter(pm, isRequired: false))
         .toList();
 
     scopes = getMethodScopes(mirror);
@@ -33,7 +33,8 @@ class BoundMethod {
   ///
   /// Note that [requestMethod] may be null; if this is the case, only
   /// path variables are compared.
-  bool isSuitableForRequest(String requestMethod, List<String> requestPathVariables) {
+  bool isSuitableForRequest(
+      String requestMethod, List<String> requestPathVariables) {
     if (requestMethod != null && requestMethod.toUpperCase() != httpMethod) {
       return false;
     }
@@ -42,6 +43,7 @@ class BoundMethod {
       return false;
     }
 
-    return requestPathVariables.every((varName) => pathVariables.contains(varName));
+    return requestPathVariables
+        .every((varName) => pathVariables.contains(varName));
   }
 }

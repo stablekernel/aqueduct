@@ -9,8 +9,8 @@ void main() {
     setUpAll(() async {
       context = await contextWithModels([PageableTestModel]);
       for (int i = 0; i < 10; i++) {
-        var p = new PageableTestModel()..value = "$i";
-        await (new Query<PageableTestModel>(context)..values = p).insert();
+        var p = PageableTestModel()..value = "$i";
+        await (Query<PageableTestModel>(context)..values = p).insert();
       }
     });
 
@@ -20,7 +20,7 @@ void main() {
     });
 
     test("Fetch limit and offset specify a particular row", () async {
-      var q = new Query<PageableTestModel>(context)
+      var q = Query<PageableTestModel>(context)
         ..fetchLimit = 1
         ..offset = 2;
 
@@ -30,7 +30,7 @@ void main() {
     });
 
     test("Offset out of bounds returns no results", () async {
-      var q = new Query<PageableTestModel>(context)
+      var q = Query<PageableTestModel>(context)
         ..fetchLimit = 1
         ..offset = 10;
 
@@ -39,7 +39,7 @@ void main() {
     });
 
     test("Offset respects ordering specified by sort descriptors", () async {
-      var q = new Query<PageableTestModel>(context)
+      var q = Query<PageableTestModel>(context)
         ..fetchLimit = 2
         ..offset = 2
         ..sortBy((p) => p.id, QuerySortOrder.descending);
@@ -65,8 +65,8 @@ void main() {
     setUpAll(() async {
       context = await contextWithModels([PageableTestModel]);
       for (int i = 0; i < 10; i++) {
-        var p = new PageableTestModel()..value = "$i";
-        await (new Query<PageableTestModel>(context)..values = p).insert();
+        var p = PageableTestModel()..value = "$i";
+        await (Query<PageableTestModel>(context)..values = p).insert();
       }
     });
 
@@ -104,7 +104,7 @@ void main() {
     test("Ascending from known data set edge, limited to inside data set",
         () async {
       // select * from t where id > 0 order by id asc limit 5;
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.ascending, boundingValue: 0)
         ..fetchLimit = 5;
       var res = await req.fetch();
@@ -113,7 +113,7 @@ void main() {
 
     test("Ascending from first element, limited to inside data set", () async {
       // select * from t where id > 1 order by id asc limit 5;
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.ascending, boundingValue: 1)
         ..fetchLimit = 5;
       var res = await req.fetch();
@@ -122,7 +122,7 @@ void main() {
 
     test("Ascending from first element, extended past data set", () async {
       // select * from t where id > 0 order by id asc limit 15;
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.ascending, boundingValue: 0)
         ..fetchLimit = 15;
       var res = await req.fetch();
@@ -131,7 +131,7 @@ void main() {
 
     test("Ascending from inside data set to known edge", () async {
       // select * from t where id > 6 order by id asc limit 4;
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.ascending, boundingValue: 6)
         ..fetchLimit = 4;
       var res = await req.fetch();
@@ -140,7 +140,7 @@ void main() {
 
     test("Ascending from inside data set to past edge", () async {
       // select * from t where id > 6 order by id asc limit 5
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.ascending, boundingValue: 6)
         ..fetchLimit = 5;
       var res = await req.fetch();
@@ -149,7 +149,7 @@ void main() {
 
     test("Ascending from edge of data set into outside data set", () async {
       // select * from t where id > 10 order by id asc limit 5
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.ascending, boundingValue: 10)
         ..fetchLimit = 5;
       var res = await req.fetch();
@@ -158,7 +158,7 @@ void main() {
 
     test("Ascending from outside the data set and onward", () async {
       // select * from t where id > 11 order by id asc limit 10
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.ascending, boundingValue: 11)
         ..fetchLimit = 10;
       var res = await req.fetch();
@@ -167,7 +167,7 @@ void main() {
 
     test("Ascending from null to all the way outside the data set", () async {
       // select * from t order by id asc limit 15
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.ascending)
         ..fetchLimit = 15;
       var res = await req.fetch();
@@ -176,7 +176,7 @@ void main() {
 
     test("Ascending from null to halfway into the data set", () async {
       // select * from t order by id asc limit 5;
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.ascending)
         ..fetchLimit = 5;
       var res = await req.fetch();
@@ -185,7 +185,7 @@ void main() {
 
     test("Descending from beginning of data set to before data set", () async {
       // select * from t where id < 0 order by id desc limit 10
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.descending, boundingValue: 0)
         ..fetchLimit = 10;
       var res = await req.fetch();
@@ -195,7 +195,7 @@ void main() {
     test("Descending from first element in data set to before data set",
         () async {
       // select * from t where id < 1 order by id desc limit 10;
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.descending, boundingValue: 1)
         ..fetchLimit = 10;
       var res = await req.fetch();
@@ -204,7 +204,7 @@ void main() {
 
     test("Descending from middle of data set to before data set", () async {
       // select * from t where id < 4 order by id desc limit 10;
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.descending, boundingValue: 4)
         ..fetchLimit = 10;
       var res = await req.fetch();
@@ -213,7 +213,7 @@ void main() {
 
     test("Descending from middle of data set to edge of data set", () async {
       // select * from t where id < 5 order by id desc limit 4;
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.descending, boundingValue: 5)
         ..fetchLimit = 4;
       var res = await req.fetch();
@@ -224,7 +224,7 @@ void main() {
         "Descending from outside end of data set to beginning edge of data set",
         () async {
       // select * from t where id < 11 order by id desc limit 10;
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.descending, boundingValue: 11)
         ..fetchLimit = 10;
       var res = await req.fetch();
@@ -234,7 +234,7 @@ void main() {
     test("Descending from last element in data set to middle of data set",
         () async {
       // select * from t where id < 10 order by id desc limit 5;
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.descending, boundingValue: 10)
         ..fetchLimit = 5;
       var res = await req.fetch();
@@ -244,7 +244,7 @@ void main() {
     test("Descending from outside end of data set to middle of data set",
         () async {
       // select * from t where id < 11 order by id desc limit 5
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.descending, boundingValue: 11)
         ..fetchLimit = 5;
       var res = await req.fetch();
@@ -253,7 +253,7 @@ void main() {
 
     test("Descending from null to beginning of data set", () async {
       // select * from t order by id desc limit 10
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.descending)
         ..fetchLimit = 10;
       var res = await req.fetch();
@@ -262,7 +262,7 @@ void main() {
 
     test("Descending from null to middle of data set", () async {
       // select * from t order by id desc limit 5
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.id, QuerySortOrder.descending)
         ..fetchLimit = 5;
       var res = await req.fetch();
@@ -281,10 +281,11 @@ void main() {
     };
 
     setUpAll(() async {
-      context = await contextWithModels([PageableTestModel, HasMany, BelongsTo]);
+      context =
+          await contextWithModels([PageableTestModel, HasMany, BelongsTo]);
       for (int i = 0; i < 10; i++) {
-        var p = new PageableTestModel()..value = "$i";
-        await (new Query<PageableTestModel>(context)..values = p).insert();
+        var p = PageableTestModel()..value = "$i";
+        await (Query<PageableTestModel>(context)..values = p).insert();
       }
     });
 
@@ -294,7 +295,7 @@ void main() {
     });
 
     test("Incorrect type for boundingValue", () async {
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.value, QuerySortOrder.ascending, boundingValue: 0);
 
       try {
@@ -308,18 +309,21 @@ void main() {
 
     test("Page property doesn't exist throws error", () async {
       try {
-        var _ = new Query<PageableTestModel>(context)
+        var _ = Query<PageableTestModel>(context)
           ..pageBy((p) => p["foobar"], QuerySortOrder.ascending,
               boundingValue: "0");
 
         expect(true, false);
       } on ArgumentError catch (e) {
-        expect(e.toString(), contains("Property 'foobar' does not exist on 'PageableTestModel'"));
+        expect(
+            e.toString(),
+            contains(
+                "Property 'foobar' does not exist on 'PageableTestModel'"));
       }
     });
 
     test("Query when not fetching paging property still succeeds", () async {
-      var req = new Query<PageableTestModel>(context)
+      var req = Query<PageableTestModel>(context)
         ..pageBy((p) => p.value, QuerySortOrder.ascending, boundingValue: "0")
         ..returningProperties((p) => [p.id])
         ..fetchLimit = 5;
@@ -329,11 +333,12 @@ void main() {
 
     test("Page by relationship fails", () async {
       try {
-        new Query<HasMany>(context)
-          ..pageBy((p) => p.objects, QuerySortOrder.ascending);
+        Query<HasMany>(context)
+          .pageBy((p) => p.objects, QuerySortOrder.ascending);
         expect(true, false);
       } on ArgumentError catch (e) {
-        expect(e.toString(), contains("Property 'objects' on 'HasMany' is a relationship"));
+        expect(e.toString(),
+            contains("Property 'objects' on 'HasMany' is a relationship"));
       }
     });
   });
@@ -350,6 +355,7 @@ class _PageableTestModel {
 }
 
 class HasMany extends ManagedObject<_HasMany> implements _HasMany {}
+
 class _HasMany {
   @primaryKey
   int id;
@@ -358,6 +364,7 @@ class _HasMany {
 }
 
 class BelongsTo extends ManagedObject<_BelongsTo> implements _BelongsTo {}
+
 class _BelongsTo {
   @primaryKey
   int id;

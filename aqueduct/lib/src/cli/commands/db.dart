@@ -10,12 +10,12 @@ import 'package:aqueduct/src/cli/commands/db_schema.dart';
 
 class CLIDatabase extends CLICommand {
   CLIDatabase() {
-    registerCommand(new CLIDatabaseUpgrade());
-    registerCommand(new CLIDatabaseGenerate());
-    registerCommand(new CLIDatabaseShowMigrations());
-    registerCommand(new CLIDatabaseValidate());
-    registerCommand(new CLIDatabaseVersion());
-    registerCommand(new CLIDatabaseSchema());
+    registerCommand(CLIDatabaseUpgrade());
+    registerCommand(CLIDatabaseGenerate());
+    registerCommand(CLIDatabaseShowMigrations());
+    registerCommand(CLIDatabaseValidate());
+    registerCommand(CLIDatabaseVersion());
+    registerCommand(CLIDatabaseSchema());
   }
 
   @override

@@ -24,12 +24,14 @@ abstract class APIComponentDocumenter {
   /// a [Map] if the keys are [String]s and the values are supported types.
   ///
   /// Any documentation comments for the declared variable will available in the returned object.
-  static APISchemaObject documentVariable(APIDocumentContext context, VariableMirror mirror) {
+  static APISchemaObject documentVariable(
+      APIDocumentContext context, VariableMirror mirror) {
     APISchemaObject object = documentType(context, mirror.type);
 
     if (object != null && mirror.owner is ClassMirror) {
       context.defer(() async {
-        final docs = await DocumentedElement.get((mirror.owner as ClassMirror).reflectedType);
+        final docs = await DocumentedElement.get(
+            (mirror.owner as ClassMirror).reflectedType);
         final declDocs = docs[mirror.simpleName];
         object.title = declDocs?.summary;
         object.description = declDocs?.description;
@@ -45,31 +47,34 @@ abstract class APIComponentDocumenter {
   /// maps, lists and any type that implements [HTTPSerializable].
   ///
   /// See [HTTPSerializable.document] for details on automatic document generation behavior for these types.
-  static APISchemaObject documentType(APIDocumentContext context, TypeMirror type) {
+  static APISchemaObject documentType(
+      APIDocumentContext context, TypeMirror type) {
     if (type.isAssignableTo(reflectType(int))) {
-      return new APISchemaObject.integer();
+      return APISchemaObject.integer();
     } else if (type.isAssignableTo(reflectType(double))) {
-      return new APISchemaObject.number();
+      return APISchemaObject.number();
     } else if (type.isAssignableTo(reflectType(String))) {
-      return new APISchemaObject.string();
+      return APISchemaObject.string();
     } else if (type.isAssignableTo(reflectType(bool))) {
-      return new APISchemaObject.boolean();
+      return APISchemaObject.boolean();
     } else if (type.isAssignableTo(reflectType(DateTime))) {
-      return new APISchemaObject.string(format: "date-time");
+      return APISchemaObject.string(format: "date-time");
     } else if (type.isAssignableTo(reflectType(List))) {
-      return new APISchemaObject.array(ofSchema: documentType(context, type.typeArguments.first));
+      return APISchemaObject.array(
+          ofSchema: documentType(context, type.typeArguments.first));
     } else if (type.isAssignableTo(reflectType(Map))) {
       if (!type.typeArguments.first.isAssignableTo(reflectType(String))) {
-        throw new ArgumentError("Unsupported type 'Map' with non-string keys.");
+        throw ArgumentError("Unsupported type 'Map' with non-string keys.");
       }
-      return new APISchemaObject()
+      return APISchemaObject()
         ..type = APIType.object
-        ..additionalPropertySchema = documentType(context, type.typeArguments.last);
+        ..additionalPropertySchema =
+            documentType(context, type.typeArguments.last);
     } else if (type.isAssignableTo(reflectType(HTTPSerializable))) {
       return HTTPSerializable.document(context, type.reflectedType);
     }
 
-    throw new ArgumentError(
+    throw ArgumentError(
         "Unsupported type '${MirrorSystem.getName(type.simpleName)}' for 'APIComponentDocumenter.documentType'.");
   }
 
@@ -149,7 +154,8 @@ abstract class APIOperationDocumenter {
   ///
   ///         return ops;
   ///       }
-  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path);
+  Map<String, APIOperation> documentOperations(
+      APIDocumentContext context, String route, APIPath path);
 }
 
 /// An object that contains information about [APIDocument] being generated.
@@ -162,15 +168,20 @@ abstract class APIOperationDocumenter {
 class APIDocumentContext {
   /// Creates a new context.
   APIDocumentContext(this.document)
-      : schema = new APIComponentCollection<APISchemaObject>._("schemas", document.components.schemas),
-        responses = new APIComponentCollection<APIResponse>._("responses", document.components.responses),
-        parameters = new APIComponentCollection<APIParameter>._("parameters", document.components.parameters),
-        requestBodies =
-            new APIComponentCollection<APIRequestBody>._("requestBodies", document.components.requestBodies),
-        headers = new APIComponentCollection<APIHeader>._("headers", document.components.headers),
-        securitySchemes =
-            new APIComponentCollection<APISecurityScheme>._("securitySchemes", document.components.securitySchemes),
-        callbacks = new APIComponentCollection<APICallback>._("callbacks", document.components.callbacks);
+      : schema = APIComponentCollection<APISchemaObject>._(
+            "schemas", document.components.schemas),
+        responses = APIComponentCollection<APIResponse>._(
+            "responses", document.components.responses),
+        parameters = APIComponentCollection<APIParameter>._(
+            "parameters", document.components.parameters),
+        requestBodies = APIComponentCollection<APIRequestBody>._(
+            "requestBodies", document.components.requestBodies),
+        headers = APIComponentCollection<APIHeader>._(
+            "headers", document.components.headers),
+        securitySchemes = APIComponentCollection<APISecurityScheme>._(
+            "securitySchemes", document.components.securitySchemes),
+        callbacks = APIComponentCollection<APICallback>._(
+            "callbacks", document.components.callbacks);
 
   /// The document being created.
   final APIDocument document;
@@ -312,7 +323,7 @@ class APIComponentCollection<T extends APIObject> {
   /// has been registered for [name], an error is thrown.
   T getObject(String name) {
     T obj = reflectClass(T).newInstance(#empty, []).reflectee;
-    obj.referenceURI = new Uri(path: "/components/$_typeName/$name");
+    obj.referenceURI = Uri(path: "/components/$_typeName/$name");
     return obj;
   }
 
@@ -330,9 +341,12 @@ class APIComponentCollection<T extends APIObject> {
     }
 
     T obj = reflectClass(T).newInstance(#empty, []).reflectee;
-    obj.referenceURI = new Uri(path: "/components/$_typeName/aqueduct-typeref:${MirrorSystem.getName(reflectType(type).simpleName)}");
+    obj.referenceURI = Uri(
+        path:
+            "/components/$_typeName/aqueduct-typeref:${MirrorSystem.getName(reflectType(type).simpleName)}");
 
-    final completer = _resolutionMap.putIfAbsent(type, () => new Completer<T>.sync());
+    final completer =
+        _resolutionMap.putIfAbsent(type, () => Completer<T>.sync());
 
     completer.future.then((refObject) {
       obj.referenceURI = refObject.referenceURI;

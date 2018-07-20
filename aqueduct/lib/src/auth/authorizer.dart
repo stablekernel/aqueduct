@@ -35,15 +35,17 @@ class Authorizer extends Controller {
   ///         Authorization: Bearer ap9ijlarlkz8jIOa9laweo
   ///
   /// If [scopes] is provided, the authorization granted must have access to *all* scopes according to [validator].
-  Authorizer(this.validator, {this.parser: const AuthorizationBearerParser(), List<String> scopes})
-      : this.scopes = scopes?.map((s) => new AuthScope(s))?.toList();
+  Authorizer(this.validator,
+      {this.parser = const AuthorizationBearerParser(), List<String> scopes})
+      : this.scopes = scopes?.map((s) => AuthScope(s))?.toList();
 
   /// Creates an instance of [Authorizer] with Basic Authentication parsing.
   ///
   /// Parses a username and password from the request's Basic Authentication data in the Authorization header, e.g.:
   ///
   ///         Authorization: Basic base64(username:password)
-  Authorizer.basic(AuthValidator validator) : this(validator, parser: const AuthorizationBasicParser());
+  Authorizer.basic(AuthValidator validator)
+      : this(validator, parser: const AuthorizationBasicParser());
 
   /// Creates an instance of [Authorizer] with Bearer token parsing.
   ///
@@ -53,7 +55,8 @@ class Authorizer extends Controller {
   ///
   /// If [scopes] is provided, the bearer token must have access to *all* scopes according to [validator].
   Authorizer.bearer(AuthValidator validator, {List<String> scopes})
-      : this(validator, parser: const AuthorizationBearerParser(), scopes: scopes);
+      : this(validator,
+            parser: const AuthorizationBearerParser(), scopes: scopes);
 
   /// The validating authorization object.
   ///
@@ -80,42 +83,46 @@ class Authorizer extends Controller {
   final AuthorizationParser parser;
 
   @override
-  FutureOr<RequestOrResponse> handle(Request req) async {
-    var authData = req.raw.headers.value(HttpHeaders.authorizationHeader);
+  FutureOr<RequestOrResponse> handle(Request request) async {
+    final authData = request.raw.headers.value(HttpHeaders.authorizationHeader);
     if (authData == null) {
-      return new Response.unauthorized();
+      return Response.unauthorized();
     }
 
     try {
       final value = parser.parse(authData);
-      req.authorization = await validator.validate(parser, value, requiredScope: scopes);
-      if (req.authorization == null) {
-        return new Response.unauthorized();
+      request.authorization =
+          await validator.validate(parser, value, requiredScope: scopes);
+      if (request.authorization == null) {
+        return Response.unauthorized();
       }
 
-      _addScopeRequirementModifier(req);
+      _addScopeRequirementModifier(request);
     } on AuthorizationParserException catch (e) {
       return _responseFromParseException(e);
     } on AuthServerException catch (e) {
       if (e.reason == AuthRequestError.invalidScope) {
-        return new Response.forbidden(
-            body: {"error": "insufficient_scope", "scope": scopes.map((s) => s.toString()).join(" ")});
+        return Response.forbidden(body: {
+          "error": "insufficient_scope",
+          "scope": scopes.map((s) => s.toString()).join(" ")
+        });
       }
 
-      return new Response.unauthorized();
+      return Response.unauthorized();
     }
 
-    return req;
+    return request;
   }
 
   Response _responseFromParseException(AuthorizationParserException e) {
     switch (e.reason) {
       case AuthorizationParserExceptionReason.malformed:
-        return new Response.badRequest(body: {"error": "invalid_authorization_header"});
+        return Response.badRequest(
+            body: {"error": "invalid_authorization_header"});
       case AuthorizationParserExceptionReason.missing:
-        return new Response.unauthorized();
+        return Response.unauthorized();
       default:
-        return new Response.serverError();
+        return Response.serverError();
     }
   }
 
@@ -125,11 +132,14 @@ class Authorizer extends Controller {
     if (scopes != null) {
       request.addResponseModifier((resp) {
         if (resp.statusCode == 403 && resp.body is Map) {
-          Map<String, dynamic> body = resp.body;
+          final Map<String, dynamic> body = resp.body;
           if (body.containsKey("scope")) {
             final declaredScopes = (body["scope"] as String).split(" ");
-            final scopesToAdd = scopes.map((s) => s.toString()).where((s) => !declaredScopes.contains(s));
-            body["scope"] = [scopesToAdd, declaredScopes].expand((i) => i).join(" ");
+            final scopesToAdd = scopes
+                .map((s) => s.toString())
+                .where((s) => !declaredScopes.contains(s));
+            body["scope"] =
+                [scopesToAdd, declaredScopes].expand((i) => i).join(" ");
           }
         }
       });
@@ -142,32 +152,40 @@ class Authorizer extends Controller {
 
     context.responses.register(
         "InsufficientScope",
-        new APIResponse("The provided credentials or bearer token have insufficient permission to access this route.",
+        APIResponse(
+            "The provided credentials or bearer token have insufficient permission to access this route.",
             content: {
-              "application/json": new APIMediaType(
-                  schema: new APISchemaObject.object({
-                "error": new APISchemaObject.string(),
-                "scope": new APISchemaObject.string()..description = "The required scope for this operation."
+              "application/json": APIMediaType(
+                  schema: APISchemaObject.object({
+                "error": APISchemaObject.string(),
+                "scope": APISchemaObject.string()
+                  ..description = "The required scope for this operation."
               }))
             }));
 
     context.responses.register(
         "InsufficientAccess",
-        new APIResponse("The provided credentials or bearer token are not authorized for this request.", content: {
-          "application/json":
-              new APIMediaType(schema: new APISchemaObject.object({"error": new APISchemaObject.string()}))
-        }));
+        APIResponse(
+            "The provided credentials or bearer token are not authorized for this request.",
+            content: {
+              "application/json": APIMediaType(
+                  schema: APISchemaObject.object(
+                      {"error": APISchemaObject.string()}))
+            }));
 
     context.responses.register(
         "MalformedAuthorizationHeader",
-        new APIResponse("The provided Authorization header was malformed.", content: {
-          "application/json":
-              new APIMediaType(schema: new APISchemaObject.object({"error": new APISchemaObject.string()}))
-        }));
+        APIResponse("The provided Authorization header was malformed.",
+            content: {
+              "application/json": APIMediaType(
+                  schema: APISchemaObject.object(
+                      {"error": APISchemaObject.string()}))
+            }));
   }
 
   @override
-  Map<String, APIOperation> documentOperations(APIDocumentContext context, String route, APIPath path) {
+  Map<String, APIOperation> documentOperations(
+      APIDocumentContext context, String route, APIPath path) {
     final operations = super.documentOperations(context, route, path);
 
     operations.forEach((_, op) {
@@ -175,7 +193,8 @@ class Authorizer extends Controller {
       op.addResponse(401, context.responses["InsufficientAccess"]);
       op.addResponse(403, context.responses["InsufficientScope"]);
 
-      final requirements = validator.documentRequirementsForAuthorizer(context, this, scopes: scopes);
+      final requirements = validator
+          .documentRequirementsForAuthorizer(context, this, scopes: scopes);
       requirements.forEach((req) {
         op.addSecurityRequirement(req);
       });

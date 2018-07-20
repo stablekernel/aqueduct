@@ -11,7 +11,7 @@ import 'package:yaml/yaml.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// Exceptions thrown by command line interfaces.
-class CLIException {
+class CLIException implements Exception {
   CLIException(this.message, {this.instructions});
 
   final List<String> instructions;
@@ -25,24 +25,22 @@ enum CLIColor { red, green, blue, boldRed, boldGreen, boldBlue, boldNone, none }
 
 /// A command line interface command.
 abstract class CLICommand {
-  static const _Delimiter = "-- ";
-  static const _Tabs = "    ";
-  static const _ErrorDelimiter = "*** ";
+  static const _delimiter = "-- ";
+  static const _tabs = "    ";
+  static const _errorDelimiter = "*** ";
 
   CLICommand() {
-    final arguments = reflect(this).type.instanceMembers.values.where((m) => m.metadata.any((im) {
-      bool hasArgMetadata = im.type.isAssignableTo(reflectType(Argument));
-      return hasArgMetadata;
-    }));
+    final arguments = reflect(this).type.instanceMembers.values.where((m) =>
+        m.metadata.any((im) => im.type.isAssignableTo(reflectType(Argument))));
 
     arguments.forEach((arg) {
       if (!arg.isGetter) {
-        throw new StateError("Declaration "
-          "${MirrorSystem.getName(arg.owner.simpleName)}.${MirrorSystem.getName(arg.simpleName)} "
-          "has CLI annotation, but is not a getter.");
+        throw StateError("Declaration "
+            "${MirrorSystem.getName(arg.owner.simpleName)}.${MirrorSystem.getName(arg.simpleName)} "
+            "has CLI annotation, but is not a getter.");
       }
 
-      Argument argType = firstMetadataOfType(arg);
+      final Argument argType = firstMetadataOfType(arg);
       argType.addToParser(options);
     });
   }
@@ -57,7 +55,9 @@ abstract class CLICommand {
   args.ArgResults get command => _argumentValues.command;
 
   StoppableProcess get runningProcess {
-    return _commandMap.values.firstWhere((cmd) => cmd.runningProcess != null, orElse: () => null)?.runningProcess;
+    return _commandMap.values
+        .firstWhere((cmd) => cmd.runningProcess != null, orElse: () => null)
+        ?.runningProcess;
   }
 
   @Flag("version", help: "Prints version of this tool", negatable: false)
@@ -69,15 +69,17 @@ abstract class CLICommand {
   @Flag("help", abbr: "h", help: "Shows this", negatable: false)
   bool get helpMeItsScary => decode("help");
 
-  @Flag("stacktrace", help: "Shows the stacktrace if an error occurs", defaultsTo: false)
+  @Flag("stacktrace",
+      help: "Shows the stacktrace if an error occurs", defaultsTo: false)
   bool get showStacktrace => decode("stacktrace");
 
   @Flag("machine",
-      help: "Output is machine-readable, usable for creating tools on top of this CLI. Behavior varies by command.",
+      help:
+          "Output is machine-readable, usable for creating tools on top of this CLI. Behavior varies by command.",
       defaultsTo: false)
   bool get isMachineOutput => decode("machine");
 
-  Map<String, CLICommand> _commandMap = {};
+  final Map<String, CLICommand> _commandMap = {};
 
   StringSink _outputSink = stdout;
 
@@ -122,14 +124,13 @@ abstract class CLICommand {
   ///
   /// Do not override this method. This method invokes [handle] within a try-catch block
   /// and will invoke [cleanup] when complete.
-  Future<int> process(args.ArgResults results, {List<String> parentCommandNames}) async {
+  Future<int> process(args.ArgResults results, {List<String> commandPath}) async {
+    final parentCommandNames = commandPath ?? <String>[];
+
     if (results.command != null) {
-      if (parentCommandNames == null) {
-        parentCommandNames = [name];
-      } else {
-        parentCommandNames.add(name);
-      }
-      return _commandMap[results.command.name].process(results.command, parentCommandNames: parentCommandNames);
+      parentCommandNames.add(name);
+      return _commandMap[results.command.name]
+          .process(results.command, commandPath: parentCommandNames);
     }
 
     try {
@@ -156,9 +157,7 @@ abstract class CLICommand {
       return await handle();
     } on CLIException catch (e, st) {
       displayError(e.message);
-      e.instructions?.forEach((instruction) {
-        displayProgress(instruction);
-      });
+      e.instructions?.forEach(displayProgress);
 
       if (showStacktrace) {
         printStackTrace(st);
@@ -175,14 +174,17 @@ abstract class CLICommand {
 
   Future determineToolVersion() async {
     try {
-      var toolLibraryFilePath = (await Isolate.resolvePackageUri(currentMirrorSystem().findLibrary(#aqueduct).uri))
+      var toolLibraryFilePath = (await Isolate.resolvePackageUri(
+              currentMirrorSystem().findLibrary(#aqueduct).uri))
           .toFilePath(windows: Platform.isWindows);
-      var aqueductDirectory = new Directory(FileSystemEntity.parentOf(FileSystemEntity.parentOf(toolLibraryFilePath)));
-      var toolPubspecFile = new File.fromUri(aqueductDirectory.absolute.uri.resolve("pubspec.yaml"));
+      var aqueductDirectory = Directory(FileSystemEntity.parentOf(
+          FileSystemEntity.parentOf(toolLibraryFilePath)));
+      var toolPubspecFile =
+          File.fromUri(aqueductDirectory.absolute.uri.resolve("pubspec.yaml"));
 
       Map toolPubspecContents = loadYaml(toolPubspecFile.readAsStringSync());
       String toolVersion = toolPubspecContents["version"];
-      _toolVersion = new Version.parse(toolVersion);
+      _toolVersion = Version.parse(toolVersion);
     } catch (e) {
       print(e);
     }
@@ -190,19 +192,24 @@ abstract class CLICommand {
 
   void preProcess() {}
 
-  void displayError(String errorMessage, {bool showUsage: false, CLIColor color: CLIColor.boldRed}) {
-    outputSink.writeln("${colorSymbol(color)}$_ErrorDelimiter$errorMessage$defaultColorSymbol");
+  void displayError(String errorMessage,
+      {bool showUsage = false, CLIColor color = CLIColor.boldRed}) {
+    outputSink.writeln(
+        "${colorSymbol(color)}$_errorDelimiter$errorMessage$defaultColorSymbol");
     if (showUsage) {
       outputSink.writeln("\n${options.usage}");
     }
   }
 
-  void displayInfo(String infoMessage, {CLIColor color: CLIColor.boldNone}) {
-    outputSink.writeln("${colorSymbol(color)}$_Delimiter$infoMessage$defaultColorSymbol");
+  void displayInfo(String infoMessage, {CLIColor color = CLIColor.boldNone}) {
+    outputSink.writeln(
+        "${colorSymbol(color)}$_delimiter$infoMessage$defaultColorSymbol");
   }
 
-  void displayProgress(String progressMessage, {CLIColor color: CLIColor.none}) {
-    outputSink.writeln("${colorSymbol(color)}$_Tabs$progressMessage$defaultColorSymbol");
+  void displayProgress(String progressMessage,
+      {CLIColor color = CLIColor.none}) {
+    outputSink.writeln(
+        "${colorSymbol(color)}$_tabs$progressMessage$defaultColorSymbol");
   }
 
   String colorSymbol(CLIColor color) {
@@ -217,8 +224,8 @@ abstract class CLICommand {
   String get detailedDescription => "";
 
   String get usage {
-    var buf = new StringBuffer(name);
-    if (_commandMap.length > 0) {
+    var buf = StringBuffer(name);
+    if (_commandMap.isNotEmpty) {
       buf.write(" <command>");
     }
     buf.write(" [arguments]");
@@ -234,7 +241,7 @@ abstract class CLICommand {
     return "\u001b[0m";
   }
 
-  static const Map<CLIColor, String> _lookupTable = const {
+  static const Map<CLIColor, String> _lookupTable = {
     CLIColor.red: "\u001b[31m",
     CLIColor.green: "\u001b[32m",
     CLIColor.blue: "\u001b[34m",
@@ -258,7 +265,7 @@ abstract class CLICommand {
     print("Options:");
     print("${options.usage}");
 
-    if (options.commands.length > 0) {
+    if (options.commands.isNotEmpty) {
       print("Available sub-commands:");
 
       var commandNames = options.commands.keys.toList();

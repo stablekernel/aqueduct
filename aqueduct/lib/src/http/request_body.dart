@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
-import 'http.dart';
+
 import 'body_decoder.dart';
+import 'http.dart';
 
 /// Objects that represent a request body, and can be decoded into Dart objects.
 ///
@@ -28,7 +29,8 @@ class RequestBody extends BodyDecoder {
   static int maxSize = 1024 * 1024 * 10;
 
   final HttpRequest _request;
-  bool get _hasContent => _hasContentLength || _request.headers.chunkedTransferEncoding;
+  bool get _hasContent =>
+      _hasContentLength || _request.headers.chunkedTransferEncoding;
   bool get _hasContentLength => (_request.headers.contentLength ?? 0) > 0;
 
   @override
@@ -37,7 +39,8 @@ class RequestBody extends BodyDecoder {
     // and just return the original stream.
     if (_hasContentLength) {
       if (_request.headers.contentLength > maxSize) {
-        throw new Response(HttpStatus.requestEntityTooLarge, null, {"error": "entity length exceeds maximum"});
+        throw Response(HttpStatus.requestEntityTooLarge, null,
+            {"error": "entity length exceeds maximum"});
       }
 
       return _originalByteStream;
@@ -47,12 +50,15 @@ class RequestBody extends BodyDecoder {
     // then we need to check how many bytes we've read to ensure we haven't
     // crossed maxSize
     if (_bufferingController == null) {
-      _bufferingController = new StreamController<List<int>>(sync: true);
+      _bufferingController = StreamController<List<int>>(sync: true);
 
       _originalByteStream.listen((chunk) {
         _bytesRead += chunk.length;
         if (_bytesRead > maxSize) {
-          _bufferingController.addError(new Response(HttpStatus.requestEntityTooLarge, null, {"error": "entity length exceeds maximum"}));
+          _bufferingController.addError(Response(
+              HttpStatus.requestEntityTooLarge,
+              null,
+              {"error": "entity length exceeds maximum"}));
           _bufferingController.close();
           return;
         }

@@ -1,3 +1,4 @@
+// ignore: unnecessary_const
 @Tags(const ["cli"])
 import 'package:test/test.dart';
 import 'cli_helpers.dart';
@@ -10,9 +11,7 @@ void main() {
       terminal = await Terminal.createProject();
     });
 
-    tearDown(() {
-      Terminal.deleteTemporaryDirectory();
-    });
+    tearDown(Terminal.deleteTemporaryDirectory);
 
     test("Cannot delete primary key column", () async {
       final code = [
@@ -32,7 +31,7 @@ void main() {
         """
       ];
 
-      await terminal.getDependencies(offline:  true);
+      await terminal.getDependencies(offline: true);
 
       terminal.addOrReplaceFile("lib/test_application.dart", code.first);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
@@ -42,7 +41,8 @@ void main() {
       terminal.addOrReplaceFile("lib/application_test.dart", code.last);
       res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, isNot(0));
-      expect(terminal.output, contains("doesn't declare a primary key property"));
+      expect(
+          terminal.output, contains("doesn't declare a primary key property"));
     });
 
     test("Cannot change relatedTable", () async {
@@ -79,7 +79,7 @@ void main() {
         """
       ];
 
-      await terminal.getDependencies(offline:  true);
+      await terminal.getDependencies(offline: true);
 
       terminal.addOrReplaceFile("lib/application_test.dart", code.first);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
@@ -110,7 +110,7 @@ void main() {
         """
       ];
 
-      await terminal.getDependencies(offline:  true);
+      await terminal.getDependencies(offline: true);
 
       terminal.addOrReplaceFile("lib/application_test.dart", code.first);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
@@ -120,7 +120,8 @@ void main() {
       terminal.addOrReplaceFile("lib/application_test.dart", code.last);
       res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, isNot(0));
-      expect(terminal.output, contains("Class '_U' doesn't declare a primary key property"));
+      expect(terminal.output,
+          contains("Class '_U' doesn't declare a primary key property"));
     });
 
     test("Cannot change primaryKey", () async {
@@ -141,7 +142,7 @@ void main() {
         """
       ];
 
-      await terminal.getDependencies(offline:  true);
+      await terminal.getDependencies(offline: true);
 
       terminal.addOrReplaceFile("lib/application_test.dart", code.first);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
@@ -174,7 +175,7 @@ void main() {
         """
       ];
 
-      await terminal.getDependencies(offline:  true);
+      await terminal.getDependencies(offline: true);
 
       terminal.addOrReplaceFile("lib/application_test.dart", code.first);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
@@ -184,7 +185,8 @@ void main() {
       terminal.addOrReplaceFile("lib/application_test.dart", code.last);
       res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, isNot(0));
-      expect(terminal.output, contains("Cannot change autoincrement behavior of '_U.x'"));
+      expect(terminal.output,
+          contains("Cannot change autoincrement behavior of '_U.x'"));
     });
 
     test("Cannot change type", () async {
@@ -206,13 +208,13 @@ void main() {
         """
       ];
 
-      await terminal.getDependencies(offline:  true);
+      await terminal.getDependencies(offline: true);
 
       terminal.addOrReplaceFile("lib/application_test.dart", code.first);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
       terminal.clearOutput();
-      
+
       terminal.addOrReplaceFile("lib/application_test.dart", code.last);
       res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, isNot(0));

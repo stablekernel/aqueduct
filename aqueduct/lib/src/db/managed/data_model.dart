@@ -1,10 +1,11 @@
 import 'dart:mirrors';
+
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/utilities/reference_counting_list.dart';
 
-import 'managed.dart';
-import 'data_model_builder.dart';
 import '../query/query.dart';
+import 'data_model_builder.dart';
+import 'managed.dart';
 
 /// Instances of this class contain descriptions and metadata for mapping [ManagedObject]s to database rows.
 ///
@@ -15,7 +16,9 @@ import '../query/query.dart';
 ///
 /// Most applications do not need to access instances of this type.
 ///
-class ManagedDataModel extends Object with ReferenceCountable implements APIComponentDocumenter {
+class ManagedDataModel extends Object
+    with ReferenceCountable
+    implements APIComponentDocumenter {
   /// Creates an instance of [ManagedDataModel] from a list of types that extend [ManagedObject]. It is preferable
   /// to use [ManagedDataModel.fromCurrentMirrorSystem] over this method.
   ///
@@ -23,7 +26,7 @@ class ManagedDataModel extends Object with ReferenceCountable implements APIComp
   ///
   ///       new DataModel([User, Token, Post]);
   ManagedDataModel(List<Type> instanceTypes) {
-    var builder = new DataModelBuilder(this, instanceTypes);
+    var builder = DataModelBuilder(this, instanceTypes);
     _entities = builder.entities;
     _tableDefinitionToEntityMap = builder.tableDefinitionToEntityMap;
   }
@@ -51,8 +54,8 @@ class ManagedDataModel extends Object with ReferenceCountable implements APIComp
         .map((decl) => decl as ClassMirror)
         .toList();
 
-    var builder = new DataModelBuilder(
-        this, classes.map((cm) => cm.reflectedType).toList());
+    var builder =
+        DataModelBuilder(this, classes.map((cm) => cm.reflectedType).toList());
     _entities = builder.entities;
     _tableDefinitionToEntityMap = builder.tableDefinitionToEntityMap;
   }
@@ -86,8 +89,7 @@ class ManagedDataModelError extends Error {
   ManagedDataModelError(this.message);
 
   factory ManagedDataModelError.noPrimaryKey(ManagedEntity entity) {
-    return new ManagedDataModelError(
-        "Class '${_getPersistentClassName(entity)}'"
+    return ManagedDataModelError("Class '${_getPersistentClassName(entity)}'"
         " doesn't declare a primary key property. All 'ManagedObject' subclasses "
         "must have a primary key. Usually, this means you want to add '@primaryKey int id;' "
         "to ${_getPersistentClassName(entity)}, but if you want more control over "
@@ -98,7 +100,7 @@ class ManagedDataModelError extends Error {
 
   factory ManagedDataModelError.invalidType(
       ManagedEntity entity, Symbol property) {
-    return new ManagedDataModelError("Property '${_getName(property)}' on "
+    return ManagedDataModelError("Property '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}'"
         " has an unsupported type. Must be "
         "${ManagedType.supportedDartTypes.join(", ")}"
@@ -111,9 +113,8 @@ class ManagedDataModelError extends Error {
 
   factory ManagedDataModelError.invalidMetadata(
       ManagedEntity entity, Symbol property, ManagedEntity destinationEntity) {
-    return new ManagedDataModelError(
-        "Relationship '${_getName(property)}' on "
-        "'${_getPersistentClassName(entity)}' "
+    return ManagedDataModelError("Relationship '${_getName(property)}' on "
+        "'${_getPersistentClassName(entity)}' (to '${_getPersistentClassName(destinationEntity)}') "
         "cannot both have 'Column' and 'Relationship' metadata. "
         "To add flags for indexing or nullability to a relationship, see the constructor "
         "for 'Relationship'.");
@@ -128,8 +129,7 @@ class ManagedDataModelError extends Error {
     if (expectedProperty != null) {
       expectedString = "'${_getName(expectedProperty)}'";
     }
-    return new ManagedDataModelError(
-        "Relationship '${_getName(property)}' on "
+    return ManagedDataModelError("Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' has "
         "no inverse property. Every relationship must have an inverse. "
         "$expectedString on "
@@ -141,8 +141,7 @@ class ManagedDataModelError extends Error {
 
   factory ManagedDataModelError.incompatibleDeleteRule(
       ManagedEntity entity, Symbol property) {
-    return new ManagedDataModelError(
-        "Relationship '${_getName(property)}' on "
+    return ManagedDataModelError("Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' "
         "has both 'RelationshipDeleteRule.nullify' and 'isRequired' equal to true, which "
         "couldn't possibly be true at the same. 'isRequired' means the column "
@@ -154,7 +153,7 @@ class ManagedDataModelError extends Error {
       Symbol property,
       ManagedEntity destinationEntity,
       Symbol inverseProperty) {
-    return new ManagedDataModelError("Relationship '${_getName(property)}' "
+    return ManagedDataModelError("Relationship '${_getName(property)}' "
         "on '${_getPersistentClassName(entity)}' "
         "and '${_getName(inverseProperty)}' "
         "on '${_getPersistentClassName(destinationEntity)}' "
@@ -176,19 +175,19 @@ class ManagedDataModelError extends Error {
       Symbol property,
       ManagedEntity destinationEntity,
       List<Symbol> inversePropertyCandidates) {
-    return new ManagedDataModelError("Relationship '${_getName(property)}' "
+    return ManagedDataModelError("Relationship '${_getName(property)}' "
         "on '${_getPersistentClassName(entity)}' "
         "has more than one inverse property declared in "
         "${_getPersistentClassName(destinationEntity)}, but can only"
         "have one. The properties that claim to be an inverse "
-        "are ${inversePropertyCandidates.map((s) => _getName(s)).join(",")}.");
+        "are ${inversePropertyCandidates.map(_getName).join(",")}.");
   }
 
   factory ManagedDataModelError.noDestinationEntity(
       ManagedEntity entity, Symbol property) {
-    var typeMirror = entity.tableDefinition.instanceMembers[property].returnType;
-    return new ManagedDataModelError(
-        "Relationship '${_getName(property)}' on "
+    var typeMirror =
+        entity.tableDefinition.instanceMembers[property].returnType;
+    return ManagedDataModelError("Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' expects that there is a subclass "
         "of 'ManagedObject' named '${_getName(typeMirror.simpleName)}', "
         "but there isn't one. If you have declared one - and you really checked "
@@ -201,18 +200,17 @@ class ManagedDataModelError extends Error {
       List<ManagedEntity> possibleEntities) {
     var destType =
         entity.tableDefinition.instanceMembers[property].returnType.simpleName;
-    return new ManagedDataModelError(
-        "Relationship '${_getName(property)}' on "
+    return ManagedDataModelError("Relationship '${_getName(property)}' on "
         "'${_getPersistentClassName(entity)}' expects that just one "
         "'ManagedObject' subclass uses a table definition that extends "
         "'${_getName(destType)}. But the following implementations were found: "
-        "${possibleEntities.map((e) => _getInstanceClassName(e))}. That's just "
+        "${possibleEntities.map(_getInstanceClassName)}. That's just "
         "how it is for now.");
   }
 
   factory ManagedDataModelError.invalidTransient(
       ManagedEntity entity, Symbol property) {
-    return new ManagedDataModelError(
+    return ManagedDataModelError(
         "Transient property '${_getName(property)}' on "
         "'${_getInstanceClassName(entity)}' declares that"
         "it is transient, but it it has a mismatch. A transient "
@@ -222,24 +220,24 @@ class ManagedDataModelError extends Error {
 
   factory ManagedDataModelError.noConstructor(ClassMirror cm) {
     final name = _getName(cm.simpleName);
-    return new ManagedDataModelError("Invalid 'ManagedObject' subclass "
-      "'$name' does not implement default, unnamed constructor. "
-      "Add '$name();' to the class declaration.");
+    return ManagedDataModelError("Invalid 'ManagedObject' subclass "
+        "'$name' does not implement default, unnamed constructor. "
+        "Add '$name();' to the class declaration.");
   }
 
   factory ManagedDataModelError.duplicateTables(
       ManagedEntity entity1, ManagedEntity entity2) {
-    return new ManagedDataModelError(
+    return ManagedDataModelError(
         "Entities '${_getInstanceClassName(entity1)}' and '${_getInstanceClassName(entity2)}' "
-            "have the same table name: '${entity1.tableName}'. Rename these "
-            "tables by changing the value in their 'tableName' method or removing "
-            "the 'tableName' method altogether.");
+        "have the same table name: '${entity1.tableName}'. Rename these "
+        "tables by changing the value in their 'tableName' method or removing "
+        "the 'tableName' method altogether.");
   }
 
   factory ManagedDataModelError.conflictingTypes(
-    ManagedEntity entity, String propertyName) {
-    return new ManagedDataModelError(
-      "The entity '${_getInstanceClassName(entity)}' declares two accessors named "
+      ManagedEntity entity, String propertyName) {
+    return ManagedDataModelError(
+        "The entity '${_getInstanceClassName(entity)}' declares two accessors named "
         "'$propertyName', but they have conflicting types.");
   }
 
@@ -248,7 +246,7 @@ class ManagedDataModelError extends Error {
       Symbol property,
       ManagedEntity destinationEntity,
       Symbol inverseProperty) {
-    return new ManagedDataModelError(
+    return ManagedDataModelError(
         "Managed objects '${_getPersistentClassName(entity)}' "
         "and '${_getPersistentClassName(destinationEntity)}' "
         "have cyclic relationship properties. This would yield two tables "
@@ -259,20 +257,20 @@ class ManagedDataModelError extends Error {
 
   factory ManagedDataModelError.invalidValidator(
       ManagedEntity entity, String property, String reason) {
-    return new ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
+    return ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
         "has invalid validator for property '$property'. Reason: $reason");
   }
 
   factory ManagedDataModelError.emptyEntityUniqueProperties(
       ManagedEntity entity) {
-    return new ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
+    return ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
         "has empty set for unique 'Table'. Must contain two or "
         "more attributes (or belongs-to relationship properties).");
   }
 
   factory ManagedDataModelError.singleEntityUniqueProperty(
       ManagedEntity entity, Symbol property) {
-    return new ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
+    return ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
         "has only one attribute for unique 'Table'. Must contain two or "
         "more attributes (or belongs-to relationship properties). To make this property unique, "
         "add 'Column(unique: true)' to declaration of '${_getName(property)}'.");
@@ -280,14 +278,14 @@ class ManagedDataModelError extends Error {
 
   factory ManagedDataModelError.invalidEntityUniqueProperty(
       ManagedEntity entity, Symbol property) {
-    return new ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
+    return ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
         "declares '${MirrorSystem.getName(property)}' as unique in 'Table', "
         "but '${MirrorSystem.getName(property)}' is not a property of this type.");
   }
 
   factory ManagedDataModelError.relationshipEntityUniqueProperty(
       ManagedEntity entity, Symbol property) {
-    return new ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
+    return ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
         "declares '${_getName(property)}' as unique in 'Table'. This property cannot "
         "be used to make an instance unique; only attributes or belongs-to relationships may used "
         "in this way.");

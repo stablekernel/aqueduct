@@ -1,26 +1,33 @@
+// ignore: unnecessary_const
 @Tags(const ["cli"])
+
+import 'dart:async';
 import 'dart:io';
 
 import 'package:analyzer/analyzer.dart';
+import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/db/schema/migration_source.dart';
 import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
-import 'dart:async';
+
 import 'cli_helpers.dart';
 
 Terminal terminal;
-DatabaseConfiguration connectInfo =
-    new DatabaseConfiguration.withConnectionInfo("dart", "dart", "localhost", 5432, "dart_test");
-String connectString = "postgres://${connectInfo.username}:${connectInfo.password}@${connectInfo.host}:${connectInfo
-  .port}/${connectInfo.databaseName}";
+DatabaseConfiguration connectInfo = DatabaseConfiguration.withConnectionInfo(
+    "dart", "dart", "localhost", 5432, "dart_test");
+String connectString =
+    "postgres://${connectInfo.username}:${connectInfo.password}@${connectInfo.host}:${connectInfo.port}/${connectInfo.databaseName}";
 
 void main() {
   PostgreSQLPersistentStore store;
 
   setUp(() async {
     // create a working directory to store migrations in, inside terminal temporary directory
-    store = new PostgreSQLPersistentStore(
-        connectInfo.username, connectInfo.password, connectInfo.host, connectInfo.port, connectInfo.databaseName);
+    store = PostgreSQLPersistentStore(
+        connectInfo.username,
+        connectInfo.password,
+        connectInfo.host,
+        connectInfo.port,
+        connectInfo.databaseName);
     terminal = await Terminal.createProject();
     await terminal.getDependencies(offline: true);
     terminal.defaultMigrationDirectory.createSync();
@@ -48,24 +55,29 @@ void main() {
 
   test("Generate and execute initial schema makes workable DB", () async {
     expect(await runMigrationCases(["Case1"]), 0);
-    var version = await store.execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
+    var version = await store
+        .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
     expect(version, [
       [1]
     ]);
     expect(await columnsOfTable(store, "_testobject"), ["id", "foo"]);
   });
 
-  test("Database already up to date returns 0 status code, does not change version", () async {
+  test(
+      "Database already up to date returns 0 status code, does not change version",
+      () async {
     expect(await runMigrationCases(["Case2"]), 0);
 
-    List<List<dynamic>> versionRow =
-        await store.execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
+    List<List<dynamic>> versionRow = await store.execute(
+        "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
     expect(versionRow.first.first, 1);
     var updateDate = versionRow.first.last;
 
     terminal.clearOutput();
     expect(await runMigrationCases(["Case2"]), 0);
-    versionRow = await store.execute("SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql") as List<List>;
+    versionRow = await store.execute(
+            "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql")
+        as List<List>;
     expect(versionRow.length, 1);
     expect(versionRow.first.last, equals(updateDate));
     expect(terminal.output, contains("already current (version: 1)"));
@@ -74,7 +86,8 @@ void main() {
   test("Multiple migration files are ran", () async {
     expect(await runMigrationCases(["Case31", "Case32"]), 0);
 
-    var version = await store.execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
+    var version = await store
+        .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
     expect(version, [
       [1],
       [2]
@@ -85,7 +98,8 @@ void main() {
 
   test("Only later migration files are ran if already at a version", () async {
     expect(await runMigrationCases(["Case41"]), 0);
-    var version = await store.execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
+    var version = await store
+        .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
     expect(version, [
       [1]
     ]);
@@ -95,7 +109,8 @@ void main() {
     expect(await tableExists(store, "_foo"), false);
 
     expect(await runMigrationCases(["Case42"], fromVersion: 1), 0);
-    version = await store.execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
+    version = await store
+        .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
     expect(version, [
       [1],
       [2]
@@ -112,15 +127,21 @@ void main() {
     expect(await tableExists(store, "_testobject"), false);
   });
 
-  test("Ensure that the following tests would succeed if the invalid migration were not applied", () async {
+  test(
+      "Ensure that the following tests would succeed if the invalid migration were not applied",
+      () async {
     expect(await runMigrationCases(["Case61", "Case63"]), 0);
   });
 
-  test("If migration fails and more migrations are pending, the pending migrations are cancelled", () async {
+  test(
+      "If migration fails and more migrations are pending, the pending migrations are cancelled",
+      () async {
     expect(await runMigrationCases(["Case61", "Case62", "Case63"]), isNot(0));
 
-    expect(terminal.output.contains("Applied schema version 1 successfully"), true);
-    expect(terminal.output, contains("relation \"_unknowntable\" does not exist"));
+    expect(terminal.output.contains("Applied schema version 1 successfully"),
+        true);
+    expect(
+        terminal.output, contains("relation \"_unknowntable\" does not exist"));
 
     expect(await tableExists(store, store.versionTable.name), false);
     expect(await tableExists(store, "_testobject"), false);
@@ -131,14 +152,18 @@ void main() {
       "If migrations have already been applied, and new migrations occur where the first fails, those pending migrations are cancelled",
       () async {
     expect(await runMigrationCases(["Case61"]), 0);
-    expect(terminal.output.contains("Applied schema version 1 successfully"), true);
+    expect(terminal.output.contains("Applied schema version 1 successfully"),
+        true);
     terminal.clearOutput();
 
-    expect(await runMigrationCases(["Case62", "Case63"], fromVersion: 1), isNot(0));
+    expect(await runMigrationCases(["Case62", "Case63"], fromVersion: 1),
+        isNot(0));
 
-    expect(terminal.output, contains("relation \"_unknowntable\" does not exist"));
+    expect(
+        terminal.output, contains("relation \"_unknowntable\" does not exist"));
 
-    final version = await store.execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
+    final version = await store
+        .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
     expect(version, [
       [1],
     ]);
@@ -156,26 +181,29 @@ void main() {
   });
 }
 
-Future<List<String>> columnsOfTable(PersistentStore persistentStore, String tableName) async {
-  List<List<dynamic>> results = await persistentStore.execute("select column_name from information_schema.columns where "
-      "table_name='$tableName'");
+Future<List<String>> columnsOfTable(
+    PersistentStore persistentStore, String tableName) async {
+  List<List<dynamic>> results = await persistentStore
+      .execute("select column_name from information_schema.columns where "
+          "table_name='$tableName'");
   return results.map((rows) => rows.first as String).toList();
 }
 
 Future<bool> tableExists(PersistentStore store, String tableName) async {
-  List<List<dynamic>> exists =
-      await store.execute("SELECT to_regclass(@tableName:text)", substitutionValues: {"tableName": tableName});
+  List<List<dynamic>> exists = await store.execute(
+      "SELECT to_regclass(@tableName:text)",
+      substitutionValues: {"tableName": tableName});
 
   return exists.first.first != null;
 }
 
-List<MigrationSource> getOrderedTestMigrations(List<String> names, {int fromVersion: 0}) {
+List<MigrationSource> getOrderedTestMigrations(List<String> names,
+    {int fromVersion = 0}) {
   final fileUnit = parseDartFile("test/command/migration_execution_test.dart");
 
   final migrations = fileUnit.declarations
-      .where((u) => u is ClassDeclaration)
-      .map((cu) => cu as ClassDeclaration)
-      .where((ClassDeclaration classDecl) {
+      .whereType<ClassDeclaration>()
+      .where((classDecl) {
         return classDecl.extendsClause.superclass.name.name == "Migration";
       })
       .map((cu) {
@@ -183,7 +211,8 @@ List<MigrationSource> getOrderedTestMigrations(List<String> names, {int fromVers
         final offset = cu.name.offset - cu.offset;
 
         // uri is temporary
-        return new MigrationSource(code, Uri.parse("1.migration.dart"), offset, offset + cu.name.length);
+        return MigrationSource(code, Uri.parse("1.migration.dart"), offset,
+            offset + cu.name.length);
       })
       .where((ms) => names.contains(ms.originalName))
       .toList();
@@ -196,20 +225,20 @@ List<MigrationSource> getOrderedTestMigrations(List<String> names, {int fromVers
   return migrations;
 }
 
-Future runMigrationCases(List<String> migrationNames, {int fromVersion: 0}) async {
-  final migs = getOrderedTestMigrations(migrationNames, fromVersion: fromVersion);
+Future runMigrationCases(List<String> migrationNames,
+    {int fromVersion = 0}) async {
+  final migs =
+      getOrderedTestMigrations(migrationNames, fromVersion: fromVersion);
 
   for (var mig in migs) {
-    final file =
-        new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("${mig.versionNumber}_name.migration.dart"));
-    file.writeAsStringSync("import 'dart:async';\nimport 'package:aqueduct/aqueduct.dart';\n${mig.source}");
+    final file = File.fromUri(terminal.defaultMigrationDirectory.uri
+        .resolve("${mig.versionNumber}_name.migration.dart"));
+    file.writeAsStringSync(
+        "import 'dart:async';\nimport 'package:aqueduct/aqueduct.dart';\n${mig.source}");
   }
 
-  final res = await terminal.runAqueductCommand("db", [
-    "upgrade",
-    "--connect",
-    connectString
-  ]);
+  final res = await terminal
+      .runAqueductCommand("db", ["upgrade", "--connect", connectString]);
 
   print("${terminal.output}");
 
@@ -219,13 +248,21 @@ Future runMigrationCases(List<String> migrationNames, {int fromVersion: 0}) asyn
 class Case1 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(new SchemaTable(
+    database.createTable(SchemaTable(
       "_TestObject",
       [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn("foo", ManagedPropertyType.string,
-            isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+        SchemaColumn("id", ManagedPropertyType.bigInteger,
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        SchemaColumn("foo", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
       ],
     ));
   }
@@ -240,13 +277,21 @@ class Case1 extends Migration {
 class Case2 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(new SchemaTable(
+    database.createTable(SchemaTable(
       "_TestObject",
       [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn("foo", ManagedPropertyType.string,
-            isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+        SchemaColumn("id", ManagedPropertyType.bigInteger,
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        SchemaColumn("foo", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
       ],
     ));
   }
@@ -261,13 +306,21 @@ class Case2 extends Migration {
 class Case31 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(new SchemaTable(
+    database.createTable(SchemaTable(
       "_TestObject",
       [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn("foo", ManagedPropertyType.string,
-            isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+        SchemaColumn("id", ManagedPropertyType.bigInteger,
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        SchemaColumn("foo", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
       ],
     ));
   }
@@ -282,12 +335,16 @@ class Case31 extends Migration {
 class Case32 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(new SchemaTable(
+    database.createTable(SchemaTable(
       "_Foo",
       [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn.relationship("testObject", ManagedPropertyType.bigInteger,
+        SchemaColumn("id", ManagedPropertyType.bigInteger,
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        SchemaColumn.relationship("testObject", ManagedPropertyType.bigInteger,
             relatedTableName: "_TestObject",
             relatedColumnName: "id",
             rule: DeleteRule.nullify,
@@ -307,13 +364,21 @@ class Case32 extends Migration {
 class Case41 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(new SchemaTable(
+    database.createTable(SchemaTable(
       "_TestObject",
       [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn("foo", ManagedPropertyType.string,
-            isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+        SchemaColumn("id", ManagedPropertyType.bigInteger,
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        SchemaColumn("foo", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
       ],
     ));
   }
@@ -328,12 +393,16 @@ class Case41 extends Migration {
 class Case42 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(new SchemaTable(
+    database.createTable(SchemaTable(
       "_Foo",
       [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn.relationship("testObject", ManagedPropertyType.bigInteger,
+        SchemaColumn("id", ManagedPropertyType.bigInteger,
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        SchemaColumn.relationship("testObject", ManagedPropertyType.bigInteger,
             relatedTableName: "_TestObject",
             relatedColumnName: "id",
             rule: DeleteRule.nullify,
@@ -353,13 +422,21 @@ class Case42 extends Migration {
 class Case5 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(new SchemaTable(
+    database.createTable(SchemaTable(
       "_TestObject",
       [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn("foo", ManagedPropertyType.string,
-            isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+        SchemaColumn("id", ManagedPropertyType.bigInteger,
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        SchemaColumn("foo", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
       ],
     ));
     database.deleteTable("_Foo");
@@ -375,13 +452,21 @@ class Case5 extends Migration {
 class Case61 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(new SchemaTable(
+    database.createTable(SchemaTable(
       "_TestObject",
       [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn("foo", ManagedPropertyType.string,
-            isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+        SchemaColumn("id", ManagedPropertyType.bigInteger,
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        SchemaColumn("foo", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
       ],
     ));
   }
@@ -396,12 +481,16 @@ class Case61 extends Migration {
 class Case62 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(new SchemaTable(
+    database.createTable(SchemaTable(
       "_Foo",
       [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn.relationship("testObject", ManagedPropertyType.bigInteger,
+        SchemaColumn("id", ManagedPropertyType.bigInteger,
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        SchemaColumn.relationship("testObject", ManagedPropertyType.bigInteger,
             relatedTableName: "_UnknownTable",
             relatedColumnName: "id",
             rule: DeleteRule.nullify,
@@ -423,8 +512,12 @@ class Case63 extends Migration {
   Future upgrade() async {
     database.addColumn(
         "_TestObject",
-        new SchemaColumn("name", ManagedPropertyType.string,
-            isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+        SchemaColumn("name", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
         unencodedInitialValue: "0");
   }
 
@@ -438,13 +531,21 @@ class Case63 extends Migration {
 class Case7 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(new SchemaTable(
+    database.createTable(SchemaTable(
       "_TestObject",
       [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
-            isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn("foo", ManagedPropertyType.string,
-            isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: false),
+        SchemaColumn("id", ManagedPropertyType.bigInteger,
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
+        SchemaColumn("foo", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
       ],
     ));
   }
@@ -454,6 +555,7 @@ class Case7 extends Migration {
 
   @override
   Future seed() async {
-    await database.store.execute("INSERT INTO InvalidTable (foo) VALUES ('foo')");
+    await database.store
+        .execute("INSERT INTO InvalidTable (foo) VALUES ('foo')");
   }
 }

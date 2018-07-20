@@ -1,8 +1,8 @@
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
-
-import '../db.dart';
 import 'package:aqueduct/src/db/postgresql/builders/column.dart';
 import 'package:aqueduct/src/db/postgresql/builders/table.dart';
+
+import '../db.dart';
 
 class RowInstantiator {
   RowInstantiator(this.rootTableBuilder, this.returningValues);
@@ -20,11 +20,12 @@ class RowInstantiator {
           .map((wrapper) => wrapper.instance as U)
           .toList();
     } on ValidationException catch (e) {
-      throw new StateError("Database error when retrieving value. ${e.toString()}");
+      throw StateError("Database error when retrieving value. ${e.toString()}");
     }
   }
 
-  InstanceWrapper instanceFromRow(Iterator<dynamic> rowIterator, Iterator<Returnable> returningIterator,
+  InstanceWrapper instanceFromRow(
+      Iterator<dynamic> rowIterator, Iterator<Returnable> returningIterator,
       {TableBuilder table}) {
     table ??= rootTableBuilder;
 
@@ -55,10 +56,11 @@ class RowInstantiator {
       }
     }
 
-    return new InstanceWrapper(instance, !alreadyExists);
+    return InstanceWrapper(instance, !alreadyExists);
   }
 
-  ManagedObject createInstanceWithPrimaryKeyValue(TableBuilder table, dynamic primaryKeyValue) {
+  ManagedObject createInstanceWithPrimaryKeyValue(
+      TableBuilder table, dynamic primaryKeyValue) {
     var instance = table.entity.instanceOf();
 
     instance[table.entity.primaryKey] = primaryKeyValue;
@@ -74,7 +76,8 @@ class RowInstantiator {
     return instance;
   }
 
-  ManagedObject getExistingInstance(TableBuilder table, dynamic primaryKeyValue) {
+  ManagedObject getExistingInstance(
+      TableBuilder table, dynamic primaryKeyValue) {
     var byType = distinctObjects[table];
     if (byType == null) {
       return null;
@@ -83,17 +86,20 @@ class RowInstantiator {
     return byType[primaryKeyValue];
   }
 
-  void applyRowValuesToInstance(ManagedObject instance, TableBuilder table, Iterator<dynamic> rowIterator) {
+  void applyRowValuesToInstance(ManagedObject instance, TableBuilder table,
+      Iterator<dynamic> rowIterator) {
     if (table.flattenedColumnsToReturn.isEmpty) {
       return;
     }
 
-    var innerInstanceWrapper = instanceFromRow(rowIterator, table.returning.iterator, table: table);
+    var innerInstanceWrapper =
+        instanceFromRow(rowIterator, table.returning.iterator, table: table);
 
     if (table.joinedBy.relationshipType == ManagedRelationshipType.hasMany) {
       // If to many, put in a managed set.
-      ManagedSet list =
-          instance[table.joinedBy.name] ?? table.joinedBy.declaredType.newInstance(const Symbol(""), []).reflectee;
+      ManagedSet list = instance[table.joinedBy.name] ??
+          table.joinedBy.declaredType
+              .newInstance(const Symbol(""), []).reflectee;
 
       if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
         list.add(innerInstanceWrapper.instance);
@@ -113,7 +119,8 @@ class RowInstantiator {
     }
   }
 
-  void applyColumnValueToProperty(ManagedObject instance, ColumnBuilder column, dynamic value) {
+  void applyColumnValueToProperty(
+      ManagedObject instance, ColumnBuilder column, dynamic value) {
     var desc = column.property;
 
     if (desc is ManagedRelationshipDescription) {
@@ -131,7 +138,8 @@ class RowInstantiator {
     }
   }
 
-  void exhaustNullInstanceIterator(Iterator<dynamic> rowIterator, Iterator<Returnable> returningIterator) {
+  void exhaustNullInstanceIterator(
+      Iterator<dynamic> rowIterator, Iterator<Returnable> returningIterator) {
     while (returningIterator.moveNext()) {
       var ret = returningIterator.current;
       if (ret is TableBuilder) {
@@ -144,6 +152,7 @@ class RowInstantiator {
 }
 
 class InstanceWrapper {
+  // ignore: avoid_positional_boolean_parameters
   InstanceWrapper(this.instance, this.isNew);
 
   bool isNew;

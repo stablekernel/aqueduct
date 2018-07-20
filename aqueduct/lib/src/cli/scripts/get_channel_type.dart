@@ -17,6 +17,8 @@ class GetChannelExecutable extends Executable<String> {
     return MirrorSystem.getName(reflectClass(channelType).simpleName);
   }
 
-  static List<String> importsForPackage(String packageName) =>
-      ["package:aqueduct/aqueduct.dart", "package:$packageName/$packageName.dart"];
+  static List<String> importsForPackage(String packageName) => [
+        "package:aqueduct/aqueduct.dart",
+        "package:$packageName/$packageName.dart"
+      ];
 }

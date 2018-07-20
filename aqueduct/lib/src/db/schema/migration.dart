@@ -55,7 +55,8 @@ abstract class Migration {
   Future seed();
 
   static String sourceForSchemaUpgrade(
-    Schema existingSchema, Schema newSchema, int version, {List<String> changeList}) {
+      Schema existingSchema, Schema newSchema, int version,
+      {List<String> changeList}) {
     var diff = existingSchema.differenceFrom(newSchema);
     var source = diff.generateUpgradeSource(changeList: changeList);
 

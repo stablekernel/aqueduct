@@ -1,14 +1,14 @@
 import 'dart:async';
 
+import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/application/service_registry.dart';
 import 'package:aqueduct/src/db/managed/data_model_manager.dart';
-
-import 'managed.dart';
-import '../persistent_store/persistent_store.dart';
-import '../query/query.dart';
-import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/http/http.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
+
+import '../persistent_store/persistent_store.dart';
+import '../query/query.dart';
+import 'managed.dart';
 
 /// A service object that handles connecting to and sending queries to a database.
 ///
@@ -48,13 +48,14 @@ class ManagedContext implements APIComponentDocumenter {
   /// on this context if its type is in [dataModel].
   ManagedContext(this.dataModel, this.persistentStore) {
     ManagedDataModelManager.add(dataModel);
-    ApplicationServiceRegistry.defaultInstance.register<ManagedContext>(this, (o) => o.close());
+    ApplicationServiceRegistry.defaultInstance
+        .register<ManagedContext>(this, (o) => o.close());
   }
 
   /// Creates a child context from [parentContext].
-  ManagedContext.childOf(ManagedContext parentContext) :
-    persistentStore = parentContext.persistentStore,
-    dataModel = parentContext.dataModel;
+  ManagedContext.childOf(ManagedContext parentContext)
+      : persistentStore = parentContext.persistentStore,
+        dataModel = parentContext.dataModel;
 
   /// The persistent store that [Query]s on this context are executed through.
   PersistentStore persistentStore;
@@ -88,8 +89,10 @@ class ManagedContext implements APIComponentDocumenter {
   ///            await q.insert();
   ///            ...
   ///         });
-  Future<dynamic> transaction(Future transactionBlock(ManagedContext transaction)) {
-    return persistentStore.transaction(new ManagedContext.childOf(this), transactionBlock);
+  Future<dynamic> transaction(
+      Future transactionBlock(ManagedContext transaction)) {
+    return persistentStore.transaction(
+        ManagedContext.childOf(this), transactionBlock);
   }
 
   /// Closes this context and release its underlying resources.
@@ -109,7 +112,8 @@ class ManagedContext implements APIComponentDocumenter {
   }
 
   @override
-  void documentComponents(APIDocumentContext context) => dataModel.documentComponents(context);
+  void documentComponents(APIDocumentContext context) =>
+      dataModel.documentComponents(context);
 }
 
 /// Throw this object to roll back a [ManagedContext.transaction].

@@ -1,5 +1,5 @@
-import 'managed.dart';
 import '../query/query.dart';
+import 'managed.dart';
 
 /// Annotation to configure the table definition of a [ManagedObject].
 ///
@@ -20,8 +20,7 @@ class Table {
   /// Annotation for table definition.
   ///
   /// See also [Table.unique].
-  const Table({List<Symbol> uniquePropertySet})
-    : this.uniquePropertySet = uniquePropertySet;
+  const Table({this.uniquePropertySet});
 
   /// Configures each instance of a table definition to be unique for the combination of [properties].
   ///
@@ -29,7 +28,8 @@ class Table {
   /// must be unique for the combined properties in [properties]. [properties] must contain symbolic names of
   /// properties declared in the table definition, and those properties must be either attributes
   /// or belongs-to relationship properties. See [Table] for example.
-  const Table.unique(List<Symbol> properties) : this(uniquePropertySet: properties);
+  const Table.unique(List<Symbol> properties)
+      : this(uniquePropertySet: properties);
 
   /// Each instance of the associated table definition is unique for these properties.
   ///
@@ -63,11 +63,9 @@ class Relate {
 
   /// Creates an instance of this type.
   const Relate(this.inversePropertyName,
-      {this.onDelete: DeleteRule.nullify,
-      this.isRequired: false});
+      {this.onDelete = DeleteRule.nullify, this.isRequired = false});
 
-  const Relate.deferred(DeleteRule onDelete,
-      {bool isRequired: false})
+  const Relate.deferred(DeleteRule onDelete, {bool isRequired = false})
       : this(_deferredSymbol, onDelete: onDelete, isRequired: isRequired);
 
   /// The symbol for the property in the related [ManagedObject].
@@ -98,7 +96,7 @@ class Relate {
 ///
 /// This is a convenience for primary key, database type big integer, and autoincrementing. The corresponding property
 /// type must be [int]. The underlying database indexes and uniques the backing column.
-const Column primaryKey = const Column(
+const Column primaryKey = Column(
     primaryKey: true,
     databaseType: ManagedPropertyType.bigInteger,
     autoincrement: true);
@@ -175,14 +173,14 @@ class Column {
   /// [defaultValue] is sent as-is to the database, therefore, if the default value is the integer value 2,
   /// pass the string "2". If the default value is a string, it must also be wrapped in single quotes: "'defaultValue'".
   const Column(
-      {bool primaryKey: false,
+      {bool primaryKey = false,
       ManagedPropertyType databaseType,
-      bool nullable: false,
+      bool nullable = false,
       String defaultValue,
-      bool unique: false,
-      bool indexed: false,
-      bool omitByDefault: false,
-      bool autoincrement: false})
+      bool unique = false,
+      bool indexed = false,
+      bool omitByDefault = false,
+      bool autoincrement = false})
       : this.isPrimaryKey = primaryKey,
         this.databaseType = databaseType,
         this.isNullable = nullable,
@@ -215,8 +213,7 @@ class Serialize {
   /// If the value of the property is null, the key is not included in the result of [ManagedObject.asMap].
   ///
   /// Both [input] and [output] default to true.
-  const Serialize(
-      {bool input: true, bool output: true})
+  const Serialize({bool input = true, bool output = true})
       : isAvailableAsInput = input,
         isAvailableAsOutput = output;
 }

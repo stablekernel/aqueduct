@@ -51,50 +51,68 @@ class ManagedType {
       kind = ManagedPropertyType.doublePrecision;
     } else if (mirror.isSubtypeOf(reflectType(Map))) {
       if (!mirror.typeArguments.first.isAssignableTo(reflectType(String))) {
-        throw new UnsupportedError("Invalid type '${mirror.reflectedType}' for 'ManagedType'. Key is invalid; must be 'String'.");
+        throw UnsupportedError(
+            "Invalid type '${mirror.reflectedType}' for 'ManagedType'. Key is invalid; must be 'String'.");
       }
       kind = ManagedPropertyType.map;
-      elements = new ManagedType(mirror.typeArguments.last);
+      elements = ManagedType(mirror.typeArguments.last);
     } else if (mirror.isSubtypeOf(reflectType(List))) {
       kind = ManagedPropertyType.list;
-      elements = new ManagedType(mirror.typeArguments.first);
+      elements = ManagedType(mirror.typeArguments.first);
     } else if (mirror.isAssignableTo(reflectType(Document))) {
       kind = ManagedPropertyType.document;
     } else if (mirror is ClassMirror && (mirror as ClassMirror).isEnum) {
       kind = ManagedPropertyType.string;
     } else {
-      throw new UnsupportedError("Invalid type '${mirror.reflectedType}' for 'ManagedType'.");
+      throw UnsupportedError(
+          "Invalid type '${mirror.reflectedType}' for 'ManagedType'.");
     }
   }
 
   /// Creates a new instance from a [ManagedPropertyType];
   ManagedType.fromKind(this.kind) {
     switch (kind) {
-      case ManagedPropertyType.bigInteger: {
-        mirror = reflectClass(int);
-      } break;
-      case ManagedPropertyType.boolean: {
-        mirror = reflectClass(bool);
-      } break;
-      case ManagedPropertyType.datetime: {
-        mirror = reflectClass(DateTime);
-      } break;
-      case ManagedPropertyType.document: {
-        mirror = reflectClass(Document);
-      } break;
-      case ManagedPropertyType.doublePrecision: {
-        mirror = reflectClass(double);
-      } break;
-      case ManagedPropertyType.integer: {
-        mirror = reflectClass(int);
-      } break;
-      case ManagedPropertyType.string: {
-        mirror = reflectClass(String);
-      } break;
+      case ManagedPropertyType.bigInteger:
+        {
+          mirror = reflectClass(int);
+        }
+        break;
+      case ManagedPropertyType.boolean:
+        {
+          mirror = reflectClass(bool);
+        }
+        break;
+      case ManagedPropertyType.datetime:
+        {
+          mirror = reflectClass(DateTime);
+        }
+        break;
+      case ManagedPropertyType.document:
+        {
+          mirror = reflectClass(Document);
+        }
+        break;
+      case ManagedPropertyType.doublePrecision:
+        {
+          mirror = reflectClass(double);
+        }
+        break;
+      case ManagedPropertyType.integer:
+        {
+          mirror = reflectClass(int);
+        }
+        break;
+      case ManagedPropertyType.string:
+        {
+          mirror = reflectClass(String);
+        }
+        break;
       case ManagedPropertyType.list:
-      case ManagedPropertyType.map: {
-        throw new ArgumentError("Cannot instantiate 'ManagedType' from type 'list' or 'map'. Use default constructor.");
-      }
+      case ManagedPropertyType.map:
+        {
+          throw ArgumentError(
+              "Cannot instantiate 'ManagedType' from type 'list' or 'map'. Use default constructor.");
+        }
     }
   }
 
@@ -140,7 +158,8 @@ class ManagedType {
 
   static ManagedPropertyType get boolean => ManagedPropertyType.boolean;
 
-  static ManagedPropertyType get doublePrecision => ManagedPropertyType.doublePrecision;
+  static ManagedPropertyType get doublePrecision =>
+      ManagedPropertyType.doublePrecision;
 
   static ManagedPropertyType get map => ManagedPropertyType.map;
 

@@ -2,13 +2,13 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/application/service_registry.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import '../http/http.dart';
 import 'application.dart';
-import 'package:aqueduct/src/application/service_registry.dart';
 
 /// An object that defines the behavior specific to your application.
 ///
@@ -55,7 +55,7 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   /// The logger that this object will write messages to.
   ///
   /// This logger's name appears as 'aqueduct'.
-  Logger get logger => new Logger("aqueduct");
+  Logger get logger => Logger("aqueduct");
 
   /// The [ApplicationServer] that sends HTTP requests to this object.
   ApplicationServer get server => _server;
@@ -70,7 +70,7 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   ///
   /// You use this object to synchronize state across the isolates of an application. Any data sent
   /// through this object will be received by every other channel in your application (except the one that sent it).
-  final ApplicationMessageHub messageHub = new ApplicationMessageHub();
+  final ApplicationMessageHub messageHub = ApplicationMessageHub();
 
   /// The context used for setting up HTTPS in an application.
   ///
@@ -80,11 +80,12 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   /// reference a private key and certificate file, this value is derived from that information. You may override
   /// this method to provide an alternative means to creating a [SecurityContext].
   SecurityContext get securityContext {
-    if (options?.certificateFilePath == null || options?.privateKeyFilePath == null) {
+    if (options?.certificateFilePath == null ||
+        options?.privateKeyFilePath == null) {
       return null;
     }
 
-    return new SecurityContext()
+    return SecurityContext()
       ..useCertificateChain(options.certificateFilePath)
       ..usePrivateKey(options.privateKeyFilePath);
   }
@@ -138,7 +139,8 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   /// If you do override this method, you must call the super implementation.
   @mustCallSuper
   Future close() async {
-    logger.fine("ApplicationChannel(${server.identifier}).close: closing messageHub");
+    logger.fine(
+        "ApplicationChannel(${server.identifier}).close: closing messageHub");
     await messageHub.close();
   }
 
@@ -157,16 +159,18 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   ///
   /// This method should not be overridden.
   Future<APIDocument> documentAPI(Map<String, dynamic> projectSpec) async {
-    final doc = new APIDocument()..components = new APIComponents();
+    final doc = APIDocument()..components = APIComponents();
     final root = entryPoint;
     root.didAddToChannel();
 
-    final context = new APIDocumentContext(doc);
+    final context = APIDocumentContext(doc);
     documentComponents(context);
 
     doc.paths = root.documentPaths(context);
 
-    doc.info = new APIInfo(projectSpec["name"] as String, projectSpec["version"] as String, description: projectSpec["description"] as String);
+    doc.info = APIInfo(
+        projectSpec["name"] as String, projectSpec["version"] as String,
+        description: projectSpec["description"] as String);
 
     await context.finalize();
 
@@ -182,7 +186,8 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
     type.declarations.values.forEach((member) {
       if (member is VariableMirror && !member.isStatic) {
         if (member.type.isAssignableTo(documenter)) {
-          APIComponentDocumenter object = reflect(this).getField(member.simpleName).reflectee;
+          final APIComponentDocumenter object =
+              reflect(this).getField(member.simpleName).reflectee;
           object?.documentComponents(registry);
         }
       }
@@ -191,18 +196,20 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
 
   /// Returns the subclass of [ApplicationChannel] found in an application library.
   static Type get defaultType {
-    var channelType = reflectClass(ApplicationChannel);
-    var classes = currentMirrorSystem()
+    final channelType = reflectClass(ApplicationChannel);
+    final classes = currentMirrorSystem()
         .libraries
         .values
         .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
         .expand((lib) => lib.declarations.values)
-        .where(
-            (decl) => decl is ClassMirror && decl.isSubclassOf(channelType) && decl.reflectedType != ApplicationChannel)
+        .where((decl) =>
+            decl is ClassMirror &&
+            decl.isSubclassOf(channelType) &&
+            decl.reflectedType != ApplicationChannel)
         .map((decl) => decl as ClassMirror)
         .toList();
 
-    if (classes.length == 0) {
+    if (classes.isEmpty) {
       return null;
     }
 
@@ -234,9 +241,11 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
 ///           }
 ///         });
 class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
-  Logger _logger = new Logger("aqueduct");
-  StreamController<dynamic> _outboundController = new StreamController<dynamic>();
-  StreamController<dynamic> _inboundController = new StreamController<dynamic>.broadcast();
+  final Logger _logger = Logger("aqueduct");
+  final StreamController<dynamic> _outboundController =
+      StreamController<dynamic>();
+  final StreamController<dynamic> _inboundController =
+      StreamController<dynamic>.broadcast();
 
   /// Adds a listener for messages from other hubs.
   ///
@@ -247,9 +256,11 @@ class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
   /// that failed to send the data will receive [onError] events.
   @override
   StreamSubscription<dynamic> listen(void onData(dynamic event),
-          {Function onError, void onDone(), bool cancelOnError: false}) =>
+          {Function onError, void onDone(), bool cancelOnError = false}) =>
       _inboundController.stream.listen(onData,
-          onError: onError ?? (err, StackTrace st) => _logger.severe("ApplicationMessageHub error", err, st),
+          onError: onError ??
+              (err, StackTrace st) =>
+                  _logger.severe("ApplicationMessageHub error", err, st),
           onDone: onDone,
           cancelOnError: cancelOnError);
 

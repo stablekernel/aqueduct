@@ -1,8 +1,9 @@
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
-import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:http/http.dart' as http;
+import 'package:test/test.dart';
 
 void main() {
   group("App launch status", () {
@@ -12,8 +13,10 @@ void main() {
       await app?.stop();
     });
 
-    test("didFinishLaunching is false before launch, true after, false after stop", () async {
-      app = new Application<TestChannel>();
+    test(
+        "didFinishLaunching is false before launch, true after, false after stop",
+        () async {
+      app = Application<TestChannel>();
       expect(app.isRunning, false);
 
       await app.startOnCurrentIsolate();
@@ -28,7 +31,7 @@ void main() {
     Application<TestChannel> app;
 
     setUp(() async {
-      app = new Application<TestChannel>();
+      app = Application<TestChannel>();
       await app.startOnCurrentIsolate();
     });
 
@@ -93,7 +96,7 @@ void main() {
     test(
         "Application (on main thread) start fails and logs appropriate message if request stream doesn't open",
         () async {
-      var crashingApp = new Application<CrashingTestChannel>();
+      var crashingApp = Application<CrashingTestChannel>();
 
       try {
         crashingApp.options.context = {"crashIn": "addRoutes"};
@@ -131,18 +134,18 @@ class TestException implements Exception {
 class CrashingTestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
     if (options.context["crashIn"] == "addRoutes") {
-      throw new TestException("addRoutes");
+      throw TestException("addRoutes");
     }
-    router.route("/t").link(() => new TController());
+    router.route("/t").link(() => TController());
     return router;
   }
 
   @override
   Future prepare() async {
     if (options.context["crashIn"] == "prepare") {
-      throw new TestException("prepare");
+      throw TestException("prepare");
     }
   }
 }
@@ -156,12 +159,12 @@ class TestChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    final router = new Router();
-    router.route("/t").link(() => new TController());
-    router.route("/r").link(() => new RController());
+    final router = Router();
+    router.route("/t").link(() => TController());
+    router.route("/r").link(() => RController());
     router.route("startup").linkFunction((r) async {
       var total = options.context["startup"].fold(0, (a, b) => a + b);
-      return new Response.ok("$total");
+      return Response.ok("$total");
     });
     return router;
   }
@@ -170,13 +173,13 @@ class TestChannel extends ApplicationChannel {
 class TController extends ResourceController {
   @Operation.get()
   Future<Response> getAll() async {
-    return new Response.ok("t_ok");
+    return Response.ok("t_ok");
   }
 }
 
 class RController extends ResourceController {
   @Operation.get()
   Future<Response> getAll() async {
-    return new Response.ok("r_ok");
+    return Response.ok("r_ok");
   }
 }

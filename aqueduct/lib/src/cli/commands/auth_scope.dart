@@ -9,16 +9,17 @@ import 'package:aqueduct/aqueduct.dart';
 
 import 'package:aqueduct/src/cli/command.dart';
 
-class CLIAuthScopeClient extends CLICommand with CLIDatabaseConnectingCommand, CLIDatabaseManagingCommand, CLIProject {
-
+class CLIAuthScopeClient extends CLICommand
+    with CLIDatabaseConnectingCommand, CLIDatabaseManagingCommand, CLIProject {
   ManagedContext context;
 
   @Option("id", abbr: "i", help: "The client ID to insert.")
   String get clientID => decode("id");
 
   @Option("scopes",
-    help: "A space-delimited list of allowed scopes. Omit if application does not support scopes.",
-    defaultsTo: "")
+      help:
+          "A space-delimited list of allowed scopes. Omit if application does not support scopes.",
+      defaultsTo: "")
   List<String> get scopes {
     String v = decode("scopes");
     if (v.isEmpty) {
@@ -33,19 +34,21 @@ class CLIAuthScopeClient extends CLICommand with CLIDatabaseConnectingCommand, C
       displayError("Option --id required.");
       return 1;
     }
-    if ((scopes?.isEmpty ?? true)) {
+    if (scopes?.isEmpty ?? true) {
       displayError("Option --scopes required.");
       return 1;
     }
 
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    context = new ManagedContext(dataModel, persistentStore);
+    var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    context = ManagedContext(dataModel, persistentStore);
 
-    var scopingClient = new AuthClient.public(clientID, allowedScopes: scopes?.map((s) => new AuthScope(s))?.toList());
+    var scopingClient = AuthClient.public(clientID,
+        allowedScopes: scopes?.map((s) => AuthScope(s))?.toList());
 
-    var query = new Query<ManagedAuthClient>(context)
+    var query = Query<ManagedAuthClient>(context)
       ..where((o) => o.id).equalTo(clientID)
-      ..values.allowedScope = scopingClient.allowedScopes?.map((s) => s.toString())?.join(" ");
+      ..values.allowedScope =
+          scopingClient.allowedScopes?.map((s) => s.toString())?.join(" ");
 
     var result = await query.updateOne();
     if (result == null) {

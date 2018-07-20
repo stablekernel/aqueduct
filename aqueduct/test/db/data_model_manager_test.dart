@@ -12,24 +12,27 @@ void main() {
 
   test("Throws exception if no context has been created", () {
     try {
-      new T();
+      T();
       fail('unreachable');
     } on StateError catch (e) {
-      expect(e.toString(), contains("Did you forget to create a 'ManagedContext'?"));
+      expect(e.toString(),
+          contains("Did you forget to create a 'ManagedContext'?"));
     }
   });
 
   test("Can find entity creating managedobject", () {
-    ctx = new ManagedContext(new ManagedDataModel.fromCurrentMirrorSystem(), new DefaultPersistentStore());
-    final o = new T();
+    ctx = ManagedContext(
+        ManagedDataModel.fromCurrentMirrorSystem(), DefaultPersistentStore());
+    final o = T();
     o.id = 1;
     expect(o.id, 1);
   });
 
   test("Close context destroys data model", () async {
-    ctx = new ManagedContext(new ManagedDataModel.fromCurrentMirrorSystem(), new DefaultPersistentStore());
+    ctx = ManagedContext(
+        ManagedDataModel.fromCurrentMirrorSystem(), DefaultPersistentStore());
 
-    final o = new T();
+    final o = T();
     o.id = 1;
     expect(o.id, 1);
 
@@ -37,20 +40,21 @@ void main() {
     ctx = null;
 
     try {
-      new T();
+      T();
       fail('unreachable');
     } on StateError catch (e) {
-      expect(e.toString(), contains("Did you forget to create a 'ManagedContext'?"));
+      expect(e.toString(),
+          contains("Did you forget to create a 'ManagedContext'?"));
     }
   });
 
   test("Retained data model allows instantiation of ManagedObject", () async {
-    final dm = new ManagedDataModel.fromCurrentMirrorSystem();
-    ctx = new ManagedContext(dm, new DefaultPersistentStore());
-    final retainedCtx = new ManagedContext(dm, new DefaultPersistentStore());
+    final dm = ManagedDataModel.fromCurrentMirrorSystem();
+    ctx = ManagedContext(dm, DefaultPersistentStore());
+    final retainedCtx = ManagedContext(dm, DefaultPersistentStore());
     await retainedCtx.close();
 
-    final o = new T();
+    final o = T();
     o.id = 1;
     expect(o.id, 1);
 
@@ -58,13 +62,13 @@ void main() {
     ctx = null;
 
     try {
-      new T();
+      T();
       fail('unreachable');
     } on StateError catch (e) {
-      expect(e.toString(), contains("Did you forget to create a 'ManagedContext'?"));
+      expect(e.toString(),
+          contains("Did you forget to create a 'ManagedContext'?"));
     }
   });
-
 }
 
 class _T {

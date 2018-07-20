@@ -1,12 +1,14 @@
+// ignore: unnecessary_const
 @Timeout(const Duration(seconds: 90))
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
+
+import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
+import 'package:test/test.dart';
 
 void main() {
   group("Recovers", () {
-    var app = new Application<TestChannel>();
+    var app = Application<TestChannel>();
 
     tearDown(() async {
       print("stopping");
@@ -15,14 +17,13 @@ void main() {
     });
 
     test("Application reports uncaught error, recovers", () async {
-      final errorMsgCompleter = new Completer<LogRecord>();
+      final errorMsgCompleter = Completer<LogRecord>();
       app.logger.onRecord.listen((rec) {
         if (rec.message.contains("Uncaught exception")) {
           errorMsgCompleter.complete(rec);
         }
       });
       await app.start(numberOfInstances: 1);
-
 
       // This request will generate an uncaught exception
       var failFuture = http.get("http://localhost:8888/?crash=true");
@@ -53,11 +54,11 @@ void main() {
         () async {
       var contents = <String>[];
       int counter = 0;
-      var completer = new Completer();
+      var completer = Completer();
       app.logger.onRecord.listen((rec) {
         print("got msg");
         contents.add(rec.message);
-        counter ++;
+        counter++;
         if (counter == 5) {
           completer.complete();
         }
@@ -66,7 +67,7 @@ void main() {
       await app.start(numberOfInstances: 2);
 
       // Throw some deferred crashers then some success messages at the server
-      var failFutures = new Iterable.generate(5)
+      var failFutures = Iterable.generate(5)
           .map((_) => http.get("http://localhost:8888/?crash=true"));
 
       var successResponse = await http.get("http://localhost:8888/");
@@ -85,8 +86,8 @@ void main() {
 class TestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
-    final router = new Router();
-    router.route("/").link(() => new UncaughtCrashController());
+    final router = Router();
+    router.route("/").link(() => UncaughtCrashController());
     return router;
   }
 }
@@ -95,13 +96,13 @@ class UncaughtCrashController extends Controller {
   @override
   FutureOr<RequestOrResponse> handle(Request req) {
     if (req.raw.uri.queryParameters["crash"] == "true") {
-      new Future(() {
-        var x;
+      Future(() {
+        dynamic x;
         x.foo();
       });
-      return new Response.ok(null);
+      return Response.ok(null);
     }
 
-    return new Response.ok(null);
+    return Response.ok(null);
   }
 }

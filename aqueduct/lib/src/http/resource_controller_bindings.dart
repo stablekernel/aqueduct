@@ -1,8 +1,8 @@
-import 'resource_controller_internal/internal.dart';
-import 'resource_controller.dart';
-import 'request_path.dart';
-import 'serializable.dart';
 import '../db/managed/managed.dart';
+import 'request_path.dart';
+import 'resource_controller.dart';
+import 'resource_controller_internal/internal.dart';
+import 'serializable.dart';
 
 /// Binds an instance method in [ResourceController] to an operation.
 ///
@@ -18,34 +18,54 @@ import '../db/managed/managed.dart';
 ///           }
 ///         }
 class Operation {
-  const Operation(this.method, [String pathVariable1, String pathVariable2, String pathVariable3, String pathVariable4])
+  const Operation(this.method,
+      [String pathVariable1,
+      String pathVariable2,
+      String pathVariable3,
+      String pathVariable4])
       : _pathVariable1 = pathVariable1,
         _pathVariable2 = pathVariable2,
         _pathVariable3 = pathVariable3,
         _pathVariable4 = pathVariable4;
 
-  const Operation.get([String pathVariable1, String pathVariable2, String pathVariable3, String pathVariable4])
+  const Operation.get(
+      [String pathVariable1,
+      String pathVariable2,
+      String pathVariable3,
+      String pathVariable4])
       : this.method = "GET",
         _pathVariable1 = pathVariable1,
         _pathVariable2 = pathVariable2,
         _pathVariable3 = pathVariable3,
         _pathVariable4 = pathVariable4;
 
-  const Operation.put([String pathVariable1, String pathVariable2, String pathVariable3, String pathVariable4])
+  const Operation.put(
+      [String pathVariable1,
+      String pathVariable2,
+      String pathVariable3,
+      String pathVariable4])
       : this.method = "PUT",
         _pathVariable1 = pathVariable1,
         _pathVariable2 = pathVariable2,
         _pathVariable3 = pathVariable3,
         _pathVariable4 = pathVariable4;
 
-  const Operation.post([String pathVariable1, String pathVariable2, String pathVariable3, String pathVariable4])
+  const Operation.post(
+      [String pathVariable1,
+      String pathVariable2,
+      String pathVariable3,
+      String pathVariable4])
       : this.method = "POST",
         _pathVariable1 = pathVariable1,
         _pathVariable2 = pathVariable2,
         _pathVariable3 = pathVariable3,
         _pathVariable4 = pathVariable4;
 
-  const Operation.delete([String pathVariable1, String pathVariable2, String pathVariable3, String pathVariable4])
+  const Operation.delete(
+      [String pathVariable1,
+      String pathVariable2,
+      String pathVariable3,
+      String pathVariable4])
       : this.method = "DELETE",
         _pathVariable1 = pathVariable1,
         _pathVariable2 = pathVariable2,
@@ -60,7 +80,9 @@ class Operation {
 
   /// Returns a list of all path variables required for this operation.
   List<String> get pathVariables {
-    return [_pathVariable1, _pathVariable2, _pathVariable3, _pathVariable4].where((s) => s != null).toList();
+    return [_pathVariable1, _pathVariable2, _pathVariable3, _pathVariable4]
+        .where((s) => s != null)
+        .toList();
   }
 }
 
@@ -181,15 +203,16 @@ class Bind {
   BoundInput get binding {
     switch (_type) {
       case _BindType.query:
-        return new BoundQueryParameter(name);
+        return BoundQueryParameter(name);
       case _BindType.header:
-        return new BoundHeader(name);
+        return BoundHeader(name);
       case _BindType.body:
-        return new BoundBody();
+        return BoundBody();
       case _BindType.path:
-        return new BoundPath(name);
+        return BoundPath(name);
     }
-    throw new StateError("Invalid controller. Operation parameter binding '$_type' on '$name' is unknown.");
+    throw StateError(
+        "Invalid controller. Operation parameter binding '$_type' on '$name' is unknown.");
   }
 }
 
@@ -218,7 +241,7 @@ enum _BindType { query, header, body, path }
 ///           Future<Response> getAllUsers() async
 ///              => return Response.ok(await getUsers());
 ///         }
-const HTTPRequiredParameter requiredHTTPParameter = const HTTPRequiredParameter();
+const HTTPRequiredParameter requiredHTTPParameter = HTTPRequiredParameter();
 
 /// See [requiredHTTPParameter].
 class HTTPRequiredParameter {

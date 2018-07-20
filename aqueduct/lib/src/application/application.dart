@@ -40,19 +40,19 @@ class Application<T extends ApplicationChannel> {
   /// The logger that this application will write messages to.
   ///
   /// This logger's name will appear as 'aqueduct'.
-  Logger logger = new Logger("aqueduct");
+  Logger logger = Logger("aqueduct");
 
   /// The options used to configure this application.
   ///
   /// Changing these values once the application has started will have no effect.
-  ApplicationOptions options = new ApplicationOptions();
+  ApplicationOptions options = ApplicationOptions();
 
   /// The duration to wait for each isolate during startup before failing.
   ///
   /// A [TimeoutException] is thrown if an isolate fails to startup in this time period.
   ///
   /// Defaults to 30 seconds.
-  Duration isolateStartupTimeout = new Duration(seconds: 30);
+  Duration isolateStartupTimeout = Duration(seconds: 30);
 
   /// Whether or not this application is running.
   ///
@@ -74,9 +74,10 @@ class Application<T extends ApplicationChannel> {
   /// it will be invoked prior to any isolate being spawned.
   ///
   /// See also [startOnCurrentIsolate] for starting an application when running automated tests.
-  Future start({int numberOfInstances: 1, bool consoleLogging: false}) async {
-    if (server != null || supervisors.length > 0) {
-      throw new StateError("Application error. Cannot invoke 'start' on already running Aqueduct application.");
+  Future start({int numberOfInstances = 1, bool consoleLogging = false}) async {
+    if (server != null || supervisors.isNotEmpty) {
+      throw StateError(
+          "Application error. Cannot invoke 'start' on already running Aqueduct application.");
     }
 
     if (options.address == null) {
@@ -87,18 +88,19 @@ class Application<T extends ApplicationChannel> {
       }
     }
 
-    var channelType = reflectClass(T);
+    final channelType = reflectClass(T);
     try {
       await _globalStart(channelType, options);
 
-      for (int i = 0; i < numberOfInstances; i++) {
-        var supervisor = await _spawn(channelType, options, i + 1, logToConsole: consoleLogging);
+      for (var i = 0; i < numberOfInstances; i++) {
+        final supervisor = await _spawn(channelType, options, i + 1,
+            logToConsole: consoleLogging);
         supervisors.add(supervisor);
         await supervisor.resume();
       }
     } catch (e, st) {
       logger.severe("$e", this, st);
-      await stop().timeout(new Duration(seconds: 5));
+      await stop().timeout(Duration(seconds: 5));
       rethrow;
     }
     supervisors.forEach((sup) => sup.sendPendingMessages());
@@ -110,23 +112,24 @@ class Application<T extends ApplicationChannel> {
   /// An application started in this way will run on the same isolate this method is invoked on.
   /// Performance is limited when running the application with this method; prefer to use [start].
   Future startOnCurrentIsolate() async {
-    if (server != null || supervisors.length > 0) {
-      throw new StateError("Application error. Cannot invoke 'test' on already running Aqueduct application.");
+    if (server != null || supervisors.isNotEmpty) {
+      throw StateError(
+          "Application error. Cannot invoke 'test' on already running Aqueduct application.");
     }
 
     options.address = InternetAddress.loopbackIPv4;
 
-    var channelType = reflectClass(T);
+    final channelType = reflectClass(T);
     try {
       await _globalStart(channelType, options);
 
-      server = new ApplicationServer(channelType, options, 1);
+      server = ApplicationServer(channelType, options, 1);
 
       await server.start();
       _hasFinishedLaunching = true;
     } catch (e, st) {
       logger.severe("$e", this, st);
-      await stop().timeout(new Duration(seconds: 5));
+      await stop().timeout(Duration(seconds: 5));
       rethrow;
     }
   }
@@ -151,12 +154,13 @@ class Application<T extends ApplicationChannel> {
   /// Creates an [APIDocument] from an [ApplicationChannel].
   ///
   /// [channelType] must be a subclass [ApplicationChannel]. This method is called by the `aqueduct document` CLI.
-  static Future<APIDocument> document(Type channelType, ApplicationOptions config, Map<String, dynamic> projectSpec) async {
-    var channelMirror = reflectClass(channelType);
+  static Future<APIDocument> document(Type channelType,
+      ApplicationOptions config, Map<String, dynamic> projectSpec) async {
+    final channelMirror = reflectClass(channelType);
 
     await _globalStart(channelMirror, config);
 
-    final server = new ApplicationServer(channelMirror, config, 1);
+    final server = ApplicationServer(channelMirror, config, 1);
 
     await server.channel.prepare();
 
@@ -167,28 +171,33 @@ class Application<T extends ApplicationChannel> {
     return doc;
   }
 
-  static Future _globalStart(ClassMirror channelType, ApplicationOptions config) {
-    var globalStartSymbol = #initializeApplication;
+  static Future _globalStart(
+      ClassMirror channelType, ApplicationOptions config) {
+    const globalStartSymbol = #initializeApplication;
     if (channelType.staticMembers[globalStartSymbol] != null) {
-      return channelType.invoke(globalStartSymbol, [config]).reflectee as Future;
+      return channelType.invoke(globalStartSymbol, [config]).reflectee
+          as Future;
     }
 
     return null;
   }
 
-  Future<ApplicationIsolateSupervisor> _spawn(ClassMirror channelTypeMirror, ApplicationOptions config, int identifier,
-      {bool logToConsole: false}) async {
-    var receivePort = new ReceivePort();
+  Future<ApplicationIsolateSupervisor> _spawn(
+      ClassMirror channelTypeMirror, ApplicationOptions config, int identifier,
+      {bool logToConsole = false}) async {
+    final receivePort = ReceivePort();
 
-    var streamLibraryURI = (channelTypeMirror.owner as LibraryMirror).uri;
-    var streamTypeName = MirrorSystem.getName(channelTypeMirror.simpleName);
+    final streamLibraryURI = (channelTypeMirror.owner as LibraryMirror).uri;
+    final streamTypeName = MirrorSystem.getName(channelTypeMirror.simpleName);
 
-    var initialMessage = new ApplicationInitialServerMessage(
-        streamTypeName, streamLibraryURI, config, identifier, receivePort.sendPort,
+    final initialMessage = ApplicationInitialServerMessage(streamTypeName,
+        streamLibraryURI, config, identifier, receivePort.sendPort,
         logToConsole: logToConsole);
-    var isolate = await Isolate.spawn(isolateServerEntryPoint, initialMessage, paused: true);
+    final isolate = await Isolate.spawn(isolateServerEntryPoint, initialMessage,
+        paused: true);
 
-    return new ApplicationIsolateSupervisor(this, isolate, receivePort, identifier, logger,
+    return ApplicationIsolateSupervisor(
+        this, isolate, receivePort, identifier, logger,
         startupTimeout: isolateStartupTimeout);
   }
 }

@@ -9,13 +9,7 @@ enum PredicateOperator {
 }
 
 /// The operator in a string matcher.
-enum PredicateStringOperator {
-  beginsWith,
-  contains,
-  endsWith,
-  equals
-}
-
+enum PredicateStringOperator { beginsWith, contains, endsWith, equals }
 
 abstract class PredicateExpression {
   PredicateExpression get inverse;
@@ -29,7 +23,7 @@ class ComparisonExpression implements PredicateExpression {
 
   @override
   PredicateExpression get inverse {
-    return new ComparisonExpression(value, inverseOperator);
+    return ComparisonExpression(value, inverseOperator);
   }
 
   PredicateOperator get inverseOperator {
@@ -54,42 +48,43 @@ class ComparisonExpression implements PredicateExpression {
 }
 
 class RangeExpression implements PredicateExpression {
-  const RangeExpression(this.lhs, this.rhs, this.within);
+  const RangeExpression(this.lhs, this.rhs, {this.within = true});
 
   final bool within;
   final dynamic lhs, rhs;
 
   @override
   PredicateExpression get inverse {
-    return new RangeExpression(lhs, rhs, !within);
+    return RangeExpression(lhs, rhs, within: !within);
   }
 }
 
 class NullCheckExpression implements PredicateExpression {
-  const NullCheckExpression(this.shouldBeNull);
+  const NullCheckExpression({this.shouldBeNull = true});
 
   final bool shouldBeNull;
 
   @override
   PredicateExpression get inverse {
-    return new NullCheckExpression(!shouldBeNull);
+    return NullCheckExpression(shouldBeNull: !shouldBeNull);
   }
 }
 
 class SetMembershipExpression implements PredicateExpression {
-  const SetMembershipExpression(this.values, {this.within: true});
+  const SetMembershipExpression(this.values, {this.within = true});
 
   final List<dynamic> values;
   final bool within;
 
   @override
   PredicateExpression get inverse {
-    return new SetMembershipExpression(values, within: !within);
+    return SetMembershipExpression(values, within: !within);
   }
 }
 
 class StringExpression implements PredicateExpression {
-  const StringExpression(this.value, this.operator, {this.caseSensitive: true, this.invertOperator: false});
+  const StringExpression(this.value, this.operator,
+      {this.caseSensitive = true, this.invertOperator = false});
 
   final PredicateStringOperator operator;
   final bool invertOperator;
@@ -98,6 +93,7 @@ class StringExpression implements PredicateExpression {
 
   @override
   PredicateExpression get inverse {
-    return new StringExpression(value, operator, caseSensitive: caseSensitive, invertOperator: !invertOperator);
+    return StringExpression(value, operator,
+        caseSensitive: caseSensitive, invertOperator: !invertOperator);
   }
 }

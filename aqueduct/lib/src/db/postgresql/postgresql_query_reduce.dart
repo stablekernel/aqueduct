@@ -1,12 +1,13 @@
 import 'dart:async';
 
-import '../query/query.dart';
 import '../managed/object.dart';
-import 'postgresql_query.dart';
+import '../query/query.dart';
 import 'postgresql_persistent_store.dart';
+import 'postgresql_query.dart';
 import 'query_builder.dart';
 
-class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<T>{
+class PostgresQueryReduce<T extends ManagedObject>
+    extends QueryReduceOperation<T> {
   PostgresQueryReduce(this.query);
 
   final PostgresQuery<T> query;
@@ -41,8 +42,8 @@ class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<
   }
 
   Future<U> _execute<U>(String function) async {
-    var builder = new PostgresQueryBuilder(query);
-    var buffer = new StringBuffer();
+    var builder = PostgresQueryBuilder(query);
+    var buffer = StringBuffer();
     buffer.write("SELECT $function ");
     buffer.write("FROM ${builder.sqlTableName} ");
 
@@ -55,10 +56,11 @@ class PostgresQueryReduce<T extends ManagedObject> extends QueryReduceOperation<
     try {
       final result = await connection
           .query(buffer.toString(), substitutionValues: builder.variables)
-          .timeout(new Duration(seconds: query.timeoutInSeconds));
+          .timeout(Duration(seconds: query.timeoutInSeconds));
       return result.first.first as U;
     } on TimeoutException catch (e) {
-      throw new QueryException.transport("timed out connecting to database", underlyingException: e);
+      throw QueryException.transport("timed out connecting to database",
+          underlyingException: e);
     }
   }
 }

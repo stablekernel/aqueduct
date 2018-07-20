@@ -15,19 +15,22 @@ abstract class HTTPSerializable {
   /// will be of type 'object'. Each instance variable declared in [serializable] will be a property of this object.
   /// Instance variables are documented according to [APIComponentDocumenter.documentVariable]. See the API reference
   /// for this method for supported types.
-  static APISchemaObject document(APIDocumentContext context, Type serializable) {
+  static APISchemaObject document(
+      APIDocumentContext context, Type serializable) {
     final mirror = reflectClass(serializable);
     if (!mirror.isAssignableTo(reflectType(HTTPSerializable))) {
-      throw new ArgumentError("Cannot document '${MirrorSystem.getName(
-          mirror.simpleName)}' as 'HTTPSerializable', because it is not an 'HTTPSerializable'.");
+      throw ArgumentError(
+          "Cannot document '${MirrorSystem.getName(mirror.simpleName)}' as 'HTTPSerializable', because it is not an 'HTTPSerializable'.");
     }
 
     final properties = <String, APISchemaObject>{};
-    for (final property in mirror.declarations.values.whereType<VariableMirror>()) {
-      properties[MirrorSystem.getName(property.simpleName)] = APIComponentDocumenter.documentVariable(context, property);
+    for (final property
+        in mirror.declarations.values.whereType<VariableMirror>()) {
+      properties[MirrorSystem.getName(property.simpleName)] =
+          APIComponentDocumenter.documentVariable(context, property);
     }
 
-    final obj = new APISchemaObject.object(properties);
+    final obj = APISchemaObject.object(properties);
     context.defer(() async {
       final docs = await DocumentedElement.get(serializable);
       obj

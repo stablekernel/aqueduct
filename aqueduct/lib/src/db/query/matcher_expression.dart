@@ -1,8 +1,8 @@
 import 'package:aqueduct/src/db/managed/key_path.dart';
 
+import '../managed/managed.dart';
 import 'matcher_internal.dart';
 import 'query.dart';
-import '../managed/managed.dart';
 
 /// Contains binary logic operations to be applied to a [QueryExpression].
 class QueryExpressionJunction<T, InstanceType> {
@@ -23,12 +23,9 @@ class QueryExpressionJunction<T, InstanceType> {
 class QueryExpression<T, InstanceType> {
   QueryExpression(this.keyPath);
 
-  QueryExpression.forNestedProperty(QueryExpression<T, InstanceType> original, int offset)
-      : keyPath = new KeyPath.byRemovingFirstNKeys(original.keyPath, 1),
-        _expression = original.expression;
-
-  QueryExpression.byAddingKey(QueryExpression<T, InstanceType> original, ManagedPropertyDescription byAdding)
-      : keyPath = new KeyPath.byAddingKey(original.keyPath, byAdding),
+  QueryExpression.byAddingKey(QueryExpression<T, InstanceType> original,
+      ManagedPropertyDescription byAdding)
+      : keyPath = KeyPath.byAddingKey(original.keyPath, byAdding),
         _expression = original.expression;
 
   final KeyPath keyPath;
@@ -48,7 +45,9 @@ class QueryExpression<T, InstanceType> {
   bool _invertNext = false;
   PredicateExpression _expression;
 
-  QueryExpressionJunction<T, InstanceType> _createJunction() => new QueryExpressionJunction<T, InstanceType>._(this);
+  // ignore: use_to_and_as_if_applicable
+  QueryExpressionJunction<T, InstanceType> _createJunction() =>
+      QueryExpressionJunction<T, InstanceType>._(this);
 
   /// Inverts the next expression.
   ///
@@ -62,6 +61,7 @@ class QueryExpression<T, InstanceType> {
 
     return this;
   }
+
   /// Adds an equality expression to a query.
   ///
   /// A query will only return objects where the selected property is equal to [value].
@@ -75,11 +75,13 @@ class QueryExpression<T, InstanceType> {
   ///       final query = new Query<User>()
   ///         ..where((u) => u.id ).equalTo(1);
   ///
-  QueryExpressionJunction<T, InstanceType> equalTo(T value, {bool caseSensitive: true}) {
+  QueryExpressionJunction<T, InstanceType> equalTo(T value,
+      {bool caseSensitive = true}) {
     if (value is String) {
-      expression = new StringExpression(value, PredicateStringOperator.equals, caseSensitive: caseSensitive);
+      expression = StringExpression(value, PredicateStringOperator.equals,
+          caseSensitive: caseSensitive);
     } else {
-      expression = new ComparisonExpression(value, PredicateOperator.equalTo);
+      expression = ComparisonExpression(value, PredicateOperator.equalTo);
     }
 
     return _createJunction();
@@ -98,12 +100,13 @@ class QueryExpression<T, InstanceType> {
   ///       final query = new Query<Employee>()
   ///         ..where((e) => e.id).notEqualTo(60000);
   ///
-  QueryExpressionJunction<T, InstanceType> notEqualTo(T value, {bool caseSensitive: true}) {
+  QueryExpressionJunction<T, InstanceType> notEqualTo(T value,
+      {bool caseSensitive = true}) {
     if (value is String) {
-      expression = new StringExpression(value, PredicateStringOperator.equals,
+      expression = StringExpression(value, PredicateStringOperator.equals,
           caseSensitive: caseSensitive, invertOperator: true);
     } else {
-      expression = new ComparisonExpression(value, PredicateOperator.notEqual);
+      expression = ComparisonExpression(value, PredicateOperator.notEqual);
     }
 
     return _createJunction();
@@ -122,7 +125,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).greaterThan(60000);
   QueryExpressionJunction<T, InstanceType> greaterThan(T value) {
-    expression = new ComparisonExpression(value, PredicateOperator.greaterThan);
+    expression = ComparisonExpression(value, PredicateOperator.greaterThan);
 
     return _createJunction();
   }
@@ -139,7 +142,8 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).greaterThanEqualTo(60000);
   QueryExpressionJunction<T, InstanceType> greaterThanEqualTo(T value) {
-    expression = new ComparisonExpression(value, PredicateOperator.greaterThanEqualTo);
+    expression =
+        ComparisonExpression(value, PredicateOperator.greaterThanEqualTo);
 
     return _createJunction();
   }
@@ -156,7 +160,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).lessThan(60000);
   QueryExpressionJunction<T, InstanceType> lessThan(T value) {
-    expression = new ComparisonExpression(value, PredicateOperator.lessThan);
+    expression = ComparisonExpression(value, PredicateOperator.lessThan);
 
     return _createJunction();
   }
@@ -173,7 +177,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).lessThanEqualTo(60000);
   QueryExpressionJunction<T, InstanceType> lessThanEqualTo(T value) {
-    expression = new ComparisonExpression(value, PredicateOperator.lessThanEqualTo);
+    expression = ComparisonExpression(value, PredicateOperator.lessThanEqualTo);
 
     return _createJunction();
   }
@@ -190,8 +194,10 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((s) => s.title).contains("Director");
   ///
-  QueryExpressionJunction<T, InstanceType> contains(String value, {bool caseSensitive: true}) {
-    expression = new StringExpression(value, PredicateStringOperator.contains, caseSensitive: caseSensitive);
+  QueryExpressionJunction<T, InstanceType> contains(String value,
+      {bool caseSensitive = true}) {
+    expression = StringExpression(value, PredicateStringOperator.contains,
+        caseSensitive: caseSensitive);
 
     return _createJunction();
   }
@@ -206,8 +212,10 @@ class QueryExpression<T, InstanceType> {
   ///
   ///       var query = new Query<Employee>()
   ///         ..where((s) => s.name).beginsWith("B");
-  QueryExpressionJunction<T, InstanceType> beginsWith(String value, {bool caseSensitive: true}) {
-    expression = new StringExpression(value, PredicateStringOperator.beginsWith, caseSensitive: caseSensitive);
+  QueryExpressionJunction<T, InstanceType> beginsWith(String value,
+      {bool caseSensitive = true}) {
+    expression = StringExpression(value, PredicateStringOperator.beginsWith,
+        caseSensitive: caseSensitive);
 
     return _createJunction();
   }
@@ -222,8 +230,10 @@ class QueryExpression<T, InstanceType> {
   ///
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.name).endsWith("son");
-  QueryExpressionJunction<T, InstanceType> endsWith(String value, {bool caseSensitive: true}) {
-    expression = new StringExpression(value, PredicateStringOperator.endsWith, caseSensitive: caseSensitive);
+  QueryExpressionJunction<T, InstanceType> endsWith(String value,
+      {bool caseSensitive = true}) {
+    expression = StringExpression(value, PredicateStringOperator.endsWith,
+        caseSensitive: caseSensitive);
 
     return _createJunction();
   }
@@ -239,7 +249,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.department).oneOf(["Engineering", "HR"]);
   QueryExpressionJunction<T, InstanceType> oneOf(Iterable<T> values) {
-    expression = new SetMembershipExpression(values.toList());
+    expression = SetMembershipExpression(values.toList());
 
     return _createJunction();
   }
@@ -257,7 +267,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).between(80000, 100000);
   QueryExpressionJunction<T, InstanceType> between(T lhs, T rhs) {
-    expression = new RangeExpression(lhs, rhs, true);
+    expression = RangeExpression(lhs, rhs, within: true);
 
     return _createJunction();
   }
@@ -275,7 +285,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).outsideOf(80000, 100000);
   QueryExpressionJunction<T, InstanceType> outsideOf(T lhs, T rhs) {
-    expression = new RangeExpression(lhs, rhs, false);
+    expression = RangeExpression(lhs, rhs, within: false);
 
     return _createJunction();
   }
@@ -290,7 +300,7 @@ class QueryExpression<T, InstanceType> {
   ///       var q = new Query<Employee>()
   ///         ..where((e) => e.manager).identifiedBy(5);
   QueryExpressionJunction<T, InstanceType> identifiedBy(dynamic identifier) {
-    expression = new ComparisonExpression(identifier, PredicateOperator.equalTo);
+    expression = ComparisonExpression(identifier, PredicateOperator.equalTo);
 
     return _createJunction();
   }
@@ -306,7 +316,7 @@ class QueryExpression<T, InstanceType> {
   ///       var q = new Query<Employee>()
   ///         ..where((e) => e.manager).isNull();
   QueryExpressionJunction<T, InstanceType> isNull() {
-    expression = const NullCheckExpression(true);
+    expression = const NullCheckExpression(shouldBeNull: true);
 
     return _createJunction();
   }
@@ -322,7 +332,7 @@ class QueryExpression<T, InstanceType> {
   ///       var q = new Query<Employee>()
   ///         ..where((e) => e.manager).isNotNull();
   QueryExpressionJunction<T, InstanceType> isNotNull() {
-    expression = const NullCheckExpression(false);
+    expression = const NullCheckExpression(shouldBeNull: false);
 
     return _createJunction();
   }

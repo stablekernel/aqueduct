@@ -1,17 +1,19 @@
+// ignore: unnecessary_const
 @Timeout(const Duration(seconds: 120))
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
-import 'package:http/http.dart' as http;
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:http/http.dart' as http;
+import 'package:test/test.dart';
 
 void main() {
   group("Lifecycle", () {
     Application<TestChannel> app;
 
     setUp(() async {
-      app = new Application<TestChannel>();
+      app = Application<TestChannel>();
       await app.start(numberOfInstances: 2, consoleLogging: true);
       print("started");
     });
@@ -47,6 +49,7 @@ void main() {
       var responses = <http.Response>[];
       for (int i = 0; i < 20; i++) {
         var req = http.get("http://localhost:8888/t");
+        // ignore: unawaited_futures
         req.then((resp) {
           responses.add(resp);
         });
@@ -55,8 +58,14 @@ void main() {
 
       await Future.wait(reqs);
 
-      expect(responses.any((http.Response resp) => resp.headers["server"] == "aqueduct/1"), true);
-      expect(responses.any((http.Response resp) => resp.headers["server"] == "aqueduct/2"), true);
+      expect(
+          responses.any(
+              (http.Response resp) => resp.headers["server"] == "aqueduct/1"),
+          true);
+      expect(
+          responses.any(
+              (http.Response resp) => resp.headers["server"] == "aqueduct/2"),
+          true);
     });
 
     test("Application stops", () async {
@@ -64,6 +73,7 @@ void main() {
 
       try {
         await http.get("http://localhost:8888/t");
+        // ignore: empty_catches
       } on SocketException {}
 
       await app.start(numberOfInstances: 2, consoleLogging: true);
@@ -72,7 +82,9 @@ void main() {
       expect(resp.statusCode, 200);
     });
 
-    test("Application runs app startup function once, regardless of isolate count", () async {
+    test(
+        "Application runs app startup function once, regardless of isolate count",
+        () async {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
         var result = await http.get("http://localhost:8888/startup");
@@ -89,8 +101,10 @@ void main() {
       await app?.stop();
     });
 
-    test("didFinishLaunching is false before launch, true after, false after stop", () async {
-      app = new Application<TestChannel>();
+    test(
+        "didFinishLaunching is false before launch, true after, false after stop",
+        () async {
+      app = Application<TestChannel>();
       expect(app.isRunning, false);
 
       var future = app.start(numberOfInstances: 2, consoleLogging: true);
@@ -113,12 +127,12 @@ class TestChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    final router = new Router();
-    router.route("/t").linkFunction((req) async => new Response.ok("t_ok"));
-    router.route("/r").linkFunction((req) async => new Response.ok("r_ok"));
+    final router = Router();
+    router.route("/t").linkFunction((req) async => Response.ok("t_ok"));
+    router.route("/r").linkFunction((req) async => Response.ok("r_ok"));
     router.route("startup").linkFunction((r) async {
       var total = options.context["startup"].fold(0, (a, b) => a + b);
-      return new Response.ok("$total");
+      return Response.ok("$total");
     });
     return router;
   }

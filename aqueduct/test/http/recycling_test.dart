@@ -33,7 +33,9 @@ void main() {
     expect(firstAddress, equals(secondAddress));
   });
 
-  test("A controller that implements Recyclable creates a new instance for each request", () async {
+  test(
+      "A controller that implements Recyclable creates a new instance for each request",
+      () async {
     server.root.link(() => DefaultRecyclable());
     server.root.didAddToChannel();
 
@@ -45,19 +47,34 @@ void main() {
     expect(firstAddress, isNot(secondAddress));
   });
 
-  test("Receiving simultaneous request will always use a new Recyclable instance", () async {
+  test(
+      "Receiving simultaneous request will always use a new Recyclable instance",
+      () async {
     server.root.link(() => DefaultRecyclable());
     server.root.didAddToChannel();
 
     final addresses = await Future.wait([
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["hashCode"]),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["hashCode"]),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["hashCode"]),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["hashCode"]),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["hashCode"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["hashCode"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["hashCode"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["hashCode"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["hashCode"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["hashCode"]),
     ]);
 
-    expect(addresses.every((addr) => addresses.where((testAddr) => addr == testAddr).length == 1), true);
+    expect(
+        addresses.every((addr) =>
+            addresses.where((testAddr) => addr == testAddr).length == 1),
+        true);
   });
 
   test("A Recyclable instance reuses recycleState", () async {
@@ -65,11 +82,21 @@ void main() {
     server.root.didAddToChannel();
 
     final states = await Future.wait([
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["state"]),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["state"]),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["state"]),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["state"]),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["state"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["state"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["state"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["state"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["state"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["state"]),
     ]);
 
     expect(states.every((state) => state == "state"), true);
@@ -80,15 +107,23 @@ void main() {
     server.root.didAddToChannel();
 
     await Future.wait([
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["state"]),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["state"]),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body)["state"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["state"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["state"]),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body)["state"]),
     ]);
 
     expect(DefaultRecyclable.stateCount, 1);
   });
 
-  test("A controller that is not Recyclable, but declares non-final properties throws a runtime error", () {
+  test(
+      "A controller that is not Recyclable, but declares non-final properties throws a runtime error",
+      () {
     try {
       server.root.link(() => MutablePropertyController());
       fail('unreachable');
@@ -97,7 +132,9 @@ void main() {
     }
   });
 
-  test("A controller that is not Recyclable, but declares a setter throws a runtime error", () {
+  test(
+      "A controller that is not Recyclable, but declares a setter throws a runtime error",
+      () {
     try {
       server.root.link(() => MutableSetterController());
       fail('unreachable');
@@ -106,41 +143,90 @@ void main() {
     }
   });
 
-  test("A recycled controller always sends unhandled requests to the next linked controller", () async {
-    server.root.link(() => MiddlewareRecyclable()).link(() => DefaultController());
+  test(
+      "A recycled controller always sends unhandled requests to the next linked controller",
+      () async {
+    server.root
+        .link(() => MiddlewareRecyclable())
+        .link(() => DefaultController());
     server.root.didAddToChannel();
 
     final List<Map<String, dynamic>> responses = await Future.wait([
-      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body) as Map<String, dynamic>),
     ]);
 
-    expect(responses.every((b) => responses.every((ib) => ib["hashCode"] == b["hashCode"])), true);
+    expect(
+        responses.every(
+            (b) => responses.every((ib) => ib["hashCode"] == b["hashCode"])),
+        true);
     expect(responses.every((b) => b["middleware-state"] == "state"), true);
-    expect(responses.every((b) => responses.where((ib) => ib["middleware-address"] == b["middleware-address"]).length == 1), true);
+    expect(
+        responses.every((b) =>
+            responses
+                .where(
+                    (ib) => ib["middleware-address"] == b["middleware-address"])
+                .length ==
+            1),
+        true);
 
     expect(MiddlewareRecyclable.stateCount, 1);
   });
 
-  test("A recycled controller sends unhandled request to the next linked recyclable", () async {
-    server.root.link(() => MiddlewareRecyclable()).link(() => DefaultRecyclable());
+  test(
+      "A recycled controller sends unhandled request to the next linked recyclable",
+      () async {
+    server.root
+        .link(() => MiddlewareRecyclable())
+        .link(() => DefaultRecyclable());
     server.root.didAddToChannel();
 
     final List<Map<String, dynamic>> responses = await Future.wait([
-      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
-      http.get("http://localhost:4040").then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body) as Map<String, dynamic>),
+      http
+          .get("http://localhost:4040")
+          .then((r) => json.decode(r.body) as Map<String, dynamic>),
     ]);
 
-    expect(responses.every((b) => responses.where((ib) => ib["hashCode"] == b["hashCode"]).length == 1), true);
+    expect(
+        responses.every((b) =>
+            responses.where((ib) => ib["hashCode"] == b["hashCode"]).length ==
+            1),
+        true);
     expect(responses.every((b) => b["state"] == "state"), true);
     expect(responses.every((b) => b["middleware-state"] == "state"), true);
-    expect(responses.every((b) => responses.where((ib) => ib["middleware-address"] == b["middleware-address"]).length == 1), true);
+    expect(
+        responses.every((b) =>
+            responses
+                .where(
+                    (ib) => ib["middleware-address"] == b["middleware-address"])
+                .length ==
+            1),
+        true);
 
     expect(DefaultRecyclable.stateCount, 1);
     expect(MiddlewareRecyclable.stateCount, 1);
@@ -155,7 +241,7 @@ class ServerRoot {
 
   Future open() async {
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
-    server.map((httpReq) => new Request(httpReq)).listen(root.receive);
+    server.map((httpReq) => Request(httpReq)).listen(root.receive);
   }
 
   Future close() {
@@ -166,7 +252,7 @@ class ServerRoot {
 class DefaultController extends Controller {
   @override
   FutureOr<RequestOrResponse> handle(Request req) {
-    return new Response.ok(<String, dynamic>{"hashCode": this.hashCode});
+    return Response.ok(<String, dynamic>{"hashCode": hashCode});
   }
 }
 
@@ -176,7 +262,7 @@ class DefaultRecyclable extends Controller implements Recyclable<String> {
 
   @override
   FutureOr<RequestOrResponse> handle(Request req) {
-    return new Response.ok({"hashCode": this.hashCode, "state": state});
+    return Response.ok({"hashCode": hashCode, "state": state});
   }
 
   @override
@@ -186,7 +272,7 @@ class DefaultRecyclable extends Controller implements Recyclable<String> {
 
   @override
   String get recycledState {
-    stateCount ++;
+    stateCount++;
     return "state";
   }
 }
@@ -220,8 +306,7 @@ class MiddlewareRecyclable extends Controller implements Recyclable<String> {
 
   @override
   String get recycledState {
-    stateCount ++;
+    stateCount++;
     return "state";
   }
-
 }

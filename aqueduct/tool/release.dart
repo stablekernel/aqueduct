@@ -8,12 +8,12 @@ import 'package:safe_config/safe_config.dart';
 import 'package:args/args.dart';
 
 Future main(List<String> args) async {
-  var parser = new ArgParser()
+  var parser = ArgParser()
     ..addFlag("dry-run")
     ..addFlag("docs-only")
     ..addOption("name")
     ..addOption("config", abbr: "c", defaultsTo: "release.yaml");
-  var runner = new Runner(parser.parse(args));
+  var runner = Runner(parser.parse(args));
   
   try {
     exitCode = await runner.run();
@@ -29,7 +29,7 @@ Future main(List<String> args) async {
 
 class Runner {
   Runner(this.options) {
-    configuration = new ReleaseConfig(options["config"] as String);
+    configuration = ReleaseConfig(options["config"] as String);
   }
 
   ArgResults options;
@@ -89,8 +89,8 @@ class Runner {
       "build"
     ];
     var transformers = [
-      new BlacklistTransformer(blacklist),
-      new APIReferenceTransformer(symbolMap, baseReferenceURL)
+      BlacklistTransformer(blacklist),
+      APIReferenceTransformer(symbolMap, baseReferenceURL)
     ];
 
     var docsLive = await directoryWithBranch("gh-pages");
@@ -116,17 +116,21 @@ class Runner {
     var process = await Process.start(
         "mkdocs", ["build", "-d", docsLive.uri.resolve("docs").path, "-s"],
         workingDirectory: docsLive.uri.resolve("source").path);
+    // ignore: unawaited_futures
     stderr.addStream(process.stderr);
+    // ignore: unawaited_futures
     stdout.addStream(process.stdout);
     var exitCode = await process.exitCode;
     if (exitCode != 0) {
       throw "mkdocs failed with exit code $exitCode.";
     }
 
-    var sourceDirectoryInLive = new Directory.fromUri(docsLive.uri.resolve("source"));
+    var sourceDirectoryInLive = Directory.fromUri(docsLive.uri.resolve("source"));
     sourceDirectoryInLive.deleteSync(recursive: true);
     process = await Process.start("git", ["add", "."], workingDirectory: docsLive.path);
+    // ignore: unawaited_futures
     stderr.addStream(process.stderr);
+    // ignore: unawaited_futures
     stdout.addStream(process.stdout);
     exitCode = await process.exitCode;
     if (exitCode != 0) {
@@ -134,7 +138,9 @@ class Runner {
     }
 
     process = await Process.start("git", ["commit", "-m", "commit by release tool"], workingDirectory: docsLive.path);
+    // ignore: unawaited_futures
     stderr.addStream(process.stderr);
+    // ignore: unawaited_futures
     stdout.addStream(process.stdout);
     exitCode = await process.exitCode;
     if (exitCode != 0) {
@@ -145,7 +151,9 @@ class Runner {
     if (!isDryRun) {
       print("Pushing gh-pages to remote...");
       var process = await Process.start("git", ["push"], workingDirectory: docsLive.path);
+      // ignore: unawaited_futures
       stderr.addStream(process.stderr);
+      // ignore: unawaited_futures
       stdout.addStream(process.stdout);
       var exitCode = await process.exitCode;
       if (exitCode != 0) {
@@ -162,8 +170,10 @@ class Runner {
     var process = await Process.start(
         "git",
         ["clone", "-b", branchName, "git@github.com:stablekernel/aqueduct.git", dir.path]);
+    // ignore: unawaited_futures
     stderr.addStream(process.stderr);
-    stdout.addStream(process.stdout);
+    // ignore: unawaited_futures
+    // stdout.addStream(process.stdout);
 
     var exitCode = await process.exitCode;
     if (exitCode != 0) {
@@ -192,10 +202,10 @@ class Runner {
   }
 
   Future<String> versionFromDirectory(Directory directory) async {
-    var pubspecFile = new File.fromUri(directory.uri.resolve("pubspec.yaml"));
+    var pubspecFile = File.fromUri(directory.uri.resolve("pubspec.yaml"));
     var yaml = loadYaml(await pubspecFile.readAsString());
 
-    return "v" + (yaml["version"] as String).trim();
+    return "v${(yaml["version"] as String).trim()}";
   }
 
   Future<String> changesFromDirectory(Directory directory, String prefixedVersion) async {
@@ -203,9 +213,9 @@ class Runner {
     var version = prefixedVersion.substring(1);
     assert(version.split(".").length == 3);
 
-    var regex = new RegExp(r"^## ([0-9]+\.[0-9]+\.[0-9]+)", multiLine: true);
+    var regex = RegExp(r"^## ([0-9]+\.[0-9]+\.[0-9]+)", multiLine: true);
 
-    var changelogFile = new File.fromUri(directory.uri.resolve("CHANGELOG.md"));
+    var changelogFile = File.fromUri(directory.uri.resolve("CHANGELOG.md"));
     var changelogContents = await changelogFile.readAsString();
     var versionContentsList = regex.allMatches(changelogContents).toList();
     var latestChangelogVersion = versionContentsList.firstWhere((m) => m.group(1) == version, orElse: () {
@@ -261,7 +271,9 @@ class Runner {
     }
 
     var process = await Process.start("pub", args, workingDirectory: master.path);
+    // ignore: unawaited_futures
     stderr.addStream(process.stderr);
+    // ignore: unawaited_futures
     stdout.addStream(process.stdout);
 
     var exitCode = await process.exitCode;
@@ -273,7 +285,9 @@ class Runner {
   Future<Map<String, Map<String, List<SymbolResolution>>>> generateSymbolMap(Directory codeBranchDir) async {
     print("Generating API reference...");
     var process = await Process.start("dartdoc", [], workingDirectory: codeBranchDir.path);
+    // ignore: unawaited_futures
     stderr.addStream(process.stderr);
+    // ignore: unawaited_futures
     stdout.addStream(process.stdout);
 
     var exitCode = await process.exitCode;
@@ -282,7 +296,7 @@ class Runner {
     }
 
     print("Building symbol map...");
-    var indexFile = new File.fromUri(codeBranchDir.uri.resolve("doc/").resolve("api/").resolve("index.json"));
+    var indexFile = File.fromUri(codeBranchDir.uri.resolve("doc/").resolve("api/").resolve("index.json"));
     List<Map<String, dynamic>> indexJSON = json.decode(await indexFile.readAsString());
     var libraries = indexJSON
         .where((m) => m["type"] == "library")
@@ -291,7 +305,7 @@ class Runner {
 
     List<SymbolResolution> resolutions = indexJSON
         .where((m) => m["type"] != "library")
-        .map((obj) => new SymbolResolution.fromMap(obj.cast()))
+        .map((obj) => SymbolResolution.fromMap(obj.cast()))
         .toList();
 
     var qualifiedMap = <String, List<SymbolResolution>>{};
@@ -323,8 +337,7 @@ class Runner {
   Future transformDirectory(List<Transformer> transformers, Directory source, Directory destination) async {
     var contents = source.listSync(recursive: false);
     var files = contents
-        .where((fse) => fse is File)
-        .map((fse) => fse as File);
+        .whereType<File>();
     for (var f in files) {
       var filename = f.uri.pathSegments.last;
 
@@ -344,17 +357,16 @@ class Runner {
 
       var destinationUri = destination.uri.resolve(filename);
       if (contents != null) {
-        var outFile = new File.fromUri(destinationUri);
+        var outFile = File.fromUri(destinationUri);
         outFile.writeAsBytesSync(contents);
       }
     }
 
     Iterable<Directory> subdirectories = contents
-        .where((fse) => fse is Directory)
-        .map((fse) => fse as Directory);
+        .whereType<Directory>();
     for (var subdirectory in subdirectories) {
       var dirName = subdirectory.uri.pathSegments[subdirectory.uri.pathSegments.length - 2];
-      var destinationDir = new Directory.fromUri(destination.uri.resolve("$dirName"));
+      var destinationDir = Directory.fromUri(destination.uri.resolve("$dirName"));
 
       for (var t in transformers) {
         if (!t.shouldConsiderDirectories) {
@@ -376,7 +388,7 @@ class Runner {
 }
 
 class ReleaseConfig extends Configuration {
-  ReleaseConfig(String filename) : super.fromFile(new File(filename));
+  ReleaseConfig(String filename) : super.fromFile(File(filename));
 
   String githubToken;
 }
@@ -434,7 +446,7 @@ class APIReferenceTransformer extends Transformer {
   APIReferenceTransformer(this.symbolMap, this.baseReferenceURL);
 
   Uri baseReferenceURL;
-  final RegExp regex = new RegExp("`([A-Za-z0-9_\\.\\<\\>@\\(\\)]+)`");
+  final RegExp regex = RegExp("`([A-Za-z0-9_\\.\\<\\>@\\(\\)]+)`");
   Map<String, Map<String, List<SymbolResolution>>> symbolMap;
 
   @override
@@ -463,18 +475,15 @@ class APIReferenceTransformer extends Transformer {
     return utf8.encode(contents);
   }
 
-  SymbolResolution bestGuessForSymbol(String symbol) {
+  SymbolResolution bestGuessForSymbol(String inputSymbol) {
     if (symbolMap.isEmpty) {
       return null;
     }
 
-
-    symbol = symbol.replaceAll("<T>", "").replaceAll("@", "").replaceAll("()", "");
+    final symbol = inputSymbol.replaceAll("<T>", "").replaceAll("@", "").replaceAll("()", "");
 
     var possible = symbolMap["qualified"][symbol];
-    if (possible == null) {
-      possible = symbolMap["name"][symbol];
-    }
+    possible ??= symbolMap["name"][symbol];
 
     if (possible == null) {
       return null;

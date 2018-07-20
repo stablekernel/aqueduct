@@ -1,4 +1,6 @@
+// ignore: unnecessary_const
 @Tags(const ["cli"])
+
 import 'package:test/test.dart';
 import 'cli_helpers.dart';
 
@@ -23,9 +25,7 @@ class _TestObject {
       """);
   });
 
-  tearDown(() {
-    Terminal.deleteTemporaryDirectory();
-  });
+  tearDown(Terminal.deleteTemporaryDirectory);
 
   test("Ensure migration directory will get created on generation", () async {
     await terminal.getDependencies(offline: true);

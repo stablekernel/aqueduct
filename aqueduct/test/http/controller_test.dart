@@ -1,9 +1,10 @@
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
-import 'package:http/http.dart' as http;
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:http/http.dart' as http;
+import 'package:test/test.dart';
 
 void main() {
   group("Linking", () {
@@ -14,9 +15,12 @@ void main() {
     });
 
     test("Prepare flows through controllers", () async {
-      final completer = new Completer();
-      final root = new Controller();
-      root.linkFunction((req) async => req).link(() => new Always200Controller()).link(() => new PrepareTailController(completer));
+      final completer = Completer();
+      final root = Controller();
+      root
+          .linkFunction((req) async => req)
+          .link(() => Always200Controller())
+          .link(() => PrepareTailController(completer));
       root.didAddToChannel();
       expect(completer.future, completes);
     });
@@ -28,8 +32,8 @@ void main() {
 
     setUp(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4111);
-      root = new Controller();
-      server.map((r) => new Request(r)).listen((req) {
+      root = Controller();
+      server.map((r) => Request(r)).listen((req) {
         root.receive(req);
       });
     });
@@ -42,7 +46,7 @@ void main() {
       root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.statusCode = 201);
       }).linkFunction((r) async {
-        return new Response.ok(null);
+        return Response.ok(null);
       });
 
       var resp = await http.get("http://localhost:4111/");
@@ -53,7 +57,7 @@ void main() {
       root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.headers.remove("x-foo"));
       }).linkFunction((r) async {
-        return new Response.ok(null, headers: {"x-foo": "foo"});
+        return Response.ok(null, headers: {"x-foo": "foo"});
       });
 
       var resp = await http.get("http://localhost:4111/");
@@ -64,7 +68,7 @@ void main() {
       root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.headers["x-foo"] = "bar");
       }).linkFunction((r) async {
-        return new Response.ok(null);
+        return Response.ok(null);
       });
 
       var resp = await http.get("http://localhost:4111/");
@@ -75,7 +79,7 @@ void main() {
       root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.headers["x-foo"] = "bar");
       }).linkFunction((r) async {
-        return new Response.ok(null, headers: {"x-foo": "foo"});
+        return Response.ok(null, headers: {"x-foo": "foo"});
       });
 
       var resp = await http.get("http://localhost:4111/");
@@ -86,18 +90,20 @@ void main() {
       root.linkFunction((r) async {
         return r..addResponseModifier((resp) => resp.body["foo"] = "y");
       }).linkFunction((r) async {
-        return new Response.ok({"x": "a"});
+        return Response.ok({"x": "a"});
       });
 
       var resp = await http.get("http://localhost:4111/");
       expect(json.decode(resp.body), {"foo": "y", "x": "a"});
     });
 
-    test("Response modifier that throws uncaught exception sends 500 server error", () async {
+    test(
+        "Response modifier that throws uncaught exception sends 500 server error",
+        () async {
       root.linkFunction((r) async {
         return r..addResponseModifier((resp) => throw Exception('expected'));
       }).linkFunction((r) async {
-        return new Response.ok(null);
+        return Response.ok(null);
       });
 
       var resp = await http.get("http://localhost:4111/");
@@ -111,9 +117,9 @@ void main() {
 
     setUp(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4111);
-      root = new Controller();
+      root = Controller();
 
-      server.map((r) => new Request(r)).listen((req) {
+      server.map((r) => Request(r)).listen((req) {
         root.receive(req);
       });
     });
@@ -143,7 +149,7 @@ void main() {
     Application app;
 
     setUp(() async {
-      app = new Application<OutlierChannel>()..options.port = 8000;
+      app = Application<OutlierChannel>()..options.port = 8000;
       await app.start(numberOfInstances: 1);
     });
 
@@ -152,16 +158,20 @@ void main() {
       await app.stop();
     });
 
-    test("Logging after socket is closed throws uncaught exception, still works correctly after", () async {
+    test(
+        "Logging after socket is closed throws uncaught exception, still works correctly after",
+        () async {
       try {
         await http.get("http://localhost:8000/detach");
         expect(true, false);
+        // ignore: empty_catches
       } on http.ClientException {}
 
       expect((await http.get("http://localhost:8000/detach")).statusCode, 200);
     });
 
-    test("Request on bad state: header already sent is captured in Controller", () async {
+    test("Request on bad state: header already sent is captured in Controller",
+        () async {
       expect((await http.get("http://localhost:8000/closed")).statusCode, 200);
       expect((await http.get("http://localhost:8000/closed")).statusCode, 200);
     });
@@ -169,8 +179,12 @@ void main() {
     test(
         "Request controller throwing HttpResponseException that dies on bad state: header already sent is captured in Controller",
         () async {
-      expect((await http.get("http://localhost:8000/closed_exception")).statusCode, 200);
-      expect((await http.get("http://localhost:8000/closed_exception")).statusCode, 200);
+      expect(
+          (await http.get("http://localhost:8000/closed_exception")).statusCode,
+          200);
+      expect(
+          (await http.get("http://localhost:8000/closed_exception")).statusCode,
+          200);
     });
   });
 
@@ -180,14 +194,15 @@ void main() {
       await server.close();
     });
 
-
-    test("Request controller's can serialize and encode Serializable objects as JSON by default", () async {
+    test(
+        "Request controller's can serialize and encode Serializable objects as JSON by default",
+        () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
-      server.map((req) => new Request(req)).listen((req) async {
-        var next = new Controller();
+      server.map((req) => Request(req)).listen((req) async {
+        var next = Controller();
         next.linkFunction((req) async {
-          var obj = new SomeObject()..name = "Bob";
-          return new Response.ok(obj);
+          var obj = SomeObject()..name = "Bob";
+          return Response.ok(obj);
         });
         await next.receive(req);
       });
@@ -197,12 +212,14 @@ void main() {
       expect(json.decode(resp.body), {"name": "Bob"});
     });
 
-    test("Responding to request with no content-type, but does have a body, defaults to application/json", () async {
+    test(
+        "Responding to request with no content-type, but does have a body, defaults to application/json",
+        () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
-      server.map((req) => new Request(req)).listen((req) async {
-        var next = new Controller();
+      server.map((req) => Request(req)).listen((req) async {
+        var next = Controller();
         next.linkFunction((req) async {
-          return new Response.ok({"a": "b"});
+          return Response.ok({"a": "b"});
         });
         await next.receive(req);
       });
@@ -216,10 +233,10 @@ void main() {
         "Responding to a request with no explicit content-type and has a body that cannot be encoded to JSON will throw 500",
         () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
-      server.map((req) => new Request(req)).listen((req) async {
-        var next = new Controller();
+      server.map((req) => Request(req)).listen((req) async {
+        var next = Controller();
         next.linkFunction((req) async {
-          return new Response.ok(new DateTime.now());
+          return Response.ok(DateTime.now());
         });
         await next.receive(req);
       });
@@ -230,12 +247,14 @@ void main() {
       expect(resp.body.isEmpty, true);
     });
 
-    test("Responding to request with no explicit content-type, does not have a body, has no content-type", () async {
+    test(
+        "Responding to request with no explicit content-type, does not have a body, has no content-type",
+        () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
-      server.map((req) => new Request(req)).listen((req) async {
-        var next = new Controller();
+      server.map((req) => Request(req)).listen((req) async {
+        var next = Controller();
         next.linkFunction((req) async {
-          return new Response.ok(null);
+          return Response.ok(null);
         });
         await next.receive(req);
       });
@@ -246,41 +265,50 @@ void main() {
       expect(resp.body.isEmpty, true);
     });
 
-    test("willSendResponse is always called prior to Response being sent for preflight requests", () async {
+    test(
+        "willSendResponse is always called prior to Response being sent for preflight requests",
+        () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
-      server.map((req) => new Request(req)).listen((req) async {
-        var next = new Controller();
-        next.link(() => new Always200Controller());
+      server.map((req) => Request(req)).listen((req) async {
+        var next = Controller();
+        next.link(() => Always200Controller());
         await next.receive(req);
       });
 
       // Invalid preflight
-      var req = await (new HttpClient().open("OPTIONS", "localhost", 8888, ""));
+      var req = await HttpClient().open("OPTIONS", "localhost", 8888, "");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
-      req.headers.set("Access-Control-Request-Headers", "accept, authorization");
+      req.headers
+          .set("Access-Control-Request-Headers", "accept, authorization");
       var resp = await req.close();
 
       expect(resp.statusCode, 200);
-      expect(json.decode((new String.fromCharCodes(await resp.first))), {"statusCode": 403});
+      expect(json.decode(String.fromCharCodes(await resp.first)),
+          {"statusCode": 403});
 
       // valid preflight
-      req = await (new HttpClient().open("OPTIONS", "localhost", 8888, ""));
+      req = await HttpClient().open("OPTIONS", "localhost", 8888, "");
       req.headers.set("Origin", "http://somewhere.com");
       req.headers.set("Access-Control-Request-Method", "POST");
-      req.headers.set("Access-Control-Request-Headers", "accept, authorization");
+      req.headers
+          .set("Access-Control-Request-Headers", "accept, authorization");
       resp = await req.close();
 
       expect(resp.statusCode, 200);
-      expect(resp.headers.value("access-control-allow-methods"), "POST, PUT, DELETE, GET");
-      expect(json.decode((new String.fromCharCodes(await resp.first))), {"statusCode": 200});
+      expect(resp.headers.value("access-control-allow-methods"),
+          "POST, PUT, DELETE, GET");
+      expect(json.decode(String.fromCharCodes(await resp.first)),
+          {"statusCode": 200});
     });
 
-    test("willSendResponse is always called prior to Response being sent for normal requests", () async {
+    test(
+        "willSendResponse is always called prior to Response being sent for normal requests",
+        () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
-      server.map((req) => new Request(req)).listen((req) async {
-        var next = new Controller();
-        next.link(() => new Always200Controller());
+      server.map((req) => Request(req)).listen((req) async {
+        var next = Controller();
+        next.link(() => Always200Controller());
         await next.receive(req);
       });
 
@@ -307,17 +335,18 @@ void main() {
 
     test("Failure to decode request body as appropriate type is 400", () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
-      server.map((req) => new Request(req)).listen((req) async {
-        var next = new Controller();
+      server.map((req) => Request(req)).listen((req) async {
+        var next = Controller();
         next.linkFunction((r) async {
           await r.body.decode<Map<String, dynamic>>();
-          return new Response.ok(null);
+          return Response.ok(null);
         });
         await next.receive(req);
       });
 
       var resp = await http.post("http://localhost:8888",
-          headers: {"content-type": "application/json"}, body: json.encode(["a"]));
+          headers: {"content-type": "application/json"},
+          body: json.encode(["a"]));
 
       expect(resp.statusCode, 400);
     });
@@ -345,13 +374,13 @@ class Always200Controller extends Controller {
   Future<RequestOrResponse> handle(Request req) async {
     var q = req.raw.uri.queryParameters["q"];
     if (q == "http_response_exception") {
-      throw new Response.badRequest(body: {"error": "ok"});
+      throw Response.badRequest(body: {"error": "ok"});
     } else if (q == "query_exception") {
-      throw new QueryException(QueryExceptionEvent.transport);
+      throw QueryException(QueryExceptionEvent.transport);
     } else if (q == "server_error") {
-      throw new FormatException("whocares");
+      throw const FormatException("whocares");
     }
-    return new Response(100, null, null);
+    return Response(100, null, null);
   }
 
   @override
@@ -368,7 +397,7 @@ class OutlierChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    final r = new Router();
+    final r = Router();
     r.route("/detach").linkFunction((Request req) async {
       if (count == 0) {
         var socket = await req.raw.response.detachSocket();
@@ -386,7 +415,7 @@ class OutlierChannel extends ApplicationChannel {
 
       count++;
 
-      return new Response.ok(null);
+      return Response.ok(null);
     });
 
     r.route("/closed").linkFunction((Request req) async {
@@ -397,7 +426,7 @@ class OutlierChannel extends ApplicationChannel {
 
       count++;
 
-      return new Response.ok(null);
+      return Response.ok(null);
     });
 
     r.route("/closed_exception").linkFunction((Request req) async {
@@ -405,9 +434,9 @@ class OutlierChannel extends ApplicationChannel {
 
       // To stop the analyzer from complaining, since it see through the bullshit of 'if (true)' and the return type would be dead code.
       if ([1].any((i) => true)) {
-        throw new Response.badRequest(body: {"error": "whocares"});
+        throw Response.badRequest(body: {"error": "whocares"});
       }
-      return new Response.ok(null);
+      return Response.ok(null);
     });
     return r;
   }

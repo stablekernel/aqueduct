@@ -1,6 +1,8 @@
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
 import 'dart:async';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:test/test.dart';
+
 import '../../helpers.dart';
 
 /*
@@ -28,7 +30,7 @@ void main() {
 
     test("Fetch has-many relationship that has none returns empty OrderedSet",
         () async {
-      var q = new Query<Parent>(context)
+      var q = Query<Parent>(context)
         ..join(set: (p) => p.children)
         ..where((o) => o.name).equalTo("D");
 
@@ -44,7 +46,7 @@ void main() {
     test(
         "Fetch has-many relationship that is empty returns empty, and deeper nested relationships are ignored even when included",
         () async {
-      var q = new Query<Parent>(context)..where((o) => o.name).equalTo("D");
+      var q = Query<Parent>(context)..where((o) => o.name).equalTo("D");
 
       q.join(set: (p) => p.children)
         ..join(object: (c) => c.toy)
@@ -62,7 +64,7 @@ void main() {
     test(
         "Fetch has-many relationship that is non-empty returns values for scalar properties in subobjects only",
         () async {
-      var q = new Query<Parent>(context)
+      var q = Query<Parent>(context)
         ..join(set: (p) => p.children)
         ..where((o) => o.name).equalTo("C");
 
@@ -72,7 +74,8 @@ void main() {
         expect(p.children.first.cid, isNotNull);
         expect(p.children.first.name, "C5");
         expect(p.children.first.backing.contents.containsKey("toy"), false);
-        expect(p.children.first.backing.contents.containsKey("vaccinations"), false);
+        expect(p.children.first.backing.contents.containsKey("vaccinations"),
+            false);
       };
       verifier(await q.fetchOne());
       verifier((await q.fetch()).first);
@@ -81,7 +84,7 @@ void main() {
     test(
         "Fetch has-many relationship, include has-one and has-many in that has-many, where bottom of graph has valid object for hasmany but not for hasone",
         () async {
-      var q = new Query<Parent>(context)..where((o) => o.name).equalTo("B");
+      var q = Query<Parent>(context)..where((o) => o.name).equalTo("B");
 
       q.join(set: (p) => p.children)
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
@@ -113,7 +116,7 @@ void main() {
     test(
         "Fetch has-many relationship, include has-one and has-many in that has-many, where bottom of graph has valid object for hasone but not for hasmany",
         () async {
-      var q = new Query<Parent>(context)..where((o) => o.name).equalTo("A");
+      var q = Query<Parent>(context)..where((o) => o.name).equalTo("A");
 
       q.join(set: (p) => p.children)
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
@@ -148,7 +151,7 @@ void main() {
     test(
         "Fetching multiple top-level instances and including one level of subobjects",
         () async {
-      var q = new Query<Parent>(context)
+      var q = Query<Parent>(context)
         ..sortBy((p) => p.pid, QuerySortOrder.ascending)
         ..join(set: (p) => p.children)
         ..where((o) => o.name).oneOf(["A", "C", "D"]);
@@ -159,21 +162,33 @@ void main() {
       expect(results.first.name, "A");
       expect(results.first.children.length, 2);
       expect(results.first.children.first.name, "C1");
-      expect(results.first.children.first.backing.contents.containsKey("toy"), false);
+      expect(results.first.children.first.backing.contents.containsKey("toy"),
+          false);
       expect(
-          results.first.children.first.backing.contents.containsKey("vaccinations"),
+          results.first.children.first.backing.contents
+              .containsKey("vaccinations"),
           false);
       expect(results.first.children.last.name, "C2");
-      expect(results.first.children.last.backing.contents.containsKey("toy"), false);
-      expect(results.first.children.last.backing.contents.containsKey("vaccinations"),
+      expect(results.first.children.last.backing.contents.containsKey("toy"),
+          false);
+      expect(
+          results.first.children.last.backing.contents
+              .containsKey("vaccinations"),
           false);
 
       expect(results[1].pid, isNotNull);
       expect(results[1].name, "C");
       expect(results[1].children.length, 1);
       expect(results[1].children.first.name, "C5");
-      expect(results[1].children.first.backing.contents.containsKey("toy"), false);
-      expect(results[1].children.first.backing.contents.containsKey("vaccinations"),
+      expect(
+          results[1].children.first.backing.contents.containsKey("toy"), false);
+      expect(
+          results[1]
+              .children
+              .first
+              .backing
+              .contents
+              .containsKey("vaccinations"),
           false);
 
       expect(results.last.pid, isNotNull);
@@ -182,7 +197,7 @@ void main() {
     });
 
     test("Fetch entire graph", () async {
-      var q = new Query<Parent>(context);
+      var q = Query<Parent>(context);
       q.join(set: (p) => p.children)
         ..join(object: (c) => c.toy)
         ..join(set: (c) => c.vaccinations);
@@ -234,7 +249,7 @@ void main() {
 
     test("Predicate impacts top-level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>(context)..where((o) => o.name).equalTo("A");
+      var q = Query<Parent>(context)..where((o) => o.name).equalTo("A");
 
       q.join(set: (p) => p.children)
         ..sortBy((c) => c.cid, QuerySortOrder.ascending)
@@ -260,7 +275,7 @@ void main() {
 
     test("Predicate impacts 2nd level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>(context);
+      var q = Query<Parent>(context);
 
       q.join(set: (p) => p.children)
         ..where((o) => o.name).equalTo("C1")
@@ -287,10 +302,12 @@ void main() {
 
     test("Predicate impacts 3rd level objects when fetching object graph",
         () async {
-      var q = new Query<Parent>(context);
+      var q = Query<Parent>(context);
 
-      var childJoin = q.join(set: (p) => p.children)..join(object: (c) => c.toy);
-      childJoin.join(set: (c) => c.vaccinations)..where((o) => o.kind).equalTo("V1");
+      var childJoin = q.join(set: (p) => p.children)
+        ..join(object: (c) => c.toy);
+      childJoin.join(set: (c) => c.vaccinations)
+        .where((o) => o.kind).equalTo("V1");
 
       var results = await q.fetch();
 
@@ -325,10 +342,12 @@ void main() {
     test(
         "Predicate that omits top-level objects but would include lower level object return no results",
         () async {
-      var q = new Query<Parent>(context)..where((o) => o.pid).equalTo(5);
+      var q = Query<Parent>(context)..where((o) => o.pid).equalTo(5);
 
-      var childJoin = q.join(set: (p) => p.children)..join(object: (c) => c.toy);
-      childJoin.join(set: (c) => c.vaccinations)..where((o) => o.kind).equalTo("V1");
+      var childJoin = q.join(set: (p) => p.children)
+        ..join(object: (c) => c.toy);
+      childJoin.join(set: (c) => c.vaccinations)
+        .where((o) => o.kind).equalTo("V1");
 
       var results = await q.fetch();
       expect(results.length, 0);
@@ -351,7 +370,7 @@ void main() {
     test(
         "Sort descriptor on top-level object doesn't impact lower level objects",
         () async {
-      var q = new Query<Parent>(context)
+      var q = Query<Parent>(context)
         ..sortBy((p) => p.name, QuerySortOrder.descending);
 
       q.join(set: (p) => p.children)
@@ -402,7 +421,7 @@ void main() {
     });
 
     test("Objects returned in join are not the same instance", () async {
-      var q = new Query<Parent>(context)
+      var q = Query<Parent>(context)
         ..where((o) => o.pid).equalTo(1)
         ..join(set: (p) => p.children);
 
@@ -428,8 +447,7 @@ void main() {
     test("Trying to fetch hasMany relationship through resultProperties fails",
         () async {
       try {
-        new Query<Parent>(context)
-          ..returningProperties((p) => [p.pid, p.children]);
+        Query<Parent>(context).returningProperties((p) => [p.pid, p.children]);
       } on ArgumentError catch (e) {
         expect(
             e.toString(),
@@ -438,13 +456,13 @@ void main() {
       }
     });
 
-    test("Trying to fetch nested hasMany relationship through resultProperties fails",
+    test(
+        "Trying to fetch nested hasMany relationship through resultProperties fails",
         () async {
-
       try {
-        final q = new Query<Parent>(context);
+        final q = Query<Parent>(context);
         q.join(set: (p) => p.children)
-          ..returningProperties((p) => [p.cid, p.vaccinations]);
+          .returningProperties((p) => [p.cid, p.vaccinations]);
 
         expect(true, false);
       } on ArgumentError catch (e) {
@@ -508,59 +526,57 @@ class _Vaccine {
 Future<List<Parent>> populate(ManagedContext context) async {
   var modelGraph = <Parent>[];
   var parents = [
-    new Parent()
+    Parent()
       ..name = "A"
-      ..children = new ManagedSet<Child>.from([
-        new Child()
+      ..children = ManagedSet<Child>.from([
+        Child()
           ..name = "C1"
-          ..toy = (new Toy()..name = "T1")
-          ..vaccinations = (new ManagedSet<Vaccine>.from([
-            new Vaccine()..kind = "V1",
-            new Vaccine()..kind = "V2",
-          ])),
-        new Child()
+          ..toy = (Toy()..name = "T1")
+          ..vaccinations = ManagedSet<Vaccine>.from([
+            Vaccine()..kind = "V1",
+            Vaccine()..kind = "V2",
+          ]),
+        Child()
           ..name = "C2"
-          ..toy = (new Toy()..name = "T2")
+          ..toy = (Toy()..name = "T2")
       ]),
-    new Parent()
+    Parent()
       ..name = "B"
-      ..children = new ManagedSet<Child>.from([
-        new Child()
+      ..children = ManagedSet<Child>.from([
+        Child()
           ..name = "C3"
-          ..vaccinations =
-              (new ManagedSet<Vaccine>.from([new Vaccine()..kind = "V3"])),
-        new Child()..name = "C4"
+          ..vaccinations = ManagedSet<Vaccine>.from([Vaccine()..kind = "V3"]),
+        Child()..name = "C4"
       ]),
-    new Parent()
+    Parent()
       ..name = "C"
-      ..children = new ManagedSet<Child>.from([new Child()..name = "C5"]),
-    new Parent()..name = "D"
+      ..children = ManagedSet<Child>.from([Child()..name = "C5"]),
+    Parent()..name = "D"
   ];
 
   for (var p in parents) {
-    var q = new Query<Parent>(context)..values.name = p.name;
+    var q = Query<Parent>(context)..values.name = p.name;
     var insertedParent = await q.insert();
     modelGraph.add(insertedParent);
 
-    insertedParent.children = new ManagedSet<Child>();
+    insertedParent.children = ManagedSet<Child>();
     for (var child in p.children ?? <Child>[]) {
-      var childQ = new Query<Child>(context)
+      var childQ = Query<Child>(context)
         ..values.name = child.name
         ..values.parent = insertedParent;
       insertedParent.children.add(await childQ.insert());
 
       if (child.toy != null) {
-        var toyQ = new Query<Toy>(context)
+        var toyQ = Query<Toy>(context)
           ..values.name = child.toy.name
           ..values.child = insertedParent.children.last;
         insertedParent.children.last.toy = await toyQ.insert();
       }
 
       if (child.vaccinations != null) {
-        insertedParent.children.last.vaccinations =
-            new ManagedSet<Vaccine>.from(
-                await Future.wait(child.vaccinations.map((v) {
-          var vQ = new Query<Vaccine>(context)
+        insertedParent.children.last.vaccinations = ManagedSet<Vaccine>.from(
+            await Future.wait(child.vaccinations.map((v) {
+          var vQ = Query<Vaccine>(context)
             ..values.kind = v.kind
             ..values.child = insertedParent.children.last;
           return vQ.insert();

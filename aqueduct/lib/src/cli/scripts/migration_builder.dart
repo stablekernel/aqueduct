@@ -5,26 +5,26 @@ import 'package:isolate_executor/isolate_executor.dart';
 
 class MigrationBuilderExecutable extends Executable<Map<String, dynamic>> {
   MigrationBuilderExecutable(Map<String, dynamic> message)
-    : inputSchema = new Schema.fromMap(message["inputSchema"] as Map<String, dynamic>),
-      versionTag = message["versionTag"] as int,
-      super(message);
+      : inputSchema =
+            Schema.fromMap(message["inputSchema"] as Map<String, dynamic>),
+        versionTag = message["versionTag"] as int,
+        super(message);
 
-  MigrationBuilderExecutable.input(this.inputSchema, this.versionTag) :
-    super({
-      "inputSchema": inputSchema.asMap(),
-      "versionTag": versionTag
-    });
+  MigrationBuilderExecutable.input(this.inputSchema, this.versionTag)
+      : super({"inputSchema": inputSchema.asMap(), "versionTag": versionTag});
 
   final int versionTag;
   final Schema inputSchema;
 
   @override
   Future<Map<String, dynamic>> execute() async {
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var schema = new Schema.fromDataModel(dataModel);
+    var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    var schema = Schema.fromDataModel(dataModel);
     var changeList = <String>[];
 
-    final source = Migration.sourceForSchemaUpgrade(inputSchema, schema, versionTag, changeList: changeList);
+    final source = Migration.sourceForSchemaUpgrade(
+        inputSchema, schema, versionTag,
+        changeList: changeList);
     return {
       "source": source,
       "tablesEvaluated": dataModel.entities.map((e) => e.name).toList(),
@@ -32,8 +32,10 @@ class MigrationBuilderExecutable extends Executable<Map<String, dynamic>> {
     };
   }
 
-  static List<String> importsForPackage(String packageName) =>
-      ["package:aqueduct/aqueduct.dart", "package:$packageName/$packageName.dart"];
+  static List<String> importsForPackage(String packageName) => [
+        "package:aqueduct/aqueduct.dart",
+        "package:$packageName/$packageName.dart"
+      ];
 }
 
 class MigrationBuilderResult {

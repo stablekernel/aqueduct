@@ -7,7 +7,8 @@ import 'package:aqueduct/src/cli/mixins/database_managing.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 
 /// Used internally.
-class CLIDatabaseVersion  extends CLICommand with CLIDatabaseManagingCommand, CLIProject, CLIDatabaseConnectingCommand {
+class CLIDatabaseVersion extends CLICommand
+    with CLIDatabaseManagingCommand, CLIProject, CLIDatabaseConnectingCommand {
   @override
   Future<int> handle() async {
     try {

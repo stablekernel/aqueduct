@@ -1,19 +1,19 @@
+// ignore: unnecessary_const
 @Tags(const ["cli"])
-
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 import 'cli_helpers.dart';
 
 void main() {
-  var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-  var schema = new Schema.fromDataModel(dataModel);
+  var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+  var schema = Schema.fromDataModel(dataModel);
   ManagedContext context;
   PersistentStore store;
   Terminal terminal;
 
   setUp(() async {
-    store = new PostgreSQLPersistentStore(
+    store = PostgreSQLPersistentStore(
         "dart", "dart", "localhost", 5432, "dart_test");
 
     for (var t in schema.dependencyOrderedTables) {
@@ -23,10 +23,13 @@ void main() {
       }
     }
 
-    context = new ManagedContext(dataModel, store);
+    context = ManagedContext(dataModel, store);
 
-    terminal = new Terminal.current()
-      ..defaultAqueductArgs = ["--connect","postgres://dart:dart@localhost:5432/dart_test"];
+    terminal = Terminal.current()
+      ..defaultAqueductArgs = [
+        "--connect",
+        "postgres://dart:dart@localhost:5432/dart_test"
+      ];
   });
 
   tearDown(() async {
@@ -45,10 +48,10 @@ void main() {
 
   group("Success cases", () {
     test("Can create public client", () async {
+      await terminal
+          .runAqueductCommand("auth", ["add-client", "--id", "a.b.c"]);
 
-      await terminal.runAqueductCommand("auth", ["add-client", "--id", "a.b.c"]);
-
-      var q = new Query<ManagedAuthClient>(context);
+      var q = Query<ManagedAuthClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -59,9 +62,10 @@ void main() {
     });
 
     test("Can create confidential client", () async {
-      await terminal.runAqueductCommand("auth", ["add-client", "--id", "a.b.c", "--secret", "abc"]);
+      await terminal.runAqueductCommand(
+          "auth", ["add-client", "--id", "a.b.c", "--secret", "abc"]);
 
-      var q = new Query<ManagedAuthClient>(context);
+      var q = Query<ManagedAuthClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -74,9 +78,17 @@ void main() {
     });
 
     test("Can create confidential client with redirect uri", () async {
-      await terminal.runAqueductCommand("auth", ["add-client", "--id", "a.b.c", "--secret", "abc", "--redirect-uri", "http://foobar.com"]);
+      await terminal.runAqueductCommand("auth", [
+        "add-client",
+        "--id",
+        "a.b.c",
+        "--secret",
+        "abc",
+        "--redirect-uri",
+        "http://foobar.com"
+      ]);
 
-      var q = new Query<ManagedAuthClient>(context);
+      var q = Query<ManagedAuthClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -89,9 +101,10 @@ void main() {
     });
 
     test("Can create client with scope", () async {
-      await terminal.runAqueductCommand("auth", ["add-client", "--id", "a.b.c", "--allowed-scopes", "xyz"]);
+      await terminal.runAqueductCommand(
+          "auth", ["add-client", "--id", "a.b.c", "--allowed-scopes", "xyz"]);
 
-      var q = new Query<ManagedAuthClient>(context);
+      var q = Query<ManagedAuthClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -102,9 +115,10 @@ void main() {
     });
 
     test("Can create client with multiple scopes", () async {
-      await terminal.runAqueductCommand("auth", ["add-client", "--allowed-scopes", "xyz.f abc def", "--id", "a.b.c"]);
+      await terminal.runAqueductCommand("auth",
+          ["add-client", "--allowed-scopes", "xyz.f abc def", "--id", "a.b.c"]);
 
-      var q = new Query<ManagedAuthClient>(context);
+      var q = Query<ManagedAuthClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -115,9 +129,15 @@ void main() {
     });
 
     test("Scope gets collapsed", () async {
-      await terminal.runAqueductCommand("auth", ["add-client", "--allowed-scopes", "xyz:a xyz xyz:a.f xyz.f", "--id", "a.b.c"]);
+      await terminal.runAqueductCommand("auth", [
+        "add-client",
+        "--allowed-scopes",
+        "xyz:a xyz xyz:a.f xyz.f",
+        "--id",
+        "a.b.c"
+      ]);
 
-      var q = new Query<ManagedAuthClient>(context);
+      var q = Query<ManagedAuthClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -128,10 +148,12 @@ void main() {
     });
 
     test("Can set scope on client", () async {
-      await terminal.runAqueductCommand("auth", ["add-client", "--id", "a.b.c"]);
-      await terminal.runAqueductCommand("auth", ["set-scope", "--id", "a.b.c", "--scopes", "abc efg"]);
+      await terminal
+          .runAqueductCommand("auth", ["add-client", "--id", "a.b.c"]);
+      await terminal.runAqueductCommand(
+          "auth", ["set-scope", "--id", "a.b.c", "--scopes", "abc efg"]);
 
-      var q = new Query<ManagedAuthClient>(context);
+      var q = Query<ManagedAuthClient>(context);
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, "a.b.c");
@@ -144,8 +166,9 @@ void main() {
 
   group("Failure cases", () {
     test("Without id fails", () async {
-      var processResult = await terminal.runAqueductCommand("auth", ["add-client", "--secret", "abcdef"]);
-      var q = new Query<ManagedAuthClient>(context);
+      var processResult = await terminal
+          .runAqueductCommand("auth", ["add-client", "--secret", "abcdef"]);
+      var q = Query<ManagedAuthClient>(context);
       var results = await q.fetch();
       expect(results.length, 0);
 
@@ -154,18 +177,21 @@ void main() {
     });
 
     test("Create public client with redirect uri fails", () async {
-      var processResult = await terminal.runAqueductCommand("auth", ["add-client", "--id", "foobar", "--redirect-uri", "http://xyz.com"]);
-      var q = new Query<ManagedAuthClient>(context);
+      var processResult = await terminal.runAqueductCommand("auth",
+          ["add-client", "--id", "foobar", "--redirect-uri", "http://xyz.com"]);
+      var q = Query<ManagedAuthClient>(context);
       var results = await q.fetch();
       expect(results.length, 0);
 
       expect(processResult, isNot(0));
-      expect(terminal.output, contains("authorization code flow must be a confidential client"));
+      expect(terminal.output,
+          contains("authorization code flow must be a confidential client"));
     });
 
     test("Malformed scope fails", () async {
-      var processResult = await terminal.runAqueductCommand("auth", ["add-client", "--id", "foobar", "--allowed-scopes", "x\"x"]);
-      var q = new Query<ManagedAuthClient>(context);
+      var processResult = await terminal.runAqueductCommand(
+          "auth", ["add-client", "--id", "foobar", "--allowed-scopes", "x\"x"]);
+      var q = Query<ManagedAuthClient>(context);
       var results = await q.fetch();
       expect(results.length, 0);
 
@@ -174,7 +200,8 @@ void main() {
     });
 
     test("Update scope of invalid client id fails", () async {
-      var result = await terminal.runAqueductCommand("auth", ["set-scope", "--id", "a.b.c", "--scopes", "abc efg"]);
+      var result = await terminal.runAqueductCommand(
+          "auth", ["set-scope", "--id", "a.b.c", "--scopes", "abc efg"]);
       expect(result, isNot(0));
       expect(terminal.output, contains("does not exist"));
     });

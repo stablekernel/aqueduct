@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors' hide Comment;
 import 'dart:isolate';
+import 'dart:mirrors' hide Comment;
 
 import 'package:analyzer/analyzer.dart';
 import 'package:aqueduct/src/utilities/documented_element.dart';
@@ -12,16 +12,17 @@ class AnalyzerDocumentedElementProvider implements DocumentedElementProvider {
     final reflectedType = reflectType(type);
     final uri = reflectedType.location.sourceUri;
     final resolvedUri = await Isolate.resolvePackageUri(uri);
-    final fileUnit = parseDartFile(resolvedUri.toFilePath(windows: Platform.isWindows));
+    final fileUnit =
+        parseDartFile(resolvedUri.toFilePath(windows: Platform.isWindows));
 
     var classDeclaration = fileUnit.declarations
-        .where((u) => u is ClassDeclaration)
-        .map((cu) => cu as ClassDeclaration)
+        .whereType<ClassDeclaration>()
         .firstWhere((ClassDeclaration classDecl) {
-      return classDecl.name.token.lexeme == MirrorSystem.getName(reflectedType.simpleName);
+      return classDecl.name.token.lexeme ==
+          MirrorSystem.getName(reflectedType.simpleName);
     });
 
-    return new AnalyzerDocumentedElement._(classDeclaration);
+    return AnalyzerDocumentedElement._(classDeclaration);
   }
 }
 
@@ -31,29 +32,35 @@ class AnalyzerDocumentedElement extends DocumentedElement {
 
     if (decl is MethodDeclaration) {
       decl.parameters?.parameters?.forEach((p) {
-        if (p.childEntities.length == 1 && p.childEntities.first is SimpleFormalParameter) {
+        if (p.childEntities.length == 1 &&
+            p.childEntities.first is SimpleFormalParameter) {
           SimpleFormalParameter def = p.childEntities.first;
-          children[new Symbol(p.identifier.name)] = new AnalyzerDocumentedElement._leaf(def.documentationComment);
+          children[Symbol(p.identifier.name)] =
+              AnalyzerDocumentedElement._leaf(def.documentationComment);
         } else {
-          Comment comment = p.childEntities.firstWhere((c) => c is Comment, orElse: () => null);
+          Comment comment = p.childEntities
+              .firstWhere((c) => c is Comment, orElse: () => null);
           if (comment != null) {
-            children[new Symbol(p.identifier.name)] = new AnalyzerDocumentedElement._leaf(comment);
+            children[Symbol(p.identifier.name)] =
+                AnalyzerDocumentedElement._leaf(comment);
           }
         }
       });
     } else if (decl is ClassDeclaration) {
       decl.childEntities?.forEach((c) {
         if (c is MethodDeclaration) {
-          children[new Symbol(c.name.token.lexeme)] = new AnalyzerDocumentedElement._(c);
+          children[Symbol(c.name.token.lexeme)] =
+              AnalyzerDocumentedElement._(c);
         } else if (c is FieldDeclaration) {
           c.fields?.variables?.forEach((v) {
-            children[new Symbol(v.name.token.lexeme)] = new AnalyzerDocumentedElement._(v);
+            children[Symbol(v.name.token.lexeme)] =
+                AnalyzerDocumentedElement._(v);
           });
         }
       });
     } else if (decl is FieldDeclaration) {
       decl.fields?.variables?.forEach((v) {
-        children[new Symbol(v.name.token.lexeme)] = new AnalyzerDocumentedElement._(v);
+        children[Symbol(v.name.token.lexeme)] = AnalyzerDocumentedElement._(v);
       });
     }
   }
@@ -69,7 +76,7 @@ class AnalyzerDocumentedElement extends DocumentedElement {
             ?.toList() ??
         [];
 
-    if (lines.length > 0) {
+    if (lines.isNotEmpty) {
       summary = lines.first;
     } else {
       summary = "";

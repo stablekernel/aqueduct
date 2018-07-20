@@ -13,7 +13,7 @@ import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 
 Future main() async {
-  final app = new Application<App>()
+  final app = Application<App>()
     ..options.configurationFilePath = 'config.yaml'
     ..options.port = 8888;
 
@@ -23,8 +23,8 @@ Future main() async {
 class App extends ApplicationChannel {
   @override
   Controller get entryPoint {
-    final router = new Router();
-    router.route('/example/[:id]').link(() => new ExampleController());
+    final router = Router();
+    router.route('/example/[:id]').link(() => ExampleController());
     return router;
   }
 }
@@ -32,11 +32,11 @@ class App extends ApplicationChannel {
 class ExampleController extends ResourceController {
   @Operation.get()
   Future<Response> getExamples() async {
-    return new Response.ok([]);
+    return Response.ok([]);
   }
 
   @Operation.get('id')
   Future<Response> getExampleById(@Bind.path('id') int id) async {
-    return new Response.ok({'id': id});
+    return Response.ok({'id': id});
   }
 }

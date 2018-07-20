@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
-typedef Future _StopProcess(String reason);
+typedef _StopProcess = Future Function(String reason);
 
 class StoppableProcess {
   StoppableProcess(Future onStop(String reason)) : _stop = onStop {
@@ -23,7 +23,7 @@ class StoppableProcess {
   List<StreamSubscription> _listeners = [];
 
   final _StopProcess _stop;
-  final Completer<int> _completer = new Completer<int>();
+  final Completer<int> _completer = Completer<int>();
 
   Future stop(int exitCode, {String reason}) async {
     if (_completer.isCompleted) {

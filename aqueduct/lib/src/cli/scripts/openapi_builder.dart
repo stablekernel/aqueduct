@@ -13,14 +13,22 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
         title = message["title"] as String,
         description = message["description"] as String,
         version = message["version"] as String,
-        termsOfServiceURL =
-            message["termsOfServiceURL"] != null ? Uri.parse(message["termsOfServiceURL"] as String) : null,
+        termsOfServiceURL = message["termsOfServiceURL"] != null
+            ? Uri.parse(message["termsOfServiceURL"] as String)
+            : null,
         contactEmail = message["contactEmail"] as String,
         contactName = message["contactName"] as String,
-        contactURL = message["contactURL"] != null ? Uri.parse(message["contactURL"] as String) : null,
-        licenseURL = message["licenseURL"] != null ? Uri.parse(message["licenseURL"] as String) : null,
+        contactURL = message["contactURL"] != null
+            ? Uri.parse(message["contactURL"] as String)
+            : null,
+        licenseURL = message["licenseURL"] != null
+            ? Uri.parse(message["licenseURL"] as String)
+            : null,
         licenseName = message["licenseName"] as String,
-        hosts = (message["hosts"] as List<String>)?.map((uri) => new APIServerDescription(Uri.parse(uri)))?.toList() ?? [],
+        hosts = (message["hosts"] as List<String>)
+                ?.map((uri) => APIServerDescription(Uri.parse(uri)))
+                ?.toList() ??
+            [],
         super(message);
 
   OpenAPIBuilder.input(Map<String, dynamic> variables) : super(variables);
@@ -42,51 +50,53 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
   Future<Map<String, dynamic>> execute() async {
     DocumentedElement.provider = AnalyzerDocumentedElementProvider();
 
-    var config = new ApplicationOptions()..configurationFilePath = configPath;
+    var config = ApplicationOptions()..configurationFilePath = configPath;
 
-    final yaml = (loadYaml(pubspecContents) as Map<dynamic, dynamic>).cast<String, dynamic>();
-    var document = await Application.document(ApplicationChannel.defaultType, config, yaml);
+    final yaml = (loadYaml(pubspecContents) as Map<dynamic, dynamic>)
+        .cast<String, dynamic>();
+    var document = await Application.document(
+        ApplicationChannel.defaultType, config, yaml);
 
     document.servers = hosts;
     if (title != null) {
-      document.info ??= new APIInfo.empty();
+      document.info ??= APIInfo.empty();
       document.info.title = title;
     }
     if (description != null) {
-      document.info ??= new APIInfo.empty();
+      document.info ??= APIInfo.empty();
       document.info.description = description;
     }
     if (version != null) {
-      document.info ??= new APIInfo.empty();
+      document.info ??= APIInfo.empty();
       document.info.version = version;
     }
     if (termsOfServiceURL != null) {
-      document.info ??= new APIInfo.empty();
+      document.info ??= APIInfo.empty();
       document.info.termsOfServiceURL = termsOfServiceURL;
     }
     if (contactEmail != null) {
-      document.info ??= new APIInfo.empty();
-      document.info.contact ??= new APIContact.empty();
+      document.info ??= APIInfo.empty();
+      document.info.contact ??= APIContact.empty();
       document.info.contact.email = contactEmail;
     }
     if (contactName != null) {
-      document.info ??= new APIInfo.empty();
-      document.info.contact ??= new APIContact.empty();
+      document.info ??= APIInfo.empty();
+      document.info.contact ??= APIContact.empty();
       document.info.contact.name = contactName;
     }
     if (contactURL != null) {
-      document.info ??= new APIInfo.empty();
-      document.info.contact ??= new APIContact.empty();
+      document.info ??= APIInfo.empty();
+      document.info.contact ??= APIContact.empty();
       document.info.contact.url = contactURL;
     }
     if (licenseURL != null) {
-      document.info ??= new APIInfo.empty();
-      document.info.license ??= new APILicense.empty();
+      document.info ??= APIInfo.empty();
+      document.info.license ??= APILicense.empty();
       document.info.license.url = licenseURL;
     }
     if (licenseName != null) {
-      document.info ??= new APIInfo.empty();
-      document.info.license ??= new APILicense.empty();
+      document.info ??= APIInfo.empty();
+      document.info.license ??= APILicense.empty();
       document.info.license.name = licenseName;
     }
 

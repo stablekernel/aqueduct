@@ -1,11 +1,11 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:convert';
+import 'dart:io';
 
 import '../auth/auth.dart';
 import 'http.dart';
 
-typedef void _ResponseModifier(Response resp);
+typedef _ResponseModifier = void Function(Response resp);
 
 /// A single HTTP request.
 ///
@@ -15,8 +15,8 @@ typedef void _ResponseModifier(Response resp);
 class Request implements RequestOrResponse {
   /// Creates an instance of [Request], no need to do so manually.
   Request(this.raw)
-      : path = new RequestPath(raw.uri.pathSegments),
-        body = new RequestBody(raw);
+      : path = RequestPath(raw.uri.pathSegments),
+        body = RequestBody(raw);
 
   /// The underlying [HttpRequest] of this instance.
   ///
@@ -91,7 +91,7 @@ class Request implements RequestOrResponse {
         var contentTypes = raw.headers[HttpHeaders.acceptHeader]
                 ?.expand((h) => h.split(",").map((s) => s.trim()))
                 ?.where((h) => h.isNotEmpty)
-                ?.map((h) => ContentType.parse(h))
+                ?.map(ContentType.parse)
                 ?.toList() ??
             [];
 
@@ -119,7 +119,7 @@ class Request implements RequestOrResponse {
 
         _cachedAcceptableTypes = contentTypes;
       } catch (_) {
-        throw new Response.badRequest(body: {"error": "accept header is malformed"});
+        throw Response.badRequest(body: {"error": "accept header is malformed"});
       }
     }
     return _cachedAcceptableTypes;
@@ -175,7 +175,7 @@ class Request implements RequestOrResponse {
   Map<dynamic, dynamic> attachments = {};
 
   /// The timestamp for when this request was received.
-  DateTime receivedDate = new DateTime.now().toUtc();
+  DateTime receivedDate = DateTime.now().toUtc();
 
   /// The timestamp for when this request was responded to.
   ///
@@ -204,7 +204,7 @@ class Request implements RequestOrResponse {
   }
 
   String get _sanitizedHeaders {
-    StringBuffer buf = new StringBuffer("{");
+    StringBuffer buf = StringBuffer("{");
 
     raw?.headers?.forEach((k, v) {
       buf.write("${_truncatedString(k)} : ${_truncatedString(v.join(","))}\\n");
@@ -214,11 +214,11 @@ class Request implements RequestOrResponse {
     return buf.toString();
   }
 
-  String _truncatedString(String originalString, {int charSize: 128}) {
+  String _truncatedString(String originalString, {int charSize = 128}) {
     if (originalString.length <= charSize) {
       return originalString;
     }
-    return originalString.substring(0, charSize) + " ... (${originalString.length - charSize} truncated bytes)";
+    return "${originalString.substring(0, charSize)} ... (${originalString.length - charSize} truncated bytes)";
   }
 
   /// Sends a [Response] to this [Request]'s client.
@@ -232,7 +232,7 @@ class Request implements RequestOrResponse {
   /// Content-Type in the [aqueductResponse]'s [Response.headers].
   ///
   Future respond(Response aqueductResponse) {
-    respondDate = new DateTime.now().toUtc();
+    respondDate = DateTime.now().toUtc();
 
     final modifiers = _responseModifiers;
     _responseModifiers = null;
@@ -240,7 +240,7 @@ class Request implements RequestOrResponse {
       modifier(aqueductResponse);
     });
 
-    _Reference<String> compressionType = new _Reference(null);
+    _Reference<String> compressionType = _Reference(null);
     var body = aqueductResponse.body;
     if (body is! Stream) {
       // Note: this pre-encodes the body in memory, such that encoding fails this will throw and we can return a 500
@@ -310,8 +310,8 @@ class Request implements RequestOrResponse {
 
     if (codec == null) {
       if (resp.body is! List<int>) {
-        throw new StateError("Invalid response body. Body of type '${resp
-            .body.runtimeType}' cannot be encoded as content-type '${resp.contentType}'.");
+        throw StateError(
+            "Invalid response body. Body of type '${resp.body.runtimeType}' cannot be encoded as content-type '${resp.contentType}'.");
       }
 
       final bytes = resp.body as List<int>;
@@ -340,8 +340,8 @@ class Request implements RequestOrResponse {
         HTTPCodecRepository.defaultInstance.isContentTypeCompressable(resp.contentType) && _acceptsGzipResponseBody;
     if (codec == null) {
       if (resp.body is! Stream<List<int>>) {
-        throw new StateError("Invalid response body. Body of type '${resp
-            .body.runtimeType}' cannot be encoded as content-type '${resp.contentType}'.");
+        throw StateError(
+            "Invalid response body. Body of type '${resp.body.runtimeType}' cannot be encoded as content-type '${resp.contentType}'.");
       }
 
       final stream = resp.body as Stream<List<int>>;
@@ -368,21 +368,21 @@ class Request implements RequestOrResponse {
 
   @override
   String toString() {
-    return "${raw.method} ${this.raw.uri} (${this.receivedDate.millisecondsSinceEpoch})";
+    return "${raw.method} ${raw.uri} (${receivedDate.millisecondsSinceEpoch})";
   }
 
   /// A string that represents more details about the request, typically used for logging.
   ///
   /// Note: Setting includeRequestIP to true creates a significant performance penalty.
   String toDebugString(
-      {bool includeElapsedTime: true,
-      bool includeRequestIP: false,
-      bool includeMethod: true,
-      bool includeResource: true,
-      bool includeStatusCode: true,
-      bool includeContentSize: false,
-      bool includeHeaders: false}) {
-    var builder = new StringBuffer();
+      {bool includeElapsedTime = true,
+      bool includeRequestIP = false,
+      bool includeMethod = true,
+      bool includeResource = true,
+      bool includeStatusCode = true,
+      bool includeContentSize = false,
+      bool includeHeaders = false}) {
+    var builder = StringBuffer();
     if (includeRequestIP) {
       builder.write("${raw.connectionInfo?.remoteAddress?.address} ");
     }

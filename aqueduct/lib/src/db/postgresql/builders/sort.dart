@@ -4,7 +4,7 @@ import 'package:aqueduct/src/db/query/query.dart';
 
 class ColumnSortBuilder extends ColumnBuilder {
   ColumnSortBuilder(TableBuilder table, String key, QuerySortOrder order)
-      : this.order = (order == QuerySortOrder.ascending ? "ASC" : "DESC"),
+      : this.order = order == QuerySortOrder.ascending ? "ASC" : "DESC",
         super(table, table.entity.properties[key]);
 
   final String order;

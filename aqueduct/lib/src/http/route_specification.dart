@@ -14,11 +14,10 @@ class RouteSpecification {
         segments.where((e) => e.isVariable).map((e) => e.variableName).toList();
   }
 
-
   static List<RouteSpecification> specificationsForRoutePattern(
       String routePattern) {
     return _pathsFromRoutePattern(routePattern)
-        .map((path) => new RouteSpecification(path))
+        .map((path) => RouteSpecification(path))
         .toList();
   }
 
@@ -35,7 +34,8 @@ class RouteSpecification {
   String toString() => segments.join("/");
 }
 
-List<String> _pathsFromRoutePattern(String routePattern) {
+List<String> _pathsFromRoutePattern(final String inputPattern) {
+  var routePattern = inputPattern;
   var endingOptionalCloseCount = 0;
   while (routePattern.endsWith("]")) {
     routePattern = routePattern.substring(0, routePattern.length - 1);
@@ -44,7 +44,7 @@ List<String> _pathsFromRoutePattern(String routePattern) {
 
   var chars = routePattern.codeUnits;
   var patterns = <String>[];
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer();
   var openOptional = '['.codeUnitAt(0);
   var openExpression = '('.codeUnitAt(0);
   var closeExpression = ')'.codeUnitAt(0);
@@ -55,7 +55,7 @@ List<String> _pathsFromRoutePattern(String routePattern) {
 
     if (code == openExpression) {
       if (insideExpression) {
-        throw new ArgumentError(
+        throw ArgumentError(
             "Router compilation failed. Route pattern '$routePattern' cannot use expression that contains '(' or ')'");
       } else {
         buffer.writeCharCode(code);
@@ -66,7 +66,7 @@ List<String> _pathsFromRoutePattern(String routePattern) {
         buffer.writeCharCode(code);
         insideExpression = false;
       } else {
-        throw new ArgumentError(
+        throw ArgumentError(
             "Router compilation failed. Route pattern '$routePattern' cannot use expression that contains '(' or ')'");
       }
     } else if (code == openOptional) {
@@ -81,12 +81,12 @@ List<String> _pathsFromRoutePattern(String routePattern) {
   }
 
   if (insideExpression) {
-    throw new ArgumentError(
+    throw ArgumentError(
         "Router compilation failed. Route pattern '$routePattern' has unterminated regular expression.");
   }
 
   if (endingOptionalCloseCount != patterns.length) {
-    throw new ArgumentError(
+    throw ArgumentError(
         "Router compilation failed. Route pattern '$routePattern' does not close all optionals.");
   }
 
@@ -96,7 +96,8 @@ List<String> _pathsFromRoutePattern(String routePattern) {
   return patterns;
 }
 
-List<RouteSegment> _splitPathSegments(String path) {
+List<RouteSegment> _splitPathSegments(String inputPath) {
+  var path = inputPath;
   // Once we've gotten into this method, the path has been validated for optionals and regex and optionals have been removed.
 
   // Trim leading and trailing
@@ -109,7 +110,7 @@ List<RouteSegment> _splitPathSegments(String path) {
 
   var segments = <String>[];
   var chars = path.codeUnits;
-  var buffer = new StringBuffer();
+  var buffer = StringBuffer();
 
   var openExpression = '('.codeUnitAt(0);
   var closeExpression = ')'.codeUnitAt(0);
@@ -130,7 +131,7 @@ List<RouteSegment> _splitPathSegments(String path) {
         buffer.writeCharCode(code);
       } else {
         segments.add(buffer.toString());
-        buffer = new StringBuffer();
+        buffer = StringBuffer();
       }
     } else {
       buffer.writeCharCode(code);
@@ -138,12 +139,12 @@ List<RouteSegment> _splitPathSegments(String path) {
   }
 
   if (segments.any((seg) => seg == "")) {
-    throw new ArgumentError(
+    throw ArgumentError(
         "Router compilation failed. Route pattern '$path' contains an empty path segment.");
   }
 
   // Add final
   segments.add(buffer.toString());
 
-  return segments.map((seg) => new RouteSegment(seg)).toList();
+  return segments.map((seg) => RouteSegment(seg)).toList();
 }

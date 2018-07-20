@@ -1,10 +1,12 @@
+// ignore: unnecessary_const
 @Tags(const ["cli"])
 import 'dart:io';
 
+import 'package:path/path.dart' as path_lib;
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
+
 import 'cli_helpers.dart';
-import 'package:path/path.dart' as path_lib;
 
 void main() {
   Terminal terminal;
@@ -18,19 +20,17 @@ void main() {
   });
 
   setUp(() {
-    terminal = new Terminal(Terminal.temporaryDirectory);
+    terminal = Terminal(Terminal.temporaryDirectory);
   });
 
-  tearDown(() {
-    Terminal.deleteTemporaryDirectory();
-  });
+  tearDown(Terminal.deleteTemporaryDirectory);
 
   group("Project naming", () {
     test("Appropriately named project gets created correctly", () async {
       final res = await terminal.runAqueductCommand("create", ["test_project", "--offline", "--stacktrace"]);
       expect(res, 0);
 
-      expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), true);
+      expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), true);
     });
 
     test("Project name with bad characters fails immediately", () async {
@@ -39,7 +39,7 @@ void main() {
       expect(terminal.output, contains("Invalid project name"));
       expect(terminal.output, contains("snake_case"));
 
-      expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), false);
+      expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), false);
     });
 
     test("Project name with uppercase characters fails immediately", () async {
@@ -48,7 +48,7 @@ void main() {
       expect(terminal.output, contains("Invalid project name"));
       expect(terminal.output, contains("snake_case"));
 
-      expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), false);
+      expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), false);
     });
 
     test("Project name with dashes fails immediately", () async {
@@ -57,7 +57,7 @@ void main() {
       expect(terminal.output, contains("Invalid project name"));
       expect(terminal.output, contains("snake_case"));
 
-      expect(new Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), false);
+      expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("test_project/")).existsSync(), false);
     });
 
     test("Not providing name returns error", () async {
@@ -86,7 +86,7 @@ void main() {
       expect(res, 0);
 
       var aqueductLocationString =
-          new File.fromUri(terminal.workingDirectory.uri.resolve("test_project/").resolve(".packages"))
+          File.fromUri(terminal.workingDirectory.uri.resolve("test_project/").resolve(".packages"))
               .readAsStringSync()
               .split("\n")
               .firstWhere((p) => p.startsWith("aqueduct:"))
@@ -98,24 +98,24 @@ void main() {
     });
 
     /* for every template */
-    final templates = new Directory("templates")
+    final templates = Directory("templates")
         .listSync()
-        .where((fse) => fse is Directory)
+        .whereType<Directory>()
         .map((fse) => fse.uri.pathSegments[fse.uri.pathSegments.length - 2])
         .toList();
-    final aqueductPubspec = loadYaml(new File("pubspec.yaml").readAsStringSync());
-    final aqueductVersionString = "^" + (aqueductPubspec["version"] as String);
+    final aqueductPubspec = loadYaml(File("pubspec.yaml").readAsStringSync());
+    final aqueductVersionString = "^${aqueductPubspec["version"]}";
 
     for (var template in templates) {
       test("Templates contain most recent version of aqueduct by default", () {
-        var projectDir = new Directory("templates/$template/");
-        var pubspec = new File.fromUri(projectDir.uri.resolve("pubspec.yaml"));
+        var projectDir = Directory("templates/$template/");
+        var pubspec = File.fromUri(projectDir.uri.resolve("pubspec.yaml"));
         var contents = loadYaml(pubspec.readAsStringSync());
         expect(contents["dependencies"]["aqueduct"], aqueductVersionString);
       });
 
       test("Tests run on template generated from local path", () async {
-        expect((await terminal.runAqueductCommand("create", ["test_project", "-t", template, "--offline"])), 0);
+        expect(await terminal.runAqueductCommand("create", ["test_project", "-t", template, "--offline"]), 0);
 
         final cmd = Platform.isWindows ? "pub.bat" : "pub";
         var res = Process.runSync(cmd, ["run", "test", "-j", "1"],

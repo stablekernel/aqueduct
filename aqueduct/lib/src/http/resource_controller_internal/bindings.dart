@@ -3,9 +3,9 @@ import 'dart:mirrors';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
 
-import '../serializable.dart';
 import '../request.dart';
 import '../response.dart';
+import '../serializable.dart';
 import 'internal.dart';
 
 /// Parent class for annotations used for optional parameters in controller methods
@@ -16,7 +16,7 @@ abstract class BoundInput {
   final String externalName;
 
   String get type;
-  
+
   APIParameterLocation get location;
 
   bool validateType(TypeMirror type) {
@@ -28,8 +28,10 @@ abstract class BoundInput {
       return true;
     } else if (type is ClassMirror && type.staticMembers.containsKey(#parse)) {
       final parseMethod = type.staticMembers[#parse];
-      final params = parseMethod.parameters.where((p) => !p.isOptional).toList();
-      if (params.length == 1 && params.first.type.isAssignableTo(reflectType(String))) {
+      final params =
+          parseMethod.parameters.where((p) => !p.isOptional).toList();
+      if (params.length == 1 &&
+          params.first.type.isAssignableTo(reflectType(String))) {
         return true;
       }
       return false;
@@ -42,22 +44,29 @@ abstract class BoundInput {
 
   dynamic parse(ClassMirror intoType, Request request);
 
-  dynamic convertParameterListWithMirror(List<String> parameterValues, TypeMirror typeMirror) {
+  dynamic convertParameterListWithMirror(
+      List<String> parameterValues, TypeMirror typeMirror) {
     if (parameterValues == null) {
       return null;
     }
 
     if (typeMirror.isSubtypeOf(reflectType(List))) {
-      return parameterValues.map((str) => convertParameterWithMirror(str, typeMirror.typeArguments.first)).toList();
+      return parameterValues
+          .map((str) =>
+              convertParameterWithMirror(str, typeMirror.typeArguments.first))
+          .toList();
     } else {
       if (parameterValues.length > 1) {
-        throw new Response.badRequest(body: {"error": "multiple values for '$externalName' not expected"});
+        throw Response.badRequest(body: {
+          "error": "multiple values for '$externalName' not expected"
+        });
       }
       return convertParameterWithMirror(parameterValues.first, typeMirror);
     }
   }
 
-  dynamic convertParameterWithMirror(String parameterValue, TypeMirror typeMirror) {
+  dynamic convertParameterWithMirror(
+      String parameterValue, TypeMirror typeMirror) {
     if (parameterValue == null) {
       return null;
     }
@@ -73,13 +82,16 @@ abstract class BoundInput {
     final classMirror = typeMirror as ClassMirror;
     var parseDecl = classMirror.declarations[#parse];
     if (parseDecl == null) {
-      throw new StateError("Invalid binding. Type '${MirrorSystem.getName(classMirror.simpleName)}' does not implement 'parse'.");
+      throw StateError(
+          "Invalid binding. Type '${MirrorSystem.getName(classMirror.simpleName)}' does not implement 'parse'.");
     }
 
     try {
-      return classMirror.invoke(parseDecl.simpleName, [parameterValue]).reflectee;
+      return classMirror
+          .invoke(parseDecl.simpleName, [parameterValue]).reflectee;
     } catch (_) {
-      throw new Response.badRequest(body: {"error": "invalid value for '$externalName'"});
+      throw Response.badRequest(
+          body: {"error": "invalid value for '$externalName'"});
     }
   }
 }
@@ -105,10 +117,11 @@ class BoundPath extends BoundInput {
 
   @override
   APIParameterLocation get location => APIParameterLocation.path;
-  
+
   @override
   dynamic parse(ClassMirror intoType, Request request) {
-    return convertParameterWithMirror(request.path.variables[externalName], intoType);
+    return convertParameterWithMirror(
+        request.path.variables[externalName], intoType);
   }
 }
 
@@ -185,7 +198,8 @@ class BoundBody extends BoundInput {
     }
 
     if (intoType.isSubtypeOf(reflectType(HTTPSerializable))) {
-      final value = intoType.newInstance(new Symbol(""), []).reflectee as HTTPSerializable;
+      final value =
+          intoType.newInstance(const Symbol(""), []).reflectee as HTTPSerializable;
       value.readFromMap(request.body.as());
 
       return value;
@@ -197,7 +211,8 @@ class BoundBody extends BoundInput {
 
       final typeArg = intoType.typeArguments.first as ClassMirror;
       return bodyList.map((object) {
-        final value = typeArg.newInstance(new Symbol(""), []).reflectee as HTTPSerializable;
+        final value =
+            typeArg.newInstance(const Symbol(""), []).reflectee as HTTPSerializable;
         value.readFromMap(object);
 
         return value;

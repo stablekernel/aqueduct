@@ -3,8 +3,8 @@ import 'dart:mirrors';
 import 'package:aqueduct/src/auth/auth.dart';
 import 'package:aqueduct/src/http/resource_controller_scope.dart';
 
-import '../resource_controller_bindings.dart';
 import '../request.dart';
+import '../resource_controller_bindings.dart';
 import 'bindings.dart';
 
 bool requestHasFormData(Request request) {
@@ -19,10 +19,10 @@ bool requestHasFormData(Request request) {
 }
 
 Map<Symbol, dynamic> toSymbolMap(Iterable<BoundValue> boundValues) {
-  return new Map.fromIterable(boundValues.where((v) => v.value != null),
-      key: (v) => (v as BoundValue).symbol, value: (v) => (v as BoundValue).value);
+  return Map.fromIterable(boundValues.where((v) => v.value != null),
+      key: (v) => (v as BoundValue).symbol,
+      value: (v) => (v as BoundValue).value);
 }
-
 
 bool isOperation(DeclarationMirror m) {
   return getMethodOperationMetadata(m) != null;
@@ -34,9 +34,11 @@ List<AuthScope> getMethodScopes(DeclarationMirror m) {
   }
 
   MethodMirror method = m;
-  Scope metadata = method.metadata.firstWhere((im) => im.reflectee is Scope, orElse: () => null)?.reflectee;
+  Scope metadata = method.metadata
+      .firstWhere((im) => im.reflectee is Scope, orElse: () => null)
+      ?.reflectee;
 
-  return metadata?.scopes?.map((scope) => new AuthScope(scope))?.toList();
+  return metadata?.scopes?.map((scope) => AuthScope(scope))?.toList();
 }
 
 Operation getMethodOperationMetadata(DeclarationMirror m) {
@@ -49,7 +51,9 @@ Operation getMethodOperationMetadata(DeclarationMirror m) {
     return null;
   }
 
-  Operation metadata = method.metadata.firstWhere((im) => im.reflectee is Operation, orElse: () => null)?.reflectee;
+  Operation metadata = method.metadata
+      .firstWhere((im) => im.reflectee is Operation, orElse: () => null)
+      ?.reflectee;
 
   return metadata;
 }

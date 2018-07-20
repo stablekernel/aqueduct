@@ -8,10 +8,10 @@ void main() {
   DocumentedElement.provider = AnalyzerDocumentedElementProvider();
   APIDocumentContext ctx;
   setUp(() {
-    ctx = new APIDocumentContext(new APIDocument()
-      ..info = new APIInfo("x", "1.0.0")
+    ctx = APIDocumentContext(APIDocument()
+      ..info = APIInfo("x", "1.0.0")
       ..paths = {}
-      ..components = new APIComponents());
+      ..components = APIComponents());
   });
 
   tearDown(() async {
@@ -23,6 +23,7 @@ void main() {
     try {
       HTTPSerializable.document(ctx, String);
       fail("unreachable");
+      // ignore: empty_catches
     } on ArgumentError {}
   });
 
@@ -63,13 +64,12 @@ class A extends HTTPSerializable {
   ///
   /// yz
   int x;
+
   /// bvar
   B b;
 
   @override
-  void readFromMap(Map<String, dynamic> requestBody) {
-
-  }
+  void readFromMap(Map<String, dynamic> requestBody) {}
 
   @override
   Map<String, dynamic> asMap() {
@@ -82,9 +82,7 @@ class B extends HTTPSerializable {
   String y;
 
   @override
-  void readFromMap(Map<String, dynamic> requestBody) {
-
-  }
+  void readFromMap(Map<String, dynamic> requestBody) {}
 
   @override
   Map<String, dynamic> asMap() {

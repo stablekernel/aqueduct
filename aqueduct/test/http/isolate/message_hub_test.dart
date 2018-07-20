@@ -14,8 +14,10 @@ void main() {
       await app?.stop();
     });
 
-    test("A message sent to the hub is received by other channels, but not by sender", () async {
-      app = new Application<HubChannel>()..options.port = 8000;
+    test(
+        "A message sent to the hub is received by other channels, but not by sender",
+        () async {
+      app = Application<HubChannel>()..options.port = 8000;
       await app.start(numberOfInstances: 3);
 
       var resp = await postMessage("msg1");
@@ -40,8 +42,9 @@ void main() {
           completes);
     });
 
-    test("A message sent in prepare is received by all channels eventually", () async {
-      app = new Application<HubChannel>()
+    test("A message sent in prepare is received by all channels eventually",
+        () async {
+      app = Application<HubChannel>()
         ..options.port = 8000
         ..options.context = {"sendIn": "prepare"};
       await app.start(numberOfInstances: 3);
@@ -73,7 +76,7 @@ void main() {
     });
 
     test("Message hub stream can have multiple listeners", () async {
-      app = new Application<HubChannel>()
+      app = Application<HubChannel>()
         ..options.port = 8000
         ..options.context = {"multipleListeners": true};
       await app.start(numberOfInstances: 3);
@@ -112,62 +115,75 @@ void main() {
     });
 
     test("Send invalid x-isolate data returns error in error stream", () async {
-      app = new Application<HubChannel>()..options.port = 8000;
+      app = Application<HubChannel>()..options.port = 8000;
       await app.start(numberOfInstances: 3);
 
       var resp = await postMessage("garbage");
       var errors = await getErrorsFromIsolates();
       var serverID = isolateIdentifierFromResponse(resp);
       expect(errors[serverID].length, 1);
-      expect(errors[serverID].first, contains("Illegal argument in isolate message"));
+      expect(errors[serverID].first,
+          contains("Illegal argument in isolate message"));
 
       // Make sure that we can still send messages from the isolate that encountered the error
-      var resendID;
+      dynamic resendID;
       while (resendID != serverID) {
         resp = await postMessage("ok");
         resendID = isolateIdentifierFromResponse(resp);
       }
 
       int expectedReceiverID = resendID == 1 ? 2 : 1;
-      expect(waitForMessages({
-        expectedReceiverID: [{"isolateID": serverID, "message": "ok"}]
-      }), completes);
+      expect(
+          waitForMessages({
+            expectedReceiverID: [
+              {"isolateID": serverID, "message": "ok"}
+            ]
+          }),
+          completes);
     });
   });
 }
 
 Future<http.Response> postMessage(String message) async {
   return http.post("http://localhost:8000/send",
-      headers: {HttpHeaders.contentTypeHeader: ContentType.text.toString()}, body: message);
+      headers: {HttpHeaders.contentTypeHeader: ContentType.text.toString()},
+      body: message);
 }
 
-Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages, {int butNeverReceiveIn}) async {
+Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages,
+    {int butNeverReceiveIn}) async {
   final response = await http.get("http://localhost:8000/messages");
   final respondingIsolateID = isolateIdentifierFromResponse(response);
   final List<dynamic> messages = json.decode(response.body);
 
   if (expectedMessages.containsKey(respondingIsolateID)) {
-    final remainingMessagesExpectedForIsolateID = expectedMessages[respondingIsolateID];
+    final remainingMessagesExpectedForIsolateID =
+        expectedMessages[respondingIsolateID];
     for (var message in messages) {
-      final firstMatchedMessage = remainingMessagesExpectedForIsolateID.firstWhere((msg) {
-        return msg["isolateID"] == message["isolateID"] && msg["message"] == message["message"];
+      final firstMatchedMessage =
+          remainingMessagesExpectedForIsolateID.firstWhere((msg) {
+        return msg["isolateID"] == message["isolateID"] &&
+            msg["message"] == message["message"];
       }, orElse: () => null);
 
       if (firstMatchedMessage != null) {
         remainingMessagesExpectedForIsolateID.remove(firstMatchedMessage);
-        if (remainingMessagesExpectedForIsolateID.length == 0) {
+        if (remainingMessagesExpectedForIsolateID.isEmpty) {
           expectedMessages.remove(respondingIsolateID);
         }
       }
     }
   }
 
-  if (butNeverReceiveIn != null && messages.length > 0 && respondingIsolateID == butNeverReceiveIn) {
-    throw new Exception("Received unexpected message from butNeverReceivedIn");
+  if (butNeverReceiveIn != null &&
+      messages.isNotEmpty &&
+      respondingIsolateID == butNeverReceiveIn) {
+    throw Exception("Received unexpected message from butNeverReceivedIn");
   }
 
   if (expectedMessages.isNotEmpty) {
-    return waitForMessages(expectedMessages, butNeverReceiveIn: butNeverReceiveIn);
+    return waitForMessages(expectedMessages,
+        butNeverReceiveIn: butNeverReceiveIn);
   }
 
   return null;
@@ -234,17 +250,17 @@ class HubChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
     router.route("/messages").linkFunction((req) async {
-      var msgs = new List.from(messages);
+      var msgs = List.from(messages);
       messages = [];
-      return new Response.ok(msgs);
+      return Response.ok(msgs);
     });
 
     router.route("/errors").linkFunction((req) async {
-      var msgs = new List.from(errors);
+      var msgs = List.from(errors);
       errors = [];
-      return new Response.ok(msgs);
+      return Response.ok(msgs);
     });
 
     router.route("/send").linkFunction((req) async {
@@ -254,7 +270,7 @@ class HubChannel extends ApplicationChannel {
       } else {
         messageHub.add({"isolateID": server.identifier, "message": msg});
       }
-      return new Response.accepted();
+      return Response.accepted();
     });
     return router;
   }

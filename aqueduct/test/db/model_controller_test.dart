@@ -1,13 +1,14 @@
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:aqueduct/src/db/query/mixin.dart';
-import 'package:test/test.dart';
-import 'dart:io';
 import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../helpers.dart';
+import 'package:test/test.dart';
 
+import '../helpers.dart';
 
 void main() {
   Controller.letUncaughtExceptionsEscape = true;
@@ -18,13 +19,14 @@ void main() {
     context = await contextWithModels([TestModel, StringModel]);
 
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
-    var router = new Router();
-    router.route("/users/[:id]").link(() => new TestModelController(context));
-    router.route("/string/:id").link(() => new StringController(context));
+    var router = Router();
+    router.route("/users/[:id]").link(() => TestModelController(context));
+    router.route("/string/:id").link(() => StringController(context));
     router.didAddToChannel();
 
     server.listen((req) async {
-      router.receive(new Request(req));
+      // ignore: unawaited_futures
+      router.receive(Request(req));
     });
   });
 
@@ -79,11 +81,11 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values.backing.contents.length != 0) {
+    if (query.values.backing.contents.isNotEmpty) {
       statusCode = 400;
     }
 
-    return new Response(statusCode, {}, null);
+    return Response(statusCode, {}, null);
   }
 
   @Operation.get("id")
@@ -94,17 +96,20 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    ComparisonExpression comparisonMatcher = (query as QueryMixin).expressions.firstWhere((expr) => expr.keyPath.path.first.name == "id").expression;
+    ComparisonExpression comparisonMatcher = (query as QueryMixin)
+        .expressions
+        .firstWhere((expr) => expr.keyPath.path.first.name == "id")
+        .expression;
     if (comparisonMatcher.operator != PredicateOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
     }
 
-    if (query.values.backing.contents.length != 0) {
+    if (query.values.backing.contents.isNotEmpty) {
       statusCode = 400;
     }
 
-    return new Response(statusCode, {}, null);
+    return Response(statusCode, {}, null);
   }
 
   @Operation.put("id")
@@ -121,7 +126,10 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    ComparisonExpression comparisonMatcher = (query as QueryMixin).expressions.firstWhere((expr) => expr.keyPath.path.first.name == "id").expression;
+    ComparisonExpression comparisonMatcher = (query as QueryMixin)
+        .expressions
+        .firstWhere((expr) => expr.keyPath.path.first.name == "id")
+        .expression;
     if (comparisonMatcher.operator != PredicateOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
@@ -135,7 +143,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    return new Response(statusCode, {}, null);
+    return Response(statusCode, {}, null);
   }
 
   @Operation.post()
@@ -151,12 +159,12 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    return new Response(statusCode, {}, null);
+    return Response(statusCode, {}, null);
   }
 
   @Operation.post("id")
   Future<Response> crash(@Bind.path("id") int id) async {
-    return new Response.ok("");
+    return Response.ok("");
   }
 }
 
@@ -175,12 +183,16 @@ class StringController extends QueryController<StringModel> {
 
   @Operation.get("id")
   Future<Response> get(@Bind.path("id") String id) async {
-    StringExpression comparisonMatcher = (query as QueryMixin).expressions.firstWhere((expr) => expr.keyPath.path.first.name == "foo").expression;
-    return new Response.ok(comparisonMatcher.value);
+    StringExpression comparisonMatcher = (query as QueryMixin)
+        .expressions
+        .firstWhere((expr) => expr.keyPath.path.first.name == "foo")
+        .expression;
+    return Response.ok(comparisonMatcher.value);
   }
 }
 
 class StringModel extends ManagedObject<_StringModel> implements _StringModel {}
+
 class _StringModel {
   @Column(primaryKey: true)
   String foo;

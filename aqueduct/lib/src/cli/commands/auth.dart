@@ -6,8 +6,8 @@ import 'package:aqueduct/src/cli/command.dart';
 
 class CLIAuth extends CLICommand {
   CLIAuth() {
-    registerCommand(new CLIAuthAddClient());
-    registerCommand(new CLIAuthScopeClient());
+    registerCommand(CLIAuthAddClient());
+    registerCommand(CLIAuthScopeClient());
   }
 
   @override

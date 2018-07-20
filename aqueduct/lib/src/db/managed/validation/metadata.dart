@@ -65,7 +65,7 @@ class Validate {
   ///                return someCondition;
   ///            }
   ///         }
-  const Validate({bool onUpdate: true, bool onInsert: true})
+  const Validate({bool onUpdate = true, bool onInsert = true})
       : runOnUpdate = onUpdate,
         runOnInsert = onInsert,
         this._value = null,
@@ -77,8 +77,8 @@ class Validate {
         _type = null;
 
   const Validate._(
-      {bool onUpdate: true,
-      bool onInsert: true,
+      {bool onUpdate = true,
+      bool onInsert = true,
       ValidateType validator,
       dynamic value,
       Comparable greaterThan,
@@ -105,8 +105,13 @@ class Validate {
   ///
   /// If [onUpdate] is true (the default), this validation is run on update queries.
   /// If [onInsert] is true (the default), this validation is run on insert queries.
-  const Validate.matches(String pattern, {bool onUpdate: true, bool onInsert: true})
-      : this._(value: pattern, onUpdate: onUpdate, onInsert: onInsert, validator: ValidateType.regex);
+  const Validate.matches(String pattern,
+      {bool onUpdate = true, bool onInsert = true})
+      : this._(
+            value: pattern,
+            onUpdate: onUpdate,
+            onInsert: onInsert,
+            validator: ValidateType.regex);
 
   /// A validator for comparing a value.
   ///
@@ -142,8 +147,8 @@ class Validate {
       Comparable equalTo,
       Comparable greaterThanEqualTo,
       Comparable lessThanEqualTo,
-      bool onUpdate: true,
-      bool onInsert: true})
+      bool onUpdate = true,
+      bool onInsert = true})
       : this._(
             lessThan: lessThan,
             lessThanEqualTo: lessThanEqualTo,
@@ -180,8 +185,8 @@ class Validate {
       int equalTo,
       int greaterThanEqualTo,
       int lessThanEqualTo,
-      bool onUpdate: true,
-      bool onInsert: true})
+      bool onUpdate = true,
+      bool onInsert = true})
       : this._(
             lessThan: lessThan,
             lessThanEqualTo: lessThanEqualTo,
@@ -199,8 +204,11 @@ class Validate {
   ///
   /// If [onUpdate] is true (the default), this validation requires a property to be present for update queries.
   /// If [onInsert] is true (the default), this validation requires a property to be present for insert queries.
-  const Validate.present({bool onUpdate: true, bool onInsert: true})
-      : this._(onUpdate: onUpdate, onInsert: onInsert, validator: ValidateType.present);
+  const Validate.present({bool onUpdate = true, bool onInsert = true})
+      : this._(
+            onUpdate: onUpdate,
+            onInsert: onInsert,
+            validator: ValidateType.present);
 
   /// A validator for ensuring a property does not have a value when being inserted or updated.
   ///
@@ -215,8 +223,11 @@ class Validate {
   ///
   /// If [onUpdate] is true (the default), this validation requires a property to be absent for update queries.
   /// If [onInsert] is true (the default), this validation requires a property to be absent for insert queries.
-  const Validate.absent({bool onUpdate: true, bool onInsert: true})
-      : this._(onUpdate: onUpdate, onInsert: onInsert, validator: ValidateType.absent);
+  const Validate.absent({bool onUpdate = true, bool onInsert = true})
+      : this._(
+            onUpdate: onUpdate,
+            onInsert: onInsert,
+            validator: ValidateType.absent);
 
   /// A validator for ensuring a value is one of a set of values.
   ///
@@ -233,8 +244,13 @@ class Validate {
   ///
   /// If [onUpdate] is true (the default), this validation is run on update queries.
   /// If [onInsert] is true (the default), this validation is run on insert queries.
-  const Validate.oneOf(List<dynamic> values, {bool onUpdate: true, bool onInsert: true})
-      : this._(value: values, onUpdate: onUpdate, onInsert: onInsert, validator: ValidateType.oneOf);
+  const Validate.oneOf(List<dynamic> values,
+      {bool onUpdate = true, bool onInsert = true})
+      : this._(
+            value: values,
+            onUpdate: onUpdate,
+            onInsert: onInsert,
+            validator: ValidateType.oneOf);
 
   /// Whether or not this validation is checked on update queries.
   final bool runOnUpdate;
@@ -271,7 +287,8 @@ class Validate {
   final ValidateType _type;
 
   List<ValidationExpression> get _expressions {
-    return ValidationExpression.comparisons(_equalTo, _lessThan, _lessThanEqualTo, _greaterThan, _greaterThanEqualTo);
+    return ValidationExpression.comparisons(_equalTo, _lessThan,
+        _lessThanEqualTo, _greaterThan, _greaterThanEqualTo);
   }
 
   /// Custom validations override this method to provide validation behavior.
@@ -286,15 +303,14 @@ class Validate {
   /// This method is not run when [input] is null.
   ///
   /// The type of [input] will have already been type-checked prior to executing this method.
-  void validate(ValidationContext context, dynamic input) {
-
-  }
+  void validate(ValidationContext context, dynamic input) {}
 
   /// Adds constraints to an [APISchemaObject] imposed by this validator.
   ///
   /// Used during documentation process. When creating custom validator subclasses, override this method
   /// to modify [object] for any constraints the validator imposes.
-  void constrainSchemaObject(APIDocumentContext context, APISchemaObject object) {
+  void constrainSchemaObject(
+      APIDocumentContext context, APISchemaObject object) {
     switch (_type) {
       case ValidateType.regex:
         {

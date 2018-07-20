@@ -1,3 +1,4 @@
+// ignore: unnecessary_const
 @Tags(const ["cli"])
 import 'dart:io';
 import 'package:test/test.dart';
@@ -25,9 +26,7 @@ class _TestObject {
       """);
     });
 
-    tearDown(() {
-      Terminal.deleteTemporaryDirectory();
-    });
+    tearDown(Terminal.deleteTemporaryDirectory);
 
     test("Run without pub get yields error", () async {
       var res = await terminal.runAqueductCommand("db", ["generate"]);
@@ -43,7 +42,9 @@ class _TestObject {
       expect(terminal.defaultMigrationDirectory.existsSync(), true);
     });
 
-    test("If there are no migration files, create an initial one that validates to schema", () async {
+    test(
+        "If there are no migration files, create an initial one that validates to schema",
+        () async {
       await terminal.getDependencies(offline: true);
 
       // Putting a non-migration file in there to ensure that this doesn't prevent from being ugpraded
@@ -58,7 +59,9 @@ class _TestObject {
       expect(res, 0);
     });
 
-    test("If there is already a migration file, create an upgrade file with changes", () async {
+    test(
+        "If there is already a migration file, create an upgrade file with changes",
+        () async {
       await terminal.getDependencies(offline: true);
 
       var res = await terminal.runAqueductCommand("db", ["generate"]);
@@ -67,21 +70,27 @@ class _TestObject {
 
       // Let's add an index
       terminal.modifyFile("lib/application_test.dart", (prev) {
-        return prev.replaceFirst("String foo;", "@Column(indexed: true) String foo;");
+        return prev.replaceFirst(
+            "String foo;", "@Column(indexed: true) String foo;");
       });
 
       res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
       terminal.clearOutput();
 
-      expect(terminal.defaultMigrationDirectory.listSync().where((fse) => !fse.uri.pathSegments.last.startsWith(".")),
+      expect(
+          terminal.defaultMigrationDirectory
+              .listSync()
+              .where((fse) => !fse.uri.pathSegments.last.startsWith(".")),
           hasLength(2));
       expect(
-          new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("00000001_Initial.migration.dart"))
+          File.fromUri(terminal.defaultMigrationDirectory.uri
+                  .resolve("00000001_Initial.migration.dart"))
               .existsSync(),
           true);
       expect(
-          new File.fromUri(terminal.defaultMigrationDirectory.uri.resolve("00000002_Unnamed.migration.dart"))
+          File.fromUri(terminal.defaultMigrationDirectory.uri
+                  .resolve("00000002_Unnamed.migration.dart"))
               .existsSync(),
           true);
 
@@ -89,30 +98,45 @@ class _TestObject {
       expect(res, 0);
     });
 
-    test("Can specify migration directory other than default, relative path", () async {
+    test("Can specify migration directory other than default, relative path",
+        () async {
       await terminal.getDependencies(offline: true);
 
-      var res = await terminal.runAqueductCommand("db", ["generate", "--migration-directory", "foobar"]);
-      expect(res, 0);
-
-      final migDir = new Directory.fromUri(terminal.workingDirectory.uri.resolve("foobar/"));
-      final files = migDir.listSync();
-      expect(files.any((fse) => fse is File && fse.path.endsWith("migration.dart")), true);
-    });
-
-    test("Can specify migration directory other than default, absolute path", () async {
-      await terminal.getDependencies(offline: true);
-
-      final migDir = new Directory.fromUri(terminal.workingDirectory.uri.resolve("foobar/"));
       var res = await terminal.runAqueductCommand(
-          "db", ["generate", "--migration-directory", migDir.uri.toFilePath(windows: Platform.isWindows)]);
+          "db", ["generate", "--migration-directory", "foobar"]);
+      expect(res, 0);
+
+      final migDir =
+          Directory.fromUri(terminal.workingDirectory.uri.resolve("foobar/"));
+      final files = migDir.listSync();
+      expect(
+          files
+              .any((fse) => fse is File && fse.path.endsWith("migration.dart")),
+          true);
+    });
+
+    test("Can specify migration directory other than default, absolute path",
+        () async {
+      await terminal.getDependencies(offline: true);
+
+      final migDir =
+          Directory.fromUri(terminal.workingDirectory.uri.resolve("foobar/"));
+      var res = await terminal.runAqueductCommand("db", [
+        "generate",
+        "--migration-directory",
+        migDir.uri.toFilePath(windows: Platform.isWindows)
+      ]);
       expect(res, 0);
 
       final files = migDir.listSync();
-      expect(files.any((fse) => fse is File && fse.path.endsWith("migration.dart")), true);
+      expect(
+          files
+              .any((fse) => fse is File && fse.path.endsWith("migration.dart")),
+          true);
     });
 
-    test("If migration file requires additional input, send message to user", () async {
+    test("If migration file requires additional input, send message to user",
+        () async {
       await terminal.getDependencies(offline: true);
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);

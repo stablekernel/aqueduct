@@ -7,15 +7,16 @@ import 'package:isolate_executor/isolate_executor.dart';
 
 class RunUpgradeExecutable extends Executable<Map<String, dynamic>> {
   RunUpgradeExecutable(Map<String, dynamic> message)
-      : inputSchema = new Schema.fromMap(message["schema"] as Map<String, dynamic>),
-        dbInfo = new DBInfo.fromMap(message["dbInfo"] as Map<String, dynamic>),
+      : inputSchema = Schema.fromMap(message["schema"] as Map<String, dynamic>),
+        dbInfo = DBInfo.fromMap(message["dbInfo"] as Map<String, dynamic>),
         sources = (message["migrations"] as List<Map>)
-            .map((m) => new MigrationSource.fromMap(m as Map<String, dynamic>))
+            .map((m) => MigrationSource.fromMap(m as Map<String, dynamic>))
             .toList(),
         currentVersion = message["currentVersion"] as int,
         super(message);
 
-  RunUpgradeExecutable.input(this.inputSchema, this.dbInfo, this.sources, this.currentVersion)
+  RunUpgradeExecutable.input(
+      this.inputSchema, this.dbInfo, this.sources, this.currentVersion)
       : super({
           "schema": inputSchema.asMap(),
           "dbInfo": dbInfo.asMap(),
@@ -33,12 +34,13 @@ class RunUpgradeExecutable extends Executable<Map<String, dynamic>> {
     hierarchicalLoggingEnabled = true;
 
     PostgreSQLPersistentStore.logger.level = Level.ALL;
-    PostgreSQLPersistentStore.logger.onRecord.listen((r) => log("${r.message}"));
+    PostgreSQLPersistentStore.logger.onRecord
+        .listen((r) => log("${r.message}"));
 
     PersistentStore store;
     if (dbInfo != null && dbInfo.flavor == "postgres") {
-      store = new PostgreSQLPersistentStore(
-          dbInfo.username, dbInfo.password, dbInfo.host, dbInfo.port, dbInfo.databaseName,
+      store = PostgreSQLPersistentStore(dbInfo.username, dbInfo.password,
+          dbInfo.host, dbInfo.port, dbInfo.databaseName,
           timeZone: dbInfo.timeZone);
     }
 
@@ -47,13 +49,16 @@ class RunUpgradeExecutable extends Executable<Map<String, dynamic>> {
         .rootLibrary
         .declarations
         .values
-        .where((dm) => dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration)));
+        .where((dm) =>
+            dm is ClassMirror && dm.isSubclassOf(reflectClass(Migration)));
 
     final instances = sources.map((s) {
       final type = migrationTypes.firstWhere((cm) {
-        return cm is ClassMirror && MirrorSystem.getName(cm.simpleName) == s.name;
+        return cm is ClassMirror &&
+            MirrorSystem.getName(cm.simpleName) == s.name;
       }) as ClassMirror;
-      final migration = type.newInstance(const Symbol(""), []).reflectee as Migration;
+      final migration =
+          type.newInstance(const Symbol(""), []).reflectee as Migration;
       migration.version = s.versionNumber;
       return migration;
     }).toList();
@@ -72,7 +77,8 @@ class RunUpgradeExecutable extends Executable<Map<String, dynamic>> {
 }
 
 class DBInfo {
-  DBInfo(this.flavor, this.username, this.password, this.host, this.port, this.databaseName, this.timeZone);
+  DBInfo(this.flavor, this.username, this.password, this.host, this.port,
+      this.databaseName, this.timeZone);
 
   DBInfo.fromMap(Map<String, dynamic> map)
       : flavor = map["flavor"] as String,

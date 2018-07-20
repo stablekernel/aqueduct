@@ -41,21 +41,25 @@ abstract class CLIDocumentOptions implements CLICommand {
       defaultsTo: "config.src.yaml")
   String get configurationPath => decode("config-path");
 
-  @MultiOption("host", help: "Scheme, host and port for available instances.", valueHelp: "https://api.myapp.com:8000")
+  @MultiOption("host",
+      help: "Scheme, host and port for available instances.",
+      valueHelp: "https://api.myapp.com:8000")
   List<Uri> get hosts {
     List<String> hostValues = decode("host") ?? ["http://localhost:8888"];
     return hostValues.map((str) {
       var uri = Uri.parse(str);
       if (uri == null) {
-        throw new CLIException("Invalid Host Option",
-            instructions: ["Host names must identify scheme, host and port. Example: https://api.myapp.com:8000"]);
+        throw CLIException("Invalid Host Option", instructions: [
+          "Host names must identify scheme, host and port. Example: https://api.myapp.com:8000"
+        ]);
       }
 
       return uri;
     }).toList();
   }
 
-  Future<Map<dynamic, dynamic>> documentProject(Uri projectDirectory, String libraryName, File pubspecFile) async {
+  Future<Map<dynamic, dynamic>> documentProject(
+      Uri projectDirectory, String libraryName, File pubspecFile) async {
     final variables = <String, dynamic>{
       "pubspec": pubspecFile.readAsStringSync(),
       "hosts": hosts?.map((u) => u.toString())?.toList(),

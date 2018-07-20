@@ -18,7 +18,8 @@ import '../db/persistent_store/persistent_store.dart';
 /// when instantiated. If you are unsure whether an object has already been registered, you may re-register it -
 /// multiple registrations have no effect.
 class ApplicationServiceRegistry {
-  static final ApplicationServiceRegistry defaultInstance = new ApplicationServiceRegistry();
+  static final ApplicationServiceRegistry defaultInstance =
+      ApplicationServiceRegistry();
 
   List<_ServiceRegistration> _registrations = [];
 
@@ -38,7 +39,7 @@ class ApplicationServiceRegistry {
     if (_registrations.any((r) => identical(r.object, object))) {
       return object;
     }
-    _registrations.add(new _ServiceRegistration<T>(object, onClose));
+    _registrations.add(_ServiceRegistration<T>(object, onClose));
     return object;
   }
 
@@ -60,7 +61,7 @@ class ApplicationServiceRegistry {
   }
 }
 
-typedef FutureOr _CloseFunction<T>(T object);
+typedef _CloseFunction<T> = FutureOr Function(T object);
 
 class _ServiceRegistration<T> {
   _ServiceRegistration(this.object, this.onClose);

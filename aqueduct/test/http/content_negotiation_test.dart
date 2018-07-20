@@ -1,8 +1,8 @@
 import 'dart:async';
-
-import 'package:test/test.dart';
-import 'package:aqueduct/aqueduct.dart';
 import 'dart:io';
+
+import 'package:aqueduct/aqueduct.dart';
+import 'package:test/test.dart';
 
 void main() {
   HttpServer server;
@@ -10,7 +10,7 @@ void main() {
   HttpClient client;
 
   setUpAll(() {
-    client = new HttpClient();
+    client = HttpClient();
   });
 
   tearDownAll(() async {
@@ -27,8 +27,9 @@ void main() {
   });
 
   test("No accept header returns [], all are allowed", () async {
+    // ignore: unawaited_futures
     getWithTypes(client, null);
-    request = new Request(await server.first);
+    request = Request(await server.first);
     expect(request.acceptableContentTypes, []);
     expect(request.acceptsContentType(ContentType.json), true);
     expect(request.acceptsContentType(ContentType.html), true);
@@ -36,8 +37,9 @@ void main() {
   });
 
   test("Empty Accept header returns [], all are allowed", () async {
+    // ignore: unawaited_futures
     getWithTypes(client, []);
-    request = new Request(await server.first);
+    request = Request(await server.first);
 
     expect(request.acceptableContentTypes.isEmpty, true);
     expect(request.acceptsContentType(ContentType.json), true);
@@ -45,22 +47,40 @@ void main() {
     expect(request.acceptsContentType(ContentType.binary), true);
   });
 
-  test("Two implicitly equal q-values order is defined by their position in request", () async {
+  test(
+      "Two implicitly equal q-values order is defined by their position in request",
+      () async {
+    // ignore: unawaited_futures
     getWithTypes(client, ["text/plain", "text/html"]);
-    request = new Request(await server.first);
-    expect(request.acceptableContentTypes.any((ct) => ct.primaryType == "text" && ct.subType == "plain"), true);
-    expect(request.acceptableContentTypes.any((ct) => ct.primaryType == "text" && ct.subType == "html"), true);
+    request = Request(await server.first);
+    expect(
+        request.acceptableContentTypes
+            .any((ct) => ct.primaryType == "text" && ct.subType == "plain"),
+        true);
+    expect(
+        request.acceptableContentTypes
+            .any((ct) => ct.primaryType == "text" && ct.subType == "html"),
+        true);
     expect(request.acceptsContentType(ContentType.json), false);
     expect(request.acceptsContentType(ContentType.html), true);
     expect(request.acceptsContentType(ContentType.text), true);
     expect(request.acceptsContentType(ContentType.binary), false);
   });
 
-  test("Two explicitly equal q-values order is defined by their position in request", () async {
+  test(
+      "Two explicitly equal q-values order is defined by their position in request",
+      () async {
+        // ignore: unawaited_futures
     getWithTypes(client, ["text/plain; q=1.0", "text/html; q=1.0"]);
-    request = new Request(await server.first);
-    expect(request.acceptableContentTypes.first.primaryType == "text" && request.acceptableContentTypes.first.subType == "plain", true);
-    expect(request.acceptableContentTypes.last.primaryType == "text" && request.acceptableContentTypes.last.subType == "html", true);
+    request = Request(await server.first);
+    expect(
+        request.acceptableContentTypes.first.primaryType == "text" &&
+            request.acceptableContentTypes.first.subType == "plain",
+        true);
+    expect(
+        request.acceptableContentTypes.last.primaryType == "text" &&
+            request.acceptableContentTypes.last.subType == "html",
+        true);
     expect(request.acceptsContentType(ContentType.json), false);
     expect(request.acceptsContentType(ContentType.html), true);
     expect(request.acceptsContentType(ContentType.text), true);
@@ -68,21 +88,36 @@ void main() {
   });
 
   test("Q-value with explicit 1 (not 1.0) is interpreted as 1.0", () async {
+    // ignore: unawaited_futures
     getWithTypes(client, ["text/plain; q=1.0", "text/html; q=1"]);
-    request = new Request(await server.first);
-    expect(request.acceptableContentTypes.first.primaryType == "text" && request.acceptableContentTypes.first.subType == "plain", true);
-    expect(request.acceptableContentTypes.last.primaryType == "text" && request.acceptableContentTypes.last.subType == "html", true);
+    request = Request(await server.first);
+    expect(
+        request.acceptableContentTypes.first.primaryType == "text" &&
+            request.acceptableContentTypes.first.subType == "plain",
+        true);
+    expect(
+        request.acceptableContentTypes.last.primaryType == "text" &&
+            request.acceptableContentTypes.last.subType == "html",
+        true);
     expect(request.acceptsContentType(ContentType.json), false);
     expect(request.acceptsContentType(ContentType.html), true);
     expect(request.acceptsContentType(ContentType.text), true);
     expect(request.acceptsContentType(ContentType.binary), false);
   });
 
-  test("Two equal q-values but primary type is * prefers to other type", () async {
+  test("Two equal q-values but primary type is * prefers to other type",
+      () async {
+        // ignore: unawaited_futures
     getWithTypes(client, ["*/*", "text/html"]);
-    request = new Request(await server.first);
-    expect(request.acceptableContentTypes.first.primaryType == "text" && request.acceptableContentTypes.first.subType == "html", true);
-    expect(request.acceptableContentTypes.last.primaryType == "*" && request.acceptableContentTypes.last.subType == "*", true);
+    request = Request(await server.first);
+    expect(
+        request.acceptableContentTypes.first.primaryType == "text" &&
+            request.acceptableContentTypes.first.subType == "html",
+        true);
+    expect(
+        request.acceptableContentTypes.last.primaryType == "*" &&
+            request.acceptableContentTypes.last.subType == "*",
+        true);
     expect(request.acceptsContentType(ContentType.json), true);
     expect(request.acceptsContentType(ContentType.html), true);
     expect(request.acceptsContentType(ContentType.text), true);
@@ -90,10 +125,17 @@ void main() {
   });
 
   test("Two equal q-values but subtype is * prefers to other type", () async {
+    // ignore: unawaited_futures
     getWithTypes(client, ["text/*", "text/html"]);
-    request = new Request(await server.first);
-    expect(request.acceptableContentTypes.first.primaryType == "text" && request.acceptableContentTypes.first.subType == "html", true);
-    expect(request.acceptableContentTypes.last.primaryType == "text" && request.acceptableContentTypes.last.subType == "*", true);
+    request = Request(await server.first);
+    expect(
+        request.acceptableContentTypes.first.primaryType == "text" &&
+            request.acceptableContentTypes.first.subType == "html",
+        true);
+    expect(
+        request.acceptableContentTypes.last.primaryType == "text" &&
+            request.acceptableContentTypes.last.subType == "*",
+        true);
     expect(request.acceptsContentType(ContentType.json), false);
     expect(request.acceptsContentType(ContentType.html), true);
     expect(request.acceptsContentType(ContentType.text), true);
@@ -101,11 +143,25 @@ void main() {
   });
 
   test("Sorted by q-value if all content-types are fully defined", () async {
-    getWithTypes(client, ["text/plain; q=0.4", "text/html; q=0.8", "application/json; charset=utf-8"]);
-    request = new Request(await server.first);
-    expect(request.acceptableContentTypes.first.primaryType == "application" && request.acceptableContentTypes.first.subType == "json", true);
-    expect(request.acceptableContentTypes[1].primaryType == "text" && request.acceptableContentTypes[1].subType == "html", true);
-    expect(request.acceptableContentTypes.last.primaryType == "text" && request.acceptableContentTypes.last.subType == "plain", true);
+    // ignore: unawaited_futures
+    getWithTypes(client, [
+      "text/plain; q=0.4",
+      "text/html; q=0.8",
+      "application/json; charset=utf-8"
+    ]);
+    request = Request(await server.first);
+    expect(
+        request.acceptableContentTypes.first.primaryType == "application" &&
+            request.acceptableContentTypes.first.subType == "json",
+        true);
+    expect(
+        request.acceptableContentTypes[1].primaryType == "text" &&
+            request.acceptableContentTypes[1].subType == "html",
+        true);
+    expect(
+        request.acceptableContentTypes.last.primaryType == "text" &&
+            request.acceptableContentTypes.last.subType == "plain",
+        true);
     expect(request.acceptsContentType(ContentType.json), true);
     expect(request.acceptsContentType(ContentType.html), true);
     expect(request.acceptsContentType(ContentType.text), true);

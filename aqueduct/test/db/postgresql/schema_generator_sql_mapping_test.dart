@@ -8,13 +8,16 @@ void main() {
   group("Table generation command mapping", () {
     PostgreSQLPersistentStore psc;
     setUp(() {
-      psc = new PostgreSQLPersistentStore(null, null, null, null, null);
+      psc = PostgreSQLPersistentStore(null, null, null, null, null);
     });
 
     test("Property tables generate appropriate postgresql commands", () {
-      var dm = new ManagedDataModel([GeneratorModel1]);
-      var schema = new Schema.fromDataModel(dm);
-      var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+      var dm = ManagedDataModel([GeneratorModel1]);
+      var schema = Schema.fromDataModel(dm);
+      var commands = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
 
       expect(commands[0],
           "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL,document JSONB NOT NULL)");
@@ -22,9 +25,12 @@ void main() {
     });
 
     test("Create temporary table", () {
-      var dm = new ManagedDataModel([GeneratorModel1]);
-      var schema = new Schema.fromDataModel(dm);
-      var commands = schema.tables.map((t) => psc.createTable(t, isTemporary: true)).expand((l) => l).toList();
+      var dm = ManagedDataModel([GeneratorModel1]);
+      var schema = Schema.fromDataModel(dm);
+      var commands = schema.tables
+          .map((t) => psc.createTable(t, isTemporary: true))
+          .expand((l) => l)
+          .toList();
 
       expect(commands[0],
           "CREATE TEMPORARY TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL,document JSONB NOT NULL)");
@@ -32,21 +38,28 @@ void main() {
     });
 
     test("Create table with indices", () {
-      var dm = new ManagedDataModel([GeneratorModel2]);
-      var schema = new Schema.fromDataModel(dm);
-      schema
-          .tableForName("_GeneratorModel2")
-          .addColumn(new SchemaColumn("a", ManagedPropertyType.integer, isIndexed: true));
-      var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+      var dm = ManagedDataModel([GeneratorModel2]);
+      var schema = Schema.fromDataModel(dm);
+      schema.tableForName("_GeneratorModel2").addColumn(
+          SchemaColumn("a", ManagedPropertyType.integer, isIndexed: true));
+      var commands = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
 
-      expect(commands[0], "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY,a INT NOT NULL)");
-      expect(commands[1], "CREATE INDEX _GeneratorModel2_a_idx ON _GeneratorModel2 (a)");
+      expect(commands[0],
+          "CREATE TABLE _GeneratorModel2 (id INT PRIMARY KEY,a INT NOT NULL)");
+      expect(commands[1],
+          "CREATE INDEX _GeneratorModel2_a_idx ON _GeneratorModel2 (a)");
     });
 
     test("Create multiple tables with trailing index", () {
-      var dm = new ManagedDataModel([GeneratorModel1, GeneratorModel2]);
-      var schema = new Schema.fromDataModel(dm);
-      var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+      var dm = ManagedDataModel([GeneratorModel1, GeneratorModel2]);
+      var schema = Schema.fromDataModel(dm);
+      var commands = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
 
       expect(commands[0],
           "CREATE TABLE _GeneratorModel1 (id BIGSERIAL PRIMARY KEY,name TEXT NOT NULL,option BOOLEAN NOT NULL,points DOUBLE PRECISION NOT NULL UNIQUE,validDate TIMESTAMP NULL,document JSONB NOT NULL)");
@@ -54,43 +67,66 @@ void main() {
     });
 
     test("Default values are properly serialized", () {
-      var dm = new ManagedDataModel([GeneratorModel3]);
-      var schema = new Schema.fromDataModel(dm);
-      var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+      var dm = ManagedDataModel([GeneratorModel3]);
+      var schema = Schema.fromDataModel(dm);
+      var commands = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
 
       expect(commands[0],
           "CREATE TABLE _GeneratorModel3 (creationDate TIMESTAMP NOT NULL DEFAULT (now() at time zone 'utc'),id INT PRIMARY KEY,textValue TEXT NOT NULL DEFAULT \$\$dflt\$\$,option BOOLEAN NOT NULL DEFAULT true,otherTime TIMESTAMP NOT NULL DEFAULT '1900-01-01T00:00:00.000Z',value DOUBLE PRECISION NOT NULL DEFAULT 20.0)");
     });
 
     test("Table with tableName() overrides class name", () {
-      var dm = new ManagedDataModel([GenNamed]);
-      var schema = new Schema.fromDataModel(dm);
-      var commands = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+      var dm = ManagedDataModel([GenNamed]);
+      var schema = Schema.fromDataModel(dm);
+      var commands = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
 
       expect(commands, ["CREATE TABLE GenNamed (id INT PRIMARY KEY)"]);
     });
 
     test("One-to-one relationships are generated", () {
-      var dm = new ManagedDataModel([GenOwner, GenAuth]);
-      var schema = new Schema.fromDataModel(dm);
-      var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+      var dm = ManagedDataModel([GenOwner, GenAuth]);
+      var schema = Schema.fromDataModel(dm);
+      var cmds = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
 
       expect(cmds[0], "CREATE TABLE _GenOwner (id BIGSERIAL PRIMARY KEY)");
-      expect(cmds[1], "CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)");
-      expect(cmds[2], "CREATE INDEX _GenAuth_owner_id_idx ON _GenAuth (owner_id)");
+      expect(cmds[1],
+          "CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)");
       expect(
-          cmds[3], "ALTER TABLE ONLY _GenAuth ADD FOREIGN KEY (owner_id) REFERENCES _GenOwner (id) ON DELETE CASCADE");
+          cmds[2], "CREATE INDEX _GenAuth_owner_id_idx ON _GenAuth (owner_id)");
+      expect(cmds[3],
+          "ALTER TABLE ONLY _GenAuth ADD FOREIGN KEY (owner_id) REFERENCES _GenOwner (id) ON DELETE CASCADE");
       expect(cmds.length, 4);
     });
 
     test("One-to-many relationships are generated", () {
-      var dm = new ManagedDataModel([GenUser, GenPost]);
-      var schema = new Schema.fromDataModel(dm);
-      var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+      var dm = ManagedDataModel([GenUser, GenPost]);
+      var schema = Schema.fromDataModel(dm);
+      var cmds = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
 
-      expect(cmds.contains("CREATE TABLE _GenUser (id INT PRIMARY KEY,name TEXT NOT NULL)"), true);
-      expect(cmds.contains("CREATE TABLE _GenPost (id INT PRIMARY KEY,text TEXT NOT NULL,owner_id INT NULL)"), true);
-      expect(cmds.contains("CREATE INDEX _GenPost_owner_id_idx ON _GenPost (owner_id)"), true);
+      expect(
+          cmds.contains(
+              "CREATE TABLE _GenUser (id INT PRIMARY KEY,name TEXT NOT NULL)"),
+          true);
+      expect(
+          cmds.contains(
+              "CREATE TABLE _GenPost (id INT PRIMARY KEY,text TEXT NOT NULL,owner_id INT NULL)"),
+          true);
+      expect(
+          cmds.contains(
+              "CREATE INDEX _GenPost_owner_id_idx ON _GenPost (owner_id)"),
+          true);
       expect(
           cmds.contains(
               "ALTER TABLE ONLY _GenPost ADD FOREIGN KEY (owner_id) REFERENCES _GenUser (id) ON DELETE RESTRICT"),
@@ -99,14 +135,20 @@ void main() {
     });
 
     test("Many-to-many relationships are generated", () {
-      var dm = new ManagedDataModel([GenLeft, GenRight, GenJoin]);
-      var schema = new Schema.fromDataModel(dm);
-      var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+      var dm = ManagedDataModel([GenLeft, GenRight, GenJoin]);
+      var schema = Schema.fromDataModel(dm);
+      var cmds = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
 
       expect(cmds.contains("CREATE TABLE _GenLeft (id INT PRIMARY KEY)"), true);
-      expect(cmds.contains("CREATE TABLE _GenRight (id INT PRIMARY KEY)"), true);
       expect(
-          cmds.contains("CREATE TABLE _GenJoin (id BIGSERIAL PRIMARY KEY,left_id INT NULL,right_id INT NULL)"), true);
+          cmds.contains("CREATE TABLE _GenRight (id INT PRIMARY KEY)"), true);
+      expect(
+          cmds.contains(
+              "CREATE TABLE _GenJoin (id BIGSERIAL PRIMARY KEY,left_id INT NULL,right_id INT NULL)"),
+          true);
       expect(
           cmds.contains(
               "ALTER TABLE ONLY _GenJoin ADD FOREIGN KEY (left_id) REFERENCES _GenLeft (id) ON DELETE SET NULL"),
@@ -115,150 +157,204 @@ void main() {
           cmds.contains(
               "ALTER TABLE ONLY _GenJoin ADD FOREIGN KEY (right_id) REFERENCES _GenRight (id) ON DELETE SET NULL"),
           true);
-      expect(cmds.contains("CREATE INDEX _GenJoin_left_id_idx ON _GenJoin (left_id)"), true);
-      expect(cmds.contains("CREATE INDEX _GenJoin_right_id_idx ON _GenJoin (right_id)"), true);
+      expect(
+          cmds.contains(
+              "CREATE INDEX _GenJoin_left_id_idx ON _GenJoin (left_id)"),
+          true);
+      expect(
+          cmds.contains(
+              "CREATE INDEX _GenJoin_right_id_idx ON _GenJoin (right_id)"),
+          true);
       expect(cmds.length, 7);
     });
 
     test("Serial types in relationships are properly inversed", () {
-      var dm = new ManagedDataModel([GenOwner, GenAuth]);
-      var schema = new Schema.fromDataModel(dm);
-      var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+      var dm = ManagedDataModel([GenOwner, GenAuth]);
+      var schema = Schema.fromDataModel(dm);
+      var cmds = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
 
-      expect(cmds.contains("CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)"), true);
+      expect(
+          cmds.contains(
+              "CREATE TABLE _GenAuth (id INT PRIMARY KEY,owner_id BIGINT NULL UNIQUE)"),
+          true);
     });
 
     test("Private fields are generated as columns", () {
-      var dm = new ManagedDataModel([PrivateField]);
-      var schema = new Schema.fromDataModel(dm);
-      var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+      var dm = ManagedDataModel([PrivateField]);
+      var schema = Schema.fromDataModel(dm);
+      var cmds = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
 
-      expect(cmds.contains("CREATE TABLE _PrivateField (id BIGSERIAL PRIMARY KEY,_private TEXT NOT NULL)"), true);
+      expect(
+          cmds.contains(
+              "CREATE TABLE _PrivateField (id BIGSERIAL PRIMARY KEY,_private TEXT NOT NULL)"),
+          true);
     });
 
     test("Enum fields are generated as strings", () {
-      var dm = new ManagedDataModel([EnumObject]);
-      var schema = new Schema.fromDataModel(dm);
-      var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+      var dm = ManagedDataModel([EnumObject]);
+      var schema = Schema.fromDataModel(dm);
+      var cmds = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
 
-      expect(cmds.contains("CREATE TABLE _EnumObject (id BIGSERIAL PRIMARY KEY,enumValues TEXT NOT NULL)"), true);
+      expect(
+          cmds.contains(
+              "CREATE TABLE _EnumObject (id BIGSERIAL PRIMARY KEY,enumValues TEXT NOT NULL)"),
+          true);
     });
 
     test("Create table with unique set", () {
-      var dm = new ManagedDataModel([Unique]);
-      var schema = new Schema.fromDataModel(dm);
-      var cmds = schema.tables.map((t) => psc.createTable(t)).expand((l) => l).toList();
+      var dm = ManagedDataModel([Unique]);
+      var schema = Schema.fromDataModel(dm);
+      var cmds = schema.tables
+          .map((t) => psc.createTable(t))
+          .expand((l) => l)
+          .toList();
 
+      expect(cmds[0],
+          "CREATE TABLE _Unique (id BIGSERIAL PRIMARY KEY,a TEXT NOT NULL,b TEXT NOT NULL,c TEXT NOT NULL)");
       expect(
-          cmds[0], "CREATE TABLE _Unique (id BIGSERIAL PRIMARY KEY,a TEXT NOT NULL,b TEXT NOT NULL,c TEXT NOT NULL)");
-      expect(cmds[1], "CREATE UNIQUE INDEX _Unique_unique_idx ON _Unique (a,b)");
+          cmds[1], "CREATE UNIQUE INDEX _Unique_unique_idx ON _Unique (a,b)");
     });
   });
 
   group("Non-create table generator mappings", () {
     PostgreSQLPersistentStore psc;
     setUp(() {
-      psc = new PostgreSQLPersistentStore(null, null, null, null, null);
+      psc = PostgreSQLPersistentStore(null, null, null, null, null);
     });
 
     test("Delete table", () {
-      var dm = new ManagedDataModel([GeneratorModel1]);
-      var schema = new Schema.fromDataModel(dm);
+      var dm = ManagedDataModel([GeneratorModel1]);
+      var schema = Schema.fromDataModel(dm);
       var cmds = psc.deleteTable(schema.tableForName("_GeneratorModel1"));
       expect(cmds, ["DROP TABLE _GeneratorModel1"]);
     });
 
     test("Add simple column", () {
-      var dm = new ManagedDataModel([GeneratorModel1]);
-      var schema = new Schema.fromDataModel(dm);
+      var dm = ManagedDataModel([GeneratorModel1]);
+      var schema = Schema.fromDataModel(dm);
 
-      var propDesc = new ManagedAttributeDescription(
-          dm.entityForType(GeneratorModel1), "foobar", new ManagedType(reflectType(int)), null,
+      var propDesc = ManagedAttributeDescription(
+          dm.entityForType(GeneratorModel1),
+          "foobar",
+          ManagedType(reflectType(int)),
+          null,
           nullable: true);
-      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromProperty(propDesc));
+      var cmds = psc.addColumn(
+          schema.tables.first, SchemaColumn.fromProperty(propDesc));
       expect(cmds, ["ALTER TABLE _GeneratorModel1 ADD COLUMN foobar INT NULL"]);
     });
 
     test("Add column with index", () {
-      var dm = new ManagedDataModel([GeneratorModel1]);
-      var schema = new Schema.fromDataModel(dm);
+      var dm = ManagedDataModel([GeneratorModel1]);
+      var schema = Schema.fromDataModel(dm);
 
-      var propDesc = new ManagedAttributeDescription(
-          dm.entityForType(GeneratorModel1), "foobar", new ManagedType(reflectType(int)), null,
-          defaultValue: "4", unique: true, indexed: true, nullable: true, autoincrement: true);
-      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromProperty(propDesc));
-      expect(cmds.first, "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar SERIAL NULL DEFAULT 4 UNIQUE");
-      expect(cmds.last, "CREATE INDEX _GeneratorModel1_foobar_idx ON _GeneratorModel1 (foobar)");
+      var propDesc = ManagedAttributeDescription(
+          dm.entityForType(GeneratorModel1),
+          "foobar",
+          ManagedType(reflectType(int)),
+          null,
+          defaultValue: "4",
+          unique: true,
+          indexed: true,
+          nullable: true,
+          autoincrement: true);
+      var cmds = psc.addColumn(
+          schema.tables.first, SchemaColumn.fromProperty(propDesc));
+      expect(cmds.first,
+          "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar SERIAL NULL DEFAULT 4 UNIQUE");
+      expect(cmds.last,
+          "CREATE INDEX _GeneratorModel1_foobar_idx ON _GeneratorModel1 (foobar)");
     });
 
     test("Add foreign key column (index + constraint)", () {
-      var dm = new ManagedDataModel([GeneratorModel1, GeneratorModel2]);
-      var schema = new Schema.fromDataModel(dm);
+      var dm = ManagedDataModel([GeneratorModel1, GeneratorModel2]);
+      var schema = Schema.fromDataModel(dm);
 
-      var propDesc = new ManagedRelationshipDescription(
+      var propDesc = ManagedRelationshipDescription(
           dm.entityForType(GeneratorModel1),
           "foobar",
-          new ManagedType(reflectType(String)),
+          ManagedType(reflectType(String)),
           null,
           dm.entityForType(GeneratorModel2),
           DeleteRule.cascade,
           ManagedRelationshipType.belongsTo,
-          new Symbol(dm.entityForType(GeneratorModel2).primaryKey),
+          Symbol(dm.entityForType(GeneratorModel2).primaryKey),
           indexed: true,
           nullable: true);
-      var cmds = psc.addColumn(schema.tables.first, new SchemaColumn.fromProperty(propDesc));
-      expect(cmds[0], "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar_id TEXT NULL");
-      expect(cmds[1], "CREATE INDEX _GeneratorModel1_foobar_id_idx ON _GeneratorModel1 (foobar_id)");
+      var cmds = psc.addColumn(
+          schema.tables.first, SchemaColumn.fromProperty(propDesc));
+      expect(cmds[0],
+          "ALTER TABLE _GeneratorModel1 ADD COLUMN foobar_id TEXT NULL");
+      expect(cmds[1],
+          "CREATE INDEX _GeneratorModel1_foobar_id_idx ON _GeneratorModel1 (foobar_id)");
       expect(cmds[2],
           "ALTER TABLE ONLY _GeneratorModel1 ADD FOREIGN KEY (foobar_id) REFERENCES _GeneratorModel2 (id) ON DELETE CASCADE");
     });
 
     test("Delete column", () {
-      var dm = new ManagedDataModel([GeneratorModel1]);
-      var schema = new Schema.fromDataModel(dm);
-      var cmds = psc.deleteColumn(schema.tables.first, schema.tables.first.columns.firstWhere((s) => s.name == "validDate"));
-      expect(cmds.first, "ALTER TABLE _GeneratorModel1 DROP COLUMN validDate RESTRICT");
+      var dm = ManagedDataModel([GeneratorModel1]);
+      var schema = Schema.fromDataModel(dm);
+      var cmds = psc.deleteColumn(schema.tables.first,
+          schema.tables.first.columns.firstWhere((s) => s.name == "validDate"));
+      expect(cmds.first,
+          "ALTER TABLE _GeneratorModel1 DROP COLUMN validDate RESTRICT");
     });
 
     test("Delete foreign key column", () {
-      var dm = new ManagedDataModel([GenUser, GenPost]);
-      var schema = new Schema.fromDataModel(dm);
-      var cmds = psc.deleteColumn(schema.tables.last, schema.tables.last.columns.firstWhere((c) => c.name == "owner"));
+      var dm = ManagedDataModel([GenUser, GenPost]);
+      var schema = Schema.fromDataModel(dm);
+      var cmds = psc.deleteColumn(schema.tables.last,
+          schema.tables.last.columns.firstWhere((c) => c.name == "owner"));
       expect(cmds.first, "ALTER TABLE _GenPost DROP COLUMN owner_id CASCADE");
     });
 
     test("Add index to column", () {
-      var dm = new ManagedDataModel([GeneratorModel1]);
-      var schema = new Schema.fromDataModel(dm);
-      var cmds = psc.addIndexToColumn(schema.tables.first, schema.tables.first.columns.firstWhere((s) => s.name == "validDate"));
-      expect(cmds.first, "CREATE INDEX _GeneratorModel1_validDate_idx ON _GeneratorModel1 (validDate)");
+      var dm = ManagedDataModel([GeneratorModel1]);
+      var schema = Schema.fromDataModel(dm);
+      var cmds = psc.addIndexToColumn(schema.tables.first,
+          schema.tables.first.columns.firstWhere((s) => s.name == "validDate"));
+      expect(cmds.first,
+          "CREATE INDEX _GeneratorModel1_validDate_idx ON _GeneratorModel1 (validDate)");
     });
 
     test("Remove index from column", () {
-      var dm = new ManagedDataModel([GeneratorModel1]);
-      var schema = new Schema.fromDataModel(dm);
-      var cmds = psc.deleteIndexFromColumn(schema.tables.first, schema.tables.first.columns.firstWhere((s) => s.name == "validDate"));
+      var dm = ManagedDataModel([GeneratorModel1]);
+      var schema = Schema.fromDataModel(dm);
+      var cmds = psc.deleteIndexFromColumn(schema.tables.first,
+          schema.tables.first.columns.firstWhere((s) => s.name == "validDate"));
       expect(cmds.first, "DROP INDEX _GeneratorModel1_validDate_idx");
     });
 
     test("Alter column change nullabiity", () {
-      var dm = new ManagedDataModel([GeneratorModel1]);
-      var schema = new Schema.fromDataModel(dm);
-      var originalColumn = schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
+      var dm = ManagedDataModel([GeneratorModel1]);
+      var schema = Schema.fromDataModel(dm);
+      var originalColumn =
+          schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
       expect(originalColumn.isNullable, false);
 
-      var col = new SchemaColumn.from(originalColumn);
+      var col = SchemaColumn.from(originalColumn);
 
       // Add nullability
       col.isNullable = true;
       var cmds = psc.alterColumnNullability(schema.tables.first, col, null);
-      expect(cmds.first, "ALTER TABLE _GeneratorModel1 ALTER COLUMN name DROP NOT NULL");
+      expect(cmds.first,
+          "ALTER TABLE _GeneratorModel1 ALTER COLUMN name DROP NOT NULL");
 
       // Remove nullability, but don't provide value to update things to:
       col.isNullable = false;
       try {
         cmds = psc.alterColumnNullability(schema.tables.first, col, null);
         expect(true, false);
+        // ignore: empty_catches
       } on SchemaException {}
 
       cmds = psc.alterColumnNullability(schema.tables.first, col, "'foo'");
@@ -269,12 +365,13 @@ void main() {
     });
 
     test("Alter column change uniqueness", () {
-      var dm = new ManagedDataModel([GeneratorModel1]);
-      var schema = new Schema.fromDataModel(dm);
-      var originalColumn = schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
+      var dm = ManagedDataModel([GeneratorModel1]);
+      var schema = Schema.fromDataModel(dm);
+      var originalColumn =
+          schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
       expect(originalColumn.isUnique, false);
 
-      var col = new SchemaColumn.from(originalColumn);
+      var col = SchemaColumn.from(originalColumn);
 
       // Add unique
       col.isUnique = true;
@@ -284,41 +381,47 @@ void main() {
       // Remove unique
       col.isUnique = false;
       cmds = psc.alterColumnUniqueness(schema.tables.first, col);
-      expect(cmds.first, "ALTER TABLE _GeneratorModel1 DROP CONSTRAINT _GeneratorModel1_name_key");
+      expect(cmds.first,
+          "ALTER TABLE _GeneratorModel1 DROP CONSTRAINT _GeneratorModel1_name_key");
     });
 
     test("Alter column change default value", () {
-      var dm = new ManagedDataModel([GeneratorModel1]);
-      var schema = new Schema.fromDataModel(dm);
-      var originalColumn = schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
+      var dm = ManagedDataModel([GeneratorModel1]);
+      var schema = Schema.fromDataModel(dm);
+      var originalColumn =
+          schema.tables.first.columns.firstWhere((sc) => sc.name == "name");
       expect(originalColumn.defaultValue, isNull);
 
-      var col = new SchemaColumn.from(originalColumn);
+      var col = SchemaColumn.from(originalColumn);
 
       // Add default
       col.defaultValue = "'foobar'";
       var cmds = psc.alterColumnDefaultValue(schema.tables.first, col);
-      expect(cmds.first, "ALTER TABLE _GeneratorModel1 ALTER COLUMN name SET DEFAULT 'foobar'");
+      expect(cmds.first,
+          "ALTER TABLE _GeneratorModel1 ALTER COLUMN name SET DEFAULT 'foobar'");
 
       // Remove default
       col.defaultValue = null;
       cmds = psc.alterColumnDefaultValue(schema.tables.first, col);
-      expect(cmds.first, "ALTER TABLE _GeneratorModel1 ALTER COLUMN name DROP DEFAULT");
+      expect(cmds.first,
+          "ALTER TABLE _GeneratorModel1 ALTER COLUMN name DROP DEFAULT");
     });
 
     test("Alter column change delete rule", () {
-      var dm = new ManagedDataModel([GenUser, GenPost]);
-      var schema = new Schema.fromDataModel(dm);
+      var dm = ManagedDataModel([GenUser, GenPost]);
+      var schema = Schema.fromDataModel(dm);
       var postTable = schema.tables.firstWhere((t) => t.name == "_GenPost");
-      var originalColumn = postTable.columns.firstWhere((sc) => sc.name == "owner");
+      var originalColumn =
+          postTable.columns.firstWhere((sc) => sc.name == "owner");
       expect(originalColumn.deleteRule, DeleteRule.restrict);
 
-      var col = new SchemaColumn.from(originalColumn);
+      var col = SchemaColumn.from(originalColumn);
 
       // Change delete rule
       col.deleteRule = DeleteRule.nullify;
       var cmds = psc.alterColumnDeleteRule(postTable, col);
-      expect(cmds.first, "ALTER TABLE ONLY _GenPost DROP CONSTRAINT _GenPost_owner_id_fkey");
+      expect(cmds.first,
+          "ALTER TABLE ONLY _GenPost DROP CONSTRAINT _GenPost_owner_id_fkey");
       expect(cmds.last,
           "ALTER TABLE ONLY _GenPost ADD FOREIGN KEY (owner_id) REFERENCES _GenUser (id) ON DELETE SET NULL");
     });
@@ -327,20 +430,21 @@ void main() {
   group("Unique column set", () {
     PostgreSQLPersistentStore psc;
     setUp(() {
-      psc = new PostgreSQLPersistentStore(null, null, null, null, null);
+      psc = PostgreSQLPersistentStore(null, null, null, null, null);
     });
 
     test("Can add unique", () {
-      var dm = new ManagedDataModel([Unique]);
-      var schema = new Schema.fromDataModel(dm);
+      var dm = ManagedDataModel([Unique]);
+      var schema = Schema.fromDataModel(dm);
 
       var cmds = psc.addTableUniqueColumnSet(schema.tableForName("_Unique"));
-      expect(cmds.first, "CREATE UNIQUE INDEX _Unique_unique_idx ON _Unique (a,b)");
+      expect(cmds.first,
+          "CREATE UNIQUE INDEX _Unique_unique_idx ON _Unique (a,b)");
     });
 
     test("Can remove unique", () {
-      var dm = new ManagedDataModel([Unique]);
-      var schema = new Schema.fromDataModel(dm);
+      var dm = ManagedDataModel([Unique]);
+      var schema = Schema.fromDataModel(dm);
       schema.tableForName("_Unique").uniqueColumnSet = null;
 
       var cmds = psc.deleteTableUniqueColumnSet(schema.tableForName("_Unique"));
@@ -348,16 +452,19 @@ void main() {
     });
 
     test("Can use foreign key", () {
-      var dm = new ManagedDataModel([UniqueContainer, UniqueBelongsTo]);
-      var schema = new Schema.fromDataModel(dm);
+      var dm = ManagedDataModel([UniqueContainer, UniqueBelongsTo]);
+      var schema = Schema.fromDataModel(dm);
 
-      var cmds = psc.addTableUniqueColumnSet(schema.tableForName("_UniqueBelongsTo"));
-      expect(cmds.first, "CREATE UNIQUE INDEX _UniqueBelongsTo_unique_idx ON _UniqueBelongsTo (a,container_id)");
+      var cmds =
+          psc.addTableUniqueColumnSet(schema.tableForName("_UniqueBelongsTo"));
+      expect(cmds.first,
+          "CREATE UNIQUE INDEX _UniqueBelongsTo_unique_idx ON _UniqueBelongsTo (a,container_id)");
     });
   });
 }
 
-class GeneratorModel1 extends ManagedObject<_GeneratorModel1> implements _GeneratorModel1 {
+class GeneratorModel1 extends ManagedObject<_GeneratorModel1>
+    implements _GeneratorModel1 {
   @Serialize()
   String foo;
 }
@@ -379,14 +486,16 @@ class _GeneratorModel1 {
   Document document;
 }
 
-class GeneratorModel2 extends ManagedObject<_GeneratorModel2> implements _GeneratorModel2 {}
+class GeneratorModel2 extends ManagedObject<_GeneratorModel2>
+    implements _GeneratorModel2 {}
 
 class _GeneratorModel2 {
   @Column(primaryKey: true, indexed: true)
   int id;
 }
 
-class GeneratorModel3 extends ManagedObject<_GeneratorModel3> implements _GeneratorModel3 {}
+class GeneratorModel3 extends ManagedObject<_GeneratorModel3>
+    implements _GeneratorModel3 {}
 
 class _GeneratorModel3 {
   @Column(defaultValue: "(now() at time zone 'utc')")
@@ -501,7 +610,8 @@ class _GenObj {
   GenNotNullable gen;
 }
 
-class GenNotNullable extends ManagedObject<_GenNotNullable> implements _GenNotNullable {}
+class GenNotNullable extends ManagedObject<_GenNotNullable>
+    implements _GenNotNullable {}
 
 class _GenNotNullable {
   @primaryKey
@@ -511,7 +621,8 @@ class _GenNotNullable {
   GenObj ref;
 }
 
-class PrivateField extends ManagedObject<_PrivateField> implements _PrivateField {
+class PrivateField extends ManagedObject<_PrivateField>
+    implements _PrivateField {
   set public(String p) {
     _private = p;
   }
@@ -527,6 +638,7 @@ class _PrivateField {
 }
 
 enum EnumValues { abcd, efgh, other18 }
+
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 
 class _EnumObject {
@@ -549,6 +661,7 @@ class _Unique {
 }
 
 class UniqueContainer extends ManagedObject<_UniqueContainer> {}
+
 class _UniqueContainer {
   @primaryKey
   int id;
@@ -557,6 +670,7 @@ class _UniqueContainer {
 }
 
 class UniqueBelongsTo extends ManagedObject<_UniqueBelongsTo> {}
+
 @Table.unique([Symbol('a'), Symbol('container')])
 class _UniqueBelongsTo {
   @primaryKey

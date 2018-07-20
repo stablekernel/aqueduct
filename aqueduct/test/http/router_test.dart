@@ -1,10 +1,11 @@
+import 'dart:async';
 import 'dart:convert';
-import "package:test/test.dart";
 import "dart:core";
 import "dart:io";
-import 'dart:async';
-import 'package:http/http.dart' as http;
+
 import 'package:aqueduct/aqueduct.dart';
+import 'package:http/http.dart' as http;
+import "package:test/test.dart";
 
 void main() {
   group("Router basics", () {
@@ -15,10 +16,10 @@ void main() {
     });
 
     test("Router Handles Requests", () async {
-      Router router = new Router();
+      Router router = Router();
 
       router.route("/player").linkFunction((req) async {
-        return new Response.ok("");
+        return Response.ok("");
       });
 
       server = await enableRouter(router);
@@ -28,10 +29,10 @@ void main() {
     });
 
     test("Router 404s on no match", () async {
-      Router router = new Router();
+      Router router = Router();
 
       router.route("/player").linkFunction((req) async {
-        return new Response.ok("");
+        return Response.ok("");
       });
 
       server = await enableRouter(router);
@@ -43,10 +44,10 @@ void main() {
     });
 
     test("Router 404 but does not accept html, no body", () async {
-      Router router = new Router();
+      Router router = Router();
 
       router.route("/player").linkFunction((req) async {
-        return new Response.ok("");
+        return Response.ok("");
       });
 
       server = await enableRouter(router);
@@ -59,10 +60,10 @@ void main() {
     });
 
     test("Router delivers path values", () async {
-      Router router = new Router();
+      Router router = Router();
 
       router.route("/player/:id").linkFunction((req) async {
-        return new Response.ok("${req.path.variables["id"]}");
+        return Response.ok("${req.path.variables["id"]}");
       });
 
       server = await enableRouter(router);
@@ -73,8 +74,8 @@ void main() {
     });
 
     test("Base API adds to path", () async {
-      var router = new Router(basePath: "/api");
-      router.route("/player/").link(() => new Handler());
+      var router = Router(basePath: "/api");
+      router.route("/player/").link(() => Handler());
 
       server = await enableRouter(router);
 
@@ -88,20 +89,22 @@ void main() {
     });
 
     test("Change Base API Path after adding routes still succeeds", () async {
-      var router = new Router(basePath: "/api");
-      router.route("/a").link(() => new Handler());
+      var router = Router(basePath: "/api");
+      router.route("/a").link(() => Handler());
       server = await enableRouter(router);
       var response = await http.get("http://localhost:4040/api/a");
       expect(response.statusCode, equals(202));
     });
 
     test("Router matches right route when many are similar", () async {
-      var router = new Router();
+      var router = Router();
       router.route("/a/[:id]").linkFunction((req) async {
-        req.respond(new Response(200, null, null));
+        // ignore: unawaited_futures
+        req.respond(Response(200, null, null));
       });
       router.route("/a/:id/f").linkFunction((req) async {
-        req.respond(new Response(201, null, null));
+        // ignore: unawaited_futures
+        req.respond(Response(201, null, null));
       });
 
       server = await enableRouter(router);
@@ -117,8 +120,8 @@ void main() {
     });
 
     test("Base API + Route Variables correctly identifies segment", () async {
-      final router = new Router(basePath: "/api/")
-        ..route(("/a/[:id]")).linkFunction((req) async => new Response.ok(req.path.variables));
+      final router = Router(basePath: "/api/")
+        ..route("/a/[:id]").linkFunction((req) async => Response.ok(req.path.variables));
       server = await enableRouter(router);
 
       var response = await http.get("http://localhost:4040/api/a/1");
@@ -133,29 +136,28 @@ void main() {
 
   group("Router ordering", () {
     HttpServer server;
-    var router = new Router();
+    var router = Router();
     setUpAll(() async {
       router.route("/").linkFunction((req) async {
-        req.respond(new Response(200, null, "/"));
+        return Response(200, null, "/");
       });
       router.route("/users/[:id]").linkFunction((req) async {
-        req.respond(new Response(200, null, "/users/${req.path.variables["id"]}"));
+        return Response(200, null, "/users/${req.path.variables["id"]}");
       });
       router.route("/locations[/:id]").linkFunction((req) async {
-        req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}"));
+        return Response(200, null, "/locations/${req.path.variables["id"]}");
       });
       router.route("/locations/:id/vacation").linkFunction((req) async {
-        req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}/vacation"));
+        return Response(200, null, "/locations/${req.path.variables["id"]}/vacation");
       });
       router.route("/locations/:id/alarms[/*]").linkFunction((req) async {
-        req.respond(new Response(200, null, "/locations/${req.path.variables["id"]}/alarms/${req.path.remainingPath}"));
+        return Response(200, null, "/locations/${req.path.variables["id"]}/alarms/${req.path.remainingPath}");
       });
       router.route("/equipment/[:id[/:property]]").linkFunction((req) async {
-        req.respond(
-            new Response(200, null, "/equipment/${req.path.variables["id"]}/${req.path.variables["property"]}"));
+        return Response(200, null, "/equipment/${req.path.variables["id"]}/${req.path.variables["property"]}");
       });
       router.route("/file/*").linkFunction((req) async {
-        req.respond(new Response(200, null, "/file/${req.path.remainingPath}"));
+        return Response(200, null, "/file/${req.path.remainingPath}");
       });
       server = await enableRouter(router);
     });
@@ -222,10 +224,10 @@ void main() {
 
   group("Disambiguate *", () {
     HttpServer server;
-    var router = new Router();
+    var router = Router();
     setUpAll(() async {
-      router.route("/*").linkFunction((req) async => new Response.ok("*${req.path.remainingPath}"));
-      router.route("/a").linkFunction((req) async => new Response.ok("a"));
+      router.route("/*").linkFunction((req) async => Response.ok("*${req.path.remainingPath}"));
+      router.route("/a").linkFunction((req) async => Response.ok("a"));
 
       server = await enableRouter(router);
     });
@@ -257,28 +259,26 @@ void main() {
     });
 
     test("Router can be linked to", () async {
-      final root = new Controller((req) async => req);
-      final router = new Router()
-        ..route("/1").link(() => new NumberEmitter(1))
-        ..route("/2").link(() => new NumberEmitter(2));
+      final root = Controller((req) async => req);
+      final router = Router()..route("/1").link(() => NumberEmitter(1))..route("/2").link(() => NumberEmitter(2));
 
       root.link(() => router);
 
       root.didAddToChannel();
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
-      server.map((httpReq) => new Request(httpReq)).listen(root.receive);
+      server.map((httpReq) => Request(httpReq)).listen(root.receive);
 
       expect((await http.get("http://localhost:4040/1")).body, "1");
       expect((await http.get("http://localhost:4040/2")).body, "2");
     });
 
     test("Router delivers prepare to all controllers", () async {
-      Completer c1 = new Completer();
-      Completer c2 = new Completer();
-      final root = new Controller((req) async => new Response.ok(null));
-      final router = new Router()
-        ..route("/a").link(() => new PrepareTailController(c1))
-        ..route("/b").link(() => new PrepareTailController(c2));
+      Completer c1 = Completer();
+      Completer c2 = Completer();
+      final root = Controller((req) async => Response.ok(null));
+      final router = Router()
+        ..route("/a").link(() => PrepareTailController(c1))
+        ..route("/b").link(() => PrepareTailController(c2));
 
       root.link(() => router);
 
@@ -292,14 +292,14 @@ void main() {
 Future<HttpServer> enableRouter(Router router) async {
   router.didAddToChannel();
   var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
-  server.map((httpReq) => new Request(httpReq)).listen(router.receive);
+  server.map((httpReq) => Request(httpReq)).listen(router.receive);
   return server;
 }
 
 class Handler extends Controller {
   @override
   Future<RequestOrResponse> handle(Request req) async {
-    return new Response(202, null, "ok");
+    return Response(202, null, "ok");
   }
 }
 
@@ -310,7 +310,7 @@ class NumberEmitter extends Controller {
 
   @override
   Future<RequestOrResponse> handle(Request req) async {
-    return new Response(200, null, "$number")..contentType = ContentType.text;
+    return Response(200, null, "$number")..contentType = ContentType.text;
   }
 }
 

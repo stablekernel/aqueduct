@@ -1,11 +1,11 @@
-import 'dart:io';
 import 'dart:async';
+import 'dart:io';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
 
 import 'http.dart';
-import 'route_specification.dart';
 import 'route_node.dart';
+import 'route_specification.dart';
 
 /// Determines which [Controller] should receive a [Request] based on its path.
 ///
@@ -22,11 +22,13 @@ class Router extends Controller {
   /// Creates a new [Router].
   Router({String basePath, Future notFoundHandler(Request request)})
       : _unmatchedController = notFoundHandler,
-        _basePathSegments = basePath?.split("/")?.where((str) => str.isNotEmpty)?.toList() ?? [] {
+        _basePathSegments =
+            basePath?.split("/")?.where((str) => str.isNotEmpty)?.toList() ??
+                [] {
     policy.allowCredentials = false;
   }
 
-  final _RootNode _root = new _RootNode();
+  final _RootNode _root = _RootNode();
   final List<_RouteController> _routeControllers = [];
   final List<String> _basePathSegments;
   final Function _unmatchedController;
@@ -71,14 +73,16 @@ class Router extends Controller {
   ///         /files/*
   ///
   Linkable route(String pattern) {
-    var routeController = new _RouteController(RouteSpecification.specificationsForRoutePattern(pattern));
+    var routeController = _RouteController(
+        RouteSpecification.specificationsForRoutePattern(pattern));
     _routeControllers.add(routeController);
     return routeController;
   }
 
   @override
   void didAddToChannel() {
-    _root.node = new RouteNode(_routeControllers.expand((rh) => rh.specifications).toList());
+    _root.node =
+        RouteNode(_routeControllers.expand((rh) => rh.specifications).toList());
 
     for (var c in _routeControllers) {
       c.didAddToChannel();
@@ -88,12 +92,14 @@ class Router extends Controller {
   /// Routers override this method to throw an exception. Use [route] instead.
   @override
   Linkable link(Controller generatorFunction()) {
-    throw new ArgumentError("Invalid link. 'Router' cannot directly link to controllers. Use 'route'.");
+    throw ArgumentError(
+        "Invalid link. 'Router' cannot directly link to controllers. Use 'route'.");
   }
 
   @override
   Linkable linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
-    throw new ArgumentError("Invalid link. 'Router' cannot directly link to functions. Use 'route'.");
+    throw ArgumentError(
+        "Invalid link. 'Router' cannot directly link to functions. Use 'route'.");
   }
 
   @override
@@ -114,12 +120,14 @@ class Router extends Controller {
         }
       }
 
-      final node = _root.node.nodeForPathSegments(requestURISegmentIterator, req.path);
+      final node =
+          _root.node.nodeForPathSegments(requestURISegmentIterator, req.path);
       if (node?.specification == null) {
         await _handleUnhandledRequest(req);
         return null;
       }
-      req.path.setSpecification(node.specification, segmentOffset: _basePathSegments.length);
+      req.path.setSpecification(node.specification,
+          segmentOffset: _basePathSegments.length);
 
       next = node.controller;
     } catch (any, stack) {
@@ -132,17 +140,17 @@ class Router extends Controller {
   }
 
   @override
-  Map<String, APIPath> documentPaths(APIDocumentContext components) {
+  Map<String, APIPath> documentPaths(APIDocumentContext context) {
     return _routeControllers.fold(<String, APIPath>{}, (prev, elem) {
-      prev.addAll(elem.documentPaths(components));
+      prev.addAll(elem.documentPaths(context));
       return prev;
     });
   }
 
   @override
-  void documentComponents(APIDocumentContext components) {
+  void documentComponents(APIDocumentContext context) {
     _routeControllers.forEach((_RouteController controller) {
-      controller.documentComponents(components);
+      controller.documentComponents(context);
     });
   }
 
@@ -155,7 +163,7 @@ class Router extends Controller {
     if (_unmatchedController != null) {
       return _unmatchedController(req);
     }
-    var response = new Response.notFound();
+    var response = Response.notFound();
     if (req.acceptsContentType(ContentType.html)) {
       response
         ..body = "<html><h3>404 Not Found</h3></html>"
@@ -185,26 +193,30 @@ class _RouteController extends Controller {
   @override
   Map<String, APIPath> documentPaths(APIDocumentContext components) {
     return specifications.fold(<String, APIPath>{}, (pathMap, spec) {
-      final pathKey = "/" +
-          spec.segments.map((rs) {
-            if (rs.isLiteralMatcher) {
-              return rs.literal;
-            } else if (rs.isVariable) {
-              return "{${rs.variableName}}";
-            } else if (rs.isRemainingMatcher) {
-              return "{path}";
-            }
-          }).join("/");
+      final elements = spec.segments.map((rs) {
+        if (rs.isLiteralMatcher) {
+          return rs.literal;
+        } else if (rs.isVariable) {
+          return "{${rs.variableName}}";
+        } else if (rs.isRemainingMatcher) {
+          return "{path}";
+        }
+      }).join("/");
+      final pathKey = "/$elements";
 
-      final path = new APIPath()
-        ..parameters = spec.variableNames.map((pathVar) => new APIParameter.path(pathVar)).toList();
+      final path = APIPath()
+        ..parameters = spec.variableNames
+            .map((pathVar) => APIParameter.path(pathVar))
+            .toList();
 
       if (spec.segments.any((seg) => seg.isRemainingMatcher)) {
-        path.parameters.add(new APIParameter.path("path")
-          ..description = "This path variable may contain slashes '/' and may be empty.");
+        path.parameters.add(APIParameter.path("path")
+          ..description =
+              "This path variable may contain slashes '/' and may be empty.");
       }
 
-      path.operations = spec.controller.documentOperations(components, pathKey, path);
+      path.operations =
+          spec.controller.documentOperations(components, pathKey, path);
 
       pathMap[pathKey] = path;
 

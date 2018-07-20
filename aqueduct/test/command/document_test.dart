@@ -1,3 +1,4 @@
+// ignore: unnecessary_const
 @Tags(const ["cli"])
 import 'dart:convert';
 
@@ -34,7 +35,8 @@ void main() {
   });
 
   test("Can override title/version/etc.", () async {
-    await terminal.runAqueductCommand("document", ["--machine", "--title", "foobar", "--api-version", "2.0.0"]);
+    await terminal.runAqueductCommand("document",
+        ["--machine", "--title", "foobar", "--api-version", "2.0.0"]);
 
     final map = json.decode(terminal.output);
     expect(map["info"]["title"], "foobar");
@@ -42,7 +44,15 @@ void main() {
   });
 
   test("Can set license, contact", () async {
-    await terminal.runAqueductCommand("document", ["--machine", "--license-url", "http://whatever.com", "--license-name", "bsd", "--contact-email", "a@b.com"]);
+    await terminal.runAqueductCommand("document", [
+      "--machine",
+      "--license-url",
+      "http://whatever.com",
+      "--license-name",
+      "bsd",
+      "--contact-email",
+      "a@b.com"
+    ]);
 
     final map = json.decode(terminal.output);
     expect(map["info"]["license"]["name"], "bsd");
@@ -61,7 +71,8 @@ void main() {
       """);
     });
 
-    final exitCode = await terminal.runAqueductCommand("document", ["--machine", "--stacktrace"]);
+    final exitCode = await terminal
+        .runAqueductCommand("document", ["--machine", "--stacktrace"]);
     expect(exitCode, isNot(0));
     expect(terminal.output, contains("IdentityController.documentComponents"));
     expect(terminal.output, contains("Exception: Hello!"));
