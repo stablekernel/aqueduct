@@ -168,7 +168,8 @@ class MockHTTPServer extends MockServer<Request> {
 
     final resp = _responseQueue.first;
     if (resp.outageCount > 0) {
-      resp.outageCount--;
+      resp.outageCount -= 1;
+
       if (resp.outageCount == 0) {
         _responseQueue.removeAt(0);
       }

@@ -3,15 +3,9 @@ import 'dart:io';
 import 'package:matcher/matcher.dart';
 
 class HTTPValueMatcherWrapper extends Matcher {
-  HTTPValueMatcherWrapper(dynamic matcherOrValue) {
-    if (matcherOrValue is! Matcher) {
-      _matcher = equals(matcherOrValue);
-    } else {
-      _matcher = matcherOrValue;
-    }
-  }
+  HTTPValueMatcherWrapper(this._matcher);
 
-  Matcher _matcher;
+  final Matcher _matcher;
 
   @override
   bool matches(dynamic item, Map matchState) {
@@ -34,27 +28,34 @@ class HTTPValueMatcherWrapper extends Matcher {
       return false;
     }
 
-    var v;
+    if (item is! String) {
+      throw StateError("Header response value is not a String.");
+    }
+
+    final onSuccess = (v) {
+      if (v == null) {
+        matchState.addAll(tempMatchState);
+        return false;
+      }
+      return _matcher.matches(v, matchState);
+    };
+
     try {
-      v = num.parse(item);
-      matchState["HTTPValueWrapper.parsedAs"] = num;
+      return onSuccess(num.parse(item as String));
+      // ignore: empty_catches
     } on FormatException {}
+
     try {
-      v = HttpDate.parse(item);
-      matchState["HTTPValueWrapper.parsedAs"] = HttpDate;
+      return onSuccess(HttpDate.parse(item as String));
+      // ignore: empty_catches
     } on FormatException {} on HttpException {}
 
     try {
-      v = DateTime.parse(item);
-      matchState["HTTPValueWrapper.parsedAs"] = DateTime;
+      return onSuccess(DateTime.parse(item as String));
+      // ignore: empty_catches
     } on FormatException {}
 
-    if (v == null) {
-      matchState.addAll(tempMatchState);
-      return false;
-    }
-
-    return _matcher.matches(v, matchState);
+    return false;
   }
 
   @override
@@ -65,11 +66,6 @@ class HTTPValueMatcherWrapper extends Matcher {
   @override
   Description describeMismatch(dynamic item, Description mismatchDescription,
       Map matchState, bool verbose) {
-    final parsedAs = matchState["HTTPValueWrapper.parsedAs"];
-    if (parsedAs != null) {
-      item = parsedAs.parse(item);
-    }
-
     _matcher.describeMismatch(item, mismatchDescription, matchState, verbose);
 
     return mismatchDescription;

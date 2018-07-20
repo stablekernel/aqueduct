@@ -158,7 +158,7 @@ Matcher isTimestamp = predicate((String str) {
 ///         "id": isInteger,
 ///         "name": isNotPresent
 ///       })); // fails because 'name' is present
-Matcher partial(Map map) => PartialMapMatcher(map);
+Matcher partial(Map<String, dynamic> map) => PartialMapMatcher(map);
 
 /// Validates that a key is not present when using [partial].
 ///

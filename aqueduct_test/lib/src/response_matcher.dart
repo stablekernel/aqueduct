@@ -11,39 +11,44 @@ import 'matchers.dart';
 class HTTPResponseMatcher extends Matcher {
   HTTPResponseMatcher(this.statusCode, this.headers, this.body);
 
-  int statusCode;
-  HTTPHeaderMatcher headers;
-  HTTPBodyMatcher body;
+  final int statusCode;
+  final HTTPHeaderMatcher headers;
+  final HTTPBodyMatcher body;
 
   @override
   bool matches(dynamic item, Map matchState) {
     if (item is! TestResponse) {
-      matchState["runtimeType"] = item.runtimeType;
+      matchState["HTTPResponseMatcher.runtimeType"] = item.runtimeType;
       return false;
     }
+
+    final shouldMatchStatusCode = statusCode != null;
+    final shouldMatchHeaders = headers != null;
+    final shouldMatchBody = body != null;
 
     final response = item as TestResponse;
-    if (statusCode != null && response.statusCode != statusCode) {
-      matchState["statusCode"] = response.statusCode;
-      return false;
+    if (shouldMatchStatusCode) {
+      if (response.statusCode != statusCode) {
+        matchState["HTTPResponseMatcher.statusCode"] = response.statusCode;
+        return false;
+      }
     }
 
-    var success = true;
-    if (headers != null) {
+    if (shouldMatchHeaders) {
       if (!headers.matches(response.headers, matchState)) {
         matchState["HTTPResponseMatcher.didFailOnHeaders"] = true;
-        success = false;
+        return false;
       }
     }
 
-    if (body != null) {
+    if (shouldMatchBody) {
       if (!body.matches(response.body.as(), matchState)) {
         matchState["HTTPResponseMatcher.didFailOnBody"] = true;
-        success = false;
+        return false;
       }
     }
 
-    return success;
+    return true;
   }
 
   @override
@@ -74,29 +79,25 @@ class HTTPResponseMatcher extends Matcher {
   }
 
   @override
-  Description describeMismatch(dynamic item, Description mismatchDescription,
-      Map matchState, bool verbose) {
-    final responseTypeMismatch = matchState["runtimeType"];
+  Description describeMismatch(dynamic item, Description mismatchDescription, Map matchState, bool verbose) {
+    final responseTypeMismatch = matchState["HTTPResponseMatcher.runtimeType"];
     if (responseTypeMismatch != null) {
       mismatchDescription.add("Is not an instance of TestResponse");
       return mismatchDescription;
     }
 
     final response = item as TestResponse;
-    final statusMismatch = matchState["statusCode"];
+    final statusMismatch = matchState["HTTPResponseMatcher.statusCode"];
     if (statusMismatch != null) {
-      mismatchDescription.add(
-          "Status codes are different. Expected: $statusCode. Actual: $statusMismatch");
+      mismatchDescription.add("Status codes are different. Expected: $statusCode. Actual: $statusMismatch");
     }
 
     if (matchState["HTTPResponseMatcher.didFailOnHeaders"] == true) {
-      headers.describeMismatch(
-          response.headers, mismatchDescription, matchState, verbose);
+      headers.describeMismatch(response.headers, mismatchDescription, matchState, verbose);
     }
 
     if (matchState["HTTPResponseMatcher.didFailOnBody"] == true) {
-      body.describeMismatch(
-          response.body.as(), mismatchDescription, matchState, verbose);
+      body.describeMismatch(response.body.as(), mismatchDescription, matchState, verbose);
     }
 
     return mismatchDescription;

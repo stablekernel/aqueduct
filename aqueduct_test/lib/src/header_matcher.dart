@@ -9,35 +9,39 @@ class HTTPHeaderMatcher extends Matcher {
   HTTPHeaderMatcher(Map<String, dynamic> headerMatchSpecifications,
       {this.shouldFailIfOthersPresent = false}) {
     headerMatchSpecifications.forEach((k, v) {
-      if (v is! Matcher) {
-        if (v is ContentType) {
-          _matchHeaders[k] = HTTPValueMatcherWrapper(equals(v.toString()));
+      if (v is Matcher) {
+        if (v is! NotPresentMatcher) {
+          _specification[k] = HTTPValueMatcherWrapper(v);
         } else {
-          _matchHeaders[k] = HTTPValueMatcherWrapper(equals(v));
+          _specification[k] = v;
         }
       } else {
-        if (v is! NotPresentMatcher) {
-          _matchHeaders[k] = HTTPValueMatcherWrapper(v);
+        if (v is ContentType) {
+          _specification[k] = HTTPValueMatcherWrapper(equals(v.toString()));
         } else {
-          _matchHeaders[k] = v;
+          _specification[k] = HTTPValueMatcherWrapper(equals(v));
         }
       }
     });
   }
 
-  final Map<String, Matcher> _matchHeaders = {};
+  final Map<String, Matcher> _specification = {};
   final bool shouldFailIfOthersPresent;
 
   @override
   bool matches(dynamic item, Map matchState) {
-    final HttpHeaders headers = item;
+    if (item is! HttpHeaders) {
+      throw ArgumentError("Invalid input to HTTPHeaderMatcher.matches. Value is not HttpHeaders.");
+    }
+
+    final HttpHeaders input = item;
     final mismatches = <String>[];
     matchState["HTTPHeaderMatcher.mismatches"] = mismatches;
 
     var foundMismatchInHeaders = false;
-    _matchHeaders.forEach((headerKey, valueMatcher) {
+    _specification.forEach((headerKey, valueMatcher) {
       if (valueMatcher is NotPresentMatcher) {
-        if (headers.value(headerKey) != null) {
+        if (input.value(headerKey) != null) {
           mismatches.add(headerKey);
           foundMismatchInHeaders = true;
         }
@@ -45,7 +49,7 @@ class HTTPHeaderMatcher extends Matcher {
         return;
       }
 
-      final headerValue = headers.value(headerKey.toLowerCase());
+      final headerValue = input.value(headerKey.toLowerCase());
       if (!valueMatcher.matches(headerValue, matchState)) {
         mismatches.add(headerKey);
         foundMismatchInHeaders = true;
@@ -57,16 +61,17 @@ class HTTPHeaderMatcher extends Matcher {
     }
 
     if (shouldFailIfOthersPresent) {
+      var foundExtraKey = false;
       final extraHeaders = <String>[];
       matchState["HTTPHeaderMatcher.extra"] = extraHeaders;
-      headers.forEach((key, _) {
-        if (!_matchHeaders.containsKey(key)) {
-          foundMismatchInHeaders = true;
+      input.forEach((key, _) {
+        if (!_specification.containsKey(key)) {
+          foundExtraKey = true;
           extraHeaders.add("'$key'");
         }
       });
 
-      if (foundMismatchInHeaders) {
+      if (foundExtraKey) {
         return false;
       }
     }
@@ -82,7 +87,7 @@ class HTTPHeaderMatcher extends Matcher {
     }
 
     description.add("- Headers $modifier\n");
-    _matchHeaders.forEach((key, value) {
+    _specification.forEach((key, value) {
       description.add("  - header '$key' must be ").addDescriptionOf(value);
     });
     description.add("\n");

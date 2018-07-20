@@ -51,6 +51,7 @@ void main() {
 
   group("Header matchers", () {
     final DateTime xTimestamp = DateTime.parse("1984-08-04T00:00:00Z");
+    final DateTime xDate = DateTime.parse("1981-08-04T00:00:00Z");
 
     HttpServer server;
     setUpAll(() async {
@@ -61,7 +62,9 @@ void main() {
         if (req.uri.query.contains("timestamp")) {
           req.response.headers.add("x-timestamp", xTimestamp.toIso8601String());
         } else if (req.uri.query.contains("date")) {
-          req.response.headers.add("x-date", HttpDate.format(xTimestamp));
+          req.response.headers.add("x-date", HttpDate.format(xDate));
+        } else if (req.uri.query.contains("num")) {
+          req.response.headers.add("x-num", "10");
         }
 
         req.response.close();
@@ -145,6 +148,21 @@ void main() {
             hasHeaders({"x-frame-options": isNotNull},
                 failIfContainsUnmatchedHeader: true));
       }, allOf([contains("actual has extra headers")]));
+    });
+
+    test("Match an integer", () async {
+      final defaultTestClient = Agent.onPort(4000);
+      final response = await defaultTestClient.request("/foo?num").get();
+      expect(
+        response,
+        hasHeaders({
+          "x-num": greaterThan(5)
+        }));
+      expect(
+        response,
+        hasHeaders({
+          "x-num": 10
+        }));
     });
 
     test("DateTime isBefore,isAfter, etc.", () async {
@@ -248,7 +266,7 @@ void main() {
       final defaultTestClient = Agent.onPort(4000);
       final response = await defaultTestClient.request("/foo?date").get();
 
-      expect(response, hasHeaders({"x-date": isSameMomentAs(xTimestamp)}));
+      expect(response, hasHeaders({"x-date": isSameMomentAs(xDate)}));
     });
   });
 
