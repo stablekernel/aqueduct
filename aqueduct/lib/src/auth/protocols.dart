@@ -23,7 +23,7 @@ abstract class ResourceOwner {
   ///
   /// This unique identifier is used by [AuthServer] to associate authorization codes and access tokens with
   /// this resource owner.
-  dynamic get id;
+  int get id;
 }
 
 /// The methods used by an [AuthServer] to store information and customize behavior related to authorization.
@@ -80,7 +80,7 @@ abstract class AuthServerDelegate {
   /// This method must delete all [AuthToken] and [AuthCode]s for a [ResourceOwner].
   ///
   /// [server] is the requesting [AuthServer]. [resourceOwnerID] is the [ResourceOwner.id].
-  FutureOr removeTokens(AuthServer server, dynamic resourceOwnerID);
+  FutureOr removeTokens(AuthServer server, int resourceOwnerID);
 
   /// Must delete a [AuthToken] granted by [grantedByCode].
   ///
