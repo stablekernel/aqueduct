@@ -55,20 +55,19 @@ Notice that the context for each query is the `transaction` object passed to the
 You can cancel a transaction and revert its changes at anytime within the transaction closure by throwing a `Rollback` object.
 
 ```dart
-final reason = await context.transaction((t) async {
-  // do something
+try {
+  await context.transaction((t) async {
+    // do something
 
-  if (somethingIsTrue) {
-    throw Rollback("something was true");    
-  }
+    if (somethingIsTrue) {
+      throw Rollback("something was true");    
+    }
 
-  // do something
-});
-
-if (reason == "something was true") {
-  // do something
+    // do something
+  });
+} on Rollback catch (rollback) {
+  print("${rollback.reason}"); // prints 'something was true'
 }
 ```
 
-When you rollback, your transaction fails, the transaction closure is aborted and all changes are reverted. The `transaction` method completes successfully with the value provided to `Rollback`. This value can be anything and is used by subsequent code to determine why the transaction was rolled back, in the case of
-more than one possible rollback in a transaction.
+When you rollback, your transaction fails, the transaction closure is aborted and all changes are reverted. The `transaction` method completes with an error, where the error object is the `Rollback`. 
