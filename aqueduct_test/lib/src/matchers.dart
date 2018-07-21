@@ -1,11 +1,9 @@
-import 'package:aqueduct/aqueduct.dart';
 import 'package:matcher/matcher.dart';
 import 'package:test/test.dart';
 
 import 'agent.dart';
 import 'body_matcher.dart';
 import 'header_matcher.dart';
-import 'mock_server.dart';
 import 'partial_matcher.dart';
 import 'response_matcher.dart';
 
@@ -257,43 +255,4 @@ TestResponse expectResponse(TestResponse response, int statusCode,
     {dynamic body, Map<String, dynamic> headers}) {
   expect(response, hasResponse(statusCode, body: body, headers: headers));
   return response;
-}
-
-/// Validates that a [Request] properties match the given values.
-///
-/// This matcher is used when matching requests from [MockHTTPServer].
-///
-/// The actual request's properties will be evaluated
-///
-///         final server = new MockHTTPServer(4000);
-///         await server.open();
-///
-///         // initiate a request that triggers an HTTP request to port localhost:4000.
-///         await client.request("/path").post(...);
-///
-///         expect(await server.next(), hasRequest(method: "POST", path: "/analytics/event"));
-Matcher hasRequest(
-    {String method,
-    dynamic path,
-    Map<String, dynamic> query,
-    Map<String, dynamic> headers,
-    dynamic body}) {
-  return null;
-}
-
-Request expectRequest(Request request,
-    {String method,
-    String path,
-    Map<String, dynamic> query,
-    Map<String, dynamic> headers,
-    dynamic body}) {
-  expect(
-      request,
-      hasRequest(
-          method: method,
-          path: path,
-          query: query,
-          headers: headers,
-          body: body));
-  return request;
 }
