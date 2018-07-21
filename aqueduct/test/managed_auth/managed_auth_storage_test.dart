@@ -994,6 +994,7 @@ void main() {
         var c = await auth.authenticateForCode(createdUsers.first.username,
             User.defaultPassword, "com.stablekernel.redirect");
         codes.add(c);
+        await Future.delayed(Duration(milliseconds: 3));
       }
 
       // Insert the 'race condition' code
@@ -1065,6 +1066,7 @@ void main() {
       for (var i = 0; i < 3; i++) {
         var c = await auth.authenticate(createdUsers.first.username,
             User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
+        await Future.delayed(Duration(milliseconds: 3));
         tokens.add(c);
       }
 
