@@ -162,10 +162,10 @@ class BoundQueryParameter extends BoundInput {
   @override
   dynamic parse(ClassMirror intoType, Request request) {
     var queryParameters = request.raw.uri.queryParametersAll;
-    dynamic value = queryParameters[externalName];
+    var value = queryParameters[externalName];
     if (value == null) {
       if (requestHasFormData(request)) {
-        value = request.body.as<Map<String, dynamic>>()[externalName];
+        value = request.body.as<Map<String, List<String>>>()[externalName];
       }
     }
 

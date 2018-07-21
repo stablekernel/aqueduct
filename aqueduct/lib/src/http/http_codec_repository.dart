@@ -202,7 +202,7 @@ class _FormEncoder extends Converter<Map<String, dynamic>, String> {
   @override
   String convert(Map<String, dynamic> data) {
     return data.keys
-        .map((key) => "$key=${Uri.encodeQueryComponent(data[key])}")
+        .map((key) => "$key=${Uri.encodeQueryComponent(data[key].toString())}")
         .join("&");
   }
 }
