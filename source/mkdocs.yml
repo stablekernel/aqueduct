@@ -14,6 +14,7 @@ pages:
 - Core Concepts: 'core_concepts.md'
 - Getting Started: 'getting_started.md'
 - Tour: 'tour.md'
+- 3.0 Migration Guide: 'migration.md'
 - Best Practices: 'best_practices.md'
 - IntelliJ IDEA Templates: 'intellij.md'
 - Snippets:

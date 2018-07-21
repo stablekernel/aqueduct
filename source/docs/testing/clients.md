@@ -42,7 +42,7 @@ aqueduct serve --port 4000
 
 ## Provision a Database for Client Testing
 
-For applications that use the ORM, you must have a locally running database with your application's data model. See [provisioning a database](database.md) for more details.
+For applications that use the ORM, you must have a locally running database with your application's data model. See [provisioning a database](mixins.md) for more details.
 
 If you are using OAuth 2.0, you must have also added client identifiers to the locally running database. You may add client identifiers with the [aqueduct auth](../auth/cli.md) command-line tool, or as part of a utility provisioning script:
 

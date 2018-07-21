@@ -50,6 +50,17 @@ Notice that the context for each query is the `transaction` object passed to the
 
   A `ManagedContext` has a single database connection. While a transaction is in progress, any query sent by the same connection becomes part of that transaction. Because Dart is asynchronous, a its likely that another request will trigger a database request while a transaction is in progress. For this reason, a context must queue queries from outside of a transaction while the transaction is running. A new context is created for each transaction and the database connection is shared with the original context. If you await on a query on the original context from inside a transaction closure, it won't complete until the transaction completes - but the transaction can't complete because it is awaiting for the query to complete. This will prevent the connection from being used until the transaction or query times out.
 
+### Returning Values
+
+The value returned from a transaction closure is returned to the caller, so values created within the transaction closure can escape its scope.
+
+```dart
+final employees = [...];
+final insertedEmployees = await context.transaction((t) async {
+  return Future.wait(employees.map((e) => Query.insertObject(t, e)));
+});
+```
+
 ### Rollbacks
 
 You can cancel a transaction and revert its changes at anytime within the transaction closure by throwing a `Rollback` object.
@@ -70,4 +81,4 @@ try {
 }
 ```
 
-When you rollback, your transaction fails, the transaction closure is aborted and all changes are reverted. The `transaction` method completes with an error, where the error object is the `Rollback`. 
+When you rollback, your transaction fails, the transaction closure is aborted and all changes are reverted. The `transaction` method completes with an error, where the error object is the `Rollback`.

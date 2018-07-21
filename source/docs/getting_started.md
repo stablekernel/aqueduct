@@ -92,4 +92,4 @@ aqueduct db generate
 aqueduct db upgrade --connect postgres://dart_app:dart@localhost:5432/my_database_name
 ```
 
-See the guides on [connecting to a database](db/connecting.md) and [testing with a database](testing/database.md) for more details on configuring a database connection.
+See the guides on [connecting to a database](db/connecting.md) and [testing with a database](testing/mixins.md) for more details on configuring a database connection.
