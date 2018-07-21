@@ -202,8 +202,19 @@ class _FormEncoder extends Converter<Map<String, dynamic>, String> {
   @override
   String convert(Map<String, dynamic> data) {
     return data.keys
-        .map((key) => "$key=${Uri.encodeQueryComponent(data[key].toString())}")
+        .map((k) => _encodePair(k, data[k]))
         .join("&");
+  }
+
+  String _encodePair(String key, dynamic value) {
+    final encode = (String v) => "$key=${Uri.encodeQueryComponent(v)}";
+    if (value is List<String>) {
+      return value.map(encode).join("&");
+    } else if (value is String) {
+      return encode(value);
+    }
+
+    throw ArgumentError("Cannot encode value '$value' for key '$key'. Must be 'String' or 'List<String>'");
   }
 }
 
@@ -216,9 +227,7 @@ class _FormDecoder extends Converter<String, Map<String, dynamic>> {
 
   @override
   Map<String, dynamic> convert(String data) {
-    var parsed = Uri(query: data);
-
-    return parsed.queryParametersAll;
+    return Uri(query: data).queryParametersAll;
   }
 
   @override
