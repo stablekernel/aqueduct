@@ -164,11 +164,12 @@ class PostgreSQLPersistentStore extends PersistentStore
   }
 
   @override
-  Future<dynamic> transaction(ManagedContext transactionContext,
-      Future transactionBlock(ManagedContext transaction)) async {
+  Future<T> transaction<T>(ManagedContext transactionContext,
+      Future<T> transactionBlock(ManagedContext transaction)) async {
     final dbConnection = await getDatabaseConnection();
 
-    String rollbackReason;
+    T output;
+    Rollback rollback;
     try {
       await dbConnection.transaction((dbTransactionContext) async {
         transactionContext.persistentStore =
@@ -176,9 +177,9 @@ class PostgreSQLPersistentStore extends PersistentStore
                 this, dbTransactionContext);
 
         try {
-          await transactionBlock(transactionContext);
-        } on Rollback catch (rollback) {
-          rollbackReason = rollback.reason;
+          output = await transactionBlock(transactionContext);
+        } on Rollback catch (e) {
+          rollback = e;
           dbTransactionContext.cancelTransaction(reason: rollback.reason);
         }
       });
@@ -191,7 +192,11 @@ class PostgreSQLPersistentStore extends PersistentStore
       rethrow;
     }
 
-    return rollbackReason;
+    if (rollback != null) {
+      throw rollback;
+    }
+
+    return output;
   }
 
   @override

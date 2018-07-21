@@ -288,8 +288,8 @@ class DefaultPersistentStore extends PersistentStore {
   Future close() async {}
 
   @override
-  Future<dynamic> transaction(ManagedContext transactionContext,
-          Future queries(ManagedContext transaction)) async =>
+  Future<T> transaction<T>(ManagedContext transactionContext,
+          Future<T> queries(ManagedContext transaction)) async =>
       throw Exception("Transaciton not supported on mock");
 
   @override

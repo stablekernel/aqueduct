@@ -29,8 +29,8 @@ abstract class PersistentStore {
       String formatString, Map<String, dynamic> values, int timeoutInSeconds,
       {PersistentStoreQueryReturnType returnType});
 
-  Future<dynamic> transaction(ManagedContext transactionContext,
-      Future transactionBlock(ManagedContext transaction));
+  Future<T> transaction<T>(ManagedContext transactionContext,
+      Future<T> transactionBlock(ManagedContext transaction));
 
   /// Closes the underlying database connection.
   Future close();
