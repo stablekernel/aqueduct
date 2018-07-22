@@ -79,7 +79,8 @@ class HTTPResponseMatcher extends Matcher {
   }
 
   @override
-  Description describeMismatch(dynamic item, Description mismatchDescription, Map matchState, bool verbose) {
+  Description describeMismatch(dynamic item, Description mismatchDescription,
+      Map matchState, bool verbose) {
     final responseTypeMismatch = matchState["HTTPResponseMatcher.runtimeType"];
     if (responseTypeMismatch != null) {
       mismatchDescription.add("Is not an instance of TestResponse");
@@ -89,15 +90,18 @@ class HTTPResponseMatcher extends Matcher {
     final response = item as TestResponse;
     final statusMismatch = matchState["HTTPResponseMatcher.statusCode"];
     if (statusMismatch != null) {
-      mismatchDescription.add("Status codes are different. Expected: $statusCode. Actual: $statusMismatch");
+      mismatchDescription.add(
+          "Status codes are different. Expected: $statusCode. Actual: $statusMismatch");
     }
 
     if (matchState["HTTPResponseMatcher.didFailOnHeaders"] == true) {
-      headers.describeMismatch(response.headers, mismatchDescription, matchState, verbose);
+      headers.describeMismatch(
+          response.headers, mismatchDescription, matchState, verbose);
     }
 
     if (matchState["HTTPResponseMatcher.didFailOnBody"] == true) {
-      body.describeMismatch(response.body.as(), mismatchDescription, matchState, verbose);
+      body.describeMismatch(
+          response.body.as(), mismatchDescription, matchState, verbose);
     }
 
     return mismatchDescription;

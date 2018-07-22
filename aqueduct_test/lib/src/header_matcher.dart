@@ -31,7 +31,8 @@ class HTTPHeaderMatcher extends Matcher {
   @override
   bool matches(dynamic item, Map matchState) {
     if (item is! HttpHeaders) {
-      throw ArgumentError("Invalid input to HTTPHeaderMatcher.matches. Value is not HttpHeaders.");
+      throw ArgumentError(
+          "Invalid input to HTTPHeaderMatcher.matches. Value is not HttpHeaders.");
     }
 
     final HttpHeaders input = item;

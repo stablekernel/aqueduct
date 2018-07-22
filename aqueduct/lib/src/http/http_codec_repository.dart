@@ -201,9 +201,7 @@ class _FormEncoder extends Converter<Map<String, dynamic>, String> {
 
   @override
   String convert(Map<String, dynamic> data) {
-    return data.keys
-        .map((k) => _encodePair(k, data[k]))
-        .join("&");
+    return data.keys.map((k) => _encodePair(k, data[k])).join("&");
   }
 
   String _encodePair(String key, dynamic value) {
@@ -214,7 +212,8 @@ class _FormEncoder extends Converter<Map<String, dynamic>, String> {
       return encode(value);
     }
 
-    throw ArgumentError("Cannot encode value '$value' for key '$key'. Must be 'String' or 'List<String>'");
+    throw ArgumentError(
+        "Cannot encode value '$value' for key '$key'. Must be 'String' or 'List<String>'");
   }
 }
 

@@ -191,9 +191,9 @@ class ComparisonValidator extends ManagedValidator {
           return DateTime.parse(referenceValue);
         } on FormatException {
           throw ManagedDataModelError.invalidValidator(
-            attribute.entity,
-            attribute.name,
-            "'$referenceValue' cannot be parsed as DateTime, or is not a String.");
+              attribute.entity,
+              attribute.name,
+              "'$referenceValue' cannot be parsed as DateTime, or is not a String.");
         }
       }
 

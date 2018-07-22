@@ -198,8 +198,8 @@ class BoundBody extends BoundInput {
     }
 
     if (intoType.isSubtypeOf(reflectType(HTTPSerializable))) {
-      final value =
-          intoType.newInstance(const Symbol(""), []).reflectee as HTTPSerializable;
+      final value = intoType.newInstance(const Symbol(""), []).reflectee
+          as HTTPSerializable;
       value.readFromMap(request.body.as());
 
       return value;
@@ -211,8 +211,8 @@ class BoundBody extends BoundInput {
 
       final typeArg = intoType.typeArguments.first as ClassMirror;
       return bodyList.map((object) {
-        final value =
-            typeArg.newInstance(const Symbol(""), []).reflectee as HTTPSerializable;
+        final value = typeArg.newInstance(const Symbol(""), []).reflectee
+            as HTTPSerializable;
         value.readFromMap(object);
 
         return value;

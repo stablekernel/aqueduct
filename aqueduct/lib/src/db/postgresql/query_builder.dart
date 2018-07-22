@@ -9,7 +9,8 @@ import 'row_instantiator.dart';
 
 class PostgresQueryBuilder extends TableBuilder {
   PostgresQueryBuilder(PostgresQuery query) : super(query) {
-    (query.valueMap ?? query.values?.backing?.contents).forEach(addColumnValueBuilder);
+    (query.valueMap ?? query.values?.backing?.contents)
+        .forEach(addColumnValueBuilder);
 
     columnValueBuilders.forEach((cv) {
       variables[cv.sqlColumnName(withPrefix: valueKeyPrefix)] = cv.value;
@@ -108,9 +109,8 @@ class PostgresQueryBuilder extends TableBuilder {
   String get sqlOrderBy {
     var allSorts = List<ColumnSortBuilder>.from(columnSortBuilders);
 
-    var nestedSorts = returning
-        .whereType<TableBuilder>()
-        .expand((m) => m.columnSortBuilders);
+    var nestedSorts =
+        returning.whereType<TableBuilder>().expand((m) => m.columnSortBuilders);
     allSorts.addAll(nestedSorts);
 
     if (allSorts.isEmpty) {

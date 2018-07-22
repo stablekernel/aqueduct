@@ -163,7 +163,8 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
   }
 
   String fileNameForFile(String projectName, File sourceFile) {
-    return sourceFile.uri.pathSegments.last.replaceFirst("wildfire", projectName);
+    return sourceFile.uri.pathSegments.last
+        .replaceFirst("wildfire", projectName);
   }
 
   Directory destinationDirectoryFromPath(String pathString) {
@@ -300,8 +301,8 @@ class CLITemplateList extends CLICommand with CLIAqueductGlobal {
         .where((fse) => fse is Directory)
         .map((fse) => fse as Directory)
         .toList();
-    final templateDescriptions = await Future.wait(
-        templateDirectories.map(_templateDescription));
+    final templateDescriptions =
+        await Future.wait(templateDirectories.map(_templateDescription));
     displayInfo("Available templates:");
     displayProgress("");
 
@@ -324,7 +325,8 @@ class CLITemplateList extends CLICommand with CLIAqueductGlobal {
     final name = templateDirectory
         .uri.pathSegments[templateDirectory.uri.pathSegments.length - 2];
     final pubspecContents =
-        await File.fromUri(templateDirectory.uri.resolve("pubspec.yaml")).readAsString();
+        await File.fromUri(templateDirectory.uri.resolve("pubspec.yaml"))
+            .readAsString();
     final pubspecDefinition = loadYaml(pubspecContents);
 
     return "$name | ${pubspecDefinition["description"]}";

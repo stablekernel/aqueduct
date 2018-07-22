@@ -200,9 +200,9 @@ class TableBuilder implements Returnable {
       return this;
     } else {
       final ManagedRelationshipDescription head = keyPath[0];
-      TableBuilder join = returning.whereType<TableBuilder>().firstWhere(
-          (m) => m.isJoinOnProperty(head),
-          orElse: () => null);
+      TableBuilder join = returning
+          .whereType<TableBuilder>()
+          .firstWhere((m) => m.isJoinOnProperty(head), orElse: () => null);
       if (join == null) {
         join = TableBuilder.implicit(this, head);
         addJoinTableBuilder(join);
@@ -246,10 +246,8 @@ class TableBuilder implements Returnable {
   String get sqlTableReference => tableAlias ?? entity.tableName;
 
   String get sqlInnerSelect {
-    var nestedJoins = returning
-        .whereType<TableBuilder>()
-        .map((t) => t.sqlJoin)
-        .join(" ");
+    var nestedJoins =
+        returning.whereType<TableBuilder>().map((t) => t.sqlJoin).join(" ");
 
     var flattenedColumns = flattenedColumnsToReturn;
 
