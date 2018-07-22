@@ -38,7 +38,7 @@ void main() {
         true);
 
     var response = await http.get("http://localhost:8111");
-    expect(response.body, contains("redoc spec-url='swagger.json'"));
+    expect(response.body, contains("redoc spec-url='openapi.json'"));
 
     // ignore: unawaited_futures
     task.process.stop(0);

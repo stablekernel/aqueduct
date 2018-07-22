@@ -77,7 +77,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
     final documentJSON = json.encode(await documentProject(
         projectDirectory.uri, libraryName, projectSpecificationFile));
     final jsonSpecFile =
-        File.fromUri(_hostedDirectory.uri.resolve("swagger.json"));
+        File.fromUri(_hostedDirectory.uri.resolve("openapi.json"));
     jsonSpecFile.writeAsStringSync(documentJSON);
 
     var htmlFile = File.fromUri(_hostedDirectory.uri.resolve("index.html"));
@@ -89,9 +89,15 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
 <!DOCTYPE html>
 <html>
   <head>
-    <title>$packageName API Reference</title>
+    <title>ReDoc</title>
+    <!-- needed for adaptive design -->
     <meta charset="utf-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:300,400,700|Roboto:300,400,700" rel="stylesheet">
+
+    <!--
+    ReDoc doesn't change outer page styles
+    -->
     <style>
       body {
         margin: 0;
@@ -100,10 +106,10 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
     </style>
   </head>
   <body>
-    <redoc spec-url='swagger.json'></redoc>
-    <script src="https://rebilly.github.io/ReDoc/releases/latest/redoc.min.js"> </script>
+    <redoc spec-url='openapi.json'></redoc>
+    <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"> </script>
   </body>
-</html>    
+</html>  
     """;
   }
 
