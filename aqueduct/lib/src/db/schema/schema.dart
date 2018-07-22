@@ -114,8 +114,7 @@ class Schema {
   /// Sets [table]'s [SchemaTable.schema] to null.
   void removeTable(SchemaTable table) {
     if (!tables.contains(table)) {
-      throw SchemaException(
-        "Table ${table.name} does not exist in schema.");
+      throw SchemaException("Table ${table.name} does not exist in schema.");
     }
     table.schema = null;
     _tableStorage.remove(table);

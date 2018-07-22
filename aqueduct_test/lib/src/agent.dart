@@ -36,16 +36,24 @@ part 'response.dart';
 ///         }
 class Agent {
   /// Configures a new agent that sends requests to [app].
-  Agent(Application app) : _application = app, _host = null, _port = null, _scheme = null;
+  Agent(Application app)
+      : _application = app,
+        _host = null,
+        _port = null,
+        _scheme = null;
 
   /// Configures a new agent that sends requests to 'http://localhost:[_port]'.
-  Agent.onPort(this._port) : _scheme = "http", _host = "localhost", _application = null;
+  Agent.onPort(this._port)
+      : _scheme = "http",
+        _host = "localhost",
+        _application = null;
 
   /// Configures a new agent that sends requests to a server configured by [config].
   Agent.fromOptions(ApplicationOptions config, {bool useHTTPS = false})
       : _scheme = useHTTPS ? "https" : "http",
         _host = "localhost",
-        _port = config.port, _application = null;
+        _port = config.port,
+        _application = null;
 
   /// Configures a new agent with the same properties as [original].
   Agent.from(Agent original)

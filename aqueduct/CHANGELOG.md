@@ -1,26 +1,31 @@
 ## 3.0.0
 
 - Adds `BodyDecoder.decode<T>` and `BodyDecoder.as<T>`. This replaces existing `decodeAs*` and `as*` methods.
-- `package:aqueduct/test` moved to `package:aqueduct_test/aqueduct_test`, which is a separate dependency than `aqueduct`.
-- Renames methods in `AuthDelegate` to provide consistency.
 - Adds `AuthDelegate.addClient` and `AuthServer.addClient`.
 - Adds `ManagedContext.transaction` to enable queries to be run in a database transaction.
-- Removes `ManagedContext.defaultContext`; context usage must be explicit.
 - Adds 'Scope' annotation to add granular scoping to `ResourceController` methods.
+- Adds `Recyclable<T>` to control whether controllers are instantiated per request or are reused.
 - Adds support for storing PostgreSQL JSONB data with `Document` data type.
+- Adds `Query.insertObject`.
 - Adds support for OpenAPI 3.0.0 documentation generation.
     - Adds `APIComponentDocumenter`, `APIOperationDocumenter`, `APIDocumentContext`.
-    - Removes `PackagePathResolver`, `ApplicationOptions.isDocumenting` and `APIDocumentable`.    
+    - Removes `PackagePathResolver`, `ApplicationOptions.isDocumenting` and `APIDocumentable`.
+- Adds `MockHTTPServer.queueHandler` and `MockHTTPServer.queueOutage`.
+- `Query.where` behavior has changed to consistently use property selector syntax.
+    - Removes methods like `whereEqualTo` and replaced with `QueryExpression`.
+- `Controller.generate` renamed to `Controller.link`. Removed `Controller.pipe`.
+- `package:aqueduct/test` moved to `package:aqueduct_test/aqueduct_test`, which is a separate dependency from `aqueduct`.
+- Renames methods in `AuthDelegate` to provide consistency.
+- Removes `ManagedContext.defaultContext`; context usage must be explicit.
 - Removes `HTTPResponseException`. Responses can now be thrown instead.
 - `QueryException`s are no longer thrown for every ORM exception. If a store chooses to interpret an exception, it will still throw a `QueryException`. Otherwise, the underlying driver exception will be thrown.
 - Default constructor for `PostgreSQLPersistentStore` now takes connection info instead of closure.
-- Controller linking is simplified. `generate` renamed to `link`. Removed `pipe`; all controllers must be instantiated per request.
 - `Controller.listen` renamed `Controller.linkFunction`.
 - Change default port for `aqueduct serve` to 8888.
-- Adds `MockHTTPServer.queueHandler` and `MockHTTPServer.queueOutage`.
 - Binding metadata - `HTTPPath`, `HTTPBody`, `HTTPQuery` and `HTTPHeader` - have been changed to `Bind.path`, `Bind.body`, `Bind.query` and `Bind.header`, respectively.
-- Remove `@httpGet` (and other `HTTPMethod` annotations) constants. Behavior replaced by`@Operation`.
+- Remove `@httpGet` (and other `HTTPMethod` annotations) constants. Behavior replaced by `@Operation`.
 - Removes `runOnMainIsolate` from `Application.start()` and added `Application.startOnMainIsolate()` as replacement.
+- Removes `ManagedSet.haveAtLeastOneWhere`.
 - Renames `RequestSink` to `ApplicationChannel`.
     - Replace constructor and `willOpen` with `prepare`.
     - Replace `setupRouter` with `entryPoint`.
@@ -31,7 +36,6 @@
 - Renames the following:
     - `Authorization.resourceOwnerIdentifier` -> `Authorization.ownerID`
     - `Request.innerRequest` -> `Request.raw`
-    - `whereContainsString` -> `whereContains`
     - `AuthStorage` -> `AuthServerDelegate`
     - `AuthServer.storage` -> `AuthServer.delegate`
     - `ApplicationConfiguration` -> `ApplicationOptions`
@@ -47,8 +51,6 @@
     - `RequestController` -> `Controller`
     - `RequestController.processRequest` -> `Controller.handle`
     - `HTTPController` -> `ResourceController`
-    - `Router.unhandledRequestController` -> `Router.unmatchedController`
-    - `TestClient.fromConfig` -> `TestClient.fromOptions`        
 
 ## 2.5.0
 

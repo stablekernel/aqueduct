@@ -30,3 +30,5 @@ You can find the API reference [here](https://www.dartdocs.org/documentation/aqu
 You can find in-depth and conceptual guides [here](https://aqueduct.io/docs/).
 
 An ever-expanding repository of Aqueduct examples is [here](https://github.com/stablekernel/aqueduct_examples).
+
+*If you are migrating from Aqueduct 2.5 to Aqueduct 3.0, see [the migration guide](https://aqueduct.io/docs/migration/).*

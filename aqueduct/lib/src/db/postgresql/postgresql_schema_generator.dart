@@ -8,8 +8,7 @@ class PostgreSQLSchemaGenerator {
     var commands = <String>[];
 
     // Create table command
-    var columnString =
-        table.columns.map(_columnStringForColumn).join(",");
+    var columnString = table.columns.map(_columnStringForColumn).join(",");
     commands.add(
         "CREATE${isTemporary ? " TEMPORARY " : " "}TABLE ${table.name} ($columnString)");
 

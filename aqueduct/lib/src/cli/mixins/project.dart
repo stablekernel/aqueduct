@@ -85,9 +85,11 @@ abstract class CLIProject implements CLICommand {
       }
 
       if (projectVersion?.major != toolVersion.major) {
-        throw CLIException("CLI version is incompatible with project aqueduct version.", instructions: [
-          "Install aqueduct@${projectVersion?.toString()} or upgrade your project to aqueduct${toolVersion.toString()}."
-        ]);
+        throw CLIException(
+            "CLI version is incompatible with project aqueduct version.",
+            instructions: [
+              "Install aqueduct@${projectVersion?.toString()} or upgrade your project to aqueduct${toolVersion.toString()}."
+            ]);
       }
     } on CLIException {
       rethrow;

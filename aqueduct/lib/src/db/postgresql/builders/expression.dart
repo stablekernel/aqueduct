@@ -26,8 +26,9 @@ class ColumnExpressionBuilder extends ColumnBuilder {
     } else if (expr is SetMembershipExpression) {
       return containsPredicate(expr.values, within: expr.within);
     } else if (expr is StringExpression) {
-      return stringPredicate(
-          expr.operator, expr.value, caseSensitive: expr.caseSensitive, invertOperator: expr.invertOperator);
+      return stringPredicate(expr.operator, expr.value,
+          caseSensitive: expr.caseSensitive,
+          invertOperator: expr.invertOperator);
     }
 
     throw UnsupportedError(
@@ -44,7 +45,8 @@ class ColumnExpressionBuilder extends ColumnBuilder {
         {variableName: convertValueForStorage(value)});
   }
 
-  QueryPredicate containsPredicate(Iterable<dynamic> values, {bool within = true}) {
+  QueryPredicate containsPredicate(Iterable<dynamic> values,
+      {bool within = true}) {
     var tokenList = [];
     var pairedMap = <String, dynamic>{};
 
@@ -69,8 +71,8 @@ class ColumnExpressionBuilder extends ColumnBuilder {
     return QueryPredicate("$name ${isNull ? "ISNULL" : "NOTNULL"}", {});
   }
 
-  QueryPredicate rangePredicate(
-      dynamic lhsValue, dynamic rhsValue, {bool insideRange = true}) {
+  QueryPredicate rangePredicate(dynamic lhsValue, dynamic rhsValue,
+      {bool insideRange = true}) {
     var name = sqlColumnName(withTableNamespace: true);
     var lhsName = sqlColumnName(withPrefix: "${defaultPrefix}lhs_");
     var rhsName = sqlColumnName(withPrefix: "${defaultPrefix}rhs_");
@@ -84,8 +86,9 @@ class ColumnExpressionBuilder extends ColumnBuilder {
         });
   }
 
-  QueryPredicate stringPredicate(PredicateStringOperator operator,
-      dynamic value, {bool caseSensitive = true, bool invertOperator = false}) {
+  QueryPredicate stringPredicate(
+      PredicateStringOperator operator, dynamic value,
+      {bool caseSensitive = true, bool invertOperator = false}) {
     var n = sqlColumnName(withTableNamespace: true);
     var variableName = sqlColumnName(withPrefix: defaultPrefix);
 

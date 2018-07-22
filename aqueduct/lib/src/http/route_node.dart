@@ -103,7 +103,8 @@ class RouteNode {
           .toList();
       equalityChildren[childSegment] =
           RouteNode(childrenBeginningWithThisSegment, depth: depth + 1);
-      remainingSpecifications.removeWhere(childrenBeginningWithThisSegment.contains);
+      remainingSpecifications
+          .removeWhere(childrenBeginningWithThisSegment.contains);
     });
 
     var takeAllSegment = remainingSpecifications.firstWhere(
