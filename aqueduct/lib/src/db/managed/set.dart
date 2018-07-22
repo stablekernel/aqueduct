@@ -1,6 +1,5 @@
 import 'dart:collection';
 
-import '../query/query.dart';
 import 'managed.dart';
 
 /// Instances of this type contain zero or more instances of [ManagedObject] and represent has-many relationships.
@@ -33,22 +32,6 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
   }
 
   List<InstanceType> _innerValues;
-
-  /// Filters [Query] results based on the criteria of the objects in this collection.
-  ///
-  /// You use this method when building a query expression for has-many relationships.
-  /// This property returns an empty instance of [InstanceType], for which you may select properties from.
-  ///
-  /// For example, the following query will only return 'Parents' that have at least one child
-  /// named 'Sally'.
-  ///
-  ///         final query = new Query<Parent>()
-  ///           ..where((p) => p.children.haveAtLeastOneWhere.name).equals("Sally");
-  ///
-  /// A query that uses this property will not include the values of the related objects in the result.
-  /// Using this property in a property selector triggers the query to perform a SQL JOIN. No
-  /// values from the related object are returned in the query.
-  InstanceType get haveAtLeastOneWhere => null;
 
   /// The number of elements in this set.
   @override
