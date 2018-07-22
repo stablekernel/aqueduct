@@ -79,10 +79,18 @@ abstract class CLIProject implements CLICommand {
 
   @override
   void preProcess() {
-    if (!isMachineOutput) {
-      try {
+    try {
+      if (!isMachineOutput) {
         displayInfo("Aqueduct project version: $projectVersion");
-      } catch (_) {} // Ignore if this doesn't succeed.
-    }
+      }
+
+      if (projectVersion?.major != toolVersion.major) {
+        throw CLIException("CLI version is incompatible with project aqueduct version.", instructions: [
+          "Install aqueduct@${projectVersion?.toString()} or upgrade your project to aqueduct${toolVersion.toString()}."
+        ]);
+      }
+    } on CLIException {
+      rethrow;
+    } catch (_) {}
   }
 }
