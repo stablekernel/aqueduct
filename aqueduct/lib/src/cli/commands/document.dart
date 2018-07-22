@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:aqueduct/src/cli/mixins/openapi_options.dart';
-import 'package:aqueduct/src/cli/mixins//project.dart';
+import 'package:aqueduct/src/cli/mixins/project.dart';
 
 import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/commands/document_serve.dart';
