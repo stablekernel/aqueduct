@@ -13,6 +13,14 @@ void main() {
     await context.close();
   });
 
+  test("Transaction returns value of closure", () async {
+    String v = await context.transaction((t) async {
+      final o = await Query.insertObject(t, Model()..name = "Bob");
+      return o.name;
+    });
+    expect(v, "Bob");
+  });
+
   test("Queries in transaction block are executed in transaction", () async {
     await context.transaction((t) async {
       final q1 = Query<Model>(t)..values.name = "Bob";
@@ -80,18 +88,22 @@ void main() {
     expect((await Query<Model>(context).fetch()).length, 0);
   });
 
-  test("A thrown rollback rolls back transaction and returns rollback reason", () async {
-    final res = await context.transaction((t) async {
-      final res = await Query.insertObject(t, Model()..name = "1");
+  test("A thrown rollback rolls back transaction and throws rollback", () async {
+    try {
+      await context.transaction((t) async {
+        final res = await Query.insertObject(t, Model()..name = "1");
 
-      if (res.name == "1") {
-        throw Rollback("hello");
-      }
+        if (res.name == "1") {
+          throw Rollback("hello");
+        }
 
-      await Query.insertObject(t, Model()..name = "2");
-    });
+        await Query.insertObject(t, Model()..name = "2");
+      });
+      fail('unreachable');
+    } on Rollback catch (e) {
+      expect(e.reason, "hello");
+    }
 
-    expect(res, "hello");
     expect((await Query<Model>(context).fetch()).length, 0);
   });
 
@@ -105,7 +117,7 @@ void main() {
     expect((await Query<Model>(context).fetch()).length, 3);
   });
 
-  test("Query on origional context within transaction block times out and cancels transaction", () async {
+  test("Query on original context within transaction block times out and cancels transaction", () async {
     try {
       await context.transaction((t) async {
         await Query.insertObject(t, Model()..name = "1");
