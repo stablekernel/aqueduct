@@ -23,7 +23,7 @@ void main() {
   });
 
   group("Happy path", () {
-    test("Can read Map body object into HTTPSerializable", () async {
+    test("Can read Map body object into Serializable", () async {
       server = await enableController("/", TestController);
       var m = {"id": 2, "name": "Bob"};
       var response = await postJSON(m);
@@ -31,7 +31,7 @@ void main() {
       expect(json.decode(response.body), m);
     });
 
-    test("Can read List<Map> body object into List<HTTPSerializable>",
+    test("Can read List<Map> body object into List<Serializable>",
         () async {
       server = await enableController("/", ListTestController);
       var m = [
@@ -161,7 +161,7 @@ class _TestModel {
   String name;
 }
 
-class CrashModel extends HTTPSerializable {
+class CrashModel extends Serializable {
   @override
   void readFromMap(dynamic requestBody) {
     throw Exception("whatever");

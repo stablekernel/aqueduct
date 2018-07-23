@@ -40,14 +40,14 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
   Future<StoppableProcess> _listen() async {
     final server = await HttpServer.bind(InternetAddress.anyIPv4, port);
 
-    final fileController = HTTPFileController(
+    final fileController = FileController(
         _hostedDirectory.uri.toFilePath(windows: Platform.isWindows))
-      ..addCachePolicy(const HTTPCachePolicy(requireConditionalRequest: true),
+      ..addCachePolicy(const CachePolicy(requireConditionalRequest: true),
           (p) => p.endsWith(".html"))
-      ..addCachePolicy(const HTTPCachePolicy(requireConditionalRequest: true),
+      ..addCachePolicy(const CachePolicy(requireConditionalRequest: true),
           (p) => p.endsWith(".json"))
       ..addCachePolicy(
-          HTTPCachePolicy(expirationFromNow: Duration(days: 300)), (p) => true)
+          CachePolicy(expirationFromNow: Duration(days: 300)), (p) => true)
       ..logger.onRecord.listen((rec) {
         outputSink.writeln("${rec.message} ${rec.stackTrace ?? ""}");
       });

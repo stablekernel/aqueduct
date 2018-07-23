@@ -114,7 +114,7 @@ class Bind {
   /// the bound property will be null if it was not present in the request.
   ///
   /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [ResourceController].
-  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [ResourceController].
+  /// If a declaration with this metadata is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   const Bind.query(this.name) : _type = _BindType.query;
 
   /// Binds an HTTP request header to an [ResourceController] property or operation method argument.
@@ -137,17 +137,17 @@ class Bind {
   /// the bound property will be null if it was not present in the request.
   ///
   /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [ResourceController].
-  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [ResourceController].
+  /// If a declaration with this metadata is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   const Bind.header(this.name) : _type = _BindType.header;
 
   /// Binds an HTTP request body to an [ResourceController] property or operation method argument.
   ///
   /// The body of an incoming
-  /// request is decoded into the bound argument or property. The argument or property *must* implement [HTTPSerializable] or be
-  /// a [List<HTTPSerializable>]. If the property or argument is a [List<HTTPSerializable>], the request body must be able to be decoded into
-  /// a [List] of objects (i.e., a JSON array) and [HTTPSerializable.readFromMap] is invoked for each object.
+  /// request is decoded into the bound argument or property. The argument or property *must* implement [Serializable] or be
+  /// a [List<Serializable>]. If the property or argument is a [List<Serializable>], the request body must be able to be decoded into
+  /// a [List] of objects (i.e., a JSON array) and [Serializable.readFromMap] is invoked for each object.
   ///
-  /// Note that [ManagedObject] implements [HTTPSerializable].
+  /// Note that [ManagedObject] implements [Serializable].
   ///
   /// For example, the following controller will read a JSON object from the request body and assign its key-value pairs
   /// to the properties of `User`:
@@ -165,7 +165,7 @@ class Bind {
   /// If a declaration with this metadata is a positional argument in a operation method, it is required for that method.
   /// If a declaration with this metadata is an optional argument in a operation method, it is optional for that method.
   /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [ResourceController].
-  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [ResourceController].
+  /// If a declaration with this metadata is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   ///
   /// Requirements that are not met will be evoke a 400 Bad Request response with the name of the missing header in the JSON error body.
   /// No operation method will be called in this case.
@@ -229,7 +229,7 @@ enum _BindType { query, header, body, path }
 /// For example, the following controller requires the header 'X-Request-ID' for both of its operation methods:
 ///
 ///         class UserController extends ResourceController {
-///           @requiredHTTPParameter
+///           @requiredBinding
 ///           @Bind.header("x-request-id")
 ///           String requestID;
 ///
@@ -241,9 +241,9 @@ enum _BindType { query, header, body, path }
 ///           Future<Response> getAllUsers() async
 ///              => return Response.ok(await getUsers());
 ///         }
-const HTTPRequiredParameter requiredHTTPParameter = HTTPRequiredParameter();
+const RequiredBinding requiredBinding = RequiredBinding();
 
-/// See [requiredHTTPParameter].
-class HTTPRequiredParameter {
-  const HTTPRequiredParameter();
+/// See [requiredBinding].
+class RequiredBinding {
+  const RequiredBinding();
 }

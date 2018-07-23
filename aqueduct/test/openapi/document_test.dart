@@ -479,7 +479,7 @@ class ComplexTypes {
   Map<String, List<String>> f;
 }
 
-class Serial extends HTTPSerializable {
+class Serial extends Serializable {
   int x;
 
   @override

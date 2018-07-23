@@ -46,7 +46,7 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   ///         }
   ///
   ///
-  /// Do not configure objects like [HTTPCodecRepository], [CORSPolicy.defaultPolicy] or any other value that isn't explicitly passed through [options].
+  /// Do not configure objects like [CodecRegistry], [CORSPolicy.defaultPolicy] or any other value that isn't explicitly passed through [options].
   ///
   /// * Note that static methods are not inherited in Dart and therefore you are not overriding this method. The declaration of this method in the base [ApplicationChannel] class
   /// is for documentation purposes.
@@ -134,7 +134,7 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   /// This method is invoked when the owning [Application] is stopped. It closes open ports
   /// that this channel was using so that the application can be properly shut down.
   ///
-  /// Prefer to use [ApplicationServiceRegistry] instead of overriding this method.
+  /// Prefer to use [ServiceRegistry] instead of overriding this method.
   ///
   /// If you do override this method, you must call the super implementation.
   @mustCallSuper

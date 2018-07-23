@@ -22,7 +22,7 @@ class PostgreSQLPersistentStore extends PersistentStore
       this.username, this.password, this.host, this.port, this.databaseName,
       {this.timeZone = "UTC", bool useSSL = false})
       : isSSLConnection = useSSL {
-    ApplicationServiceRegistry.defaultInstance
+    ServiceRegistry.defaultInstance
         .register<PostgreSQLPersistentStore>(this, (store) => store.close());
   }
 
@@ -33,7 +33,7 @@ class PostgreSQLPersistentStore extends PersistentStore
       this.username, this.password, this.host, this.port, this.databaseName,
       {this.timeZone = "UTC", bool useSSL = false})
       : isSSLConnection = useSSL {
-    ApplicationServiceRegistry.defaultInstance
+    ServiceRegistry.defaultInstance
         .register<PostgreSQLPersistentStore>(this, (store) => store.close());
   }
 

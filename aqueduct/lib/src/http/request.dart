@@ -307,14 +307,14 @@ class Request implements RequestOrResponse {
 
     Codec<dynamic, List<int>> codec;
     if (resp.encodeBody) {
-      codec = HTTPCodecRepository.defaultInstance
+      codec = CodecRegistry.defaultInstance
           .codecForContentType(resp.contentType);
     }
 
     // todo(joeconwaystk): Set minimum threshold on number of bytes needed to perform gzip, do not gzip otherwise.
     // There isn't a great way of doing this that I can think of except splitting out gzip from the fused codec,
     // have to measure the value of fusing vs the cost of gzipping smaller data.
-    var canGzip = HTTPCodecRepository.defaultInstance
+    var canGzip = CodecRegistry.defaultInstance
             .isContentTypeCompressable(resp.contentType) &&
         _acceptsGzipResponseBody;
 
@@ -344,11 +344,11 @@ class Request implements RequestOrResponse {
       Response resp, _Reference<String> compressionType) {
     Codec<dynamic, List<int>> codec;
     if (resp.encodeBody) {
-      codec = HTTPCodecRepository.defaultInstance
+      codec = CodecRegistry.defaultInstance
           .codecForContentType(resp.contentType);
     }
 
-    var canGzip = HTTPCodecRepository.defaultInstance
+    var canGzip = CodecRegistry.defaultInstance
             .isContentTypeCompressable(resp.contentType) &&
         _acceptsGzipResponseBody;
     if (codec == null) {

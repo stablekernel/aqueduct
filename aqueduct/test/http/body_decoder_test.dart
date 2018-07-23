@@ -181,8 +181,8 @@ void main() {
     setUpAll(() {
       // We'll just use JSON here so we don't have to write a separate codec
       // to test whether or not this content-type gets paired to a codec.
-      HTTPCodecRepository.defaultInstance.add(ContentType("application", "thingy"), const JsonCodec());
-      HTTPCodecRepository.defaultInstance.add(ContentType("somethingelse", "*", charset: "utf-8"), const JsonCodec());
+      CodecRegistry.defaultInstance.add(ContentType("application", "thingy"), const JsonCodec());
+      CodecRegistry.defaultInstance.add(ContentType("somethingelse", "*", charset: "utf-8"), const JsonCodec());
     });
 
     setUp(() async {
@@ -631,7 +631,7 @@ void main() {
   group("Form codec", () {
     test("Convert list of bytes with form codec", () {
       var codec =
-          HTTPCodecRepository.defaultInstance.codecForContentType(ContentType("application", "x-www-form-urlencoded"));
+          CodecRegistry.defaultInstance.codecForContentType(ContentType("application", "x-www-form-urlencoded"));
       var bytes = utf8.encode("a=b&c=d");
 
       expect(codec.decode(bytes), {

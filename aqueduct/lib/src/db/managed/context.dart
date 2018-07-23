@@ -48,7 +48,7 @@ class ManagedContext implements APIComponentDocumenter {
   /// on this context if its type is in [dataModel].
   ManagedContext(this.dataModel, this.persistentStore) {
     ManagedDataModelManager.add(dataModel);
-    ApplicationServiceRegistry.defaultInstance
+    ServiceRegistry.defaultInstance
         .register<ManagedContext>(this, (o) => o.close());
   }
 

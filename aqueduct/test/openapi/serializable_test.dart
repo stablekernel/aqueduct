@@ -21,14 +21,14 @@ void main() {
 
   test("Try to decode non-serializable throws error", () async {
     try {
-      HTTPSerializable.document(ctx, String);
+      Serializable.document(ctx, String);
       fail("unreachable");
       // ignore: empty_catches
     } on ArgumentError {}
   });
 
   test("Serializable contains properties for each declared field", () async {
-    final doc = HTTPSerializable.document(ctx, A);
+    final doc = Serializable.document(ctx, A);
     await ctx.finalize();
 
     expect(doc.properties.length, 2);
@@ -45,13 +45,13 @@ void main() {
   });
 
   test("Nested serializable is documented", () async {
-    final doc = HTTPSerializable.document(ctx, A);
+    final doc = Serializable.document(ctx, A);
     expect(doc.properties["b"].properties.length, 1);
     expect(doc.properties["b"].properties["y"].type, APIType.string);
   });
 
   test("Types with documentation comments are documented", () async {
-    final doc = HTTPSerializable.document(ctx, B);
+    final doc = Serializable.document(ctx, B);
     await ctx.finalize();
 
     expect(doc.title, "b");
@@ -59,7 +59,7 @@ void main() {
   });
 }
 
-class A extends HTTPSerializable {
+class A extends Serializable {
   /// x
   ///
   /// yz
@@ -78,7 +78,7 @@ class A extends HTTPSerializable {
 }
 
 /// b
-class B extends HTTPSerializable {
+class B extends Serializable {
   String y;
 
   @override

@@ -137,13 +137,13 @@ class Application<T extends ApplicationChannel> {
   /// Stops the application from running.
   ///
   /// Closes every isolate and their channel and stops listening for HTTP requests.
-  /// The [ApplicationServiceRegistry] will close any of its resources.
+  /// The [ServiceRegistry] will close any of its resources.
   Future stop() async {
     _hasFinishedLaunching = false;
     await Future.wait(supervisors.map((s) => s.stop()));
     await server?.server?.close(force: true);
 
-    await ApplicationServiceRegistry.defaultInstance.close();
+    await ServiceRegistry.defaultInstance.close();
     _hasFinishedLaunching = false;
     server = null;
     supervisors = [];

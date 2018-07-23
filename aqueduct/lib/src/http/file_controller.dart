@@ -6,12 +6,12 @@ import 'package:path/path.dart' as path;
 import 'http.dart';
 
 typedef _OnFileNotFound = FutureOr<Response> Function(
-    HTTPFileController controller, Request req);
+    FileController controller, Request req);
 
 /// Serves files from a directory on the filesystem.
 ///
 /// See the constructor for usage.
-class HTTPFileController extends Controller {
+class FileController extends Controller {
   static Map<String, ContentType> _defaultExtensionMap = {
     /* Web content */
     "html": ContentType("text", "html", charset: "utf-8"),
@@ -54,7 +54,7 @@ class HTTPFileController extends Controller {
   ///
   ///       router
   ///        .route("/site/*")
-  ///        .link(() => new HTTPFileController("build/web"));
+  ///        .link(() => new FileController("build/web"));
   ///
   /// In the above, `GET /site/index.html` would return the file `build/web/index.html`.
   ///
@@ -68,12 +68,12 @@ class HTTPFileController extends Controller {
   /// add more with [setContentTypeForExtension]. Unknown file extension will result in `application/octet-stream` content-type responses.
   ///
   /// The contents of a file will be compressed with 'gzip' if the request allows for it and the content-type of the file can be compressed
-  /// according to [HTTPCodecRepository].
+  /// according to [CodecRegistry].
   ///
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
-  HTTPFileController(String pathOfDirectoryToServe,
+  FileController(String pathOfDirectoryToServe,
       {FutureOr<Response> onFileNotFound(
-          HTTPFileController controller, Request req)})
+          FileController controller, Request req)})
       : _servingDirectory = Uri.directory(pathOfDirectoryToServe),
         _onFileNotFound = onFileNotFound;
 
@@ -114,31 +114,31 @@ class HTTPFileController extends Controller {
   /// For example, the following adds a set of cache policies that will apply 'Cache-Control: no-cache, no-store' to '.widget' files,
   /// and 'Cache-Control: public' for any other files:
   ///
-  ///         fileController.addCachePolicy(const HTTPCachePolicy(preventCaching: true),
+  ///         fileController.addCachePolicy(const CachePolicy(preventCaching: true),
   ///           (p) => p.endsWith(".widget"));
-  ///         fileController.addCachePolicy(const HTTPCachePolicy(),
+  ///         fileController.addCachePolicy(const CachePolicy(),
   ///           (p) => true);
   ///
   /// Whereas the following incorrect example would apply 'Cache-Control: public' to '.widget' files because the first policy
   /// would always apply to it and the second policy would be ignored:
   ///
-  ///         fileController.addCachePolicy(const HTTPCachePolicy(),
+  ///         fileController.addCachePolicy(const CachePolicy(),
   ///           (p) => true);
-  ///         fileController.addCachePolicy(const HTTPCachePolicy(preventCaching: true),
+  ///         fileController.addCachePolicy(const CachePolicy(preventCaching: true),
   ///           (p) => p.endsWith(".widget"));
   ///
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
   ///
   void addCachePolicy(
-      HTTPCachePolicy policy, bool shouldApplyToPath(String path)) {
+      CachePolicy policy, bool shouldApplyToPath(String path)) {
     _policyPairs.add(_PolicyPair(policy, shouldApplyToPath));
   }
 
-  /// Returns the [HTTPCachePolicy] for [path].
+  /// Returns the [CachePolicy] for [path].
   ///
   /// Evaluates each policy added by [addCachePolicy] against the [path] and
   /// returns it if exists.
-  HTTPCachePolicy cachePolicyForPath(String path) {
+  CachePolicy cachePolicyForPath(String path) {
     return _policyPairs
         .firstWhere((pair) => pair.shouldApplyToPath(path), orElse: () => null)
         ?.policy;
@@ -211,7 +211,7 @@ class HTTPFileController extends Controller {
     };
   }
 
-  HTTPCachePolicy _policyForFile(File file) => cachePolicyForPath(file.path);
+  CachePolicy _policyForFile(File file) => cachePolicyForPath(file.path);
 }
 
 typedef _ShouldApplyToPath = bool Function(String path);
@@ -220,5 +220,5 @@ class _PolicyPair {
   _PolicyPair(this.policy, this.shouldApplyToPath);
 
   final _ShouldApplyToPath shouldApplyToPath;
-  final HTTPCachePolicy policy;
+  final CachePolicy policy;
 }

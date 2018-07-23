@@ -2,14 +2,14 @@ import 'http.dart';
 
 /// Instances of this type provide configuration for the 'Cache-Control' header.
 ///
-/// Typically used by [HTTPFileController]. See [HTTPFileController.addCachePolicy].
-class HTTPCachePolicy {
+/// Typically used by [FileController]. See [FileController.addCachePolicy].
+class CachePolicy {
   /// Creates a new cache policy.
   ///
   /// Policies applied to [Response.cachePolicy] will add the appropriate
   /// headers to that response. See properties for definitions of arguments
   /// to this constructor.
-  const HTTPCachePolicy(
+  const CachePolicy(
       {this.preventIntermediateProxyCaching = false,
       this.preventCaching = false,
       this.requireConditionalRequest = false,

@@ -65,7 +65,7 @@ abstract class ManagedBacking {
 /// declared in the subclass (also called the 'instance type') are not stored in the database.
 ///
 /// See more documentation on defining a data model at http://aqueduct.io/docs/db/modeling_data/
-abstract class ManagedObject<T> implements HTTPSerializable {
+abstract class ManagedObject<T> implements Serializable {
   /// Creates a new instance of [entity] with [backing].
   static ManagedObject instantiateDynamic(ManagedEntity entity,
       {ManagedBacking backing}) {

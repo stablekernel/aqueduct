@@ -63,7 +63,7 @@ void main() {
   test("A decoder with a match-all subtype will be used when matching",
       () async {
     var ct = ContentType("b", "*");
-    HTTPCodecRepository.defaultInstance.add(ct, ByteCodec());
+    CodecRegistry.defaultInstance.add(ct, ByteCodec());
     var serverResponse = Response.ok("hello")
       ..contentType = ContentType("b", "bar");
     server = await bindAndRespondWith(serverResponse);
@@ -77,8 +77,8 @@ void main() {
   test(
       "A decoder with a subtype always trumps a decoder that matches any subtype",
       () async {
-    HTTPCodecRepository.defaultInstance.add(ContentType("a", "*"), ByteCodec());
-    HTTPCodecRepository.defaultInstance
+    CodecRegistry.defaultInstance.add(ContentType("a", "*"), ByteCodec());
+    CodecRegistry.defaultInstance
         .add(ContentType("a", "specific"), const JsonCodec());
 
     var serverResponse = Response.ok({"key": "value"})
@@ -93,7 +93,7 @@ void main() {
 
   test("Using an encoder that blows up during encoded returns 500 safely",
       () async {
-    HTTPCodecRepository.defaultInstance
+    CodecRegistry.defaultInstance
         .add(ContentType("application", "crash"), CrashingCodec());
     var serverResponse = Response.ok("abcd")
       ..contentType = ContentType("application", "crash");
@@ -113,7 +113,7 @@ void main() {
   });
 
   test("Encoder that doesn't net out with List<int> safely fails", () async {
-    HTTPCodecRepository.defaultInstance.add(
+    CodecRegistry.defaultInstance.add(
         ContentType("application", "baddata"), BadDataCodec(),
         allowCompression: false);
     var serverResponse = Response.ok("abcd")
@@ -125,7 +125,7 @@ void main() {
   });
 
   test("Encode with x-www-form-urlencoded", () {
-    final codec = HTTPCodecRepository
+    final codec = CodecRegistry
       .defaultInstance
       .codecForContentType(ContentType("application", "x-www-form-urlencoded"));
 
@@ -214,7 +214,7 @@ void main() {
 
     test("Can compress without content-type/codec pair", () async {
       var ct = ContentType("application", "2");
-      HTTPCodecRepository.defaultInstance.setAllowsCompression(ct, true);
+      CodecRegistry.defaultInstance.setAllowsCompression(ct, true);
       server =
           await bindAndRespondWith(Response.ok([1, 2, 3, 4])..contentType = ct);
       var req = await client.getUrl(Uri.parse("http://localhost:8888"));
@@ -233,7 +233,7 @@ void main() {
         "Content-type that can't be gzipped and Accept-Encoding accepts gzip, not gzipped",
         () async {
       var ct = ContentType("application", "3", charset: "utf-8");
-      HTTPCodecRepository.defaultInstance
+      CodecRegistry.defaultInstance
           .add(ct, const JsonCodec(), allowCompression: false);
       server =
           await bindAndRespondWith(Response.ok({"a": "b"})..contentType = ct);
