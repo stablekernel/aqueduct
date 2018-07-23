@@ -114,7 +114,7 @@ class Bind {
   /// the bound property will be null if it was not present in the request.
   ///
   /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [ResourceController].
-  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [ResourceController].
+  /// If a declaration with this metadata is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   const Bind.query(this.name) : _type = _BindType.query;
 
   /// Binds an HTTP request header to an [ResourceController] property or operation method argument.
@@ -137,7 +137,7 @@ class Bind {
   /// the bound property will be null if it was not present in the request.
   ///
   /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [ResourceController].
-  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [ResourceController].
+  /// If a declaration with this metadata is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   const Bind.header(this.name) : _type = _BindType.header;
 
   /// Binds an HTTP request body to an [ResourceController] property or operation method argument.
@@ -165,7 +165,7 @@ class Bind {
   /// If a declaration with this metadata is a positional argument in a operation method, it is required for that method.
   /// If a declaration with this metadata is an optional argument in a operation method, it is optional for that method.
   /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [ResourceController].
-  /// If a declaration with this metadata is a property with [requiredHTTPParameter], it is required for all methods in an [ResourceController].
+  /// If a declaration with this metadata is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   ///
   /// Requirements that are not met will be evoke a 400 Bad Request response with the name of the missing header in the JSON error body.
   /// No operation method will be called in this case.
@@ -241,9 +241,9 @@ enum _BindType { query, header, body, path }
 ///           Future<Response> getAllUsers() async
 ///              => return Response.ok(await getUsers());
 ///         }
-const HTTPRequiredParameter requiredHTTPParameter = HTTPRequiredParameter();
+const RequiredBinding requiredBinding = RequiredBinding();
 
-/// See [requiredHTTPParameter].
-class HTTPRequiredParameter {
-  const HTTPRequiredParameter();
+/// See [requiredBinding].
+class RequiredBinding {
+  const RequiredBinding();
 }

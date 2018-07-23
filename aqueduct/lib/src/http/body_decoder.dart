@@ -21,7 +21,7 @@ abstract class BodyDecoder {
 
   /// Determines how [bytes] get decoded.
   ///
-  /// A decoder is chosen from [HTTPCodecRepository] according to this value.
+  /// A decoder is chosen from [CodecRegistry] according to this value.
   ContentType get contentType;
 
   /// Whether or not [bytes] is empty.
@@ -73,7 +73,7 @@ abstract class BodyDecoder {
 
   /// Decodes this object's bytes as [T].
   ///
-  /// This method will select the [Codec] for [contentType] from the [HTTPCodecRepository].
+  /// This method will select the [Codec] for [contentType] from the [CodecRegistry].
   /// The bytes of this object will be decoded according to that codec. If the codec
   /// produces a value that is not [T], a bad request error [Response] is thrown.
   ///
@@ -93,7 +93,7 @@ abstract class BodyDecoder {
     }
 
     final codec =
-        HTTPCodecRepository.defaultInstance.codecForContentType(contentType);
+        CodecRegistry.defaultInstance.codecForContentType(contentType);
     final originalBytes = await _readBytes(bytes);
 
     if (retainOriginalBytes) {

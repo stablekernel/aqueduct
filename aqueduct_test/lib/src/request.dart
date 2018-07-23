@@ -30,14 +30,14 @@ class TestRequest {
 
   /// The Content-Type that [body] should be encoded in.
   ///
-  /// [body] will be encoded according to the codec in [HTTPCodecRepository] that matches this value.
+  /// [body] will be encoded according to the codec in [CodecRegistry] that matches this value.
   ///
   /// Defaults to [ContentType.json].
   ContentType contentType = ContentType.json;
 
   /// The body of the this request.
   ///
-  /// Prior to execution, [body] will be encoded according to its [contentType] codec in [HTTPCodecRepository].
+  /// Prior to execution, [body] will be encoded according to its [contentType] codec in [CodecRegistry].
   ///
   /// To disable encoded, set [encodeBody] to false: [body] must be a [List<int>] when encoding is disabled.
   dynamic body;
@@ -45,7 +45,7 @@ class TestRequest {
   /// Whether or not [body] should be encoded according to [contentType].
   ///
   /// Defaults to true. When true, [body] will automatically be encoded by selecting a codec from
-  /// [HTTPCodecRepository] by [contentType]. If false, [body] must be a [List<int>].
+  /// [CodecRegistry] by [contentType]. If false, [body] must be a [List<int>].
   bool encodeBody = true;
 
   /// Query parameters to add to the request.
@@ -198,7 +198,7 @@ class TestRequest {
     }
 
     final codec =
-        HTTPCodecRepository.defaultInstance.codecForContentType(contentType);
+        CodecRegistry.defaultInstance.codecForContentType(contentType);
 
     if (codec == null) {
       // this check doesn't truly work, but if its a list, it's probably a list of bytes.

@@ -9,13 +9,13 @@ import 'http.dart';
 /// Every instance of [Request] has a [Request.body] property of this type. Use
 /// [decode] to convert the contents of this object into a Dart type (e.g, [Map] or [List]).
 ///
-/// See also [HTTPCodecRepository] for how decoding occurs.
+/// See also [CodecRegistry] for how decoding occurs.
 class RequestBody extends BodyDecoder {
   /// Creates a new instance of this type.
   ///
   /// Instances of this type decode [request]'s body based on its content-type.
   ///
-  /// See [HTTPCodecRepository] for more information about how data is decoded.
+  /// See [CodecRegistry] for more information about how data is decoded.
   ///
   /// Decoded data is cached the after it is decoded.
   RequestBody(HttpRequest request)

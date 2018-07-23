@@ -68,7 +68,7 @@ class FileController extends Controller {
   /// add more with [setContentTypeForExtension]. Unknown file extension will result in `application/octet-stream` content-type responses.
   ///
   /// The contents of a file will be compressed with 'gzip' if the request allows for it and the content-type of the file can be compressed
-  /// according to [HTTPCodecRepository].
+  /// according to [CodecRegistry].
   ///
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
   FileController(String pathOfDirectoryToServe,

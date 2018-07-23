@@ -6,7 +6,7 @@ import 'package:aqueduct/aqueduct.dart';
 void main() {
   test("Can add resources to registry that get shut down", () async {
     var controller = StreamController();
-    ApplicationServiceRegistry.defaultInstance
+    ServiceRegistry.defaultInstance
         .register<StreamController>(controller, (s) => s.close());
 
     var msgCompleter = Completer();
@@ -17,13 +17,13 @@ void main() {
     controller.add("whatever");
     await msgCompleter.future;
 
-    await ApplicationServiceRegistry.defaultInstance.close();
+    await ServiceRegistry.defaultInstance.close();
     expect(controller.isClosed, true);
   });
 
   test("Can remove resource", () async {
     var controller = StreamController();
-    ApplicationServiceRegistry.defaultInstance
+    ServiceRegistry.defaultInstance
         .register<StreamController>(controller, (s) => s.close());
 
     var msgCompleter = Completer();
@@ -34,9 +34,9 @@ void main() {
     controller.add("whatever");
     await msgCompleter.future;
 
-    ApplicationServiceRegistry.defaultInstance.unregister(controller);
+    ServiceRegistry.defaultInstance.unregister(controller);
 
-    await ApplicationServiceRegistry.defaultInstance.close();
+    await ServiceRegistry.defaultInstance.close();
     expect(controller.isClosed, false);
 
     await controller.close();

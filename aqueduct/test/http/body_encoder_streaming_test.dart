@@ -65,7 +65,7 @@ void main() {
 
     test("Stream a list of bytes with incorrect content type returns 500",
         () async {
-      HTTPCodecRepository.defaultInstance
+      CodecRegistry.defaultInstance
           .add(ContentType("application", "silly"), const Utf8Codec());
 
       var sc = StreamController<List<int>>();
@@ -116,7 +116,7 @@ void main() {
     });
 
     test("Crash in encoder terminates connection", () async {
-      HTTPCodecRepository.defaultInstance
+      CodecRegistry.defaultInstance
           .add(ContentType("application", "crash"), CrashingCodec());
 
       var sc = StreamController<String>();
@@ -245,7 +245,7 @@ void main() {
         () async {
       var sc = StreamController<String>();
       var ct = ContentType("application", "3");
-      HTTPCodecRepository.defaultInstance
+      CodecRegistry.defaultInstance
           .add(ct, const Utf8Codec(), allowCompression: false);
       server =
           await bindAndRespondWith(Response.ok(sc.stream)..contentType = ct);

@@ -190,7 +190,7 @@ class Response implements RequestOrResponse {
   /// Whether or not the body object of this instance should be encoded.
   ///
   /// By default, a body object is encoded according to its [contentType] and the corresponding
-  /// [Codec] in [HTTPCodecRepository].
+  /// [Codec] in [CodecRegistry].
   ///
   /// If this instance's body object has already been encoded as a list of bytes by some other mechanism,
   /// this property should be set to false to avoid the encoding process. This is useful when streaming a file

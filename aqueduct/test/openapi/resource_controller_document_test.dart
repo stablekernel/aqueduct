@@ -188,7 +188,7 @@ class A extends ResourceController {
   /// 2
   ///
   /// 3
-  @requiredHTTPParameter
+  @requiredBinding
   @Bind.header("requiredHeaderProperty")
   String propH;
 

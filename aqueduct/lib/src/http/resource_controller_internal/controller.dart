@@ -36,7 +36,7 @@ class BoundController {
         .map((decl) {
       var isRequired = allDeclarations[decl.simpleName]
           .metadata
-          .any((im) => im.reflectee is HTTPRequiredParameter);
+          .any((im) => im.reflectee is RequiredBinding);
       return BoundParameter(decl, isRequired: isRequired);
     });
     properties.addAll(boundProperties);

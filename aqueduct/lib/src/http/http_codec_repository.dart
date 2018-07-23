@@ -10,8 +10,8 @@ import 'http.dart';
 ///
 /// Additional mappings are added via [add]. This method must be called per-isolate and it is recommended
 /// to add mappings in an application's [ApplicationChannel] subclass constructor.
-class HTTPCodecRepository {
-  HTTPCodecRepository._() {
+class CodecRegistry {
+  CodecRegistry._() {
     add(ContentType("application", "json", charset: "utf-8"), const JsonCodec(),
         allowCompression: true);
     add(ContentType("application", "x-www-form-urlencoded", charset: "utf-8"),
@@ -25,8 +25,8 @@ class HTTPCodecRepository {
   /// The instance used by Aqueduct to encode and decode HTTP bodies.
   ///
   /// Custom codecs must be added to this instance. This value is guaranteed to be non-null.
-  static HTTPCodecRepository get defaultInstance => _defaultInstance;
-  static HTTPCodecRepository _defaultInstance = HTTPCodecRepository._();
+  static CodecRegistry get defaultInstance => _defaultInstance;
+  static CodecRegistry _defaultInstance = CodecRegistry._();
 
   Map<String, Codec> _primaryTypeCodecs = {};
   Map<String, Map<String, Codec>> _fullySpecificedCodecs = {};

@@ -17,9 +17,9 @@ import '../db/persistent_store/persistent_store.dart';
 /// Built-in Aqueduct types that open a stream, like [PersistentStore], automatically register themselves
 /// when instantiated. If you are unsure whether an object has already been registered, you may re-register it -
 /// multiple registrations have no effect.
-class ApplicationServiceRegistry {
-  static final ApplicationServiceRegistry defaultInstance =
-      ApplicationServiceRegistry();
+class ServiceRegistry {
+  static final ServiceRegistry defaultInstance =
+      ServiceRegistry();
 
   List<_ServiceRegistration> _registrations = [];
 

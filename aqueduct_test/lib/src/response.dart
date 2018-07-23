@@ -62,7 +62,7 @@ class TestResponseBody extends BodyDecoder {
   ///
   /// Instances of this type decode [response]'s body based on its content-type.
   ///
-  /// See [HTTPCodecRepository] for more information about how data is decoded.
+  /// See [CodecRegistry] for more information about how data is decoded.
   ///
   /// Decoded data is cached the after it is decoded.
   TestResponseBody(HttpClientResponse response)

@@ -42,7 +42,9 @@
     - `Application.configuration` -> `Application.options`
     - `HTTPFileController` -> `FileController`
     - `HTTPSerializable` -> `Serializable`
-    - `ServiceRegistry` -> `ApplicationServiceRegistry`
+    - `HTTPCachePolicy` -> `CachePolicy`
+    - `HTTPCodecRepository` -> `CodecRegistry`
+    - `requiredHTTPParameter` -> `requiredBinding`
     - `ManagedTableAttributes` -> `Table`
     - `ManagedRelationshipDeleteRule` -> `DeleteRule`
     - `ManagedRelationship` -> `Relate`
