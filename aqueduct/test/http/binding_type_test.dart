@@ -29,7 +29,7 @@ void main() {
       expect(true, true);
     });
 
-    test("Can bind HTTPSerializable to body", () {
+    test("Can bind Serializable to body", () {
       final controller = BodyBind();
       controller.restore(controller.recycledState);
       controller.didAddToChannel();
@@ -63,7 +63,7 @@ void main() {
       expect(true, true);
     });
 
-    test("Can bind HTTPSerializable to body", () {
+    test("Can bind Serializable to body", () {
       final controller = BodyListBind();
       controller.restore(controller.recycledState);
       controller.didAddToChannel();
@@ -227,7 +227,7 @@ class ErrorDefaultBody extends ResourceController {
   }
 }
 
-class Serial extends HTTPSerializable {
+class Serial extends Serializable {
   @override
   void readFromMap(Map<String, dynamic> requestBody) {}
 

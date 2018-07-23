@@ -19,7 +19,7 @@ abstract class APIComponentDocumenter {
   /// Creates an [APISchemaObject] from a reflected variable.
   ///
   /// [mirror] must reflect on a variable of that has one of the following supported types:
-  /// [int], [double], [String], [DateTime], or [HTTPSerializable]. [mirror] may reflect a
+  /// [int], [double], [String], [DateTime], or [Serializable]. [mirror] may reflect a
   /// [List] if every element of that list is one of the supported types. [mirror] may also reflect
   /// a [Map] if the keys are [String]s and the values are supported types.
   ///
@@ -44,9 +44,9 @@ abstract class APIComponentDocumenter {
   /// Creates an [APISchemaObject] from a reflected class.
   ///
   /// [type] must be representable as an [APISchemaObject]. This includes primitive types (int, String, etc.),
-  /// maps, lists and any type that implements [HTTPSerializable].
+  /// maps, lists and any type that implements [Serializable].
   ///
-  /// See [HTTPSerializable.document] for details on automatic document generation behavior for these types.
+  /// See [Serializable.document] for details on automatic document generation behavior for these types.
   static APISchemaObject documentType(
       APIDocumentContext context, TypeMirror type) {
     if (type.isAssignableTo(reflectType(int))) {
@@ -70,8 +70,8 @@ abstract class APIComponentDocumenter {
         ..type = APIType.object
         ..additionalPropertySchema =
             documentType(context, type.typeArguments.last);
-    } else if (type.isAssignableTo(reflectType(HTTPSerializable))) {
-      return HTTPSerializable.document(context, type.reflectedType);
+    } else if (type.isAssignableTo(reflectType(Serializable))) {
+      return Serializable.document(context, type.reflectedType);
     }
 
     throw ArgumentError(

@@ -143,11 +143,11 @@ class Bind {
   /// Binds an HTTP request body to an [ResourceController] property or operation method argument.
   ///
   /// The body of an incoming
-  /// request is decoded into the bound argument or property. The argument or property *must* implement [HTTPSerializable] or be
-  /// a [List<HTTPSerializable>]. If the property or argument is a [List<HTTPSerializable>], the request body must be able to be decoded into
-  /// a [List] of objects (i.e., a JSON array) and [HTTPSerializable.readFromMap] is invoked for each object.
+  /// request is decoded into the bound argument or property. The argument or property *must* implement [Serializable] or be
+  /// a [List<Serializable>]. If the property or argument is a [List<Serializable>], the request body must be able to be decoded into
+  /// a [List] of objects (i.e., a JSON array) and [Serializable.readFromMap] is invoked for each object.
   ///
-  /// Note that [ManagedObject] implements [HTTPSerializable].
+  /// Note that [ManagedObject] implements [Serializable].
   ///
   /// For example, the following controller will read a JSON object from the request body and assign its key-value pairs
   /// to the properties of `User`:

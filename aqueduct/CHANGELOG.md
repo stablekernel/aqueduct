@@ -40,6 +40,8 @@
     - `AuthServer.storage` -> `AuthServer.delegate`
     - `ApplicationConfiguration` -> `ApplicationOptions`
     - `Application.configuration` -> `Application.options`
+    - `HTTPFileController` -> `FileController`
+    - `HTTPSerializable` -> `Serializable`
     - `ServiceRegistry` -> `ApplicationServiceRegistry`
     - `ManagedTableAttributes` -> `Table`
     - `ManagedRelationshipDeleteRule` -> `DeleteRule`

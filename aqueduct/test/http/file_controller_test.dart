@@ -42,11 +42,11 @@ void main() {
     cssFile.writeAsBytesSync(utf8.encode(cssContents));
     jsFile.writeAsBytesSync(utf8.encode(jsContents));
 
-    var cachingController = HTTPFileController("temp_files")
-      ..addCachePolicy(const HTTPCachePolicy(requireConditionalRequest: true),
+    var cachingController = FileController("temp_files")
+      ..addCachePolicy(const CachePolicy(requireConditionalRequest: true),
           (path) => path.endsWith(".html"))
       ..addCachePolicy(
-          const HTTPCachePolicy(expirationFromNow: Duration(seconds: 31536000)),
+          const CachePolicy(expirationFromNow: Duration(seconds: 31536000)),
           (path) => [
                 ".jpg",
                 ".js",
@@ -60,13 +60,13 @@ void main() {
               ].any((suffix) => path.endsWith(suffix)));
 
     var router = Router()
-      ..route("/files/*").link(() => HTTPFileController("temp_files"))
+      ..route("/files/*").link(() => FileController("temp_files"))
       ..route("/redirect/*").link(
-          () => HTTPFileController("temp_files", onFileNotFound: (c, r) async {
+          () => FileController("temp_files", onFileNotFound: (c, r) async {
                 return Response.ok({"k": "v"});
               }))
       ..route("/cache/*").link(() => cachingController)
-      ..route("/silly/*").link(() => HTTPFileController("temp_files")
+      ..route("/silly/*").link(() => FileController("temp_files")
         ..setContentTypeForExtension(
             "silly", ContentType("text", "html", charset: "utf-8")));
     router.didAddToChannel();

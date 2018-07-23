@@ -238,7 +238,7 @@ class A extends ResourceController {
   }
 }
 
-class AModel extends HTTPSerializable {
+class AModel extends Serializable {
   double key;
 
   @override

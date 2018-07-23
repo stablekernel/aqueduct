@@ -353,7 +353,7 @@ void main() {
   });
 }
 
-class SomeObject implements HTTPSerializable {
+class SomeObject implements Serializable {
   String name;
 
   @override
