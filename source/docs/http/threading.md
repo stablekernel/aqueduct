@@ -22,7 +22,7 @@ However, there are times where you do need to track state. For example, if you a
 
 Another thing that is important to consider is initialization. The methods `prepare()` and `entryPoint` in an application channel will be invoked on each isolate. This behavior is guaranteed to occur for each isolate and there is often little to worry about.
 
-However, when implementing `ApplicationChannel.initializeApplication`, code runs on the main isolate. Any changes to static variables or singletons will not be replicated to the isolates running the application logic. The use case for this method is rather minimal, but it is very important that types like `HTTPCodecRepository` aren't configured in this method.
+However, when implementing `ApplicationChannel.initializeApplication`, code runs on the main isolate. Any changes to static variables or singletons will not be replicated to the isolates running the application logic. The use case for this method is rather minimal, but it is very important that types like `CodecRegistry` aren't configured in this method.
 
 ## How Many Isolates Should I Use
 

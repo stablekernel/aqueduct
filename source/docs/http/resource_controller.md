@@ -310,7 +310,7 @@ The properties of an `ResourceController`s may also have `Bind.query` and `Bind.
 
 ```dart
 class CityController extends ResourceController {
-  @requiredHTTPParameter
+  @requiredBinding
   @Bind.header("x-timestamp")
   DateTime timestamp;
 
@@ -324,7 +324,7 @@ class CityController extends ResourceController {
 }
 ```
 
-In the above, both `timestamp` and `limit` are bound prior to `getCities` being invoked. By default, a bound property is optional. Adding an `requiredHTTPParameter` annotation changes a property to required. If required, any request without the required property fails with a 400 Bad Request status code and none of the operation methods are invoked.
+In the above, both `timestamp` and `limit` are bound prior to `getCities` being invoked. By default, a bound property is optional. Adding an `requiredBinding` annotation changes a property to required. If required, any request without the required property fails with a 400 Bad Request status code and none of the operation methods are invoked.
 
 ## Other ResourceController Behavior
 

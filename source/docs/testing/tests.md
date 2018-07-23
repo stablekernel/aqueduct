@@ -88,9 +88,9 @@ final request = harness.agent.request("/endpoint")
   ..headers["X-Header"] = "Value";
 ```
 
-When a request includes a body, the body is encoded according to the content-type of the request (defaults to JSON). The encoding behavior is provided by `HTTPCodecRepository`, the same type that manages encoding and decoding for your application logic. When adding a body to a test request, you provide the unencoded value (a Dart `Map`, for example) and it is encoded into the correct value (a JSON object, for example). On the inverse side, when validating a response body, the body is already decoded to a Dart type prior to your test code receiving the response.
+When a request includes a body, the body is encoded according to the content-type of the request (defaults to JSON). The encoding behavior is provided by `CodecRegistry`, the same type that manages encoding and decoding for your application logic. When adding a body to a test request, you provide the unencoded value (a Dart `Map`, for example) and it is encoded into the correct value (a JSON object, for example). On the inverse side, when validating a response body, the body is already decoded to a Dart type prior to your test code receiving the response.
 
-!!! note "Codecs and HTTPCodecRepository"
+!!! note "Codecs and CodecRegistry"
     Your tests will run on the same isolate as your application. Whatever codecs have been registered in the codec repository by your application are automatically made available to the code that encodes and decodes your tests requests. You don't have to do anything special to opt-in to non-default codecs.
 
 ### Agents Add Default Values to Requests

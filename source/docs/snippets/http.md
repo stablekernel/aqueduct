@@ -139,10 +139,10 @@ class AppChannel extends ApplicationChannel {
 class AppChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     router.route("/files/*").link(() =>
-      new FileController("web")
+      FileController("web")
         ..addCachePolicy(new CachePolicy(expirationFromNow: new Duration(days: 365)),
           (path) => path.endsWith(".js") || path.endsWith(".css"))      
     );
@@ -161,7 +161,7 @@ class AppChannel extends ApplicationChannel {
   @override
   Future prepare() async {
     var count = 0;
-    new Timer.periodic(new Duration(seconds: 1), (_) {
+     Timer.periodic(new Duration(seconds: 1), (_) {
       count ++;
       controller.add("This server has been up for $count seconds\n");
     });
@@ -172,7 +172,7 @@ class AppChannel extends ApplicationChannel {
     final router = new Router();
 
     router.route("/stream").linkFunction((req) async {
-      return new Response.ok(controller.stream)
+      return Response.ok(controller.stream)
           ..bufferOutput = false
           ..contentType = new ContentType(
             "text", "event-stream", charset: "utf-8");
@@ -198,7 +198,7 @@ class AppChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     // Allow websocket clients to connect to ws://host/connect
     router.route("/connect").linkFunction((request) async {
@@ -234,21 +234,21 @@ class AppChannel extends ApplicationChannel {
 
 ```dart
 class AppChannel extends ApplicationChannel {
-  final ContentType CSV = new ContentType("text", "csv", charset: "utf-8");
+  final ContentType CSV = ContentType("text", "csv", charset: "utf-8");
 
   @override
   Future prepare() async {
     // CsvCodec extends dart:convert.Codec
-    HTTPCodecRepository.defaultInstance.add(CSV, new CsvCodec());
+    CodecRegistry.defaultInstance.add(CSV, new CsvCodec());
   }
 
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     router.route("/csv").linkFunction((req) async {
       // These values will get converted by CsvCodec into a comma-separated string
-      return new Response.ok([[1, 2, 3], ["a", "b", "c"]])
+      return Response.ok([[1, 2, 3], ["a", "b", "c"]])
         ..contentType = CSV;
     });
 
@@ -264,7 +264,7 @@ class AppChannel extends ApplicationChannel {
 class AppChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     router.route("/proxy/*").linkFunction((req) async {
       var fileURL = "https://otherserver/${req.path.remainingPath}";

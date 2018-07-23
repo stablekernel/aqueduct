@@ -6,7 +6,7 @@ In Aqueduct, HTTP requests and responses are instances of `Request` and `Respons
 
 An instance of `Request` represents an HTTP request and are automatically created when the application receives a request. A `Request` is a wrapper around the Dart standard library `HttpRequest` and its values - such as its URI or headers - can be accessed through its `raw` property.
 
-A `Request` has a `body` property. This property decodes the HTTP request body into Dart objects based on the request's content type. The mechanism to decode the body is determined by `HTTPCodecRepository`, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data. The size of a request body is limited to 10MB by default and can be changed by setting the value of `RequestBody.maxSize` during application initialization.
+A `Request` has a `body` property. This property decodes the HTTP request body into Dart objects based on the request's content type. The mechanism to decode the body is determined by `CodecRegistry`, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data. The size of a request body is limited to 10MB by default and can be changed by setting the value of `RequestBody.maxSize` during application initialization.
 
 A `Request` is handled by one or more `Controller`s before to be responded to. `Controller`s may validate or add more information to the request, so that later controllers can use this information. For example, an `Authorizer` controller will validate the Authorization header of a request. Once validated, it will add authorization info to the request - like the authorized user ID - and pass it to the next controller. The next controller in the channel has access to the authorization info without having to perform another fetch.
 
@@ -66,7 +66,7 @@ var response = new Response.ok(imageBytes)
   ..contentType = new ContentType("image", "jpeg");
 ```
 
-See a later section for more details on content type to codec mappings. Also, see the documentation for `HTTPCodecRepository` for details on built-in codecs and adding codecs.
+See a later section for more details on content type to codec mappings. Also, see the documentation for `CodecRegistry` for details on built-in codecs and adding codecs.
 
 ### Streaming Response Bodies
 
@@ -135,7 +135,7 @@ The entire flow of a body object is shown in the following diagram. Each orange 
 
 In the above sections, we glossed over how a codec gets selected when preparing the response body. The common case of `ManagedObject<T>` body objects that are sent as UTF8 encoded JSON 'just works' and is suitable for most applications. When serving assets for a web application or different data formats like XML, it becomes important to understand how Aqueduct's codec repository works.
 
-`HTTPCodecRepository` contains mappings from content types to `Codec`s. These codecs encode response bodies and decode request bodies. There are three built-in codecs for `application/json`, `application/x-www-form-urlencoded` and `text/*`. When a response is being sent, the repository is searched for an entry that exactly matches the primary and subtype of the `Response.contentType`. If an entry exists, the associated `Codec` starts the conversion. For example, if the content type is `application/json; charset=utf-8`, the built-in `application/json` codec encodes the body object. The character set is not evaluated at this stage.
+`CodecRegistry` contains mappings from content types to `Codec`s. These codecs encode response bodies and decode request bodies. There are three built-in codecs for `application/json`, `application/x-www-form-urlencoded` and `text/*`. When a response is being sent, the repository is searched for an entry that exactly matches the primary and subtype of the `Response.contentType`. If an entry exists, the associated `Codec` starts the conversion. For example, if the content type is `application/json; charset=utf-8`, the built-in `application/json` codec encodes the body object. The character set is not evaluated at this stage.
 
 If there isn't an exact match, but there is an entry for the primary type with the wildcard (`*`) subtype, that codec is used. For example, the built-in codec for `text/*` will be selected for both `text/plain` and `text/html`. If there was something special that had to be done for `text/html`, a more specific codec may be added for that type:
 
@@ -143,7 +143,7 @@ If there isn't an exact match, but there is an entry for the primary type with t
 class MyChannel extends ApplicationChannel {
   @override
   Future prepare() async {
-    HTTPCodecRepository.defaultInstance.add(new ContentType("application", "html"), new HTMLCodec());
+    CodecRegistry.defaultInstance.add(new ContentType("application", "html"), new HTMLCodec());
   }
 }
 ```
@@ -152,12 +152,12 @@ Codecs must be added in your `ApplicationChannel.prepare` method. The codec must
 
 If a response's content-type has a charset, then a charset encoder like `UTF8` will be applied as a last encoding step. For example, a response with content-type `application/json; charset=utf-8` will encode the body object as a JSON string, which is then encoded as a list of UTF8 bytes. It is required that a response body's eventually encoded type is a list of bytes, so it follows that a codec that produces a string must have a charset.
 
-If there is no codec in the repository for the content type of a `Response`, the body object must be a `List<int>` or `Stream<List<int>>`. If you find yourself converting data prior to setting it as a body object, it may make sense to add your own codec to `HTTPCodecRepository`.
+If there is no codec in the repository for the content type of a `Response`, the body object must be a `List<int>` or `Stream<List<int>>`. If you find yourself converting data prior to setting it as a body object, it may make sense to add your own codec to `CodecRegistry`.
 
-A request's body, on the other hand, always starts as a list of bytes. To decode a JSON request body, it first must be decoded from the list of UTF8 bytes into a string. It is possible that a client could omit the charset in its content-type header. Codecs added to `HTTPCodecRepository` may specify a default charset to interpret a charset-less content-type. When a codec is added to the repository, if content-type's charset is non-null, that is the default. For example, the JSON codec is added like this:
+A request's body, on the other hand, always starts as a list of bytes. To decode a JSON request body, it first must be decoded from the list of UTF8 bytes into a string. It is possible that a client could omit the charset in its content-type header. Codecs added to `CodecRegistry` may specify a default charset to interpret a charset-less content-type. When a codec is added to the repository, if content-type's charset is non-null, that is the default. For example, the JSON codec is added like this:
 
 ```dart
-HTTPCodecRepository.defaultInstance.add(
+CodecRegistry.defaultInstance.add(
   new ContentType("application", "json", charset: "utf-8"),
   const JsonCodec(),
   allowCompression: true);
@@ -167,12 +167,12 @@ If the charset is null, no charset decoding occurs on a request body if one does
 
 ### Compression with gzip
 
-Body objects may be compressed with `gzip` if the HTTP client allows it *and* the `HTTPCodecRepository` has been configured to compress the content type of the response. The three built-in codecs - `application/json`, `application/x-www-form-urlencoded` and `text/*` - are all configured to allow compression. Compression occurs as the last step of conversion and only if the HTTP client sends the `Accept-Encoding: gzip` header.
+Body objects may be compressed with `gzip` if the HTTP client allows it *and* the `CodecRegistry` has been configured to compress the content type of the response. The three built-in codecs - `application/json`, `application/x-www-form-urlencoded` and `text/*` - are all configured to allow compression. Compression occurs as the last step of conversion and only if the HTTP client sends the `Accept-Encoding: gzip` header.
 
 Content types that are not in the codec repository will not trigger compression, even if the HTTP client allows compression with the `Accept-Encoding` header. This is to prevent binary contents like images from being 'compressed', since they are likely already compressed by a content-specific algorithm. In order for Aqueduct to compress a content type other than the built-in types, you may add a codec to the repository with the `allowCompression` flag. (The default value is `true`.)
 
 ```dart
-HTTPCodecRepository.add(
+CodecRegistry.add(
   new ContentType("application", "x-special"),
   new MyCodec(),
   allowCompression: true);
@@ -181,5 +181,5 @@ HTTPCodecRepository.add(
 You may also set whether or not a content type uses compression without having to specify a codec if no conversion step needs to occur:
 
 ```dart
-HTTPCodecRepository.setAllowsCompression(new ContentType("application", "x-special"), true);
+CodecRegistry.setAllowsCompression(new ContentType("application", "x-special"), true);
 ```

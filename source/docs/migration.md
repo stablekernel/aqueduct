@@ -80,7 +80,7 @@ AuthStorage -> AuthServerDelegate
 AuthServer.storage -> AuthServer.delegate
 ApplicationConfiguration -> ApplicationOptions
 Application.configuration -> Application.options
-ServiceRegistry -> ApplicationServiceRegistry
+ServiceRegistry -> ServiceRegistry
 ManagedTableAttributes -> Table
 ManagedRelationshipDeleteRule -> DeleteRule
 ManagedRelationship -> Relate

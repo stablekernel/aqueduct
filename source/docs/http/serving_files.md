@@ -49,7 +49,7 @@ var controller = new FileController("public/")
   ..setContentTypeForExtension("xml", new ContentType("application", "xml"));
 ```
 
-If there is no entry for an extension of a file being served, the content-type defaults to `application/octet-stream`. An `FileController` will never invoke any encoders from `HTTPCodecRepository`, but it will GZIP data if the repository allows compression for the content-type of the file (see `HTTPCodecRepository.add` and `HTTPCodecRepository.setAllowsCompression`).
+If there is no entry for an extension of a file being served, the content-type defaults to `application/octet-stream`. An `FileController` will never invoke any encoders from `CodecRegistry`, but it will GZIP data if the repository allows compression for the content-type of the file (see `CodecRegistry.add` and `CodecRegistry.setAllowsCompression`).
 
 ## Caching
 

@@ -103,7 +103,7 @@ new Response.ok([])
   ..contentType = new ContentType("application", "xml");
 ```
 
-The default supported content types are JSON, `application/x-www-form-urlencoded` and all `text/*` types. To encode other content-types, you must register a `Codec` with `HTTPCodecRepository.` A body object is only valid if the codec selected by the response's content-type can encode it. If it can't, an error will be thrown and a 500 Server Error response is sent instead.
+The default supported content types are JSON, `application/x-www-form-urlencoded` and all `text/*` types. To encode other content-types, you must register a `Codec` with `CodecRegistry.` A body object is only valid if the codec selected by the response's content-type can encode it. If it can't, an error will be thrown and a 500 Server Error response is sent instead.
 
 Types that implement `Serializable` may also be body objects. Objects that implement this type provide an `asMap()` method that converts their properties into a `Map` before being passed to the encoder. This `Map` must be encodable for the response's content-type codec. You may also provide a `List` of `Serializable`, for which the list of each object's `asMap()` is passed to the encoder.
 

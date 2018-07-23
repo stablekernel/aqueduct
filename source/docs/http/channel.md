@@ -75,7 +75,7 @@ Notice that `database` is created in `prepare()`, stored in a property and passe
 
 A benefit to using service objects is that they can be altered depending on the environment the application is running in without requiring changes to our controller code. For example, the database an application will connect to will be different when running in production than when running tests.
 
-Besides service configuration, there may be other types of initialization an application wants to take. Common tasks include adding codecs to `HTTPCodecRepository` or setting the default `CORSPolicy`.
+Besides service configuration, there may be other types of initialization an application wants to take. Common tasks include adding codecs to `CodecRegistry` or setting the default `CORSPolicy`.
 
 All of this initialization is done in `prepare()`.
 
@@ -127,7 +127,7 @@ class AppChannel extends ApplicationChannel {
 
 It is important to note the behavior of isolates as it relates to Aqueduct and the initialization process. Each isolate has its own heap. `initializeApplication` is executed in the main isolate, whereas each `ApplicationChannel` is instantiated in its own isolate. This means that any values stored in `ApplicationOptions` must be safe to pass across isolates - i.e., they can't contain references to closures.
 
-Additionally, any global variables or static properties that are set in the main isolate *will not be set* in other isolates. Configuration types like `HTTPCodecRepository` do not share values across isolates, because they use a static property to hold a reference to the repository of codecs. Therefore, they must be set up in `ApplicationChannel.prepare()`.
+Additionally, any global variables or static properties that are set in the main isolate *will not be set* in other isolates. Configuration types like `CodecRegistry` do not share values across isolates, because they use a static property to hold a reference to the repository of codecs. Therefore, they must be set up in `ApplicationChannel.prepare()`.
 
 Also, because static methods cannot be overridden in Dart, it is important that you ensure the name and signature of `initializeApplication` exactly matches what is shown in these code samples. The analyzer can't help you here, unfortunately.
 

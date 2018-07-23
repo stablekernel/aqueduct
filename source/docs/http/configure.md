@@ -89,21 +89,21 @@ It can sometimes makes sense to have a `local.yaml` with values for running the 
 
 When an Aqueduct application starts, the application and its `ApplicationChannel`s will likely create services that they use to respond to requests. In order for application tests to complete successfully, these services must be "closed" when the application stops. For built-in services, like `PostgreSQLPersistentStore`, this happens automatically when `Application.stop()` is invoked.
 
-A `ApplicationServiceRegistry` automatically stops registered services. Registration looks like this:
+A `ServiceRegistry` automatically stops registered services. Registration looks like this:
 
 ```dart
 var connection = new ConnectionOfSomeKind();
 await connection.open();
-ApplicationServiceRegistry.defaultInstance
+ServiceRegistry.defaultInstance
   .register<ConnectionOfSomeKind>(connection, (c) => c.close());
 ```
 
-This method takes the service to be closed and a closure that closes it. The service is passed as an argument to the closure. If the closure returns a `Future`, `ApplicationServiceRegistry.close` will not complete until the `Future` completes. `ApplicationServiceRegistry.defaultInstance` is closed in `Application.stop()`, any registries created by the programmer must be closed manually.
+This method takes the service to be closed and a closure that closes it. The service is passed as an argument to the closure. If the closure returns a `Future`, `ServiceRegistry.close` will not complete until the `Future` completes. `ServiceRegistry.defaultInstance` is closed in `Application.stop()`, any registries created by the programmer must be closed manually.
 
-The return type of `ApplicationServiceRegistry.register` is the object being registered. This makes registration syntax a bit more palatable:
+The return type of `ServiceRegistry.register` is the object being registered. This makes registration syntax a bit more palatable:
 
 ```dart
-var connection = ApplicationServiceRegistry.defaultInstance
+var connection = ServiceRegistry.defaultInstance
   .register<ConnectionOfSomeKind>(
     new ConnectionOfSomeKind(), (c) => c.close());
 
