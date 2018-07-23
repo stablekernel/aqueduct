@@ -59,7 +59,7 @@ class CodecRegistry {
   /// from a list of bytes into a [String]. If a request omits the charset, this first step is would not be applied and the JSON codec would attempt
   /// to decode a list of bytes instead of a [String] and would fail. Thus, `application/json` is added through the following:
   ///
-  ///         HTTPCodecRepository.defaultInstance.add(
+  ///         CodecRegistry.defaultInstance.add(
   ///           new ContentType("application", "json", charset: "utf-8"), const JsonCodec(), allowsCompression: true);
   ///
   /// In the event that a request is sent without a charset, the codec will automatically apply a UTF8 decode step because of this default.
@@ -219,7 +219,7 @@ class _FormEncoder extends Converter<Map<String, dynamic>, String> {
 
 class _FormDecoder extends Converter<String, Map<String, dynamic>> {
   // This class may take input as either String or List<int>. If charset is not defined in request,
-  // then data is List<int> (from HTTPCodecRepository) and will default to being UTF8 decoded first.
+  // then data is List<int> (from CodecRegistry) and will default to being UTF8 decoded first.
   // Otherwise, if String, the request body has been decoded according to charset already.
 
   const _FormDecoder();
