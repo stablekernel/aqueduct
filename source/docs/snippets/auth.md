@@ -12,8 +12,8 @@ class AppChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+    final dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+    final psc = new PostgreSQLPersistentStore(
         "username",
         "password",
         "localhost",
@@ -28,8 +28,8 @@ class AppChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    final router = new Router();
-    router.route("/auth/token").link(() => new AuthController(authServer));  
+    final router = Router();
+    router.route("/auth/token").link(() => AuthController(authServer));  
     return router;
   }
 }
@@ -57,8 +57,8 @@ class AppChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+    final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    final psc = PostgreSQLPersistentStore(
         "username",
         "password",
         "localhost",
@@ -67,18 +67,18 @@ class AppChannel extends ApplicationChannel {
 
     context = new ManagedContext(dataModel, psc);
 
-    final delegate = new ManagedAuthDelegate<User>(context);
-    authServer = new AuthServer(delegate);
+    final delegate = ManagedAuthDelegate<User>(context);
+    authServer = AuthServer(delegate);
   }
 
   @override
   Controller get entryPoint {
-    router.route("/auth/token").link(() => new AuthController(authServer));
+    router.route("/auth/token").link(() => AuthController(authServer));
 
     router
       .route("/profile")
-      .link(() => new Authorizer.bearer(authServer, scopes: ["profile.readonly"]))
-      .link(() => new ProfileController(context));
+      .link(() => Authorizer.bearer(authServer, scopes: ["profile.readonly"]))
+      .link(() => ProfileController(context));
   }
 }
 
@@ -109,7 +109,7 @@ class AppChannel extends ApplicationChannel {
     final router = new Router();
     router
       .route("/profile")
-      .link(() => new Authorizer.basic(new PasswordVerifier()))
+      .link(() => Authorizer.basic(PasswordVerifier()))
       .linkFunction((req) async => new Response.ok(null));
 
     return router;
@@ -123,7 +123,7 @@ class PasswordVerifier extends AuthValidator {
       return null;
     }
 
-    return new Authorization(null, authorizationData.username, this);
+    return Authorization(null, authorizationData.username, this);
   }
 }
 ```
@@ -140,8 +140,8 @@ class AppChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+    final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    final psc = PostgreSQLPersistentStore(
         "username",
         "password",
         "localhost",
@@ -158,9 +158,9 @@ class AppChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = new Router();
 
-    router.route("/auth/token").link(() => new AuthController(authServer));  
+    router.route("/auth/token").link(() => AuthController(authServer));  
 
-    router.route("/auth/code").link(() => new AuthCodeController(authServer, delegate: this));
+    router.route("/auth/code").link(() => AuthCodeController(authServer, delegate: this));
 
     return router;
   }

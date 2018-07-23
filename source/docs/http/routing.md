@@ -109,7 +109,7 @@ Finally, a route specification may have a special 'match-all' token, the asteris
 /users/foo/bar/something/else/and/this/goes/on/forever
 ```
 
-This token is used when another medium is going to interpret the URL. For example, `HTTPFileController` - which reads a file from the filesystem - might have a route `/file/*`. It uses everything after `/file` to figure out the path on the filesystem.
+This token is used when another medium is going to interpret the URL. For example, `FileController` - which reads a file from the filesystem - might have a route `/file/*`. It uses everything after `/file` to figure out the path on the filesystem.
 
 ## Accessing Path Variables
 

@@ -52,7 +52,7 @@ Bound parameters are identified by the `Bind` annotation, and the type of bindin
 
 ## Query.where syntax has changed
 
-Previously, query filters were applied by assigning methods like `whereEqualTo` to properties of `Query.where`. This has been replaced with the property selector syntax that is used when joining, sorting or paging by a property.
+Previously, query filters were applied by assigning expressions like `whereEqualTo` to properties of `Query.where`. This has been replaced with the property selector syntax that is used when joining, sorting or paging by a property.
 
 ```dart
 final query = Query<User>()

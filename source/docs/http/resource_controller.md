@@ -244,10 +244,10 @@ class CityController extends ResourceController {
 
 Since there is only one request body, `Bind.body()` doesn't take any identifying arguments.
 
-The bound parameter type (`City` in this example) must implement `HTTPSerializable`. This interface requires two methods to be implemented: one to read data from a request body and another to write data to a response body. Here is an example:
+The bound parameter type (`City` in this example) must implement `Serializable`. This interface requires two methods to be implemented: one to read data from a request body and another to write data to a response body. Here is an example:
 
 ```dart
-class City implements HTTPSerializable {
+class City implements Serializable {
   int id;
   String name;
 
@@ -267,8 +267,8 @@ class City implements HTTPSerializable {
 }
 ```
 
-!!! tip "ManagedObject and HTTPSerializable"
-    `ManagedObject`s from Aqueduct's ORM implement `HTTPSerializable` without having to implement these two methods.
+!!! tip "ManagedObject and Serializable"
+    `ManagedObject`s from Aqueduct's ORM implement `Serializable` without having to implement these two methods.
 
 Aqueduct will automatically decode the request body from it's content-type, create a new instance of the bound parameter type, and invoke its `readFromMap` method. In the above example, a valid request body would be the following JSON:
 
@@ -284,7 +284,7 @@ Aqueduct will automatically decode the request body from it's content-type, crea
 
 If parsing fails or `readFromMap` throws an exception, a 400 Bad Request response will be sent and the operation method won't be called.
 
-You may also bind `List<HTTPSerializable>` parameters to the request body. Consider the following JSON that contains a list of cities:
+You may also bind `List<Serializable>` parameters to the request body. Consider the following JSON that contains a list of cities:
 
 ```json
 [

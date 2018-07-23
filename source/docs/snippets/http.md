@@ -6,10 +6,10 @@
 class AppChannel extends ApplicationChannel {  
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     router.route("/hello_world").linkFunction((request) async {
-      return new Response.ok("Hello, world!")
+      return Response.ok("Hello, world!")
         ..contentType = ContentType.TEXT;
     });
 
@@ -24,10 +24,10 @@ class AppChannel extends ApplicationChannel {
 class AppChannel extends ApplicationChannel {  
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     router.route("/variable/[:variable]").linkFunction((request) async {
-      return new Response.ok({
+      return Response.ok({
         "method": request.raw.method,
         "path": request.path.variables["variable"] ?? "not specified"
       });      
@@ -44,30 +44,30 @@ class AppChannel extends ApplicationChannel {
 class AppChannel extends ApplicationChannel {  
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     router
       .route("/users/[:id]")
-      .link(() => new Controller());
+      .link(() => MyController());
 
     return router;
   }
 }
 
-class Controller extends ResourceController {
-  final List<String> things = const ['thing1', 'thing2'];
+class MyController extends ResourceController {
+  final List<String> things = ['thing1', 'thing2'];
 
   @Operation.get()
   Future<Response> getThings() async {
-    return new Response.ok(things);
+    return Response.ok(things);
   }
 
   @Operation.get('id')
   Future<Response> getThing(@Bind.path('id') int id) async {
     if (id < 0 || id >= things.length) {
-      return new Response.notFound();
+      return Response.notFound();
     }
-    return new Response.ok(things[id]);
+    return Response.ok(things[id]);
   }
 }
 ```
@@ -78,12 +78,12 @@ class Controller extends ResourceController {
 class AppChannel extends ApplicationChannel {  
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     router
       .route("/rate_limit")
-      .link(() => new RateLimiter())
-      .linkFunction((req) async => new Response.ok({
+      .link(() => RateLimiter())
+      .linkFunction((req) async => Response.ok({
         "requests_remaining": req.attachments["remaining"]
       }));
 
@@ -94,10 +94,10 @@ class AppChannel extends ApplicationChannel {
 class RateLimiter extends RequestController {
   @override
   Future<RequestOrResponse> handle(Request request) async {
-    var apiKey = request.raw.headers.value("x-apikey");
-    var requestsRemaining = await remainingRequestsForAPIKey(apiKey);
+    final apiKey = request.raw.headers.value("x-apikey");
+    final requestsRemaining = await remainingRequestsForAPIKey(apiKey);
     if (requestsRemaining <= 0) {
-      return new Response(429, null, null);
+      return Response(429, null, null);
     }
 
     request.addResponseModifier((r) {
@@ -122,10 +122,10 @@ class AppChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
 
     router.route("/things").linkFunction((request) async {
-      return new Response.ok(["Widget", "Doodad", "Transformer"]);
+      return Response.ok(["Widget", "Doodad", "Transformer"]);
     });
 
     return router;
@@ -142,8 +142,8 @@ class AppChannel extends ApplicationChannel {
     final router = new Router();
 
     router.route("/files/*").link(() =>
-      new HTTPFileController("web")
-        ..addCachePolicy(new HTTPCachePolicy(expirationFromNow: new Duration(days: 365)),
+      new FileController("web")
+        ..addCachePolicy(new CachePolicy(expirationFromNow: new Duration(days: 365)),
           (path) => path.endsWith(".js") || path.endsWith(".css"))      
     );
 

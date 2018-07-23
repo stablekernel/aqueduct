@@ -105,9 +105,9 @@ new Response.ok([])
 
 The default supported content types are JSON, `application/x-www-form-urlencoded` and all `text/*` types. To encode other content-types, you must register a `Codec` with `HTTPCodecRepository.` A body object is only valid if the codec selected by the response's content-type can encode it. If it can't, an error will be thrown and a 500 Server Error response is sent instead.
 
-Types that implement `HTTPSerializable` may also be body objects. Objects that implement this type provide an `asMap()` method that converts their properties into a `Map` before being passed to the encoder. This `Map` must be encodable for the response's content-type codec. You may also provide a `List` of `HTTPSerializable`, for which the list of each object's `asMap()` is passed to the encoder.
+Types that implement `Serializable` may also be body objects. Objects that implement this type provide an `asMap()` method that converts their properties into a `Map` before being passed to the encoder. This `Map` must be encodable for the response's content-type codec. You may also provide a `List` of `Serializable`, for which the list of each object's `asMap()` is passed to the encoder.
 
-`ManagedObject` implements the `HTTPSerializable` interface, and therefore all managed objects (and lists of managed objects) can be body objects.
+`ManagedObject` implements the `Serializable` interface, and therefore all managed objects (and lists of managed objects) can be body objects.
 
 ### Request Body Decoding
 
@@ -137,7 +137,7 @@ Future<Response> createHero(@Bind.body() Hero inputHero) async {
 
 Values in the request body object are decoded into a `Hero` object - each key in the request body maps to a property of our `Hero`. For example, the value for the key 'name' is stored in the `inputHero.name`. If decoding the request body into a `Hero` instance fails for any reason, a 400 Bad Request response is sent and the operation method is not called.
 
-An object can only be bound to a request body if it implements `HTTPSerializable` - the good news is all `ManagedObject`s implement this interface. You may create your own types that implement this interface, and you may also bind a `List<T>`, where `T` implements the interface.
+An object can only be bound to a request body if it implements `Serializable` - the good news is all `ManagedObject`s implement this interface. You may create your own types that implement this interface, and you may also bind a `List<T>`, where `T` implements the interface.
 
 Re-run your `heroes` application. On [http://aqueduct-tutorial.stablekernel.io](http://aqueduct-tutorial.stablekernel.io), click on the `Heroes` button on the top of the screen. In the text field, enter a new hero name and click `Add`. You'll see your new hero added to the list! You can shutdown your application and run it again and you'll still be able to fetch your new hero.
 

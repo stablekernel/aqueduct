@@ -70,7 +70,7 @@ See a later section for more details on content type to codec mappings. Also, se
 
 ### Streaming Response Bodies
 
-A body object may also be a `Stream<T>`. `Stream<T>` body objects are most often used when serving files. This allows the contents of the file to be streamed from disk to the HTTP client without having to load the whole file into memory first. (See also `HTTPFileController`.)
+A body object may also be a `Stream<T>`. `Stream<T>` body objects are most often used when serving files. This allows the contents of the file to be streamed from disk to the HTTP client without having to load the whole file into memory first. (See also `FileController`.)
 
 ```dart
 var imageFile = new File("image.jpg");
@@ -83,10 +83,10 @@ When a body object is a `Stream<T>`, the response will not be sent until the str
 
 ### Custom Objects
 
-Any object may be the body object of a `Response` if it implements `HTTPSerializable`. An object conforming to this type must implement `asMap()`, which gets invoked on the body object prior to it being sent to the first encoding step. For example, the following object can be used as a body object and is automatically converted into a `Map` and then JSON encoded:
+Any object may be the body object of a `Response` if it implements `Serializable`. An object conforming to this type must implement `asMap()`, which gets invoked on the body object prior to it being sent to the first encoding step. For example, the following object can be used as a body object and is automatically converted into a `Map` and then JSON encoded:
 
 ```dart
-class Person implements HTTPSerializable {
+class Person implements Serializable {
   String name;
   String email;
 
@@ -104,7 +104,7 @@ var person = new Person();
 var response = new Response.ok(person);
 ```
 
-`ManagedObject<T>`, part of the Aqueduct ORM, implements `HTTPSerializable` so results from `Query<T>` may be body objects:
+`ManagedObject<T>`, part of the Aqueduct ORM, implements `Serializable` so results from `Query<T>` may be body objects:
 
 ```dart
 var query = new Query<Person>(context)..where((p) => p.id).equalTo(1);
@@ -118,7 +118,7 @@ var people = await query.fetch();
 var response = new Response.ok(people);
 ```
 
-Note that a `Map` itself is not `HTTPSerializable` and can't have `HTTPSerializable` values. For example, the following wouldn't work:
+Note that a `Map` itself is not `Serializable` and can't have `Serializable` values. For example, the following wouldn't work:
 
 ```dart
 var map = {
@@ -127,7 +127,7 @@ var map = {
 var response = new Response.ok(map);
 ```
 
-The entire flow of a body object is shown in the following diagram. Each orange item is an allowed body object type and shows the steps it will go through when being encoded to the HTTP response body. For example, a `HTTPSerializable` goes through three steps, whereas a `List<int>` goes through zero steps and is added as-is to the HTTP response.
+The entire flow of a body object is shown in the following diagram. Each orange item is an allowed body object type and shows the steps it will go through when being encoded to the HTTP response body. For example, a `Serializable` goes through three steps, whereas a `List<int>` goes through zero steps and is added as-is to the HTTP response.
 
 ![Response Body Object Flow](../img/response_flow.png)
 

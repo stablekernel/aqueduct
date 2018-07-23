@@ -18,13 +18,13 @@ Therefore, adding scopes to an application consists of three steps:
 
 ## Adding Scope Restrictions to Operations  
 
-When an `Authorizer` handles a request with an access token, it creates an `Authorization` object that is attached to the request. An `Authorization` object has a `scopes` property that contains every scope granted for the access token. It also has a convenience method for checking if a particular scope is valid for that list of scopes:
+When an `Authorizer` handles a request, it creates an `Authorization` object that is attached to the request. An `Authorization` object has a `scopes` property that contains every scope granted for the access token. This object also has a convenience method for checking if a particular scope is valid for that list of scopes:
 
 ```dart
 class NoteController extends Controller {
   @override
   Future<RequestOrResponse> handle(Request request) async {
-    if (!request.authorization.authorizedForScope("notes")) {
+    if (!request.authorization.isAuthorizedForScope("notes")) {
       return Response.forbidden();
     }
 

@@ -55,7 +55,7 @@ Controller get entryPoint {
 
   router
     .route("/file/*")
-    .link(() => new HTTPFileController());
+    .link(() => new FileController());
 
   router
     .route("/health")

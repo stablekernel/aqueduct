@@ -111,7 +111,7 @@ class AppChannel extends ApplicationChannel {
   ManagedContext contextWithConnectionInfo(
       DatabaseConnectionConfiguration connectionInfo) {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+    var psc = new PostgreSQLPersistentStore(
         connectionInfo.username,
         connectionInfo.password,
         connectionInfo.host,
