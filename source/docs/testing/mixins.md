@@ -1,4 +1,6 @@
-# Using a Local Database
+# Testing Applications That Use ORM and OAuth 2.0
+
+
 
 Aqueduct's ORM uses PostgreSQL as its database. To run the application or its automated tests locally, you must have PostgreSQL installed locally. On macOS, [Postgres.app](https://postgresapp.com) is a simple, self-contained PostgreSQL instance that you can run as a normal application. (See [PostgreSQL installation for other platforms](https://www.postgresql.org/download/).)
 
@@ -59,9 +61,7 @@ Future main() async {
   await provisionDatabase();
 
   var defaultUser = new User(...);
-  var query = new Query<User>()..values = defaultUser;
-  await query.insert();
-
+  await Query.insertObject(context, defaultUser);
   ...
 }
 

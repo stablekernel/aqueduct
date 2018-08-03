@@ -34,20 +34,20 @@ In Aqueduct, websockets are handled by Dart's standard library `WebSocket` type.
 ```dart
 router
   .route("/connect")
-  .listen((request) async {
-    var socket = await WebSocketTransformer.upgrade(request.innerRequest);
+  .linkFunction((request) async {
+    var socket = await WebSocketTransformer.upgrade(request.raw);
     socket.listen(listener);
 
     return null;
   });
 ```
 
-It's important that a request that is upgraded to a websocket is removed from the request channel by returning null from the request controller. (See the section on `Aqueduct and dart:io` [in this guide](structure.md) for more details.)
+It's important that a request that is upgraded to a websocket is removed from the channel by returning null from the controller. (See the section on `Aqueduct and dart:io` [in this guide](structure.md) for more details.)
 
-A client application can connect to the URL `ws://localhost:8081/connect`. A Dart application would make this connection like so:
+A client application can connect to the URL `ws://localhost:8888/connect`. A Dart application would make this connection like so:
 
 ```dart
-var socket = await WebSocket.connect("ws://localhost:8081/connect");
+var socket = await WebSocket.connect("ws://localhost:8888/connect");
 socket.listen(...);
 ```
 
@@ -60,10 +60,10 @@ A simple application might keep track of websocket connections in a `Map`, where
 ```dart
 router
   .route("/connect")
-  .pipe(new Authorizer(authServer));
-  .listen((request) async {
-    var userID = request.authorization.resourceOwnerIdentifier;
-    var socket = await WebSocketTransformer.upgrade(request.innerRequest);
+  .link(() => new Authorizer(authServer));
+  .linkFunction((request) async {
+    var userID = request.authorization.ownerID;
+    var socket = await WebSocketTransformer.upgrade(request.raw);
     socket.listen((event) => handleEvent(event, fromUserID: userID));
 
     connections[userID] = socket;
@@ -75,9 +75,9 @@ router
 If we continue with the 'chat application' example, the code for `handleEvent` may be something like:
 
 ```dart
-void handleRequest(dynamic event, {int fromUserID}) {
-  var incoming = JSON.decode(UTF8.decode(event));
-  var outgoing = UTF8.encode(JSON.encode({
+void handleEvent(dynamic event, {int fromUserID}) {
+  var incoming = json.decode(UTF8.decode(event));
+  var outgoing = utf8.encode(json.encode({
     "text": incoming["text"],
     ...
   }));
@@ -87,7 +87,7 @@ void handleRequest(dynamic event, {int fromUserID}) {
     .forEach((userID) {
       var connection = connections[userID];
       connection.add(outgoing);
-    });        
+    });
 }
 ```
 
@@ -117,15 +117,16 @@ void onChatMessage(String message) {
     socket.add(message);
   });
 
-  requestSink.messageHub.add({"event": "websocket_broadcast", "message": message});
+  ApplicationChannel.messageHub.add({"event": "websocket_broadcast", "message": message});
 }
 ```
 
 Anything added to the `messageHub` will be delivered to the listener for every other message hub - i.e., every other isolate will receive this data. The other isolates then send the message to each of their connected websockets:
 
 ```dart
-class ChatSink extends RequestSink {
-  ChatSink(ApplicationConfiguration config) : super(config) {
+class ChatChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     messageHub.listen((event) {
       if (event is Map && event["event"] == "websocket_broadcast") {
         connectedSockets.forEach((socket) {

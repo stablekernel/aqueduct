@@ -1,27 +1,45 @@
 # Aqueduct IntellIJ IDEA Templates
 
-For convenience in creating files and writing common code, the following IntelliJ IDEA templates are available:
-
-## File Templates
-
-- Aqueduct HTTPController
-    - Creates a new file with the skeleton of an `HTTPController`.
-- Aqueduct ManagedObject
-    - Creates a new file with the skeleton of a `ManagedObject` subclass
-- Aqueduct Test
-    - Creates a new file that imports a test harness and implementations for setting up and tearing down a `TestApplication`.
-
-After [installation](#installation), file templates are available through any IntellIJ IDEA interface for creating files when the project has been enabled to use the Dart plugin.
-
-## Live Templates
-
-- 'bindmethod'
-    - Enters a skeleton of an `HTTPController` responder method - after insertion, enter the HTTP method to finish the method declaration.
-- 'bindheader'  
-    - Enters an `@HTTPHeader` binding - after insertion, enter the name of the header.
-- 'bindquery'
-    - Enters an `@HTTPQuery` binding - after insertion, enter the name of the query parameter.
+This document describes how to install file and code templates for Aqueduct when using an IntelliJ IDE (e.g., IDEA, IDEA CE, Webstorm).
 
 ## Installation
 
-Download the [this file](https://s3.amazonaws.com/aqueduct-intellij/aqueduct.jar) and import it into IntelliJ by selecting `Import Settings...` from the `File` menu.
+Download the [this file](../files/settings.jar) and import it into IntelliJ by selecting `Import Settings...` from the `File` menu.
+
+## File Templates
+
+File templates are created by selecting `New` from the `File` menu or by right-clicking a directory in the project navigator. The following templates exists:
+
+| Template Name | Behavior |
+|---|---|
+| Aqueduct ResourceController | Creates a new file with the skeleton of an `ResourceController`. |
+| Aqueduct ManagedObject | Creates a new file with the skeleton of a `ManagedObject` subclass |
+| Aqueduct Test | Creates a new file that creates and installs a `TestHarness` subclass from your project. |
+
+## Live Templates
+
+Live templates are keywords that expand into a larger code block. Typing the keyword in a Dart file and hitting return will enter common Aqueduct code. Live templates often have placeholders that can by jumped between by using the return key.
+
+### Live Templates: HTTP
+
+| Shortcut | Behavior |
+|---|---|
+| `operation` | Creates a new operation method in a `ResourceController`. |
+| `bindbody` | Adds a body binding to an operation method. |
+| `bindheader` | Adds a header binding to an operation method. |
+| `bindquery` | Adds a query binding to an operation method. |
+| `bindpath` | Adds a path binding to an operation method. |
+
+### Live Templates: ORM
+
+| Shortcut | Behavior |
+|---|---|
+| `ps` | Enters the property selector syntax for `Query.where`, `Query.join` and other query configuration methods. |
+| `column` | Adds a column annotated field to a `ManagedObject`. |
+| `relate` | Adds a relationship annotated field to a `ManagedObject`. |
+
+### Live Templates: Testing
+
+| Shortcut | Behavior |
+|---|---|
+| `test` |  Creates a test closure in a test file. |

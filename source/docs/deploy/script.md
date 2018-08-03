@@ -17,12 +17,12 @@ import 'package:my_application/my_application.dart';
 
 main() async {
   try {
-    var app = new Application<MyRequestSink>();
-    var config = new ApplicationConfiguration()
-      ..port = 8081
+    var app = new Application<MyApplicationChannel>();
+    var options = new ApplicationOptions()
+      ..port = 8888
       ..configurationFilePath = "config.yaml";
 
-    app.configuration = config;
+    app.options = options;
 
     await app.start(numberOfInstances: 3);    
   } catch (e, st) {

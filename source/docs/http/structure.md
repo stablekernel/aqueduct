@@ -1,53 +1,59 @@
 # Aqueduct Application Architecture
 
-The most important object in Aqueduct is a `RequestController`. A `RequestController` is the only thing that can respond to HTTP requests. The logic for an application is written in the methods of this type and its subclasses.
+The purpose of this document is to understand the objects that comprise an Aqueduct application, and how they work with one another to serve HTTP requests. It also discusses the project structure on the filesystem.
 
-Request controllers are chained together to create a *request channel*. A request channel is a series of request controllers that a request flows through to be verified, modified and responded to.
+## Controllers are Building Blocks
+
+The building blocks of an Aqueduct application are [Controllers](controller.md). Each controller type has logic to handle an HTTP request in some way. Controllers are linked together to form a *channel*; an ordered series of controllers. A channel is a composition of its controllers' behaviors.
+
+For example, consider an `Authorizer` controller that verifies the request's authorization credentials are correct, and a `SecretController` that sends a response with secret information. By composing these two controllers together, we have a channel that verifies credentials before sending a secret. The benefit of controllers and channels is that controllers can be reused in multiple channels; the `Authorizer` can protect other types of controllers without any change to its logic.
+
+![Simple Controller Diagram](../img/simple_controller_diagram.png)
+
+The last controller in a channel must always respond to a request. These types of controllers are called *endpoint controllers* and implement the business logic for your application's endpoints. For example, an endpoint controller might fetch a list of books from a database and send them in a response.
+
+The other controllers in a channel are called *middleware controllers*. These types of controllers typically verify something about a request before letting the next controller in the channel handle it. Middleware controllers can respond to a request, but doing so prevents the rest of the controllers in the channel from handling the request.
+
+For example, an "authorization" controller could send a `401 Unauthorized` response protecting the endpoint controller from unauthorized requests. A "caching" controller could send a response with information from a cache, preventing the endpoint controller from performing an expensive query.
+
+Both middleware and endpoint controllers are instances of `Controller` (or a subclass). Middleware controllers are typically reusable, while endpoint controllers are typically not. If a middleware controller is not reusable, its logic might be better suited for the endpoint controller it precedes in the channel.
+
+Most endpoint controllers are created by subclassing [ResourceController](resource_controller.md) (itself a subclass of `Controller`). This class allows you to implement methods for each HTTP method (like GET or POST) for a given endpoint.
+
+## The Application Channel and Entry Point
+
+Each application designates one controller as the *entry point* of the application. This controller is the first to receive a new request and is the head of the application's channel. In most applications, the entry point is a [Router](routing.md); this controller allows multiple channels to be linked, effectively splitting the channel into sub-channels.
 
 ![Structure](../img/structure.png)
 
-A request channel always starts at an instance of `RequestSink` (a subclass of `RequestController`). When an application receives an HTTP request, it adds it to the `RequestSink`. A `RequestSink` has a `Router` (also a subclass of `RequestController`) that splits the channel based on the path of the request. For example, a request with the path `/users` will go down one part of the channel, while a `/things` request will go down another.
-
-An application has exactly one `RequestSink` subclass; it is responsible for defining its application's request channel by overriding the method `setupRouter`. For example, the diagram above looks like this in code:
+The diagram above looks like this in code:
 
 ```dart
-class MyRequestSink extends RequestSink {
-  MyRequestSink(ApplicationConfiguration config) : super(config);
-
+class AppChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router router) {
+  Controller get entry {
+    final router = new Router();
+
     router
       .route("/a")
-      .generate(() => new AController());
+      .link(() => new AController());
 
     router
       .route("/b")
-      .pipe(new Authorizer(...))
-      .generate(() => new BController());
+      .link(() => new Authorizer(...))
+      .link(() => new BController());
 
     router
       .route("/c")
-      .pipe(new Authorizer(...))
-      .generate(() => new CController());      
+      .link(() => new Authorizer(...))
+      .link(() => new CController());   
+
+    return router;
   }
 }
 ```
 
-In the above code, all of the objects created are instances of a `RequestController` subclass. Each of these controllers can either respond to the request, or send it to the next controller in the channel. For example, an `Authorizer` will respond with a 401 Unauthorized response if a request's authorization isn't valid - but if it is valid, the request is passed to the next controller in the channel.
-
-For more details on the object that handles requests, see [Request Controllers](request_controller.md).
-
-## Isolates: Multi-threaded Applications
-
-An Aqueduct application may run its request channel on multiple isolates. The number of isolates is configured when running `aqueduct serve`.
-
-```
-aqueduct serve --isolates 3
-```
-
-An isolate is a thread with its own memory heap, thus each isolate has its own isolated replica of the request channel. Database connections and other services created in a `RequestSink` are also replicated in each isolate.
-
-When the application receives an HTTP request, only one of its isolates receives and responds to the request. This structure spreads computation across multiple CPUs/cores and makes patterns like connection pooling implicit, i.e. each isolate has its own database connection.
+See [this guide](channel.md) for more details on the application channel and entry point.
 
 ## Aqueduct Project Structure and Organization
 
@@ -59,7 +65,7 @@ lib/
   application_name.dart
 ```
 
-The name of any Dart application is defined by the `name` key in `pubspec.yaml`. In order for `aqueduct serve` to run your application, there must be a `.dart` file in `lib/` with that same name. This is your application library file and it must declare a `RequestSink` subclass or import another file that does. This is the bare minimum requirement to run an Aqueduct application. (See [Deploying](../deploy/overview.md) for more details on running applications.)
+The name of any Dart application is defined by the `name` key in `pubspec.yaml`. In order for `aqueduct serve` to run your application, there must be a `.dart` file in `lib/` with that same name. This is your application library file and it must declare a `ApplicationChannel` subclass or import a file that does. This is the bare minimum requirement to run an Aqueduct application. (See [Deploying](../deploy/index.md) for more details on running applications.)
 
 For organizing applications of reasonable size, we recommend the following structure:
 
@@ -69,7 +75,7 @@ config.src.yaml
 config.yaml
 lib/
   application_name.dart
-  application_name_sink.dart  
+  channel.dart  
   controller/
     user_controller.dart
   model/
@@ -84,8 +90,8 @@ The required `pubspec.yaml` and `lib/application_name.dart` files are present al
 
 - `config.yaml`: A [configuration file](configure.md) for the running application.
 - `config.src.yaml`: A [template for config.yaml](configure.md).
-- `application_name_sink.dart`: A file solely for the `RequestSink` of an application. This file should be *exported* from `application_name.dart`.
-- `controller/`: A directory for `RequestController` subclass files.
+- `channel.dart`: A file solely for the `ApplicationChannel` of an application. This file should be *exported* from `application_name.dart`.
+- `controller/`: A directory for `Controller` subclass files.
 - `model/`: A directory for `ManagedObject<T>` subclass files.
 - `test/harness/app.dart`: A [test harness](../testing/tests.md)) for automated testing.
 
@@ -93,24 +99,26 @@ Feel free to create other subdirectories in `lib/` for organizing other types of
 
 ## Aqueduct and dart:io
 
-Aqueduct runs on top of `dart:io` and relies on its `HttpServer` implementation. When an Aqueduct application is started, one or more `HttpServer` instances are bound to the port specified by `aqueduct serve`. For each HTTP request, an instance of `Request` is created to wrap the `HttpRequest` from `dart:io`. The `Request` is added to a `RequestSink`, sending it through the channel of `RequestController`s until it is responded to.
+Aqueduct runs on top of `dart:io` and relies on its `HttpServer` implementation. When an Aqueduct application is started, one or more `HttpServer` instances are bound to the port specified by `aqueduct serve`. For each HTTP request, an instance of `Request` is created to wrap the `HttpRequest` from `dart:io`. The `Request` is added to a `ApplicationChannel`, sending it through the channel of `Controller`s until it is responded to.
 
-In rare circumstances, you may choose to remove a `Request` from the request channel and manipulate the request with `dart:io` only. Once removed, it is your responsibility to respond to the request by setting properties on and closing the `HttpRequest.response`. To take a request out of the channel, simply return `null` from a `RequestController`:
+In rare circumstances, you may choose to remove a `Request` from the application channel and manipulate the request with `dart:io` only. Once removed, it is your responsibility to respond to the request by setting properties on and closing the `HttpRequest.response`. To take a request out of the channel, simply return `null` from a `Controller`:
 
 ```dart
 @override
-void setupRouter(Router router) {
+Controller get entryPoint {
+  final router = new Router();
+
   router
     .route("/bypass_aqueduct")
-    .listen((req) async {
+    .linkFunction((req) async {
       req.response.statusCode = 200;
       req.response.close();
 
       return null;
     });
+
+  return router;
 }
 ```
-
-(In Aqueduct 2.2.1 and below, a `RequestController` that removes a request from the channel in this way must be the last request controller in the channel.)
 
 This technique is valuable when Aqueduct can't do something you want it to do or when using [websockets](websockets.md).

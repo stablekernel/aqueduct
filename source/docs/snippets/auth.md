@@ -6,27 +6,31 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 
-class AppSink extends RequestSink {
-  AppSink(ApplicationConfiguration appConfig) : super(appConfig) {
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+class AppChannel extends ApplicationChannel {
+  AuthServer authServer;
+  ManagedContext context;
+
+  @override
+  Future prepare() async {
+    final dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+    final psc = new PostgreSQLPersistentStore(
         "username",
         "password",
         "localhost",
         5432
         "my_app");
 
-    ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
+    context = new ManagedContext(dataModel, psc);
 
-    var authStorage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
-    authServer = new AuthServer(authStorage);
+    final delegate = new ManagedAuthDelegate<User>(context);
+    authServer = new AuthServer(delegate);
   }
 
-  AuthServer authServer;
-
   @override
-  void setupRouter(Router router) {
-    router.route("/auth/token").generate(() => new AuthController(authServer));  
+  Controller get entryPoint {
+    final router = Router();
+    router.route("/auth/token").link(() => AuthController(authServer));  
+    return router;
   }
 }
 ```
@@ -47,40 +51,49 @@ aqueduct auth add-client \
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 
-class AppSink extends RequestSink {
-  AppSink(ApplicationConfiguration appConfig) : super(appConfig) {
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+class AppChannel extends ApplicationChannel {
+  AuthServer authServer;
+  ManagedContext context;
+
+  @override
+  Future prepare() async {
+    final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    final psc = PostgreSQLPersistentStore(
         "username",
         "password",
         "localhost",
         5432
         "my_app");
 
-    ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
+    context = new ManagedContext(dataModel, psc);
 
-    var authStorage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
-    authServer = new AuthServer(authStorage);
+    final delegate = ManagedAuthDelegate<User>(context);
+    authServer = AuthServer(delegate);
   }
 
-  AuthServer authServer;
-
   @override
-  void setupRouter(Router router) {
-    router.route("/auth/token").generate(() => new AuthController(authServer));
+  Controller get entryPoint {
+    router.route("/auth/token").link(() => AuthController(authServer));
 
     router
       .route("/profile")
-      .pipe(new Authorizer.bearer(authServer, scopes: ["profile.readonly"]))
-      .generate(() => new ProfileController());
+      .link(() => Authorizer.bearer(authServer, scopes: ["profile.readonly"]))
+      .link(() => ProfileController(context));
   }
 }
 
-class ProfileController extends HTTPController {
-  @httpGet
+class ProfileController extends ResourceController {
+  ProfileController(this.context);
+
+  final ManagedContext context;
+
+  @Operation.get()
   Future<Response> getProfile() async {
-    var id = request.authorization.resourceOwnerIdentifier;
-    return new Response.ok(await profileForUserID(id));
+    final id = request.authorization.ownerID;
+    final query = new Query<User>(context)
+      ..where((u) => u.id).equalTo(id);
+
+    return new Response.ok(await query.fetchOne());
   }
 }
 ```
@@ -90,35 +103,27 @@ class ProfileController extends HTTPController {
 ```dart
 import 'package:aqueduct/aqueduct.dart';
 
-class AppSink extends RequestSink {
-  AppSink(ApplicationConfiguration appConfig) : super(appConfig) {
-    passwordVerifier = new PasswordVerifier();
-  }
-
-  PasswordVerified passwordVerifier;
-
+class AppChannel extends ApplicationChannel {
   @override
-  void setupRouter(Router router) {
+  Controller get entryPoint {
+    final router = new Router();
     router
       .route("/profile")
-      .pipe(new Authorizer.basic(passwordVerifier))
-      .listen((req) async => new Response.ok(null));
+      .link(() => Authorizer.basic(PasswordVerifier()))
+      .linkFunction((req) async => new Response.ok(null));
+
+    return router;
   }
 }
 
 class PasswordVerifier extends AuthValidator {
   @override
-  Future<Authorization> fromBasicCredentials(AuthBasicCredentials usernameAndPassword) async {
-    if (!isPasswordCorrect(usernameAndPassword)) {
+  FutureOr<Authorization> validate<T>(AuthorizationParser<T> parser, T authorizationData, {List<AuthScope> requiredScope}) {}
+    if (!isPasswordCorrect(authorizationData)) {
       return null;
     }
 
-    return new Authorization(null, usernameAndPassword.username, this);
-  }
-
-  @override
-  Future<Authorization> fromBearerToken(String bearerToken, {List<AuthScope> scopesRequired}) {
-    throw new HTTPResponseException(400, "Use basic authorization");
+    return Authorization(null, authorizationData.username, this);
   }
 }
 ```
@@ -129,35 +134,39 @@ class PasswordVerifier extends AuthValidator {
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 
-class AppSink extends RequestSink {
-  AppSink(ApplicationConfiguration appConfig) : super(appConfig) {
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    var psc = new PostgreSQLPersistentStore.fromConnectionInfo(
+class AppChannel extends ApplicationChannel {
+  AuthServer authServer;
+  ManagedContext context;
+
+  @override
+  Future prepare() async {
+    final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    final psc = PostgreSQLPersistentStore(
         "username",
         "password",
         "localhost",
         5432
         "my_app");
 
-    ManagedContext.defaultContext = new ManagedContext(dataModel, psc);
+    context = new ManagedContext(dataModel, psc);
 
-    var authStorage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
-    authServer = new AuthServer(authStorage);
-  }
-
-  AuthServer authServer;
+    final delegate = new ManagedAuthDelegate<User>(context);
+    authServer = new AuthServer(delegate);
+  }  
 
   @override
-  void setupRouter(Router router) {
-    router.route("/auth/token").generate(() => new AuthController(authServer));  
+  Controller get entryPoint {
+    final router = new Router();
 
-    router.route("/auth/code").generate(() => new AuthCodeController(authServer,
-        renderAuthorizationPageHTML: renderLoginPage));
+    router.route("/auth/token").link(() => AuthController(authServer));  
+
+    router.route("/auth/code").link(() => AuthCodeController(authServer, delegate: this));
+
+    return router;
   }
 
-  Future<String> renderLoginPage(
-    AuthCodeController controller, Uri requestURI, Map<String, String> queryParameters) async {
-
+  Future<String> render(AuthCodeController forController, Uri requestUri, String responseType, String clientID,
+      String state, String scope) async {
     return """
 <!DOCTYPE html>
 <html lang="en">
@@ -170,10 +179,10 @@ class AppSink extends RequestSink {
 <body>
 <div class="container">
     <h1>Login</h1>
-    <form action="${requestURI.path}" method="POST">
-        <input type="hidden" name="state" value="${queryParameters["state"]}">
-        <input type="hidden" name="client_id" value="${queryParameters["client_id"]}">
-        <input type="hidden" name="response_type" value="code">
+    <form action="${requestUri.path}" method="POST">
+        <input type="hidden" name="state" value="$state">
+        <input type="hidden" name="client_id" value="$clientID">
+        <input type="hidden" name="response_type" value="$responseType">
         <div class="form-group">
             <label for="username">User Name</label>
             <input type="text" class="form-control" name="username" placeholder="Please enter your user name">

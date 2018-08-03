@@ -1,4 +1,4 @@
-# 2. Writing Tests
+# 4. Writing Tests
 
 One of the core principles of Aqueduct is effective testing. While opening up your browser and typing in a URL can verify the code you just wrote succeeds, it's not a very reliable way of testing software. We'll also run into trouble when testing endpoints that use HTTP methods other than GET. Therefore, there are some helpful utilities for writing tests in Aqueduct.
 
@@ -14,23 +14,27 @@ void main() {
 }
 ```
 
-Tests are made possible by the `test` package which you'll need to claim as a dependency. Locate the file `quiz/pubspec.yaml` in your project. This file contains metadata about your application, including it's dependencies. At the bottom of this file, the following two lines specify that this project uses the `test` package as a development dependency:
+Tests are made possible by the `test` package. The `quiz` application already claims `test` as a dependency, which you can verify by looking at the `pubspec.yaml` in your project directory. At the bottom of this file, the following two lines specify that this project uses the `test` package as a development dependency:
 
 ```
 dev_dependencies:
   test: any
 ```
 
-In Dart, tests are stored in a top-level `test` directory that has already been created from the template. Add a new file to it named `test/question_controller_test.dart`. (Tests must end in `_test.dart` and live in the `test` directory.) In this file, import your application's test harness:
+In Dart, tests must be in the `test` directory of the project directory. Add a new file to this directory named `question_controller_test.dart`. In this file, import your application's test harness:
 
 ```dart
 import 'harness/app.dart';
 ```
 
-The test harness exports the `test` package and declares a class named `TestApplication`. Aqueduct's testing strategy is simple: run the application locally, execute requests and verify their responses. A `TestApplication` can run the application from your tests and has a `client` property for executing requests against that application. In `test/question_controller_test.dart`, add the following code to set up the test harness:
+The test harness includes all of the packages you need to test an Aqueduct application and a class named `TestApplication`. A `TestApplication` runs your application by starting an HTTP server, creating an instance of `QuizChannel` and then sending every HTTP request to your channel's entry point. When your tests finish, `TestApplication` will stop the HTTP server.
+
+In `test/question_controller_test.dart`, add the following code to set up the test harness:
 
 ```dart
-Future main() async {
+import 'harness/app.dart';
+
+void main() {
   TestApplication app = new TestApplication();
 
   setUpAll(() async {
@@ -49,8 +53,18 @@ Future main() async {
 Let's add a test to verify that `GET /questions` returns a list of questions in a 200 OK response.
 
 ```dart
+import 'harness/app.dart';
+
 void main() {
-  ...
+  TestApplication app = new TestApplication();
+
+  setUpAll(() async {
+    await app.start();
+  });
+
+  tearDownAll(() async {
+    await app.stop();
+  });  
 
   test("/questions returns list of questions", () async {
     var request = app.client.request("/questions");
@@ -62,15 +76,11 @@ void main() {
 }
 ```
 
-This test executes the request `GET http://localhost/questions` and ensures that the response's status code is 200 and the body is a list of strings that all end in '?'.
-
-The method `expectResponse` takes a `TestResponse`, status code and an optional *body matcher* (it optionally takes a header matcher, too). It verifies that the response has the expected values and fails the test if it doesn't.
-
-A `TestResponse` is created by executing a `TestRequest`, which is created by with the `request` method of a `TestApplication`'s `client`. The execution methods for `TestRequest` are `get()`, `post()`, etc.
+This test executes the request `GET http://localhost/questions`. The HTTP server running in your `TestApplication` receives it, and you get a response. The method `expectResponse` verifies that it is the correct response - in this case, when the status code is 200 and the body is a list of strings that all end in '?'.
 
 Run this test by right-clicking anywhere on it and selecting `Run` from the pop-up menu. A test runner will appear on the bottom of the screen with the results of the test.
 
-There's one little issue here: the `everyElement` matcher ensures each string in the response body passes the inner matcher `endsWith`. However, if the response body were an empty list, the inner matcher would never run and the test would still pass. Let's verify that there is at least one question, too:
+There's one little issue here: the `everyElement` matcher ensures each string in the response body `endsWith` a question mark. However, if the response body were an empty list, the `endsWith` would never run and the test would still pass - but it isn't the behavior we want. Let's verify that there is at least one question, too:
 
 ```dart
 test("/questions returns list of questions", () async {
@@ -146,4 +156,4 @@ The `Expected:` value tells what was expected, the `Actual:` value tells you wha
 
 Remove `This is a statement.` from the list of questions and your tests will pass again.
 
-## [Next Chapter: Executing Database Queries](executing-queries.md)
+## [Next Chapter: Deployment](deploying-and-other-fun-things.md)

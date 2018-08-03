@@ -1,318 +1,303 @@
-# 3. Executing Queries
+# 2. Reading from a Database
 
-We will continue to build on the last chapter's project, `quiz`, by storing questions in a database and retrieving them from the database.
+We will continue to build on the last chapter's project, `heroes`, by storing our heroes in a database. This will let us to edit our heroes and keep the changes when we restart the application.
 
 ## Object-Relational Mapping
 
-For a quick prelude, let's make sure we understand what an object-relational mapping (ORM) is. There are different kinds of databases that have different use cases. A relational database management system - which pretty much means a 'SQL' database - stores its data in the form of tables. A table represents some sort of entity - like a person or a bank account - and has columns that describe the attributes of that entity - like a name or a balance. Every row in a table is an instance of that entity - like a single person named Bob or Bob's bank account.
+A relational database management system (like PostgreSQL or MySQL) stores its data in the form of tables. A table represents some sort of entity - like a person or a bank account. Each table has columns that describe the attributes of that entity - like a name or a balance. Every row in a table is an instance of that entity - like a single person named Bob or a bank account.
 
-In an object-oriented framework like Aqueduct, we have a similar concept: a class represents some sort of entity, and an object with that class is an instance of that entity. An ORM maps rows in a database to and from objects in an application. In Aqueduct, each database table-class pairing is called an *entity*. Collectively, an application's entities are called its data model.
+In an object-oriented framework like Aqueduct, we have representations for tables, columns and rows. A class represents a table, its instances are rows, and instance properties are column values. An ORM translates rows in a database to and from objects in an application.
+
+| Aqueduct | Database | Example #1 | Example #2 |
+|-|-|-|-|
+|<b>Class</b>|<b>Table</b>|Person|Bank Account|
+|<b>Instance</b>|<b>Row</b>|A person named Bob|Sally's Bank Account|
+|<b>Property</b>|<b>Column</b>|Person's Name|Bank Account Balance|
+
+In Aqueduct, each database table-class pairing is called an *entity*. Collectively, an application's entities are called its *data model*.
 
 Building a Data Model
 ---
 
-In our `quiz` application, we really have one type of entity - a "question". We will create an entity by declaring a class whose instances represent a question.
-
-Create a new directory `lib/model/` and then add a new file to it named `lib/model/question.dart`. Add the following code:
+In our `heroes` application, we will have one type of entity - a "hero". To create a new entity, we subclass `ManagedObject<T>`. Create a new directory `lib/model/` and then add a new file to this directory named `hero.dart`. Add the following code:
 
 ```dart
-import '../quiz.dart';
+import 'package:heroes/heroes.dart';
 
-class Question extends ManagedObject<_Question> implements _Question {}
+class Hero extends ManagedObject<_Hero> implements _Hero {}
 
-class _Question {
-  @managedPrimaryKey
-  int index;
+class _Hero {
+  @primaryKey
+  int id;
 
-  String description;
+  @Column(unique: true)
+  String name;
 }
 ```
 
-This declares a "question" entity. The class `_Question` is a one-to-one mapping to a database table with the same name. Each of its properties - `index` and `description` - are columns in that table. When the ORM fetches rows from the `_Question` table, they will be returned as instances of `Question`.
+This declares a `Hero` entity. Entities are always made up of two classes.
 
-![ManagedObject Diagram](../img/tut3_db.png)
+The `_Hero` class is a direct mapping of a database table. This table's name will have the same name as the class: `_Hero`. Every property declared in this class will have a corresponding column in this table. Therefore, the `_Hero` table will have two columns - `id` and `name`. The `id` column is this table's primary key (a unique identifier for each hero). The name of each hero must be unique.
 
-When declaring an entity, there must be two classes:
+The other class, `Hero`, is what we work with in our code - when we fetch heroes from a database, they will be instances of `Hero`.
 
-- A *persistent type* that starts with a `_`, has exactly one primary key property, and declares a property for each database column. In the above, the persistent type is `_Question`.
-- An *instance type* that extends `ManagedObject<T>` (where `T` is the persistent type). The instance type also implements the persistent type so that it has the same properties. In the above, the instance type is `Question`.
+The `Hero` class is called the *instance type* of the entity, because that's what we have instances of. `_Hero` is the *table definition* of the entity. You won't use the table definition for anything other than describing the database table.
 
-!!! tip "Why two classes?"
-    The two classes allow for much of the powerful behavior of the Aqueduct ORM. Answering this question requires a understanding of those behaviors, which we won't cover much in this beginner's tutorial. Once you've got the basics down, check out [this guide](../db/modeling_data.md) for more detail.
+An instance type must *implement* its table definition; this gives our `Hero` all of the properties of `_Hero`. An instance type must *extend* `ManagedObject<T>`, where `T` is also the table definition. `ManagedObject<T>` has behavior for automatically transferring objects to the database and back (among other things).
 
-During application initialization, the data model gets compiled so that it information about these entities is available at runtime to the components that need it. In `quiz_sink.dart`, add the following code to the constructor:
-
-```dart
-QuizSink(ApplicationConfiguration appConfig) : super(appConfig) {
-  /* This line was added by the template */
-  logger.onRecord.listen((rec) =>
-    print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
-
-  var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-}
-```
-
-The `fromCurrentMirrorSystem` constructor will be able to find all of the `ManagedObject<T>` subclasses in your application. This data model will be one of the two necessary components for our next task, creating a `ManagedContext`.
+!!! tip "Transient Properties"
+    Properties declared in the instance type aren't stored in the database. This is different than properties in the table definition. For example, a database table might have a `firstName` and `lastName`, but it's useful in some places to have a `fullName` property. Declaring the `fullName` property in the instance type means we have easy access to the full name, but we still store the first and last name individually.
 
 Defining a Context
 ---
 
-A `ManagedContext` is an application's gateway to a database. It maintains a connection to a database, executes queries on that database, and translates the results to and from `ManagedObject<T>`s according to a `ManagedDataModel`. We have the data model already, so now we must provide database connection information. In `quiz_sink.dart`, declare a new property and add a few more lines to the constructor:
+Our application needs to know two things to execute database queries:
+
+1. What is the data model (our collection of entities)?
+2. What database are we connecting to?
+
+Both of these things are set up when an application is first started. In `channel.dart`, add a new property `context` and update `prepare()`:
 
 ```dart
-class QuizSink extends RequestSink {
-  QuizSink(ApplicationConfiguration options) : super(options) {
-    logger.onRecord.listen((rec) =>
-      print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
+class HeroesChannel extends ApplicationChannel {
+  ManagedContext context;
 
-    var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+  @override
+  Future prepare() async {
+    logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
-    var persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(
-      "dart", "dart", "localhost", 5432, "dart_test");
+    final dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
+    final persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(
+      "heroes_user", "password", "localhost", 5432, "heroes");
 
     context = new ManagedContext(dataModel, persistentStore);
   }
 
-  ManagedContext context;
+  @override
+  Controller get entryPoint {
+    ...
+```
 
+`ManagedDataModel.fromCurrentMirrorSystem()` will find all of our `ManagedObject<T>` subclasses and 'compile' them into a data model. A `PostgreSQLPersistentStore` takes database connection information that it will use to connect and send queries to a database. Together, these objects are packaged in a `ManagedContext`.
+
+!!! tip "Configuring a Database Connection"
+    This tutorial hardcodes the information needed to connect to a database. In a future chapter, we will move these values to a configuration file so that we can change them during tests and various deployment environments.
+
+The context will coordinate with these two objects to execute queries and translate objects to and from the database. Controllers that make database queries need a reference to the context. So, we'll want `HeroesController` to have access to the context.
+
+In `heroes_controller.dart`, add a property and create a new constructor:
+
+```dart
+class HeroesController extends ResourceController {
+  HeroesController(this.context);
+
+  final ManagedContext context;
+  // You can delete the list of heroes if you like, we won't use it again.
+  // The analyzer will complain for a bit, but that's OK.
   ...
 ```
 
-This creates a context that connects to the database `postgres://dart:dart@localhost:5432/dart_test` that has a single `_Question` table. Before we create that database, let's finish writing the code that will fetch questions from a database.
+Now that `HeroesController` requires a context in its constructor, we need to pass it the context we created in `prepare()`. Update `entryPoint` in `channel.dart`.
+
+```dart
+@override
+Controller get entryPoint {
+  final router = new Router();
+
+  router
+    .route("/heroes/[:id]")
+    .link(() => new HeroesController(context));
+
+  router
+    .route("/example")
+    .linkFunction((request) async {
+      return new Response.ok({"key": "value"});
+  });
+
+  return router;
+}
+```
+
+Now that we've 'injected' this context into our `HeroesController` constructor, each `HeroesController` can execute database queries.
+
+!!! note "Service Objects and Dependency Injection"
+    Our context is an example of a *service object*. A service encapsulates logic and state into a single object that can be reused in multiple controllers. A typical service object accesses another server, like a database or another REST API. Some service objects may simply provide a simplified interface to a complex process, like applying transforms to an image. Services are passed in a controller's constructor;
+    this is called *dependency injection*. Unlike many frameworks, Aqueduct does not require a complex dependency injection framework; this is because you write the code to create instances of your controllers and can pass whatever you like in their constructor.
 
 Executing Queries
 ---
 
-Once a context has been created, when can execute `Query<T>`s on it. In `lib/controller/question_controller.dart`, replace the implementation of `getAllQuestions` to fetch questions from a database and import the file that declares `Question`:
+Our operation methods in `HeroesController` currently return heroes from an in-memory list. To fetch data from a database instead of this list, we create and execute instances of `Query<T>` in our `ManagedContext`.
+
+Let's start by replacing `getAllHeroes` in `heroes_controller.dart`. Make sure to import your `model/hero.dart` file at the top:
 
 ```dart
-import '../quiz.dart';
-import '../model/question.dart';
+import 'package:heroes/heroes.dart';
+import 'package:heroes/model/hero.dart';
 
-class QuestionController extends HttpController {
-  var questions = [
-    "How much wood can a woodchuck chuck?",
-    "What's the tallest mountain in the world?"
-  ];
+class HeroesController extends ResourceController {
+  HeroesController(this.context);
 
-  @httpGet
-  Future<Response> getAllQuestions() async {
-    var questionQuery = new Query<Question>();
-    var databaseQuestions = await questionQuery.fetch();
+  final ManagedContext context;
 
-    return new Response.ok(databaseQuestions);
+  @Operation.get()
+  Future<Response> getAllHeroes() async {
+    final heroQuery = new Query<Hero>(context);
+    final heroes = await heroQuery.fetch();
+
+    return new Response.ok(heroes);
   }
 
 ...
 ```
 
-In `getAllQuestions`, we create an instance of `Query<Question>` and then execute its `fetch()` method. This method will fetch every question from the database and returns them as a `List<Question>` into the variable `databaseQuestions`. This list is the body object to the `Response`, which by default, encodes them as a list of JSON objects.
+Here, we create an instance of `Query<Hero>` and then execute its `fetch()` method. The type argument to `Query<T>` is an instance type; it lets the query know which table to fetch rows from and the type of objects that are returned by the query. The context argument tells it which database to fetch it from. The `fetch()` execution method returns a `List<Hero>`. We write that list to the body of the response.
 
-!!! note "Where's the context?"
-    Most applications only talk to a single database and therefore have a single `ManagedContext`. When creating a `Query<T>` without specifying a context, the query defaults to executing on the last context created - which happens to be the one we instantiated in `QuizSink`.
-
-Now, let's update `getQuestionAtIndex` to fetch a single question by its index from the database.
+Now, let's update `getHeroByID` to fetch a single hero from the database.
 
 ```dart
-@httpGet
-Future<Response> getQuestionAtIndex(@HTTPPath("index") int index) async {
-  var questionQuery = new Query<Question>()
-    ..where.index = whereEqualTo(index);    
+@Operation.get('id')
+Future<Response> getHeroByID(@Bind.path('id') int id) async {
+  final heroQuery = new Query<Hero>(context)
+    ..where((h) => h.id).equalTo(id);    
 
-  var question = await questionQuery.fetchOne();
+  final hero = await heroQuery.fetchOne();
 
-  if (question == null) {
+  if (hero == null) {
     return new Response.notFound();
   }
-  return new Response.ok(question);
+  return new Response.ok(hero);
 }
 ```
 
-This query does two interesting things: it filters the result of the query by the question's index and only fetches a single question with `fetchOne()`.
+This query does two interesting things. First, it uses the `where` method to filter heroes that have the same `id` as the path variable. For example, `/heroes/1` will fetch a hero with an `id` of `1`. This works because `Query.where` adds a SQL WHERE clause to the query. We'd get the following SQL:
 
-Filtering is accomplished through the `where` property of a `Query<Question>`; this property has all of the same properties as `Question`. *Matchers* like `whereEqualTo` are set as the values of `where`'s properties. This adds conditions to the where clause of the generated SQL query. In the above code, we constrain the query to only fetch questions whose `index` is equal to the `index` from the path variable. Since `index` is the primary key of `Question`, this will either give us a single question or return null.
+```sql
+SELECT id, name FROM _question WHERE id = 1;
+```
 
-!!! tip "Matching All the Things"
-    There are a lot of matchers available to build different queries. All matchers start with the word `where` and can be found by searching the [API reference](https://www.dartdocs.org/documentation/aqueduct/latest/).
+The `where` method uses the *property selector* syntax. This syntax is a closure that takes an argument of the type being queried, and must return a property of that object. This creates an expression object that targets the selected property. By invoking methods like `equalTo` on this expression object, a boolean expression is added to the query.
+
+!!! tip "Property Selectors"
+    Many query configuration methods use the property selector syntax. Setting up a keyboard shortcut (called a Live Template in IntelliJ) to enter the syntax is beneficial. A downloadable settings configuration for IntelliJ exists [here](../intellij.md) that includes this shortcut.
+
+The `fetchOne()` execution method will fetch a single object that fulfills all of the expressions applied to the query. If no database row meets the criteria, `null` is returned. Our controller returns a 404 Not Found response in that scenario.
+
+We have now written code that fetches heroes from a database instead of from in memory, but we don't have a database - yet.
+
+!!! tip "Use fetchOne() on Unique Properties"
+    If more than one database row meets the criteria of a `fetchOne()`, an exception is thrown. It's only safe to use `fetchOne()` when applying an expression to a unique property, like a primary key.
 
 Setting Up a Database
 ---
 
-Ensure that your PostgreSQL installation is running and open the command-line tool `psql`. In this tool, create a new database and a user that can connect to it with the following SQL:
+For development, you'll need to install a PostgreSQL server on your local machine. If you are on macOS, your best bet is to use [Postgres.app](http://postgresapp.com). This application starts a PostgreSQL instance when it is open, and closes it when the application is shut down. For other platforms, see [this page](https://www.postgresql.org/download/).
+
+Once you have PostgreSQL installed and running, open a command line interface to it. If you are using `Postgres.app`, select the elephant icon in your status bar and then select `Open psql`. Otherwise, enter `psql` into the command-line.
+
+!!! warning "If you installed Postgres.app"
+    The `psql` command-line utility is inside the `Postgres.app` application bundle, so entering `psql` from the command-line won't find the executable. Once you open `psql` from the status bar item, you'll see the full path to `psql` on your machine. This is typically `/Applications/Postgres.app/Contents/Versions/9.6/psql`.
+
+In `psql`, create a new database and a user to manage it.
 
 ```sql
-CREATE DATABASE dart_test;
-CREATE USER dart WITH createdb;
-ALTER USER dart WITH password 'dart';
-GRANT all ON database dart_test TO dart;
+CREATE DATABASE heroes;
+CREATE USER heroes_user WITH createdb;
+ALTER USER heroes_user WITH password 'password';
+GRANT all ON database heroes TO heroes_user;
 ```
 
-The user, password and database name match those provided when creating our `ManagedContext` in `QuizSink`. This database will be used during testing. Before the tests run, the test harness will create tables for all of your entities in this database. After the tests complete, the tables will be deleted from this database. Therefore, this database should only be used for running tests.
+Next, we need to create the table where heroes are stored in this database. From your project directory, run the following command:
 
-We must update our test harness to create these tables. In `test/harness/app.dart`, add the following method to `TestApplication`:
+```
+aqueduct db generate
+```
+
+This command will create a new *migration file*. A migration file is a Dart script that runs a series of SQL commands to alter a database's schema. It is created in a new directory in your project named `migrations/`. Open `migrations/00000001_initial.migration.dart`, it should look like this:
 
 ```dart
-static Future createDatabaseSchema(ManagedContext context) async {
-  var builder = new SchemaBuilder.toSchema(
-      context.persistentStore, new Schema.fromDataModel(context.dataModel),
-      isTemporary: true);
+import 'package:aqueduct/aqueduct.dart';
+import 'dart:async';
 
-  for (var cmd in builder.commands) {
-    await context.persistentStore.execute(cmd);
+class Migration1 extends Migration {
+  @override
+  Future upgrade() async {
+    database.createTable(new SchemaTable(
+      "_Hero", [
+        new SchemaColumn("id", ManagedPropertyType.bigInteger,
+            isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
+        new SchemaColumn("name", ManagedPropertyType.string,
+            isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: true),
+      ],
+    ));
+  }
+
+  @override
+  Future downgrade() async {}
+
+  @override
+  Future seed() async {}
+}
+```
+
+In a moment, we'll execute this migration file. That will create a new table named `_Hero` with columns for `id` and `name`. Before we run it, we should seed the database with some initial heroes. In the `seed()` method, add the following:
+
+```dart
+@override
+Future seed() async {
+  final heroNames = ["Mr. Nice", "Narco", "Bombasto", "Celeritas", "Magneta"];
+
+  for (final heroName in heroNames) {    
+    await database.store.execute("INSERT INTO _Hero (name) VALUES (@name)", substitutionValues: {
+      "name": heroName
+    });
   }
 }
 ```
 
-Then, in `TestApplication.start`, add the line that calls this method after `await application.start()`:
+Apply this migration file to our locally running `heroes` database with the following command in the project directory:
 
 ```dart
-Future start() async {
-  RequestController.letUncaughtExceptionsEscape = true;
-  application = new Application<QuizSink>();
-  application.configuration.port = 0;
-  application.configuration.configurationFilePath = "config.src.yaml";
-
-  await application.start(runOnMainIsolate: true);
-
-  /* Add this line */
-  await createDatabaseSchema(sink.context);
-
-  client = new TestClient(application);
-}
+aqueduct db upgrade --connect postgres://heroes_user:password@localhost:5432/heroes
 ```
 
-Now when our tests in `question_controller_test.dart` go through their setup process, the SQL command to create the question table will be executed. The last thing left to do is populate this test database with questions during the test setup process. At the top of `question_controller_test.dart`, import `question.dart`:
+Re-run your application with `aqueduct serve`. Then, reload [http://aqueduct-tutorial.stablekernel.io](http://aqueduct-tutorial.stablekernel.io). Your dashboard of heroes and detail page for each will still show up - but this time, they are sourced from a database.
+
+!!! warning "ManagedObjects and Migration Scripts"
+    In our migration's `seed()` method, we executed SQL queries instead of using the Aqueduct ORM. *It is very important that you do not use* `Query<T>`, `ManagedObject<T>` or other elements of the Aqueduct ORM in migration files. Migration files represent an ordered series of historical steps that describe your database schema. If you replay those steps (which is what executing a migration file does), you will end up with the same database schema every time. However, a `ManagedObject<T>` subclass changes over time - the definition of a managed object is not historical, it only represents the current point in time. Since a `ManagedObject<T>` subclass can change, using one in our migration file would mean that our migration file could change.
+
+## Query Parameters and HTTP Headers
+
+In the browser application, the dashboard has a text field for searching heroes. When you enter text into it, it will send the search term to the server by appending a query parameter to `GET /heroes`. For example, if you entered the text `abc`, it'd make this request:
+
+```
+GET /heroes?name=abc
+```
+
+![Aqueduct Tutorial Run 4](../img/run4.png)
+
+Our Aqueduct application can use this value to return a list of heroes that contains the search string. In `heroes_controller.dart`, modify `getAllHeroes()` to bind the 'name' query parameter:
 
 ```dart
-import 'package:quiz/model/question.dart';
-```
-
-And then update the `setUpAll` method:
-
-```dart
-setUpAll(() async {
-  await app.start();
-
-  var questions = [
-    new Question()
-      ..description = "How much wood can a woodchuck chuck?",
-    new Question()
-      ..description = "What's the tallest mountain in the world?",
-  ];
-
-  await Future.forEach(questions, (q) {
-    var query = new Query<Question>()
-        ..values = q;
-    return query.insert();
-  });
-});
-```
-
-This inserts the two original questions as instances of `Question` into the database during setup. If we were to run our tests now, they would fail and the output would look like this:
-
-```
-Expected: --- HTTP Response ---
-          - Status code must be 200
-          - Headers can be anything
-          - Body after decoding must be:
-
-            (an object with length of a value greater than <0> and every element(a string ending with '?'))
-          ---------------------
-Actual: TestResponse:<-----------
-        - Status code is 200
-        - Headers are the following:
-          - content-encoding: gzip
-          - content-length: 124
-          - x-frame-options: SAMEORIGIN
-          - content-type: application/json; charset=utf-8
-          - x-xss-protection: 1; mode=block
-          - x-content-type-options: nosniff
-          - server: aqueduct/1
-        -------------------------
-        >
- Which: the body differs for the following reasons:
-        has value
-        {'index': 1, 'description': 'How much wood can a woodchuck chuck?'}
-          which
-        {'index': 1, 'description': 'How much wood can a woodchuck chuck?'}
-          not a string at index 0
-```
-
-Our tests currently verify that the response body contains a list of JSON strings that all end in `?`. However, now that we are returning a list of JSON objects that represent a question, each question has the following form:
-
-```json
-{
-  "index": 1,
-  "description": "How much wood can a woodchuck chuck?"
-}
-```
-
-We'll need to update our tests so that we're verifying that the *description* of a question object ends with `?`. Wrap the `endsWith("?")` matchers in the two tests that use them with `containsPair`.
-
-```dart
-test("/questions returns list of questions", () async {
-  expectResponse(
-    await app.client.request("/questions").get(),
-    200,
-    body: allOf([
-      hasLength(greaterThan(0)),
-      everyElement(containsPair("description", endsWith("?")))
-    ]));
-});
-
-test("/questions/index returns a single question", () async {
-  expectResponse(
-    await app.client.request("/questions/1").get(),
-    200,
-    body: containsPair("description", endsWith("?")));
-});
-```
-
-Run the tests again by right-clicking on the `main` function and selecting `Run`. They should all pass.
-
-The more you know: Query Parameters and HTTP Headers
----
-
-So far, we have bound HTTP method and path parameters to responder methods in `QuestionController`. You can also bind query parameters, headers and request bodies, too.
-
-We'll allow the `getAllQuestions` method to take a query parameter named `contains`. If this query parameter is part of the request, we'll filter the questions on whether or not that question contains some substring. In `question_controller.dart`, update this method by adding an optional parameter named `containsSubstring`:
-
-```dart
-@httpGet
-Future<Response> getAllQuestions({@HTTPQuery("contains") String containsSubstring}) async {
-  var questionQuery = new Query<Question>();
-  if (containsSubstring != null) {
-    questionQuery.where.description = whereContainsString(containsSubstring);
+@Operation.get()
+Future<Response> getAllHeroes({@Bind.query('name') String name}) async {
+  final heroQuery = new Query<Hero>(context);
+  if (name != null) {
+    heroQuery.where((h) => h.name).contains(name, caseSensitive: false);
   }
-  var databaseQuestions = await questionQuery.fetch();
-  return new Response.ok(databaseQuestions);
+  final heroes = await heroQuery.fetch();
+
+  return new Response.ok(heroes);
 }
-```
+```  
 
-If an HTTP request has a `contains` query parameter, that value will be available in the `containsSubstring` variable when this method is invoked. Also, note that we first check `containsSubstring` to make sure it is not-null. If we simply assigned `null` to `description`, we'd be creating a matcher that checked to see if the `description` *contained* `null`.
+The `@Bind.query('name')` annotation will bind the value of the 'name' query parameter if it is included in the request URL. Otherwise, `name` will be null.
 
-!!! tip "HTTPController Binding"
-    For more information on binding, see [this guide](../http/http_controller.md).
+Notice that `name` is an *optional parameter* (it is surrounded by curly brackets). An optional parameter in an operation method is also optional in the HTTP request. If we removed the curly brackets from this binding, the 'name' query parameter would become required and the request `GET /heroes` without `?name=x` would fail with a 400 Bad Request.
 
-Then, add a new test in `question_controller_test.dart`:
+!!! tip "ResourceController Binding"
+    There is even more to bindings than we've shown (like automatically parsing bound values into types like `int` and `DateTime`). For more information, see [ResourceControllers](../http/resource_controller.md).
 
-```dart
-test("/questions returns list of questions filtered by contains", () async {
-  var request = app.client.request("/questions?contains=mountain");
-  expectResponse(
-    await request.get(),
-    200,
-    body: [{
-      "index" : greaterThanOrEqualTo(0),
-      "description" : "What's the tallest mountain in the world?"
-    }]);  
-});
-```
+Binding query and header parameters in a operation method is a good way to make your code more intentional and avoid boilerplate parsing code. Aqueduct is able to generate better documentation when using bindings.
 
-This test expects that the body is a list of exactly one object whose description is the one question we know has the word 'mountain' in it.
-
-This test will pass, along with the rest of them. It's important to note that GET `/questions` without a `contains` query still yields the correct results. That is because the `HTTPQuery` argument was declared in the optional parameters portion of the responder method. If the parameter were in the required, positional set of parameters and the query string was not included, this request would respond with a 400. (The same positional vs. optional behavior is true of `HTTPHeader`s as well.)
-
-Binding query and header parameters in a responder method is a good way to make your code more intentional and avoid boilerplate parsing code. Additionally, Aqueduct is able to generate documentation from method signatures - by using bindings, the documentation generator can add that information to the documentation.
-
-## [Next: Relationships and Joins](model-relationships-and-joins.md)
+## [Next: Storing Data](storing-data.md)

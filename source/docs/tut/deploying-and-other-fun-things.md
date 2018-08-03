@@ -42,7 +42,7 @@ class QuizConfig extends ConfigurationItem {
 Update `QuizSink`'s constructor to create its persistent store from configuration values:
 
 ```dart
-QuizSink(ApplicationConfiguration appConfig) : super(appConfig) {
+QuizSink(ApplicationOptions appConfig) : super(appConfig) {
   logger.onRecord.listen((rec) =>
     print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
   var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
@@ -70,7 +70,7 @@ database:
  databaseName: quiz
 ```
 
-Run `aqueduct serve` and open a browser to `http://localhost:8081/questions` - you'll see the question in your database. For other ways of running an Aqueduct application (and tips for running them remotely), see [this guide](../deploy/overview.md).
+Run `aqueduct serve` and open a browser to `http://localhost:8888/questions` - you'll see the question in your database. For other ways of running an Aqueduct application (and tips for running them remotely), see [this guide](../deploy/index.md).
 
 !!! tip "Test and Deployment Configuration"
     The `configurationFilePath` defaults to `config.yaml` when using `aqueduct serve`. In the test harness, the `configurationFilePath` is set to `config.src.yaml`. To continue running the tests, add the database connection configuration for `dart_test` database to the file `config.src.yaml`. For more details on configuration, see [this guide](../http/configure.md).

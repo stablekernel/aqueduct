@@ -18,21 +18,24 @@ An Aqueduct application is a series of controllers that form a *channel* for a r
 
 ### Initialization
 
-An application's channel is created by subclassing [RequestSink](http/request_sink.md). This type also performs any other application initialization, like creating database connections and defining how authorization occurs.
+An application's channel is created by subclassing [ApplicationChannel](http/channel.md). This type also performs any other application initialization, like creating database connections and defining how authorization occurs.
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
 
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfiguration config) : super(config) {
-    databaseContext = contextFrom(config);
+class AppApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
+    databaseContext = contextFrom(options);
   }
 
   @override
-  void setupRouter(Router router) {
+  Controller get entryPoint {
+    final router = new Router();
     router
       .route("/resource/[:id]")
-      .generate(() => new ResourceController(databaseContext));
+      .link(() => new ResourceController(databaseContext));
+    return router;
   }
 }
 ```
@@ -43,83 +46,87 @@ A [router](http/routing.md) splits a channel into sub-channels based on the path
 
 ```dart
 @override
-void setupRouter(Router router) {    
+Controller get entryPoint {
+  final router = new Router();
+
   router
     .route("/users/[:id]")
-    .generate(() => new UserController());
+    .link(() => new UserController());
 
   router
     .route("/file/*")
-    .generate(() => new HTTPFileController());
+    .link(() => new FileController());
 
   router
     .route("/health")
-    .listen((req) async => new Response.ok(null));
+    .linkFunction((req) async => new Response.ok(null));
+
+  return router;
 }    
 ```
 
 ### Controllers
 
-[HTTPController](http/http_controller.md) are the controller that most often fulfill a request. An `HTTPController` subclass handles all operations for resource, e.g. `POST /users`, `GET /users` and `GET /users/1`.
+[ResourceControllers](http/resource_controller.md) are the controller that most often fulfill a request. An `ResourceController` subclass handles all operations for resource, e.g. `POST /users`, `GET /users` and `GET /users/1`.
 
-Subclasses implement a *responder method* for each operation:
+Subclasses implement a *operation method* for each operation:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart'
 
-class ResourceController extends HTTPController {
-  @httpGet
+class ResourceController extends ResourceController {
+  @Operation.get()
   Future<Response> getAllResources() async {
     return new Response.ok(await fetchResources());
   }
 
-  @httpGet
-  Future<Response> getResourceByID(@HTTPPath("id") int id) async {
+  @Operation.get('id')
+  Future<Response> getResourceByID(@Bind.path("id") int id) async {
     return new Response.ok(await fetchResource(id));
   }
 
-  @httpPost
-  Future<Response> createResource(@HTTPBody() Resource resource) async {
+  @Operation.post()
+  Future<Response> createResource(@Bind.body() Resource resource) async {
     var inserted = await insertResource(resource);
     return new Response.ok(inserted);
   }
 }
 ```
 
-Properties of the request are bound to responder method arguments and controller properties:
+Properties of the request are bound to operation method arguments and controller properties:
 
 ```dart
-class ResourceController extends HTTPController {
-  @httpGet
+class ResourceController extends ResourceController {
+  @Operation.get()
   Future<Response> getAllResources(
-      @HTTPHeader("x-request-id") String requestID,
-      {@HTTPQuery("limit") int limit}) async {
+      @Bind.header("x-request-id") String requestID,
+      {@Bind.query("limit") int limit}) async {
     return new Response.ok(await fetchResources(limit ?? 0));
   }
 
-  @httpPost
-  Future<Response> createResource(@HTTPBody() Resource resource) async {
+  @Operation.post()
+  Future<Response> createResource(@Bind.body() Resource resource) async {
     var inserted = await insertResourceIntoDatabase(resource);
     return new Response.ok(inserted);
   }
 }
 ```
 
-`ManagedObjectController<T>`s are `HTTPController`s that automatically map a REST interface to database queries:
+`ManagedObjectController<T>`s are `ResourceController`s that automatically map a REST interface to database queries:
 
 ```dart
 router
   .route("/users/[:id]")
-  .generate(() => new ManagedObjectController<User>());
+  .link(() => new ManagedObjectController<User>(context));
 ```
 
-`RequestController` is the base class for all controllers that form a channel. They only have a single method to handle the request, and must either return the request or a response. When a request controller returns a response, the request is taken out of the channel.
+`Controller` is the base class for all controllers that form a channel. They only have a single method to handle the request, and must either return the request or a response. When a controller returns a response, the request is taken out of the channel.
 
 ```dart
-class VerifyingController extends RequestController {
+class VerifyingController extends Controller {
   @override
-  Future<RequestOrResponse> processRequest(Request request) async {
-    if (request.innerRequest.headers.value("x-secret-key") == "secret!") {
+  Future<RequestOrResponse> handle(Request request) async {
+    if (request.raw.headers.value("x-secret-key") == "secret!") {
       return request;
     }
 
@@ -149,8 +156,8 @@ numberOfDoodads: 3
 Subclass `ConfigurationItem` and declare a property for each key in the configuration file:
 
 ```dart
-class AppOptions extends ConfigurationItem {
-  AppOptions(String path) : super.fromFile(path);
+class AppConfig extends ConfigurationItem {
+  AppConfig(String path) : super.fromFile(path);
 
   DatabaseConnectionInfo database;
   String otherOption;
@@ -158,14 +165,15 @@ class AppOptions extends ConfigurationItem {
 }
 ```
 
-Read the configuration file identified by an `ApplicationConfiguration`:
+Read the configuration file identified by an `ApplicationOptions`:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
 
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfig config) : super(config) {
-    var options = new AppOptions(config.configurationFilePath);
+class AppApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
+    var options = new AppConfig(options.configurationFilePath);
     ...
   }
 }
@@ -194,10 +202,10 @@ Database operations are built and executed with instances of `Query<T>`.
 ```dart
 import 'package:aqueduct/aqueduct.dart'
 
-class ResourceController extends HTTPController {
-  @httpGet
+class ResourceController extends ResourceController {
+  @Operation.get()
   Future<Response> getAllResources() async {
-    var query = new Query<Resource>();
+    var query = new Query<Resource>(context);
 
     var results = await query.fetch();
 
@@ -209,23 +217,23 @@ class ResourceController extends HTTPController {
 The results can be filtered by the `Query.where` property, which has the same properties as the object being queried.
 
 ```dart
-var query = new Query<Employee>()
-  ..where.name = whereStartsWith("Sa")
-  ..where.salary = whereGreaterThan(50000);
+var query = new Query<Employee>(context)
+  ..where((e) => e.name).startsWith("Sa")
+  ..where((e) => e.salary).greaterThan(50000);
 var results = await query.fetch();
 ```
 
 Values set on the properties of `Query.values` are sent to the database on insert and update operations. Like `Query.where`, `Query.values` has the same properties as the object being inserted or updated.
 
 ```dart
-var query = new Query<Employee>()
+var query = new Query<Employee>(context)
   ..values.name = "Bob"
   ..values.salary = 50000;
 
 var bob = await query.insert();  
 
-var updateQuery = new Query<Employee>()
-  ..where.id = bob.id
+var updateQuery = new Query<Employee>(context)
+  ..where((e) => e.id).equalTo(bob.id)
   ..values.name = "Bobby";
 bob = await updateQuery.updateOne();  
 ```
@@ -233,8 +241,8 @@ bob = await updateQuery.updateOne();
 `Query<T>`s can sort and page on a result set. It can also join tables and return objects and their relationships:
 
 ```dart
-var query = new Query<Employee>()
-  ..where.name = "Sue Gallagher"
+var query = new Query<Employee>(context)
+  ..where((e) => e.name).equalTo("Sue Gallagher")
   ..join(object: (e) => e.manager)
   ..join(set: (e) => e.directReports);
 
@@ -253,10 +261,10 @@ class Employee extends ManagedObject<_Employee> implements _Employee {
   bool get wasRecentlyHired => hireDate.difference(new DateTime.now()).inDays < 30;
 }
 class _Employee  {
-  @managedPrimaryKey
+  @primaryKey
   int index;
 
-  @ManagedColumnAttributes(indexed: true)
+  @Column(indexed: true)
   String name;
 
   DateTime hireDate;
@@ -264,7 +272,7 @@ class _Employee  {
 }
 ```
 
-`ManagedObject<T>`s have relationship properties for has-one, has-many and many-to-many references to other `ManagedObject<T>`s. The property with `ManagedRelationship` metadata is a foreign key column.
+`ManagedObject<T>`s have relationship properties for has-one, has-many and many-to-many references to other `ManagedObject<T>`s. The property with `Relate` metadata is a foreign key column.
 
 ```dart
 class Employee extends ManagedObject<_Employee> implements _Employee {}
@@ -278,7 +286,7 @@ class Initiative extends ManagedObject<_Initiative> implements _Initiative {}
 class _Initiative {
   ...
 
-  @ManagedRelationship(#initiatives)
+  @Relate(#initiatives)
   Employee leader;
 }
 ```
@@ -286,11 +294,11 @@ class _Initiative {
 `ManagedObject<T>`s are easily read from and written to JSON (or any other format):
 
 ```dart
-class UserController extends HTTPController {
-  @httpPut
-  Future<Response> updateUser(@HTTPPath("id") int id, @HTTPBody() User user) async {
-    var query = new Query<User>()
-      ..where.id = id
+class UserController extends ResourceController {
+  @Operation.put('id')
+  Future<Response> updateUser(@Bind.path("id") int id, @Bind.body() User user) async {
+    var query = new Query<User>(context)
+      ..where((u) => e.id).equalTo(id)
       ..values = user;
 
     var updatedUser = await query.updateOne();
@@ -312,38 +320,45 @@ aqueduct db upgrade --connect postgres@://...
 
 ### OAuth 2.0
 
-Authentication and authorization are enabled at application startup by creating an `AuthServer` with `ManagedAuthStorage`:
+Authentication and authorization are enabled at application startup by creating an `AuthServer` with `ManagedAuthDelegate`:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfig config) : super(config) {
-    var storage = new ManagedAuthStorage<User>(ManagedContext.defaultContext);
-    authServer = new AuthServer(storage);
-  }
-
+class AppApplicationChannel extends ApplicationChannel {
   AuthServer authServer;
+  ManagedContext context;
+
+  @override
+  Future prepare() async {
+    context = new ManagedContext(...);
+
+    final delegate = new ManagedAuthDelegate<User>(context);
+    authServer = new AuthServer(delegate);
+  }  
 }
 ```
 
 Set up routes to exchange credentials for tokens using `AuthController` and `AuthCodeController`. Add `Authorizer`s between routes and their controller to restrict access to authorized resource owners only:
 
 ```dart
-void setupRouter(Router router) {
+Controller get entryPoint {
+  final router = new Router();
   router
     .route("/auth/token")
-    .generate(() => new AuthController(authServer));
+    .link(() => new AuthController(authServer));
 
   router
     .route("/auth/code")
-    .generate(() => new AuthCodeController(authServer));
+    .link(() => new AuthCodeController(authServer));
 
   router
     .route("/protected")
-    .pipe(new Authorizer.bearer(authServer))
-    .generate(() => new ProtectedController());
+    .link(() => new Authorizer.bearer(authServer))
+    .link(() => new ProtectedController());
+
+  return router;
 }
 ```
 
@@ -355,12 +370,13 @@ aqueduct auth add-client --id com.app.mobile --secret foobar --redirect-uri http
 
 ### Logging
 
-All requests are logged to an instance of `Logger`. Set up a listener for logger in `RequestSink` to print log messages to the console. (See also [scribe](https://pub.dartlang.org/packages/scribe) for logging to rotating files.)
+All requests are logged to an instance of `Logger`. Set up a listener for logger in `ApplicationChannel` to print log messages to the console. (See also [scribe](https://pub.dartlang.org/packages/scribe) for logging to rotating files.)
 
 
 ```dart
-class WildfireSink extends RequestSink {
-  WildfireSink(ApplicationConfiguration config) : super(config) {
+class WildfireChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     logger.onRecord.listen((record) {
       print("$record");
     });

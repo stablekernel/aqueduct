@@ -1,9 +1,9 @@
 # Manage OAuth 2.0 Clients
 
-The `aqueduct auth` command line tool creates OAuth 2.0 client application identifiers and inserts them into an application's database. To use this tool, you must use `ManagedAuthStorage<T>` and
+The `aqueduct auth` command line tool creates OAuth 2.0 client application identifiers and inserts them into an application's database. To use this tool, you must use `ManagedAuthDelegate<T>` and
 your database must be contain the tables to support it (see [this guide](server.md) for more details).
 
-Exchanging a username and password for an authorization token requires a registered client identifier. A token belongs to both the authenticating user and the client application. Clients are represented by instances of `ManagedClient` from `aqueduct/managed_auth`. Authenticating clients must provide their client ID (and client secret, if applicable) in the Authorization header when requesting access tokens.
+Exchanging a username and password for an authorization token requires a registered client identifier. A token belongs to both the authenticating user and the client application. Clients are represented by instances of `ManagedAuthClient` from `aqueduct/managed_auth`. Authenticating clients must provide their client ID (and client secret, if applicable) in the Authorization header when requesting access tokens.
 
 An OAuth 2.0 client must have a string identifier that uniquely identifies the client. For example, `com.food_app.mobile` may be a client identifier for the mobile applications for some 'Food App'.
 
@@ -15,7 +15,7 @@ aqueduct auth add-client \
   --connect postgres://user:password@dbhost:5432/food_app
 ```
 
-The `connect` option identifies the database for the application, which this tool will connect to and insert a record into the `ManagedClient` database table. The identifier is provided through the `id` option.
+The `connect` option identifies the database for the application, which this tool will connect to and insert a record into the `ManagedAuthClient` database table. The identifier is provided through the `id` option.
 
 An OAuth 2.0 client created in this way is a *public* client; there is no client secret. An OAuth 2.0 client that uses the resource owner grant flow, but cannot secure its client secret, should use this type of client. An application can't secure its client secret if its source code is viewable - like any JavaScript application. It is suggested that native mobile applications also use public clients because their source code could potentially disassembled to reveal a client secret, but isn't necessarily required.
 
@@ -23,7 +23,7 @@ When making requests to client authenticated endpoints (those protected with `Au
 
 ```
 var clientID = "com.foobar.xyz";
-var clientCredentials = new Base64Encoder().convert("$clientID:".codeUnits);
+var clientCredentials = Base64Encoder().convert("$clientID:".codeUnits);
 var header = "Basic $clientCredentials";
 ```
 

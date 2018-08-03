@@ -43,7 +43,7 @@
         </div>
         <div id="hero-blurb-container" class="row">
             <div class="col-xs-12">
-                <h2>An object-oriented, multi-threaded HTTP framework mobile developers will love.</h2>
+                <h2>An object-oriented, multi-threaded HTTP server framework written in Dart.</h2>
             </div>
         </div>
         <div id="hero-cta-container" class="row">
@@ -65,8 +65,7 @@
                 </div>
                 <div class="row">
                     <div class="col-xs-12">
-                        <p>Aqueduct is an extensible HTTP framework with integrated ORM, OAuth 2.0, and test libraries.</p>
-                        <p>It runs on the Dart VM, a lightweight, ultra-fast C/C++ executable.</p>
+                        <p>Aqueduct is an extensible HTTP framework for building REST APIs on top of the Dart VM. It includes a statically-typed ORM, OAuth 2.0 provider, automated testing libraries and OpenAPI 3.0 integration.</p>
                     </div>
                 </div>
             </div>
@@ -104,86 +103,105 @@
         </div>
         <div class="row feature-row">
             <div class="col-sm-6">
-                <h2><a href="/docs/http/request_controller/">Fluid Routing</a></h2>
+                <h2><a href="/docs/http/routing/">Fluid Routing</a></h2>
                 <p>A familiar, higher-order functional syntax makes application flow easy to construct and read.</p>
             </div>
             <div class="col-sm-6">
                 <pre class="feature-box"><code class="language-dart">router
-  .route("/teams/[:id]")
-  .pipe(new Authorizer(validator))
-  .generate(() => new TeamController(databaseContext));</code></pre>
+  .route('/teams/[:id]')
+  .link(() => Authorizer(validator))
+  .link(() => TeamController(databaseContext));</code></pre>
             </div>
         </div>
         <div class="row feature-row">
             <div class="col-sm-6">
-                <h2><a href="/docs/db/overview/">Statically-typed ORM and Database Migration</a></h2>
+                <h2><a href="/docs/db/">Statically-typed ORM and Database Migration</a></h2>
                 <p>Powerful, statically typed queries enable code-completion and refactoring tools while minimizing error. Tested command-line tooling for database migrations makes data management a breeze.</p>
             </div>
             <div class="col-sm-6">
-                <pre class="feature-box"><code class="language-dart">var query = new Query&lt;Team&gt;()
-  ..where.skills = whereContainsString("aqueduct")
+                <pre class="feature-box"><code class="language-dart">final query = Query&lt;Team&gt;(context)
+  ..where((t) => t.skills).contains('aqueduct')
   ..join(object: (t) => t.manager)
   ..join(set: (t) => t.developers);
 
-var teams = await query.fetch();</code></pre>
+final teams = await query.fetch();</code></pre>
             </div>
         </div>
         <div class="row feature-row">
             <div class="col-sm-6">
-                <h2><a href="/docs/auth/overview/">OAuth 2.0 Server</a></h2>
+                <h2><a href="/docs/auth/">OAuth 2.0 Server</a></h2>
                 <p>A rigorously tested OAuth 2.0 server in just a few lines of code. A layered implementation allows you to store tokens and client identifiers anywhere without rewriting the logic.</p>
             </div>
             <div class="col-sm-6">
-                <pre class="feature-box"><code class="language-dart">var storage = new ManagedAuthStorage&lt;User&gt;(dbCtx);
-var auth = new AuthServer(storage);
+                <pre class="feature-box"><code class="language-dart">final delegate = ManagedAuthDelegate&lt;User&gt;(dbCtx);
+final auth = AuthServer(delegate);
 
 router
-  .route("/auth/token")
-  .generate(() => new AuthController(auth));
+  .route('/auth/token')
+  .link(() => AuthController(auth));
 
 router
-  .route("/auth/code")
-  .generate(() => new AuthCodeController(auth));</code></pre>
+  .route('/auth/code')
+  .link(() => AuthCodeController(auth));</code></pre>
             </div>
         </div>
         <div class="row feature-row">
             <div class="col-sm-6">
-                <h2><a href="/docs/http/http_controller/">Productive Request Bindings</a></h2>
+                <h2><a href="/docs/http/resource_controller/">Productive Request Bindings</a></h2>
                 <p>Boilerplate-avoiding meta-programming increases productivity, avoids simple errors and makes sure your API handles errors correctly and consistently.</p>
             </div>
             <div class="col-sm-6">
-                <pre class="feature-box"><code class="language-dart">@httpPost
+                <pre class="feature-box"><code class="language-dart">@Operation.put('id')
 Future&lt;Response&gt; updateTeam(
-    @HTTPPath("id") int teamID,
-    @HTTPBody() Team team,
-    @HTTPHeader("x-required-header") String requiredHeader,
-    {@HTTPQuery("optional_timestamp") DateTime timestamp}) {
-  return new Response.ok(team);
+    @Bind.path('id') int teamID,
+    @Bind.body() Team team,
+    @Bind.header('x-required-header') String requiredHeader,
+    {@Bind.query('optional_timestamp') DateTime timestamp}) {
+  return Response.ok(team);
 }</code></pre>
             </div>
         </div>
         <div class="row feature-row">
             <div class="col-sm-6">
-                <h2><a href="/docs/testing/overview/">Integrated Test Library</a></h2>
+                <h2><a href="/docs/testing/">Integrated Test Library</a></h2>
                 <p>Aqueduct was built to be tested. Know that your code works from end-to-end without fragile mocking. Use continuous integration tools like <a href="https://travis-ci.org" target="_blank">TravisCI</a> with ease.</p>
             </div>
             <div class="col-sm-6">
-                <pre class="feature-box"><code class="language-dart">test("GET /teams returns 200 and list of teams", () async {
-  var request = app.client.request("/teams");
+                <pre class="feature-box"><code class="language-dart">test('GET /teams returns 200 and list of teams', () async {
+  final response = await agent.get('/teams');
   expectResponse(
-    await request.get(),
+    response,
     200,
     body: everyElement({
-      "id": greaterThan(0),
-      "name": isNotNull
+      'id': greaterThan(0),
+      'name': isNotNull
     }));
 });</code></pre>
+            </div>
+        </div>
+        <div class="row feature-row">
+            <div class="col-sm-6">
+                <h2><a href="/docs/openapi/">OpenAPI 3 Integration</a></h2>
+                <p>Powerful reflection and static analysis tools allow you to automatically generate OpenAPI 3 documents from your source code. Generate client integration code and deploy first class documentation without extra effort.</p>
+            </div>
+            <div class="col-sm-6">
+                <pre class="feature-box"><code class="language-yaml">openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Aqueduct API
+paths:
+  /aqueduct:
+    ...
+components:
+  schemas:
+    ...
+</code></pre>
             </div>
         </div>
         <div class="row final-feature-row">
             <div class="col-sm-12">
                 <h2>Releases you can count on.</h2>
-                <h3>Guaranteed by over 1000 <a target="_blank" href="https://travis-ci.org/stablekernel/aqueduct">automated tests</a> and counting.</h3>
+                <h3>Guaranteed by over 1400 <a target="_blank" href="https://travis-ci.org/stablekernel/aqueduct">automated tests</a> and counting.</h3>
             </div>
         </div>
         <div class="row footer">

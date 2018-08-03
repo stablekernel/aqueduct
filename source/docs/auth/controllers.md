@@ -1,6 +1,6 @@
 # Issue Access Tokens with AuthController
 
-An application using Aqueduct's Auth framework must have endpoints to exchange credentials for access tokens. While a developer could implement these endpoints themselves and talk directly to an `AuthServer`, the OAuth 2.0 specification is where happiness goes to die. Therefore, there exist two `RequestController`s in Aqueduct that handle granting and refreshing authorization tokens - `AuthController` and `AuthCodeController`.
+An application using Aqueduct's Auth framework must have endpoints to exchange credentials for access tokens. While a developer could implement these endpoints themselves and talk directly to an `AuthServer`, the OAuth 2.0 specification is where happiness goes to die. Therefore, there exist two `Controller`s in Aqueduct that handle granting and refreshing authorization tokens - `AuthController` and `AuthCodeController`.
 
 ### Issue, Refresh and Exchange Tokens with AuthController
 
@@ -10,10 +10,14 @@ Using an `AuthController` in an application is straightforward - hook it up to a
 
 ```dart
 @override
-void setupRouter(Router router) {
+Controller get entryPoint {
+  final router = Router();
+
   router
     .route("/auth/token")
-    .generate(() => new AuthController(authServer));
+    .link(() => AuthController(authServer));
+
+  return router;
 }
 ```
 
@@ -28,7 +32,7 @@ The body must also contain the key-value pair `grant_type=password`. For example
 var clientID = "com.app.demo";
 var clientSecret = "mySecret";
 var body = "username=bob@stablekernel.com&password=foobar&grant_type=password";
-var clientCredentials = new Base64Encoder().convert("$clientID:$clientSecret".codeUnits);
+var clientCredentials = Base64Encoder().convert("$clientID:$clientSecret".codeUnits);
 
 var response = await http.post(
   "https://stablekernel.com/auth/token",
@@ -43,7 +47,7 @@ If the OAuth 2.0 client ID is public - that is, it does not have a client secret
 
 ```dart
 // Notice that the separating colon (:) is still present.
-var clientCredentials = new Base64Encoder().convert("$clientID:".codeUnits);
+var clientCredentials = Base64Encoder().convert("$clientID:".codeUnits);
 ```
 
 The response to a password token request is a JSON body that follows the OAuth 2.0 specification:
@@ -74,7 +78,7 @@ If an Aqueduct application is using scope, an additional `scope` parameter can c
 
 It is important that an `Authorizer` *must not* protect instances of `AuthController`. The Authorization header is parsed and verified by `AuthController`.
 
-Once granted, an access token can be used to pass `Authorizer.bearer()`s in the request controller channel.
+Once granted, an access token can be used to pass `Authorizer.bearer()`s in the application channel.
 
 ### Issue Authorization Codes with AuthCodeController
 
@@ -92,11 +96,15 @@ Setting up an `AuthCodeController` is nearly as simple as setting up an `AuthCon
 
 ```dart
 @override
-void setupRouter(Router router) {
+Controller get entryPoint {
+  final router = Router();
+
   router
     .route("/auth/code")
-    .generate(() => new AuthCodeController(
+    .link(() => AuthCodeController(
       authServer, renderAuthorizationPageHTML: renderLogin));
+
+  return router;
 }
 
 Future<String> renderLogin(

@@ -93,11 +93,12 @@ class AppConfigurationItem extends ConfigurationItem {
   APIConfiguration github;
 }
 
-class AppRequestSink extends RequestSink {
-  AppRequestSink(ApplicationConfiguration config) : super(config) {
-    var configValues = new AppConfigurationItem(config.configurationFilePath);
+class AppApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
+    var config = new AppConfigurationItem(options.configurationFilePath);
 
-    githubService = new GitHubService(baseURL: configValues.github.baseURL);
+    githubService = new GitHubService(baseURL: config.github.baseURL);
   }
 }
 ```

@@ -1,9 +1,11 @@
 # Inserting, Updating, Deleting and Fetching Objects
 
-To send commands to a database - whether to fetch, insert, delete or update objects - you will create, configure and execute instances of `Query<T>`. The type argument must be a subclass of `ManagedObject<T>`. This tells the `Query<T>` which table it will operate on. Here's an example of a `Query<T>` that fetches all instances of `User`:
+To send commands to a database - whether to fetch, insert, delete or update objects - you will create, configure and execute instances of `Query<T>`. The type of object the query is performed on is determined by the type argument. The argument must be a subclass of `ManagedObject`.
+
+A query compiles and executes a SQL query on a given [ManagedContext](connecting.db). Here's an example of a `Query<T>` that fetches all instances of `User`:
 
 ```dart
-var query = new Query<User>();
+var query = Query<User>(context);
 var allUsers = await query.fetch();
 ```
 
@@ -23,10 +25,10 @@ Let's assume this `User` type exists:
 ```dart
 class User extends ManagedObject<_User> implements _User {}
 class _User {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
-  @ManagedColumnAttributes(indexed: true)
+  @Column(indexed: true)
   String email;
 
   String name;
@@ -36,7 +38,7 @@ class _User {
 To insert a new row into the `_User` table, a `Query<T>` is constructed and executed:
 
 ```dart
-var query = new Query<User>()
+var query = Query<User>(context)
   ..values.name = "Bob"
   ..values.email = "bob@stablekernel.com";  
 
@@ -54,14 +56,14 @@ Every `Query<T>` has a `values` property that is the type of managed object bein
 INSERT INTO _user (name, email) VALUES ('Bob', 'bob@stablekernel.com')
 ```
 
-Note there is no value provided for the `id` property in this query. Recall that `managedPrimaryKey` metadata is a convenience for `ManagedColumnAttributes` with autoincrementing behavior. Therefore, the database will assign a value for `id` during insertion. The object returned from `insert()` will be an instance of `User` that represents the inserted row and will include the auto-generated `id`.
+Note there is no value provided for the `id` property in this query. Recall that `primaryKey` is a convenience for `Column` with auto-incrementing behavior. Therefore, the database will assign a value for `id` during insertion. The object returned from `insert()` will be an instance of `User` that represents the inserted row and will include the auto-generated `id`.
 
 Properties that are not set in the `values` property will not be sent to the database.
 
 Values that are explicitly set to `null` will be sent as `NULL`. For example, consider the following `Query<T>`:
 
 ```dart
-var query = new Query<User>()
+var query = Query<User>(context)
   ..values.name = null;
 await query.insert();
 ```
@@ -72,21 +74,28 @@ The generated SQL for this query does not send `email` - because it isn't includ
 INSERT INTO _user (name) VALUES (NULL);
 ```
 
-If a property is not nullable (its `ManagedColumnAttributes` has `nullable: false`) and its value is not set in a query prior to inserting it, the query will fail and throw an exception.
+If a property is not nullable (its `Column` has `nullable: false`) and its value is not set in a query prior to inserting it, the query will fail and throw an exception.
 
-You may also set `Query.values` with an instance of a managed object. This is valuable when reading an object from a JSON HTTP request body:
+You may also set `Query.values` with an instance of a managed object. This is valuable when reading an object from a HTTP request body:
 
 ```dart
-var user = new User()
-  ..readFromMap(requestBody);
+var user = User()
+  ..readFromMap(request.body.asMap());
 
-var query = new Query<User>()
+var query = Query<User>(context)
   ..values = user;
 ```
 
-By default, the returned object from an `insert()` will have all of its properties set. See a later section on configuring which properties are returned from a `Query<T>`.
+If an insert query fails because of a unique constraint is violated, a `QueryException` will be thrown.  See a later section on how `QueryException`s are gracefully handled by `Controller`s. In short, it is unlikely that you have to handle `QueryException` directly - `Controller`s know how to turn them into the appropriate HTTP response.
 
-If an insert query fails because of a conflict - a unique constraint is violated - the `Query<T>` will throw a `QueryException`.  See a later section on how `QueryException`s are gracefully handled by `RequestController`s. In short, it is unlikely that you have to handle `QueryException` directly - `RequestController`s know how to turn them into the appropriate HTTP response.
+!!! warning "Setting Query.values"
+    By default, `Query.values` is an empty instance of the object being inserted. If you replace it with an object - that you got from a request body or instantiated yourself - the properties are *copied* into `Query.values`. Further modifications of the replacement object have no effect on `Query.values`.
+
+There is a convenience static method on `Query` for inserting objects without having to create a `Query` object.
+
+```dart
+final insertedObject = await Query.insertObject(context, User()..name = "Bob");
+```
 
 ### Updating Data with a Query
 
@@ -96,9 +105,9 @@ An update query can - and likely should - be restricted to a single row or subse
 
 ```dart
 // A Query that will change any user's whose name is 'Bob' to 'Fred'
-var query = new Query<User>()
+var query = Query<User>(context)
   ..values.name = "Fred"
-  ..where.name = whereEqualTo("Bob");
+  ..where((u) => u.name).equalTo("Bob");
 
 List<User> bobsThatAreNowFreds = await query.update();
 ```
@@ -115,9 +124,9 @@ Like `insert()`, only the values set in the `values` property of a query get upd
 
 ```dart
 // A Query that will remove names from anyone currently named Bob.
-var query = new Query<User>()
+var query = Query<User>(context)
   ..values.name = null
-  ..where.name = whereEqualTo("Bob");
+  ..where((u) => u.name).equalTo("Bob");
 ```
 
 
@@ -127,9 +136,9 @@ There is a variant to `Query<T>.update` named `updateOne`. The `updateOne` metho
 
 ```dart
 // Update user with id = 1 to have the name 'Fred'
-var query = new Query<User>()
+var query = Query<User>(context)
   ..values.name = "Fred"
-  ..where.id = whereEqualTo(1);
+  ..where((u) => u.id).equalTo(1);
 
 var updatedUser = await query.updateOne();
 ```
@@ -143,8 +152,8 @@ Update queries have a safety feature that prevents you from accidentally updatin
 A `Query<T>` will delete rows from a database when using `delete()`. Like update queries, you should specify a row or rows using `where` properties of the `Query<T>`. The result of a delete operation will be a `Future<int>` with the number of rows deleted.
 
 ```dart
-var query = new Query<User>()
-  ..where.id = whereEqualTo(1);
+var query = Query<User>(context)
+  ..where((u) => u.id).equalTo(1);
 
 int usersDeleted = await query.delete();
 ```
@@ -158,7 +167,7 @@ Any properties set in the query's `values` are ignored when executing a delete.
 Of the four basic operations of a `Query<T>`, fetching data is the most configurable. A simple `Query<T>` that would fetch every instance of some entity looks like this:
 
 ```dart
-var query = new Query<User>();
+var query = Query<User>(context);
 
 List<User> allUsers = await query.fetch();
 ```
@@ -166,23 +175,52 @@ List<User> allUsers = await query.fetch();
 A fetch `Query<T>` uses its `where` property to filter the result set, just like delete and update queries. Any properties set in the query's `values` are ignored when executing a fetch, since there is no need for them. In addition to fetching a list of instances from a database, you may also fetch a single instance with `fetchOne`. If no instance is found, `null` is returned.
 
 ```dart
-var query = new Query<User>()
-  ..where.id = whereEqualTo(1);
+var query = Query<User>(context)
+  ..where((u) => u.id).equalTo(1);
 
 User oneUser = await query.fetchOne();
 ```
 
 Fetch queries can be limited to a number of instances with the `fetchLimit` property. You may also set the `offset` of a `Query<T>` to skip the first `offset` number of rows. Between `fetchLimit` and `offset`, you can implement naive paging. However, this type of paging suffers from a number of problems and so there is another paging mechanism covered in later sections.
 
-Many of the other fantastic things you can do with fetch queries - like joins, sorting and complex predicates - all deserve their own section and are covered later.
+### Sorting
 
-### Specifying Result Properties
+Results of a fetch can be sorted using the `sortBy` method of a `Query<T>`. Here's an example:
 
-When executing queries that return managed objects (i.e., `insert()`, `update()` and `fetch()`), the default properties for each object are fetched. The default properties of a managed object are properties that correspond to a database column - attributes declared in the persistent type. A managed object's default properties can be modified when declaring its persistent type:
+```dart
+var q = Query<User>(context)
+  ..sortBy((u) => u.dateCreated, QuerySortOrder.ascending);
+```
+
+`sortBy` takes two arguments: a closure that returns which property to sort by and the order of the sort.
+
+A `Query<T>` results can be sorted by multiple properties. When multiple `sortBy`s are invoked on a `Query<T>`, later `sortBy`s are used to break ties in previous `sortBy`s. For example, the following query will sort by last name, then by first name:
+
+```dart
+var q = Query<User>(context)
+  ..sortBy((u) => u.lastName, QuerySortOrder.ascending)
+  ..sortBy((u) => u.firstName, QuerySortOrder.ascending);
+```
+
+Thus, the following three names would be ordered like so: 'Sally Smith', 'John Wu', 'Sally Wu'.
+
+### Property Selectors
+
+In the section on sorting, you saw the use of a *property selector* to select the property of the user to sort by. This syntax is used for many other query manipulations, like filtering and joining. A property selector is a closure that gives you an object of the type you are querying and must return a property of that object. The selector `(u) => u.lastName` in the previous section is a property selector that selects the last name of a user.
+
+The Dart analyzer will infer that the argument of a property selector, and it is always the same type as the object being queried. This enables IDE auto-completion, static error checking, and other tools like project-wide renaming.
+
+!!! tip "Live Templates"
+    To speed up query building, create a Live Template in IntelliJ that generates a property selector when typing 'ps'. The source of the template is `(o) => o.$END$`. A downloadable settings configuration for IntelliJ exists [here](../intellij.md) that includes this shortcut.
+
+
+## Specifying Result Properties
+
+When executing queries that return managed objects (i.e., `insert()`, `update()` and `fetch()`), the default properties for each object are fetched. The default properties of a managed object are properties that correspond to a database column - attributes declared in the table definition. A managed object's default properties can be modified when declaring its table definition:
 
 ```dart
 class _User {
-  @ManagedColumnAttributes(omitByDefault: true)
+  @Column(omitByDefault: true)
   String hashedPassword;
 }
 ```
@@ -192,49 +230,23 @@ Any property with `omitByDefault` set to true will not be fetched by default.
 A property that is `omitByDefault` can still be fetched. Likewise, a property that is in the defaults can still be omitted. Each `Query<T>` has a `returningProperties` method to adjust which properties do get returned from the query. Its usage looks like this:
 
 ```dart
-var query = new Query<User>()
+var query = Query<User>(context)
   ..returningProperties((user) => [user.id, user.name]);
 ```
 
-The method `returningProperties` takes a closure with one argument - an instance of the type being queried. The closure must return a `List` of properties to be fetched. Here, both `user.id` and `user.name` are returned and this `Query<T>` will fetch a user's `id` and `name` properties only. (The SQL would be something like `SELECT id, name FROM _User`.) Note that the properties returned from this closure *are not* added to the list of default properties - the list is an exact set of properties to be returned.
+`returningProperties` is a multiple property selector - instead of returning just one property, it returns a list of properties.
 
-The way `returningProperties` is constructed is a little interesting. The benefit of this approach is best explained by comparing it to another approach:
-
-```dart
-var query = new Query<User>()
-  ..returningProperties = ["id", "name"]; // This code is not valid!
-```
-
-In the above approach - which is not valid code - the names of the properties are `String`s. The drawback here is that there is no way for the analyzer to tell us if `id` and `name` are actually properties of a `User` or if we misspelled one of the properties. We'd only find out at runtime. Additionally, we get the benefit of code completion and refactoring tools when using the closure approach. Many other features of `Query<T>` like joins, paging and sorting use a similar construct to identify which properties are being used in the query.
-
-You may not add a 'has-many' or 'has-one' relationship to `returningProperties`, as this mechanism is achieved by `Query.join`. If you do add a 'has-one' or 'has-many' relationship property name to the list of `returningProperties`, an exception will be thrown when the query is executed.
+You may include 'belongs-to' relationships in `returningProperties`, but you may not include 'has-many' or 'has-one' relationships. An exception will be thrown if you attempt to. To include properties from relationships like these, see [join in Advanced Queries](advanced_queries.md).
 
 Note that if you omit the primary key of a managed object from `returningProperties`, it will automatically be added. The primary key is necessary to transform the rows into instances of their `ManagedObject<T>` subclass.
 
-### Sorting
-
-Results of a fetch can be sorted using the `sortBy` method of a `Query<T>`. Here's an example:
-
-```dart
-var q = new Query<User>()
-  ..sortBy((u) => u.dateCreated, QuerySortOrder.ascending);
-```
-
-`sortBy` takes two arguments: a closure that returns which property to sort by and the order of the sort.
-
-A `Query<T>` results can be sorted by multiple properties. When multiple `sortBy`s are invoked on a `Query<T>`, later `sortBy`s are used to break ties in previous `sortBy`s. For example, the following query will sort by last name, then by first name:
-
-```dart
-var q = new Query<User>()
-  ..sortBy((u) => u.lastName, QuerySortOrder.ascending)
-  ..sortBy((u) => u.firstName, QuerySortOrder.ascending);
-```
-
-Thus, the following three names would be ordered like so: 'Sally Smith', 'John Wu', 'Sally Wu'.
-
 ### Exceptions and Errors
 
-An exception encountered in preparing or executing a query will throw a `QueryException`. `RequestController`s, by default, will interpret the event of a `QueryException` to return a `Response` to an HTTP client. For common scenarios Aqueduct will return a reasonable status code to the requesting HTTP client. Therefore, you do not have to catch query exceptions unless you wish to override the suggested status code.
+When executing a query, it may fail for any number of reasons: the query is invalid, a database couldn't be reached, constraints were violated, etc. In many cases, this exception originates from the underlying database driver. When thrown in a controller, these exceptions will trigger a 500 Server Error response.
+
+Exceptions that are thrown in response to user input (e.g., violating a database constraint, invalid data type) are re-interpreted into a `QueryException` or `ValidationException`. Both of these exception types have an associated `Response` object that is sent instead of the default 500 Server error.
+
+For this reason, you don't need to catch database query exceptions in a controller; an appropriate response will be sent on your behalf.
 
 ### Statement Reuse
 

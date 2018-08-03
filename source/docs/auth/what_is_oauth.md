@@ -15,7 +15,7 @@ This is an important distinction, because an OAuth 2.0 server doesn't just verif
 When the user is logging in through an application, they submit their username and password. The user doesn't provide the client identifier - in fact, the user doesn't know it. The application sends a request with the user's username and password in the request body, and the client identifier in the Authorization header. All three have to check out for the server to give the application back a token. The full request in pseudo-code looks something like:
 
 ```dart
-var request = new HTTPRequest("/auth/token");
+var request = HTTPRequest("/auth/token");
 request.method = "POST";
 request.contentType = "application/x-www-form-urlencoded";
 request.authorization = Base64.encode("$clientID:");
@@ -40,7 +40,7 @@ An access token can expire. How long it takes to expire is up to the server - Aq
 The application hangs on to both an access token and a refresh token. When the token expires, it will send the refresh token back to the server to get a replacement access token. This is done through the same route that the access token came from - `/auth/token` - except the parameters are a bit different:
 
 ```dart
-var request = new HTTPRequest("/auth/token");
+var request = HTTPRequest("/auth/token");
 request.method = "POST";
 request.contentType = "application/x-www-form-urlencoded";
 request.authorization = Base64.encode("$clientID:");

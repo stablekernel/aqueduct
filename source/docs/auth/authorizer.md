@@ -1,23 +1,25 @@
 # Securing Routes with Authorizer
 
-Instances of `Authorizer` are added to a request controller channel to verify HTTP request's authorization information before passing the request onwards. They protect channel access and typically come right after `route`. Here's an example:
+Instances of `Authorizer` are added to an application channel to verify HTTP request's authorization information before passing the request onwards. They protect channel access and typically come right after `route`. Here's an example:
 
 ```dart
 @override
-void setupRouter(Router router) {
+Controller get entryPoint {
+  final router = Router();
+
   router
     .route("/protected")
-    .pipe(new Authorizer.bearer(authServer))
-    .generate(() => new ProtectedController());
+    .link(() => Authorizer.bearer(authServer))
+    .link(() => ProtectedController());
 
   router
     .route("/other")
-    .pipe(new Authorizer.basic(authServer))
-    .generate(() => new OtherProtectedController());
+    .link(() => Authorizer.basic(authServer))
+    .link(() => OtherProtectedController());
+
+  return router;
 }
 ```
-
-An `Authorizer` has no state itself, so it is added to a channel via `pipe`; i.e., it does not need to be `generate`d.
 
 An `Authorizer` parses the Authorization header of an HTTP request. The named constructors of `Authorizer` indicate the required format of Authorization header. The `Authorization.bearer()` constructor expects an OAuth 2.0 bearer token in the header, which has the following format:
 
@@ -47,8 +49,8 @@ An `Authorizer` may restrict access to controllers based on the scope of the req
 ```dart
 router
   .route("/checkin")
-  .pipe(new Authorizer.bearer(authServer, scopes: ["user:posts", "location"]))
-  .generate(() => new CheckInController());
+  .link(() => Authorizer.bearer(authServer, scopes: ["user:posts", "location"]))
+  .link(() => CheckInController());
 ```
 
 Note that you don't have to use an `Authorizer` to restrict access based on scope. A controller has access to scope information after the request has passed through an `Authorizer`, so it can use the scope to make more granular authorization decisions.
@@ -60,15 +62,19 @@ A bearer token represents a granted authorization - at some point in the past, a
 Controllers protected by an `Authorizer` can access this information to further determine their behavior. For example, a social networking application might have a `/news_feed` endpoint protected by an `Authorizer`. When an authenticated user makes a request for `/news_feed`, the controller will return that user's news feed. It can determine this by using the `Authorization`:
 
 ```dart
-class NewsFeedController extends HTTPController {
-  @httpGet
+class NewsFeedController extends ResourceController {
+  NewsFeedController(this.context);
+
+  ManagedContext context;
+
+  @Operation.get()
   Future<Response> getNewsFeed() async {
-    var forUserID = request.authorization.resourceOwnerIdentifier;
+    var forUserID = request.authorization.ownerID;
 
-    var query = new Query<Post>()
-      ..where.author = whereRelatedByValue(forUserID);
+    var query = Query<Post>(context)
+      ..where((p) => p.author).identifiedBy(forUserID);
 
-    return new Response.ok(await query.fetch());
+    return Response.ok(await query.fetch());
   }
 }
 ```
@@ -78,19 +84,23 @@ In the above controller, it's impossible for a user to access another user's pos
 `Authorization` objects also retain the scope of an access token so that a controller can make more granular decisions about the information/action in the endpoint. Checking whether an `Authorization` has access to a particular scope is accomplished by either looking at the list of its `scopes` or using `authorizedForScope`:
 
 ```dart
-class NewsFeedController extends HTTPController {
-  @httpGet
+class NewsFeedController extends ResourceController {
+  NewsFeedController(this.context);
+
+  ManagedContext context;
+
+  @Operation.get()
   Future<Response> getNewsFeed() async {
     if (!request.authorization.authorizedForScope("user:feed")) {
-      return new Response.unauthorized();
+      return Response.unauthorized();
     }
 
-    var forUserID = request.authorization.resourceOwnerIdentifier;
+    var forUserID = request.authorization.ownerID;
 
-    var query = new Query<Post>()
-      ..where.author = whereRelatedByValue(forUserID);
+    var query = Query<Post>(context)
+      ..where((p) => p.author).identifiedBy(forUserID);
 
-    return new Response.ok(await query.fetch());
+    return Response.ok(await query.fetch());
   }
 }
 ```
@@ -104,26 +114,16 @@ You may use `Authorizer` without using `AuthServer`. For example, an application
 ```dart
 class BasicValidator implements AuthValidator {
   @override
-  Future<Authorization> fromBasicCredentials(
-      AuthBasicCredentials usernameAndPassword) {    
+  FutureOr<Authorization> validate<T>(AuthorizationParser<T> parser, T authorizationData, {List<AuthScope> requiredScope}) {}
     var user = await userForName(usernameAndPassword.username);
     if (user.password == hash(usernameAndPassword.password, user.salt)) {
-      return new Authorization(...);
+      return Authorization(...);
     }
 
     // Will end up creating a 401 Not Authorized Response
     return null;
   }
-
-  @override
-  Future<Authorization> fromBearerToken(
-      String bearerToken, {List<AuthScope> scopesRequired}) {
-    throw new HTTPResponseException(
-      400, "Invalid Authorization. Bearer tokens not supported.");
-  }
-
-  // Used by `aqueduct document`.
-  @override
-  List<APISecurityRequirement> requirementsForStrategy(AuthStrategy strategy) => [];
 }
 ```
+
+The `validate` method must return an `Authorization` if the credentials are valid, or null if they are not. The `parser` lets the validator know the format of the Authorization header (e.g., 'Basic' or 'Bearer') and `authorizationData` is the meaningful information in that header. There are two concrete types of `AuthorizationParser<T>`: `AuthorizationBasicParser` and `AuthorizationBearerParser`. The authorization data for a basic parser is an instance of `AuthBasicCredentials` that contain the username and password, while the bearer parser's authorization data is the bearer token string.

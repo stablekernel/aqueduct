@@ -2,12 +2,12 @@
 
 Data is added to a database through `update` and `insert` queries. As part of these two operations, a `ManagedObject<T>` will ensure that its properties have valid values. For example, a `Person` object might ensure that its name starts with a capital letter and that its phone number has only numeric values.  If one or more validation fails, the update or insert operation will fail and the data is not sent to the database. A validation failure will throw a `QueryException`, which automatically sends an HTTP response with error messaging to help the client correct their request.
 
-The preferred way of setting a validation is to add `Validate` metadata to properties of a persistent type of a `ManagedObject<T>`. Here's an example of a validation that ensures a tweet is less than 140 characters:
+The preferred way of setting a validation is to add `Validate` metadata to properties of a table definition. Here's an example of a validation that ensures a tweet is less than 140 characters:
 
 ```dart
 class Tweet extends ManagedObject<_Tweet> implements _Tweet {}
 class _Tweet {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.length(lessThan: 140)
@@ -21,7 +21,7 @@ There are a handful of built-in validations for common operations. For example, 
 
 ```dart
 class _Story {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @Validate.oneOf(const ["started", "accepted", "rejected", "delivered"])
@@ -37,7 +37,7 @@ A built-in validator is useful because it automatically generates an error messa
 
 See the API reference for `Validate` and its named constructors for possible options.
 
-`Validate` metadata on transient properties have no effect. This metadata is only valid for database-backed properties declared in a persistent type.
+`Validate` metadata on transient properties have no effect. This metadata is only valid for database-backed properties declared in a table definition.
 
 ### Custom Validators
 
@@ -45,7 +45,7 @@ There will be times where the built-in validators are not sufficient for your ap
 
 ```dart
 class _Person {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   @ValidatePhoneNumber()
@@ -56,36 +56,26 @@ class _Person {
 A subclass of `Validate` must override `Validate.validate()` and call the superclass' primary constructor when instantiated. Here's an example of that phone number validator:
 
 ```dart
-class ValidatePhoneNumber extends Validate<String> {
+class ValidatePhoneNumber extends Validate {
   ValidatePhoneNumber({bool onUpdate: true, bool onInsert: true}) :
     super(onUpdate: onUpdate, onInsert: onInsert);
 
   @override
-  bool validate(
-      ValidateOperation operation,
-      ManagedAttributeDescription property,
-      String value,
-      List<String> errors) {  
+  void validate(ValidationContext context, dynamic value) {  
     if (value.length != 15) {
-      errors.add(
-        "${property.name} has invalid length of ${value.length}, must be 15 digits.");
-      return false;
+      context.addError("must be 15 digits");      
     }
 
     if (containsNonNumericValues(value)) {
-      errors.add(
-        "${property.name} has invalid format, must contain characters 0-9 only.");
-      return false;
+      context.addError("must contain characters 0-9 only.");      
     }
-
-    return true;
   }
 }
 ```
 
-Note that `Validate` is generic - you may provide a type argument which must match the type of the `value` argument to `Validate.validate()`. Omitting the type argument defaults to `dynamic` and therefore `value` must be `dynamic`.
+If `value` is doesn't meet the validation criteria, this method adds an error string to the `ValidationContext` it is passed. Error messages should be brief and indicate the successful criteria that failed. Information about the property being validated will automatically be added to the error message, so you do not need to include that information. If the context has no errors at the end of validation, the validation succeeds; otherwise, it fails.
 
-The `validate` method must return `false` if validation failed, otherwise it should return `true`. It should add error messages for any failed validations. These error messages are returned in the HTTP response.
+A `ValidationContext` also has information about the property being validated, and whether the validation is running for an object being inserted or an object being updated.
 
 ### Validation Behavior
 
@@ -104,10 +94,10 @@ By default, validations are executed when a `Query<T>`'s `insert` or `update` me
 String validateOnInsertOnly;
 ```
 
-It is important to understand how validations work when a value for a property is *not* specified in an insert or update query. For example, consider a `Person` with a `name` and `email` property and then inserted in a query that omits `email`:
+It is important to understand how validations work when a value for a property is *not* specified in an insert or update query. For example, consider a `Person` with a `name` and `email` property and then inserted in a query where `email` hasn't been set:
 
 ```dart
-var query = new Query<Person>()
+var query = new Query<Person>(context)
   ..values.name = "Bob";
 
 await query.insert();
@@ -134,17 +124,17 @@ In the above declaration, the validator is only run on update operations and ens
 Validators are not run when a value is null. For example, the following insertion explicitly inserts `null` for the property `email`:
 
 ```dart
-var query = new Query<Person>()
+var query = new Query<Person>(context)
   ..values.email = null
   ..values.name = "Bob";
 
 await query.insert();
 ```
 
-Nullability is enforced by `ManagedColumnAttributes.isNullable` property. Consider the following declaration:
+Nullability is enforced by `Column.isNullable` property. Consider the following declaration:
 
 ```dart
-@ManagedColumnAttributes(nullable: false)
+@Column(nullable: false)
 @Validate.length(greaterThan: 10)
 String name;
 ```
@@ -168,37 +158,31 @@ This also means that any custom validator can safely assume that a value passed 
 
 ### Other Validator Behavior
 
-For validators that can't be built by subclassing `Validate`, you may override `ManagedObject<T>.validate()`. This method is useful when a validation involves more than one property.
-
-This method is passed the type of operation triggering the validation - either an insert or update. Here's an example:
+For validators that can't be built by subclassing `Validate`, you may override `ManagedObject<T>.validate()`. This method is useful when a validation involves more than one property. Here's an example:
 
 ```dart
 class Person extends ManagedObject<_Person> implements _Person {
   @override
-  bool validate(
-      {ValidateOperation forOperation: ValidateOperation.insert,
-      List<String> collectErrorsIn}) {
-   var valid = super.validate(
-     forOperation: forOperation, collectErrorsIn: collectErrorsIn);
+  ValidationContext validate({Validating forEvent: Validating.insert}) {
+   final ctx = super.validate(forEvent: forEvent);
 
     if (a + b > 10) {
-      valid = false;
-      collectErrorsIn.add("a + b must be greater than 10");
+      ctx.addError("a + b must be greater than 10");
     }
 
-    return valid;
+    return ctx;
   }
 }
 ```
 
-When overriding this method, the `super` implementation must be invoked to run validations for individual fields. Of course, if it returns `false`, the overridden method must return `false`.
+When overriding this method, the `super` implementation must be invoked to run validations managed by annotations. You must return the `ValidationContext` created by the superclass' implementation.
 
 ### Skipping Validations
 
 Validations are only run when values are set via `Query<T>.values`. Values set via `Query<T>.valueMap` are not validated. Therefore, objects should typically be inserted and updated using `Query<T>.values` unless validation must be ignored. Here's an example of skipping validation:
 
 ```dart
-var query = new Query<Person>()
+var query = new Query<Person>(context)
   ..valueMap = {
     "name" : "xyz",
     "email" : "whatever"
@@ -225,7 +209,7 @@ class Person extends ManagedObject<_Person> implements _Person {
   }
 }
 class _Person {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;

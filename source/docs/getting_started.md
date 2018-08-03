@@ -22,7 +22,7 @@ There are different approaches depending on how you prefer to learn.
 * The guides (located in the menu on this website) dive deeply into the concepts of Aqueduct and show example code.
 * [Creating a new project](#creating-a-project) and using the [API reference](http://dartdocs.org/documentation/aqueduct/latest/) to jump right in.
 
-It is best to first understand how HTTP requests are responded to - the foundation of Aqueduct - before moving on to topics such as the ORM and OAuth 2.0. Both the tutorial and the [HTTP guides](http/overview.md) are the primary source of this information. A project created by the `aqueduct` tool has example routes connected for modification, too.
+It is best to first understand how HTTP requests are responded to - the foundation of Aqueduct - before moving on to topics such as the ORM and OAuth 2.0. Both the tutorial and the [HTTP guides](http/index.md) are the primary source of this information. A project created by the `aqueduct` tool has example routes connected for modification, too.
 
 ## Creating a Project
 
@@ -56,6 +56,9 @@ To create a database, make sure PostgreSQL is running and open the command-line 
 psql
 ```
 
+!!! warning "Location of psql with Postgres.app"
+    If you installed Postgres.app, `psql` is inside the application bundle. You can run this tool by selecting `Open psql` from the status bar item in the Finder.
+
 Then, create a database that your application will connect to and a user that it will connect with:
 
 ```sql
@@ -64,15 +67,18 @@ CREATE USER dart_app WITH PASSWORD 'dart';
 GRANT ALL ON DATABASE my_database_name TO dart_app;
 ```
 
-An application must create a `ManagedContext` that connects to this database:
+An application must create a `ManagedContext` that handles the connection to this database:
 
 ```dart
-class MyProjectSink extends RequestSink {
-  MyProjectSink(ApplicationConfiguration config) : super(config) {
+class MyChannel extends ApplicationChannel {
+  ManagedContext context;
+
+  @override
+  Future prepare() async {
     var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
     var store = new PostgreSQLPersistentStore.fromConnectionInfo(
       "dart_app", "dart", "localhost", 5432, "my_database_name");
-    ManagedContext.defaultContext = new ManagedContext(dataModel, store);
+    context = new ManagedContext(dataModel, store);
   }
 
   ...
@@ -86,4 +92,4 @@ aqueduct db generate
 aqueduct db upgrade --connect postgres://dart_app:dart@localhost:5432/my_database_name
 ```
 
-See the guides on [connecting to a database](db/connecting.md) and [testing with a database](testing/database.md)
+See the guides on [connecting to a database](db/connecting.md) and [testing with a database](testing/mixins.md) for more details on configuring a database connection.

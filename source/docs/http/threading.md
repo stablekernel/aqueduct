@@ -8,21 +8,21 @@ An isolated thread is very valuable. Many multi-threaded applications share memo
 
 ## How Aqueduct Uses Isolates
 
-An application is initialized by invoking a series of initialization methods in a `RequestSink`. Once these methods are finished executing, the application starts sending HTTP requests through the request channel created by the `RequestSink`.
+An application is initialized by invoking a series of initialization methods in a `ApplicationChannel`. Once these methods are finished executing, the application starts sending HTTP requests through the channel created by the `ApplicationChannel`.
 
-Because a `RequestSink` is a type - and can be instantiated - Aqueduct simply creates a number of isolates and instantiates `RequestSink` for each. The initialization code is therefore identical for each isolate, which means that the ongoing behavior of each isolate is also identical.
+Because an `ApplicationChannel` is a type - and can be instantiated - Aqueduct simply creates a number of isolates and instantiates `ApplicationChannel` for each. The initialization code is therefore identical for each isolate, which means that the ongoing behavior of each isolate is also identical.
 
 More importantly, you - the programmer - have to do absolutely nothing to take advantage of Aqueduct's multi-threaded behavior. You simply have to pick the number of isolates you want to run the application on (see [this section](#how-many-isolates-should-i-use)).
 
 While you don't have to do anything in an Aqueduct application to take advantage of multiple processors, there are things you shouldn't do or should do in another way.
 
-First, you must be careful of keeping any state in your application. Practically, this means that once your application has finished initializing, it shouldn't store a value in an object that lives past the lifetime of the request it was stored for. Any data that needs to be persisted must be stored in a database or other data store. This is just good practice for a REST API anyhow, so nothing is really lost here.
+First, you must be careful of keeping any state in your application. After initialization, any objects created while handling a request should be destroyed once the request is fulfilled. Any data that needs to be persisted must be stored in a database or other data store. This is just good practice for a REST API anyhow, so nothing is really lost here.
 
 However, there are times where you do need to track state. For example, if you are managing websocket connections, you do need to store some state after initialization - a reference to the websocket. [This guide](websockets.md) covers this topic in detail; the simple explanation is to use the `ApplicationMessageHub`.
 
-Another thing that is important to consider is initialization. Most initialization occurs in `RequestSink`'s constructor and its `setupRouter` method. This behavior is guaranteed to occur for each isolate and there is often little to worry about.
+Another thing that is important to consider is initialization. The methods `prepare()` and `entryPoint` in an application channel will be invoked on each isolate. This behavior is guaranteed to occur for each isolate and there is often little to worry about.
 
-However, when implementing `RequestSink.initializeApplication`, code runs on the main isolate. Any changes to static variables or singletons will not be replicated to the isolates running the application logic. The use case for this method is rather minimal, but it is very important that types like `HTTPCodecRepository` aren't configured in this method.
+However, when implementing `ApplicationChannel.initializeApplication`, code runs on the main isolate. Any changes to static variables or singletons will not be replicated to the isolates running the application logic. The use case for this method is rather minimal, but it is very important that types like `CodecRegistry` aren't configured in this method.
 
 ## How Many Isolates Should I Use
 

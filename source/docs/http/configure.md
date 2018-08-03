@@ -6,14 +6,14 @@ This guide covers configuring an Aqueduct application.
 
 Aqueduct applications use YAML configuration files to provide environment-specific values like database connection information. Use separate configuration files for testing and different deployment environments.
 
-The path of a configuration file is available at runtime via `ApplicationConfiguration.configurationFilePath` and is read in a `RequestSink` constructor (and sometimes `RequestSink.initializeApplication`).
+The path of a configuration file is available to an `ApplicationChannel` through its `options` property.
 
 ```dart
-class TodoAppSink extends RequestSink {
-  TodoAppSink(ApplicationConfiguration options) : super(options) {
-    var configFilePath = options.configurationFilePath;
-    var config = new TodoConfiguration(configFilePath);
-
+class TodoAppChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
+    var config = new TodoConfiguration(options.configurationFilePath);
+    ...
   }
 }
 ```
@@ -56,7 +56,7 @@ database: $DATABASE_CONNECTION_URL
 apiBaseURL: /api
 ```
 
-If the environment variable `DATABASE_CONNECTION_URL`'s value were `"postgres://user:password@localhost:5432/test"`, the value of `TodoConfigurationItem.database` will be that string at runtime. (Note that `DatabaseConnectionConfiguration` may either a YAML object for each connection attribute, or a database connection string.)
+If the environment variable `DATABASE_CONNECTION_URL`'s value were `"postgres://user:password@localhost:5432/test"`, the value of `TodoConfigurationItem.database` will be that string at runtime. (Note that `DatabaseConnectionConfiguration` may either have a YAML object for each connection attribute, or a database connection string.)
 
 The [safe_config package](https://pub.dartlang.org/packages/safe_config) has instructions for more additional usages.
 
@@ -87,7 +87,7 @@ It can sometimes makes sense to have a `local.yaml` with values for running the 
 
 ## Preventing Resource Leaks
 
-When an Aqueduct application starts, the application and its `RequestSink`s will likely create services that they use to respond to requests. In order for application tests to complete successfully, these services must be "closed" when the application stops. For built-in services, like `PostgreSQLPersistentStore`, this happens automatically when `Application.stop()` is invoked.
+When an Aqueduct application starts, the application and its `ApplicationChannel`s will likely create services that they use to respond to requests. In order for application tests to complete successfully, these services must be "closed" when the application stops. For built-in services, like `PostgreSQLPersistentStore`, this happens automatically when `Application.stop()` is invoked.
 
 A `ServiceRegistry` automatically stops registered services. Registration looks like this:
 
@@ -107,29 +107,30 @@ var connection = ServiceRegistry.defaultInstance
   .register<ConnectionOfSomeKind>(
     new ConnectionOfSomeKind(), (c) => c.close());
 
-await connection.open();  
+await connection.open();
 ```
 
 ## Configuring CORS Headers
 
-All request controllers have built-in behavior for handling CORS requests from a browser. When a preflight request is received from a browser (an OPTIONS request with Access-Control-Request-Method header and Origin headers), the response is created by evaluating the policy of the `RequestController` that will respond to the real request.
+All controllers have built-in behavior for handling CORS requests from a browser. When a preflight request is received from a browser (an OPTIONS request with Access-Control-Request-Method header and Origin headers), the response is created by evaluating the policy of the `Controller` that will respond to the real request.
 
-In practice, this means that the policy of the last controller in a channel is used. For example, the policy of `FooController` is generates the preflight response:
+In practice, this means that the policy of the last controller in a channel is used. For example, the policy of `FooController` generates the preflight response:
 
 ```dart
 router
   .route("/foo")
-  .pipe(new Authorizer(...))
-  .generate(() => new FooController());
+  .link(() => new Authorizer(...))
+  .link(() => new FooController());
 ```
 
-Every `RequestController` has a `policy` property (a `CORSPolicy` instance). The `policy` has properties for configuring CORS options for that particular endpoint. By having a `policy`, every `RequestController` automatically implements logic to respond to preflight requests without any additional code.
+Every `Controller` has a `policy` property (a `CORSPolicy` instance). The `policy` has properties for configuring CORS options for that particular endpoint. By having a `policy`, every `Controller` automatically implements logic to respond to preflight requests without any additional code.
 
 Policies can be set at the controller level or at the application level. The static property `CORSPolicy.defaultPolicy` can be modified at initialization time to set the CORS options for every controller.
 
 ```dart
-class MyRequestSink extends RequestSink {
-  MyRequestSink(ApplicationConfiguration config) : super(config) {
+class MyApplicationChannel extends ApplicationChannel {
+  @override
+  Future prepare() async {
     CORSPolicy.defaultPolicy.allowedOrigins = ["http://mywebsite.com/"];
   }
 }
@@ -140,8 +141,8 @@ The default policy is very permissive: POST, PUT, DELETE and GET are allowed met
 Each individual controller can override or replace the default policy by modifying its own `policy` in its constructor.
 
 ```dart
-class MyHTTPController extends HTTPController {
-  MyHTTPController() {
+class MyResourceController extends ResourceController {
+  MyResourceController() {
     policy.allowedMethods = ["POST"];
   }
 }
@@ -159,12 +160,12 @@ aqueduct serve --ssl-key-path server.key.pem --ssl-certificate-path server.cert.
 
 Both the key and certificate file must be unencrypted PEM files, and both must be provided to this command. These files are typically issued by a "Certificate Authority", such as [letsencrypt.org](letsencrypt.org).
 
-When an application is started with these options, the `certificateFilePath` and `keyFilePath` are set on the `ApplicationConfiguration` your application is being run with. (If you are not using `aqueduct serve`, you can set these values directly when instantiating `ApplicationConfiguration`.)
+When an application is started with these options, the `certificateFilePath` and `keyFilePath` are set on the `ApplicationOptions` your application is being run with. (If you are not using `aqueduct serve`, you can set these values directly when instantiating `ApplicationOptions`.)
 
-For more granular control over setting up an HTTPS server, you may override `securityContext` in `RequestSink`. By default, this property will create a `SecurityContext` from the `certificateFilePath` and `keyFilePath` in the sink's `configuration`. A `SecurityContext` allows for password-encrypted credential files, configuring client certificates and other less used HTTPS schemes.
+For more granular control over setting up an HTTPS server, you may override `securityContext` in `ApplicationChannel`. By default, this property will create a `SecurityContext` from the `certificateFilePath` and `keyFilePath` in the channels's `options`. A `SecurityContext` allows for password-encrypted credential files, configuring client certificates and other less used HTTPS schemes.
 
 ```dart
-class MyRequestSink extends RequestSink {
+class MyApplicationChannel extends ApplicationChannel {
   @override
   SecurityContext get securityContext {
     return new SecurityContext()

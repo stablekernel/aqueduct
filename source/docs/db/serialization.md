@@ -2,16 +2,16 @@
 
 In the previous chapter, you have seen that `ManagedObject<T>`s subclasses are responsible for representing database rows and can be encoded to or decoded from formats like JSON or XML. This chapter explains the behavior of those transformations.
 
-`ManagedObject<T>` implements `HTTPSerializable` so that they can read from a `Map` or converted to a `Map`. A `ManagedObject<T>` can be passed as the body object of a `Response` and bound to `HTTPBody` variables in `HTTPController`:
+`ManagedObject<T>` implements `Serializable` so that they can read from a `Map` or converted to a `Map`. A `ManagedObject<T>` can be passed as the body object of a `Response` and bound to `Bind.body` variables in `ResourceController`:
 
 ```dart
-class UserController extends HTTPController {
-  @httpPost
-  Future<Response> createUser(@HTTPBody() User user) async {
-    var query = new Query<User>()
+class UserController extends ResourceController {
+  @Operation.post()
+  Future<Response> createUser(@Bind.body() User user) async {
+    var query = Query<User>(context)
       ..values = user;
 
-    return new Response.ok(await query.insert());
+    return Response.ok(await query.insert());
   }
 }
 ```
@@ -26,7 +26,7 @@ It's important to understand how `null` works when reading from or writing to a 
 ```dart
 class User extends ManagedObject<_User> implements _User {}
 class _User {
-  @managedPrimaryKey
+  @primaryKey
   int id;
 
   String name;
@@ -40,7 +40,7 @@ var userMap = {
   "name" : "Bob"
 };
 
-var user = new User()..readFromMap(userMap);
+var user = User()..readFromMap(userMap);
 
 user.id == null; // yup
 user.name == "Bob"; // yup
@@ -59,7 +59,7 @@ var userMap = {
   "name" : "Bob"
 };
 
-var user = new User()..readFromMap(userMap);
+var user = User()..readFromMap(userMap);
 
 user.id == null; // yup
 user.name == "Bob"; // yup
@@ -74,7 +74,7 @@ outUserMap == {
 A `ManagedObject<T>` like `User` makes the distinction between a value that is `null` and a value that it *doesn't have enough information for*. A property of a `ManagedObject<T>` can get set in three ways: it is read from a map, its setter is invoked or it is read from the database. In all three of these situations, not every property is available. This is no more obvious than when  creating a brand new instance:
 
 ```dart
-var user = new User();
+var user = User();
 user.id == null; // yup
 user.name == null; // yup
 
@@ -86,18 +86,18 @@ A `ManagedObject<T>` will not include keys in its `asMap()` if it doesn't have a
 So what about values that are actually `null`? A property with the value `null` will be included in `asMap()` if its been read from the database, read using `readFromMap()` or explicitly assigned with a setter. The following three user objects will all have `{"name": null}`:
 
 ```dart
-var user1 = new User()
+var user1 = User()
   ..id = 1
   ..name = null;
 
-var user2 = new User()..readFromMap({
+var user2 = User()..readFromMap({
   "id": 2
   "name": null
 });
 
-var query = new Query<User>()
-  ..where.id = whereEqualTo(3)
-  ..where.name = whereNull;
+var query = Query<User>(context)
+  ..where((u) => u.id).equalTo(3)
+  ..where((u) => u.name).isNull();
 var user3 = await query.fetchOne();
 ```
 
@@ -109,11 +109,11 @@ It is helpful to think of a `ManagedObject<T>` as a proxy to a database row that
 
 ### Transient Properties and Serialization/Deserialization
 
-By default, transient properties and getters - those declared in the subclass of `ManagedObject<T>` - are *not* included in the `asMap()`. (Setters are obviously not included, as you can't get a value from them.) To include a transient property or getter in `asMap()`, you may mark it with `@managedTransientOutputAttribute` metadata. Properties marked with this metadata will be included in `asMap()` if and only if they are not null. A good reason to use this feature is when you want to provide a value to the consumer of the API that is derived from persistent properties:
+By default, transient properties and getters - those declared in the subclass of `ManagedObject<T>` - are *not* included in the `asMap()`. (Setters are obviously not included, as you can't get a value from them.) To include a transient property or getter in `asMap()`, you may mark it with `@Serialize()` metadata. Properties marked with this metadata will be included in `asMap()` if and only if they are not null. A good reason to use this feature is when you want to provide a value to the consumer of the API that is derived from persistent properties:
 
 ```dart
 class User extends ManagedObject<_User> implements _User {
-  @managedTransientOutputAttribute
+  @Serialize()
   String get fullName => "$firstName $lastName";
 }
 
@@ -124,7 +124,7 @@ class _User {
   ...
 }
 
-var user = new User()
+var user = User()
   ..firstName = "Bob"
   ..lastName = "Boberson";
 
@@ -137,11 +137,11 @@ map == {
 
 ```
 
-Transient properties may also be used as inputs when reading with `readFromMap()` by marking a property with `@managedTransientInputAttribute`. For example, consider how to handle user passwords. A password is not stored in plain-text in the database, but they are sent in requests. Thus, a password could read from a request body, but it needs to be salted, hashed and stored in two columns in the database. An instance type could then define a password property, which automatically set the salt and hash of the password in the underlying persistent type:
+Transient properties with this annotation may also be used as inputs when reading with `readFromMap()`. For example, consider how to handle user passwords. A password is not stored in plain-text in a database, but they are sent in requests. Thus, a password could read from a request body, but it needs to be salted, hashed and stored in two columns in the database. An instance type could then define a password property, which automatically set the salt and hash of the password in the table definition:
 
 ```dart
 class User extends ManagedObject<_User> implements _User {
-  @managedTransientInputAttribute
+  @Serialize()
   void set password(String pw) {
     salt = generateSalt();
     hashedPassword = hash(pw, salt);
@@ -156,32 +156,22 @@ class _User {
 var map = {
   'password' : 'mypassword'
 };
-var user = new User()..readFromMap(map);
+var user = User()..readFromMap(map);
 var salt = user.salt; // 'somerandomstring'
 var hashedPassword = user.hashedPassword; // 'somehashedstring'
 
 var password = user.password; // Analyzer error - user.password doesn't exist!
 ```
 
-On a related note, persistent properties are always included in `asMap()` by default, but can be omitted by adding `ManagedColumnAttributes` metadata with the `omitByDefault` option:
-
-```dart
-class _User {
-  @ManagedColumnAttributes(omitByDefault: true)
-  String salt;
-
-  @ManagedColumnAttributes(omitByDefault: true)
-  String hashedPassword;
-  ...
-}
-```
-
-A transient input attribute must be a setter or a property, just like an transient output attribute must be a getter or a property. For properties that are both inputs and outputs, you may use the metadata `@managedTransientAttribute`.
+A transient property can also be used only when reading or only when writing.
 
 ```dart
 class User extends ManagedObject<_User> implements _User {
-  @managedTransientAttribute
-  String nickname; // shows up in asMap() and can be read from readFromMap()
+  @Serialize(input: true, output: false)
+  String readable; // Can be readFromMap, but not emitted in asMap
+
+  @Serialize(input: false, output: true)
+  String writable; // Is emitted in asMap, but cannot be readFromMap.
 }
 ```
 
@@ -189,13 +179,26 @@ Also, a separate getter and setter may exist for the same name to allow both inp
 
 ```dart
 class User extends ManagedObject<_User> implements _User {
-  @managedTransientInputAttribute
+  @Serialize()
   void set transientValue(String s) {
     ...
   }
 
-  @managedTransientOutputAttribute
+  @Serialize()
   String get transientValue => ...;
+}
+```
+
+On a related note, persistent properties are always included in `asMap()` by default, but can be omitted by adding `Column` metadata with the `omitByDefault` option:
+
+```dart
+class _User {
+  @Column(omitByDefault: true)
+  String salt;
+
+  @Column(omitByDefault: true)
+  String hashedPassword;
+  ...
 }
 ```
 
@@ -206,9 +209,9 @@ Relationship properties - references to other `ManagedObject<T>` subclasses - ca
 If a relationship property has been set or read from the database, its `asMap()` will contain the nested `Map` produced by the related objects `asMap()`. For example, recall the `User` with a `job`:
 
 ```dart
-var job = new Job()
+var job = Job()
   ..title = "Programmer";
-var user = new User()
+var user = User()
   ..name = "Bob"
   ..job = job;
 
@@ -225,10 +228,10 @@ userMap == {
 
 Notice that the names of the keys - including relationship properties and properties of the related object - all match the names of their declared properties.
 
-It's important to note that "belongs to" relationships - those with `ManagedRelationship` metadata - are always returned in `asMap()` when fetching an object from the database. However, the full object is not returned - only its primary key. Therefore, you will get the following result:
+It's important to note that "belongs to" relationships - those with `Relate` metadata - are always returned in `asMap()` when fetching an object from the database. However, the full object is not returned - only its primary key. Therefore, you will get the following result:
 
 ```dart
-var jobQuery = new Query<Job>();
+var jobQuery = Query<Job>(context);
 var job = await jobQuery.fetchOne();
 
 job.asMap() == {
@@ -255,11 +258,11 @@ Aqueduct treats relationships consistently and chooses not to expose any of the 
 "Has-many" relationships, which are represented as `ManagedSet<T>`s, are written as `List<Map>`s in `asMap()`.
 
 ```dart
-var user = new User()
+var user = User()
   ..id = 1;
-  ..posts = new ManagedSet.from([
-      new Post()..id = 2,
-      new Post()..id = 3
+  ..posts = ManagedSet.from([
+      Post()..id = 2,
+      Post()..id = 3
   ]);
 
 var userMap = user.asMap();
@@ -295,13 +298,13 @@ While managed objects from a database will not have cyclic references, managed o
 
 ```dart
 // do:
-var user = new User();
+var user = User();
 posts.forEach((p) {
-  p.user = new User()..id = user.id;
+  p.user = User()..id = user.id;
 });
 
 // do not:
-var user = new User();
+var user = User();
 posts.forEach((p) {
   p.user = user;
 });
@@ -318,9 +321,9 @@ var userMap = {
   ]
 };
 
-var user = new User()..readFromMap(userMap);
-user.posts == new ManagedSet<Post>[
-  new Post()
+var user = User()..readFromMap(userMap);
+user.posts == ManagedSet<Post>[
+  Post()
     ..id = 1
     ..text = "hello"
 ]; // yup, other Post doesn't implement == to check property equality
