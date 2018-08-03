@@ -11,11 +11,11 @@ export 'package:aqueduct/aqueduct.dart';
 /// A harness for testing an aqueduct application. Example test file:
 ///
 ///         void main() {
-///           Harness harness = new Harness()..install();
+///           Harness harness = Harness()..install();
 ///
 ///           test("GET /path returns 200", () async {
-///             final req = harness.defaultClient.request("/path");
-///             expectResponse(await req.get(), 200);
+///             final response = await harness.agent.get("/path");
+///             expectResponse(response, 200);
 ///           });
 ///         }
 ///

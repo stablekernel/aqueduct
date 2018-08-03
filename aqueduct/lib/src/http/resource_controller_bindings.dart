@@ -14,7 +14,7 @@ import 'serializable.dart';
 ///         class MyController extends ResourceController {
 ///           @Operation.get('id')
 ///           Future<Response> getOne(@Bind.path('id') int id) async {
-///             return new Response.ok(objects[id]);
+///             return Response.ok(objects[id]);
 ///           }
 ///         }
 class Operation {
@@ -156,7 +156,7 @@ class Bind {
   ///       class UserController extends ResourceController {
   ///         @Operation.post()
   ///         Future<Response> createUser(@Bind.body() User user) async {
-  ///           var query = new Query<User>()..values = user;
+  ///           var query = Query<User>()..values = user;
   ///
   ///           ...
   ///         }
@@ -187,9 +187,9 @@ class Bind {
   ///
   ///         class UserController extends ResourceController {
   ///           @Operation.get()
-  ///           Future<Response> getUsers() async => new Response.ok(getAllUsers());
+  ///           Future<Response> getUsers() async => Response.ok(getAllUsers());
   ///           @Operation.get('id')
-  ///           Future<Response> getOneUser(@Bind.path("id") int id) async => new Response.ok(getUser(id));
+  ///           Future<Response> getOneUser(@Bind.path("id") int id) async => Response.ok(getUser(id));
   ///         }
   ///
   /// If the request path is /users/1, /users/2, etc., `getOneUser` is invoked because the path variable `id` is present and matches

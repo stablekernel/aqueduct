@@ -88,10 +88,10 @@ abstract class APIComponentDocumenter {
   ///         class Car implements APIComponentDocumenter {
   ///           @override
   ///           void documentComponents(APIDocumentContext context) {
-  ///             context.schema.register("Car", new APISchemaObject.object({
-  ///               "make": new APISchemaObject.string(),
-  ///               "model": new APISchemaObject.string(),
-  ///               "year": new APISchemaObject.integer(),
+  ///             context.schema.register("Car", APISchemaObject.object({
+  ///               "make": APISchemaObject.string(),
+  ///               "model": APISchemaObject.string(),
+  ///               "year": APISchemaObject.integer(),
   ///             }));
   ///           }
   ///         }
@@ -127,15 +127,15 @@ abstract class APIOperationDocumenter {
   ///       Map<String, APIOperation> documentOperations(APIDocumentContext context, APIPath path) {
   ///         if (path.containsPathParameters(['id'])) {
   ///           return {
-  ///             "get": new APIOperation("Get one thing", {
-  ///               "200": new APIResponse(...)
+  ///             "get": APIOperation("Get one thing", {
+  ///               "200": APIResponse(...)
   ///             })
   ///           };
   ///         }
   ///
   ///         return {
-  ///           "get": new APIOperation("Get some things", {
-  ///             "200": new APIResponse(...)
+  ///           "get": APIOperation("Get some things", {
+  ///             "200": APIResponse(...)
   ///           })
   ///         };
   ///       }

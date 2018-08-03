@@ -16,7 +16,7 @@ export 'reduce.dart';
 /// Queries are used to fetch, update, insert, delete and count [InstanceType]s in a database.
 /// [InstanceType] must be a [ManagedObject].
 ///
-///         final query = new Query<Employee>()
+///         final query = Query<Employee>()
 ///           ..where((e) => e.salary).greaterThan(50000);
 ///         final employees = await query.fetch();
 abstract class Query<InstanceType extends ManagedObject> {
@@ -73,27 +73,27 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   /// To fetch an object and one of its has-one properties, use the [object] closure:
   ///
-  ///         var query = new Query<User>()
+  ///         var query = Query<User>()
   ///           ..join(object: (u) => u.profile);
   ///
   /// To fetch an object and its has-many properties, use the [set] closure:
   ///
-  ///         var query = new Query<User>()
+  ///         var query = Query<User>()
   ///           ..join(set: (u) => u.notes);
   ///
   /// Both [object] and [set] are passed an empty instance of the type being queried. [object] must return a has-one property (a [ManagedObject] subclass)
-  /// of the object it is pased. [set] must return a has-many property (a [ManagedSet]) of the object it is passed.
+  /// of the object it is passed. [set] must return a has-many property (a [ManagedSet]) of the object it is passed.
   ///
   /// Multiple relationship properties can be included by invoking this method multiple times with different properties, e.g.:
   ///
-  ///         var query = new Query<User>()
+  ///         var query = Query<User>()
   ///           ..join(object: (u) => u.profile)
   ///           ..join(set: (u) => u.notes);
   ///
   /// This method also returns a new instance of [Query], where [InstanceType] is is the type of the relationship property. This can be used
   /// to configure which properties are returned for the related objects and to filter a [ManagedSet] relationship property. For example:
   ///
-  ///         var query = new Query<User>();
+  ///         var query = Query<User>();
   ///         var subquery = query.join(set: (u) => u.notes)
   ///           ..where.dateCreatedAt = whereGreaterThan(someDate);
   ///
@@ -113,11 +113,11 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// the value of the paging property for the last returned object in the previous result set is used
   /// as [boundingValue]. For example:
   ///
-  ///         var recentHireQuery = new Query<Employee>()
+  ///         var recentHireQuery = Query<Employee>()
   ///           ..pageBy((e) => e.hireDate, QuerySortOrder.descending);
   ///         var recentHires = await recentHireQuery.fetch();
   ///
-  ///         var nextRecentHireQuery = new Query<Employee>()
+  ///         var nextRecentHireQuery = Query<Employee>()
   ///           ..pageBy((e) => e.hireDate, QuerySortOrder.descending,
   ///             boundingValue: recentHires.last.hireDate);
   ///
@@ -133,7 +133,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// indicates the order the returned rows will be in. Multiple [sortBy]s may be invoked on an instance;
   /// the order in which they are added indicates sort precedence. Example:
   ///
-  ///         var query = new Query<Employee>()
+  ///         var query = Query<Employee>()
   ///           ..sortBy((e) => e.name, QuerySortOrder.ascending);
   void sortBy<T>(T propertyIdentifier(InstanceType x), QuerySortOrder order);
 
@@ -148,7 +148,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// The methods of this object will execute an aggregate function on the database table.
   /// For example, this property can be used to find the average age of all users.
   ///
-  ///         var query = new Query<User>();
+  ///         var query = Query<User>();
   ///         var averageAge = await query.reduce.average((user) => user.age);
   ///
   /// Any where clauses established by [where] or [predicate] will impact the rows evaluated
@@ -168,12 +168,12 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// an empty instance of the object being queried. You invoke methods like [QueryExpression.lessThan] on the
   /// object returned from this method to add an expression to this query.
   ///
-  ///         final query = new Query<Employee>()
+  ///         final query = Query<Employee>()
   ///           ..where((e) => e.name).equalTo("Bob");
   ///
   /// You may select properties of relationships using this method.
   ///
-  ///         final query = new Query<Employee>()
+  ///         final query = Query<Employee>()
   ///           ..where((e) => e.manager.name).equalTo("Sally");
   ///
   QueryExpression<T, InstanceType> where<T>(
@@ -269,7 +269,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   /// The following example would configure this instance to fetch the 'id' and 'name' for each returned 'Employee':
   ///
-  ///         var q = new Query<Employee>()
+  ///         var q = Query<Employee>()
   ///           ..returningProperties((employee) => [employee.id, employee.name]);
   ///
   /// Note that if the primary key property of an object is omitted from this list, it will be added when this
@@ -285,7 +285,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// insert a row with the data supplied in those fields to the database in [context]. The return value is
   /// a [Future] that completes with the newly inserted [InstanceType]. Example:
   ///
-  ///       var q = new Query<User>()
+  ///       var q = Query<User>()
   ///         ..values.name = "Joe";
   ///       var newUser = await q.insert();
   ///
@@ -301,7 +301,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// set [canModifyAllInstances] to true.
   /// The return value is a [Future] that completes with the any updated [InstanceType]s. Example:
   ///
-  ///       var q = new Query<User>()
+  ///       var q = Query<User>()
   ///         ..where.name = "Fred"
   ///         ..values.name = "Joe";
   ///       var usersNamedFredNowNamedJoe = await q.update();
@@ -323,7 +323,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///
   /// This operation will return all [InstanceType]s from the database, filtered by [predicate]/[where]. Example:
   ///
-  ///       var q = new Query<User>();
+  ///       var q = Query<User>();
   ///       var allUsers = q.fetch();
   ///
   Future<List<InstanceType>> fetch();
@@ -342,7 +342,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// This method will return the number of rows deleted.
   /// Example:
   ///
-  ///       var q = new Query<User>()
+  ///       var q = Query<User>()
   ///           ..where.id = whereEqualTo(1);
   ///       var deletedCount = await q.delete();
   Future<int> delete();

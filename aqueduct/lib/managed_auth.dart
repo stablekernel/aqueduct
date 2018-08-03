@@ -4,9 +4,9 @@
 /// and implements [AuthServerDelegate] for use by an [AuthServer]. Usage of this library involves two tasks.
 /// First, an instance of [ManagedAuthDelegate] is provided to an [AuthServer] at startup:
 ///
-///         var context = new ManagedContext(dataModel, store);
-///         var storage = new ManagedAuthStorage<User>(context)
-///         var authServer = new AuthServer(storage);
+///         var context = ManagedContext(dataModel, store);
+///         var storage = ManagedAuthStorage<User>(context)
+///         var authServer = AuthServer(storage);
 ///
 /// Then, a [ManagedObject] subclass that represents an OAuth 2.0 resource owner ust be declared. It must implement [ManagedAuthResourceOwner].
 /// Its table definition must implement [ResourceOwnerTableDefinition]. For example, the follower `User` fulfills the requirement:
@@ -283,9 +283,9 @@ abstract class ManagedAuthResourceOwner<T>
 /// Provide an instance of this type to an [AuthServer] at startup. For example, if the application has a type named `User` that fulfills
 /// [ManagedAuthResourceOwner],
 ///
-///         var context = new ManagedContext(dataModel, store);
-///         var storage = new ManagedAuthStorage<User>(context)
-///         var authServer = new AuthServer(storage);
+///         var context = ManagedContext(dataModel, store);
+///         var storage = ManagedAuthStorage<User>(context)
+///         var authServer = AuthServer(storage);
 ///
 class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
     extends AuthServerDelegate {

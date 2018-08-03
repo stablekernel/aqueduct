@@ -26,7 +26,7 @@ import 'package:test/test.dart';
 ///         }
 ///
 ///         void main() {
-///           final harness = new Harness()..install();
+///           final harness = Harness()..install();
 ///
 ///           test("GET /example returns 200", () async {
 ///             final response = await harness.agent.get("/example");

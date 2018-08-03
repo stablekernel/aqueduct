@@ -65,7 +65,7 @@ abstract class MockServer<T> {
 ///
 /// Example usages:
 ///         test("POST /nest/pair associates account with Nest service", () async {
-///           var nestMockServer = new MockHTTPServer(7777);
+///           var nestMockServer = MockHTTPServer(7777);
 ///           await nestMockServer.open();
 ///
 ///           // Expect that POST /nest/pair sends an HTTP request to Nest server.

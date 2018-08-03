@@ -58,7 +58,7 @@ const TypeMatcher<bool> isBoolean = TypeMatcher<bool>();
 /// if the actual value is a [String], it will attempted to be parsed into a [DateTime] first.
 /// If parsing fails, this matcher will fail.
 ///
-///         expectResponse(response, 200, headers: {"x-timestamp": isAfter(new DateTime())});
+///         expectResponse(response, 200, headers: {"x-timestamp": isAfter(DateTime())});
 Matcher isAfter(DateTime date) {
   return predicate(
       (DateTime d) => d.isAfter(date), "after ${date.toIso8601String()}");
@@ -70,7 +70,7 @@ Matcher isAfter(DateTime date) {
 /// if the actual value is a [String], it will attempted to be parsed into a [DateTime] first.
 /// If parsing fails, this matcher will fail.
 ///
-///         expectResponse(response, 200, headers: {"x-timestamp": isBefore(new DateTime())});
+///         expectResponse(response, 200, headers: {"x-timestamp": isBefore(DateTime())});
 Matcher isBefore(DateTime date) {
   return predicate(
       (DateTime d) => d.isBefore(date), "before ${date.toIso8601String()}");
@@ -82,7 +82,7 @@ Matcher isBefore(DateTime date) {
 /// if the actual value is a [String], it will attempted to be parsed into a [DateTime] first.
 /// If parsing fails, this matcher will fail.
 ///
-///         expectResponse(response, 200, headers: {"x-timestamp": isBeforeOrSameMomentAs(new DateTime())});
+///         expectResponse(response, 200, headers: {"x-timestamp": isBeforeOrSameMomentAs(DateTime())});
 Matcher isBeforeOrSameMomentAs(DateTime date) {
   return predicate((DateTime d) => d.isBefore(date) || d == date,
       "before or same moment as ${date.toIso8601String()}");
@@ -94,7 +94,7 @@ Matcher isBeforeOrSameMomentAs(DateTime date) {
 /// if the actual value is a [String], it will attempted to be parsed into a [DateTime] first.
 /// If parsing fails, this matcher will fail.
 ///
-///         expectResponse(response, 200, headers: {"x-timestamp": isAfterOrSameMomentAs(new DateTime())});
+///         expectResponse(response, 200, headers: {"x-timestamp": isAfterOrSameMomentAs(DateTime())});
 Matcher isAfterOrSameMomentAs(DateTime date) {
   return predicate((DateTime d) => d.isAfter(date) || d == date,
       "after or same moment as ${date.toIso8601String()}");
@@ -106,7 +106,7 @@ Matcher isAfterOrSameMomentAs(DateTime date) {
 /// if the actual value is a [String], it will attempted to be parsed into a [DateTime] first.
 /// If parsing fails, this matcher will fail.
 ///
-///         expectResponse(response, 200, headers: {"x-timestamp": isSameMomentAs(new DateTime())});
+///         expectResponse(response, 200, headers: {"x-timestamp": isSameMomentAs(DateTime())});
 Matcher isSameMomentAs(DateTime date) {
   return predicate(
       (DateTime d) => d == date, "same moment as ${date.toIso8601String()}");
@@ -196,7 +196,7 @@ Matcher hasBody(dynamic bodyMatcher) =>
 ///
 ///       var response = await client.request("/foo").get();
 ///       expect(response, hasHeaders({
-///         "x-timestamp": isBefore(new DateTime.now())
+///         "x-timestamp": isBefore(DateTime.now())
 ///       })));
 ///
 /// You may pass [failIfContainsUnmatchedHeader] as true to force evaluate every
