@@ -180,7 +180,7 @@ class _TestObject {
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
 
-      terminal.modifyFile("migrations/00000001_Initial.migration.dart",
+      terminal.modifyFile("migrations/00000001_initial.migration.dart",
           (contents) {
         const upgradeLocation = "upgrade()";
         final nextLine =
@@ -201,7 +201,7 @@ class _TestObject {
       var res = await terminal.runAqueductCommand("db", ["generate"]);
       expect(res, 0);
 
-      terminal.modifyFile("migrations/00000001_Initial.migration.dart",
+      terminal.modifyFile("migrations/00000001_initial.migration.dart",
           (contents) {
         const upgradeLocation = "upgrade()";
         final nextLine =
@@ -220,7 +220,7 @@ class _TestObject {
 
       var secondMigrationFile = File.fromUri(terminal
           .defaultMigrationDirectory.uri
-          .resolve("00000002_Unnamed.migration.dart"));
+          .resolve("00000002_unnamed.migration.dart"));
       expect(secondMigrationFile.readAsStringSync(),
           contains("database.deleteTable(\"foo\")"));
 
