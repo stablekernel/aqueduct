@@ -63,7 +63,7 @@ You may add multiple criteria to a query by invoking `where` multiple times. Eac
 
 ```dart
 final query = Query<User>(context)
-  ..where((u) => u.id).equalTo("Bob")
+  ..where((u) => u.name).equalTo("Bob")
   ..where((u) => u.email).isNotNull();
 ```
 
