@@ -43,7 +43,7 @@
         </div>
         <div id="hero-blurb-container" class="row">
             <div class="col-xs-12">
-                <h2>An object-oriented, multi-threaded HTTP framework mobile developers will love.</h2>
+                <h2>An object-oriented, multi-threaded HTTP server framework written in Dart.</h2>
             </div>
         </div>
         <div id="hero-cta-container" class="row">
@@ -65,8 +65,7 @@
                 </div>
                 <div class="row">
                     <div class="col-xs-12">
-                        <p>Aqueduct is an extensible HTTP framework with integrated ORM, OAuth 2.0, and test libraries.</p>
-                        <p>It runs on the Dart VM, a lightweight, ultra-fast C/C++ executable.</p>
+                        <p>Aqueduct is an extensible HTTP framework for building REST APIs on top of the Dart VM. It includes a statically-typed ORM, OAuth 2.0 provider, automated testing libraries and OpenAPI 3.0 integration.</p>
                     </div>
                 </div>
             </div>
@@ -104,7 +103,7 @@
         </div>
         <div class="row feature-row">
             <div class="col-sm-6">
-                <h2><a href="/docs/http/controller/">Fluid Routing</a></h2>
+                <h2><a href="/docs/http/routing/">Fluid Routing</a></h2>
                 <p>A familiar, higher-order functional syntax makes application flow easy to construct and read.</p>
             </div>
             <div class="col-sm-6">
@@ -120,12 +119,12 @@
                 <p>Powerful, statically typed queries enable code-completion and refactoring tools while minimizing error. Tested command-line tooling for database migrations makes data management a breeze.</p>
             </div>
             <div class="col-sm-6">
-                <pre class="feature-box"><code class="language-dart">var query = Query&lt;Team&gt;()
+                <pre class="feature-box"><code class="language-dart">final query = Query&lt;Team&gt;(context)
   ..where((t) => t.skills).contains('aqueduct')
   ..join(object: (t) => t.manager)
   ..join(set: (t) => t.developers);
 
-var teams = await query.fetch();</code></pre>
+final teams = await query.fetch();</code></pre>
             </div>
         </div>
         <div class="row feature-row">
@@ -134,8 +133,8 @@ var teams = await query.fetch();</code></pre>
                 <p>A rigorously tested OAuth 2.0 server in just a few lines of code. A layered implementation allows you to store tokens and client identifiers anywhere without rewriting the logic.</p>
             </div>
             <div class="col-sm-6">
-                <pre class="feature-box"><code class="language-dart">var delegate = ManagedAuthDelegate&lt;User&gt;(dbCtx);
-var auth = AuthServer(delegate);
+                <pre class="feature-box"><code class="language-dart">final delegate = ManagedAuthDelegate&lt;User&gt;(dbCtx);
+final auth = AuthServer(delegate);
 
 router
   .route('/auth/token')
@@ -156,7 +155,7 @@ router
 Future&lt;Response&gt; updateTeam(
     @Bind.path('id') int teamID,
     @Bind.body() Team team,
-    @Bind.header('x-required-header'"') String requiredHeader,
+    @Bind.header('x-required-header') String requiredHeader,
     {@Bind.query('optional_timestamp') DateTime timestamp}) {
   return Response.ok(team);
 }</code></pre>
@@ -169,15 +168,34 @@ Future&lt;Response&gt; updateTeam(
             </div>
             <div class="col-sm-6">
                 <pre class="feature-box"><code class="language-dart">test('GET /teams returns 200 and list of teams', () async {
-  var request = app.client.request('/teams');
+  final response = await agent.get('/teams');
   expectResponse(
-    await request.get(),
+    response,
     200,
     body: everyElement({
       'id': greaterThan(0),
       'name': isNotNull
     }));
 });</code></pre>
+            </div>
+        </div>
+        <div class="row feature-row">
+            <div class="col-sm-6">
+                <h2><a href="/docs/openapi/">OpenAPI 3 Integration</a></h2>
+                <p>Powerful reflection and static analysis tools allow you to automatically generate OpenAPI 3 documents from your source code. Generate client integration code and deploy first class documentation without extra effort.</p>
+            </div>
+            <div class="col-sm-6">
+                <pre class="feature-box"><code class="language-yaml">openapi: "3.0.0"
+info:
+  version: 1.0.0
+  title: Aqueduct API
+paths:
+  /aqueduct:
+    ...
+components:
+  schemas:
+    ...
+</code></pre>
             </div>
         </div>
         <div class="row final-feature-row">
