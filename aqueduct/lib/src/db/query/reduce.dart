@@ -12,7 +12,7 @@ abstract class QueryReduceOperation<T extends ManagedObject> {
   ///
   /// [selector] identifies the property being averaged, e.g.
   ///
-  ///         var query = new Query<User>();
+  ///         var query = Query<User>();
   ///         var averageAge = await query.reduce.average((user) => user.age);
   ///
   /// The property must be an attribute and its type must be an [num], i.e. [int] or [double].
@@ -25,7 +25,7 @@ abstract class QueryReduceOperation<T extends ManagedObject> {
   ///
   /// Example:
   ///
-  ///         var query = new Query<User>();
+  ///         var query = Query<User>();
   ///         var totalUsers = await query.reduce.count();
   ///
   Future<int> count();
@@ -34,7 +34,7 @@ abstract class QueryReduceOperation<T extends ManagedObject> {
   ///
   /// [selector] identifies the property being evaluated, e.g.
   ///
-  ///         var query = new Query<User>();
+  ///         var query = Query<User>();
   ///         var oldestUser = await query.reduce.maximum((user) => user.age);
   ///
   /// The property must be an attribute and its type must be [String], [int], [double], or [DateTime].

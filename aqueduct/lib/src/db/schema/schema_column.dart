@@ -258,12 +258,12 @@ class SchemaColumn {
   String get source {
     var builder = StringBuffer();
     if (relatedTableName != null) {
-      builder.write('new SchemaColumn.relationship("${name}", ${type}');
+      builder.write('SchemaColumn.relationship("${name}", ${type}');
       builder.write(", relatedTableName: \"${relatedTableName}\"");
       builder.write(", relatedColumnName: \"${relatedColumnName}\"");
       builder.write(", rule: ${deleteRule}");
     } else {
-      builder.write('new SchemaColumn("${name}", ${type}');
+      builder.write('SchemaColumn("${name}", ${type}');
       if (isPrimaryKey) {
         builder.write(", isPrimaryKey: true");
       } else {

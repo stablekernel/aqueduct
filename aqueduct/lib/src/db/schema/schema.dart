@@ -252,7 +252,7 @@ class SchemaDifference {
 
   static String createTableSource(SchemaTable table) {
     var builder = StringBuffer();
-    builder.writeln('database.createTable(new SchemaTable("${table.name}", [');
+    builder.writeln('database.createTable(SchemaTable("${table.name}", [');
     table.columns.forEach((col) {
       builder.writeln("${col.source},");
     });

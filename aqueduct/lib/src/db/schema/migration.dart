@@ -61,8 +61,9 @@ abstract class Migration {
     var source = diff.generateUpgradeSource(changeList: changeList);
 
     return """
-import 'package:aqueduct/aqueduct.dart';   
 import 'dart:async';
+
+import 'package:aqueduct/aqueduct.dart';   
 
 class Migration$version extends Migration { 
   @override

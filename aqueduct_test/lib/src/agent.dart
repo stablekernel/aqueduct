@@ -27,7 +27,7 @@ part 'response.dart';
 /// The application is typically provided by [TestHarness]. [TestHarness] contains a default agent. Example usage:
 ///
 ///         void main() {
-///           final harness = new TestHarness<MyChannel>()..install();
+///           final harness = TestHarness<MyChannel>()..install();
 ///
 ///           test("GET /thing returns 200", () async {
 ///             final resp = await harness.agent.get("/thing");

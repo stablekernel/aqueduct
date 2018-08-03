@@ -30,8 +30,8 @@ import 'package:aqueduct/src/auth/auth.dart';
 ///
 ///         router
 ///           .route("/notes/[:id]")
-///           .link(() => new Authorizer.bearer(authServer))
-///           .link(() => new NoteController());
+///           .link(() => Authorizer.bearer(authServer))
+///           .link(() => NoteController());
 class Scope {
   /// Add to [ResourceController] operation method to require authorization scope.
   ///

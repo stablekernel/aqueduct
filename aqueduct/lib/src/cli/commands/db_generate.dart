@@ -15,13 +15,13 @@ class CLIDatabaseGenerate extends CLICommand
     var existingMigrations = projectMigrations;
 
     var newMigrationFile = File.fromUri(
-        migrationDirectory.uri.resolve("00000001_Initial.migration.dart"));
+        migrationDirectory.uri.resolve("00000001_initial.migration.dart"));
     var versionNumber = 1;
 
     if (existingMigrations.isNotEmpty) {
       versionNumber = existingMigrations.last.versionNumber + 1;
       newMigrationFile = File.fromUri(migrationDirectory.uri.resolve(
-          "${"$versionNumber".padLeft(8, "0")}_Unnamed.migration.dart"));
+          "${"$versionNumber".padLeft(8, "0")}_unnamed.migration.dart"));
     }
 
     final schema = await schemaByApplyingMigrationSources(projectMigrations);

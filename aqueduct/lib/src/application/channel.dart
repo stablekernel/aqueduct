@@ -107,8 +107,8 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   ///
   ///         @override
   ///         Controller get entryPoint {
-  ///           final router = new Router();
-  ///           router.route("/path").link(() => new PathController());
+  ///           final router = Router();
+  ///           router.route("/path").link(() => PathController());
   ///           return router;
   ///         }
   Controller get entryPoint;
@@ -232,7 +232,7 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
 ///           var message = await req.body.decodeAsString();
 ///           websocketsOnThisIsolate.forEach((s) => s.add(message);
 ///           messageHub.add({"event": "broadcastMessage", "data": message});
-///           return new Response.accepted();
+///           return Response.accepted();
 ///         });
 ///
 ///         messageHub.listen((event) {

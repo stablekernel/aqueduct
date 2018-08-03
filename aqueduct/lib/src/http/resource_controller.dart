@@ -19,7 +19,7 @@ import 'resource_controller_internal/internal.dart';
 ///
 ///         class EmployeeController extends ResourceController {
 ///            @Operation.post()
-///            Future<Response> createEmployee(...) async => new Response.ok(null);
+///            Future<Response> createEmployee(...) async => Response.ok(null);
 ///         }
 ///
 /// Instance methods must have [Operation] annotation to respond to a request (see also [Operation.get], [Operation.post], [Operation.put] and [Operation.delete]). These
@@ -33,13 +33,13 @@ import 'resource_controller_internal/internal.dart';
 ///            // This method gets invoked when the path is '/employees'
 ///            @Operation.get()
 ///            Future<Response> getEmployees() async {
-///             return new Response.ok(employees);
+///             return Response.ok(employees);
 ///            }
 ///
 ///            // This method gets invoked when the path is '/employees/id'
 ///            @Operation.get('id')
 ///            Future<Response> getEmployees(@Bind.path("id") int id) async {
-///             return new Response.ok(employees[id]);
+///             return Response.ok(employees[id]);
 ///            }
 ///         }
 ///
@@ -54,10 +54,10 @@ import 'resource_controller_internal/internal.dart';
 ///           @Operation.get()
 ///           Future<Response> getEmployees({@Bind.query("name") String name}) async {
 ///             if (name == null) {
-///               return new Response.ok(employees);
+///               return Response.ok(employees);
 ///             }
 ///
-///             return new Response.ok(employees.where((e) => e.name == name).toList());
+///             return Response.ok(employees.where((e) => e.name == name).toList());
 ///           }
 ///         }
 ///

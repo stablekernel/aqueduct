@@ -85,12 +85,12 @@ class _TestObject {
           hasLength(2));
       expect(
           File.fromUri(terminal.defaultMigrationDirectory.uri
-                  .resolve("00000001_Initial.migration.dart"))
+                  .resolve("00000001_initial.migration.dart"))
               .existsSync(),
           true);
       expect(
           File.fromUri(terminal.defaultMigrationDirectory.uri
-                  .resolve("00000002_Unnamed.migration.dart"))
+                  .resolve("00000002_unnamed.migration.dart"))
               .existsSync(),
           true);
 

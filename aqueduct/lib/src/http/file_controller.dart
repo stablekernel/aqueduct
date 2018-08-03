@@ -54,7 +54,7 @@ class FileController extends Controller {
   ///
   ///       router
   ///        .route("/site/*")
-  ///        .link(() => new FileController("build/web"));
+  ///        .link(() => FileController("build/web"));
   ///
   /// In the above, `GET /site/index.html` would return the file `build/web/index.html`.
   ///

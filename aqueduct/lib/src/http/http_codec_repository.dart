@@ -60,7 +60,7 @@ class CodecRegistry {
   /// to decode a list of bytes instead of a [String] and would fail. Thus, `application/json` is added through the following:
   ///
   ///         CodecRegistry.defaultInstance.add(
-  ///           new ContentType("application", "json", charset: "utf-8"), const JsonCodec(), allowsCompression: true);
+  ///           ContentType("application", "json", charset: "utf-8"), const JsonCodec(), allowsCompression: true);
   ///
   /// In the event that a request is sent without a charset, the codec will automatically apply a UTF8 decode step because of this default.
   ///
