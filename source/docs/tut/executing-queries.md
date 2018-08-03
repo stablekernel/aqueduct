@@ -213,7 +213,7 @@ Next, we need to create the table where heroes are stored in this database. From
 aqueduct db generate
 ```
 
-This command will create a new *migration file*. A migration file is a Dart script that runs a series of SQL commands to alter a database's schema. It is created in a new directory in your project named `migrations/`. Open `migrations/00000001_Initial.migration.dart`, it should look like this:
+This command will create a new *migration file*. A migration file is a Dart script that runs a series of SQL commands to alter a database's schema. It is created in a new directory in your project named `migrations/`. Open `migrations/00000001_initial.migration.dart`, it should look like this:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';

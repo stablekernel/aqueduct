@@ -47,7 +47,7 @@ Run the database schema generation tool from the project directory:
 aqueduct db generate
 ```
 
-This command creates the file `migrations/00000001_Initial.migration.dart`. Now, run the database migration tool to execute the migration file against the local database. Ensure that the values for the option `--connect` match those of the database created in the last step.
+This command creates the file `migrations/00000001_initial.migration.dart`. Now, run the database migration tool to execute the migration file against the local database. Ensure that the values for the option `--connect` match those of the database created in the last step.
 
 ```bash
 aqueduct db upgrade --connect postgres://app_name_user:yourpassword@localhost:5432/app_name
