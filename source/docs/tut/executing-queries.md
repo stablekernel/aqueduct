@@ -66,11 +66,11 @@ class HeroesChannel extends ApplicationChannel {
   Future prepare() async {
     logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
-    final dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-    final persistentStore = new PostgreSQLPersistentStore.fromConnectionInfo(
+    final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+    final persistentStore = PostgreSQLPersistentStore.fromConnectionInfo(
       "heroes_user", "password", "localhost", 5432, "heroes");
 
-    context = new ManagedContext(dataModel, persistentStore);
+    context = ManagedContext(dataModel, persistentStore);
   }
 
   @override
@@ -91,9 +91,7 @@ In `heroes_controller.dart`, add a property and create a new constructor:
 class HeroesController extends ResourceController {
   HeroesController(this.context);
 
-  final ManagedContext context;
-  // You can delete the list of heroes if you like, we won't use it again.
-  // The analyzer will complain for a bit, but that's OK.
+  final ManagedContext context;  
   ...
 ```
 
@@ -102,11 +100,11 @@ Now that `HeroesController` requires a context in its constructor, we need to pa
 ```dart
 @override
 Controller get entryPoint {
-  final router = new Router();
+  final router = Router();
 
   router
     .route("/heroes/[:id]")
-    .link(() => new HeroesController(context));
+    .link(() => HeroesController(context));
 
   router
     .route("/example")
@@ -142,10 +140,10 @@ class HeroesController extends ResourceController {
 
   @Operation.get()
   Future<Response> getAllHeroes() async {
-    final heroQuery = new Query<Hero>(context);
+    final heroQuery = Query<Hero>(context);
     final heroes = await heroQuery.fetch();
 
-    return new Response.ok(heroes);
+    return Response.ok(heroes);
   }
 
 ...
@@ -158,15 +156,15 @@ Now, let's update `getHeroByID` to fetch a single hero from the database.
 ```dart
 @Operation.get('id')
 Future<Response> getHeroByID(@Bind.path('id') int id) async {
-  final heroQuery = new Query<Hero>(context)
+  final heroQuery = Query<Hero>(context)
     ..where((h) => h.id).equalTo(id);    
 
   final hero = await heroQuery.fetchOne();
 
   if (hero == null) {
-    return new Response.notFound();
+    return Response.notFound();
   }
-  return new Response.ok(hero);
+  return Response.ok(hero);
 }
 ```
 
@@ -222,11 +220,11 @@ import 'dart:async';
 class Migration1 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(new SchemaTable(
+    database.createTable(SchemaTable(
       "_Hero", [
-        new SchemaColumn("id", ManagedPropertyType.bigInteger,
+        SchemaColumn("id", ManagedPropertyType.bigInteger,
             isPrimaryKey: true, autoincrement: true, isIndexed: false, isNullable: false, isUnique: false),
-        new SchemaColumn("name", ManagedPropertyType.string,
+        SchemaColumn("name", ManagedPropertyType.string,
             isPrimaryKey: false, autoincrement: false, isIndexed: false, isNullable: false, isUnique: true),
       ],
     ));
@@ -281,15 +279,17 @@ Our Aqueduct application can use this value to return a list of heroes that cont
 ```dart
 @Operation.get()
 Future<Response> getAllHeroes({@Bind.query('name') String name}) async {
-  final heroQuery = new Query<Hero>(context);
+  final heroQuery = Query<Hero>(context);
   if (name != null) {
     heroQuery.where((h) => h.name).contains(name, caseSensitive: false);
   }
   final heroes = await heroQuery.fetch();
 
-  return new Response.ok(heroes);
+  return Response.ok(heroes);
 }
 ```  
+
+You can re-run your Aqueduct application and use the search bar in the client application.
 
 The `@Bind.query('name')` annotation will bind the value of the 'name' query parameter if it is included in the request URL. Otherwise, `name` will be null.
 

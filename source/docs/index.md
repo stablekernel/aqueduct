@@ -4,50 +4,22 @@
 
 <a href="http://slackaqueductsignup.herokuapp.com/"><img src="https://slackaqueductsignup.herokuapp.com/badge.svg" alt="Slack"/></a><br/>
 
-# 3.0 Pre-release Note
-
-This documentation is the 3.0 pre-release documentation for Aqueduct. It has not been finalized and is subject to change.
-
-## Installing Pre-release Aqueduct
-
-You’ll need to upgrade to the developer release of Dart 2.0. On macOS, you install with Homebrew:
-
-```bash
-brew upgrade dart --devel
-```
-
-Once you have Dart 2.0, clone Aqueduct locally, switch to the 3.0 branch, and install the CLI from your local repository.
-
-```bash
-git clone https://github.com/stablekernel/aqueduct.git
-cd aqueduct
-git checkout 3.0
-
-# Don't forget the dot at the end of the next command
-pub global activate -spath .
-```
-
-Move to another directory and create a new project that targets Aqueduct 3.
-
-```bash
-# Make sure you aren't in the aqueduct directory
-aqueduct create my_app
-```
-
-Because your project was created from a local version of Aqueduct, it’s pubspec.yaml file will point at that directory on your filesystem. To stay up to date with 3.0 (or to build remotely), change your pubspec.yaml file to reference the 3.0 branch on GitHub:
-
-```yaml
-aqueduct:
-  git:
-    url: https://github.com/stablekernel/aqueduct.git
-    ref: “3.0”
-```
-
-You can access the pre-release API reference [here](https://aqueduct.io/prerelease-3.0/api/index.html).
-
 ## Aqueduct
 
-Aqueduct is a server-side framework for building and deploying REST applications. It is written in Dart.
+Aqueduct is an HTTP web server framework for building REST applications written in Dart.
+
+## How to Use this Documentation
+
+The menu on the left contains a hierarchy documents. See the following table for recommended usage:
+
+| Section | Contents | Recommended Usage |
+|---|---|---|
+| Top-Level (e.g. Tour, Core Concepts) | Introductory and quick reference documents | Read these documents when you are new to Aqueduct |
+| Snippets | Example code snippets of common behaviors | Read these documents for examples and inspiration
+| Tutorial | A linear, guided tutorial to building your first application | A 1-3 hour long tutorial to learn Aqueduct |
+| Guides | A hierarchy of in-depth guides for the many facets of Aqueduct | Refer to these documents often for conceptual understanding of the Aqueduct framework, example code and important information |
+
+In addition to these guides, be sure to use the [API Reference](https://www.dartdocs.org/documentation/aqueduct/latest) to look up classes, methods, functions and other elements of the framework.
 
 ## Important Links
 
@@ -62,9 +34,3 @@ Aqueduct is a server-side framework for building and deploying REST applications
 Check out [Snippets](snippets/index.md) for quick code snippets to get you up and running faster.
 
 Import [this file](https://s3.amazonaws.com/aqueduct-intellij/aqueduct.jar) into IntelliJ IDEA for Aqueduct file and code templates.
-
-## How to Use this Documentation
-
-Each topic covers a major component of the Aqueduct framework and are displayed in the side menu. Within each topic, there is an overview page and a number of guides. Each guide contains example code, explanations and best practices for building Aqueduct applications.
-
-Guides create an initial understanding and give context to the Aqueduct framework. The API reference details each type, property and method in the Aqueduct framework. The tutorial is a guided exercise that teaches the very basics of Aqueduct while creating a server application.

@@ -94,7 +94,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:heroes/heroes.dart';
 
 class HeroesController extends Controller {
-  final heroes = [
+  final _heroes = [
     {'id': 11, 'name': 'Mr. Nice'},
     {'id': 12, 'name': 'Narco'},
     {'id': 13, 'name': 'Bombasto'},
@@ -104,7 +104,7 @@ class HeroesController extends Controller {
 
   @override
   Future<RequestOrResponse> handle(Request request) async {
-    return Response.ok(heroes);
+    return Response.ok(_heroes);
   }
 }
 ```
@@ -213,7 +213,7 @@ There's one hiccup. The route `/heroes/:id` no longer matches the path `/heroes`
 ```dart
 router
   .route('/heroes/[:id]')
-  .link(() => new HeroesController());
+  .link(() => HeroesController());
 ```
 
 Since the second segment of the path is optional, the path `/heroes` still matches the route. If the path contains a second segment, the value of that segment is bound to the path variable named `id`. We can access path variables through the `Request` object. In `heroes_controller.dart`, modify `handle`:
@@ -225,15 +225,15 @@ Since the second segment of the path is optional, the path `/heroes` still match
 Future<RequestOrResponse> handle(Request request) async {
   if (request.path.variables.containsKey('id')) {
     final id = int.parse(request.path.variables['id']);
-    final hero = heroes.firstWhere((hero) => hero['id'] == id, orElse: () => null);
+    final hero = _heroes.firstWhere((hero) => hero['id'] == id, orElse: () => null);
     if (hero == null) {
-      return new Response.notFound();
+      return Response.notFound();
     }
 
-    return new Response.ok(hero);
+    return Response.ok(hero);
   }
 
-  return new Response.ok(heroes);
+  return Response.ok(_heroes);
 }
 ```
 
@@ -249,11 +249,11 @@ Our `HeroesController` is OK right now, but it'll soon run into a problem: what 
 
 That's where `ResourceController` comes in. A `ResourceController` allows you to create a distinct method for each operation that we can perform on our heroes. One method will handle getting a list of heroes, another will handle getting a single hero, and so on. Each method has an annotation that identifies the HTTP method and path variables the request must have to trigger it.
 
-In `heroes_controller.dart`, change the superclass of `HeroesController` to `ResourceController` and then split the request handling logic into two methods.
+In `heroes_controller.dart`, replace `HeroesController` with the following:
 
 ```dart
 class HeroesController extends ResourceController {
-  final heroes = [
+  final _heroes = [
     {'id': 11, 'name': 'Mr. Nice'},
     {'id': 12, 'name': 'Narco'},
     {'id': 13, 'name': 'Bombasto'},
@@ -263,18 +263,18 @@ class HeroesController extends ResourceController {
 
   @Operation.get()
   Future<Response> getAllHeroes() async {
-    return new Response.ok(heroes);
+    return Response.ok(_heroes);
   }
 
   @Operation.get('id')
   Future<Response> getHeroByID() async {
     final id = int.parse(request.path.variables['id']);
-    final hero = heroes.firstWhere((hero) => hero['id'] == id, orElse: () => null);
+    final hero = _heroes.firstWhere((hero) => hero['id'] == id, orElse: () => null);
     if (hero == null) {
-      return new Response.notFound();
+      return Response.notFound();
     }
 
-    return new Response.ok(hero);
+    return Response.ok(hero);
   }
 }
 ```
@@ -297,13 +297,13 @@ Instead, we can rely on a feature of operation methods called *request binding*.
 ```dart
 @Operation.get('id')
 Future<Response> getHeroByID(@Bind.path('id') int id) async {
-  final hero = heroes.firstWhere((hero) => hero['id'] == id, orElse: () => null);
+  final hero = _heroes.firstWhere((hero) => hero['id'] == id, orElse: () => null);
 
   if (hero == null) {
-    return new Response.notFound();
+    return Response.notFound();
   }
 
-  return new Response.ok(hero);
+  return Response.ok(hero);
 }
 ```
 

@@ -4,7 +4,7 @@ In the previous exercise, we loaded some heroes into the database our applicatio
 
 ## HTTP Resources and Methods
 
-The [HTTP specification](https://tools.ietf.org/html/rfc7231) defines the concept of a *resource*. A resource can be anything - a hero, a bank account, a light switch in your home, a temperature sensor in Antarctica, etc. Some of these things are physical objects (the light switch), and some are digital; they are all still resources. An HTTP server application is an interface to these resources; a client requests that something be done with a resource, and the server finds a way to get it done.
+The [HTTP specification](https://tools.ietf.org/html/rfc7231) defines the concept of a *resource*. A resource can be anything - a hero, a bank account, a light switch in your home, a temperature sensor in Antarctica, etc. Some of these things are physical objects (the light switch), and some are digital - and they are all resources. An HTTP server application is an interface to these resources; a client requests that something be done with a resource, and the server finds a way to get it done.
 
 Resources are identified with a URI. A URI *universally identifies* a resource: it has the address of a server to connect to, and a path that identifies the resource on that server. When writing Aqueduct applications, we don't care much about the server part of a URL - the internet figures out that part. What we do care about is the path of the URL - like `/heroes`.
 
@@ -34,13 +34,13 @@ Our `HeroesController` will handle this operation. In general, a single endpoint
 ```dart
 @Operation.post()
 Future<Response> createHero() async {
-  Map<String, dynamic> body = await request.body.decode();
-  final query = new Query<Hero>(context)
-    ..values.name = body['name'];
+  final Map<String, dynamic> body = await request.body.decode();
+  final query = Query<Hero>(context)
+    ..values.name = body['name'] as String;
 
   final insertedHero = await query.insert();
 
-  return new Response.ok(insertedHero);
+  return Response.ok(insertedHero);
 }
 ```
 
@@ -69,13 +69,13 @@ Re-run your application. In the browser application, click on `Heroes` near the 
 ```dart
 @override
 Controller get entryPoint {
-  return new Router()
+  return Router()
     ..route("/organizations/[:orgName]")
-      .link(() => new OrganizationController());
+      .link(() => OrganizationController());
     ..route("/organizations/:orgName/heroes/[:heroID]")
-      .link(() => new OrgHeroesController());
+      .link(() => OrgHeroesController());
     ..route("/organizations/:orgName/buildings/[:buildingID]")
-      .link(() => new OrgBuildingController());
+      .link(() => OrgBuildingController());
 }
 ```    
 
@@ -88,7 +88,7 @@ So far, we've largely glossed over how request and response bodies are handled, 
 When we create a response, we specify its status code and optionally its headers and body. For example, the following creates a response with a status code of 200 OK with an empty list body:
 
 ```dart
-new Response.ok([])
+Response.ok([])
 ```
 
 The first argument to `Response.ok` is a *body object*. A body object is automatically encoded according to the `contentType` of its response. By default, the content type of a response is `application/json` - so by default, all of our response body objects are JSON-encoded in the response body.
@@ -99,7 +99,7 @@ The first argument to `Response.ok` is a *body object*. A body object is automat
 To change the format a body object is encoded into, you set the `contentType` of the response. For example,
 
 ```dart
-new Response.ok([])
+Response.ok([])
   ..contentType = new ContentType("application", "xml");
 ```
 
@@ -126,12 +126,12 @@ You may also bind the body of a request to an operation method parameter. Let's 
 ```dart
 @Operation.post()
 Future<Response> createHero(@Bind.body() Hero inputHero) async {
-  final query = new Query<Hero>(context)
+  final query = Query<Hero>(context)
     ..values = inputHero;
 
-  final insertedHero = await query.insert(context);
+  final insertedHero = await query.insert();
 
-  return new Response.ok(insertedHero);
+  return Response.ok(insertedHero);
 }
 ```
 
