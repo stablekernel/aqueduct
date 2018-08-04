@@ -4,11 +4,11 @@ version: 0.0.1
 author: stable|kernel <jobs@stablekernel.com>
 
 environment:
-  sdk: ">=2.0.0-dev <3.0.0"
+  sdk: ">=2.0.0 <3.0.0"
 
 dependencies:
-  aqueduct: ^3.0.0-beta.2
+  aqueduct: ^3.0.0
 
 dev_dependencies:
   test: ^1.0.0
-  aqueduct_test: ^1.0.0-beta.1
+  aqueduct_test: ^1.0.0
