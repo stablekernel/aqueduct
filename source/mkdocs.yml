@@ -1,4 +1,4 @@
-site_name: Aqueduct 3.0 Pre-release
+site_name: Aqueduct
 theme: 'material'
 markdown_extensions:
   - codehilite
