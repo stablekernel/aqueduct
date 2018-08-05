@@ -292,12 +292,11 @@ class APIComponentCollection<T extends APIObject> {
   /// Objects may reference either [name] or [representation] when using a component.
   void register(String name, T component, {Type representation}) {
     if (_componentMap.containsKey(name)) {
-      throw ArgumentError("'$_typeName' component named '$name' has already been registered.");
+      return;
     }
 
     if (representation != null && _typeReferenceMap.containsKey(representation)) {
-      throw ArgumentError("'$_typeName' component of type "
-        "'${MirrorSystem.getName(reflectType(representation).simpleName)}' has already been registered.");
+      return;
     }
 
     _componentMap[name] = component;
