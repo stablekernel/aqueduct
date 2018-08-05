@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/auth/objects.dart';
+import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/documented_element.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
@@ -313,13 +314,20 @@ abstract class ResourceController extends Controller
           .map((b) => b.boundValueType)
           .forEach((b) {
         final type = b.reflectedType;
-        if (!context.schema.hasRegisteredType(type)) {
+        if (!context.schema.hasRegisteredType(type) && _shouldDocumentSerializable(type)) {
           context.schema.register(MirrorSystem.getName(b.simpleName),
               Serializable.document(context, type),
               representation: type);
         }
       });
     });
+  }
+
+  bool _shouldDocumentSerializable(Type type) {
+    final hierarchy = classHierarchyForClass(reflectClass(type));
+    final mostSpecificType = hierarchy.firstWhere((classMirror) => classMirror.staticMembers.containsKey(#shouldAutomaticallyDocument));
+
+    return mostSpecificType.getField(#shouldAutomaticallyDocument).reflectee as bool;
   }
 
   /// Adds [methodScopes] to [operationScopes] if they do not exist.

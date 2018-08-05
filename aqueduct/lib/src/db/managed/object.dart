@@ -78,6 +78,8 @@ abstract class ManagedObject<T> implements Serializable {
     return object;
   }
 
+  static bool get shouldAutomaticallyDocument => false;
+
   /// The [ManagedEntity] this instance is described by.
   ManagedEntity entity = ManagedDataModelManager.findEntity(T);
 

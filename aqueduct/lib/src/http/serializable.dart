@@ -54,4 +54,13 @@ abstract class Serializable {
   /// performed by the [Response].  A [Response.body] may also be a [List<Serializable>], for which this method is invoked on
   /// each element in the list.
   Map<String, dynamic> asMap();
+
+  /// Whether a subclass will automatically be registered as a schema component automatically.
+  ///
+  /// Defaults to true. When an instance of this subclass is used in a [ResourceController],
+  /// it will automatically be registered as a schema component. Its properties will be reflected
+  /// on to create the [APISchemaObject]. If false, you must register a schema for the subclass manually.
+  ///
+  /// Overriding static methods is not enforced by the Dart compiler - check for typos.
+  static bool get shouldAutomaticallyDocument => true;
 }

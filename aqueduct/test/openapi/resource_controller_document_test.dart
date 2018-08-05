@@ -10,6 +10,7 @@ void main() {
   DocumentedElement.provider = AnalyzerDocumentedElementProvider();
   Map<String, APIOperation> collectionOperations;
   Map<String, APIOperation> idOperations;
+  APIOperation serializeCheckOperation;
   APIDocumentContext context;
 
   setUpAll(() async {
@@ -17,14 +18,22 @@ void main() {
       ..info = APIInfo("x", "1.0.0")
       ..paths = {}
       ..components = APIComponents());
+
     final ac = A();
     ac.restore(ac.recycledState);
     ac.didAddToChannel();
     ac.documentComponents(context);
+    final bc = B();
+    bc.restore(bc.recycledState);
+    bc.didAddToChannel();
+    bc.documentComponents(context);
 
     collectionOperations = ac.documentOperations(context, "/", APIPath());
     idOperations = ac.documentOperations(
         context, "/", APIPath(parameters: [APIParameter.path("id")]));
+
+    serializeCheckOperation = bc.documentOperations(context, "/a", APIPath())["post"];
+
     await context.finalize();
   });
 
@@ -178,6 +187,12 @@ void main() {
             .path,
         "/components/schemas/AModel");
   });
+
+  test("If Serializable overrides automatic generation, it is not automatically generated and must be registered", () {
+    expect(serializeCheckOperation.requestBody.content["application/json"].schema.referenceURI.path, "/components/schemas/Override");
+    expect(context.document.components.schemas["OverrideGeneration"], isNull);
+    expect(context.document.components.schemas["Override"].properties["k"], isNotNull);
+  });
 }
 
 class A extends ResourceController {
@@ -247,5 +262,34 @@ class AModel extends Serializable {
   @override
   Map<String, dynamic> asMap() {
     return {};
+  }
+}
+
+class B extends ResourceController {
+  @Operation.post()
+  Future<Response> post(@Bind.body() OverrideGeneration o) async {
+    return Response.ok(null);
+  }
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    super.documentComponents(context);
+    context.schema.register("Override", APISchemaObject.object({"k": APISchemaObject.boolean()}), representation: OverrideGeneration);
+  }
+}
+
+class OverrideGeneration extends Serializable {
+  int id;
+
+  @override
+  void readFromMap(Map<String, dynamic> requestBody) {}
+
+  @override
+  Map<String, dynamic> asMap() {
+    return {};
+  }
+
+  static bool get shouldAutomaticallyDocument {
+    return false;
   }
 }
