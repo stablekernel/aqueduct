@@ -5,16 +5,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
 void main() {
-  HarnessSubclass harness;
-
-  setUp(() async {
-    harness = HarnessSubclass();
-    await harness.setUp();
-  });
-
-  tearDown(() async {
-    await harness.tearDown();
-  });
+  final harness = HarnessSubclass()..install();
 
   test("afterStart that invokes resetData sets up database and invokes seed",
       () async {
@@ -61,7 +52,7 @@ class Channel extends ApplicationChannel {
 
 class HarnessSubclass extends TestHarness<Channel> with TestHarnessORMMixin {
   @override
-  Future afterStart() async {
+  Future onSetUp() async {
     await resetData();
   }
 

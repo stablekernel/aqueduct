@@ -13,12 +13,12 @@ void main() {
     });
 
     tearDown(() async {
-      await harness?.tearDown();
+      await harness?.stop();
     });
 
     test("options are used by application", () async {
       harness.options.context["key"] = "value";
-      await harness.setUp();
+      await harness.start();
 
       // default value
       expect(harness.channel.options.configurationFilePath, "config.src.yaml");
@@ -30,20 +30,20 @@ void main() {
     test(
         "Can start app in test mode and make a request to it with defaultClient",
         () async {
-      await harness.setUp();
+      await harness.start();
       expectResponse(await harness.agent.request("endpoint").get(), 200,
           body: {"key": "value"});
       expect(harness.application.isRunning, true);
     });
 
     test("Can stop and restart an application", () async {
-      await harness.setUp();
+      await harness.start();
       expectResponse(await harness.agent.request("endpoint").get(), 200,
           body: {"key": "value"});
       expect(harness.application.isRunning, true);
-      await harness.tearDown();
+      await harness.stop();
       expect(harness.application, isNull);
-      await harness.setUp();
+      await harness.start();
       expectResponse(await harness.agent.request("endpoint").get(), 200,
           body: {"key": "value"});
       expect(harness.application.isRunning, true);
@@ -51,25 +51,21 @@ void main() {
   });
 
   group("Harness subclasses", () {
-    HarnessSubclass harness;
-
-    setUp(() async {
-      harness = HarnessSubclass();
-      await harness.setUp();
-    });
-
-    tearDown(() async {
-      await harness?.tearDown();
-    });
+    final harness = HarnessSubclass()..install();
 
     test("beforeStart runs prior to running app", () {
       expect(harness.events.first.first, 'beforeStart');
       expect(harness.events.first.last, false);
+      expect(harness.setupCount, 1);
+      expect(harness.tearDownCount, 0);
     });
 
     test("afterStart runs after running app", () {
       expect(harness.events.last.first, 'afterStart');
       expect(harness.events.last.last, true);
+      expect(harness.setupCount, 2);
+      expect(harness.tearDownCount, 1);
+
     });
 
     test("agent is set prior to afterStart running", () async {
@@ -90,6 +86,9 @@ class Channel extends ApplicationChannel {
 }
 
 class HarnessSubclass extends TestHarness<Channel> {
+  int setupCount = 0;
+  int tearDownCount = 0;
+
   List<List<dynamic>> events = [];
   bool isAgentCreatedInAfterStart = false;
 
@@ -103,4 +102,16 @@ class HarnessSubclass extends TestHarness<Channel> {
     isAgentCreatedInAfterStart = agent != null;
     events.add(["afterStart", application.isRunning]);
   }
+
+  @override
+  Future onSetUp() async {
+    setupCount ++;
+  }
+
+  @override
+  Future onTearDown() async {
+    tearDownCount ++;
+  }
+
+
 }
