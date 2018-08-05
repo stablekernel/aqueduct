@@ -4,7 +4,7 @@ This document describes how to install file and code templates for Aqueduct when
 
 ## Installation
 
-Download the [this file](../files/settings.jar) and import it into IntelliJ by selecting `Import Settings...` from the `File` menu.
+Download the [this file](https://aqueduct.io/docs/files/settings.jar) and import it into IntelliJ by selecting `Import Settings...` from the `File` menu.
 
 ## File Templates
 
