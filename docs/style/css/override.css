@@ -21,3 +21,24 @@ body {
   font-size: 1.0em;
   color: rgb(50, 50, 50);
 }
+
+a.md-nav__link {
+  font-size: 1.1em;
+  font-weight: lighter;
+}
+
+a.md-nav__link--active {
+  font-size: 1.1em;
+  font-weight: lighter;
+  color: rgb(33, 160, 221);
+}
+
+.md-nav__item--nested>.md-nav__link {
+  color: rgb(33, 160, 221);
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+label[for="toc"] {
+  display: none;
+}
