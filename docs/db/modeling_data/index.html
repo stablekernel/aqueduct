@@ -1,0 +1,1861 @@
+
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+        <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
+      
+      
+      
+      
+        <link rel="shortcut icon" href="../../assets/images/favicon.png">
+      
+      <meta name="generator" content="mkdocs-0.16.3, mkdocs-material-1.9.0">
+    
+    
+      
+        <title>Modeling Data - Aqueduct 3.0 Pre-release</title>
+      
+    
+    
+      <script src="../../assets/javascripts/modernizr-e826f8942a.js"></script>
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/application-0a3554af36.css">
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    
+      <link rel="stylesheet" href="../../style/css/override.css">
+    
+    
+  </head>
+  
+  
+  
+  
+    <body>
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="drawer">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
+    <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <a href="../.." title="Aqueduct 3.0 Pre-release" class="md-icon md-icon--home md-header-nav__button">
+          </a>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <span class="md-flex__ellipsis md-header-nav__title">
+          
+            
+              
+                <span class="md-header-nav__parent">
+                  Guides
+                </span>
+              
+                <span class="md-header-nav__parent">
+                  Databases and ORM
+                </span>
+              
+            
+            Modeling Data
+          
+        </span>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
+          
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="search"></label>
+  <div class="md-search__inner">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">&#xE5CD;</button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result" data-md-lang-search="" data-md-lang-tokenizer="[\s\-]+">
+          <div class="md-search-result__meta" data-md-lang-result-none="No matching documents" data-md-lang-result-one="1 matching document" data-md-lang-result-other="# matching documents">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+          </div>
+        </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="drawer">
+    
+      <i class="md-icon md-icon--home md-nav__button"></i>
+    
+    Aqueduct 3.0 Pre-release
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../.." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../core_concepts/" title="Core Concepts" class="md-nav__link">
+      Core Concepts
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../getting_started/" title="Getting Started" class="md-nav__link">
+      Getting Started
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../tour/" title="Tour" class="md-nav__link">
+      Tour
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../migration/" title="3.0 Migration Guide" class="md-nav__link">
+      3.0 Migration Guide
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../best_practices/" title="Best Practices" class="md-nav__link">
+      Best Practices
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../intellij/" title="IntelliJ IDEA Templates" class="md-nav__link">
+      IntelliJ IDEA Templates
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      Snippets
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        Snippets
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/http/" title="HTTP" class="md-nav__link">
+      HTTP
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/orm/" title="ORM" class="md-nav__link">
+      ORM
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/auth/" title="Authentication and Authorization" class="md-nav__link">
+      Authentication and Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/test/" title="Testing" class="md-nav__link">
+      Testing
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
+    
+    <label class="md-nav__link" for="nav-9">
+      Tutorial
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-9">
+        Tutorial
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/getting-started/" title="1. Getting Started" class="md-nav__link">
+      1. Getting Started
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/executing-queries/" title="2. Reading from a Database" class="md-nav__link">
+      2. Reading from a Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/storing-data/" title="3. Storing Data in a Database" class="md-nav__link">
+      3. Storing Data in a Database
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10" checked>
+    
+    <label class="md-nav__link" for="nav-10">
+      Guides
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-10">
+        Guides
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-1" type="checkbox" id="nav-10-1">
+    
+    <label class="md-nav__link" for="nav-10-1">
+      Serving HTTP Requests
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-1">
+        Serving HTTP Requests
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/structure/" title="Application Structure" class="md-nav__link">
+      Application Structure
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/controller/" title="Handling Requests: Fundamentals" class="md-nav__link">
+      Handling Requests: Fundamentals
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/routing/" title="Routing" class="md-nav__link">
+      Routing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/channel/" title="Initialization and the ApplicationChannel" class="md-nav__link">
+      Initialization and the ApplicationChannel
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/resource_controller/" title="Handling Requests: ResourceController" class="md-nav__link">
+      Handling Requests: ResourceController
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/configure/" title="Configuration" class="md-nav__link">
+      Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/threading/" title="Multi-threading" class="md-nav__link">
+      Multi-threading
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-2" type="checkbox" id="nav-10-2" checked>
+    
+    <label class="md-nav__link" for="nav-10-2">
+      Databases and ORM
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-2">
+        Databases and ORM
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../connecting/" title="Connecting to a Database" class="md-nav__link">
+      Connecting to a Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        Modeling Data
+      </label>
+    
+    <a href="./" title="Modeling Data" class="md-nav__link md-nav__link--active">
+      Modeling Data
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#defining-a-table" title="Defining a Table" class="md-nav__link">
+    Defining a Table
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-an-instance-type" title="Defining an Instance Type" class="md-nav__link">
+    Defining an Instance Type
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transient-properties" title="Transient Properties" class="md-nav__link">
+    Transient Properties
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-structure" title="Project Structure" class="md-nav__link">
+    Project Structure
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modeling-relationships" title="Modeling Relationships" class="md-nav__link">
+    Modeling Relationships
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-data-modeling" title="Additional Data Modeling" class="md-nav__link">
+    Additional Data Modeling
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enum-types" title="Enum Types" class="md-nav__link">
+    Enum Types
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#private-variables" title="Private Variables" class="md-nav__link">
+    Private Variables
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
+      Storage, Serialization and Deserialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../executing_queries/" title="Executing Queries" class="md-nav__link">
+      Executing Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../advanced_queries/" title="Advanced Queries" class="md-nav__link">
+      Advanced Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../transactions/" title="Transactions" class="md-nav__link">
+      Transactions
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../validations/" title="Validations" class="md-nav__link">
+      Validations
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../db_tools/" title="Migration and Tooling" class="md-nav__link">
+      Migration and Tooling
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../json_columns/" title="JSON Document Storage" class="md-nav__link">
+      JSON Document Storage
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../transactions/" title="Transactions" class="md-nav__link">
+      Transactions
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-3" type="checkbox" id="nav-10-3">
+    
+    <label class="md-nav__link" for="nav-10-3">
+      Authorization and OAuth 2.0
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-3">
+        Authorization and OAuth 2.0
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/server/" title="Setting up Authorization" class="md-nav__link">
+      Setting up Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/authorizer/" title="Protecting Routes" class="md-nav__link">
+      Protecting Routes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/controllers/" title="Issuing Access Tokens" class="md-nav__link">
+      Issuing Access Tokens
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/cli/" title="Managing OAuth 2.0 Clients" class="md-nav__link">
+      Managing OAuth 2.0 Clients
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/auth_scopes/" title="OAuth 2.0 Scoping" class="md-nav__link">
+      OAuth 2.0 Scoping
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/what_is_oauth/" title="What is OAuth 2.0?" class="md-nav__link">
+      What is OAuth 2.0?
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-4" type="checkbox" id="nav-10-4">
+    
+    <label class="md-nav__link" for="nav-10-4">
+      Development and Testing
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-4">
+        Development and Testing
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/tests/" title="Writing Tests" class="md-nav__link">
+      Writing Tests
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/mixins/" title="Testing with the ORM and OAuth 2.0" class="md-nav__link">
+      Testing with the ORM and OAuth 2.0
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/debugger/" title="Using the Debugger" class="md-nav__link">
+      Using the Debugger
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/clients/" title="Developing Client Applications" class="md-nav__link">
+      Developing Client Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/mock/" title="Mocking Services" class="md-nav__link">
+      Mocking Services
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-5" type="checkbox" id="nav-10-5">
+    
+    <label class="md-nav__link" for="nav-10-5">
+      Deployment
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-5">
+        Deployment
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_local/" title="Deploy Locally" class="md-nav__link">
+      Deploy Locally
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_heroku/" title="Deploy on Heroku" class="md-nav__link">
+      Deploy on Heroku
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_aws/" title="Deploy on AWS" class="md-nav__link">
+      Deploy on AWS
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/script/" title="Deploying without aqueduct serve" class="md-nav__link">
+      Deploying without aqueduct serve
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-6" type="checkbox" id="nav-10-6">
+    
+    <label class="md-nav__link" for="nav-10-6">
+      OpenAPI Documentation
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-6">
+        OpenAPI Documentation
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/cli/" title="Creating an OpenAPI Document" class="md-nav__link">
+      Creating an OpenAPI Document
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/components/" title="Documenting Components" class="md-nav__link">
+      Documenting Components
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/endpoint/" title="Documenting Endpoint Controllers" class="md-nav__link">
+      Documenting Endpoint Controllers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/middleware/" title="Documenting Middleware Controllers" class="md-nav__link">
+      Documenting Middleware Controllers
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-7" type="checkbox" id="nav-10-7">
+    
+    <label class="md-nav__link" for="nav-10-7">
+      Command-line Tooling
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-7">
+        Command-line Tooling
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/create/" title="Creating Applications" class="md-nav__link">
+      Creating Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/running/" title="Running Applications" class="md-nav__link">
+      Running Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/document/" title="Generating an OpenAPI/Swagger Specification" class="md-nav__link">
+      Generating an OpenAPI/Swagger Specification
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/setup/" title="Other Tools" class="md-nav__link">
+      Other Tools
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#defining-a-table" title="Defining a Table" class="md-nav__link">
+    Defining a Table
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#defining-an-instance-type" title="Defining an Instance Type" class="md-nav__link">
+    Defining an Instance Type
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#transient-properties" title="Transient Properties" class="md-nav__link">
+    Transient Properties
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#project-structure" title="Project Structure" class="md-nav__link">
+    Project Structure
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#modeling-relationships" title="Modeling Relationships" class="md-nav__link">
+    Modeling Relationships
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#additional-data-modeling" title="Additional Data Modeling" class="md-nav__link">
+    Additional Data Modeling
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#enum-types" title="Enum Types" class="md-nav__link">
+    Enum Types
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#private-variables" title="Private Variables" class="md-nav__link">
+    Private Variables
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/db/modeling_data.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
+                
+                <h1 id="modeling-data">Modeling Data</h1>
+<p>In this guide, you will learn how to create <code>ManagedObject&lt;T&gt;</code> subclasses that can be stored in and retrieved from a database.</p>
+<h2 id="defining-a-table">Defining a Table</h2>
+<p>In your application, you define types whose instances can be stored in a database. Each type you create for this purpose corresponds to a database table. The properties of these types are columns of the corresponding table. Instances of these types represent a row in that table.</p>
+<p>For example, consider a <code>Article</code> type. When you create articles and store them in a database, they are inserted into an 'article' table. That table has a column to store the properties of the article, like its category and contents. Each individual article is a row in this table.</p>
+<p>A type that can be stored in a database is created by declaring two classes. The first class is a <em>table definition</em>. A table definition is a plain Dart type that represents a table in the database. Each property of a table definition type is a column in that database. These properties often have annotations to further define the behavior of the column. An example looks like this:</p>
+<div class="codehilite"><pre><span></span><span class="c1">// This is a table definition of an &#39;article&#39;</span>
+<span class="kd">class</span> <span class="nc">_Article</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">primaryKey</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+
+  <span class="kt">String</span> <span class="n">contents</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">Column</span><span class="p">(</span><span class="nl">indexed:</span> <span class="kc">true</span><span class="p">)</span>
+  <span class="kt">String</span> <span class="n">category</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>This class declares a table named <code>_Article</code> with three columns:</p>
+<ul>
+<li><code>id</code>: an integer column that is the primary key of the table</li>
+<li><code>contents</code>: a text column</li>
+<li><code>category</code>: a text column that has an index so that it can more efficiently be searched</li>
+</ul>
+<p>A property's type determines the type of column in the table.</p>
+<table>
+<thead>
+<tr>
+<th>Dart Type</th>
+<th>General Column Type</th>
+<th>PostgreSQL Column Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>int</code></td>
+<td>integer number</td>
+<td><code>INT</code> or <code>SERIAL</code></td>
+</tr>
+<tr>
+<td><code>double</code></td>
+<td>floating point number</td>
+<td><code>DOUBLE PRECISION</code></td>
+</tr>
+<tr>
+<td><code>String</code></td>
+<td>text</td>
+<td><code>TEXT</code></td>
+</tr>
+<tr>
+<td><code>DateTime</code></td>
+<td>timestamp</td>
+<td><code>TIMESTAMP</code></td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td>boolean</td>
+<td><code>BOOLEAN</code></td>
+</tr>
+<tr>
+<td><code>Document</code></td>
+<td>a JSON object or array</td>
+<td><code>JSONB</code></td>
+</tr>
+<tr>
+<td>Any <code>enum</code></td>
+<td>text, restricted to enum cases</td>
+<td><code>TEXT</code></td>
+</tr>
+</tbody>
+</table>
+<p>Some types can be represented by many database types; for example, an integer can be stored as 2, 4 or 8 bytes. The <code>Column</code> annotation can be applied to a table definition's property to further specify the type. This same annotation allows for the customization of indices, uniqueness and other column behavior. Available options are optional arguments to the <code>Column</code> constructor and shown in the following table:</p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Type</th>
+<th>Behavior</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>primaryKey</td>
+<td><code>bool</code></td>
+<td>sets primary key column</td>
+<td>false (not primary key)</td>
+</tr>
+<tr>
+<td>databaseType</td>
+<td><code>ManagedPropertyType</code></td>
+<td>sets underlying column type</td>
+<td>inferred from Dart type</td>
+</tr>
+<tr>
+<td>nullable</td>
+<td><code>bool</code></td>
+<td>toggles whether column can be null</td>
+<td>false (not nullable)</td>
+</tr>
+<tr>
+<td>unique</td>
+<td><code>bool</code></td>
+<td>toggles whether column is unique across all rows</td>
+<td>false (not unique)</td>
+</tr>
+<tr>
+<td>defaultValue</td>
+<td><code>String</code></td>
+<td>provides default value for new rows when value is undefined</td>
+<td>null</td>
+</tr>
+<tr>
+<td>indexed</td>
+<td><code>bool</code></td>
+<td>whether an index should be created for the column</td>
+<td>false (no index)</td>
+</tr>
+<tr>
+<td>omitByDefault</td>
+<td><code>bool</code></td>
+<td>whether this column should be fetched by default</td>
+<td>true (fetch column value)</td>
+</tr>
+<tr>
+<td>autoincrement</td>
+<td><code>bool</code></td>
+<td>whether this column's value is automatically generated from a series</td>
+<td>false (not generated)</td>
+</tr>
+</tbody>
+</table>
+<p>Exactly one property per table definition must have a <code>Column</code> annotation with the 'primary key' option. That property's column is the primary key of the database table. It is common for primary keys to be 64-bit, auto-incrementing integers; therefore, the <code>primaryKey</code> constant exists as a convenience for a <code>Column</code> with these options. The <code>_Article</code> type from above is equivalent to:</p>
+<div class="codehilite"><pre><span></span><span class="c1">// This is a table definition of an &#39;article&#39;</span>
+<span class="kd">class</span> <span class="nc">_Article</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">Column</span><span class="p">(</span><span class="nl">primaryKey:</span> <span class="kc">true</span><span class="p">,</span> <span class="nl">databaseType:</span> <span class="n">ManagedPropertyType</span><span class="p">.</span><span class="n">bigInteger</span><span class="p">,</span> <span class="nl">autoincrement:</span> <span class="kc">true</span><span class="p">)</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+
+  <span class="kt">String</span> <span class="n">contents</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">Column</span><span class="p">(</span><span class="nl">indexed:</span> <span class="kc">true</span><span class="p">)</span>
+  <span class="kt">String</span> <span class="n">category</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<div class="admonition note">
+<p class="admonition-title">Creating Tables</p>
+<p>Tables are created in a database by using the <code>aqueduct</code> command line tool to generate and execute migration scripts. The tool inspects your database types and automatically synchronizes a databases schema to match your them.</p>
+</div>
+<p>The ORM assumes that a database table has the same name as a table definition, i.e. the <code>_Article</code> table definition instructs the ORM that there is a table named <code>_Article</code>. You may provide another name for the table by implementing a <em>static</em> <code>tableName</code> method in your table definition to return this name:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Article</span> <span class="p">{</span>
+  <span class="kd">static</span> <span class="kt">String</span> <span class="n">tableName</span><span class="p">()</span> <span class="o">=&gt;</span> <span class="s2">&quot;ArticleTable&quot;</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">primaryKey</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+
+  <span class="kt">String</span> <span class="n">contents</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">Column</span><span class="p">(</span><span class="nl">indexed:</span> <span class="kc">true</span><span class="p">)</span>
+  <span class="kt">String</span> <span class="n">category</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h2 id="defining-an-instance-type">Defining an Instance Type</h2>
+<p>Alongside the table definition, you must create an <em>instance type</em>. An instance type is used in your application code. It must be a subclass of <code>ManagedObject&lt;T&gt;</code> <em>and</em> implement <code>T</code>, where <code>T</code> is your table definition. The instance type for <code>_Article</code> is declared like so:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Article</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Article</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Article</span> <span class="p">{}</span>
+</pre></div>
+
+
+<p>This <code>Article</code> instance type inherits all of the properties from the <code>_Article</code> table definition; i.e., an <code>Article</code> has an <code>id</code>, <code>contents</code> and <code>category</code>. You create instances of an instance type like any other type.</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">article</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Article</span><span class="p">();</span>
+<span class="n">article</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span><span class="p">;</span>
+<span class="n">article</span><span class="p">.</span><span class="n">category</span> <span class="o">=</span> <span class="s2">&quot;Baseball&quot;</span><span class="p">;</span>
+</pre></div>
+
+
+<p>When you fetch rows from a database, you will be returned instances of your instance type that are automatically created for you by the ORM.</p>
+<div class="admonition warning">
+<p class="admonition-title">Instance Type Constructors</p>
+<p>You can add new constructors to an instance type, but you must always have a default, no-argument constructor that properly instantiates your object. This default constructor is used when the ORM creates instances from rows in your database.</p>
+</div>
+<h3 id="transient-properties">Transient Properties</h3>
+<p>An instance type can declare additional properties and methods. Any property declared in the instance type is <em>not</em> stored in the database, and are often used for computed or derived values for an object. Properties declared on the instance type are called <em>transient properties</em>.</p>
+<p>For example, consider an <code>Author</code> type whose table definition stores first and last name as separate columns. Instead of redundantly storing a 'full name' in the database, a transient property can be derived from properties stored in the database:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Author</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Author</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Author</span> <span class="p">{</span>
+  <span class="kt">String</span> <span class="kd">get</span> <span class="n">name</span> <span class="o">=&gt;</span> <span class="s2">&quot;</span><span class="si">$</span><span class="n">firstName</span><span class="s2"> </span><span class="si">$</span><span class="n">lastName</span><span class="s2">&quot;</span><span class="p">;</span>
+  <span class="kd">set</span> <span class="n">name</span><span class="p">(</span><span class="kt">String</span> <span class="n">fullName</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">firstName</span> <span class="o">=</span> <span class="n">fullName</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">).</span><span class="n">first</span><span class="p">;</span>
+    <span class="n">lastName</span> <span class="o">=</span> <span class="n">fullName</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">).</span><span class="n">last</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+<span class="kd">class</span> <span class="nc">_Author</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">primaryKey</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+
+  <span class="kt">String</span> <span class="n">firstName</span><span class="p">;</span>
+  <span class="kt">String</span> <span class="n">lastName</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Transient properties don't necessarily have to access columns of the underlying table, but note that if an object has a transient property, that value is not available on another object that represents the same row.</p>
+<p>By default, a transient property is ignored when reading an object from a request body or writing the object to a response body. You can annotate a transient property with <code>Serialize</code> so that it is able to be read from a request body, written to a response body, or both. The following allows <code>name</code> to be both read and written over HTTP:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Author</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Author</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Author</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">Serialize</span><span class="p">()</span>
+  <span class="kt">String</span> <span class="kd">get</span> <span class="n">name</span> <span class="o">=&gt;</span> <span class="s2">&quot;</span><span class="si">$</span><span class="n">firstName</span><span class="s2"> </span><span class="si">$</span><span class="n">lastName</span><span class="s2">&quot;</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">Serialize</span><span class="p">()</span>
+  <span class="kd">set</span> <span class="n">name</span><span class="p">(</span><span class="kt">String</span> <span class="n">fullName</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">firstName</span> <span class="o">=</span> <span class="n">fullName</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">).</span><span class="n">first</span><span class="p">;</span>
+    <span class="n">lastName</span> <span class="o">=</span> <span class="n">fullName</span><span class="p">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">).</span><span class="n">last</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h2 id="project-structure">Project Structure</h2>
+<p>The combination of an instance type and its table definition is called an <em>entity</em>. Each entity should be declared in the same file, and the table definition should be prefixed with an <code>_</code> to prevent it from being used elsewhere in the project. It is preferable to declare one entity per file, and store all entities in the <code>lib/model/</code> directory of your project.</p>
+<p>The files your model definitions are declared in must be visible to Aqueduct tooling. In normal circumstances, this happens automatically because of the following:</p>
+<ol>
+<li>Aqueduct tooling can find any file that is imported (directly or transitively) from your library file.</li>
+<li>Your library file, by default, can see the file your <code>ApplicationChannel</code> is declared in.</li>
+<li>Your application channel file must import any controller that it links.</li>
+<li>Your controllers must import any model file they use.</li>
+</ol>
+<p>When you use the <code>aqueduct</code> CLI to generate database migration scripts, it will report all of the <code>ManagedObject</code>s in your application that it was able to find. If a particular type is not listed, it may reveal that you aren't using that type. If you need to ensure that the tooling can see a particular model file that it is not locating, you may import it in your <code>channel.dart</code> file.</p>
+<h2 id="modeling-relationships">Modeling Relationships</h2>
+<p>So far, we've shown that table definitions can declare scalar properties like integers and strings, and that those properties are backed by a column in a database table. These types of properties are called <em>attributes</em>. Table definitions may also contain <em>relationship</em> properties that are references to another entity in your application.</p>
+<p>For example, an <code>Author</code> can have a property that holds all of the <code>Article</code>s they have written. There are two types of relationships: <em>has-many</em> and <em>has-one</em>. A has-one relationship restricts a relationship to a single object (e.g., an author may have one article), whereas a has-many relationship allows for any number of related objects (e.g., an author has multiple articles).</p>
+<p>Relationship properties are also declared in a table definition. The type of the property must either be a <code>ManagedSet&lt;T&gt;</code> or a <code>T</code>, where <code>T</code> is another instance type. If the type is <code>ManagedSet&lt;T&gt;</code>, the relationship is a has-many relationship, otherwise, it is a has-one relationship. The following shows an <code>articles</code> relationship that allows an author to have many <code>Article</code>s:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Author</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">primaryKey</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+
+  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
+
+  <span class="c1">// a has-many relationship to Article</span>
+  <span class="n">ManagedSet</span><span class="o">&lt;</span><span class="n">Article</span><span class="o">&gt;</span> <span class="n">articles</span><span class="p">;</span>
+
+  <span class="c1">// If we were declaring a has-one relationship:</span>
+  <span class="c1">// Article article;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>A <code>ManagedSet</code> is a special type of <code>List</code> used in the Aqueduct ORM. It can do everything a list can do, but adds some additional behavior for the ORM.</p>
+<p>All relationships must have an inverse. For example, if an author has articles, an article must have an author. This is true regardless of whether or not the relationship is has-many or has-one. An inverse is declared in the related table definition with a <code>Relate</code> annotation:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Article</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">primaryKey</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">Relate</span><span class="p">(</span><span class="err">#</span><span class="n">articles</span><span class="p">)</span>
+  <span class="n">Author</span> <span class="n">author</span><span class="p">;</span>
+
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>A relationship property with this annotation is neither has-one or has-many; it <em>belongs to</em> the related entity. The argument to <code>Relate</code> is the symbolic name of the property on the 'has' side of the relationship. In our examples, an author has many articles, and an article belongs to an author.</p>
+<div class="admonition note">
+<p class="admonition-title">Symbols</p>
+<p>A symbol is a name identifier in Dart; a symbol can refer to a class, method, or property. Symbols are objects can be instantiated like all objects, but the <code>#</code> identifier is shorthand for creating a symbol.</p>
+</div>
+<p>Only one side of a relationship may have the <code>Relate</code> annotation on its relationship property. The property with this annotation is a <em>foreign key column</em> on the table definition it is defined in. In this example, the <code>_Article</code> table has a foreign key reference to the <code>id</code> of the <code>_Author</code> table.</p>
+<p>Choosing which side of the relationship has the <code>Relate</code> annotation depends on how you wish to model your data. In has-many relationships, this is easy - a <code>ManagedSet&lt;T&gt;</code> may <em>not</em> have the <code>Relate</code> annotation. In a has-one relationship, you must determine which side of the relationship should have the foreign key reference.</p>
+<p>When making this decision, it is important to understand how objects are fetched with <code>Query</code>s. In a default query, the objects that are returned will contain 'null' for every 'has' relationship, and only contain the foreign key of any 'belongs to' relationships. To fetch a related object in its entirety, you must use <code>Query.join</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Foreign Keys</p>
+<p>The foreign key column always references the primary key of the related table, and its name is derived by combining the name of the relationship property and the primary key of the related table. For example, the above definitions would add a column named <code>author_id</code> to the <code>_Article</code> table.</p>
+</div>
+<p>The <code>Relate</code> annotation has optional arguments to further define the relationship.</p>
+<p>A relationship may be be required or optional. For example, if <code>Article.author</code> were required, than an <code>Article</code> must always have an <code>Author</code>. By default, relationships are optional.</p>
+<p>A relationship has a delete rule. When an object is deleted, any objects that belong to its relationships are subject to this rule. The following table shows the rules and their behavior:</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Behavior</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>nullify (default)</td>
+<td>inverse is set to null</td>
+<td>When deleting an author, its articles' author becomes null</td>
+</tr>
+<tr>
+<td>cascade</td>
+<td>related objects are also deleted</td>
+<td>When deleting an author, its articles are deleted</td>
+</tr>
+<tr>
+<td>restrict</td>
+<td>delete fails</td>
+<td>When attempting to delete an author with articles, the delete operation fails</td>
+</tr>
+<tr>
+<td>default</td>
+<td>inverse set to a default value</td>
+<td>When deleting an author, its articles author is set to the default value of the column</td>
+</tr>
+</tbody>
+</table>
+<h2 id="additional-data-modeling">Additional Data Modeling</h2>
+<p>This section covers additional features when defining your data model.</p>
+<h3 id="enum-types">Enum Types</h3>
+<p>When a table definition property is an <code>enum</code> type, the enumeration is stored as a string in the database. Consider the following definition where a user can be an admin or a normal user:</p>
+<div class="codehilite"><pre><span></span><span class="n">enum</span> <span class="n">UserType</span> <span class="p">{</span>
+  <span class="n">admin</span><span class="p">,</span> <span class="n">user</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{}</span>
+<span class="kd">class</span> <span class="nc">_User</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">primaryKey</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+
+  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
+
+  <span class="n">UserType</span> <span class="n">type</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>You may assign valid enumeration cases to the <code>User.type</code> property:</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span>
+  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">type</span> <span class="o">=</span> <span class="n">UserType</span><span class="p">.</span><span class="n">admin</span><span class="p">;</span>
+<span class="kd">var</span> <span class="n">bob</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
+
+<span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+  <span class="p">..</span><span class="n">where</span><span class="p">((</span><span class="n">u</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">u</span><span class="p">.</span><span class="n">type</span><span class="p">).</span><span class="n">equalTo</span><span class="p">(</span><span class="n">UserType</span><span class="p">.</span><span class="n">admin</span><span class="p">);</span>
+<span class="kd">var</span> <span class="n">allAdmins</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
+</pre></div>
+
+
+<p>In the database, the <code>type</code> column is stored as a string. Its value is either "admin" or "user" - which is derived from the two enumeration case names. A enumerated type property has an implicit <code>Validate.oneOf</code> validator that asserts the value is one of the valid enumeration cases.</p>
+<h3 id="private-variables">Private Variables</h3>
+<p>A property of a table definition that is Dart private (prefixed with an <code>_</code>) will not be included when writing a <code>ManagedObject&lt;T&gt;</code> to an HTTP response. It also may not be read from an HTTP request body. This behavior differs slightly from the <code>omitByDefault</code> flag of <code>Column</code>. When omitting by default, the value is simply not fetched from the database. When a property is private, it is fetched, but it is just not accessible from outside the object. This can be useful when combined with transient accessors. For example, the following ensures that the <code>title</code> property is uppercased before storage:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">Serialize</span><span class="p">()</span>
+  <span class="kd">set</span> <span class="n">title</span><span class="p">(</span><span class="kt">String</span> <span class="n">title</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">_title</span> <span class="o">=</span> <span class="n">title</span><span class="p">.</span><span class="n">toUpperCase</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">Serialize</span><span class="p">()</span>
+  <span class="kt">String</span> <span class="kd">get</span> <span class="n">title</span> <span class="o">=&gt;</span> <span class="n">_title</span><span class="p">;</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="nc">_User</span> <span class="p">{</span>
+  <span class="kt">String</span> <span class="n">_title</span><span class="p">;</span>
+
+  <span class="p">...</span>
+<span class="p">}</span>
+</pre></div>
+                
+                  
+                
+              
+              
+                
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../connecting/" title="Connecting to a Database" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                Connecting to a Database
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../serialization/" title="Storage, Serialization and Deserialization" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Storage, Serialization and Deserialization
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Built by stable|kernel
+          </div>
+        
+        powered by
+        <a href="http://www.mkdocs.org" title="MkDocs">MkDocs</a>
+        and
+        <a href="http://squidfunk.github.io/mkdocs-material/" title="Material for MkDocs">
+          Material for MkDocs</a>
+      </div>
+      
+        
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../assets/javascripts/application-3700c4cc12.js"></script>
+      
+      
+      <script>app.initialize({url:{base:"../.."}})</script>
+      
+    
+    
+      
+      <script>!function(e,t,a,n,o,c,i){e.GoogleAnalyticsObject=o,e[o]=e[o]||function(){(e[o].q=e[o].q||[]).push(arguments)},e[o].l=1*new Date,c=t.createElement(a),i=t.getElementsByTagName(a)[0],c.async=1,c.src=n,i.parentNode.insertBefore(c,i)}(window,document,"script","https://www.google-analytics.com/analytics.js","ga"),ga("create","UA-41269877-2","aqueduct.io"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");Array.prototype.map.call(links,function(e){e.host!=document.location.host&&e.addEventListener("click",function(){var t=e.getAttribute("data-md-action")||"follow";ga("send","event","outbound",t,e.href)})});var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})</script>
+      
+    
+  </body>
+</html>
