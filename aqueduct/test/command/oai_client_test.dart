@@ -1,9 +1,6 @@
 // ignore: unnecessary_const
 @Tags(const ["cli"])
-import 'dart:io';
-
 import 'package:test/test.dart';
-import 'package:http/http.dart' as http;
 
 import 'cli_helpers.dart';
 

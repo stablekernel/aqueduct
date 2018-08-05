@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:aqueduct/src/cli/metadata.dart';
 import 'package:aqueduct/src/cli/mixins/openapi_options.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 
@@ -13,7 +12,7 @@ class CLIDocumentClient extends CLICommand with CLIProject, CLIDocumentOptions {
   @override
   Future<int> handle() async {
     final doc = await documentProject(projectDirectory.uri, libraryName, projectSpecificationFile);
-    final source = _getHtmlSource(JSON.encode(doc));
+    final source = _getHtmlSource(json.encode(doc));
     final file = File("client.html");
     file.writeAsStringSync(source);
 
