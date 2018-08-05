@@ -45,7 +45,10 @@ abstract class CLIDocumentOptions implements CLICommand {
       help: "Scheme, host and port for available instances.",
       valueHelp: "https://api.myapp.com:8000")
   List<Uri> get hosts {
-    List<String> hostValues = decode("host") ?? ["http://localhost:8888"];
+    List<String> hostValues = decode("host");
+    if (hostValues?.isEmpty ?? true) {
+      hostValues = ["http://localhost:8888"];
+    }
     return hostValues.map((str) {
       var uri = Uri.parse(str);
       if (uri == null) {

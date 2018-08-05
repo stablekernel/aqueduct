@@ -133,6 +133,19 @@ class Terminal {
     file.writeAsStringSync(output);
   }
 
+  File getFile(String path) {
+    final pathComponents = path.split("/");
+    final relativeDirectoryComponents =
+    pathComponents.sublist(0, pathComponents.length - 1);
+    final directory = Directory.fromUri(relativeDirectoryComponents.fold(
+      workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/")));
+    final file = File.fromUri(directory.uri.resolve(pathComponents.last));
+    if (!file.existsSync()) {
+      return null;
+    }
+    return file;
+  }
+
   Future<int> executeMigrations(
       {String connectString =
           "postgres://dart:dart@localhost:5432/dart_test"}) async {
