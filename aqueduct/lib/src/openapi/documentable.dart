@@ -295,6 +295,10 @@ class APIComponentCollection<T extends APIObject> {
       return;
     }
 
+    if (representation != null && _typeReferenceMap.containsKey(representation)) {
+      return;
+    }
+
     _componentMap[name] = component;
 
     if (representation != null) {
