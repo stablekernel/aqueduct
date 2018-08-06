@@ -1,0 +1,1741 @@
+
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+        <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
+      
+      
+      
+      
+        <link rel="shortcut icon" href="../../assets/images/favicon.png">
+      
+      <meta name="generator" content="mkdocs-0.16.3, mkdocs-material-1.9.0">
+    
+    
+      
+        <title>4. Configuration and Testing - Aqueduct</title>
+      
+    
+    
+      <script src="../../assets/javascripts/modernizr-e826f8942a.js"></script>
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/application-0a3554af36.css">
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    
+      <link rel="stylesheet" href="../../style/css/override.css">
+    
+    
+  </head>
+  
+  
+  
+  
+    <body>
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="drawer">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
+    <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <a href="../.." title="Aqueduct" class="md-icon md-icon--home md-header-nav__button">
+          </a>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <span class="md-flex__ellipsis md-header-nav__title">
+          
+            
+              
+                <span class="md-header-nav__parent">
+                  Tutorial
+                </span>
+              
+            
+            4. Configuration and Testing
+          
+        </span>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
+          
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="search"></label>
+  <div class="md-search__inner">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">&#xE5CD;</button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result" data-md-lang-search="" data-md-lang-tokenizer="[\s\-]+">
+          <div class="md-search-result__meta" data-md-lang-result-none="No matching documents" data-md-lang-result-one="1 matching document" data-md-lang-result-other="# matching documents">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+          </div>
+        </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="drawer">
+    
+      <i class="md-icon md-icon--home md-nav__button"></i>
+    
+    Aqueduct
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../.." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../core_concepts/" title="Core Concepts" class="md-nav__link">
+      Core Concepts
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../getting_started/" title="Getting Started" class="md-nav__link">
+      Getting Started
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../tour/" title="Tour" class="md-nav__link">
+      Tour
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../migration/" title="3.0 Migration Guide" class="md-nav__link">
+      3.0 Migration Guide
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../best_practices/" title="Best Practices" class="md-nav__link">
+      Best Practices
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../intellij/" title="IntelliJ IDEA Templates" class="md-nav__link">
+      IntelliJ IDEA Templates
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      Snippets
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        Snippets
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/http/" title="HTTP" class="md-nav__link">
+      HTTP
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/orm/" title="ORM" class="md-nav__link">
+      ORM
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/auth/" title="Authentication and Authorization" class="md-nav__link">
+      Authentication and Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/test/" title="Testing" class="md-nav__link">
+      Testing
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9" checked>
+    
+    <label class="md-nav__link" for="nav-9">
+      Tutorial
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-9">
+        Tutorial
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../getting-started/" title="1. Getting Started" class="md-nav__link">
+      1. Getting Started
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../executing-queries/" title="2. Reading from a Database" class="md-nav__link">
+      2. Reading from a Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../storing-data/" title="3. Storing Data in a Database" class="md-nav__link">
+      3. Storing Data in a Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        4. Configuration and Testing
+      </label>
+    
+    <a href="./" title="4. Configuration and Testing" class="md-nav__link md-nav__link--active">
+      4. Configuration and Testing
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#application-configuration" title="Application Configuration" class="md-nav__link">
+    Application Configuration
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration-template" title="Configuration Template" class="md-nav__link">
+    Configuration Template
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-in-aqueduct" title="Testing in Aqueduct" class="md-nav__link">
+    Testing in Aqueduct
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setting-up-your-development-environment" title="Setting up your Development Environment" class="md-nav__link">
+    Setting up your Development Environment
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writing-your-first-test" title="Writing Your First Test" class="md-nav__link">
+    Writing Your First Test
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writing-more-tests" title="Writing More Tests" class="md-nav__link">
+    Writing More Tests
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+    
+    <label class="md-nav__link" for="nav-10">
+      Guides
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-10">
+        Guides
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-1" type="checkbox" id="nav-10-1">
+    
+    <label class="md-nav__link" for="nav-10-1">
+      Serving HTTP Requests
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-1">
+        Serving HTTP Requests
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/structure/" title="Application Structure" class="md-nav__link">
+      Application Structure
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/controller/" title="Handling Requests: Fundamentals" class="md-nav__link">
+      Handling Requests: Fundamentals
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/routing/" title="Routing" class="md-nav__link">
+      Routing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/channel/" title="Initialization and the ApplicationChannel" class="md-nav__link">
+      Initialization and the ApplicationChannel
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/resource_controller/" title="Handling Requests: ResourceController" class="md-nav__link">
+      Handling Requests: ResourceController
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/configure/" title="Configuration" class="md-nav__link">
+      Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/threading/" title="Multi-threading" class="md-nav__link">
+      Multi-threading
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-2" type="checkbox" id="nav-10-2">
+    
+    <label class="md-nav__link" for="nav-10-2">
+      Databases and ORM
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-2">
+        Databases and ORM
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/connecting/" title="Connecting to a Database" class="md-nav__link">
+      Connecting to a Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/modeling_data/" title="Modeling Data" class="md-nav__link">
+      Modeling Data
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
+      Storage, Serialization and Deserialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/executing_queries/" title="Executing Queries" class="md-nav__link">
+      Executing Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/advanced_queries/" title="Advanced Queries" class="md-nav__link">
+      Advanced Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/transactions/" title="Transactions" class="md-nav__link">
+      Transactions
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/validations/" title="Validations" class="md-nav__link">
+      Validations
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/db_tools/" title="Migration and Tooling" class="md-nav__link">
+      Migration and Tooling
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/json_columns/" title="JSON Document Storage" class="md-nav__link">
+      JSON Document Storage
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/transactions/" title="Transactions" class="md-nav__link">
+      Transactions
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-3" type="checkbox" id="nav-10-3">
+    
+    <label class="md-nav__link" for="nav-10-3">
+      Authorization and OAuth 2.0
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-3">
+        Authorization and OAuth 2.0
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/server/" title="Setting up Authorization" class="md-nav__link">
+      Setting up Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/authorizer/" title="Protecting Routes" class="md-nav__link">
+      Protecting Routes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/controllers/" title="Issuing Access Tokens" class="md-nav__link">
+      Issuing Access Tokens
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/cli/" title="Managing OAuth 2.0 Clients" class="md-nav__link">
+      Managing OAuth 2.0 Clients
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/auth_scopes/" title="OAuth 2.0 Scoping" class="md-nav__link">
+      OAuth 2.0 Scoping
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/what_is_oauth/" title="What is OAuth 2.0?" class="md-nav__link">
+      What is OAuth 2.0?
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-4" type="checkbox" id="nav-10-4">
+    
+    <label class="md-nav__link" for="nav-10-4">
+      Development and Testing
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-4">
+        Development and Testing
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/tests/" title="Writing Tests" class="md-nav__link">
+      Writing Tests
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/mixins/" title="Testing with the ORM and OAuth 2.0" class="md-nav__link">
+      Testing with the ORM and OAuth 2.0
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/debugger/" title="Using the Debugger" class="md-nav__link">
+      Using the Debugger
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/clients/" title="Developing Client Applications" class="md-nav__link">
+      Developing Client Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/mock/" title="Mocking Services" class="md-nav__link">
+      Mocking Services
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-5" type="checkbox" id="nav-10-5">
+    
+    <label class="md-nav__link" for="nav-10-5">
+      Deployment
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-5">
+        Deployment
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_local/" title="Deploy Locally" class="md-nav__link">
+      Deploy Locally
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_heroku/" title="Deploy on Heroku" class="md-nav__link">
+      Deploy on Heroku
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_aws/" title="Deploy on AWS" class="md-nav__link">
+      Deploy on AWS
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/script/" title="Deploying without aqueduct serve" class="md-nav__link">
+      Deploying without aqueduct serve
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-6" type="checkbox" id="nav-10-6">
+    
+    <label class="md-nav__link" for="nav-10-6">
+      OpenAPI Documentation
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-6">
+        OpenAPI Documentation
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/cli/" title="Creating an OpenAPI Document" class="md-nav__link">
+      Creating an OpenAPI Document
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/components/" title="Documenting Components" class="md-nav__link">
+      Documenting Components
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/endpoint/" title="Documenting Endpoint Controllers" class="md-nav__link">
+      Documenting Endpoint Controllers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/middleware/" title="Documenting Middleware Controllers" class="md-nav__link">
+      Documenting Middleware Controllers
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-7" type="checkbox" id="nav-10-7">
+    
+    <label class="md-nav__link" for="nav-10-7">
+      Command-line Tooling
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-7">
+        Command-line Tooling
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/create/" title="Creating Applications" class="md-nav__link">
+      Creating Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/running/" title="Running Applications" class="md-nav__link">
+      Running Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/document/" title="Generating an OpenAPI/Swagger Specification" class="md-nav__link">
+      Generating an OpenAPI/Swagger Specification
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/setup/" title="Other Tools" class="md-nav__link">
+      Other Tools
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#application-configuration" title="Application Configuration" class="md-nav__link">
+    Application Configuration
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration-template" title="Configuration Template" class="md-nav__link">
+    Configuration Template
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-in-aqueduct" title="Testing in Aqueduct" class="md-nav__link">
+    Testing in Aqueduct
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#setting-up-your-development-environment" title="Setting up your Development Environment" class="md-nav__link">
+    Setting up your Development Environment
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#writing-your-first-test" title="Writing Your First Test" class="md-nav__link">
+    Writing Your First Test
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#writing-more-tests" title="Writing More Tests" class="md-nav__link">
+    Writing More Tests
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/tut/writing-tests.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
+                
+                <h1 id="4-configuration-and-writing-tests">4. Configuration and Writing Tests</h1>
+<p>We will continue to build on the last chapter's project, <code>heroes</code>, by writing automated tests for it. We will also set up configurable environments for our application.</p>
+<h2 id="application-configuration">Application Configuration</h2>
+<p>Right now, our application hardcodes its database connection information. This is bad because we want to use a different database when we're testing, running locally and running in production. It's also bad because we'd have to check our database password into version control.</p>
+<p>We can create an configuration file to store values like database connection information, and use a different configuration file for each environment. The <code>heroes</code> application needs to be able to configure the username, password, host port and name of the database it uses. Open the file <code>config.yaml</code>, which is empty, and enter the following key-value pairs:</p>
+<div class="codehilite"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">database</span><span class="p p-Indicator">:</span>
+  <span class="l l-Scalar l-Scalar-Plain">host</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">localhost</span>
+  <span class="l l-Scalar l-Scalar-Plain">port</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">5432</span>
+  <span class="l l-Scalar l-Scalar-Plain">username</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">heroes_user</span>
+  <span class="l l-Scalar l-Scalar-Plain">password</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">password</span>
+  <span class="l l-Scalar l-Scalar-Plain">databaseName</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">heroes</span>
+</pre></div>
+
+
+<p>These are the same values we used in our application channel. We'll want to replace the hardcoded values with whatever values are in this file. In <code>lib/channel.dart</code>, declare a new class at the bottom of the file:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">HeroConfig</span> <span class="kd">extends</span> <span class="n">Configuration</span> <span class="p">{</span>
+  <span class="n">HeroConfig</span><span class="p">(</span><span class="kt">String</span> <span class="n">path</span><span class="p">)</span><span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">File</span><span class="p">(</span><span class="n">path</span><span class="p">));</span>
+
+  <span class="n">DatabaseConfiguration</span> <span class="n">database</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>A <code>Configuration</code> subclass declares the expected properties of a configuration file. <code>HeroConfig</code> has one property named <code>database</code> - this just so happens to be the same name as the first key in <code>config.yaml</code>. A <code>DatabaseConfiguration</code> is a built-in configuration type that has properties for host, port, username, password and databaseName. We can load <code>config.yaml</code> into a <code>HeroConfig</code> because they have the same structure.</p>
+<div class="admonition tip">
+<p class="admonition-title">Invalid Configuration</p>
+<p>If your configuration file and configuration object don't have a matching structure, an error will be thrown when your application starts and tell you which values are missing.</p>
+</div>
+<p>Let's load this configuration file and use its values to set up our database connection by replacing the <code>prepare</code> method in <code>lib/channel.dart</code>:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">override</span>
+<span class="n">Future</span> <span class="n">prepare</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="n">logger</span><span class="p">.</span><span class="n">onRecord</span><span class="p">.</span><span class="n">listen</span><span class="p">(</span>
+      <span class="p">(</span><span class="n">rec</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">rec</span><span class="s2"> </span><span class="si">${</span><span class="n">rec</span><span class="p">.</span><span class="n">error</span> <span class="o">??</span> <span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2"> </span><span class="si">${</span><span class="n">rec</span><span class="p">.</span><span class="n">stackTrace</span> <span class="o">??</span> <span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">));</span>
+
+  <span class="kd">final</span> <span class="n">config</span> <span class="o">=</span> <span class="n">HeroConfig</span><span class="p">(</span><span class="n">options</span><span class="p">.</span><span class="n">configurationFilePath</span><span class="p">);</span>
+  <span class="kd">final</span> <span class="n">dataModel</span> <span class="o">=</span> <span class="n">ManagedDataModel</span><span class="p">.</span><span class="n">fromCurrentMirrorSystem</span><span class="p">();</span>
+  <span class="kd">final</span> <span class="n">persistentStore</span> <span class="o">=</span> <span class="n">PostgreSQLPersistentStore</span><span class="p">.</span><span class="n">fromConnectionInfo</span><span class="p">(</span>
+      <span class="n">config</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">username</span><span class="p">,</span>
+      <span class="n">config</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">password</span><span class="p">,</span>
+      <span class="n">config</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">host</span><span class="p">,</span>
+      <span class="n">config</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">port</span><span class="p">,</span>
+      <span class="n">config</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">databaseName</span><span class="p">);</span>
+
+  <span class="n">context</span> <span class="o">=</span> <span class="n">ManagedContext</span><span class="p">(</span><span class="n">dataModel</span><span class="p">,</span> <span class="n">persistentStore</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>When our application starts, our channel has access to an <code>options</code> property that has the command-line arguments that started the application. By default, the value of <code>configurationFilePath</code> is <code>config.yaml</code> (it corresponds to <code>--config-path</code> in <code>aqueduct serve</code>). When <code>config.yaml</code> is read, its values are read into the <code>config</code> object and is used to configure our database connection.</p>
+<p>Re-run your application and it'll work exactly the same as it did before - except now, we can substitute databases depending on how we run the application.</p>
+<h3 id="configuration-template">Configuration Template</h3>
+<p>You shouldn't check <code>config.yaml</code> into version control because it contains sensitive information. However, it is important to check in a <em>configuration source file</em>. A configuration source file has the same structure as <code>HeroConfig</code>, but it has values for your test environment. It is used as a template for your deployed configuration files, and it is also used during automated testing.</p>
+<div class="admonition tip">
+<p class="admonition-title">Sensitive Information</p>
+<p>Use a platform like Heroku or Kubernetes. You can store sensitive information in environment variables. You can read environment variables into a configuration file by using the variable's name with a <code>$</code> prefix as a value, e.g. <code>password: $DATABASE_PASSWORD</code>.</p>
+</div>
+<p>This filename defaults to <code>config.src.yaml</code>, and is currently empty in your project. Enter the following configuration into this file:</p>
+<div class="codehilite"><pre><span></span><span class="nl">database:</span>
+  <span class="nl">host:</span> <span class="n">localhost</span>
+  <span class="nl">port:</span> <span class="m">5432</span>
+  <span class="nl">username:</span> <span class="n">dart</span>
+  <span class="nl">password:</span> <span class="n">dart</span>
+  <span class="nl">databaseName:</span> <span class="n">dart_test</span>
+</pre></div>
+
+
+<p>This file has the expected structure, but has different values for the database information. In the next section, we'll use this configuration file to run our automated tests.</p>
+<h2 id="testing-in-aqueduct">Testing in Aqueduct</h2>
+<p>So far, we've tested our application by using a web application. This isn't a good way to test an application. A better way is to write automated test cases. An automated test case not only tests the code you are working on, but makes sure the code you've worked on the past continues to work as you make changes. A good development practice is to configure <a href="https://travis-ci.com">TravisCI</a> to run all of your tests for every code change.</p>
+<p>Because testing is so important, there is a package for writing Aqueduct application tests. In this chapter, we will use this package to make sure our hero endpoints are working correctly.</p>
+<div class="admonition note">
+<p class="admonition-title">package:aqueduct_test</p>
+<p>The package <code>aqueduct_test</code> and <code>test</code> was already added to your <code>pubspec.yaml</code> file as a test dependency by the template generator.</p>
+</div>
+<p>In all Dart applications, tests are a Dart script with a <code>main</code> function. The <code>test</code> function registers a closure that contains expectations. That closure is run when you run your test suite, and the tests pass if all of your expectations are met. An example Dart test looks like this:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:test/test.dart&#39;</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="n">test</span><span class="p">(</span><span class="s2">&quot;1+1 = 2&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="p">{</span>
+    <span class="c1">// Expect that 1 + 1 = 2</span>
+    <span class="n">expect</span><span class="p">(</span><span class="m">1</span> <span class="o">+</span> <span class="m">1</span><span class="p">,</span> <span class="n">equals</span><span class="p">(</span><span class="m">2</span><span class="p">));</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h3 id="setting-up-your-development-environment">Setting up your Development Environment</h3>
+<p>In <code>config.src.yaml</code>, we target the database <code>dart:dart@localhost:5432/dart_test</code>. This database is used by all Aqueduct applications for automated testing. When your application is tested, your application's tables are temporarily added to this database and then discarded after tests complete. This means that no data is stored in between test runs.</p>
+<p>Create this database by running <code>psql</code> and enter the following SQL:</p>
+<div class="codehilite"><pre><span></span><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">dart_test</span><span class="p">;</span>
+<span class="k">CREATE</span> <span class="k">USER</span> <span class="n">dart</span> <span class="k">WITH</span> <span class="k">createdb</span><span class="p">;</span>
+<span class="k">ALTER</span> <span class="k">USER</span> <span class="n">dart</span> <span class="k">WITH</span> <span class="n">password</span> <span class="s1">&#39;dart&#39;</span><span class="p">;</span>
+<span class="k">GRANT</span> <span class="k">all</span> <span class="k">ON</span> <span class="k">database</span> <span class="n">dart_test</span> <span class="k">TO</span> <span class="n">dart</span><span class="p">;</span>
+</pre></div>
+
+
+<div class="admonition tip">
+<p class="admonition-title">dart_test Database</p>
+<p>You only have to create this database once per machine, and in any continuous integration scripts. All of your Aqueduct applications will use this database for automated testing.</p>
+</div>
+<h3 id="writing-your-first-test">Writing Your First Test</h3>
+<p>We will create a test suite to make sure that all hero endpoints return the right data, and make the right changes. Create a new file named <code>test/hero_controller_test.dart</code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Test Files Names and Locations</p>
+<p>A test file must end in <code>_test.dart</code> and must be in the <code>test/</code> directory of your project, or it won't be run.</p>
+</div>
+<p>At the top of this file, import your application's <em>test harness</em> and enter the following <code>main</code> function:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;harness/app.dart&#39;</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">final</span> <span class="n">harness</span> <span class="o">=</span> <span class="n">Harness</span><span class="p">()..</span><span class="n">install</span><span class="p">();</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>A test harness is an object that starts and stops your application when running a test suite, as long as you call its <code>install</code> method. This harness can then send requests to your application, and you can expect that the response is correct. Add a test to the main function that makes sure we get back a 200 OK when we call <code>GET /heroes</code>:</p>
+<div class="codehilite"><pre><span></span><span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">final</span> <span class="n">harness</span> <span class="o">=</span> <span class="n">Harness</span><span class="p">()..</span><span class="n">install</span><span class="p">();</span>
+
+  <span class="n">test</span><span class="p">(</span><span class="s2">&quot;GET /heroes returns 200 OK&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">harness</span><span class="p">.</span><span class="n">agent</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="s2">&quot;/heroes&quot;</span><span class="p">);</span>
+    <span class="n">expectResponse</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="m">200</span><span class="p">);</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>A harness has an <code>Agent</code> that can send requests to the application it started. Methods like <code>get</code> and <code>post</code> take a path (and optionally headers and a body) and return a response object. This object is used in <code>expectResponse</code> to validate the status code and other values. Tests in Aqueduct are written in this way: make a request, expect that the response is intended.</p>
+<p>Because our application makes database queries, we have to to upload our database schema to the test database before each test. Fortunately, this is something our test harness can also do. In <code>test/harness/app.dart</code>, mixin <code>TestHarnessORMMixin</code> and override two methods:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Harness</span> <span class="kd">extends</span> <span class="n">TestHarness</span><span class="o">&lt;</span><span class="n">WildfireChannel</span><span class="o">&gt;</span> <span class="kd">with</span> <span class="n">TestHarnessORMMixin</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">ManagedContext</span> <span class="kd">get</span> <span class="n">context</span> <span class="o">=&gt;</span> <span class="n">channel</span><span class="p">.</span><span class="n">context</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span> <span class="n">onSetUp</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">await</span> <span class="n">resetData</span><span class="p">();</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The mixin gives our harness the method <code>resetData</code>. This method deletes everything from the test database and uploads the schema in a pristine state. By calling this method in <code>onSetUp</code>, our test harness will reset data before each test.</p>
+<p>Now, we can run this test by right-clicking on the <code>main</code> function in <code>hero_controller_test.dart</code> and selecting <code>Run tests in 'hero_controller_test.dart'</code>. A panel will appear that shows the results of your tests. You'll see a green checkmark next to the test in this panel to show that your test succeeded. If your test did not succeed, the reason will be printed to the console. If your test failed because of an error in your code, you will also be able to see the stack trace of the error.</p>
+<div class="admonition tip">
+<p class="admonition-title">Running Tests</p>
+<p>You can also run all of your tests for an application by running <code>pub run test</code> from your project's directory. You can re-run a test with the green play button at the top right corner of the screen, or the keyboard shortcut associated with it (this shortcut varies depending on your installation).</p>
+</div>
+<p>We should expect that more than just the status code is correct. Let's verify that the body is a list, where every element is an object that contains an id and name. Update your test:</p>
+<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;GET /heroes returns 200 OK&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">harness</span><span class="p">.</span><span class="n">agent</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="s2">&quot;/heroes&quot;</span><span class="p">);</span>
+  <span class="n">expectResponse</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="m">200</span><span class="p">,</span> <span class="nl">body:</span> <span class="n">everyElement</span><span class="p">({</span>
+    <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="n">greaterThan</span><span class="p">(</span><span class="m">0</span><span class="p">),</span>
+    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="n">isString</span><span class="p">,</span>
+  <span class="p">}));</span>
+<span class="p">});</span>
+</pre></div>
+
+
+<p>This expectation ensures that the body is a list and that every element is an object with a <code>id</code> greater than 0, and a <code>name</code> that is a string. When expecting a body value, the body is first decoded from its content-type before the expectation. In practice, this means that your JSON response body is deserialized into an object or list. Your expectations of the body are built from Dart objects like <code>List</code> and <code>Object</code> that deserialized from JSON.</p>
+<div class="admonition tip">
+<p class="admonition-title">Matchers</p>
+<p>The function <code>everyElement</code> is a <code>Matcher</code> from <code>package:matcher</code>. There are many types of matchers for all kinds of scenarios, and <code>package:aqueduct_test</code> includes Aqueduct-specific matchers. See the <a href="https://www.dartdocs.org/documentation/aqueduct_test/latest/">aqueduct_test API Reference</a> for all Aqueduct matchers.</p>
+</div>
+<p>This test actually has an error that we will fix in it by using another matcher. Right now, this endpoint returns an <em>empty list</em> because there are no heroes in the database! Let's insert a hero before we make this request, and also expect that there is at least one element in the body. Make sure to import <code>hero.dart</code> at the top of the file!</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:heroes/model/hero.dart&#39;</span><span class="p">;</span>
+
+<span class="k">import</span> <span class="s1">&#39;harness/app.dart&#39;</span><span class="p">;</span>
+
+<span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
+  <span class="kd">final</span> <span class="n">harness</span> <span class="o">=</span> <span class="n">Harness</span><span class="p">()..</span><span class="n">install</span><span class="p">();</span>
+
+  <span class="n">test</span><span class="p">(</span><span class="s2">&quot;GET /heroes returns 200 OK&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">final</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Hero</span><span class="o">&gt;</span><span class="p">(</span><span class="n">harness</span><span class="p">.</span><span class="n">application</span><span class="p">.</span><span class="n">channel</span><span class="p">.</span><span class="n">context</span><span class="p">)</span>
+      <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span><span class="p">;</span>
+
+    <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
+
+    <span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">harness</span><span class="p">.</span><span class="n">agent</span><span class="p">.</span><span class="kd">get</span><span class="p">(</span><span class="s2">&quot;/heroes&quot;</span><span class="p">);</span>
+    <span class="n">expectResponse</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="m">200</span><span class="p">,</span>
+        <span class="nl">body:</span> <span class="n">allOf</span><span class="p">([</span>
+          <span class="n">hasLength</span><span class="p">(</span><span class="n">greaterThan</span><span class="p">(</span><span class="m">0</span><span class="p">)),</span>
+          <span class="n">everyElement</span><span class="p">({</span>
+            <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="n">greaterThan</span><span class="p">(</span><span class="m">0</span><span class="p">),</span>
+            <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="n">isString</span><span class="p">,</span>
+          <span class="p">})</span>
+        <span class="p">]));</span>
+  <span class="p">});</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>This test first inserts a hero named 'Bob' before getting all heroes. We compose a matcher where each element has to match the expected list, but also have a length greater than 0. Re-run your tests, and they should still pass.</p>
+<h2 id="writing-more-tests">Writing More Tests</h2>
+<p>Let's write a few more tests for when we <code>POST /heroes</code>. In the first test, we'll make a mistake on purpose to see how tests fail. Add the following test:</p>
+<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;POST /heroes returns 200 OK&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">harness</span><span class="p">.</span><span class="n">agent</span><span class="p">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/heroes&quot;</span><span class="p">,</span> <span class="nl">body:</span> <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Fred&quot;</span>
+  <span class="p">});</span>
+  <span class="n">expectResponse</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="m">200</span><span class="p">,</span> <span class="nl">body:</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="n">greaterThan</span><span class="p">(</span><span class="m">0</span><span class="p">),</span>
+    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
+  <span class="p">});</span>
+<span class="p">});</span>
+</pre></div>
+
+
+<p>This test creates a hero named 'Fred', but expects that the returned hero has the name 'Bob'. When we run the test, we see this test failure:</p>
+<div class="codehilite"><pre><span></span><span class="nt">Expected</span><span class="o">:</span> <span class="nt">---</span> <span class="nt">HTTP</span> <span class="nt">Response</span> <span class="nt">---</span>
+          <span class="nt">-</span> <span class="nt">Status</span> <span class="nt">code</span> <span class="nt">must</span> <span class="nt">be</span> <span class="nt">200</span>
+          <span class="nt">-</span> <span class="nt">Headers</span> <span class="nt">can</span> <span class="nt">be</span> <span class="nt">anything</span>
+          <span class="nt">-</span> <span class="nt">Body</span> <span class="nt">after</span> <span class="nt">decoding</span> <span class="nt">must</span> <span class="nt">be</span><span class="o">:</span>
+
+            <span class="p">{</span><span class="err">&#39;id&#39;:</span> <span class="err">&lt;a</span> <span class="err">value</span> <span class="err">greater</span> <span class="err">than</span> <span class="err">&lt;0&gt;&gt;,</span> <span class="err">&#39;name&#39;:</span> <span class="err">&#39;Bob&#39;</span><span class="p">}</span>
+          <span class="nt">---------------------</span>
+  <span class="nt">Actual</span><span class="o">:</span> <span class="nt">TestResponse</span><span class="o">:&lt;</span><span class="nt">-----------</span>
+          <span class="nt">-</span> <span class="nt">Status</span> <span class="nt">code</span> <span class="nt">is</span> <span class="nt">200</span>
+          <span class="nt">-</span> <span class="nt">Headers</span> <span class="nt">are</span> <span class="nt">the</span> <span class="nt">following</span><span class="o">:</span>
+            <span class="nt">-</span> <span class="nt">content-encoding</span><span class="o">:</span> <span class="nt">gzip</span>
+            <span class="nt">-</span> <span class="nt">content-length</span><span class="o">:</span> <span class="nt">42</span>
+            <span class="nt">-</span> <span class="nt">x-frame-options</span><span class="o">:</span> <span class="nt">SAMEORIGIN</span>
+            <span class="nt">-</span> <span class="nt">content-type</span><span class="o">:</span> <span class="nt">application</span><span class="o">/</span><span class="nt">json</span><span class="o">;</span> <span class="nt">charset</span><span class="o">=</span><span class="nt">utf-8</span>
+            <span class="nt">-</span> <span class="nt">x-xss-protection</span><span class="o">:</span> <span class="nt">1</span><span class="o">;</span> <span class="nt">mode</span><span class="o">=</span><span class="nt">block</span>
+            <span class="nt">-</span> <span class="nt">x-content-type-options</span><span class="o">:</span> <span class="nt">nosniff</span>
+            <span class="nt">-</span> <span class="nt">server</span><span class="o">:</span> <span class="nt">aqueduct</span><span class="o">/</span><span class="nt">1</span>
+          <span class="nt">Decoded</span> <span class="nt">body</span> <span class="nt">is</span><span class="o">:</span>
+          <span class="p">{</span><span class="n">id</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">name</span><span class="o">:</span> <span class="n">Fred</span><span class="p">}</span>
+          <span class="nt">-------------------------</span>
+          <span class="o">&gt;</span>
+   <span class="nt">Which</span><span class="o">:</span> <span class="nt">the</span> <span class="nt">body</span> <span class="nt">differs</span> <span class="nt">for</span> <span class="nt">the</span> <span class="nt">following</span> <span class="nt">reasons</span><span class="o">:</span>
+          <span class="nt">was</span> <span class="s1">&#39;Fred&#39;</span> <span class="nt">instead</span> <span class="nt">of</span> <span class="s1">&#39;Bob&#39;</span> <span class="nt">at</span> <span class="nt">location</span> <span class="cp">[</span><span class="s1">&#39;name&#39;</span><span class="cp">]</span>
+</pre></div>
+
+
+<p>The 'Expected' value tells us the response we expected - that it has a status code of 200, any headers and the body must have a certain structure. The 'Actual' value tells us what the actual response was - a 200 OK, a bunch of headers, and a body a hero named 'Fred'. 'Which' tells us exactly what went wrong - we were expected 'Bob', not 'Fred'. Let's update our test to expect 'Fred'.</p>
+<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;POST /heroes returns 200 OK&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">harness</span><span class="p">.</span><span class="n">agent</span><span class="p">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/heroes&quot;</span><span class="p">,</span> <span class="nl">body:</span> <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Fred&quot;</span>
+  <span class="p">});</span>
+  <span class="n">expectResponse</span><span class="p">(</span><span class="n">response</span><span class="p">,</span> <span class="m">200</span><span class="p">,</span> <span class="nl">body:</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="n">greaterThan</span><span class="p">(</span><span class="m">0</span><span class="p">),</span>
+    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Fred&quot;</span>
+  <span class="p">});</span>
+<span class="p">});</span>
+</pre></div>
+
+
+<p>We shouldn't just test success cases. Let's also expect that if we try and insert a hero with the same name, we get a 409 error response.</p>
+<div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;POST /heroes returns 200 OK&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">await</span> <span class="n">harness</span><span class="p">.</span><span class="n">agent</span><span class="p">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/heroes&quot;</span><span class="p">,</span> <span class="nl">body:</span> <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Fred&quot;</span>
+  <span class="p">});</span>
+
+  <span class="kd">final</span> <span class="n">badResponse</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">harness</span><span class="p">.</span><span class="n">agent</span><span class="p">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/heroes&quot;</span><span class="p">,</span> <span class="nl">body:</span> <span class="p">{</span>
+    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Fred&quot;</span>
+  <span class="p">});</span>
+  <span class="n">expectResponse</span><span class="p">(</span><span class="n">badResponse</span><span class="p">,</span> <span class="m">409</span><span class="p">);</span>
+<span class="p">});</span>
+</pre></div>
+
+
+<p>In this test, we request two 'Fred' heroes be created, and the second request fails with a 409 because <code>name</code> is a unique property of a hero. Notice that the first request didn't fail, even though we had created a 'Fred' hero in the previous test - that's because we reset the database for each test in our harness.</p>
+                
+                  
+                
+              
+              
+                
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../storing-data/" title="3. Storing Data in a Database" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                3. Storing Data in a Database
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../../http/" title="Overview" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Overview
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Built by stable|kernel
+          </div>
+        
+        powered by
+        <a href="http://www.mkdocs.org" title="MkDocs">MkDocs</a>
+        and
+        <a href="http://squidfunk.github.io/mkdocs-material/" title="Material for MkDocs">
+          Material for MkDocs</a>
+      </div>
+      
+        
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../assets/javascripts/application-3700c4cc12.js"></script>
+      
+      
+      <script>app.initialize({url:{base:"../.."}})</script>
+      
+    
+    
+      
+      <script>!function(e,t,a,n,o,c,i){e.GoogleAnalyticsObject=o,e[o]=e[o]||function(){(e[o].q=e[o].q||[]).push(arguments)},e[o].l=1*new Date,c=t.createElement(a),i=t.getElementsByTagName(a)[0],c.async=1,c.src=n,i.parentNode.insertBefore(c,i)}(window,document,"script","https://www.google-analytics.com/analytics.js","ga"),ga("create","UA-41269877-2","aqueduct.io"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");Array.prototype.map.call(links,function(e){e.host!=document.location.host&&e.addEventListener("click",function(){var t=e.getAttribute("data-md-action")||"follow";ga("send","event","outbound",t,e.href)})});var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})</script>
+      
+    
+  </body>
+</html>

@@ -411,6 +411,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/writing-tests/" title="4. Configuration and Testing" class="md-nav__link">
+      4. Configuration and Testing
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1432,7 +1444,7 @@
 </pre></div>
 
 
-<p>When <code>TestHarness.install</code> is invoked, it installs two callbacks from <code>package:test</code> that will start your application in 'test mode' when the tests start, and stop it after the tests complete. An application running in 'test mode' creates a local HTTP server and instantiates your <code>ApplicationChannel</code> <em>on the same isolate as your tests are running on</em>. This allows you to reach into your application channel's services to add test expectations on the state that the services manage.</p>
+<p>When <code>TestHarness.install</code> is invoked, it installs two callbacks that will start your application in 'test mode' when the tests start, and stop it after the tests complete. An application running in 'test mode' creates a local HTTP server and instantiates your <code>ApplicationChannel</code> <em>on the same isolate as your tests are running on</em>. This allows you to reach into your application channel's services to add test expectations on the state that the services manage.</p>
 <p>When your application is started in this way, its options have some default values:</p>
 <ul>
 <li>the application listens on a random port</li>
@@ -1441,32 +1453,25 @@
 <p>The <code>config.src.yaml</code> file must have the same structure as your deployment configurations, but values are substituted with test control values. For example, database connection configuration will point at a local test database instead of a production database. For more details on configuring an application, see <a href="../../http/configure/">this guide</a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Harness Install</p>
-<p>The <code>install</code> method calls <code>setUpAll</code> and <code>tearDownAll</code> from <code>package:test</code> to start and stop your application. You can manually start and stop your application by invoking <code>TestHarness.setUp</code> and <code>TestHarness.tearDown</code>.</p>
+<p>The <code>install</code> method calls <code>setUpAll</code> and <code>tearDownAll</code> from <code>package:test</code> to start and stop your application. You can manually start and stop your application by invoking <code>TestHarness.start</code> and <code>TestHarness.stop</code>. However, this is not recommended because <code>onSetUp</code> and <code>onTearDown</code> will not be called for each test.</p>
 </div>
 <div class="admonition note">
 <p class="admonition-title">Uncaught Exceptions when Testing</p>
 <p>A test harness configures the application the let uncaught exceptions escape so that they trigger a failure in your test. This is different than when running an application normally, where all exceptions are caught and send an error response to the HTTP client.</p>
 </div>
 <h3 id="using-a-testharness-subclass">Using a TestHarness Subclass</h3>
-<p>Applications created with <code>aqueduct create</code> include a <code>TestHarness&lt;T&gt;</code> subclass that can be modified for your application's specific needs (where <code>T</code> is your application channel subclass). This file that contains this subclass is located in <code>test/harness/app.dart</code>. A simple test harness subclass looks like this:</p>
+<p>Most applications should subclass <code>TestHarness&lt;T&gt;</code> to provide application customization. (Applications created through the CLI have a suclass in <code>test/harness/app.dart</code>.) You override callback methods for events that occur during testing, like when the application starts, and before and after each test.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Harness</span> <span class="kd">extends</span> <span class="n">TestHarness</span><span class="o">&lt;</span><span class="n">WildfireChannel</span><span class="o">&gt;</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">override</span>
-  <span class="n">Future</span> <span class="n">beforeStart</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="c1">// add initialization code that will run prior to the test application starting</span>
-  <span class="p">}</span>
-
-  <span class="err">@</span><span class="n">override</span>
-  <span class="n">Future</span> <span class="n">afterStart</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="c1">// add initialization code that will run once the test application has started</span>
+  <span class="n">Future</span> <span class="n">onSetUp</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="c1">// called before each test</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>Use <code>beforeStart</code> to configure your test environment before your application starts. For example, you might start a <code>MockHTTPServer</code> that emulates another system your application integrates with, or you might set an environment variable that your application should read when it starts.</p>
-<p>Use <code>afterStart</code> to configure your test environment after the application starts. This step is useful because you may use your application's services to perform initialization. For example, you might create all of your database tables by executing queries with your <code>ManagedContext</code>. (This is a common task, see <a href="../mixins/">harness mixins</a> for a mixin that takes care of this.)</p>
-<p>Add initialization code that configures your application prior to it starting in <code>beforeStart</code>. This would include code that modifies <code>ApplicationOptions</code> are sets up external services. After your application has started, you can add initialization code that configures application state, like adding OAuth 2.0 clients that will be used for testing or seeding a database with data. This initialization code is performed in <code>afterStart</code>.</p>
-<p>You often add methods to your harness subclass for common tasks across tests. For example, if your application requires an authorized user, it makes sense to have a method that can add and authenticate a new user so that test requests are executed on behalf of that user. (This is a common task, see <a href="../mixins/">harness mixins</a> for a mixin that takes care of this.)</p>
+<p>You must invoke <code>install</code> on your test harness at the beginning of test suite for these callbacks to be called.</p>
+<p>See <a href="../mixins/">harness mixins</a> for classes that can be mixed into your harness for testing applications that use the ORM or OAuth 2.0.</p>
 <h2 id="using-an-agent-to-execute-requests">Using an Agent to Execute Requests</h2>
 <p>A <code>TestHarness&lt;T&gt;</code> has an <code>agent</code> property that is used to execute requests against the application being tested. An <code>Agent</code> has methods like <code>get</code> and <code>post</code> to execute requests and return a response object that can be validated. Its usage looks like this:</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;After POST to /thing, GET /thing/:id returns created thing&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>

@@ -411,6 +411,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/writing-tests/" title="4. Configuration and Testing" class="md-nav__link">
+      4. Configuration and Testing
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1376,8 +1388,8 @@
 
 
 <p>The default value is <code>config.yaml</code>.</p>
-<p>The best practice for reading a configuration file is to subclass <code>ConfigurationItem</code>. A <code>ConfigurationItem</code> declares a property for each key in a configuration file. For example, see the following <code>ConfigurationItem</code> subclass:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">TodoConfiguration</span> <span class="kd">extends</span> <span class="n">ConfigurationItem</span> <span class="p">{</span>
+<p>The best practice for reading a configuration file is to subclass <code>Configuration</code>. A <code>Configuration</code> declares a property for each key in a configuration file. For example, see the following <code>Configuration</code> subclass:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">TodoConfiguration</span> <span class="kd">extends</span> <span class="n">Configuration</span> <span class="p">{</span>
   <span class="n">TodoConfiguration</span><span class="p">(</span><span class="kt">String</span> <span class="n">fileName</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">fileName</span><span class="p">);</span>
 
   <span class="n">DatabaseConnectionConfiguration</span> <span class="n">database</span><span class="p">;</span>
@@ -1402,13 +1414,13 @@
 
 
 <p>If required properties are omitted from the YAML file being read, application startup will fail and throw an informative error.</p>
-<p>You may use <code>ConfigurationItem</code>s to read values from environment variables. In <code>config.yaml</code>, use a <code>$</code>-prefixed environment variable name instead of a value:</p>
+<p>You may use <code>Configuration</code>s to read values from environment variables. In <code>config.yaml</code>, use a <code>$</code>-prefixed environment variable name instead of a value:</p>
 <div class="codehilite"><pre><span></span>database: $DATABASE_CONNECTION_URL
 apiBaseURL: /api
 </pre></div>
 
 
-<p>If the environment variable <code>DATABASE_CONNECTION_URL</code>'s value were <code>"postgres://user:password@localhost:5432/test"</code>, the value of <code>TodoConfigurationItem.database</code> will be that string at runtime. (Note that <code>DatabaseConnectionConfiguration</code> may either have a YAML object for each connection attribute, or a database connection string.)</p>
+<p>If the environment variable <code>DATABASE_CONNECTION_URL</code>'s value were <code>"postgres://user:password@localhost:5432/test"</code>, the value of <code>TodoConfiguration.database</code> will be that string at runtime. (Note that <code>DatabaseConnectionConfiguration</code> may either have a YAML object for each connection attribute, or a database connection string.)</p>
 <p>The <a href="https://pub.dartlang.org/packages/safe_config">safe_config package</a> has instructions for more additional usages.</p>
 <h3 id="configuration-conventions-and-deployment-options">Configuration Conventions and Deployment Options</h3>
 <p>Aqueduct uses two configuration files for a project: <code>config.yaml</code> and <code>config.src.yaml</code>. The latter is the <em>configuration source file</em>. The configuration source file declares key-value pairs that will be used when running the application tests. Deployed instances use <code>config.yaml</code>.</p>

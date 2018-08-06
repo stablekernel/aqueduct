@@ -111,6 +111,12 @@
      <changefreq>daily</changefreq>
     </url>
         
+    <url>
+     <loc>/tut/writing-tests/</loc>
+     <lastmod>2018-08-05</lastmod>
+     <changefreq>daily</changefreq>
+    </url>
+        
     
 
     

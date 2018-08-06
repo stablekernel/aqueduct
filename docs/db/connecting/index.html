@@ -411,6 +411,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/writing-tests/" title="4. Configuration and Testing" class="md-nav__link">
+      4. Configuration and Testing
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1322,8 +1334,8 @@
 <p>A <code>ManagedContext</code> is required to create and execute a <code>Query&lt;T&gt;</code>. The context determines which database the query is executed in. A context must exist before creating instances of any <code>ManagedObject</code> subclass in your application. Controllers that need to execute database queries must have a reference to a context; this is typically accomplished by passing the context to a controller's constructor.</p>
 <h3 id="using-a-configuration-file">Using a Configuration File</h3>
 <p>Connection information for a database is most often configured through a configuration file. This allows you to build configurations for different environments (production, testing, etc.), without having to modify code.</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyConfigurationItem</span> <span class="kd">extends</span> <span class="n">ConfigurationItem</span> <span class="p">{</span>
-  <span class="n">MyConfigurationItem</span><span class="p">(</span><span class="kt">String</span> <span class="n">configPath</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">configPath</span><span class="p">);</span>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyConfiguration</span> <span class="kd">extends</span> <span class="n">Configuration</span> <span class="p">{</span>
+  <span class="n">MyConfiguration</span><span class="p">(</span><span class="kt">String</span> <span class="n">configPath</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">configPath</span><span class="p">);</span>
 
   <span class="n">DatabaseConnectionConfiguration</span> <span class="n">database</span><span class="p">;</span>
 <span class="p">}</span>
@@ -1333,7 +1345,7 @@
 
   <span class="err">@</span><span class="n">override</span>
   <span class="n">Future</span> <span class="n">prepare</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">final</span> <span class="n">config</span> <span class="o">=</span> <span class="n">MyConfigurationItem</span><span class="p">(</span><span class="n">options</span><span class="p">.</span><span class="n">configurationFilePath</span><span class="p">);</span>
+    <span class="kd">final</span> <span class="n">config</span> <span class="o">=</span> <span class="n">MyConfiguration</span><span class="p">(</span><span class="n">options</span><span class="p">.</span><span class="n">configurationFilePath</span><span class="p">);</span>
 
     <span class="kd">final</span> <span class="n">dataModel</span> <span class="o">=</span> <span class="n">ManagedDataModel</span><span class="p">.</span><span class="n">fromCurrentMirrorSystem</span><span class="p">();</span>
     <span class="kd">final</span> <span class="n">psc</span> <span class="o">=</span> <span class="n">PostgreSQLPersistentStore</span><span class="p">.</span><span class="n">fromConnectionInfo</span><span class="p">(</span>

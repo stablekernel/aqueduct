@@ -411,6 +411,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/writing-tests/" title="4. Configuration and Testing" class="md-nav__link">
+      4. Configuration and Testing
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1355,27 +1367,8 @@
 
 
 <h2 id="provision-a-database-for-client-testing">Provision a Database for Client Testing</h2>
-<p>For applications that use the ORM, you must have a locally running database with your application's data model. See <a href="../mixins/">provisioning a database</a> for more details.</p>
-<p>If you are using OAuth 2.0, you must have also added client identifiers to the locally running database. You may add client identifiers with the <a href="../../auth/cli/">aqueduct auth</a> command-line tool, or as part of a utility provisioning script:</p>
-<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span><span class="p">;</span>
-<span class="k">import</span> <span class="s1">&#39;package:aqueduct/managed_auth.dart&#39;</span><span class="p">;</span>
-<span class="k">import</span> <span class="s1">&#39;package:myapp/myapp.dart&#39;</span><span class="p">;</span>
-
-<span class="n">Future</span> <span class="n">main</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-  <span class="kd">final</span> <span class="n">dataModel</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ManagedDataModel</span><span class="p">.</span><span class="n">fromCurrentMirrorSystem</span><span class="p">();</span>
-  <span class="kd">final</span> <span class="n">context</span> <span class="o">=</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ManagedContext</span><span class="p">(</span><span class="n">dataModel</span><span class="p">,</span> <span class="n">persistentStore</span><span class="p">);</span>
-
-  <span class="kd">var</span> <span class="n">credentials</span> <span class="o">=</span> <span class="n">AuthUtility</span><span class="p">.</span><span class="n">generateAPICredentialPair</span><span class="p">(</span><span class="s2">&quot;local.testing&quot;</span><span class="p">,</span> <span class="s2">&quot;secretpassword&quot;</span><span class="p">);</span>
-
-  <span class="kd">var</span> <span class="n">managedCredentials</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ManagedAuthClient</span><span class="p">()</span>
-    <span class="p">..</span><span class="n">id</span> <span class="o">=</span> <span class="n">credentials</span><span class="p">.</span><span class="n">id</span>
-    <span class="p">..</span><span class="n">hashedSecret</span> <span class="o">=</span> <span class="n">credentials</span><span class="p">.</span><span class="n">hashedSecret</span>
-    <span class="p">..</span><span class="n">salt</span> <span class="o">=</span> <span class="n">credentials</span><span class="p">.</span><span class="n">salt</span><span class="p">;</span>
-
-  <span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">ManagedAuthClient</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)..</span><span class="n">values</span> <span class="o">=</span> <span class="n">managedCredentials</span><span class="p">;</span>
-  <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
-<span class="p">}</span>
-</pre></div>
+<p>For applications that use the ORM, you must have a locally running database with a schema that matches your application's data model.</p>
+<p>If you are using OAuth 2.0, you must have also added client identifiers to the locally running database. You may add client identifiers with the <a href="../../auth/cli/">aqueduct auth</a> command-line tool.</p>
                 
                   
                 

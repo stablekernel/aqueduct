@@ -411,6 +411,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/writing-tests/" title="4. Configuration and Testing" class="md-nav__link">
+      4. Configuration and Testing
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -1379,8 +1391,8 @@
 
 
 <p>Your application reads this configuration file and injects the base URL into the service that will execute requests.</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">AppConfigurationItem</span> <span class="kd">extends</span> <span class="n">ConfigurationItem</span> <span class="p">{</span>
-  <span class="n">AppConfigurationItem</span><span class="p">(</span><span class="kt">String</span> <span class="n">fileName</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">fileName</span><span class="p">);</span>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">AppConfiguration</span> <span class="kd">extends</span> <span class="n">Configuration</span> <span class="p">{</span>
+  <span class="n">AppConfiguration</span><span class="p">(</span><span class="kt">String</span> <span class="n">fileName</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">fileName</span><span class="p">);</span>
 
   <span class="n">APIConfiguration</span> <span class="n">github</span><span class="p">;</span>
 <span class="p">}</span>
@@ -1388,7 +1400,7 @@
 <span class="kd">class</span> <span class="nc">AppApplicationChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">override</span>
   <span class="n">Future</span> <span class="n">prepare</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="n">config</span> <span class="o">=</span> <span class="k">new</span> <span class="n">AppConfigurationItem</span><span class="p">(</span><span class="n">options</span><span class="p">.</span><span class="n">configurationFilePath</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="n">config</span> <span class="o">=</span> <span class="k">new</span> <span class="n">AppConfiguration</span><span class="p">(</span><span class="n">options</span><span class="p">.</span><span class="n">configurationFilePath</span><span class="p">);</span>
 
     <span class="n">githubService</span> <span class="o">=</span> <span class="k">new</span> <span class="n">GitHubService</span><span class="p">(</span><span class="nl">baseURL:</span> <span class="n">config</span><span class="p">.</span><span class="n">github</span><span class="p">.</span><span class="n">baseURL</span><span class="p">);</span>
   <span class="p">}</span>

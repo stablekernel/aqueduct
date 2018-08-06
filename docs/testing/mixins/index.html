@@ -411,6 +411,18 @@
   </li>
 
         
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../tut/writing-tests/" title="4. Configuration and Testing" class="md-nav__link">
+      4. Configuration and Testing
+    </a>
+  </li>
+
+        
       </ul>
     </nav>
   </li>
@@ -935,29 +947,35 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#testing-applications-that-use-the-orm" title="Testing Applications That Use the ORM" class="md-nav__link">
+    Testing Applications That Use the ORM
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#local-database-for-tests" title="Local Database for Tests" class="md-nav__link">
     Local Database for Tests
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#local-database-for-running-an-application" title="Local Database for Running an Application" class="md-nav__link">
     Local Database for Running an Application
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#use-local-configuration-files" title="Use Local Configuration Files" class="md-nav__link">
-    Use Local Configuration Files
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#have-scripts-to-provision-based-on-scenarios" title="Have Scripts to Provision Based on Scenarios" class="md-nav__link">
-    Have Scripts to Provision Based on Scenarios
+  <a href="#testing-applications-that-use-oauth-20" title="Testing Applications That Use OAuth 2.0" class="md-nav__link">
+    Testing Applications That Use OAuth 2.0
   </a>
   
 </li>
@@ -1290,29 +1308,35 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#testing-applications-that-use-the-orm" title="Testing Applications That Use the ORM" class="md-nav__link">
+    Testing Applications That Use the ORM
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#local-database-for-tests" title="Local Database for Tests" class="md-nav__link">
     Local Database for Tests
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
+        
+          <li class="md-nav__item">
   <a href="#local-database-for-running-an-application" title="Local Database for Running an Application" class="md-nav__link">
     Local Database for Running an Application
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#use-local-configuration-files" title="Use Local Configuration Files" class="md-nav__link">
-    Use Local Configuration Files
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#have-scripts-to-provision-based-on-scenarios" title="Have Scripts to Provision Based on Scenarios" class="md-nav__link">
-    Have Scripts to Provision Based on Scenarios
+  <a href="#testing-applications-that-use-oauth-20" title="Testing Applications That Use OAuth 2.0" class="md-nav__link">
+    Testing Applications That Use OAuth 2.0
   </a>
   
 </li>
@@ -1335,9 +1359,23 @@
                 
                 
                 <h1 id="testing-applications-that-use-orm-and-oauth-20">Testing Applications That Use ORM and OAuth 2.0</h1>
-<p>Aqueduct's ORM uses PostgreSQL as its database. To run the application or its automated tests locally, you must have PostgreSQL installed locally. On macOS, <a href="https://postgresapp.com">Postgres.app</a> is a simple, self-contained PostgreSQL instance that you can run as a normal application. (See <a href="https://www.postgresql.org/download/">PostgreSQL installation for other platforms</a>.)</p>
-<h2 id="local-database-for-tests">Local Database for Tests</h2>
-<p>An application running automated tests defaults to connecting to a database with the following configuration:</p>
+<p>This document describes how to set up your test code to test applications that use the ORM and OAuth 2.0. These types of applications require extra initialization steps, e.g. set up a test database.</p>
+<h2 id="testing-applications-that-use-the-orm">Testing Applications That Use the ORM</h2>
+<p>Aqueduct's ORM uses PostgreSQL as its database. Before your tests run, Aqueduct will create your application's database tables in a local PostgreSQL database. After the tests complete, it will delete those tables. This allows you to start with an empty database for each test suite as well as control exactly which records are in your database while testing, but without having to manage database schemas or use an mock implementation (e.g., SQLite).</p>
+<div class="admonition warning">
+<p class="admonition-title">You Must Install PostgreSQL Locally<p>On macOS, <a href="https://postgresapp.com">Postgres.app</a> is a simple, self-contained PostgreSQL instance that you can run as a normal application. (See <a href="https://www.postgresql.org/download/">PostgreSQL installation for other platforms</a>.)</p>
+</p>
+</div>
+<h3 id="local-database-for-tests">Local Database for Tests</h3>
+<p>The same database is reused for testing all of your applications. You only have to create this database once per development machine, or when running in a CI tool like TravisCI. From PostgreSQL's prompt, run:</p>
+<div class="codehilite"><pre><span></span><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">dart_test</span><span class="p">;</span>
+<span class="k">CREATE</span> <span class="k">USER</span> <span class="n">dart</span> <span class="k">WITH</span> <span class="k">createdb</span><span class="p">;</span>
+<span class="k">ALTER</span> <span class="k">USER</span> <span class="n">dart</span> <span class="k">WITH</span> <span class="n">password</span> <span class="s1">&#39;dart&#39;</span><span class="p">;</span>
+<span class="k">GRANT</span> <span class="k">all</span> <span class="k">ON</span> <span class="k">DATABASE</span> <span class="n">dart_test</span> <span class="k">TO</span> <span class="n">dart</span><span class="p">;</span>
+</pre></div>
+
+
+<p>A database configuration in your application's <code>config.yaml.src</code> must match the following:</p>
 <div class="codehilite"><pre><span></span><span class="n">username</span><span class="o">:</span> <span class="n">dart</span>
 <span class="n">password</span><span class="o">:</span> <span class="n">dart</span>
 <span class="n">host</span><span class="o">:</span> <span class="n">localhost</span>
@@ -1346,56 +1384,69 @@
 </pre></div>
 
 
-<p>Once PostgreSQL has been installed locally, you may create a database user and database that matches this connection info by running the following command:</p>
-<div class="codehilite"><pre><span></span>aqueduct setup
+<p>Your application, when run with a subclass of <code>TestHarness&lt;T&gt;</code>, will configure its database connection to connect to the local test database. You must mixin <code>TestHarnessORMMixin</code> with your test harness and invoke <code>resetData</code> by overriding <code>onSetUp</code>. You may also override <code>seed</code> to insert test data into the database.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Harness</span> <span class="kd">extends</span> <span class="n">TestHarness</span><span class="o">&lt;</span><span class="n">AppChannel</span><span class="o">&gt;</span> <span class="kd">with</span> <span class="n">TestHarnessORMMixin</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">ManagedContext</span> <span class="kd">get</span> <span class="n">context</span> <span class="o">=&gt;</span> <span class="n">channel</span><span class="p">.</span><span class="n">context</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span> <span class="n">onSetUp</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">await</span> <span class="n">resetData</span><span class="p">();</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span> <span class="n">seed</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="cm">/* insert some rows here */</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 
 
-<p>Aqueduct tests create a temporary database schema that matches your application schema in the <code>dart_test</code> database. The tables and data in this database are discarded when the tests complete. For this reason, no other tables should be created in this database to avoid conflicts with tests. This default behavior of Aqueduct tests is provided by a <a href="../tests/">test harness</a>.</p>
-<h2 id="local-database-for-running-an-application">Local Database for Running an Application</h2>
+<div class="admonition tip">
+<p class="admonition-title">Seeding Data<p>You should only seed static data in the <code>seed</code> method; this may include things like categories or country codes that cannot be changed during runtime. Data that is manipulated for specific test cases should be invoked in a test <code>setUp</code> callback or the test itself.</p>
+</p>
+</div>
+<h3 id="local-database-for-running-an-application">Local Database for Running an Application</h3>
 <p>A database separate from the test database should be used for <em>running</em> an application locally. You can create a database locally by running <code>psql</code> to open a PostgreSQL terminal and run the following commands:</p>
-<div class="codehilite"><pre><span></span>CREATE DATABASE my_local_app_db;
-CREATE USER my_local_app_user WITH PASSWORD &#39;mypassword&#39;;
-GRANT ALL ON DATABASE my_local_app_db TO my_local_app_user;
+<div class="codehilite"><pre><span></span>CREATE DATABASE my_app_name;
+CREATE USER my_app_user WITH PASSWORD &#39;mypassword&#39;;
+GRANT ALL ON DATABASE my_app_name TO my_app_user;
 </pre></div>
 
 
 <p>Add your schema to the local database by generating and executing migration scripts:</p>
 <div class="codehilite"><pre><span></span>aqueduct db generate
-aqueduct db upgrade --connect postgres://my_local_app_user:mypassword@localhost:5432/my_local_app_db
+aqueduct db upgrade --connect postgres://my_app_user:mypassword@localhost:5432/my_app_name
 </pre></div>
 
 
-<h2 id="use-local-configuration-files">Use Local Configuration Files</h2>
-<p>Use <a href="../../http/configure/">configuration files</a> to manage which database an application connects to. This may or may not be checked into source control, depending on a team's preference. Control which file is loaded with command-line options to <code>aqueduct serve</code> or the <code>bin/main.dart</code> script:</p>
-<div class="codehilite"><pre><span></span>aqueduct serve -c local.yaml
-</pre></div>
+<h2 id="testing-applications-that-use-oauth-20">Testing Applications That Use OAuth 2.0</h2>
+<p>Applications that use OAuth 2.0 should mixin <code>TestHarnessAuthMixin</code>. This mixin adds methods for registering a client identifier and authenticating a user. Both methods return an <code>Agent</code> with default headers with authorization information for the client identifier or user.</p>
+<p>Most often, you use <code>package:aqueduct/managed_auth</code> for an ORM-driven OAuth2 delegate. You must also mixin <code>TestHarnessORMMixin</code> when using this mixin.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Harness</span> <span class="kd">extends</span> <span class="n">TestHarness</span><span class="o">&lt;</span><span class="n">AppChannel</span><span class="o">&gt;</span> <span class="kd">with</span> <span class="n">TestHarnessAuthMixin</span><span class="o">&lt;</span><span class="n">AppChannel</span><span class="o">&gt;</span><span class="p">,</span> <span class="n">TestHarnessORMMixin</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">ManagedContext</span> <span class="kd">get</span> <span class="n">context</span> <span class="o">=&gt;</span> <span class="n">channel</span><span class="p">.</span><span class="n">context</span><span class="p">;</span>
 
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">AuthServer</span> <span class="kd">get</span> <span class="n">authServer</span> <span class="o">=&gt;</span> <span class="n">channel</span><span class="p">.</span><span class="n">authServer</span><span class="p">;</span>
 
-<h2 id="have-scripts-to-provision-based-on-scenarios">Have Scripts to Provision Based on Scenarios</h2>
-<p>It is often the case that you will want to have a certain set of data in an local database for the purpose of testing a client application. Create <code>bin</code> scripts to provision the database and add the desired data. For example, you might have a script named <code>bin/ios_integration.dart</code> that re-provisions a database and inserts data into it using <code>Query&lt;T&gt;</code> instances and the <code>ManagedObject&lt;T&gt;</code>s declared in your application.</p>
-<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;dart:io&#39;</span><span class="p">;</span>
-<span class="k">import</span> <span class="s1">&#39;package:myapp/myapp.dart&#39;</span><span class="p">;</span>
+  <span class="n">Agent</span> <span class="n">publicAgent</span><span class="p">;</span>
 
-<span class="n">Future</span> <span class="n">main</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-  <span class="kd">await</span> <span class="n">provisionDatabase</span><span class="p">();</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span> <span class="n">onSetUp</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>    
+    <span class="kd">await</span> <span class="n">resetData</span><span class="p">();</span>
+    <span class="n">publicAgent</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">addClient</span><span class="p">(</span><span class="s2">&quot;com.aqueduct.public&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
 
-  <span class="kd">var</span> <span class="n">defaultUser</span> <span class="o">=</span> <span class="k">new</span> <span class="n">User</span><span class="p">(...);</span>
-  <span class="kd">await</span> <span class="n">Query</span><span class="p">.</span><span class="n">insertObject</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">defaultUser</span><span class="p">);</span>
-  <span class="p">...</span>
-<span class="p">}</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Agent</span><span class="o">&gt;</span> <span class="n">registerUser</span><span class="p">(</span><span class="n">User</span> <span class="n">user</span><span class="p">,</span> <span class="p">{</span><span class="n">Agent</span> <span class="n">withClient</span><span class="p">})</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="n">withClient</span> <span class="o">??=</span> <span class="n">publicAgent</span><span class="p">;</span>
 
-<span class="n">Future</span> <span class="n">provisionDatabase</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-  <span class="kd">var</span> <span class="n">commands</span> <span class="o">=</span> <span class="p">[</span>
-    <span class="s2">&quot;CREATE DATABASE local_app;&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;CREATE USER local_user WITH PASSWORD &#39;local&#39;;&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;GRANT ALL ON DATABASE local_app TO local_user;&quot;</span>
-  <span class="p">];</span>
+    <span class="kd">final</span> <span class="n">req</span> <span class="o">=</span> <span class="n">withClient</span><span class="p">.</span><span class="n">request</span><span class="p">(</span><span class="s2">&quot;/register&quot;</span><span class="p">)</span>
+      <span class="p">..</span><span class="n">body</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;username&quot;</span><span class="o">:</span> <span class="n">user</span><span class="p">.</span><span class="n">username</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="o">:</span> <span class="n">user</span><span class="p">.</span><span class="n">password</span><span class="p">};</span>
+    <span class="kd">await</span> <span class="n">req</span><span class="p">.</span><span class="n">post</span><span class="p">();</span>
 
-  <span class="kd">await</span> <span class="n">Future</span><span class="p">.</span><span class="n">forEach</span><span class="p">(</span><span class="n">commands</span><span class="p">,</span> <span class="p">(</span><span class="n">cmd</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">List</span><span class="o">&lt;</span><span class="kt">String</span><span class="o">&gt;</span> <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="n">cmd</span><span class="p">,</span> <span class="s2">&quot;-U&quot;</span><span class="p">,</span> <span class="n">grantingUser</span><span class="p">];</span>
-    <span class="k">return</span> <span class="n">Process</span><span class="p">.</span><span class="n">run</span><span class="p">(</span><span class="s2">&quot;psql&quot;</span><span class="p">,</span> <span class="n">args</span><span class="p">,</span> <span class="nl">runInShell:</span> <span class="kc">true</span><span class="p">);</span>
-  <span class="p">});</span>
+    <span class="k">return</span> <span class="n">loginUser</span><span class="p">(</span><span class="n">withClient</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="n">username</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="n">password</span><span class="p">);</span>
+  <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
                 
