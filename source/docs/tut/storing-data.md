@@ -145,3 +145,5 @@ Re-run your `heroes` application. On [http://aqueduct-tutorial.stablekernel.io](
 
 !!! tip "Query Construction"
     Properties like `values` and `where` prevent errors by type and name checking columns with the analyzer. They're also great for speeding up writing code because your IDE will autocomplete property names. There is [specific behavior](../db/advanced_queries.md) a query uses to decide whether it should include a value from these two properties in the SQL it generates.
+
+## [Next Chapter: Writing Tests](writing-tests.md)

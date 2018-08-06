@@ -27,6 +27,7 @@ pages:
   - '1. Getting Started': 'tut/getting-started.md'
   - '2. Reading from a Database': 'tut/executing-queries.md'
   - '3. Storing Data in a Database': 'tut/storing-data.md'
+  - '4. Configuration and Testing': 'tut/writing-tests.md'
 - Guides:
   - Serving HTTP Requests:
     - 'Overview': 'http/index.md'
