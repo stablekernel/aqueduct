@@ -122,7 +122,7 @@ class AppChannel extends ApplicationChannel {
   }
 }
 
-class MyAppConfiguration extends ConfigurationItem {
+class MyAppConfiguration extends Configuration {
   MyAppConfiguration(String fileName) : super.fromFile(fileName);
 
   DatabaseConnectionConfiguration database;

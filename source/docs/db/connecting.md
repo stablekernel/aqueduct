@@ -35,8 +35,8 @@ A `ManagedContext` is required to create and execute a `Query<T>`. The context d
 Connection information for a database is most often configured through a configuration file. This allows you to build configurations for different environments (production, testing, etc.), without having to modify code.
 
 ```dart
-class MyConfigurationItem extends ConfigurationItem {
-  MyConfigurationItem(String configPath) : super.fromFile(configPath);
+class MyConfiguration extends Configuration {
+  MyConfiguration(String configPath) : super.fromFile(configPath);
 
   DatabaseConnectionConfiguration database;
 }
@@ -46,7 +46,7 @@ class MyApplicationChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    final config = MyConfigurationItem(options.configurationFilePath);
+    final config = MyConfiguration(options.configurationFilePath);
 
     final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
     final psc = PostgreSQLPersistentStore.fromConnectionInfo(

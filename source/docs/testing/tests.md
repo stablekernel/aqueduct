@@ -22,7 +22,7 @@ void main() {
 }}
 ```
 
-When `TestHarness.install` is invoked, it installs two callbacks from `package:test` that will start your application in 'test mode' when the tests start, and stop it after the tests complete. An application running in 'test mode' creates a local HTTP server and instantiates your `ApplicationChannel` *on the same isolate as your tests are running on*. This allows you to reach into your application channel's services to add test expectations on the state that the services manage.
+When `TestHarness.install` is invoked, it installs two callbacks that will start your application in 'test mode' when the tests start, and stop it after the tests complete. An application running in 'test mode' creates a local HTTP server and instantiates your `ApplicationChannel` *on the same isolate as your tests are running on*. This allows you to reach into your application channel's services to add test expectations on the state that the services manage.
 
 When your application is started in this way, its options have some default values:
 
@@ -32,36 +32,27 @@ When your application is started in this way, its options have some default valu
 The `config.src.yaml` file must have the same structure as your deployment configurations, but values are substituted with test control values. For example, database connection configuration will point at a local test database instead of a production database. For more details on configuring an application, see [this guide](../http/configure.md).
 
 !!! note "Harness Install"
-    The `install` method calls `setUpAll` and `tearDownAll` from `package:test` to start and stop your application. You can manually start and stop your application by invoking `TestHarness.setUp` and `TestHarness.tearDown`.
+    The `install` method calls `setUpAll` and `tearDownAll` from `package:test` to start and stop your application. You can manually start and stop your application by invoking `TestHarness.start` and `TestHarness.stop`. However, this is not recommended because `onSetUp` and `onTearDown` will not be called for each test.
 
 !!! note "Uncaught Exceptions when Testing"
     A test harness configures the application the let uncaught exceptions escape so that they trigger a failure in your test. This is different than when running an application normally, where all exceptions are caught and send an error response to the HTTP client.
 
 ### Using a TestHarness Subclass
 
-Applications created with `aqueduct create` include a `TestHarness<T>` subclass that can be modified for your application's specific needs (where `T` is your application channel subclass). This file that contains this subclass is located in `test/harness/app.dart`. A simple test harness subclass looks like this:
+Most applications should subclass `TestHarness<T>` to provide application customization. (Applications created through the CLI have a suclass in `test/harness/app.dart`.) You override callback methods for events that occur during testing, like when the application starts, and before and after each test.
 
 ```dart
 class Harness extends TestHarness<WildfireChannel> {
   @override
-  Future beforeStart() async {
-    // add initialization code that will run prior to the test application starting
-  }
-
-  @override
-  Future afterStart() async {
-    // add initialization code that will run once the test application has started
+  Future onSetUp() async {
+    // called before each test
   }
 }
 ```
 
-Use `beforeStart` to configure your test environment before your application starts. For example, you might start a `MockHTTPServer` that emulates another system your application integrates with, or you might set an environment variable that your application should read when it starts.
+You must invoke `install` on your test harness at the beginning of test suite for these callbacks to be called.
 
-Use `afterStart` to configure your test environment after the application starts. This step is useful because you may use your application's services to perform initialization. For example, you might create all of your database tables by executing queries with your `ManagedContext`. (This is a common task, see [harness mixins](mixins.md) for a mixin that takes care of this.)
-
-Add initialization code that configures your application prior to it starting in `beforeStart`. This would include code that modifies `ApplicationOptions` are sets up external services. After your application has started, you can add initialization code that configures application state, like adding OAuth 2.0 clients that will be used for testing or seeding a database with data. This initialization code is performed in `afterStart`.
-
-You often add methods to your harness subclass for common tasks across tests. For example, if your application requires an authorized user, it makes sense to have a method that can add and authenticate a new user so that test requests are executed on behalf of that user. (This is a common task, see [harness mixins](mixins.md) for a mixin that takes care of this.)
+See [harness mixins](mixins.md) for classes that can be mixed into your harness for testing applications that use the ORM or OAuth 2.0.
 
 ## Using an Agent to Execute Requests
 

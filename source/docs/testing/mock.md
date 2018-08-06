@@ -87,8 +87,8 @@ github:
 Your application reads this configuration file and injects the base URL into the service that will execute requests.
 
 ```dart
-class AppConfigurationItem extends ConfigurationItem {
-  AppConfigurationItem(String fileName) : super.fromFile(fileName);
+class AppConfiguration extends Configuration {
+  AppConfiguration(String fileName) : super.fromFile(fileName);
 
   APIConfiguration github;
 }
@@ -96,7 +96,7 @@ class AppConfigurationItem extends ConfigurationItem {
 class AppApplicationChannel extends ApplicationChannel {
   @override
   Future prepare() async {
-    var config = new AppConfigurationItem(options.configurationFilePath);
+    var config = new AppConfiguration(options.configurationFilePath);
 
     githubService = new GitHubService(baseURL: config.github.baseURL);
   }

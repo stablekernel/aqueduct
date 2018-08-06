@@ -29,10 +29,10 @@ INSERT INTO _question (description) VALUES ('What is 1+1?');
 INSERT INTO _answer (description, question_index) VALUES ('2', 1);
 ```
 
-The application is currently hard-coded to connect to the test database. We'll write a bit of code to read connection info from a YAML configuration file instead. At the bottom of `quiz_sink.dart`, create a `ConfigurationItem` subclass:
+The application is currently hard-coded to connect to the test database. We'll write a bit of code to read connection info from a YAML configuration file instead. At the bottom of `quiz_sink.dart`, create a `Configuration` subclass:
 
 ```dart
-class QuizConfig extends ConfigurationItem {
+class QuizConfig extends Configuration {
   QuizConfig(String filename) : super.fromFile(filename);
 
   DatabaseConnectionConfiguration database;

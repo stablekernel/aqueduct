@@ -1,12 +1,26 @@
 # Testing Applications That Use ORM and OAuth 2.0
 
+This document describes how to set up your test code to test applications that use the ORM and OAuth 2.0. These types of applications require extra initialization steps, e.g. set up a test database.
 
+## Testing Applications That Use the ORM
 
-Aqueduct's ORM uses PostgreSQL as its database. To run the application or its automated tests locally, you must have PostgreSQL installed locally. On macOS, [Postgres.app](https://postgresapp.com) is a simple, self-contained PostgreSQL instance that you can run as a normal application. (See [PostgreSQL installation for other platforms](https://www.postgresql.org/download/).)
+Aqueduct's ORM uses PostgreSQL as its database. Before your tests run, Aqueduct will create your application's database tables in a local PostgreSQL database. After the tests complete, it will delete those tables. This allows you to start with an empty database for each test suite as well as control exactly which records are in your database while testing, but without having to manage database schemas or use an mock implementation (e.g., SQLite).
 
-## Local Database for Tests
+!!! warning "You Must Install PostgreSQL Locally"
+        On macOS, [Postgres.app](https://postgresapp.com) is a simple, self-contained PostgreSQL instance that you can run as a normal application. (See [PostgreSQL installation for other platforms](https://www.postgresql.org/download/).)
 
-An application running automated tests defaults to connecting to a database with the following configuration:
+### Local Database for Tests
+
+The same database is reused for testing all of your applications. You only have to create this database once per development machine, or when running in a CI tool like TravisCI. From PostgreSQL's prompt, run:
+
+```sql
+CREATE DATABASE dart_test;
+CREATE USER dart WITH createdb;
+ALTER USER dart WITH password 'dart';
+GRANT all ON DATABASE dart_test TO dart;
+```
+
+A database configuration in your application's `config.yaml.src` must match the following:
 
 ```
 username: dart
@@ -16,65 +30,76 @@ port: 5432
 databaseName: dart_test
 ```
 
-Once PostgreSQL has been installed locally, you may create a database user and database that matches this connection info by running the following command:
+Your application, when run with a subclass of `TestHarness<T>`, will configure its database connection to connect to the local test database. You must mixin `TestHarnessORMMixin` with your test harness and invoke `resetData` by overriding `onSetUp`. You may also override `seed` to insert test data into the database.
 
+```dart
+class Harness extends TestHarness<AppChannel> with TestHarnessORMMixin {
+  @override
+  ManagedContext get context => channel.context;
+
+  @override
+  Future onSetUp() async {
+    await resetData();
+  }
+
+  @override
+  Future seed() async {
+    /* insert some rows here */
+  }
+}
 ```
-aqueduct setup
-```
 
-Aqueduct tests create a temporary database schema that matches your application schema in the `dart_test` database. The tables and data in this database are discarded when the tests complete. For this reason, no other tables should be created in this database to avoid conflicts with tests. This default behavior of Aqueduct tests is provided by a [test harness](tests.md).
+!!! tip "Seeding Data"
+          You should only seed static data in the `seed` method; this may include things like categories or country codes that cannot be changed during runtime. Data that is manipulated for specific test cases should be invoked in a test `setUp` callback or the test itself.
 
-## Local Database for Running an Application
+
+### Local Database for Running an Application
 
 A database separate from the test database should be used for *running* an application locally. You can create a database locally by running `psql` to open a PostgreSQL terminal and run the following commands:
 
 ```
-CREATE DATABASE my_local_app_db;
-CREATE USER my_local_app_user WITH PASSWORD 'mypassword';
-GRANT ALL ON DATABASE my_local_app_db TO my_local_app_user;
+CREATE DATABASE my_app_name;
+CREATE USER my_app_user WITH PASSWORD 'mypassword';
+GRANT ALL ON DATABASE my_app_name TO my_app_user;
 ```
 
 Add your schema to the local database by generating and executing migration scripts:
 
 ```
 aqueduct db generate
-aqueduct db upgrade --connect postgres://my_local_app_user:mypassword@localhost:5432/my_local_app_db
+aqueduct db upgrade --connect postgres://my_app_user:mypassword@localhost:5432/my_app_name
 ```
 
-## Use Local Configuration Files
+## Testing Applications That Use OAuth 2.0
 
-Use [configuration files](../http/configure.md) to manage which database an application connects to. This may or may not be checked into source control, depending on a team's preference. Control which file is loaded with command-line options to `aqueduct serve` or the `bin/main.dart` script:
+Applications that use OAuth 2.0 should mixin `TestHarnessAuthMixin`. This mixin adds methods for registering a client identifier and authenticating a user. Both methods return an `Agent` with default headers with authorization information for the client identifier or user.
 
-```
-aqueduct serve -c local.yaml
-```
-
-## Have Scripts to Provision Based on Scenarios
-
-It is often the case that you will want to have a certain set of data in an local database for the purpose of testing a client application. Create `bin` scripts to provision the database and add the desired data. For example, you might have a script named `bin/ios_integration.dart` that re-provisions a database and inserts data into it using `Query<T>` instances and the `ManagedObject<T>`s declared in your application.
+Most often, you use `package:aqueduct/managed_auth` for an ORM-driven OAuth2 delegate. You must also mixin `TestHarnessORMMixin` when using this mixin.
 
 ```dart
-import 'dart:io';
-import 'package:myapp/myapp.dart';
+class Harness extends TestHarness<AppChannel> with TestHarnessAuthMixin<AppChannel>, TestHarnessORMMixin {
+  @override
+  ManagedContext get context => channel.context;
 
-Future main() async {
-  await provisionDatabase();
+  @override
+  AuthServer get authServer => channel.authServer;
 
-  var defaultUser = new User(...);
-  await Query.insertObject(context, defaultUser);
-  ...
-}
+  Agent publicAgent;
 
-Future provisionDatabase() async {
-  var commands = [
-    "CREATE DATABASE local_app;",
-    "CREATE USER local_user WITH PASSWORD 'local';",
-    "GRANT ALL ON DATABASE local_app TO local_user;"
-  ];
+  @override
+  Future onSetUp() async {    
+    await resetData();
+    publicAgent = await addClient("com.aqueduct.public");
+  }
 
-  await Future.forEach(commands, (cmd) {
-    List<String> args = ["-c", cmd, "-U", grantingUser];
-    return Process.run("psql", args, runInShell: true);
-  });
+  Future<Agent> registerUser(User user, {Agent withClient}) async {
+    withClient ??= publicAgent;
+
+    final req = withClient.request("/register")
+      ..body = {"username": user.username, "password": user.password};
+    await req.post();
+
+    return loginUser(withClient, user.username, user.password);
+  }
 }
 ```

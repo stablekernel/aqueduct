@@ -1,40 +1,42 @@
 # Aqueduct: A Tour
 
-Create applications with the `aqueduct` tool:
+The tour demonstrates many of Aqueduct's features.
+
+### Command-Line Interface (CLI)
+
+The `aqueduct` command line tool creates, runs and documents Aqueduct applications; manages database migrations; and manages OAuth client identifiers. Install by running `pub global activate aqueduct` on a machine with Dart installed.
+
+Create and run an application:
 
 ```
 aqueduct create my_app
-```
-
-Run applications by using the `aqueduct` tool in a project directory:
-
-```
+cd my_app/
 aqueduct serve
 ```
 
-### Structure
-
-An Aqueduct application is a series of controllers that form a *channel* for a request to flow through. Any of those controllers may respond to a request and take it out of the channel. Controllers in the middle of the channel often verify something, while the controller at the end fulfills the request. Fulfillment might mean returning the contents of a file or storing data from the request body in a database.
-
 ### Initialization
 
-An application's channel is created by subclassing [ApplicationChannel](http/channel.md). This type also performs any other application initialization, like creating database connections and defining how authorization occurs.
+An Aqueduct application starts at an [ApplicationChannel](http/channel.md). You subclass it once per application to handle initialization tasks like setting up routes and database connections. An example application looks like this:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
 
-class AppApplicationChannel extends ApplicationChannel {
+class TodoApp extends ApplicationChannel {
+  ManagedContext context;
+
   @override
   Future prepare() async {
-    databaseContext = contextFrom(options);
+    context = ManagedContext(...);
   }
 
   @override
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
+
     router
-      .route("/resource/[:id]")
-      .link(() => new ResourceController(databaseContext));
+      .route("/projects/[:id]")
+      .link(() => ProjectController(context));
+
     return router;
   }
 }
@@ -42,138 +44,127 @@ class AppApplicationChannel extends ApplicationChannel {
 
 ### Routing
 
-A [router](http/routing.md) splits a channel into sub-channels based on the path of a request. A request with the path `/users` will be handled by a different controller than a request with the path `/posts`, for example. Routes are defined by *route specification syntax*. Routes can contain variables and optional segments, enabling routes to be grouped together.
+A [router](http/routing.md) determines which controller object should handle a request. The *route specification syntax* is a concise syntax to construct routes with variables and optional segments in a single statement.
 
 ```dart
 @override
 Controller get entryPoint {
-  final router = new Router();
+  final router = Router();
 
+  // Handles /users, /users/1, /users/2, etc.
   router
-    .route("/users/[:id]")
-    .link(() => new UserController());
+    .route("/projects/[:id]")
+    .link(() => ProjectController());
 
+  // Handles any route that starts with /file/
   router
     .route("/file/*")
-    .link(() => new FileController());
+    .link(() => FileController());
 
+  // Handles the specific route /health
   router
     .route("/health")
-    .linkFunction((req) async => new Response.ok(null));
+    .linkFunction((req) async => Response.ok(null));
 
   return router;
 }    
 ```
 
-### Controllers
+## Controllers
 
-[ResourceControllers](http/resource_controller.md) are the controller that most often fulfill a request. An `ResourceController` subclass handles all operations for resource, e.g. `POST /users`, `GET /users` and `GET /users/1`.
-
-Subclasses implement a *operation method* for each operation:
+[Controllers](http/controller.md) handle requests. A controller handles a request by overriding its `handle` method. This method either returns a response or a request. If a response is returned, that response is sent to the client. If the request is returned, the linked controller handles the request.
 
 ```dart
-import 'package:aqueduct/aqueduct.dart'
-
-class ResourceController extends ResourceController {
-  @Operation.get()
-  Future<Response> getAllResources() async {
-    return new Response.ok(await fetchResources());
-  }
-
-  @Operation.get('id')
-  Future<Response> getResourceByID(@Bind.path("id") int id) async {
-    return new Response.ok(await fetchResource(id));
-  }
-
-  @Operation.post()
-  Future<Response> createResource(@Bind.body() Resource resource) async {
-    var inserted = await insertResource(resource);
-    return new Response.ok(inserted);
-  }
-}
-```
-
-Properties of the request are bound to operation method arguments and controller properties:
-
-```dart
-class ResourceController extends ResourceController {
-  @Operation.get()
-  Future<Response> getAllResources(
-      @Bind.header("x-request-id") String requestID,
-      {@Bind.query("limit") int limit}) async {
-    return new Response.ok(await fetchResources(limit ?? 0));
-  }
-
-  @Operation.post()
-  Future<Response> createResource(@Bind.body() Resource resource) async {
-    var inserted = await insertResourceIntoDatabase(resource);
-    return new Response.ok(inserted);
-  }
-}
-```
-
-`ManagedObjectController<T>`s are `ResourceController`s that automatically map a REST interface to database queries:
-
-```dart
-router
-  .route("/users/[:id]")
-  .link(() => new ManagedObjectController<User>(context));
-```
-
-`Controller` is the base class for all controllers that form a channel. They only have a single method to handle the request, and must either return the request or a response. When a controller returns a response, the request is taken out of the channel.
-
-```dart
-class VerifyingController extends Controller {
+class SecretKeyAuthorizer extends Controller {
   @override
   Future<RequestOrResponse> handle(Request request) async {
     if (request.raw.headers.value("x-secret-key") == "secret!") {
       return request;
     }
 
-    return new Response.badRequest();
+    return Response.badRequest();
   }
 }
 ```
 
-This behavior lets a channel prevent invalid requests from being fulfilled, or let's a controller be reused in multiple places to provide some preprocessing step.
+This behavior allows for middleware controllers to be linked together, such that a request goes through a number of steps before it is finally handled.
 
-Uncaught exceptions are caught by the controller and translated into an appropriate response, removing the request from the channel. Exceptions should only be caught when another response is desired or when the request should continue to the next controller in the channel.
+All controllers execute their code in an exception handler. If an exception is thrown in your controller code, a response with an appropriate error code is returned. You subclass `HandlerException` to provide error response customization for application-specific exceptions.
 
-### Configuration
+### ResourceControllers
 
-Read YAML configuration data into type-safe and name-safe structures at startup:
+[ResourceControllers](http/resource_controller.md) are the most often used controller. Each operation - e.g. `POST /projects`, `GET /projects` and `GET /projects/1` - is mapped to methods in a subclass. Parameters of those methods are annotated to bind the values of the request when the method is invoked.
+
+```dart
+import 'package:aqueduct/aqueduct.dart'
+
+class ProjectController extends ResourceController {    
+  @Operation.get('id')
+  Future<Response> getProjectById(@Bind.path("id") int id) async {
+    // GET /projects/:id
+    return Response.ok(...);
+  }
+
+  @Operation.post()
+  Future<Response> createProject(@Bind.body() Project project) async {
+    // POST /project
+    final inserted = await insertProject(project);
+    return Response.ok(inserted);
+  }
+
+  @Operation.get()
+  Future<Response> getAllProjects(
+    @Bind.header("x-client-id") String clientId,
+    {@Bind.query("limit") int limit: 10}) async {
+    // GET /projects
+    return Response.ok(...);
+  }
+}
+```
+
+### ManagedObjectControllers
+
+`ManagedObjectController<T>`s are `ResourceController`s that automatically map a REST interface to database queries; e.g. `POST` inserts a row, `GET` gets all row of a type. They do not need to be subclassed, but can be to provide customization.
+
+```dart
+router
+  .route("/users/[:id]")
+  .link(() => ManagedObjectController<Project>(context));
+```
+
+## Configuration
+
+An application's configuration is written in a YAML file. Each environment your application runs in (e.g., locally, under test, production, development) has different values for things like the port to listen on and database connection credentials. The format of a configuration file is defined by your application. An example looks like:
 
 ```
 // config.yaml
 database:
-  host: ...
+  host: api.projects.com
   port: 5432
-  databaseName: foo
-otherOption: hello
-numberOfDoodads: 3  
+  databaseName: project
+port: 8000
 ```
 
-Subclass `ConfigurationItem` and declare a property for each key in the configuration file:
+Subclass `Configuration` and declare a property for each key in your configuration file:
 
 ```dart
-class AppConfig extends ConfigurationItem {
-  AppConfig(String path) : super.fromFile(path);
+class TodoConfig extends Configuration {
+  ProjectAppConfig(String path) : super.fromFile(path);
 
-  DatabaseConnectionInfo database;
-  String otherOption;
-  int numberOfDoodads;
+  DatabaseConfiguration database;
+  int port;
 }
 ```
 
-Read the configuration file identified by an `ApplicationOptions`:
+The default name of your configuration file is `config.yaml`, but can be changed at the command-line. You create an instance of your configuration from the configuration file path from your application options:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
 
-class AppApplicationChannel extends ApplicationChannel {
+class TodoApp extends ApplicationChannel {
   @override
   Future prepare() async {
-    var options = new AppConfig(options.configurationFilePath);
+    var options = TodoConfig(options.configurationFilePath);
     ...
   }
 }
@@ -181,146 +172,140 @@ class AppApplicationChannel extends ApplicationChannel {
 
 ### Running and Concurrency
 
-Aqueduct applications are run with the `aqueduct serve` command line tool, which can also open debugging and instrumentation tools and specify how many threads the application should run on:
+Aqueduct applications are run with the `aqueduct serve` command line tool. You can attach debugging and instrumentation tools and specify how many threads the application should run on:
 
 ```
-aqueduct serve --observe --isolates 5
-```
-
-Run applications detached or still connected to the shell:
-
-```
-aqueduct serve --detached --port $PORT
+aqueduct serve --observe --isolates 5 --port 8888
 ```
 
 Aqueduct applications are multi-isolate (multi-threaded). Each isolate runs a replica of the same web server with its own set of services like database connections. This makes behavior like database connection pooling implicit.
 
-### Querying a Database
+## PostgreSQL ORM
 
-Database operations are built and executed with instances of `Query<T>`.
+The `Query<T>` class configures and executes database queries. Its type argument determines what table is to be queried and the type of object you will work with in your code.
 
 ```dart
 import 'package:aqueduct/aqueduct.dart'
 
-class ResourceController extends ResourceController {
+class ProjectController extends ResourceController {
   @Operation.get()
-  Future<Response> getAllResources() async {
-    var query = new Query<Resource>(context);
+  Future<Response> getAllProjects() async {
+    final query = Query<Project>(context);
 
-    var results = await query.fetch();
+    final results = await query.fetch();
 
-    return new Response.ok(results);
+    return Response.ok(results);
   }
 }
 ```
 
-The results can be filtered by the `Query.where` property, which has the same properties as the object being queried.
+Configuration of the query - like its `WHERE` clause - are configured through a fluent, type-safe syntax. A property selector identifies which column of the table to apply an expression to. The following query fetches all project's due in the next week and includes their tasks by joining the related table.
 
 ```dart
-var query = new Query<Employee>(context)
-  ..where((e) => e.name).startsWith("Sa")
-  ..where((e) => e.salary).greaterThan(50000);
-var results = await query.fetch();
+final nextWeek = DateTime.now().add(Duration(days: 7));
+final query = Query<Project>(context)
+  ..where((project) => project.dueDate).isLessThan(nextWeek)
+  ..join(set: (project) => project.tasks);
+final projects = await query.fetch();
 ```
 
-Values set on the properties of `Query.values` are sent to the database on insert and update operations. Like `Query.where`, `Query.values` has the same properties as the object being inserted or updated.
+Rows are inserted or updated by setting the statically-typed values of a query.
 
 ```dart
-var query = new Query<Employee>(context)
-  ..values.name = "Bob"
-  ..values.salary = 50000;
+final insertQuery = Query<Project>(context)
+  ..values.name = "Build an aqueduct"
+  ..values.dueDate = DateTime(year, month);
+var newProject = await insertQuery.insert();  
 
-var bob = await query.insert();  
-
-var updateQuery = new Query<Employee>(context)
-  ..where((e) => e.id).equalTo(bob.id)
-  ..values.name = "Bobby";
-bob = await updateQuery.updateOne();  
+final updateQuery = Query<Project>(context)
+  ..where((project) => project.id).equalTo(newProject.id)
+  ..values.name = "Build a miniature aqueduct";
+newProject = await updateQuery.updateOne();  
 ```
 
-`Query<T>`s can sort and page on a result set. It can also join tables and return objects and their relationships:
+`Query<T>`s can perform sorting, joining and paging queries.
 
 ```dart
-var query = new Query<Employee>(context)
-  ..where((e) => e.name).equalTo("Sue Gallagher")
-  ..join(object: (e) => e.manager)
-  ..join(set: (e) => e.directReports);
+final overdueQuery = Query<Project>(context)
+  ..where((project) => project.dueDate).lessThan(DateTime().now())
+  ..sortBy((project) => project.dueDate, QuerySortOrder.ascending)
+  ..join(object: (project) => project.owner);
 
-var herAndHerManagerAndHerDirectReports = await query.fetchOne();
+final overdueProjectsAndTheirOwners = await query.fetch();
 ```
 
-Exceptions thrown for queries are caught by a controller and translated into the appropriate status code. Unique constraint conflicts return 409,
-missing required properties return 400 and database connection failure returns 503.
+Controllers will interpret exceptions thrown by queries to return an appropriate error response to the client. For example, unique constraint conflicts return 409, missing required properties return 400 and database connection failure returns 503.
 
 ### Defining a Data Model
 
-`ManagedObject<T>` instances represent a row in a database; each property is a column in the corresponding table. This class is always subclassed and is in fact made up of two classes:
+To use the ORM, you declare your tables as Dart types and create a subclass of `ManagedObject<T>`. A subclass maps to a table in the database, each instance maps to a row, and each property is a column. The following declaration will map to a table named `_project` with columns `id`, `name` and `dueDate`.
 
 ```dart
-class Employee extends ManagedObject<_Employee> implements _Employee {
-  bool get wasRecentlyHired => hireDate.difference(new DateTime.now()).inDays < 30;
+class Project extends ManagedObject<_Project> implements _Project {
+  bool get isPastDue => dueDate.difference(DateTime.now()).inSeconds < 0;
 }
-class _Employee  {
+
+class _Project  {
   @primaryKey
-  int index;
+  int id;
 
   @Column(indexed: true)
   String name;
 
-  DateTime hireDate;
-  int salary;
+  DateTime dueDate;
 }
 ```
 
-`ManagedObject<T>`s have relationship properties for has-one, has-many and many-to-many references to other `ManagedObject<T>`s. The property with `Relate` metadata is a foreign key column.
+Managed objects have relationships to other managed objects. Relationships can be has-one, has-many and many-to-many. A relationship is always two-sided - the related types must declare a property that references each other.
 
 ```dart
-class Employee extends ManagedObject<_Employee> implements _Employee {}
-class _Employee {
+class Project extends ManagedObject<_Project> implements _Project {}
+class _Project {
   ...
 
-  ManagedSet<Initiative> initiatives;
+  // Project has-many Tasks
+  ManagedSet<Task> tasks;
 }
 
-class Initiative extends ManagedObject<_Initiative> implements _Initiative {}
-class _Initiative {
+class Task extends ManagedObject<_Task> implements _Task {}
+class _Task {
   ...
 
-  @Relate(#initiatives)
-  Employee leader;
+  // Task belongs to a project, maps to 'project_id' foreign key column
+  @Relate(#tasks)
+  Project project;
 }
 ```
 
-`ManagedObject<T>`s are easily read from and written to JSON (or any other format):
+`ManagedObject<T>`s are serializable and can be directly read from a request body, or encoded as a response body.
 
 ```dart
-class UserController extends ResourceController {
+class ProjectController extends ResourceController {
   @Operation.put('id')
-  Future<Response> updateUser(@Bind.path("id") int id, @Bind.body() User user) async {
-    var query = new Query<User>(context)
-      ..where((u) => e.id).equalTo(id)
-      ..values = user;
+  Future<Response> updateProject(@Bind.path('id') int projectId, @Bind.body() Project project) async {
+    final query = Query<Project>(context)
+      ..where((project) => project.id).equalTo(projectId)
+      ..values = project;
 
-    var updatedUser = await query.updateOne();
-
-    return new Response.ok(updatedUser);
+    return Response.ok(await query.updateOne());
   }
 }
 ```
 
-### Automatic Database Migration
+### Database Migrations
 
-Generate and run database migrations with the `aqueduct db` tool:
+The CLI will automatically generate database migration scripts by detecting changes to your managed objects. The following, when ran in a project directory, will generate and execute a database migration.
 
 ```
 aqueduct db generate
-aqueduct db validate
-aqueduct db upgrade --connect postgres@://...
+aqueduct db upgrade --connect postgres://user:password@host:5432/database
 ```
 
-### OAuth 2.0
+You can edit migration files by hand to alter any assumptions or enter required values, and run `aqueduct db validate` to ensure the changes still yield the same schema. Be sure to keep generated files in version control.
 
-Authentication and authorization are enabled at application startup by creating an `AuthServer` with `ManagedAuthDelegate`:
+## OAuth 2.0
+
+An OAuth 2.0 server implementation handles authentication and authorization for Aqueduct applications. You create an `AuthServer` and its delegate as services in your application. The delegate is configurable and manages how tokens are generated and stored. By default, access tokens are a random 32-byte string and client identifiers, tokens and access codes are stored in your database using the ORM.
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
@@ -332,46 +317,53 @@ class AppApplicationChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    context = new ManagedContext(...);
+    context = ManagedContext(...);
 
-    final delegate = new ManagedAuthDelegate<User>(context);
-    authServer = new AuthServer(delegate);
+    final delegate = ManagedAuthDelegate<User>(context);
+    authServer = AuthServer(delegate);
   }  
 }
 ```
 
-Set up routes to exchange credentials for tokens using `AuthController` and `AuthCodeController`. Add `Authorizer`s between routes and their controller to restrict access to authorized resource owners only:
+Built-in authentication controllers for exchanging user credentials for access tokens are named `AuthController` and `AuthCodeController`. `Authorizer`s are middleware that require a valid access token to access their linked controller.
 
 ```dart
 Controller get entryPoint {
-  final router = new Router();
+  final router = Router();
+
+  // POST /auth/token with username and password (or access code) to get access token
   router
     .route("/auth/token")
-    .link(() => new AuthController(authServer));
+    .link(() => AuthController(authServer));
 
+  // GET /auth/code returns login form, POST /auth/code grants access code
   router
     .route("/auth/code")
-    .link(() => new AuthCodeController(authServer));
+    .link(() => AuthCodeController(authServer));
 
+  // ProjectController requires request to include access token
   router
-    .route("/protected")
-    .link(() => new Authorizer.bearer(authServer))
-    .link(() => new ProtectedController());
+    .route("/projects/[:id]")
+    .link(() => Authorizer.bearer(authServer))
+    .link(() => ProjectController(context));
 
   return router;
 }
 ```
 
-Insert OAuth 2.0 clients into a database:
+The CLI has tools to manage OAuth 2.0 client identifiers and access scopes.
 
 ```
-aqueduct auth add-client --id com.app.mobile --secret foobar --redirect-uri https://somewhereoutthere.com
+aqueduct auth add-client \
+  --id com.app.mobile \
+  --secret foobar \
+  --redirect-uri https://somewhereoutthere.com \
+  --allowed-scopes "users projects admin.readonly"
 ```
 
-### Logging
+## Logging
 
-All requests are logged to an instance of `Logger`. Set up a listener for logger in `ApplicationChannel` to print log messages to the console. (See also [scribe](https://pub.dartlang.org/packages/scribe) for logging to rotating files.)
-
+All requests are logged to an application-wide logger. Set up a listener for the logger in `ApplicationChannel` to write log messages to the console or another medium.
 
 ```dart
 class WildfireChannel extends ApplicationChannel {
@@ -384,53 +376,35 @@ class WildfireChannel extends ApplicationChannel {
 }
 ```
 
-### Testing
+## Testing
 
-Tests are run by starting the Aqueduct application and verifying responses in a test file. A test harness is included in projects generated from `aqueduct create` that starts and stops a test instance of your application and uploads your database schema to a temporary, local database.
+Aqueduct tests start a local version of your application and execute requests. You write expectations on the responses. A [TestHarness](testing/tests.md) manages the starting and stopping of an application, and exposes a default `Agent` for executing requests. An `Agent` can be configured to have default headers, and multiple agents can be used within the same test.
 
 ```dart
 import 'harness/app.dart';
 
 void main() {
-  var app = new TestApplication();
+  final harness = TestHarness<TodoApp>()..install();
 
-  setUpAll(() async {
-    await app.start();
-  });
-
-  test("...", () async {
-    var response = await app.client.request("/endpoint").get();
-    ...
+  test("GET /projects returns all projects" , () async {
+    var response = await harness.agent.get("/projects");
+    expectResponse(response, 200, body: every(partial({
+      "id": greaterThan(0),
+      "name": isNotNull,
+      "dueDate": isNotNull
+    })));
   });
 }
 ```
 
-A `TestClient` executes requests configured for the locally running test instance of your application. Instances of `TestResponse` are returned and can be evaluated with matchers like any other Dart tests. There are special matchers specifically for Aqueduct.
+### Testing with a Database
 
-```dart
-test("POST /users creates a user", () async {
-  var request = app.client.request("/users")
-    ..json = {"email": "bob@stablekernel.com"};
-  var response = await request.post();
+Aqueduct's ORM uses PostgreSQL as its database. Before your tests run, Aqueduct will create your application's database tables in a local PostgreSQL database. After the tests complete, it will delete those tables. This allows you to start with an empty database for each test suite as well as control exactly which records are in your database while testing, but without having to manage database schemas or use an mock implementation (e.g., SQLite).
 
-  expect(response, hasResponse(200, {
-    "id": isNumber,
-    "email": "bob@stablekernel.com"
-  }));
-});
+This behavior, and behavior for managing applications with an OAuth 2.0 provider, are available as [harness mixins](testing/mixins.md).
 
-test("GET /users/1 returns a user", () async {
-  var response = await app.client.authenticatedRequest("/users/1").get();
-  expect(response, hasResponse(200, partial({
-    "email": "bob@stablekernel.com"
-  })));
-});
-```
+## Documentation
 
-### Documentation
+OpenAPI documents describe your application's interface. These documents can be used to generate documentation and client code. A document can be generated by reflecting on your application's codebase, just run the `aqueduct document` command.
 
-Generate OpenAPI specifications automatically:
-
-```
-aqueduct document
-```
+The `aqueduct document client` command creates a web page that can be used to configure issue requests specific to your application.

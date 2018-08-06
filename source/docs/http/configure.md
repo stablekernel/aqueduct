@@ -20,10 +20,10 @@ class TodoAppChannel extends ApplicationChannel {
 
 The default value is `config.yaml`.
 
-The best practice for reading a configuration file is to subclass `ConfigurationItem`. A `ConfigurationItem` declares a property for each key in a configuration file. For example, see the following `ConfigurationItem` subclass:
+The best practice for reading a configuration file is to subclass `Configuration`. A `Configuration` declares a property for each key in a configuration file. For example, see the following `Configuration` subclass:
 
 ```dart
-class TodoConfiguration extends ConfigurationItem {
+class TodoConfiguration extends Configuration {
   TodoConfiguration(String fileName) : super.fromFile(fileName);
 
   DatabaseConnectionConfiguration database;
@@ -49,14 +49,14 @@ identifier: 2
 
 If required properties are omitted from the YAML file being read, application startup will fail and throw an informative error.
 
-You may use `ConfigurationItem`s to read values from environment variables. In `config.yaml`, use a `$`-prefixed environment variable name instead of a value:
+You may use `Configuration`s to read values from environment variables. In `config.yaml`, use a `$`-prefixed environment variable name instead of a value:
 
 ```
 database: $DATABASE_CONNECTION_URL
 apiBaseURL: /api
 ```
 
-If the environment variable `DATABASE_CONNECTION_URL`'s value were `"postgres://user:password@localhost:5432/test"`, the value of `TodoConfigurationItem.database` will be that string at runtime. (Note that `DatabaseConnectionConfiguration` may either have a YAML object for each connection attribute, or a database connection string.)
+If the environment variable `DATABASE_CONNECTION_URL`'s value were `"postgres://user:password@localhost:5432/test"`, the value of `TodoConfiguration.database` will be that string at runtime. (Note that `DatabaseConnectionConfiguration` may either have a YAML object for each connection attribute, or a database connection string.)
 
 The [safe_config package](https://pub.dartlang.org/packages/safe_config) has instructions for more additional usages.
 
