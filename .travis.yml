@@ -1,6 +1,6 @@
 language: dart
 dart:
-  - stable/raw/2.0.0
+  - stable
 addons:
   postgresql: "9.6"
 
