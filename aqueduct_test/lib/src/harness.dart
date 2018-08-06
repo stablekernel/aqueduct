@@ -63,18 +63,38 @@ class TestHarness<T extends ApplicationChannel> {
 
   /// Installs this handler to automatically start before tests begin running,
   ///
-  /// This method invokes [setUpAll] to start the teswt application, and [tearDownAll] to stop it.
-  /// You should invoke this method at the top of your `main` function in a test file.
+  /// Registers the startup and teardown of this application as [setUpAll] and [tearDownAll] test callbacks.
+  /// Invoke this method at the top of your test's main function.
   ///
-  /// To start and stop the application manually, see [setUp] and [tearDown].
-  void install() {
-    setUpAll(() async {
-      await setUp();
-    });
+  ///         void main() {
+  ///           final harness = TestHarness<MyApp>()..install();
+  ///
+  ///           test("...", () { ... });
+  ///         }
+  ///
+  /// Pass true for the optional argument [restartForEachTest] to startup and teardown the application
+  /// between each test.
+  void install({bool restartForEachTest = false}) {
+    if (restartForEachTest) {
+      setUp(() async {
+        await start();
+      });
 
-    tearDownAll(() async {
-      await tearDown();
-    });
+      tearDown(() async {
+        await stop();
+      });
+    } else {
+      setUpAll(() async {
+        await start();
+      });
+
+      tearDownAll(() async {
+        await stop();
+      });
+    }
+
+    setUp(onSetUp);
+    tearDown(onTearDown);
   }
 
   /// Initializes a test application and starts it.
@@ -82,7 +102,7 @@ class TestHarness<T extends ApplicationChannel> {
   /// Runs all before initializers, starts the application under test, and then runs all after initializers.
   ///
   /// Prefer to use [install] instead of calling this method manually.
-  Future setUp() async {
+  Future start() async {
     Controller.letUncaughtExceptionsEscape = true;
 
     _application = Application<T>()..options = options;
@@ -99,7 +119,7 @@ class TestHarness<T extends ApplicationChannel> {
   /// is set to null.
   ///
   /// Prefer to use [install] instead of calling this method manually.
-  Future tearDown() async {
+  Future stop() async {
     await application?.stop();
     _application = null;
   }
@@ -120,4 +140,20 @@ class TestHarness<T extends ApplicationChannel> {
   ///
   /// By default, does nothing.
   Future afterStart() async {}
+
+  /// Override this method to register a [setUp] closure.
+  ///
+  /// This method will be called before each test case when this harness is installed.
+  /// You must invoke [install] for this method to be called.
+  ///
+  /// By default, does nothing.
+  Future onSetUp() async {}
+
+  /// Override this method to register a [tearDown] closure.
+  ///
+  /// This method will be called after each test case when this harness is installed.
+  /// You must invoke [install] for this method to be called.
+  ///
+  /// By default, does nothing
+  Future onTearDown() async {}
 }

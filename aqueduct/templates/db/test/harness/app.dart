@@ -24,18 +24,17 @@ class Harness extends TestHarness<WildfireChannel> with TestHarnessORMMixin {
   ManagedContext get context => channel.context;
 
   @override
-  Future beforeStart() async {
-    // add initialization code that will run prior to the test application starting
-  }
-
-  @override
-  Future afterStart() async {
-    // add initialization code that will run once the test application has started
+  Future onSetUp() async {
     await resetData();
   }
 
   @override
+  Future onTearDown() async {
+
+  }
+
+  @override
   Future seed() async {
-    // restore any static data. called afterStart and after resetData
+    // restore any static data. called by resetData.
   }
 }

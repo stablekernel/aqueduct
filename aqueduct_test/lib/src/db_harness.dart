@@ -33,7 +33,7 @@ abstract class TestHarnessORMMixin {
   /// Return the context from this method.
   ManagedContext get context;
 
-  /// Must override this method to insert static data for each test run.
+  /// Override this method to insert static data for each test run.
   ///
   /// This method gets invoked after [resetData] is called to re-provisioning static
   /// data in your application's database.
@@ -42,7 +42,7 @@ abstract class TestHarnessORMMixin {
   /// every country in the world; this data would be cleared between each test case
   /// when [resetData] is called. By implementing this method, that data is recreated
   /// after the database is reset.
-  Future seed();
+  Future seed() async {}
 
   /// Restores the initial database state of the application under test.
   ///

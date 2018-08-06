@@ -7,20 +7,7 @@ import 'package:aqueduct/managed_auth.dart';
 import 'package:test/test.dart';
 
 void main() {
-  HarnessSubclass harness;
-
-  setUpAll(() async {
-    harness = HarnessSubclass();
-    await harness.setUp();
-  });
-
-  tearDown(() async {
-    await harness.resetData();
-  });
-
-  tearDownAll(() async {
-    await harness.tearDown();
-  });
+  final harness = HarnessSubclass()..install();
 
   test("Can use public client to authenticate", () async {
     final public = await harness.addClient("id");
@@ -152,11 +139,6 @@ class Channel extends ApplicationChannel {
 class HarnessSubclass extends TestHarness<Channel>
     with TestHarnessAuthMixin<Channel>, TestHarnessORMMixin {
   @override
-  Future afterStart() async {
-    await resetData();
-  }
-
-  @override
   Future seed() async {}
 
   @override
@@ -164,6 +146,12 @@ class HarnessSubclass extends TestHarness<Channel>
 
   @override
   ManagedContext get context => channel.context;
+
+
+  @override
+  Future onSetUp() async {
+    await resetData();
+  }
 
   Future<User> createUser(
       {String username = "username", String password = "password"}) {
