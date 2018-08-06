@@ -21,12 +21,12 @@ export 'package:aqueduct/aqueduct.dart';
 ///
 class Harness extends TestHarness<WildfireChannel> {
   @override
-  Future beforeStart() async {
-    // add initialization code that will run prior to the test application starting
+  Future onSetUp() async {
+
   }
 
   @override
-  Future afterStart() async {
-    // add initialization code that will run once the test application has started
+  Future onTearDown() async {
+
   }
 }
