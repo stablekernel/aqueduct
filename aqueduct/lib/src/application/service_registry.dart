@@ -18,8 +18,7 @@ import '../db/persistent_store/persistent_store.dart';
 /// when instantiated. If you are unsure whether an object has already been registered, you may re-register it -
 /// multiple registrations have no effect.
 class ServiceRegistry {
-  static final ServiceRegistry defaultInstance =
-      ServiceRegistry();
+  static final ServiceRegistry defaultInstance = ServiceRegistry();
 
   List<_ServiceRegistration> _registrations = [];
 

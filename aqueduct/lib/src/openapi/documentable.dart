@@ -295,7 +295,8 @@ class APIComponentCollection<T extends APIObject> {
       return;
     }
 
-    if (representation != null && _typeReferenceMap.containsKey(representation)) {
+    if (representation != null &&
+        _typeReferenceMap.containsKey(representation)) {
       return;
     }
 

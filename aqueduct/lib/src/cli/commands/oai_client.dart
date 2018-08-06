@@ -11,18 +11,21 @@ import 'package:aqueduct/src/cli/command.dart';
 class CLIDocumentClient extends CLICommand with CLIProject, CLIDocumentOptions {
   @override
   Future<int> handle() async {
-    final doc = await documentProject(projectDirectory.uri, libraryName, projectSpecificationFile);
+    final doc = await documentProject(
+        projectDirectory.uri, libraryName, projectSpecificationFile);
     final source = _getHtmlSource(json.encode(doc));
     final file = File("client.html");
     file.writeAsStringSync(source);
 
-    displayInfo("OpenAPI client for application '${doc["info"]["title"]}' successfully created.", color: CLIColor.boldGreen);
-    displayProgress("Configured to connect to '${doc["servers"].first["url"]}'.");
+    displayInfo(
+        "OpenAPI client for application '${doc["info"]["title"]}' successfully created.",
+        color: CLIColor.boldGreen);
+    displayProgress(
+        "Configured to connect to '${doc["servers"].first["url"]}'.");
     displayProgress("Open '${file.absolute.path}' in your browser.");
 
     return 0;
   }
-
 
   String _getHtmlSource(String spec) {
     return """
