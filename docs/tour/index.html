@@ -1680,7 +1680,7 @@ port: 8000
 
 <p>Subclass <code>Configuration</code> and declare a property for each key in your configuration file:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">TodoConfig</span> <span class="kd">extends</span> <span class="n">Configuration</span> <span class="p">{</span>
-  <span class="n">ProjectAppConfig</span><span class="p">(</span><span class="kt">String</span> <span class="n">path</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">path</span><span class="p">);</span>
+  <span class="n">TodoConfig</span><span class="p">(</span><span class="kt">String</span> <span class="n">path</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">File</span><span class="p">(</span><span class="n">path</span><span class="p">));</span>
 
   <span class="n">DatabaseConfiguration</span> <span class="n">database</span><span class="p">;</span>
   <span class="kt">int</span> <span class="n">port</span><span class="p">;</span>
