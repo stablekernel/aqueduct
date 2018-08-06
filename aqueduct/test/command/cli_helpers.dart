@@ -271,7 +271,7 @@ description: A web server application.
 version: 0.0.1
 
 environment:
-  sdk: ">=2.0.0-dev <3.0.0"
+  sdk: ">=2.0.0 <3.0.0"
 
 dependencies:
   aqueduct:

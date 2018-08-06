@@ -129,8 +129,7 @@ class FileController extends Controller {
   ///
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
   ///
-  void addCachePolicy(
-      CachePolicy policy, bool shouldApplyToPath(String path)) {
+  void addCachePolicy(CachePolicy policy, bool shouldApplyToPath(String path)) {
     _policyPairs.add(_PolicyPair(policy, shouldApplyToPath));
   }
 

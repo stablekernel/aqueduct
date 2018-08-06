@@ -307,8 +307,8 @@ class Request implements RequestOrResponse {
 
     Codec<dynamic, List<int>> codec;
     if (resp.encodeBody) {
-      codec = CodecRegistry.defaultInstance
-          .codecForContentType(resp.contentType);
+      codec =
+          CodecRegistry.defaultInstance.codecForContentType(resp.contentType);
     }
 
     // todo(joeconwaystk): Set minimum threshold on number of bytes needed to perform gzip, do not gzip otherwise.
@@ -344,8 +344,8 @@ class Request implements RequestOrResponse {
       Response resp, _Reference<String> compressionType) {
     Codec<dynamic, List<int>> codec;
     if (resp.encodeBody) {
-      codec = CodecRegistry.defaultInstance
-          .codecForContentType(resp.contentType);
+      codec =
+          CodecRegistry.defaultInstance.codecForContentType(resp.contentType);
     }
 
     var canGzip = CodecRegistry.defaultInstance

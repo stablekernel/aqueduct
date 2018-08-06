@@ -314,7 +314,8 @@ abstract class ResourceController extends Controller
           .map((b) => b.boundValueType)
           .forEach((b) {
         final type = b.reflectedType;
-        if (!context.schema.hasRegisteredType(type) && _shouldDocumentSerializable(type)) {
+        if (!context.schema.hasRegisteredType(type) &&
+            _shouldDocumentSerializable(type)) {
           context.schema.register(MirrorSystem.getName(b.simpleName),
               Serializable.document(context, type),
               representation: type);
@@ -325,9 +326,11 @@ abstract class ResourceController extends Controller
 
   bool _shouldDocumentSerializable(Type type) {
     final hierarchy = classHierarchyForClass(reflectClass(type));
-    final mostSpecificType = hierarchy.firstWhere((classMirror) => classMirror.staticMembers.containsKey(#shouldAutomaticallyDocument));
+    final mostSpecificType = hierarchy.firstWhere((classMirror) =>
+        classMirror.staticMembers.containsKey(#shouldAutomaticallyDocument));
 
-    return mostSpecificType.getField(#shouldAutomaticallyDocument).reflectee as bool;
+    return mostSpecificType.getField(#shouldAutomaticallyDocument).reflectee
+        as bool;
   }
 
   /// Adds [methodScopes] to [operationScopes] if they do not exist.
