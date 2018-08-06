@@ -149,7 +149,7 @@ Subclass `Configuration` and declare a property for each key in your configurati
 
 ```dart
 class TodoConfig extends Configuration {
-  ProjectAppConfig(String path) : super.fromFile(path);
+  TodoConfig(String path) : super.fromFile(File(path));
 
   DatabaseConfiguration database;
   int port;
