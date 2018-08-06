@@ -33,16 +33,7 @@ class Harness extends TestHarness<WildfireChannel> with TestHarnessAuthMixin<Wil
   Future onSetUp() async {
     // add initialization code that will run once the test application has started
     await resetData();
-  }
 
-  @override
-  Future seed() async {
-    await addClients();
-  }
-
-  // Add your OAuth2 client identifiers in this method.
-  // If you resetData, invoke this method in its restore.
-  Future addClients() async {
     publicAgent = await addClient("com.aqueduct.public");
   }
 
