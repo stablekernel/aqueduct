@@ -1,6 +1,9 @@
 branches:
   only:
     - master
+  except:
+    - gh-pages
+    - docs/source
 
 services:
   - postgresql96
