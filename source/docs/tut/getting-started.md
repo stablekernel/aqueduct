@@ -170,9 +170,6 @@ You'll get JSON output like this:
 
 You'll also see this request logged in the shell that you started `aqueduct serve` in.
 
-!!! tip "Browser Clients"
-    In addition to `curl`, you can create a SwaggerUI browser application that executes requests against your locally running application. In your project directory, run `aqueduct document client` and it will generate a file named `client.html`. Open this file in your browser for a UI that constructs and executes requests that your application supports.
-
 ## Linking Controllers
 
 When a controller handles a request, it can either send a response or let one of its linked controllers handle the request. By default, a `Router` will send a 404 Not Found response for any request. Adding a route to a `Router` creates an entry point to a new channel that controllers can be linked to. In our application, `HeroesController` is linked to the route `/heroes`.
@@ -290,6 +287,10 @@ Notice that we didn't have to override `handle` in `ResourceController`. A `Reso
     The plain English phrase for an operation - like 'get hero by id' - is a really good name for an operation method and a good name will be useful when you generate OpenAPI documentation from your code.
 
 Reload the application by hitting Ctrl-C in the terminal that ran `aqueduct serve` and then run `aqueduct serve` again. The browser application should still behave the same.
+
+!!! tip "Browser Clients"
+    In addition to `curl`, you can create a SwaggerUI browser application that executes requests against your locally running application. In your project directory, run `aqueduct document client` and it will generate a file named `client.html`. Open this file in your browser for a UI that constructs and executes requests that your application supports.
+
 
 ## Request Binding
 

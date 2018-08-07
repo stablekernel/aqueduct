@@ -30,7 +30,7 @@ To give you a starting point, the default number of isolates for an application 
 
 There are a number of variables that factor into the isolate count decision. First, recall a computer essentially does two things: it executes instructions and transmits data. Both of these tasks take time, especially when that data is transmitted to another computer thousands of miles away. (It is a modern marvel that these tasks occur as fast as they do - one that we often take for granted.)
 
-While a few milliseconds difference in speed to handle a single request isn't all that meaningful, when you start receiving thousands of requests at a time, these milliseconds add up. When your application is struggling to keep up with executing instructions, it it said to be *CPU-bound*. (When your application is struggling to transmit data, it is said to be *IO-bound*.)
+While a few milliseconds difference in speed to handle a single request isn't all that meaningful, when you start receiving thousands of requests at a time, these milliseconds add up. When your application is struggling to keep up with executing instructions, it is said to be *CPU-bound*. (When your application is struggling to transmit data, it is said to be *IO-bound*.)
 
 A CPU-bound application has two choices: execute less instructions or have more processors (or cores) to execute instructions with. Most computers these days have multiple processors. When only using a single isolate, an Aqueduct application can only use one of those processors at a time. As the number of isolates increases, so too do the number of processors that can be used at a time.
 

@@ -188,6 +188,10 @@ The `Query<T>` class configures and executes database queries. Its type argument
 import 'package:aqueduct/aqueduct.dart'
 
 class ProjectController extends ResourceController {
+  ProjectController(this.context);
+
+  final ManagedContext context;
+
   @Operation.get()
   Future<Response> getAllProjects() async {
     final query = Query<Project>(context);
