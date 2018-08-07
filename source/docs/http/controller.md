@@ -165,7 +165,7 @@ enum WithdrawalProblem {
   bankClosed
 }
 class WithdrawalException implements Exception {
-  AccountException(this.problem);
+  WithdrawalException(this.problem);
 
   final WithdrawalProblem problem;
 }
@@ -175,7 +175,7 @@ Controller code can catch this exception to return a different status code depen
 
 ```dart
 class WithdrawalException implements HandlerException {
-  AccountException(this.problem);
+  WithdrawalException(this.problem);
 
   final WithdrawalProblem problem;
 

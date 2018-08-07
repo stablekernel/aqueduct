@@ -105,7 +105,7 @@ aqueduct serve -n 1
 
 For many applications, this is a fine solution. For others, it may not be.
 
-Recall that one of the benefits of Aqueduct's multi-isolate architecture is that code tested on a single instance will scale to multiple instances behind a load balancer. If an Aqueduct application runs correctly on a single, multi-isolate instance, it will will correctly on multiple instances. This (somewhat) enforced structure prevents us from naively keeping track of websocket connections on a single isolate, which would cause issues when we scale out to a multi-instance system.
+Recall that one of the benefits of Aqueduct's multi-isolate architecture is that code tested on a single instance will scale to multiple instances behind a load balancer. If an Aqueduct application runs correctly on a single, multi-isolate instance, it will run correctly on multiple instances. This (somewhat) enforced structure prevents us from naively keeping track of websocket connections on a single isolate, which would cause issues when we scale out to a multi-instance system.
 
 If you find yourself in a situation where your application is so popular you need multiple servers to efficiently serve requests, you'll have a good idea on how to architect an appropriate solution (or you'll have the money to hire someone that does). In many situations, the REST API and websocket server are separate instances anyhow - they have different lifecycles and deployment behavior. It may make sense to run a websocket server on a single isolate, since you are likely IO-bound instead of CPU bound.
 
