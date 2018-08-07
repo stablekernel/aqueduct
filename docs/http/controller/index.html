@@ -1584,7 +1584,7 @@
   <span class="n">bankClosed</span>
 <span class="p">}</span>
 <span class="kd">class</span> <span class="nc">WithdrawalException</span> <span class="kd">implements</span> <span class="n">Exception</span> <span class="p">{</span>
-  <span class="n">AccountException</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="n">problem</span><span class="p">);</span>
+  <span class="n">WithdrawalException</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="n">problem</span><span class="p">);</span>
 
   <span class="kd">final</span> <span class="n">WithdrawalProblem</span> <span class="n">problem</span><span class="p">;</span>
 <span class="p">}</span>
@@ -1593,7 +1593,7 @@
 
 <p>Controller code can catch this exception to return a different status code depending on the exact problem with a withdrawal. If this code has to be written in multiple places, it is useful for <code>WithdrawalException</code> to implement <code>HandlerException</code>. An implementor must provide an implementation for <code>response</code>:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">WithdrawalException</span> <span class="kd">implements</span> <span class="n">HandlerException</span> <span class="p">{</span>
-  <span class="n">AccountException</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="n">problem</span><span class="p">);</span>
+  <span class="n">WithdrawalException</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="n">problem</span><span class="p">);</span>
 
   <span class="kd">final</span> <span class="n">WithdrawalProblem</span> <span class="n">problem</span><span class="p">;</span>
 

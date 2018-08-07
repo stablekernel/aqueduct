@@ -1610,10 +1610,6 @@
 
 
 <p>You'll also see this request logged in the shell that you started <code>aqueduct serve</code> in.</p>
-<div class="admonition tip">
-<p class="admonition-title">Browser Clients</p>
-<p>In addition to <code>curl</code>, you can create a SwaggerUI browser application that executes requests against your locally running application. In your project directory, run <code>aqueduct document client</code> and it will generate a file named <code>client.html</code>. Open this file in your browser for a UI that constructs and executes requests that your application supports.</p>
-</div>
 <h2 id="linking-controllers">Linking Controllers</h2>
 <p>When a controller handles a request, it can either send a response or let one of its linked controllers handle the request. By default, a <code>Router</code> will send a 404 Not Found response for any request. Adding a route to a <code>Router</code> creates an entry point to a new channel that controllers can be linked to. In our application, <code>HeroesController</code> is linked to the route <code>/heroes</code>.</p>
 <p>Controllers come in two different flavors: endpoint and middleware. Endpoint controllers, like <code>HeroesController</code>, always send a response. They implement the behavior that a request is seeking. Middleware controllers, like <code>Router</code>, handles requests before they reach an endpoint controller. A router, for example, handles a request by directing it to the right controller. Controllers like <code>Authorizer</code> verify the authorization of the request. You can create all kinds of controllers to provide any behavior you like.</p>
@@ -1712,6 +1708,10 @@
 <p>The plain English phrase for an operation - like 'get hero by id' - is a really good name for an operation method and a good name will be useful when you generate OpenAPI documentation from your code.</p>
 </div>
 <p>Reload the application by hitting Ctrl-C in the terminal that ran <code>aqueduct serve</code> and then run <code>aqueduct serve</code> again. The browser application should still behave the same.</p>
+<div class="admonition tip">
+<p class="admonition-title">Browser Clients</p>
+<p>In addition to <code>curl</code>, you can create a SwaggerUI browser application that executes requests against your locally running application. In your project directory, run <code>aqueduct document client</code> and it will generate a file named <code>client.html</code>. Open this file in your browser for a UI that constructs and executes requests that your application supports.</p>
+</div>
 <h2 id="request-binding">Request Binding</h2>
 <p>In our <code>getHeroByID</code> method, we make a dangerous assumption that the path variable 'id' can be parsed into an integer. If 'id' were something else, like a string, <code>int.parse</code> would throw an exception. When exceptions are thrown in operation methods, the controller catches it and sends a 500 Server Error response. 500s are bad, they don't tell the client what's wrong. A 404 Not Found is a better response here, but writing the code to catch that exception and create this response is cumbersome.</p>
 <p>Instead, we can rely on a feature of operation methods called <em>request binding</em>. An operation method can declare parameters and <em>bind</em> them to properties of the request. When our operation method gets called, it will be passed values from the request as arguments. Request bindings automatically parse values into the type of the parameter (and return a better error response if parsing fails). Change the method <code>getHeroByID()</code>:</p>

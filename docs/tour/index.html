@@ -1713,9 +1713,13 @@ port: 8000
 <div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span>
 
 <span class="n">class</span> <span class="n">ProjectController</span> <span class="n">extends</span> <span class="n">ResourceController</span> <span class="err">{</span>
-  <span class="err">@</span><span class="n">Operation</span><span class="err">.</span><span class="n">get</span><span class="err">()</span>
-  <span class="n">Future</span><span class="err">&lt;</span><span class="n">Response</span><span class="err">&gt;</span> <span class="n">getAllProjects</span><span class="err">()</span> <span class="n">async</span> <span class="err">{</span>
-    <span class="n">final</span> <span class="n">query</span> <span class="err">=</span> <span class="n">Query</span><span class="err">&lt;</span><span class="n">Project</span><span class="err">&gt;(</span><span class="n">context</span><span class="err">)</span><span class="p">;</span>
+  <span class="n">ProjectController</span><span class="err">(</span><span class="n">this</span><span class="err">.</span><span class="n">context</span><span class="err">)</span><span class="p">;</span>
+
+  <span class="kd">final</span> <span class="n">ManagedContext</span> <span class="n">context</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">Operation</span><span class="p">.</span><span class="kd">get</span><span class="p">()</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">getAllProjects</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">final</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Project</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
 
     <span class="kd">final</span> <span class="n">results</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
 
