@@ -194,5 +194,5 @@ final query = Query<Event>(context)
 For operations not supported by `Query<T>`, you may use SQL directly:
 
 ```dart
-final eventTagCounts = await context.query("SELECT jsonb_array_length(contents->'tags') from _Event");
+final eventTagCounts = await context.persistentStore.query("SELECT jsonb_array_length(contents->'tags') from _Event");
 ```
