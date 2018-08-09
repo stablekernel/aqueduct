@@ -47,28 +47,28 @@ In your browser, navigate to [http://aqueduct-tutorial.stablekernel.io](http://a
 !!! warning "Running the Browser Application Locally"
     The browser application is served over HTTP so that it can access your Aqueduct application when it runs locally on your machine. Your browser may warn you about navigating to an insecure webpage, because it is in fact insecure. You can run this application locally by grabbing the source code from [here](https://github.com/stablekernel/tour-of-heroes-dart).
 
-In this first chapter, you will write code to handle two requests: one to get a list of heroes, and the other to get a single hero by its identifier. These two requests take the following form:
+In this first chapter, you will write code to handle two requests: one to get a list of heroes, and the other to get a single hero by its identifier. Those requests are:
 
 1. `GET /heroes` to the list of heroes
 2. `GET /heroes/:id` to get an individual hero
 
 !!! tip "HTTP Operation Shorthand"
-      An HTTP request always contains an HTTP method (e.g., `GET`, `POST`) and a URL (e.g., `http://localhost:8888/heroes`). Since you can host an application on another server and `http` is implied, we can reference requests by their method and path alone. The above two requests are an example of this shorthand reference. The ':id' segment is a variable: it can be 1, 2, 3, and so on.
+      The term `GET /heroes` is called an operation. It is the combination of the HTTP method and the path of the request. Each operation is  unique to an application, so your code is segmented into units for each operation. Sections with a colon, like the ':id' segment, are  variable: they can be 1, 2, 3, and so on.
 
 ### Controller Objects Handle Requests
 
-Requests are handled by *controller objects*. A controller object evaluates a request and takes some action on it. This might be responding to the request, validating it in some way, or any number of other tasks. Controllers are linked together, such that each of their actions are applied to a single request. This allows applications to construct powerful request handling logic from a few building blocks. A series of linked together controllers is called a *channel*.
+Requests are handled by *controller objects*. A controller object can respond to a request. It can also take other action and let another controller respond. For example, it might check if the request is authorized, or send analytical data to some other service. Controllers are composed together, and each controller in the composition performs its logic in order. This allows for some controllers to be reused, and for  better code organization. A composition of controllers is called a *channel* because requests flow in one direction through the controllers.
 
 Our application will link two controllers:
 
 - a `Router` that makes sure the request path is `/heroes` or `/heroes/:id`
-- a `HeroesControllers` that construct a response with hero information in the body
+- a `HeroesControllers` that responds with hero objects
 
-Controllers are linked together in an *application channel*. An application channel is an object that is created when your application first starts up. It handles the initialization of your application, including linking controllers.
+Your application starts with a channel object called the *application channel*. You link the controllers in your application to this channel.
 
 ![ApplicationChannel entryPoint](../img/entrypoint.png)
 
-You create an application channel by subclassing `ApplicationChannel`. This subclass is declared in `lib/channel.dart` by the template. Navigate to that file and note the current implementation of `ApplicationChannel.entryPoint`:
+Each application has a subclass of `ApplicationChannel` that you override methods in to set up your controllers. This type is already declared in `lib/channel.dart` - open this file and find `ApplicationChannel.entryPoint`:
 
 ```dart
   @override
@@ -85,9 +85,14 @@ You create an application channel by subclassing `ApplicationChannel`. This subc
   }
 ```
 
-The controller returned from `entryPoint` is the first controller to receive every request in an application - in our case, this is a `Router`. Controllers are linked to the router; the template has one linked function controller that is called when a request's path is `/example`. We need to link a yet-to-be-created `HeroesController` to the router when the path is `/heroes`.
+When your application gets a request, the `entryPoint` controller is the first to handle it. In our case, this is a `Router` - a subclass of `Controller`.
 
-First, we need to define `HeroesController` and how it handles requests. Create a new file in `lib/controller/heroes_controller.dart` and add the following code (you may need to create the subdirectory `lib/controller/`):
+!!! tip "Controller Subclassing"
+        Every controller you use will be a subclass of `Controller`. There are some controller subclasses already in Aqueduct for common behaviors.
+
+You use the `route` method on a router to attach a controller to a *route*. A route is a string syntax that matches the path of a request. In our current implementation, the route will match every request with the path `/example`. When that request is received, a linked function runs and returns a 200 OK response with an example JSON object body.
+
+We need to route the path `/heroes` to a controller of our own, so we can control what happens. Let's create a `HeroesController`. Create a new file in `lib/controller/heroes_controller.dart` and add the following code (you will need to create the subdirectory `lib/controller/`):
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';
@@ -109,15 +114,15 @@ class HeroesController extends Controller {
 }
 ```
 
-Notice that `HeroesController` is a subclass of `Controller`; this allows it to be linked to other controllers and handle requests. It overrides its `handle` method by returning a `Response` object. This particular response object has a 200 OK status code, and it body contains a JSON-encoded list of hero objects. When a controller returns a `Response` object from its `handle` method, that response is sent to the client.
+Notice that `HeroesController` is a subclass of `Controller`; this is what makes it a controller object. It overrides its `handle` method by returning a `Response` object. This response object has a 200 OK status code, and it body contains a JSON-encoded list of hero objects. When a controller returns a `Response` object from its `handle` method, it is sent to the client.
 
-As it stands right now, our `HeroesController` will never be used. We need to link it to the entry point of our application for it to receive requests. First, import the file with our controller at the top of `channel.dart`.
+Right now, our `HeroesController` isn't hooked up to the application channel. We need to link it to the router. First, import our new file at the top of `channel.dart`.
 
 ```dart
 import 'controller/heroes_controller.dart';
 ```
 
-Then link this `HeroesController` to the `Router` for the request's with the path `/heroes` by modifying `entryPoint`.
+Then link this `HeroesController` to the `Router` for the path `/heroes`:
 
 ```dart
 @override
@@ -138,7 +143,7 @@ Controller get entryPoint {
 }
 ```
 
-We now have a simple, functioning application that will return a list of heroes. In the project directory, run the following command from the command-line:
+We now have a application that will return a list of heroes. In the project directory, run the following command from the command-line:
 
 ```
 aqueduct serve
