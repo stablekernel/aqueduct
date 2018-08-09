@@ -1576,7 +1576,7 @@
 
 
 <p>For operations not supported by <code>Query&lt;T&gt;</code>, you may use SQL directly:</p>
-<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">eventTagCounts</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">context</span><span class="p">.</span><span class="n">query</span><span class="p">(</span><span class="s2">&quot;SELECT jsonb_array_length(contents-&gt;&#39;tags&#39;) from _Event&quot;</span><span class="p">);</span>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">eventTagCounts</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">context</span><span class="p">.</span><span class="n">persistentStore</span><span class="p">.</span><span class="n">execute</span><span class="p">(</span><span class="s2">&quot;SELECT jsonb_array_length(contents-&gt;&#39;tags&#39;) from _Event&quot;</span><span class="p">);</span>
 </pre></div>
                 
                   
