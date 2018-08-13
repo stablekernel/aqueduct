@@ -47,7 +47,8 @@ class CLIServer extends CLICommand with CLIProject {
   int get numberOfIsolates {
     int isolateCount = decode("isolates");
     if (isolateCount == null) {
-      return Platform.numberOfProcessors ~/ 2;
+      final count = Platform.numberOfProcessors ~/ 2;
+      return count > 0 ? count : 1;
     }
     return isolateCount;
   }
