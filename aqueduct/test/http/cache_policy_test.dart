@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
+import '../helpers.dart';
+
 // Some CachePolicy fields are tested by file_controller_test.dart, this
 // file tests the combinations not tested there.
 void main() {
@@ -32,7 +34,7 @@ void main() {
 Future<HttpServer> bindAndRespondWith(Response response) async {
   var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
   server.map((req) => Request(req)).listen((req) async {
-    var next = Controller();
+    var next = PassthruController();
     next.linkFunction((req) async {
       return response;
     });

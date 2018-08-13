@@ -140,6 +140,11 @@ class Router extends Controller {
   }
 
   @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    throw StateError("Router invoked handle. This is a bug.");
+  }
+
+  @override
   Map<String, APIPath> documentPaths(APIDocumentContext context) {
     return _routeControllers.fold(<String, APIPath>{}, (prev, elem) {
       prev.addAll(elem.documentPaths(context));
@@ -222,5 +227,10 @@ class _RouteController extends Controller {
 
       return pathMap;
     });
+  }
+
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return request;
   }
 }

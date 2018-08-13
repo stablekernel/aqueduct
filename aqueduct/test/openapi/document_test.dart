@@ -551,7 +551,12 @@ class DefaultChannel extends ApplicationChannel {
   }
 }
 
-class UndocumentedMiddleware extends Controller {}
+class UndocumentedMiddleware extends Controller {
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return request;
+  }
+}
 
 class Middleware extends Controller {
   @override
@@ -572,6 +577,11 @@ class Middleware extends Controller {
     });
 
     return ops;
+  }
+
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return request;
   }
 }
 
@@ -612,6 +622,11 @@ class Endpoint extends Controller {
   void didAddToChannel() {
     prepared?.complete();
   }
+
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return Response.ok(null);
+  }
 }
 
 class ComponentA implements APIComponentDocumenter {
@@ -646,4 +661,11 @@ class UnaccountedForControllerWithComponents extends Controller {
     components.schema.register("won't-show-up",
         APISchemaObject.object({"key": APISchemaObject.string()}));
   }
+
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return Response.ok(null);
+  }
+
+
 }

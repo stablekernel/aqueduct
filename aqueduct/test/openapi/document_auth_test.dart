@@ -273,6 +273,11 @@ class DocumentedController extends Controller {
       context.schema.register(tag, APISchemaObject.string());
     }
   }
+
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return Response.ok("foo");
+  }
 }
 
 class AuthControllerOnlyChannel extends ApplicationChannel {

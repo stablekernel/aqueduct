@@ -6,6 +6,8 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
+import '../helpers.dart';
+
 void main() {
   var defaultSize = RequestBody.maxSize;
   setUp(() {
@@ -283,7 +285,7 @@ void main() {
       var initiateResponseCompleter = Completer();
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => Request(req)).listen((req) async {
-        var next = Controller();
+        var next = PassthruController();
         next.linkFunction((req) async {
           initiateResponseCompleter.complete();
           return response;
@@ -344,7 +346,7 @@ void main() {
       Controller.letUncaughtExceptionsEscape = true;
       RequestBody.maxSize = 8193;
 
-      var controller = Controller()
+      var controller = PassthruController()
         ..linkFunction((req) async {
           var body = await req.body.decode<Map<String, dynamic>>();
           return Response.ok(body);
@@ -389,7 +391,7 @@ void main() {
         () async {
       RequestBody.maxSize = 8193;
 
-      var controller = Controller()
+      var controller = PassthruController()
         ..linkFunction((req) async {
           var body = await req.body.decode();
           return Response.ok(body)
@@ -449,7 +451,7 @@ Future serverHasNoMoreConnections(HttpServer server) async {
 Future<HttpServer> bindAndRespondWith(Response response) async {
   var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
   server.map((req) => Request(req)).listen((req) async {
-    var next = Controller();
+    var next = PassthruController();
     next.linkFunction((req) async {
       return response;
     });

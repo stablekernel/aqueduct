@@ -6,6 +6,8 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
+import '../helpers.dart';
+
 void main() {
   group("Linking", () {
     HttpServer server;
@@ -16,7 +18,7 @@ void main() {
 
     test("Prepare flows through controllers", () async {
       final completer = Completer();
-      final root = Controller();
+      final root = PassthruController();
       root
           .linkFunction((req) async => req)
           .link(() => Always200Controller())
@@ -32,7 +34,7 @@ void main() {
 
     setUp(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4111);
-      root = Controller();
+      root = PassthruController();
       server.map((r) => Request(r)).listen((req) {
         root.receive(req);
       });
@@ -117,7 +119,7 @@ void main() {
 
     setUp(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4111);
-      root = Controller();
+      root = PassthruController();
 
       server.map((r) => Request(r)).listen((req) {
         root.receive(req);
@@ -199,7 +201,7 @@ void main() {
         () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => Request(req)).listen((req) async {
-        var next = Controller();
+        var next = PassthruController();
         next.linkFunction((req) async {
           var obj = SomeObject()..name = "Bob";
           return Response.ok(obj);
@@ -217,7 +219,7 @@ void main() {
         () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => Request(req)).listen((req) async {
-        var next = Controller();
+        var next = PassthruController();
         next.linkFunction((req) async {
           return Response.ok({"a": "b"});
         });
@@ -234,7 +236,7 @@ void main() {
         () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => Request(req)).listen((req) async {
-        var next = Controller();
+        var next = PassthruController();
         next.linkFunction((req) async {
           return Response.ok(DateTime.now());
         });
@@ -252,7 +254,7 @@ void main() {
         () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => Request(req)).listen((req) async {
-        var next = Controller();
+        var next = PassthruController();
         next.linkFunction((req) async {
           return Response.ok(null);
         });
@@ -270,7 +272,7 @@ void main() {
         () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => Request(req)).listen((req) async {
-        var next = Controller();
+        var next = PassthruController();
         next.link(() => Always200Controller());
         await next.receive(req);
       });
@@ -307,7 +309,7 @@ void main() {
         () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => Request(req)).listen((req) async {
-        var next = Controller();
+        var next = PassthruController();
         next.link(() => Always200Controller());
         await next.receive(req);
       });
@@ -336,7 +338,7 @@ void main() {
     test("Failure to decode request body as appropriate type is 400", () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
       server.map((req) => Request(req)).listen((req) async {
-        var next = Controller();
+        var next = PassthruController();
         next.linkFunction((r) async {
           await r.body.decode<Map<String, dynamic>>();
           return Response.ok(null);
@@ -451,4 +453,11 @@ class PrepareTailController extends Controller {
   void didAddToChannel() {
     completer.complete();
   }
+
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return request;
+  }
+
+
 }
