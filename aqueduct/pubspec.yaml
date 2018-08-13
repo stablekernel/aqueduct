@@ -1,5 +1,5 @@
 name: aqueduct
-version: 3.0.0
+version: 3.0.1
 description: A modern HTTP server application framework, ORM and OAuth2 provider with OpenAPI 3.0 integration. Foundation for REST, RPC or GraphQL services.
 author: stable|kernel <http://stablekernel.com>
 homepage: https://aqueduct.io
