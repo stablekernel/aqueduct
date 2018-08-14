@@ -27,12 +27,12 @@ class HeroConfig extends Configuration {
 }
 ```
 
-A `Configuration` subclass declares the expected properties of a configuration file. `HeroConfig` has one property named `database` - this just so happens to be the same name as the first key in `config.yaml`. A `DatabaseConfiguration` is a built-in configuration type that has properties for host, port, username, password and databaseName. We can load `config.yaml` into a `HeroConfig` because they have the same structure.
+A `Configuration` subclass declares the expected properties of a configuration file. `HeroConfig` has one property named `database` - this matches the name of our top-level key in `config.yaml`. A `DatabaseConfiguration` is a built-in configuration type that has properties for `host`, `port`, `username`, `password` and `databaseName`. We can load `config.yaml` into a `HeroConfig` because they have the same structure and all of the key names match the property names in our configuration types.
 
 !!! tip "Invalid Configuration"
     If your configuration file and configuration object don't have a matching structure, an error will be thrown when your application starts and tell you which values are missing.
 
-Let's load this configuration file and use its values to set up our database connection by replacing the `prepare` method in `lib/channel.dart`:
+Let's load `config.yaml` and use its values to set up our database connection by replacing the `prepare` method in `lib/channel.dart`:
 
 ```dart
 @override
@@ -53,18 +53,18 @@ Future prepare() async {
 }
 ```  
 
-When our application starts, our channel has access to an `options` property that has the command-line arguments that started the application. By default, the value of `configurationFilePath` is `config.yaml` (it corresponds to `--config-path` in `aqueduct serve`). When `config.yaml` is read, its values are read into the `config` object and is used to configure our database connection.
+When our application starts, our channel has access to an `options` property that has the command-line arguments that started the application. By default, the value of `configurationFilePath` is `config.yaml` (it corresponds to `--config-path` in `aqueduct serve`). When `config.yaml` is read, its values are read into a `HeroConfig` and are used to configure our database connection.
 
 Re-run your application and it'll work exactly the same as it did before - except now, we can substitute databases depending on how we run the application.
 
 ### Configuration Template
 
-You shouldn't check `config.yaml` into version control because it contains sensitive information. However, it is important to check in a *configuration source file*. A configuration source file has the same structure as `HeroConfig`, but it has values for your test environment. It is used as a template for your deployed configuration files, and it is also used during automated testing.
+You shouldn't check `config.yaml` into version control because it contains sensitive information. However, it is important to check in a *configuration source file*. A configuration source file has the same structure as `HeroConfig`, but it has values for your test environment - both locally and with continuous integration tools. It is also used as a template for your deployed configuration files.
 
 !!! tip "Sensitive Information"
-    Use a platform like Heroku or Kubernetes. You can store sensitive information in environment variables. You can read environment variables into a configuration file by using the variable's name with a `$` prefix as a value, e.g. `password: $DATABASE_PASSWORD`.
+    Use a platform like Heroku or Kubernetes. You can store sensitive information in secured environment variables. You can substitute environment variables in a configuration file by using the variable's name with a `$` prefix as a value, e.g. `password: $DATABASE_PASSWORD`.
 
-This filename defaults to `config.src.yaml`, and is currently empty in your project. Enter the following configuration into this file:
+A configuration source file should be named `config.src.yaml`, and one currently exists as an empty file in your project. Enter the following configuration into this file:
 
 ```dart
 database:
@@ -75,7 +75,7 @@ database:
   databaseName: dart_test
 ```  
 
-This file has the expected structure, but has different values for the database information. In the next section, we'll use this configuration file to run our automated tests.
+This file has the expected structure, but has different values for the database information (for a database that we will create shortly). In the next section, we'll use this configuration file to run our automated tests.
 
 ## Testing in Aqueduct
 
@@ -86,7 +86,7 @@ Because testing is so important, there is a package for writing Aqueduct applica
 !!! note "package:aqueduct_test"
     The package `aqueduct_test` and `test` was already added to your `pubspec.yaml` file as a test dependency by the template generator.
 
-In all Dart applications, tests are a Dart script with a `main` function. The `test` function registers a closure that contains expectations. That closure is run when you run your test suite, and the tests pass if all of your expectations are met. An example Dart test looks like this:
+In all Dart applications, a test suite is a Dart script with a `main` function. In this function, the `test` function is called multiple times to register expectations. A test passes if all of your expectations are met. An example Dart test looks like this:
 
 ```dart
 import 'package:test/test.dart';
@@ -101,7 +101,7 @@ void main() {
 
 ### Setting up your Development Environment
 
-In `config.src.yaml`, we target the database `dart:dart@localhost:5432/dart_test`. This database is used by all Aqueduct applications for automated testing. When your application is tested, your application's tables are temporarily added to this database and then discarded after tests complete. This means that no data is stored in between test runs.
+In `config.src.yaml`, we target the database `dart:dart@localhost:5432/dart_test`. This is a 'special' database that is used by all Aqueduct applications for automated testing (by default). When your application is tested, its tables are temporarily added to this database and then discarded after tests complete. This means that no data is stored in between test runs.
 
 Create this database by running `psql` and enter the following SQL:
 
@@ -113,7 +113,7 @@ GRANT all ON database dart_test TO dart;
 ```
 
 !!! tip "dart_test Database"
-    You only have to create this database once per machine, and in any continuous integration scripts. All of your Aqueduct applications will use this database for automated testing.
+    You only have to create this database once per machine, and in any continuous integration scripts. All of your Aqueduct applications will use this database for automated testing. Fun fact - you can run multiple application's tests simultaneously using this database because the tables only exist for the database connection that created them.
 
 ### Writing Your First Test
 
@@ -162,6 +162,9 @@ class Harness extends TestHarness<WildfireChannel> with TestHarnessORMMixin {
 ```
 
 The mixin gives our harness the method `resetData`. This method deletes everything from the test database and uploads the schema in a pristine state. By calling this method in `onSetUp`, our test harness will reset data before each test.
+
+!!! tip "New Project Templates"
+    Using the `-t` command-line argument with `aqueduct create` allows you to select a template. Templates like `db` and `db_and_auth` have a test harness that already mixes in `TestHarnessORMMixin`. 
 
 Now, we can run this test by right-clicking on the `main` function in `hero_controller_test.dart` and selecting `Run tests in 'hero_controller_test.dart'`. A panel will appear that shows the results of your tests. You'll see a green checkmark next to the test in this panel to show that your test succeeded. If your test did not succeed, the reason will be printed to the console. If your test failed because of an error in your code, you will also be able to see the stack trace of the error.
 
