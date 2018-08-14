@@ -1407,56 +1407,83 @@
 <li>Configuring application values</li>
 <li>Running the Aqueduct application</li>
 </ol>
-<p>Estimated Time: &lt;5 minutes.</p>
+<p>Estimated Time: 5 minutes.</p>
 <h3 id="step-1-setting-up-a-heroku-application">Step 1: Setting up a Heroku Application</h3>
 <p>Create a new application in Heroku. Add the 'Heroku Postgres' add-on.</p>
 <p>Navigate to the Settings tab in the Heroku web interface and click 'Reveal Config Vars'. Note the DATABASE_URL, it'll get used later.</p>
 <h3 id="step-2-setting-up-an-aqueduct-application-to-run-on-heroku">Step 2: Setting up an Aqueduct Application to Run on Heroku</h3>
-<p>If you have not yet, create a new Aqueduct application on your local machine, go into that directory, and initialize it as a git repository:</p>
+<p>If you have not yet, create a new Aqueduct application on your local machine, go into that directory, and initialize it as a git repository if it is not already:</p>
 <div class="codehilite"><pre><span></span>aqueduct create app_name
 <span class="nb">cd</span> app_name
 git init
 </pre></div>
 
 
-<p>Login to Heroku and run the Aqueduct tool to configure a project for Heroku. The value for <code>--heroku</code> <em>must</em> be the name of the Heroku application (not the Aqueduct application, unless they are the same, obvi).</p>
+<p>Run the following commands to configure your project in Heroku's environment.</p>
+<div class="admonition warning">
+<p class="admonition-title">Heroku Application Name</p>
+<p>In the following commands, ensure that <code>app_name</code> is the name of your <em>Heroku application</em> created in their web portal, not the name of your Aqueduct application.</p>
+</div>
 <div class="codehilite"><pre><span></span>heroku login
-aqueduct setup --heroku<span class="o">=</span>app_name
+heroku git:remote -a app_name
+heroku config:set <span class="nv">DART_SDK_URL</span><span class="o">=</span>https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip
+heroku config:add <span class="nv">BUILDPACK_URL</span><span class="o">=</span>https://github.com/stablekernel/heroku-buildpack-dart.git
+heroku config:set <span class="nv">PATH</span><span class="o">=</span>/app/bin:/usr/local/bin:/usr/bin:/bin:/app/.pub-cache/bin:/app/dart-sdk/bin
+heroku config:set <span class="nv">PUB_CACHE</span><span class="o">=</span>/app/pub-cache
 </pre></div>
 
 
-<p>This command will create the files Heroku needs to run the application, remove <code>config.yaml</code> from <code>.gitignore</code> (you'll see why in a moment) and runs some <code>heroku</code> commands to set up the Heroku application's environment.</p>
+<p>Then, create a new file in your project directory named <code>Procfile</code> (with no suffix) and enter the following:</p>
+<div class="codehilite"><pre><span></span>release: /app/dart-sdk/bin/pub global run aqueduct:aqueduct db upgrade --connect \$DATABASE_URL
+web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port \$PORT --config-path heroku.yaml
+</pre></div>
+
+
+<p>This file tells Heroku how to run your application, and to execute any database migrations each time you push a release. Make sure this file is checked into version control:</p>
+<div class="codehilite"><pre><span></span>git commit -am &quot;Adds Procfile&quot;
+</pre></div>
+
+
 <h3 id="step-3-configuring-application-values">Step 3: Configuring Application Values</h3>
-<p>Heroku provides configuration values through environment variables, where Aqueduct normally provides them in <code>config.yaml</code> file. Because Aqueduct uses <a href="https://pub.dartlang.org/packages/safe_config">safe_config</a>, configuration files can map keys to environment variables with a simple syntax. The <code>config.yaml</code> file's values get replaced with their environment variable names and it gets checked into source control. To map configuration values to an environment variable, the value for a configuration key is prefixed with a dollar sign (<code>$</code>) followed by the case-sensitive name of the environment variable.</p>
-<p>Modify <code>config.yaml</code> to appear as follows:</p>
-<div class="codehilite"><pre><span></span>database: $DATABASE_URL
-logging:
- type: console
+<p>Heroku provides configuration values through environment variables. In our <code>Procfile</code>, we indicated that we will use a file named <code>heroku.yaml</code> for configuration. This file will map configuration values in our application to environment variables in the Heroku platform. Your configuration file may vary, but it is important to note that if you are using a database, the database credentials are provided through a <code>connection string</code>. A connection string looks like this: <code>postgres://user:password@host:5432/name</code> and by default, Heroku stores it in the environment variable named <code>DATABASE_URL</code>.</p>
+<p>In <code>heroku.yaml</code> (which you will need to create in your project directory), you can reference an environment variable by prefixing its name with a <code>$</code>. When using the built-in <code>DatabaseConfiguration</code> type, you can assign the connection string like so:</p>
+<div class="codehilite"><pre><span></span><span class="l l-Scalar l-Scalar-Plain">database</span><span class="p p-Indicator">:</span> <span class="l l-Scalar l-Scalar-Plain">$DATABASE_URL</span>
 </pre></div>
 
 
-<p>Recall that <code>aqueduct setup</code> with the <code>--heroku</code> option removes <code>config.yaml</code> from <code>.gitignore</code>.</p>
+<div class="admonition warning">
+<p class="admonition-title">Your heroku.yaml might be different</p>
+<p>Make sure the structure of your <code>heroku.yaml</code> file matches the expected structure in your application's <code>Configuration</code> subclass.</p>
+</div>
+<p>Check <code>heroku.yaml</code> into version control.</p>
+<div class="codehilite"><pre><span></span>git commit -am &quot;add heroku.yaml&quot;
+</pre></div>
+
+
 <h3 id="step-4-running-the-aqueduct-application">Step 4: Running the Aqueduct Application</h3>
-<p>First, create a database migration. The <code>Procfile</code> declared that Heroku will automatically run any migration files prior to running the application as long as they are checked into source control.</p>
+<p>If your application uses a database, make sure you have generated your migration file(s) and added it to version control. The <code>Procfile</code> will ensure that database is up to date with any migrations checked into source control before running your app. Generate your migration file with the following command from your project directory and then check it into version control:</p>
 <div class="codehilite"><pre><span></span>aqueduct db generate
+git commit -am <span class="s2">&quot;adds migration files&quot;</span>
 </pre></div>
 
 
-<p>Now, add all of the files to <code>git</code> and push it to heroku:</p>
-<div class="codehilite"><pre><span></span>git add .
-git commit -m <span class="s2">&quot;initial commit&quot;</span>
-git push heroku master
+<p>Now, you can deploy your application. It's as simple as this:</p>
+<div class="codehilite"><pre><span></span>git push heroku master
 </pre></div>
 
 
-<p>Next, set up an OAuth 2.0 client id:</p>
+<p>This command pushes your code to a remote git server hosted by Heroku, which triggers your application to run its release script.</p>
+<p>Now that your application's database schema has been uploaded throug, you can configure your OAuth 2 server with client identifiers if you are using <code>package:aqueduct/managed_auth</code>. The following command will run within your application's remote environment.</p>
 <div class="codehilite"><pre><span></span>heroku run /app/dart-sdk/bin/pub global run aqueduct:aqueduct auth add-client --id com.app.standard --secret secret --connect <span class="se">\$</span>DATABASE_URL
 </pre></div>
 
 
-<p>Finally, spin up a dyno and the application will start receiving requests:</p>
+<p>Finally, scale up a dyno and the application will start receiving requests:</p>
 <div class="codehilite"><pre><span></span>heroku ps:scale <span class="nv">web</span><span class="o">=</span><span class="m">1</span>
 </pre></div>
+
+
+<p>Now your application is running!</p>
                 
                   
                 

@@ -1405,15 +1405,15 @@
                 <h1 id="deploying-an-aqueduct-application-on-a-local-machine">Deploying an Aqueduct Application on a Local Machine</h1>
 <p>For other deployment options, see <a href="../">Deploying Aqueduct Applications</a>.</p>
 <h3 id="purpose">Purpose</h3>
-<p>To run a local development version of an Aqueduct application with persistent storage. This is useful in developing client applications against an Aqueduct application. Make sure to also read <a href="../../testing/">Testing Aqueduct Applications</a>.</p>
+<p>To run a local development version of an Aqueduct application with persistent storage. This is useful when developing client applications with an Aqueduct application. Make sure to also read <a href="../../testing/">Testing Aqueduct Applications</a>.</p>
 <h3 id="prerequisites">Prerequisites</h3>
 <ol>
 <li><a href="https://www.dartlang.org/install">Dart has been installed.</a></li>
-<li><a href="../..#getting_started">PostgreSQL has been installed locally.</a></li>
-<li><a href="../..#getting_started">Aqueduct has been activated globally.</a></li>
-<li><a href="../..#getting_started">An application has been created with <code>aqueduct create</code>.</a></li>
+<li><a href="../../getting_started/">PostgreSQL has been installed locally.</a></li>
+<li><a href="../../getting_started/">Aqueduct has been activated globally.</a></li>
+<li><a href="../../getting_started/">An application has been created with <code>aqueduct create</code>.</a></li>
 </ol>
-<p>If one or more of these is not true, see <a href="../..#getting_started">Getting Started</a>.</p>
+<p>If one or more of these is not true, see <a href="../../getting_started/">Getting Started</a>.</p>
 <h3 id="overview">Overview</h3>
 <ol>
 <li>Create a local database.</li>
@@ -1422,10 +1422,9 @@
 <li>Modify the configuration file.</li>
 <li>Run the application.</li>
 </ol>
-<p>Estimated Time: &lt;5 minutes.</p>
+<p>Estimated Time: 5 minutes.</p>
 <h3 id="step-1-create-a-local-database">Step 1: Create a Local Database</h3>
-<p>Create a database with the same name as your application and a user that can access that database. Do not use the name 'dart_test' for the database; this database is used by Aqueduct to run tests by default.</p>
-<p>Run the following SQL locally with a user that has privileges to create databases. (If using <code>Postgres.app</code>, open the <code>psql</code> terminal from the <code>Postgres.app</code> status menu item <code>Open psql</code>).</p>
+<p>Create a database with the same name as your application and a user that can access that database. Run the following SQL locally with a user that has privileges to create databases. (If using <code>Postgres.app</code>, open the <code>psql</code> terminal from the <code>Postgres.app</code> status menu item <code>Open psql</code>.)</p>
 <div class="codehilite"><pre><span></span><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">app_name</span><span class="p">;</span>
 <span class="k">CREATE</span> <span class="k">USER</span> <span class="n">app_name_user</span> <span class="k">WITH</span> <span class="k">CREATEDB</span><span class="p">;</span>
 <span class="k">ALTER</span> <span class="k">USER</span> <span class="n">app_name_user</span> <span class="k">WITH</span> <span class="n">PASSWORD</span> <span class="s1">&#39;yourpassword&#39;</span><span class="p">;</span>
@@ -1433,8 +1432,12 @@
 </pre></div>
 
 
+<div class="admonition warning">
+<p class="admonition-title">dart_test database</p>
+<p>Do not use the name 'dart_test' for the database; this database is used by Aqueduct to run tests by default.</p>
+</div>
 <h3 id="step-2-upload-the-application-schema">Step 2: Upload the Application Schema</h3>
-<p>Run the database schema generation tool from the project directory:</p>
+<p>If you have not yet created database migration files for your project, run the database schema generation tool from the project directory:</p>
 <div class="codehilite"><pre><span></span>aqueduct db generate
 </pre></div>
 
@@ -1446,7 +1449,7 @@
 
 <p>(Note that you may provide database credentials in a file named <code>database.yaml</code> instead of using <code>--connect</code>. See <code>aqueduct db --help</code> for details.)</p>
 <h3 id="step-3-add-an-oauth-20-client">Step 3: Add an OAuth 2.0 client.</h3>
-<p>From the command line, run the following, ensuring that the values for the option <code>--connect</code> match the recently created database.</p>
+<p>If you are using <code>package:aqueduct/managed_auth</code>, you'll want to create an OAuth2 client identifier. From the command line, run the following, ensuring that the values for the option <code>--connect</code> match the recently created database.</p>
 <div class="codehilite"><pre><span></span>aqueduct auth add-client --id com.app_name.standard --secret abcdefghi --connect postgres://app_name_user:yourpassword@localhost:5432/app_name
 </pre></div>
 
@@ -1469,8 +1472,12 @@
 </pre></div>
 
 
-<p>Your application is now running.</p>
-<p>Note: You can add the <code>--observe</code> flag to <code>aqueduct serve</code> to run Observatory. Observatory will automatically open in a browser if the platform supports it.</p>
+<p>Your application is now running. You may also run the generated start script in your project's <code>bin</code> directory:</p>
+<div class="codehilite"><pre><span></span>dart bin/main.dart
+</pre></div>
+
+
+<p>If you restart the application, the data in your database will remain.</p>
                 
                   
                 
