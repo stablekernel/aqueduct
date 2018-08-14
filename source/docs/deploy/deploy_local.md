@@ -4,17 +4,16 @@ For other deployment options, see [Deploying Aqueduct Applications](index.md).
 
 ### Purpose
 
-To run a local development version of an Aqueduct application with persistent storage. This is useful in developing client applications against an Aqueduct application. Make sure to also read [Testing Aqueduct Applications](../testing/index.md).
-
+To run a local development version of an Aqueduct application with persistent storage. This is useful when developing client applications with an Aqueduct application. Make sure to also read [Testing Aqueduct Applications](../testing/index.md).
 
 ### Prerequisites
 
 1. [Dart has been installed.](https://www.dartlang.org/install)
-2. [PostgreSQL has been installed locally.](../index.md#getting_started)
-2. [Aqueduct has been activated globally.](../index.md#getting_started)
-3. [An application has been created with `aqueduct create`.](../index.md#getting_started)
+2. [PostgreSQL has been installed locally.](../getting_started.md)
+2. [Aqueduct has been activated globally.](../getting_started.md)
+3. [An application has been created with `aqueduct create`.](../getting_started.md)
 
-If one or more of these is not true, see [Getting Started](../index.md#getting_started).
+If one or more of these is not true, see [Getting Started](../getting_started.md).
 
 ### Overview
 
@@ -24,13 +23,11 @@ If one or more of these is not true, see [Getting Started](../index.md#getting_s
 4. Modify the configuration file.
 5. Run the application.
 
-Estimated Time: <5 minutes.
+Estimated Time: 5 minutes.
 
 ### Step 1: Create a Local Database
 
-Create a database with the same name as your application and a user that can access that database. Do not use the name 'dart_test' for the database; this database is used by Aqueduct to run tests by default.
-
-Run the following SQL locally with a user that has privileges to create databases. (If using `Postgres.app`, open the `psql` terminal from the `Postgres.app` status menu item `Open psql`).
+Create a database with the same name as your application and a user that can access that database. Run the following SQL locally with a user that has privileges to create databases. (If using `Postgres.app`, open the `psql` terminal from the `Postgres.app` status menu item `Open psql`.)
 
 ```sql
 CREATE DATABASE app_name;
@@ -39,9 +36,12 @@ ALTER USER app_name_user WITH PASSWORD 'yourpassword';
 GRANT ALL ON DATABASE app_name TO app_name_user;
 ```
 
+!!! warning "dart_test database"
+    Do not use the name 'dart_test' for the database; this database is used by Aqueduct to run tests by default.
+
 ### Step 2: Upload the Application Schema
 
-Run the database schema generation tool from the project directory:
+If you have not yet created database migration files for your project, run the database schema generation tool from the project directory:
 
 ```bash
 aqueduct db generate
@@ -57,7 +57,7 @@ aqueduct db upgrade --connect postgres://app_name_user:yourpassword@localhost:54
 
 ### Step 3: Add an OAuth 2.0 client.
 
-From the command line, run the following, ensuring that the values for the option `--connect` match the recently created database.
+If you are using `package:aqueduct/managed_auth`, you'll want to create an OAuth2 client identifier. From the command line, run the following, ensuring that the values for the option `--connect` match the recently created database.
 
 ```bash
 aqueduct auth add-client --id com.app_name.standard --secret abcdefghi --connect postgres://app_name_user:yourpassword@localhost:5432/app_name
@@ -86,6 +86,10 @@ From the project directory, run:
 aqueduct serve
 ```
 
-Your application is now running.
+Your application is now running. You may also run the generated start script in your project's `bin` directory:
 
-Note: You can add the `--observe` flag to `aqueduct serve` to run Observatory. Observatory will automatically open in a browser if the platform supports it.
+```bash
+dart bin/main.dart
+```
+
+If you restart the application, the data in your database will remain.

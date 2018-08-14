@@ -1,11 +1,3 @@
----
-layout: page
-title: "Overview"
-category: deploy
-date: 2016-06-19 21:22:35
-order: 1
----
-
 ## Tasks
 
 Aqueduct has a built in tool, `aqueduct`, for deploying Aqueduct applications, managing database schemas, OAuth 2.0 clients and creating projects. See [Getting Started](getting_started.html) for installation instructions. Many of the tasks for deployment rely on using this tool.
