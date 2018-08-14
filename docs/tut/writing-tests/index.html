@@ -1415,12 +1415,12 @@
 </pre></div>
 
 
-<p>A <code>Configuration</code> subclass declares the expected properties of a configuration file. <code>HeroConfig</code> has one property named <code>database</code> - this just so happens to be the same name as the first key in <code>config.yaml</code>. A <code>DatabaseConfiguration</code> is a built-in configuration type that has properties for host, port, username, password and databaseName. We can load <code>config.yaml</code> into a <code>HeroConfig</code> because they have the same structure.</p>
+<p>A <code>Configuration</code> subclass declares the expected properties of a configuration file. <code>HeroConfig</code> has one property named <code>database</code> - this matches the name of our top-level key in <code>config.yaml</code>. A <code>DatabaseConfiguration</code> is a built-in configuration type that has properties for <code>host</code>, <code>port</code>, <code>username</code>, <code>password</code> and <code>databaseName</code>. We can load <code>config.yaml</code> into a <code>HeroConfig</code> because they have the same structure and all of the key names match the property names in our configuration types.</p>
 <div class="admonition tip">
 <p class="admonition-title">Invalid Configuration</p>
 <p>If your configuration file and configuration object don't have a matching structure, an error will be thrown when your application starts and tell you which values are missing.</p>
 </div>
-<p>Let's load this configuration file and use its values to set up our database connection by replacing the <code>prepare</code> method in <code>lib/channel.dart</code>:</p>
+<p>Let's load <code>config.yaml</code> and use its values to set up our database connection by replacing the <code>prepare</code> method in <code>lib/channel.dart</code>:</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">override</span>
 <span class="n">Future</span> <span class="n">prepare</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="n">logger</span><span class="p">.</span><span class="n">onRecord</span><span class="p">.</span><span class="n">listen</span><span class="p">(</span>
@@ -1440,15 +1440,15 @@
 </pre></div>
 
 
-<p>When our application starts, our channel has access to an <code>options</code> property that has the command-line arguments that started the application. By default, the value of <code>configurationFilePath</code> is <code>config.yaml</code> (it corresponds to <code>--config-path</code> in <code>aqueduct serve</code>). When <code>config.yaml</code> is read, its values are read into the <code>config</code> object and is used to configure our database connection.</p>
+<p>When our application starts, our channel has access to an <code>options</code> property that has the command-line arguments that started the application. By default, the value of <code>configurationFilePath</code> is <code>config.yaml</code> (it corresponds to <code>--config-path</code> in <code>aqueduct serve</code>). When <code>config.yaml</code> is read, its values are read into a <code>HeroConfig</code> and are used to configure our database connection.</p>
 <p>Re-run your application and it'll work exactly the same as it did before - except now, we can substitute databases depending on how we run the application.</p>
 <h3 id="configuration-template">Configuration Template</h3>
-<p>You shouldn't check <code>config.yaml</code> into version control because it contains sensitive information. However, it is important to check in a <em>configuration source file</em>. A configuration source file has the same structure as <code>HeroConfig</code>, but it has values for your test environment. It is used as a template for your deployed configuration files, and it is also used during automated testing.</p>
+<p>You shouldn't check <code>config.yaml</code> into version control because it contains sensitive information. However, it is important to check in a <em>configuration source file</em>. A configuration source file has the same structure as <code>HeroConfig</code>, but it has values for your test environment - both locally and with continuous integration tools. It is also used as a template for your deployed configuration files.</p>
 <div class="admonition tip">
 <p class="admonition-title">Sensitive Information</p>
-<p>Use a platform like Heroku or Kubernetes. You can store sensitive information in environment variables. You can read environment variables into a configuration file by using the variable's name with a <code>$</code> prefix as a value, e.g. <code>password: $DATABASE_PASSWORD</code>.</p>
+<p>Use a platform like Heroku or Kubernetes. You can store sensitive information in secured environment variables. You can substitute environment variables in a configuration file by using the variable's name with a <code>$</code> prefix as a value, e.g. <code>password: $DATABASE_PASSWORD</code>.</p>
 </div>
-<p>This filename defaults to <code>config.src.yaml</code>, and is currently empty in your project. Enter the following configuration into this file:</p>
+<p>A configuration source file should be named <code>config.src.yaml</code>, and one currently exists as an empty file in your project. Enter the following configuration into this file:</p>
 <div class="codehilite"><pre><span></span><span class="nl">database:</span>
   <span class="nl">host:</span> <span class="n">localhost</span>
   <span class="nl">port:</span> <span class="m">5432</span>
@@ -1458,7 +1458,7 @@
 </pre></div>
 
 
-<p>This file has the expected structure, but has different values for the database information. In the next section, we'll use this configuration file to run our automated tests.</p>
+<p>This file has the expected structure, but has different values for the database information (for a database that we will create shortly). In the next section, we'll use this configuration file to run our automated tests.</p>
 <h2 id="testing-in-aqueduct">Testing in Aqueduct</h2>
 <p>So far, we've tested our application by using a web application. This isn't a good way to test an application. A better way is to write automated test cases. An automated test case not only tests the code you are working on, but makes sure the code you've worked on the past continues to work as you make changes. A good development practice is to configure <a href="https://travis-ci.com">TravisCI</a> to run all of your tests for every code change.</p>
 <p>Because testing is so important, there is a package for writing Aqueduct application tests. In this chapter, we will use this package to make sure our hero endpoints are working correctly.</p>
@@ -1466,7 +1466,7 @@
 <p class="admonition-title">package:aqueduct_test</p>
 <p>The package <code>aqueduct_test</code> and <code>test</code> was already added to your <code>pubspec.yaml</code> file as a test dependency by the template generator.</p>
 </div>
-<p>In all Dart applications, tests are a Dart script with a <code>main</code> function. The <code>test</code> function registers a closure that contains expectations. That closure is run when you run your test suite, and the tests pass if all of your expectations are met. An example Dart test looks like this:</p>
+<p>In all Dart applications, a test suite is a Dart script with a <code>main</code> function. In this function, the <code>test</code> function is called multiple times to register expectations. A test passes if all of your expectations are met. An example Dart test looks like this:</p>
 <div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:test/test.dart&#39;</span><span class="p">;</span>
 
 <span class="kt">void</span> <span class="n">main</span><span class="p">()</span> <span class="p">{</span>
@@ -1479,7 +1479,7 @@
 
 
 <h3 id="setting-up-your-development-environment">Setting up your Development Environment</h3>
-<p>In <code>config.src.yaml</code>, we target the database <code>dart:dart@localhost:5432/dart_test</code>. This database is used by all Aqueduct applications for automated testing. When your application is tested, your application's tables are temporarily added to this database and then discarded after tests complete. This means that no data is stored in between test runs.</p>
+<p>In <code>config.src.yaml</code>, we target the database <code>dart:dart@localhost:5432/dart_test</code>. This is a 'special' database that is used by all Aqueduct applications for automated testing (by default). When your application is tested, its tables are temporarily added to this database and then discarded after tests complete. This means that no data is stored in between test runs.</p>
 <p>Create this database by running <code>psql</code> and enter the following SQL:</p>
 <div class="codehilite"><pre><span></span><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">dart_test</span><span class="p">;</span>
 <span class="k">CREATE</span> <span class="k">USER</span> <span class="n">dart</span> <span class="k">WITH</span> <span class="k">createdb</span><span class="p">;</span>
@@ -1490,7 +1490,7 @@
 
 <div class="admonition tip">
 <p class="admonition-title">dart_test Database</p>
-<p>You only have to create this database once per machine, and in any continuous integration scripts. All of your Aqueduct applications will use this database for automated testing.</p>
+<p>You only have to create this database once per machine, and in any continuous integration scripts. All of your Aqueduct applications will use this database for automated testing. Fun fact - you can run multiple application's tests simultaneously using this database because the tables only exist for the database connection that created them.</p>
 </div>
 <h3 id="writing-your-first-test">Writing Your First Test</h3>
 <p>We will create a test suite to make sure that all hero endpoints return the right data, and make the right changes. Create a new file named <code>test/hero_controller_test.dart</code>.</p>
@@ -1534,6 +1534,10 @@
 
 
 <p>The mixin gives our harness the method <code>resetData</code>. This method deletes everything from the test database and uploads the schema in a pristine state. By calling this method in <code>onSetUp</code>, our test harness will reset data before each test.</p>
+<div class="admonition tip">
+<p class="admonition-title">New Project Templates</p>
+<p>Using the <code>-t</code> command-line argument with <code>aqueduct create</code> allows you to select a template. Templates like <code>db</code> and <code>db_and_auth</code> have a test harness that already mixes in <code>TestHarnessORMMixin</code>. </p>
+</div>
 <p>Now, we can run this test by right-clicking on the <code>main</code> function in <code>hero_controller_test.dart</code> and selecting <code>Run tests in 'hero_controller_test.dart'</code>. A panel will appear that shows the results of your tests. You'll see a green checkmark next to the test in this panel to show that your test succeeded. If your test did not succeed, the reason will be printed to the console. If your test failed because of an error in your code, you will also be able to see the stack trace of the error.</p>
 <div class="admonition tip">
 <p class="admonition-title">Running Tests</p>
