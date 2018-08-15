@@ -18,7 +18,7 @@
     
     
       
-        <title>"Running Aqueduct Applications With Standalone Script"</title>
+        <title>Deploying without aqueduct serve - Aqueduct</title>
       
     
     
@@ -1016,6 +1016,18 @@
 
 
   <li class="md-nav__item">
+    <a href="../deploy_docker/" title="Deploying with Docker and Kubernetes" class="md-nav__link">
+      Deploying with Docker and Kubernetes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
     <a href="../deploy_heroku/" title="Deploy on Heroku" class="md-nav__link">
       Deploy on Heroku
     </a>
@@ -1261,36 +1273,25 @@
                 
                   <h1>Deploying without aqueduct serve</h1>
                 
-                <p>You may also run Aqueduct applications with a standalone script, instead of <code>aqueduct serve</code>. In fact, <code>aqueduct serve</code> creates a temporary Dart script to run the application. That script looks something like this:</p>
+                <p>You may also run Aqueduct applications with a standalone script, instead of <code>aqueduct serve</code>. In fact, <code>aqueduct serve</code> creates a temporary Dart script to run the application. If you created your application with <code>aqueduct create</code>, a standalone already exists in your project named <code>bin/main.dart</code>.</p>
+<p>A sample script looks like this:</p>
 <div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;dart:async&#39;</span><span class="p">;</span>
 <span class="k">import</span> <span class="s1">&#39;dart:io&#39;</span><span class="p">;</span>
 
 <span class="k">import</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span><span class="p">;</span>
 <span class="k">import</span> <span class="s1">&#39;package:my_application/my_application.dart&#39;</span><span class="p">;</span>
 
-<span class="n">main</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-  <span class="k">try</span> <span class="p">{</span>
-    <span class="kd">var</span> <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Application</span><span class="o">&lt;</span><span class="n">MyApplicationChannel</span><span class="o">&gt;</span><span class="p">();</span>
-    <span class="kd">var</span> <span class="n">options</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ApplicationOptions</span><span class="p">()</span>
-      <span class="p">..</span><span class="n">port</span> <span class="o">=</span> <span class="m">8888</span>
-      <span class="p">..</span><span class="n">configurationFilePath</span> <span class="o">=</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">;</span>
+<span class="n">Future</span> <span class="n">main</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">var</span> <span class="n">app</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Application</span><span class="o">&lt;</span><span class="n">MyApplicationChannel</span><span class="o">&gt;</span><span class="p">()</span>
+    <span class="p">..</span><span class="n">options</span><span class="p">.</span><span class="n">port</span> <span class="o">=</span> <span class="m">8888</span>
+    <span class="p">..</span><span class="n">options</span><span class="p">.</span><span class="n">configurationFilePath</span> <span class="o">=</span> <span class="s2">&quot;config.yaml&quot;</span><span class="p">;</span>
 
-    <span class="n">app</span><span class="p">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">options</span><span class="p">;</span>
-
-    <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="nl">numberOfInstances:</span> <span class="m">3</span><span class="p">);</span>    
-  <span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">st</span><span class="p">)</span> <span class="p">{</span>
-    <span class="kd">await</span> <span class="n">writeError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">e</span><span class="se">\n</span><span class="s2"> </span><span class="si">$</span><span class="n">st</span><span class="s2">&quot;</span><span class="p">);</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-
-<span class="n">Future</span> <span class="n">writeError</span><span class="p">(</span><span class="kt">String</span> <span class="n">error</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
-  <span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">error</span><span class="s2">&quot;</span><span class="p">);</span>
+  <span class="kd">await</span> <span class="n">app</span><span class="p">.</span><span class="n">start</span><span class="p">(</span><span class="nl">numberOfInstances:</span> <span class="m">3</span><span class="p">);</span>    
 <span class="p">}</span>
 </pre></div>
 
 
-<p>The <code>aqueduct serve</code> command properly exits and reports the error if the application fails to start.</p>
-<p>Applications that aren't use <code>aqueduct serve</code> must be sure to take appropriate action when the application fails to start such that the runner of the script is aware of the failure. A standalone start script should be placed in the <code>bin</code> directory of a project.</p>
+<p>This script can be used in place of <code>aqueduct serve</code>, but you must configure all <code>ApplicationOptions</code> in this script and not through the CLI.</p>
                 
                   
                 

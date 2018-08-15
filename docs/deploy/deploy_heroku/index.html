@@ -1014,6 +1014,18 @@
           
           
 
+
+  <li class="md-nav__item">
+    <a href="../deploy_docker/" title="Deploying with Docker and Kubernetes" class="md-nav__link">
+      Deploying with Docker and Kubernetes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
   
 
 
@@ -1409,8 +1421,8 @@
 </ol>
 <p>Estimated Time: 5 minutes.</p>
 <h3 id="step-1-setting-up-a-heroku-application">Step 1: Setting up a Heroku Application</h3>
-<p>Create a new application in Heroku. Add the 'Heroku Postgres' add-on.</p>
-<p>Navigate to the Settings tab in the Heroku web interface and click 'Reveal Config Vars'. Note the DATABASE_URL, it'll get used later.</p>
+<p>Create a new application in Heroku's web portal, and if you are using a database, add the 'Heroku Postgres' add-on.</p>
+<p>Navigate to the Settings tab in the Heroku web interface and click 'Reveal Config Vars'. Note that there is a DATABASE_URL environment variable that is the connection details for your PostgreSQL database. You won't need to remember the value, only that this environment variable exists.</p>
 <h3 id="step-2-setting-up-an-aqueduct-application-to-run-on-heroku">Step 2: Setting up an Aqueduct Application to Run on Heroku</h3>
 <p>If you have not yet, create a new Aqueduct application on your local machine, go into that directory, and initialize it as a git repository if it is not already:</p>
 <div class="codehilite"><pre><span></span>aqueduct create app_name
@@ -1424,10 +1436,20 @@ git init
 <p class="admonition-title">Heroku Application Name</p>
 <p>In the following commands, ensure that <code>app_name</code> is the name of your <em>Heroku application</em> created in their web portal, not the name of your Aqueduct application.</p>
 </div>
-<div class="codehilite"><pre><span></span>heroku login
+<div class="codehilite"><pre><span></span><span class="c1"># This is an interactive command that you have to enter your username and password.</span>
+heroku login
+
+<span class="c1"># This adds a remote repository hosted by Heroku for your application that you push to.</span>
 heroku git:remote -a app_name
+
+<span class="c1"># Specifies the Dart SDK to use</span>
 heroku config:set <span class="nv">DART_SDK_URL</span><span class="o">=</span>https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip
-heroku config:add <span class="nv">BUILDPACK_URL</span><span class="o">=</span>https://github.com/stablekernel/heroku-buildpack-dart.git
+
+<span class="c1"># Specifies the Heroku Buildpack to use</span>
+heroku config:set <span class="nv">BUILDPACK_URL</span><span class="o">=</span>https://github.com/stablekernel/heroku-buildpack-dart.git
+
+<span class="c1"># Specifies that aqueduct should be activated</span>
+heroku config:set <span class="nv">DART_GLOBAL_PACKAGES</span><span class="o">=</span><span class="s2">&quot;aqueduct@3.0.0&quot;</span>
 heroku config:set <span class="nv">PATH</span><span class="o">=</span>/app/bin:/usr/local/bin:/usr/bin:/bin:/app/.pub-cache/bin:/app/dart-sdk/bin
 heroku config:set <span class="nv">PUB_CACHE</span><span class="o">=</span>/app/pub-cache
 </pre></div>
@@ -1473,7 +1495,7 @@ git commit -am <span class="s2">&quot;adds migration files&quot;</span>
 
 
 <p>This command pushes your code to a remote git server hosted by Heroku, which triggers your application to run its release script.</p>
-<p>Now that your application's database schema has been uploaded throug, you can configure your OAuth 2 server with client identifiers if you are using <code>package:aqueduct/managed_auth</code>. The following command will run within your application's remote environment.</p>
+<p>Now that your application's database schema has been uploaded, you can configure your OAuth 2 server with client identifiers if you are using <code>package:aqueduct/managed_auth</code>. The following command will run within your application's remote environment.</p>
 <div class="codehilite"><pre><span></span>heroku run /app/dart-sdk/bin/pub global run aqueduct:aqueduct auth add-client --id com.app.standard --secret secret --connect <span class="se">\$</span>DATABASE_URL
 </pre></div>
 
@@ -1502,7 +1524,7 @@ git commit -am <span class="s2">&quot;adds migration files&quot;</span>
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../deploy_local/" title="Deploy Locally" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../deploy_docker/" title="Deploying with Docker and Kubernetes" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -1511,7 +1533,7 @@ git commit -am <span class="s2">&quot;adds migration files&quot;</span>
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Deploy Locally
+                Deploying with Docker and Kubernetes
               </span>
             </div>
           </a>

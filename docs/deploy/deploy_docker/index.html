@@ -18,7 +18,7 @@
     
     
       
-        <title>Deploy on AWS - Aqueduct</title>
+        <title>Deploying with Docker and Kubernetes - Aqueduct</title>
       
     
     
@@ -87,7 +87,7 @@
                 </span>
               
             
-            Deploy on AWS
+            Deploying with Docker and Kubernetes
           
         </span>
       </div>
@@ -1014,30 +1014,6 @@
           
           
 
-
-  <li class="md-nav__item">
-    <a href="../deploy_docker/" title="Deploying with Docker and Kubernetes" class="md-nav__link">
-      Deploying with Docker and Kubernetes
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../deploy_heroku/" title="Deploy on Heroku" class="md-nav__link">
-      Deploy on Heroku
-    </a>
-  </li>
-
-        
-          
-          
-          
-
   
 
 
@@ -1049,11 +1025,11 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="toc">
-        Deploy on AWS
+        Deploying with Docker and Kubernetes
       </label>
     
-    <a href="./" title="Deploy on AWS" class="md-nav__link md-nav__link--active">
-      Deploy on AWS
+    <a href="./" title="Deploying with Docker and Kubernetes" class="md-nav__link md-nav__link--active">
+      Deploying with Docker and Kubernetes
     </a>
     
       
@@ -1074,22 +1050,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#summary" title="Summary" class="md-nav__link">
-    Summary
+  <a href="#dockerfiles" title="Dockerfiles" class="md-nav__link">
+    Dockerfiles
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-management" title="Configuration Management" class="md-nav__link">
-    Configuration Management
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cli-tools" title="CLI Tools" class="md-nav__link">
-    CLI Tools
+  <a href="#kubernetes-objects" title="Kubernetes Objects" class="md-nav__link">
+    Kubernetes Objects
   </a>
   
 </li>
@@ -1100,6 +1069,30 @@
   
 </nav>
     
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../deploy_heroku/" title="Deploy on Heroku" class="md-nav__link">
+      Deploy on Heroku
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../deploy_aws/" title="Deploy on AWS" class="md-nav__link">
+      Deploy on AWS
+    </a>
   </li>
 
         
@@ -1321,22 +1314,15 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#summary" title="Summary" class="md-nav__link">
-    Summary
+  <a href="#dockerfiles" title="Dockerfiles" class="md-nav__link">
+    Dockerfiles
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration-management" title="Configuration Management" class="md-nav__link">
-    Configuration Management
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#cli-tools" title="CLI Tools" class="md-nav__link">
-    CLI Tools
+  <a href="#kubernetes-objects" title="Kubernetes Objects" class="md-nav__link">
+    Kubernetes Objects
   </a>
   
 </li>
@@ -1355,38 +1341,76 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/deploy/deploy_aws.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/deploy/deploy_docker.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="deploying-an-aqueduct-application-on-remote-vms">Deploying an Aqueduct Application on Remote VMs</h1>
+                <h1 id="deploying-an-aqueduct-application-using-docker">Deploying an Aqueduct Application using Docker</h1>
 <p>For other deployment options, see <a href="../">Deploying Aqueduct Applications</a>.</p>
 <h3 id="purpose">Purpose</h3>
-<p>This document will describe the steps to deploy an Aqueduct application to a remote machine that you are able to <code>ssh</code> into. This is often the case for Amazon Web Service (AWS) EC2 instances, Google Cloud Compute Instances, Azure Virtual Machines, and rented boxes on platforms like Digital Ocean or other cloud providers.</p>
-<p>If you are unfamiliar with deploying applications in this way, this is not a good beginner's guide and will not cover many of the steps necessary to deploy an application. Prefer to use a platform like Heroku or one that supports Docker. See the guides on <a href="../deploy_heroku/">Heroku</a> and <a href="../deploy_docker/">Docker</a> for better options.</p>
-<h3 id="summary">Summary</h3>
-<p>Aqueduct applications are run by using <code>aqueduct serve</code> or <code>dart bin/main.dart</code>.</p>
-<div class="codehilite"><pre><span></span># in project directory
-aqueduct serve
+<p>This document will describe the steps to deploy an Aqueduct application through Docker and/or a container orchestration platform like Kubernetes. For Dockerfile and Kubernetes templates, see <a href="https://github.com/stablekernel/kubernetes">this repository</a>.</p>
+<p>If you are unfamiliar with deploying applications in this way, this is not a good beginner's guide and will not cover the topics of Docker or Kubernetes.</p>
+<h3 id="dockerfiles">Dockerfiles</h3>
+<p>The following Dockerfile will run an Aqueduct application.</p>
+<div class="codehilite"><pre><span></span>FROM google/dart
 
-# or
+WORKDIR /app
+ADD pubspec.* /app/
+RUN pub get --no-precompile
+ADD . /app/
+RUN pub get --offline --no-precompile
 
-# in project directory
-dart bin/main.dart
+WORKDIR /app
+EXPOSE 80
+
+ENTRYPOINT [&quot;pub&quot;, &quot;run&quot;, &quot;aqueduct:aqueduct&quot;, &quot;serve&quot;, &quot;--port&quot;, &quot;80&quot;]
 </pre></div>
 
 
-<p>The target machine must have Dart installed. If you are using <code>aqueduct serve</code>, you must also activate the CLI on the target machine:</p>
-<div class="codehilite"><pre><span></span>pub global activate aqueduct
+<h3 id="kubernetes-objects">Kubernetes Objects</h3>
+<p>For more Kubernetes objects - including tasks for database migrations and OAuth 2.0 client management - see <a href="https://github.com/stablekernel/kubernetes">this repository</a>. The following is Kubernetes configuration file for starting an Aqueduct application and exposing it as a service. Replace <code>&lt;APP_NAME&gt;</code> with your application's name.</p>
+<div class="codehilite"><pre><span></span><span class="n">apiVersion</span><span class="o">:</span> <span class="n">v1</span>
+<span class="n">kind</span><span class="o">:</span> <span class="n">Service</span>
+<span class="n">metadata</span><span class="o">:</span>
+  <span class="n">name</span><span class="o">:</span> <span class="n">api</span><span class="o">-</span><span class="n">service</span>
+  <span class="kd">namespace</span><span class="o">:</span> <span class="o">&lt;</span><span class="n">APP_NAME</span><span class="o">&gt;</span>
+<span class="n">spec</span><span class="o">:</span>
+  <span class="n">selector</span><span class="o">:</span>
+    <span class="n">app</span><span class="o">:</span> <span class="o">&lt;</span><span class="n">APP_NAME</span><span class="o">&gt;</span>
+    <span class="n">role</span><span class="o">:</span> <span class="n">backend</span>
+    <span class="n">type</span><span class="o">:</span> <span class="n">api</span>
+  <span class="n">ports</span><span class="o">:</span>
+    <span class="o">-</span> <span class="n">port</span><span class="o">:</span> <span class="mi">80</span>
+      <span class="n">targetPort</span><span class="o">:</span> <span class="mi">8082</span>
+<span class="o">---</span>
+<span class="n">apiVersion</span><span class="o">:</span> <span class="n">apps</span><span class="o">/</span><span class="n">v1beta1</span>
+<span class="n">kind</span><span class="o">:</span> <span class="n">Deployment</span>
+<span class="n">metadata</span><span class="o">:</span>
+  <span class="n">name</span><span class="o">:</span> <span class="n">api</span><span class="o">-</span><span class="n">deployment</span>
+  <span class="kd">namespace</span><span class="o">:</span> <span class="o">&lt;</span><span class="n">APP_NAME</span><span class="o">&gt;</span>
+<span class="n">spec</span><span class="o">:</span>
+  <span class="n">replicas</span><span class="o">:</span> <span class="mi">2</span>
+  <span class="n">template</span><span class="o">:</span>
+    <span class="n">metadata</span><span class="o">:</span>
+      <span class="n">labels</span><span class="o">:</span>
+        <span class="n">app</span><span class="o">:</span> <span class="o">&lt;</span><span class="n">APP_NAME</span><span class="o">&gt;</span>
+        <span class="n">role</span><span class="o">:</span> <span class="n">backend</span>
+        <span class="n">type</span><span class="o">:</span> <span class="n">api</span>
+    <span class="n">spec</span><span class="o">:</span>
+      <span class="n">containers</span><span class="o">:</span>
+        <span class="o">-</span> <span class="n">name</span><span class="o">:</span> <span class="o">&lt;</span><span class="n">APP_NAME</span><span class="o">&gt;</span>
+          <span class="err">#</span> <span class="n">In</span> <span class="n">development</span><span class="o">,</span> <span class="n">setting</span> <span class="err">`</span><span class="n">imagePullPolicy</span><span class="o">:</span> <span class="n">Always</span><span class="err">`</span> <span class="n">and</span> <span class="n">using</span> <span class="o">:</span><span class="n">latest</span> <span class="n">tag</span> <span class="k">is</span> <span class="n">useful</span><span class="o">.</span>
+          <span class="err">#</span> <span class="n">imagePullPolicy</span><span class="o">:</span> <span class="n">Always</span>
+          <span class="n">image</span><span class="o">:</span> <span class="o">&lt;</span><span class="n">IMAGE</span><span class="o">&gt;</span>
+          <span class="n">envFrom</span><span class="o">:</span>
+            <span class="o">-</span> <span class="n">secretRef</span><span class="o">:</span>
+                <span class="n">name</span><span class="o">:</span> <span class="n">secrets</span>
+            <span class="o">-</span> <span class="n">configMapRef</span><span class="o">:</span>
+                <span class="n">name</span><span class="o">:</span> <span class="n">config</span>
+          <span class="n">ports</span><span class="o">:</span>
+            <span class="o">-</span> <span class="n">containerPort</span><span class="o">:</span> <span class="mi">8082</span>
+      <span class="n">securityContext</span><span class="o">:</span>
+              <span class="n">runAsNonRoot</span><span class="o">:</span> <span class="kc">true</span>
 </pre></div>
-
-
-<p>Your source code must also be available on the target machine. You can transfer your source to a machine with tools like <code>ftp</code>, <code>scp</code>, <code>rsync</code> and <code>git</code>.</p>
-<p>Aqueduct will listen on port 8888 by default. Change this value at the CLI <code>aqueduct serve --port 80</code> or in <code>bin/main.dart</code>. Ensure that security controls on your instance can accept connections on the port Aqueduct is listening on. It is preferable to use a reverse proxy (e.g. nginx or a load balancer) instead of serving the application directly.</p>
-<p>Use tools like <code>supervisord</code> to ensure the application restarts if the VM crashes.</p>
-<h2 id="configuration-management">Configuration Management</h2>
-<p>When deploying directly to a VM, it is your responsibility to manage your configuration file. This can often be done by transferring an environment specific <code>config.yaml</code> file to your target machine and storing it in your project's directory on the remote machine.</p>
-<h2 id="cli-tools">CLI Tools</h2>
-<p>Many deployments will need to perform database migrations and OAuth 2.0 client identifier management with the <code>aqueduct</code> CLI. You can run these tools locally with the <code>--connect</code> flag to specify the location of your database instance. Ensure that you have the propery security controls to access the database instance from your local machine.</p>
                 
                   
                 
@@ -1405,7 +1429,7 @@ dart bin/main.dart
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../deploy_heroku/" title="Deploy on Heroku" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../deploy_local/" title="Deploy Locally" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -1414,19 +1438,19 @@ dart bin/main.dart
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Deploy on Heroku
+                Deploy Locally
               </span>
             </div>
           </a>
         
         
-          <a href="../script/" title="Deploying without aqueduct serve" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../deploy_heroku/" title="Deploy on Heroku" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Deploying without aqueduct serve
+                Deploy on Heroku
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">
