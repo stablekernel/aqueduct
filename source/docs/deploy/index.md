@@ -7,6 +7,7 @@ Aqueduct applications can be run anywhere that Dart can be installed. This topic
 ## Guides
 
 - [Running an Aqueduct Application Locally](deploy_local.md)
+- [Running an Aqueduct Application with Docker and Kubernetes](deploy_docker.md)
 - [Running an Aqueduct Application on Heroku](deploy_heroku.md)
 - [Running an Aqueduct Application on Amazon Web Services (AWS)](deploy_aws.md)
 - [Running an Aqueduct Application without aqueduct serve](script.md)

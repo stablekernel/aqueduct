@@ -1,12 +1,6 @@
----
-layout: page
-title: "Running Aqueduct Applications With Standalone Script"
-category: deploy
-date: 2016-06-19 21:22:35
-order: 6
----
+You may also run Aqueduct applications with a standalone script, instead of `aqueduct serve`. In fact, `aqueduct serve` creates a temporary Dart script to run the application. If you created your application with `aqueduct create`, a standalone already exists in your project named `bin/main.dart`.
 
-You may also run Aqueduct applications with a standalone script, instead of `aqueduct serve`. In fact, `aqueduct serve` creates a temporary Dart script to run the application. That script looks something like this:
+A sample script looks like this:
 
 ```dart
 import 'dart:async';
@@ -15,26 +9,13 @@ import 'dart:io';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:my_application/my_application.dart';
 
-main() async {
-  try {
-    var app = new Application<MyApplicationChannel>();
-    var options = new ApplicationOptions()
-      ..port = 8888
-      ..configurationFilePath = "config.yaml";
+Future main() async {
+  var app = new Application<MyApplicationChannel>()
+    ..options.port = 8888
+    ..options.configurationFilePath = "config.yaml";
 
-    app.options = options;
-
-    await app.start(numberOfInstances: 3);    
-  } catch (e, st) {
-    await writeError("$e\n $st");
-  }
-}
-
-Future writeError(String error) async {
-  print("$error");
+  await app.start(numberOfInstances: 3);    
 }
 ```
 
-The `aqueduct serve` command properly exits and reports the error if the application fails to start.
-
-Applications that aren't use `aqueduct serve` must be sure to take appropriate action when the application fails to start such that the runner of the script is aware of the failure. A standalone start script should be placed in the `bin` directory of a project.
+This script can be used in place of `aqueduct serve`, but you must configure all `ApplicationOptions` in this script and not through the CLI.

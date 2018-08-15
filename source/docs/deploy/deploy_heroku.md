@@ -25,9 +25,9 @@ Estimated Time: 5 minutes.
 
 ### Step 1: Setting up a Heroku Application
 
-Create a new application in Heroku. Add the 'Heroku Postgres' add-on.
+Create a new application in Heroku's web portal, and if you are using a database, add the 'Heroku Postgres' add-on.
 
-Navigate to the Settings tab in the Heroku web interface and click 'Reveal Config Vars'. Note the DATABASE_URL, it'll get used later.
+Navigate to the Settings tab in the Heroku web interface and click 'Reveal Config Vars'. Note that there is a DATABASE_URL environment variable that is the connection details for your PostgreSQL database. You won't need to remember the value, only that this environment variable exists.
 
 ### Step 2: Setting up an Aqueduct Application to Run on Heroku
 
@@ -46,10 +46,20 @@ Run the following commands to configure your project in Heroku's environment.
 
 
 ```bash
+# This is an interactive command that you have to enter your username and password.
 heroku login
+
+# This adds a remote repository hosted by Heroku for your application that you push to.
 heroku git:remote -a app_name
+
+# Specifies the Dart SDK to use
 heroku config:set DART_SDK_URL=https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip
-heroku config:add BUILDPACK_URL=https://github.com/stablekernel/heroku-buildpack-dart.git
+
+# Specifies the Heroku Buildpack to use
+heroku config:set BUILDPACK_URL=https://github.com/stablekernel/heroku-buildpack-dart.git
+
+# Specifies that aqueduct should be activated
+heroku config:set DART_GLOBAL_PACKAGES="aqueduct@3.0.0"
 heroku config:set PATH=/app/bin:/usr/local/bin:/usr/bin:/bin:/app/.pub-cache/bin:/app/dart-sdk/bin
 heroku config:set PUB_CACHE=/app/pub-cache
 ```
@@ -103,7 +113,7 @@ git push heroku master
 
 This command pushes your code to a remote git server hosted by Heroku, which triggers your application to run its release script.
 
-Now that your application's database schema has been uploaded throug, you can configure your OAuth 2 server with client identifiers if you are using `package:aqueduct/managed_auth`. The following command will run within your application's remote environment.
+Now that your application's database schema has been uploaded, you can configure your OAuth 2 server with client identifiers if you are using `package:aqueduct/managed_auth`. The following command will run within your application's remote environment.
 
 ```bash
 heroku run /app/dart-sdk/bin/pub global run aqueduct:aqueduct auth add-client --id com.app.standard --secret secret --connect \$DATABASE_URL

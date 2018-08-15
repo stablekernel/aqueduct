@@ -71,6 +71,7 @@ pages:
   - Deployment:
     - 'Overview': 'deploy/index.md'
     - 'Deploy Locally': 'deploy/deploy_local.md'
+    - 'Deploying with Docker and Kubernetes': 'deploy/deploy_docker.md'
     - 'Deploy on Heroku': 'deploy/deploy_heroku.md'
     - 'Deploy on AWS': 'deploy/deploy_aws.md'
     - 'Deploying without aqueduct serve': 'deploy/script.md'
