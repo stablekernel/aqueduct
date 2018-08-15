@@ -1331,7 +1331,8 @@
 <p>You create subclasses of <code>ManagedObject&lt;T&gt;</code> in your application code to define the database tables your application uses. The properties of these types have annotations like <code>Column</code> and <code>Validate</code> to customize the behavior of tables in your database.</p>
 <p>Your application creates a <code>ManagedContext</code> service object during initialization that manages database access for your application. This service is injected into controllers that make database queries.</p>
 <p>Instances of <code>Query&lt;T&gt;</code> are created to insert, update, read and delete data from a database. A <code>Query&lt;T&gt;</code> has many configurable options for filtering, joining, paging, sorting and performing aggregate functions on database rows.</p>
-<p>The <code>aqueduct db</code> command-line tool manages databases that your application connects. This tool creates and executes migration scripts that update the schema of a database to match the requirements of your application. </p>
+<p>The <code>aqueduct db</code> command-line tool manages databases that your application connects. This tool creates and executes migration scripts that update the schema of a database to match the requirements of your application.</p>
+<p>The minimum version of PostgreSQL needed to work with Aqueduct is 9.6.</p>
 <h2 id="guides">Guides</h2>
 <ul>
 <li><a href="connecting/">Connecting to a Database</a></li>
