@@ -191,6 +191,8 @@ Setting Up a Database
 
 For development, you'll need to install a PostgreSQL server on your local machine. If you are on macOS, your best bet is to use [Postgres.app](http://postgresapp.com). This application starts a PostgreSQL instance when it is open, and closes it when the application is shut down. For other platforms, see [this page](https://www.postgresql.org/download/).
 
+The minimum version of PostgreSQL needed to work with Aqueduct is 9.6.
+
 Once you have PostgreSQL installed and running, open a command line interface to it. If you are using `Postgres.app`, select the elephant icon in your status bar and then select `Open psql`. Otherwise, enter `psql` into the command-line.
 
 !!! warning "If you installed Postgres.app"

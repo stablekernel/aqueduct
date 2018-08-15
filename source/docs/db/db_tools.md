@@ -2,6 +2,9 @@
 
 The `aqueduct db` command line tool creates and executes *migration files*. A migration file contains SQL commands that create and modify database tables to match your application's data model.
 
+!!! warning "PostgreSQL 9.6 and Greater"
+    The minimum version of PostgreSQL needed to work with Aqueduct is 9.6.
+
 Migration Files
 ---
 

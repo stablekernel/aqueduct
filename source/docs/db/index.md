@@ -8,7 +8,9 @@ Your application creates a `ManagedContext` service object during initialization
 
 Instances of `Query<T>` are created to insert, update, read and delete data from a database. A `Query<T>` has many configurable options for filtering, joining, paging, sorting and performing aggregate functions on database rows.
 
-The `aqueduct db` command-line tool manages databases that your application connects. This tool creates and executes migration scripts that update the schema of a database to match the requirements of your application. 
+The `aqueduct db` command-line tool manages databases that your application connects. This tool creates and executes migration scripts that update the schema of a database to match the requirements of your application.
+
+The minimum version of PostgreSQL needed to work with Aqueduct is 9.6.
 
 ## Guides
 
