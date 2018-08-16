@@ -49,14 +49,13 @@ abstract class Linkable {
   Linkable linkFunction(FutureOr<RequestOrResponse> handle(Request request));
 }
 
-/// Controllers handle requests by either responding, or taking some action and passing the request to another controller.
+/// Base class for request handling objects.
 ///
-/// A controller is a discrete processing unit for requests. These units are composed
-/// together to form a series of steps that fully handle a request. This composability allows for reuse
-/// of common tasks (like verifying an Authorization header) that can be inserted as a step for many different requests.
+/// A controller is a discrete processing unit for requests. These units are linked
+/// together to form a series of steps that fully handle a request.
 ///
-/// This class is intended to be subclassed. [ApplicationChannel], [Router], [ResourceController] are all examples of this type.
-/// Subclasses should implement [handle] to respond to, modify or forward requests.
+/// Subclasses must implement [handle] to respond to, modify or forward requests.
+/// This class must be subclassed. [Router] and [ResourceController] are common subclasses.
 abstract class Controller
     implements APIComponentDocumenter, APIOperationDocumenter, Linkable {
   /// Returns a stacktrace and additional details about how the request's processing in the HTTP response.
@@ -206,13 +205,13 @@ abstract class Controller
     return nextController?.receive(next);
   }
 
-  /// Overridden by subclasses to modify or respond to an incoming request.
+  /// The primary request handling method of this object.
   ///
-  /// Subclasses override this method to provide their specific handling of a request.
+  /// Subclasses implement this method to provide their request handling logic.
   ///
-  /// If this method returns a [Response], it will be sent as the response for [request] and [request] will not be passed to any other controllers.
+  /// If this method returns a [Response], it will be sent as the response for [request] linked controllers will not handle it.
   ///
-  /// If this method returns [request], [request] will be passed to [nextController].
+  /// If this method returns [request], the linked controller handles the request.
   ///
   /// If this method returns null, [request] is not passed to any other controller and is not responded to. You must respond to [request]
   /// through [Request.raw].
