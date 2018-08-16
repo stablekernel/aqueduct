@@ -7,6 +7,8 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
 import "package:test/test.dart";
 
+import '../helpers.dart';
+
 void main() {
   group("Router basics", () {
     HttpServer server;
@@ -259,7 +261,7 @@ void main() {
     });
 
     test("Router can be linked to", () async {
-      final root = Controller((req) async => req);
+      final root = PassthruController();
       final router = Router()..route("/1").link(() => NumberEmitter(1))..route("/2").link(() => NumberEmitter(2));
 
       root.link(() => router);
@@ -275,7 +277,7 @@ void main() {
     test("Router delivers prepare to all controllers", () async {
       Completer c1 = Completer();
       Completer c2 = Completer();
-      final root = Controller((req) async => Response.ok(null));
+      final root = OKController();
       final router = Router()
         ..route("/a").link(() => PrepareTailController(c1))
         ..route("/b").link(() => PrepareTailController(c2));
@@ -322,5 +324,19 @@ class PrepareTailController extends Controller {
   @override
   void didAddToChannel() {
     completer.complete();
+  }
+
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return request;
+  }
+
+
+}
+
+class OKController extends Controller {
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return Response.ok(null);
   }
 }

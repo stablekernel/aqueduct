@@ -1,3 +1,7 @@
+## 3.0.1
+
+- `Controller` is now an abstract class that requires implementing `handle`. This is a minor breaking change that should not have an impact.
+
 ## 3.0.0
 
 - Adds `BodyDecoder.decode<T>` and `BodyDecoder.as<T>`. This replaces existing `decodeAs*` and `as*` methods.

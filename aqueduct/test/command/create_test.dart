@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:path/path.dart' as path_lib;
+import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -104,14 +105,15 @@ void main() {
         .map((fse) => fse.uri.pathSegments[fse.uri.pathSegments.length - 2])
         .toList();
     final aqueductPubspec = loadYaml(File("pubspec.yaml").readAsStringSync());
-    final aqueductVersionString = "^${aqueductPubspec["version"]}";
+    final aqueductVersion = Version.parse("${aqueductPubspec["version"]}");
 
     for (var template in templates) {
-      test("Templates contain most recent version of aqueduct by default", () {
+      test("Templates can use 'this' version of Aqueduct in their dependencies", () {
         var projectDir = Directory("templates/$template/");
         var pubspec = File.fromUri(projectDir.uri.resolve("pubspec.yaml"));
         var contents = loadYaml(pubspec.readAsStringSync());
-        expect(contents["dependencies"]["aqueduct"], aqueductVersionString);
+        final projectVersionConstraint = VersionConstraint.parse(contents["dependencies"]["aqueduct"] as String);
+        expect(projectVersionConstraint.allows(aqueductVersion), true);
       });
 
       test("Tests run on template generated from local path", () async {

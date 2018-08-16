@@ -5,6 +5,8 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
 
+import '../helpers.dart';
+
 void main() {
   HttpServer server;
 
@@ -13,7 +15,7 @@ void main() {
   });
 
   test("Response thrown during normal handling is sent as response", () async {
-    server = await enableController(Controller((req) {
+    server = await enableController(ClosureController((req) {
       throw Response.ok(null);
     }));
 
@@ -22,7 +24,7 @@ void main() {
   });
 
   test("Unknown error thrown during handling returns 500", () async {
-    server = await enableController(Controller((req) {
+    server = await enableController(ClosureController((req) {
       throw StateError("error");
     }));
 
@@ -31,7 +33,7 @@ void main() {
   });
 
   test("HandlerException thrown in handle returns its response", () async {
-    server = await enableController(Controller((req) {
+    server = await enableController(ClosureController((req) {
       throw HandlerException(Response.ok(null));
     }));
 
@@ -41,7 +43,7 @@ void main() {
 
   test("Throw exception when sending HandlerException response sends 500",
       () async {
-    server = await enableController(Controller((req) {
+    server = await enableController(ClosureController((req) {
       throw CrashingTestHandlerException();
     }));
 
@@ -50,9 +52,9 @@ void main() {
   });
 
   test("Throw exception when sending thrown Response sends 500", () async {
-    server = await enableController(Controller((req) {
+    server = await enableController(ClosureController((req) {
       // nonsense body to trigger exception when encoding
-      throw Response.ok(Controller());
+      throw Response.ok(PassthruController());
     }));
 
     final r = await http.get("http://localhost:4040");
@@ -73,4 +75,16 @@ Future<HttpServer> enableController(Controller controller) async {
 class CrashingTestHandlerException implements HandlerException {
   @override
   Response get response => throw StateError("");
+}
+
+typedef ClosureHandler = FutureOr<RequestOrResponse> Function(Request request);
+
+class ClosureController extends Controller {
+  ClosureController(this.handler);
+  final ClosureHandler handler;
+
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return handler(request);
+  }
 }

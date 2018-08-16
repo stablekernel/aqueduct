@@ -6,6 +6,8 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
+import '../helpers.dart';
+
 void main() {
   var defaultSize = RequestBody.maxSize;
   setUp(() {
@@ -607,7 +609,7 @@ void main() {
       // If body decoding fails, we need to return 500 but also ensure we have closed the request
       // body stream
       server.map((req) => Request(req)).listen((req) async {
-        var next = Controller();
+        var next = PassthruController();
         next.linkFunction((req) async {
           // This'll crash
           var _ = await req.body.decode();
@@ -658,7 +660,7 @@ void main() {
     test("Entity with known content-type that is too large is rejected, specified length", () async {
       RequestBody.maxSize = 8193;
 
-      var controller = Controller()
+      var controller = PassthruController()
         ..linkFunction((req) async {
           var body = await req.body.decode<Map<String, dynamic>>();
           return Response.ok(body);
@@ -688,7 +690,7 @@ void main() {
     test("Entity with unknown content-type that is too large is rejected, specified length", () async {
       RequestBody.maxSize = 8193;
 
-      var controller = Controller()
+      var controller = PassthruController()
         ..linkFunction((req) async {
           var body = await req.body.decode();
           return Response.ok(body)..contentType = ContentType("application", "octet-stream");

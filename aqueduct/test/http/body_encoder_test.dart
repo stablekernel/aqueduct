@@ -6,6 +6,8 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
+import '../helpers.dart';
+
 void main() {
   HttpServer server;
   HttpClient client;
@@ -254,7 +256,7 @@ void main() {
 Future<HttpServer> bindAndRespondWith(Response response) async {
   var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
   server.map((req) => Request(req)).listen((req) async {
-    var next = Controller();
+    var next = PassthruController();
     next.linkFunction((req) async {
       return response;
     });

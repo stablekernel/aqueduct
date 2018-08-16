@@ -10,6 +10,11 @@ void justLogEverything() {
     ..onRecord.listen((p) => print("$p ${p.object} ${p.stackTrace}"));
 }
 
+class PassthruController extends Controller {
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) => request;
+}
+
 class TestUser extends ResourceOwner {
   int get uniqueIdentifier => id;
   @override

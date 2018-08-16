@@ -237,7 +237,7 @@ class ServerRoot {
   ServerRoot();
 
   HttpServer server;
-  Controller root = Controller((req) => req);
+  Controller root = ClosureController((req) => req);
 
   Future open() async {
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
@@ -279,10 +279,20 @@ class DefaultRecyclable extends Controller implements Recyclable<String> {
 
 class MutablePropertyController extends Controller {
   String mutableProperty;
+
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return request;
+  }
 }
 
 class MutableSetterController extends Controller {
   set mutableSetter(String s) {}
+
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return request;
+  }
 }
 
 class MiddlewareRecyclable extends Controller implements Recyclable<String> {
@@ -308,5 +318,18 @@ class MiddlewareRecyclable extends Controller implements Recyclable<String> {
   String get recycledState {
     stateCount++;
     return "state";
+  }
+}
+
+typedef ClosureHandler = FutureOr<RequestOrResponse> Function(Request request);
+
+class ClosureController extends Controller {
+  ClosureController(this.handler);
+
+  final ClosureHandler handler;
+
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
+    return handler(request);
   }
 }
