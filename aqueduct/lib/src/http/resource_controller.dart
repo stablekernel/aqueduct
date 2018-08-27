@@ -325,12 +325,13 @@ abstract class ResourceController extends Controller
   }
 
   bool _shouldDocumentSerializable(Type type) {
-    final hierarchy = classHierarchyForClass(reflectClass(type));
-    final mostSpecificType = hierarchy.firstWhere((classMirror) =>
-        classMirror.staticMembers.containsKey(#shouldAutomaticallyDocument));
+    final mirror = reflectClass(type);
+    final signature = mirror.staticMembers[#shouldAutomaticallyDocument];
+    if (signature != null) {
+      return mirror.getField(#shouldAutomaticallyDocument).reflectee as bool;
+    }
 
-    return mostSpecificType.getField(#shouldAutomaticallyDocument).reflectee
-        as bool;
+    return Serializable.shouldAutomaticallyDocument;
   }
 
   /// Adds [methodScopes] to [operationScopes] if they do not exist.

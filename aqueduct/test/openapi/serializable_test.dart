@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
@@ -79,6 +80,18 @@ void main() {
 
     expect(doc.properties["k"], isNotNull);
   });
+
+  test("Can bind a Serializable implementor to a resource controller method and it auto-documents", () async {
+    final c = BoundBodyController();
+    c.didAddToChannel();
+    c.restore(c.recycledState);
+
+    c.documentComponents(ctx);
+    final op = c.documentOperations(ctx, "/", APIPath.empty());
+    await ctx.finalize();
+
+    expect(op["post"].requestBody.content["application/json"].schema.referenceURI.pathSegments.last, "BoundBody");
+  });
 }
 
 class A extends Serializable {
@@ -133,4 +146,22 @@ class OverrideDocument extends Serializable {
 
   @override
   void readFromMap(Map<String, dynamic> requestBody) {}
+}
+
+
+class BoundBody implements Serializable {
+  int x;
+
+  @override
+  Map<String, dynamic> asMap() => null;
+
+  @override
+  void readFromMap(Map<String, dynamic> requestBody) {}
+}
+
+class BoundBodyController extends ResourceController {
+  @Operation.post()
+  Future<Response> post(@Bind.body() BoundBody a) async {
+    return Response.ok(null);
+  }
 }
