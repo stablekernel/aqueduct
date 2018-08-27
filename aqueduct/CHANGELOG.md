@@ -1,6 +1,7 @@
 ## 3.0.1
 
 - `Controller` is now an abstract class that requires implementing `handle`. This is a minor breaking change that should not have an impact.
+- 'Serializable' can now implement static 'document' method to override component documentation behavior
 
 ## 3.0.0
 
