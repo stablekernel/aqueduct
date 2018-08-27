@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/documented_element.dart';
 import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
@@ -57,6 +59,26 @@ void main() {
     expect(doc.title, "b");
     expect(doc.description, isEmpty);
   });
+
+  test(
+      "If Serializable cannot be documented, it still allows doc generation but shows error in document",
+      () async {
+    final doc = Serializable.document(ctx, FailsToDocument);
+    await ctx.finalize();
+
+    expect(doc.title, contains("Failed to auto"));
+    expect(doc.title, contains("FailsToDocument"));
+    expect(doc.description, contains("HttpServer"));
+    expect(doc.additionalPropertyPolicy,
+        APISchemaAdditionalPropertyPolicy.freeForm);
+  });
+
+  test("Serializable can override static document method", () async {
+    final doc = Serializable.document(ctx, OverrideDocument);
+    await ctx.finalize();
+
+    expect(doc.properties["k"], isNotNull);
+  });
 }
 
 class A extends Serializable {
@@ -88,4 +110,27 @@ class B extends Serializable {
   Map<String, dynamic> asMap() {
     return null;
   }
+}
+
+class FailsToDocument extends Serializable {
+  HttpServer nonsenseProperty;
+
+  @override
+  Map<String, dynamic> asMap() => null;
+
+  @override
+  void readFromMap(Map<String, dynamic> requestBody) {}
+}
+
+class OverrideDocument extends Serializable {
+  static APISchemaObject document(
+      APIDocumentContext context, Type serializable) {
+    return APISchemaObject.object({"k": APISchemaObject.string()});
+  }
+
+  @override
+  Map<String, dynamic> asMap() => null;
+
+  @override
+  void readFromMap(Map<String, dynamic> requestBody) {}
 }
