@@ -5,14 +5,6 @@ import 'package:aqueduct/src/utilities/documented_element.dart';
 
 import 'http.dart';
 
-/*
-Problem: you can't take over control of documententing a Serializable. This is especially bad because it could fail to auto-document and
-prevent the whole doc from being documented
-
-If Serializable.docuemnt fail, it should emitanempty object so it doesn't crash everythingelse '
-
- */
-
 /// Interface for serializable instances to be decoded from an HTTP request body and encoded to an HTTP response body.
 ///
 /// Implementers of this interface may be a [Response.body] and bound with an [Bind.body] in [ResourceController].
