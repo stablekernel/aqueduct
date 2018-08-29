@@ -10,8 +10,7 @@ class CLISetup extends CLICommand with CLIProject {
 
   @Option("heroku",
       help:
-          "Sets up the project in the current directory for deplying to Heroku.",
-      valueHelp: "The name of the Heroku application.")
+          "DEPRECATED. Please see https://aqueduct.io/docs/deploy/deploy_heroku/.")
   String get herokuName => decode("heroku");
 
   @Flag("tests",
@@ -35,73 +34,15 @@ class CLISetup extends CLICommand with CLIProject {
   @override
   Future<int> handle() async {
     if (shouldSetupHeroku) {
-      return setupHerokuProject();
+      displayInfo("This option has been deprecated.");
+      displayProgress("Please see https://aqueduct.io/docs/deploy/deploy_heroku/ for instructions.");
+      return 0;
     } else /*if (shouldSetupTests*/ {
       return setupTestEnvironment();
     }
   }
 
-  bool get hasGitCLI => isExecutableInShellPath("git");
   bool get hasPSQLCLI => isExecutableInShellPath("psql");
-  bool get hasHerokuCLI => isExecutableInShellPath("heroku");
-
-  Future<int> setupHerokuProject() async {
-    if (!hasHerokuCLI) {
-      displayError("The application 'heroku' was not found in \$PATH.");
-      displayProgress(
-          "Install 'heroku' from https://devcenter.heroku.com/articles/heroku-cli.");
-      return -1;
-    }
-
-    if (!hasGitCLI) {
-      displayError("The application 'git' was not found in \$PATH.");
-      displayProgress("Install 'git' from https://git-scm.com/downloads.");
-    }
-
-    displayInfo("Setting up Heroku for $herokuName");
-
-    var commands = [
-      ["git:remote", "-a", herokuName],
-      [
-        "config:set",
-        "DART_SDK_URL=https://storage.googleapis.com/dart-archive/channels/stable/release/latest/sdk/dartsdk-linux-x64-release.zip"
-      ],
-      [
-        "config:add",
-        "BUILDPACK_URL=https://github.com/stablekernel/heroku-buildpack-dart.git"
-      ],
-      [
-        "config:set",
-        "PATH=/app/bin:/usr/local/bin:/usr/bin:/bin:/app/.pub-cache/bin:/app/dart-sdk/bin"
-      ],
-      ["config:set", "PUB_CACHE=/app/pub-cache"],
-    ];
-
-    for (var cmd in commands) {
-      displayProgress(
-          "Running heroku ${cmd.join(" ")} in ${projectDirectory.path}");
-      var result = await Process.run("heroku", cmd,
-          workingDirectory: projectDirectory.path);
-      if (result.exitCode != 0) {
-        throw CLIException("Heroku command failed",
-            instructions: ["${result.stdout} ${result.stderr}"]);
-      }
-    }
-
-    displayProgress("Removing config.yaml from .gitignore");
-    var gitIgnore = fileInProjectDirectory(".gitignore");
-    var contents =
-        gitIgnore.readAsStringSync().replaceAll(RegExp("config.yaml\\n"), "");
-    gitIgnore.writeAsStringSync(contents);
-
-    var procFile = fileInProjectDirectory("Procfile");
-    procFile.writeAsStringSync("""
-release: /app/dart-sdk/bin/pub global run aqueduct:aqueduct db upgrade --connect \$DATABASE_URL
-web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port \$PORT --no-monitor
-    """);
-
-    return 0;
-  }
 
   Future<int> setupTestEnvironment() async {
     if (!hasPSQLCLI) {

@@ -3,7 +3,6 @@ import 'dart:io';
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/auth/objects.dart';
-import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/documented_element.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
