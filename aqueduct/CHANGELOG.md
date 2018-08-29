@@ -2,6 +2,8 @@
 
 - `Controller` is now an abstract class that requires implementing `handle`. This is a minor breaking change that should not have an impact.
 - 'Serializable' can now implement static 'document' method to override component documentation behavior
+- Removes `aqueduct setup --heroku=<name>` and instead points to documentation.
+- Fixes issue ORM had with transformed values (e.g. enums) and nullable columns
 
 ## 3.0.0
 
