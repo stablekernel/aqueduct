@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import '../../helpers.dart';
@@ -396,6 +398,18 @@ void main() {
     expect(result, isNull);
   });
 
+  test("Can fetch enum value that is null", () async {
+    context = await contextWithModels([EnumObject]);
+
+    var q = Query<EnumObject>(context)..values.enumValues = null;
+
+    await q.insert();
+    q = Query<EnumObject>(context);
+    var result = await q.fetchOne();
+    expect(result.enumValues, null);
+    expect(result.asMap()["enumValues"], isNull);
+  });
+
   test("When fetching invalid enum value from db, throws error", () async {
     context = await contextWithModels([EnumObject]);
 
@@ -516,6 +530,7 @@ class _EnumObject {
   @primaryKey
   int id;
 
+  @Column(nullable: true)
   EnumValues enumValues;
 }
 

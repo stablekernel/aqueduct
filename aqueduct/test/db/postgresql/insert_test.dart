@@ -289,6 +289,15 @@ void main() {
     var result = await q.insert();
     expect(result.enumValues, EnumValues.efgh);
   });
+
+  test("Can insert enum value that is null", () async {
+    context = await contextWithModels([EnumObject]);
+
+    var q = Query<EnumObject>(context)..values.enumValues = null;
+
+    var result = await q.insert();
+    expect(result.enumValues, isNull);
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
@@ -382,6 +391,7 @@ class _EnumObject {
   @primaryKey
   int id;
 
+  @Column(nullable: true)
   EnumValues enumValues;
 }
 
