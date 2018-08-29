@@ -267,6 +267,10 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   dynamic convertToPrimitiveValue(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
     if (type.kind == ManagedPropertyType.datetime && value is DateTime) {
       return value.toIso8601String();
     } else if (isEnumeratedValue) {
@@ -281,6 +285,10 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   dynamic convertFromPrimitiveValue(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
     if (type.kind == ManagedPropertyType.datetime) {
       if (value is! String) {
         throw ValidationException(["invalid input value for '$name'"]);

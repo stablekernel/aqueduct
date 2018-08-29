@@ -81,6 +81,10 @@ class ColumnBuilder extends Returnable {
   final List<dynamic> documentKeyPath;
 
   dynamic convertValueForStorage(dynamic value) {
+    if (value == null) {
+      return null;
+    }
+
     if (property is ManagedAttributeDescription) {
       ManagedAttributeDescription p = property;
       if (p.isEnumeratedValue) {
