@@ -249,6 +249,9 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.department).oneOf(["Engineering", "HR"]);
   QueryExpressionJunction<T, InstanceType> oneOf(Iterable<T> values) {
+    if (values?.isEmpty ?? true) {
+      throw ArgumentError("'Query.where.oneOf' cannot be the empty set or null.");
+    }
     expression = SetMembershipExpression(values.toList());
 
     return _createJunction();

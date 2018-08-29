@@ -190,7 +190,7 @@ void main() {
     });
   });
 
-  test("whereIn matcher", () async {
+  test("oneOf matcher", () async {
     var q = Query<TestModel>(context)..where((o) => o.id).oneOf([1, 2]);
     var results = await q.fetch();
     expect(results.length, 2);
@@ -202,6 +202,13 @@ void main() {
     expect(results.length, 4);
     expect(results.any((t) => t.id == 1), false);
     expect(results.any((t) => t.id == 2), false);
+
+    try {
+      Query<TestModel>(context).where((o) => o.id).not.oneOf([]);
+      fail('unreachable');
+    } on ArgumentError catch (e) {
+      expect(e.toString(), contains("oneOf' cannot be the empty set or null"));
+    }
   });
 
   test("whereBetween matcher", () async {
