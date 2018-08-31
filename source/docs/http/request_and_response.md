@@ -81,7 +81,7 @@ var response = new Response.ok(imageByteStream)
 
 When a body object is a `Stream<T>`, the response will not be sent until the stream is closed. For finite streams - like those from opened filed - this happens as soon as the entire file is read. For streams that you construct yourself, you must close the stream some time after the response has been returned.
 
-### Custom Objects
+### Custom Serializable Objects
 
 Any object may be the body object of a `Response` if it implements `Serializable`. An object conforming to this type must implement `asMap()`, which gets invoked on the body object prior to it being sent to the first encoding step. For example, the following object can be used as a body object and is automatically converted into a `Map` and then JSON encoded:
 
@@ -116,15 +116,6 @@ var response = new Response.ok(person);
 var query = new Query<Person>(context);
 var people = await query.fetch();
 var response = new Response.ok(people);
-```
-
-Note that a `Map` itself is not `Serializable` and can't have `Serializable` values. For example, the following wouldn't work:
-
-```dart
-var map = {
-  "person": new Person()
-};
-var response = new Response.ok(map);
 ```
 
 The entire flow of a body object is shown in the following diagram. Each orange item is an allowed body object type and shows the steps it will go through when being encoded to the HTTP response body. For example, a `Serializable` goes through three steps, whereas a `List<int>` goes through zero steps and is added as-is to the HTTP response.

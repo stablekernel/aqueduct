@@ -29,18 +29,20 @@ pages:
   - '3. Storing Data in a Database': 'tut/storing-data.md'
   - '4. Configuration and Testing': 'tut/writing-tests.md'
 - Guides:
-  - Serving HTTP Requests:
+  - Application Structure and Behavior:
+    - 'Overview': 'application/index.md'
+    - 'Startup & Initialization': 'application/channel.md'
+    - 'Environment Configuration': 'application/configure.md'
+    - 'Application Structure': 'application/structure.md'
+    - 'Multi-threading': 'application/threading.md'
+  - Handling HTTP Requests:
     - 'Overview': 'http/index.md'
-    - 'Application Structure': 'http/structure.md'
     - 'Request and Response Objects': 'http/request_and_response.md'
     - 'Handling Requests: Fundamentals': 'http/controller.md'
     - 'Routing': 'http/routing.md'
-    - 'Initialization and the ApplicationChannel': 'http/channel.md'
-    - 'Handling Requests: ResourceController': 'http/resource_controller.md'
-    - 'Configuration': 'http/configure.md'
+    - 'Request Binding with Resource Controllers': 'http/resource_controller.md'
     - 'Serving Files and Caching': 'http/serving_files.md'
     - 'Websockets': 'http/websockets.md'
-    - 'Multi-threading': 'http/threading.md'
   - Databases and ORM:
     - 'Overview': 'db/index.md'
     - 'Connecting to a Database': 'db/connecting.md'
@@ -86,4 +88,3 @@ pages:
     - 'Creating Applications': 'cli/create.md'
     - 'Running Applications': 'cli/running.md'
     - 'Generating an OpenAPI/Swagger Specification': 'cli/document.md'
-    - 'Other Tools': 'cli/setup.md'

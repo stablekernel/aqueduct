@@ -19,4 +19,3 @@ All command-line tools have a `--help` option to show their options.
 - [Managing a Database](../db/db_tools.md)
 - [Managing OAuth 2.0 Clients and Scopes](../auth/cli.md)
 - [Documenting an API](document.md)
-- [Project Setup Utilities](setup.md)

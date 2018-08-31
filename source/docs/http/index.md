@@ -12,13 +12,9 @@ Your application is run by using the `aqueduct serve` command or the `bin/main.d
 
 ## Guides
 
-- [Architecture and Organization of Aqueduct Applications](structure.md)
 - [Request and Response Objects](request_and_response.md)
 - [Handling Requests](controller.md)
-- [The ApplicationChannel](channel.md)
 - [Routing](routing.md)
 - [ResourceControllers](resource_controller.md)
-- [Configuration Files, CORS and SSL](configure.md)
 - [Serving Files and Caching](serving_files.md)
 - [Websockets](websockets.md)
-- [Multi-threading](threading.md)
