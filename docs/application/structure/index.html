@@ -18,7 +18,7 @@
     
     
       
-        <title>Other Tools - Aqueduct</title>
+        <title>Application Structure - Aqueduct</title>
       
     
     
@@ -83,11 +83,11 @@
                 </span>
               
                 <span class="md-header-nav__parent">
-                  Command-line Tooling
+                  Application Structure and Behavior
                 </span>
               
             
-            Other Tools
+            Application Structure
           
         </span>
       </div>
@@ -453,17 +453,160 @@
           
           
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-1" type="checkbox" id="nav-10-1">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-1" type="checkbox" id="nav-10-1" checked>
     
     <label class="md-nav__link" for="nav-10-1">
-      Serving HTTP Requests
+      Application Structure and Behavior
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
       <label class="md-nav__title" for="nav-10-1">
-        Serving HTTP Requests
+        Application Structure and Behavior
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../channel/" title="Startup & Initialization" class="md-nav__link">
+      Startup & Initialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../configure/" title="Environment Configuration" class="md-nav__link">
+      Environment Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        Application Structure
+      </label>
+    
+    <a href="./" title="Application Structure" class="md-nav__link md-nav__link--active">
+      Application Structure
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#controllers-are-building-blocks" title="Controllers are Building Blocks" class="md-nav__link">
+    Controllers are Building Blocks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-application-channel-and-entry-point" title="The Application Channel and Entry Point" class="md-nav__link">
+    The Application Channel and Entry Point
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aqueduct-project-structure-and-organization" title="Aqueduct Project Structure and Organization" class="md-nav__link">
+    Aqueduct Project Structure and Organization
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aqueduct-and-dartio" title="Aqueduct and dart:io" class="md-nav__link">
+    Aqueduct and dart:io
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../threading/" title="Multi-threading" class="md-nav__link">
+      Multi-threading
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-2" type="checkbox" id="nav-10-2">
+    
+    <label class="md-nav__link" for="nav-10-2">
+      Handling HTTP Requests
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-2">
+        Handling HTTP Requests
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -486,20 +629,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/structure/" title="Application Structure" class="md-nav__link">
-      Application Structure
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
-      Request and Response Objects
+    <a href="../../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
+      Request and Response Objects; Serialization
     </a>
   </li>
 
@@ -534,32 +665,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/channel/" title="Initialization and the ApplicationChannel" class="md-nav__link">
-      Initialization and the ApplicationChannel
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../http/resource_controller/" title="Handling Requests: ResourceController" class="md-nav__link">
-      Handling Requests: ResourceController
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../http/configure/" title="Configuration" class="md-nav__link">
-      Configuration
+    <a href="../../http/resource_controller/" title="Request Binding with Resource Controllers" class="md-nav__link">
+      Request Binding with Resource Controllers
     </a>
   </li>
 
@@ -588,18 +695,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../http/threading/" title="Multi-threading" class="md-nav__link">
-      Multi-threading
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -612,13 +707,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-2" type="checkbox" id="nav-10-2">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-3" type="checkbox" id="nav-10-3">
     
-    <label class="md-nav__link" for="nav-10-2">
+    <label class="md-nav__link" for="nav-10-3">
       Databases and ORM
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-2">
+      <label class="md-nav__title" for="nav-10-3">
         Databases and ORM
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -768,13 +863,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-3" type="checkbox" id="nav-10-3">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-4" type="checkbox" id="nav-10-4">
     
-    <label class="md-nav__link" for="nav-10-3">
+    <label class="md-nav__link" for="nav-10-4">
       Authorization and OAuth 2.0
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-3">
+      <label class="md-nav__title" for="nav-10-4">
         Authorization and OAuth 2.0
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -876,13 +971,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-4" type="checkbox" id="nav-10-4">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-5" type="checkbox" id="nav-10-5">
     
-    <label class="md-nav__link" for="nav-10-4">
+    <label class="md-nav__link" for="nav-10-5">
       Development and Testing
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-4">
+      <label class="md-nav__title" for="nav-10-5">
         Development and Testing
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -972,13 +1067,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-5" type="checkbox" id="nav-10-5">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-6" type="checkbox" id="nav-10-6">
     
-    <label class="md-nav__link" for="nav-10-5">
+    <label class="md-nav__link" for="nav-10-6">
       Deployment
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-5">
+      <label class="md-nav__title" for="nav-10-6">
         Deployment
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1068,13 +1163,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-6" type="checkbox" id="nav-10-6">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-7" type="checkbox" id="nav-10-7">
     
-    <label class="md-nav__link" for="nav-10-6">
+    <label class="md-nav__link" for="nav-10-7">
       OpenAPI Documentation
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-6">
+      <label class="md-nav__title" for="nav-10-7">
         OpenAPI Documentation
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1149,18 +1244,16 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-7" type="checkbox" id="nav-10-7" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-8" type="checkbox" id="nav-10-8">
     
-    <label class="md-nav__link" for="nav-10-7">
+    <label class="md-nav__link" for="nav-10-8">
       Command-line Tooling
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-7">
+      <label class="md-nav__title" for="nav-10-8">
         Command-line Tooling
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1172,7 +1265,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../" title="Overview" class="md-nav__link">
+    <a href="../../cli/" title="Overview" class="md-nav__link">
       Overview
     </a>
   </li>
@@ -1184,7 +1277,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../create/" title="Creating Applications" class="md-nav__link">
+    <a href="../../cli/create/" title="Creating Applications" class="md-nav__link">
       Creating Applications
     </a>
   </li>
@@ -1196,7 +1289,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../running/" title="Running Applications" class="md-nav__link">
+    <a href="../../cli/running/" title="Running Applications" class="md-nav__link">
       Running Applications
     </a>
   </li>
@@ -1208,30 +1301,9 @@
 
 
   <li class="md-nav__item">
-    <a href="../document/" title="Generating an OpenAPI/Swagger Specification" class="md-nav__link">
+    <a href="../../cli/document/" title="Generating an OpenAPI/Swagger Specification" class="md-nav__link">
       Generating an OpenAPI/Swagger Specification
     </a>
-  </li>
-
-        
-          
-          
-          
-
-  
-
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
-    
-      
-    
-    
-    <a href="./" title="Other Tools" class="md-nav__link md-nav__link--active">
-      Other Tools
-    </a>
-    
   </li>
 
         
@@ -1262,6 +1334,41 @@
     
   
   
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#controllers-are-building-blocks" title="Controllers are Building Blocks" class="md-nav__link">
+    Controllers are Building Blocks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-application-channel-and-entry-point" title="The Application Channel and Entry Point" class="md-nav__link">
+    The Application Channel and Entry Point
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aqueduct-project-structure-and-organization" title="Aqueduct Project Structure and Organization" class="md-nav__link">
+    Aqueduct Project Structure and Organization
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#aqueduct-and-dartio" title="Aqueduct and dart:io" class="md-nav__link">
+    Aqueduct and dart:io
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1272,22 +1379,109 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/cli/setup.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/application/structure.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="the-aqueduct-setup-tool">The Aqueduct Setup Tool</h1>
-<p>The <code>aqueduct setup</code> tool is used for two tasks:</p>
-<ul>
-<li>Creating a local test database</li>
-<li>Modifying a project so that it can be deployed to Heroku.</li>
-</ul>
-<p>During the initial setup of a development machine, after PostgreSQL has been installed locally, the following command creates a local database specifically for testing.</p>
-<div class="codehilite"><pre><span></span>aqueduct setup
+                <h1 id="aqueduct-application-architecture">Aqueduct Application Architecture</h1>
+<p>The purpose of this document is to understand the objects that comprise an Aqueduct application, and how they work with one another to serve HTTP requests. It also discusses the project structure on the filesystem.</p>
+<h2 id="controllers-are-building-blocks">Controllers are Building Blocks</h2>
+<p>The building blocks of an Aqueduct application are <a href="../../http/controller/">Controllers</a>. Each controller type has logic to handle an HTTP request in some way. Controllers are linked together to form a <em>channel</em>; an ordered series of controllers. A channel is a composition of its controllers' behaviors.</p>
+<p>For example, consider an <code>Authorizer</code> controller that verifies the request's authorization credentials are correct, and a <code>SecretController</code> that sends a response with secret information. By composing these two controllers together, we have a channel that verifies credentials before sending a secret. The benefit of controllers and channels is that controllers can be reused in multiple channels; the <code>Authorizer</code> can protect other types of controllers without any change to its logic.</p>
+<p><img alt="Simple Controller Diagram" src="../../img/simple_controller_diagram.png" /></p>
+<p>The last controller in a channel must always respond to a request. These types of controllers are called <em>endpoint controllers</em> and implement the business logic for your application's endpoints. For example, an endpoint controller might fetch a list of books from a database and send them in a response.</p>
+<p>The other controllers in a channel are called <em>middleware controllers</em>. These types of controllers typically verify something about a request before letting the next controller in the channel handle it. Middleware controllers can respond to a request, but doing so prevents the rest of the controllers in the channel from handling the request.</p>
+<p>For example, an "authorization" controller could send a <code>401 Unauthorized</code> response protecting the endpoint controller from unauthorized requests. A "caching" controller could send a response with information from a cache, preventing the endpoint controller from performing an expensive query.</p>
+<p>Both middleware and endpoint controllers are instances of <code>Controller</code> (or a subclass). Middleware controllers are typically reusable, while endpoint controllers are typically not. If a middleware controller is not reusable, its logic might be better suited for the endpoint controller it precedes in the channel.</p>
+<p>Most endpoint controllers are created by subclassing <a href="../../http/resource_controller/">ResourceController</a> (itself a subclass of <code>Controller</code>). This class allows you to implement methods for each HTTP method (like GET or POST) for a given endpoint.</p>
+<h2 id="the-application-channel-and-entry-point">The Application Channel and Entry Point</h2>
+<p>Each application designates one controller as the <em>entry point</em> of the application. This controller is the first to receive a new request and is the head of the application's channel. In most applications, the entry point is a <a href="../../http/routing/">Router</a>; this controller allows multiple channels to be linked, effectively splitting the channel into sub-channels.</p>
+<p><img alt="Structure" src="../../img/structure.png" /></p>
+<p>The diagram above looks like this in code:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">AppChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Controller</span> <span class="kd">get</span> <span class="n">entry</span> <span class="p">{</span>
+    <span class="kd">final</span> <span class="n">router</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Router</span><span class="p">();</span>
+
+    <span class="n">router</span>
+      <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/a&quot;</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">AController</span><span class="p">());</span>
+
+    <span class="n">router</span>
+      <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/b&quot;</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">Authorizer</span><span class="p">(...))</span>
+      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">BController</span><span class="p">());</span>
+
+    <span class="n">router</span>
+      <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/c&quot;</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">Authorizer</span><span class="p">(...))</span>
+      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">CController</span><span class="p">());</span>   
+
+    <span class="k">return</span> <span class="n">router</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 
 
-<p>This creates a database user named <code>dart</code> with password <code>dart</code> and creates a database <code>dart_test</code> that <code>dart</code> has access to on the local machine.</p>
-<p>For using <code>aqueduct setup</code> to deploy Heroku applications, see <a href="../../deploy/deploy_heroku/">this guide</a>.</p>
+<p>See <a href="../channel/">this guide</a> for more details on the application channel and entry point.</p>
+<h2 id="aqueduct-project-structure-and-organization">Aqueduct Project Structure and Organization</h2>
+<p>An Aqueduct project is a directory that contains, at minimum, the following file structure:</p>
+<div class="codehilite"><pre><span></span>pubspec.yaml
+lib/
+  application_name.dart
+</pre></div>
+
+
+<p>The name of any Dart application is defined by the <code>name</code> key in <code>pubspec.yaml</code>. In order for <code>aqueduct serve</code> to run your application, there must be a <code>.dart</code> file in <code>lib/</code> with that same name. This is your application library file and it must declare a <code>ApplicationChannel</code> subclass or import a file that does. This is the bare minimum requirement to run an Aqueduct application. (See <a href="../../deploy/">Deploying</a> for more details on running applications.)</p>
+<p>For organizing applications of reasonable size, we recommend the following structure:</p>
+<div class="codehilite"><pre><span></span>pubspec.yaml
+config.src.yaml
+config.yaml
+lib/
+  application_name.dart
+  channel.dart  
+  controller/
+    user_controller.dart
+  model/
+    user.dart
+test/
+  user_controller_test.dart
+  harness/
+    app.dart
+</pre></div>
+
+
+<p>The required <code>pubspec.yaml</code> and <code>lib/application_name.dart</code> files are present alongside a few others:</p>
+<ul>
+<li><code>config.yaml</code>: A <a href="../configure/">configuration file</a> for the running application.</li>
+<li><code>config.src.yaml</code>: A <a href="../configure/">template for config.yaml</a>.</li>
+<li><code>channel.dart</code>: A file solely for the <code>ApplicationChannel</code> of an application. This file should be <em>exported</em> from <code>application_name.dart</code>.</li>
+<li><code>controller/</code>: A directory for <code>Controller</code> subclass files.</li>
+<li><code>model/</code>: A directory for <code>ManagedObject&lt;T&gt;</code> subclass files.</li>
+<li><code>test/harness/app.dart</code>: A <a href="../../testing/tests/">test harness</a>) for automated testing.</li>
+</ul>
+<p>Feel free to create other subdirectories in <code>lib/</code> for organizing other types of files.</p>
+<h2 id="aqueduct-and-dartio">Aqueduct and dart:io</h2>
+<p>Aqueduct runs on top of <code>dart:io</code> and relies on its <code>HttpServer</code> implementation. When an Aqueduct application is started, one or more <code>HttpServer</code> instances are bound to the port specified by <code>aqueduct serve</code>. For each HTTP request, an instance of <code>Request</code> is created to wrap the <code>HttpRequest</code> from <code>dart:io</code>. The <code>Request</code> is added to a <code>ApplicationChannel</code>, sending it through the channel of <code>Controller</code>s until it is responded to.</p>
+<p>In rare circumstances, you may choose to remove a <code>Request</code> from the application channel and manipulate the request with <code>dart:io</code> only. Once removed, it is your responsibility to respond to the request by setting properties on and closing the <code>HttpRequest.response</code>. To take a request out of the channel, simply return <code>null</code> from a <code>Controller</code>:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">override</span>
+<span class="n">Controller</span> <span class="kd">get</span> <span class="n">entryPoint</span> <span class="p">{</span>
+  <span class="kd">final</span> <span class="n">router</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Router</span><span class="p">();</span>
+
+  <span class="n">router</span>
+    <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/bypass_aqueduct&quot;</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">linkFunction</span><span class="p">((</span><span class="n">req</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+      <span class="n">req</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">statusCode</span> <span class="o">=</span> <span class="m">200</span><span class="p">;</span>
+      <span class="n">req</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">close</span><span class="p">();</span>
+
+      <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+    <span class="p">});</span>
+
+  <span class="k">return</span> <span class="n">router</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>This technique is valuable when Aqueduct can't do something you want it to do or when using <a href="../../http/websockets/">websockets</a>.</p>
                 
                   
                 
@@ -1306,7 +1500,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../document/" title="Generating an OpenAPI/Swagger Specification" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../configure/" title="Environment Configuration" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -1315,11 +1509,25 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Generating an OpenAPI/Swagger Specification
+                Environment Configuration
               </span>
             </div>
           </a>
         
+        
+          <a href="../threading/" title="Multi-threading" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Multi-threading
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
         
       </nav>
     </div>

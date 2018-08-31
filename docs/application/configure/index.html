@@ -18,7 +18,7 @@
     
     
       
-        <title>Application Structure - Aqueduct</title>
+        <title>Environment Configuration - Aqueduct</title>
       
     
     
@@ -83,11 +83,11 @@
                 </span>
               
                 <span class="md-header-nav__parent">
-                  Serving HTTP Requests
+                  Application Structure and Behavior
                 </span>
               
             
-            Application Structure
+            Environment Configuration
           
         </span>
       </div>
@@ -461,11 +461,11 @@
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-1" type="checkbox" id="nav-10-1" checked>
     
     <label class="md-nav__link" for="nav-10-1">
-      Serving HTTP Requests
+      Application Structure and Behavior
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
       <label class="md-nav__title" for="nav-10-1">
-        Serving HTTP Requests
+        Application Structure and Behavior
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -486,6 +486,18 @@
           
           
 
+
+  <li class="md-nav__item">
+    <a href="../channel/" title="Startup & Initialization" class="md-nav__link">
+      Startup & Initialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
   
 
 
@@ -497,11 +509,11 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="toc">
-        Application Structure
+        Environment Configuration
       </label>
     
-    <a href="./" title="Application Structure" class="md-nav__link md-nav__link--active">
-      Application Structure
+    <a href="./" title="Environment Configuration" class="md-nav__link md-nav__link--active">
+      Environment Configuration
     </a>
     
       
@@ -515,29 +527,42 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#controllers-are-building-blocks" title="Controllers are Building Blocks" class="md-nav__link">
-    Controllers are Building Blocks
+  <a href="#configuration-files" title="Configuration Files" class="md-nav__link">
+    Configuration Files
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration-conventions-and-deployment-options" title="Configuration Conventions and Deployment Options" class="md-nav__link">
+    Configuration Conventions and Deployment Options
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preventing-resource-leaks" title="Preventing Resource Leaks" class="md-nav__link">
+    Preventing Resource Leaks
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-application-channel-and-entry-point" title="The Application Channel and Entry Point" class="md-nav__link">
-    The Application Channel and Entry Point
+  <a href="#configuring-cors-headers" title="Configuring CORS Headers" class="md-nav__link">
+    Configuring CORS Headers
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#aqueduct-project-structure-and-organization" title="Aqueduct Project Structure and Organization" class="md-nav__link">
-    Aqueduct Project Structure and Organization
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#aqueduct-and-dartio" title="Aqueduct and dart:io" class="md-nav__link">
-    Aqueduct and dart:io
+  <a href="#configuring-https" title="Configuring HTTPS" class="md-nav__link">
+    Configuring HTTPS
   </a>
   
 </li>
@@ -557,92 +582,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../request_and_response/" title="Request and Response Objects" class="md-nav__link">
-      Request and Response Objects
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../controller/" title="Handling Requests: Fundamentals" class="md-nav__link">
-      Handling Requests: Fundamentals
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../routing/" title="Routing" class="md-nav__link">
-      Routing
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../channel/" title="Initialization and the ApplicationChannel" class="md-nav__link">
-      Initialization and the ApplicationChannel
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../resource_controller/" title="Handling Requests: ResourceController" class="md-nav__link">
-      Handling Requests: ResourceController
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../configure/" title="Configuration" class="md-nav__link">
-      Configuration
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../serving_files/" title="Serving Files and Caching" class="md-nav__link">
-      Serving Files and Caching
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../websockets/" title="Websockets" class="md-nav__link">
-      Websockets
+    <a href="../structure/" title="Application Structure" class="md-nav__link">
+      Application Structure
     </a>
   </li>
 
@@ -674,10 +615,118 @@
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-2" type="checkbox" id="nav-10-2">
     
     <label class="md-nav__link" for="nav-10-2">
-      Databases and ORM
+      Handling HTTP Requests
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
       <label class="md-nav__title" for="nav-10-2">
+        Handling HTTP Requests
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
+      Request and Response Objects; Serialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/controller/" title="Handling Requests: Fundamentals" class="md-nav__link">
+      Handling Requests: Fundamentals
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/routing/" title="Routing" class="md-nav__link">
+      Routing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/resource_controller/" title="Request Binding with Resource Controllers" class="md-nav__link">
+      Request Binding with Resource Controllers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-3" type="checkbox" id="nav-10-3">
+    
+    <label class="md-nav__link" for="nav-10-3">
+      Databases and ORM
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-3">
         Databases and ORM
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -827,13 +876,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-3" type="checkbox" id="nav-10-3">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-4" type="checkbox" id="nav-10-4">
     
-    <label class="md-nav__link" for="nav-10-3">
+    <label class="md-nav__link" for="nav-10-4">
       Authorization and OAuth 2.0
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-3">
+      <label class="md-nav__title" for="nav-10-4">
         Authorization and OAuth 2.0
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -935,13 +984,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-4" type="checkbox" id="nav-10-4">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-5" type="checkbox" id="nav-10-5">
     
-    <label class="md-nav__link" for="nav-10-4">
+    <label class="md-nav__link" for="nav-10-5">
       Development and Testing
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-4">
+      <label class="md-nav__title" for="nav-10-5">
         Development and Testing
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1031,13 +1080,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-5" type="checkbox" id="nav-10-5">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-6" type="checkbox" id="nav-10-6">
     
-    <label class="md-nav__link" for="nav-10-5">
+    <label class="md-nav__link" for="nav-10-6">
       Deployment
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-5">
+      <label class="md-nav__title" for="nav-10-6">
         Deployment
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1127,13 +1176,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-6" type="checkbox" id="nav-10-6">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-7" type="checkbox" id="nav-10-7">
     
-    <label class="md-nav__link" for="nav-10-6">
+    <label class="md-nav__link" for="nav-10-7">
       OpenAPI Documentation
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-6">
+      <label class="md-nav__title" for="nav-10-7">
         OpenAPI Documentation
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1211,13 +1260,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-7" type="checkbox" id="nav-10-7">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-8" type="checkbox" id="nav-10-8">
     
-    <label class="md-nav__link" for="nav-10-7">
+    <label class="md-nav__link" for="nav-10-8">
       Command-line Tooling
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-7">
+      <label class="md-nav__title" for="nav-10-8">
         Command-line Tooling
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1271,18 +1320,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../cli/setup/" title="Other Tools" class="md-nav__link">
-      Other Tools
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -1314,29 +1351,42 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#controllers-are-building-blocks" title="Controllers are Building Blocks" class="md-nav__link">
-    Controllers are Building Blocks
+  <a href="#configuration-files" title="Configuration Files" class="md-nav__link">
+    Configuration Files
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration-conventions-and-deployment-options" title="Configuration Conventions and Deployment Options" class="md-nav__link">
+    Configuration Conventions and Deployment Options
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#preventing-resource-leaks" title="Preventing Resource Leaks" class="md-nav__link">
+    Preventing Resource Leaks
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#the-application-channel-and-entry-point" title="The Application Channel and Entry Point" class="md-nav__link">
-    The Application Channel and Entry Point
+  <a href="#configuring-cors-headers" title="Configuring CORS Headers" class="md-nav__link">
+    Configuring CORS Headers
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#aqueduct-project-structure-and-organization" title="Aqueduct Project Structure and Organization" class="md-nav__link">
-    Aqueduct Project Structure and Organization
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#aqueduct-and-dartio" title="Aqueduct and dart:io" class="md-nav__link">
-    Aqueduct and dart:io
+  <a href="#configuring-https" title="Configuring HTTPS" class="md-nav__link">
+    Configuring HTTPS
   </a>
   
 </li>
@@ -1355,109 +1405,148 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/http/structure.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/application/configure.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="aqueduct-application-architecture">Aqueduct Application Architecture</h1>
-<p>The purpose of this document is to understand the objects that comprise an Aqueduct application, and how they work with one another to serve HTTP requests. It also discusses the project structure on the filesystem.</p>
-<h2 id="controllers-are-building-blocks">Controllers are Building Blocks</h2>
-<p>The building blocks of an Aqueduct application are <a href="../controller/">Controllers</a>. Each controller type has logic to handle an HTTP request in some way. Controllers are linked together to form a <em>channel</em>; an ordered series of controllers. A channel is a composition of its controllers' behaviors.</p>
-<p>For example, consider an <code>Authorizer</code> controller that verifies the request's authorization credentials are correct, and a <code>SecretController</code> that sends a response with secret information. By composing these two controllers together, we have a channel that verifies credentials before sending a secret. The benefit of controllers and channels is that controllers can be reused in multiple channels; the <code>Authorizer</code> can protect other types of controllers without any change to its logic.</p>
-<p><img alt="Simple Controller Diagram" src="../../img/simple_controller_diagram.png" /></p>
-<p>The last controller in a channel must always respond to a request. These types of controllers are called <em>endpoint controllers</em> and implement the business logic for your application's endpoints. For example, an endpoint controller might fetch a list of books from a database and send them in a response.</p>
-<p>The other controllers in a channel are called <em>middleware controllers</em>. These types of controllers typically verify something about a request before letting the next controller in the channel handle it. Middleware controllers can respond to a request, but doing so prevents the rest of the controllers in the channel from handling the request.</p>
-<p>For example, an "authorization" controller could send a <code>401 Unauthorized</code> response protecting the endpoint controller from unauthorized requests. A "caching" controller could send a response with information from a cache, preventing the endpoint controller from performing an expensive query.</p>
-<p>Both middleware and endpoint controllers are instances of <code>Controller</code> (or a subclass). Middleware controllers are typically reusable, while endpoint controllers are typically not. If a middleware controller is not reusable, its logic might be better suited for the endpoint controller it precedes in the channel.</p>
-<p>Most endpoint controllers are created by subclassing <a href="../resource_controller/">ResourceController</a> (itself a subclass of <code>Controller</code>). This class allows you to implement methods for each HTTP method (like GET or POST) for a given endpoint.</p>
-<h2 id="the-application-channel-and-entry-point">The Application Channel and Entry Point</h2>
-<p>Each application designates one controller as the <em>entry point</em> of the application. This controller is the first to receive a new request and is the head of the application's channel. In most applications, the entry point is a <a href="../routing/">Router</a>; this controller allows multiple channels to be linked, effectively splitting the channel into sub-channels.</p>
-<p><img alt="Structure" src="../../img/structure.png" /></p>
-<p>The diagram above looks like this in code:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">AppChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
+                <h1 id="configuring-an-aqueduct-application">Configuring an Aqueduct Application</h1>
+<p>This guide covers configuring an Aqueduct application.</p>
+<h2 id="configuration-files">Configuration Files</h2>
+<p>Aqueduct applications use YAML configuration files to provide environment-specific values like database connection information. Use separate configuration files for testing and different deployment environments.</p>
+<p>The path of a configuration file is available to an <code>ApplicationChannel</code> through its <code>options</code> property.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">TodoAppChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">override</span>
-  <span class="n">Controller</span> <span class="kd">get</span> <span class="n">entry</span> <span class="p">{</span>
-    <span class="kd">final</span> <span class="n">router</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Router</span><span class="p">();</span>
-
-    <span class="n">router</span>
-      <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/a&quot;</span><span class="p">)</span>
-      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">AController</span><span class="p">());</span>
-
-    <span class="n">router</span>
-      <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/b&quot;</span><span class="p">)</span>
-      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">Authorizer</span><span class="p">(...))</span>
-      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">BController</span><span class="p">());</span>
-
-    <span class="n">router</span>
-      <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/c&quot;</span><span class="p">)</span>
-      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">Authorizer</span><span class="p">(...))</span>
-      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">CController</span><span class="p">());</span>   
-
-    <span class="k">return</span> <span class="n">router</span><span class="p">;</span>
+  <span class="n">Future</span> <span class="n">prepare</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">var</span> <span class="n">config</span> <span class="o">=</span> <span class="k">new</span> <span class="n">TodoConfiguration</span><span class="p">(</span><span class="n">options</span><span class="p">.</span><span class="n">configurationFilePath</span><span class="p">);</span>
+    <span class="p">...</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>See <a href="../channel/">this guide</a> for more details on the application channel and entry point.</p>
-<h2 id="aqueduct-project-structure-and-organization">Aqueduct Project Structure and Organization</h2>
-<p>An Aqueduct project is a directory that contains, at minimum, the following file structure:</p>
-<div class="codehilite"><pre><span></span>pubspec.yaml
-lib/
-  application_name.dart
-</pre></div>
+<p>The default value is <code>config.yaml</code>.</p>
+<p>The best practice for reading a configuration file is to subclass <code>Configuration</code>. A <code>Configuration</code> declares a property for each key in a configuration file. For example, see the following <code>Configuration</code> subclass:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">TodoConfiguration</span> <span class="kd">extends</span> <span class="n">Configuration</span> <span class="p">{</span>
+  <span class="n">TodoConfiguration</span><span class="p">(</span><span class="kt">String</span> <span class="n">fileName</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">fileName</span><span class="p">);</span>
 
+  <span class="n">DatabaseConnectionConfiguration</span> <span class="n">database</span><span class="p">;</span>
+  <span class="kt">String</span> <span class="n">apiBaseURL</span><span class="p">;</span>
 
-<p>The name of any Dart application is defined by the <code>name</code> key in <code>pubspec.yaml</code>. In order for <code>aqueduct serve</code> to run your application, there must be a <code>.dart</code> file in <code>lib/</code> with that same name. This is your application library file and it must declare a <code>ApplicationChannel</code> subclass or import a file that does. This is the bare minimum requirement to run an Aqueduct application. (See <a href="../../deploy/">Deploying</a> for more details on running applications.)</p>
-<p>For organizing applications of reasonable size, we recommend the following structure:</p>
-<div class="codehilite"><pre><span></span>pubspec.yaml
-config.src.yaml
-config.yaml
-lib/
-  application_name.dart
-  channel.dart  
-  controller/
-    user_controller.dart
-  model/
-    user.dart
-test/
-  user_controller_test.dart
-  harness/
-    app.dart
-</pre></div>
-
-
-<p>The required <code>pubspec.yaml</code> and <code>lib/application_name.dart</code> files are present alongside a few others:</p>
-<ul>
-<li><code>config.yaml</code>: A <a href="../configure/">configuration file</a> for the running application.</li>
-<li><code>config.src.yaml</code>: A <a href="../configure/">template for config.yaml</a>.</li>
-<li><code>channel.dart</code>: A file solely for the <code>ApplicationChannel</code> of an application. This file should be <em>exported</em> from <code>application_name.dart</code>.</li>
-<li><code>controller/</code>: A directory for <code>Controller</code> subclass files.</li>
-<li><code>model/</code>: A directory for <code>ManagedObject&lt;T&gt;</code> subclass files.</li>
-<li><code>test/harness/app.dart</code>: A <a href="../../testing/tests/">test harness</a>) for automated testing.</li>
-</ul>
-<p>Feel free to create other subdirectories in <code>lib/</code> for organizing other types of files.</p>
-<h2 id="aqueduct-and-dartio">Aqueduct and dart:io</h2>
-<p>Aqueduct runs on top of <code>dart:io</code> and relies on its <code>HttpServer</code> implementation. When an Aqueduct application is started, one or more <code>HttpServer</code> instances are bound to the port specified by <code>aqueduct serve</code>. For each HTTP request, an instance of <code>Request</code> is created to wrap the <code>HttpRequest</code> from <code>dart:io</code>. The <code>Request</code> is added to a <code>ApplicationChannel</code>, sending it through the channel of <code>Controller</code>s until it is responded to.</p>
-<p>In rare circumstances, you may choose to remove a <code>Request</code> from the application channel and manipulate the request with <code>dart:io</code> only. Once removed, it is your responsibility to respond to the request by setting properties on and closing the <code>HttpRequest.response</code>. To take a request out of the channel, simply return <code>null</code> from a <code>Controller</code>:</p>
-<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">override</span>
-<span class="n">Controller</span> <span class="kd">get</span> <span class="n">entryPoint</span> <span class="p">{</span>
-  <span class="kd">final</span> <span class="n">router</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Router</span><span class="p">();</span>
-
-  <span class="n">router</span>
-    <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/bypass_aqueduct&quot;</span><span class="p">)</span>
-    <span class="p">.</span><span class="n">linkFunction</span><span class="p">((</span><span class="n">req</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
-      <span class="n">req</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">statusCode</span> <span class="o">=</span> <span class="m">200</span><span class="p">;</span>
-      <span class="n">req</span><span class="p">.</span><span class="n">response</span><span class="p">.</span><span class="n">close</span><span class="p">();</span>
-
-      <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
-    <span class="p">});</span>
-
-  <span class="k">return</span> <span class="n">router</span><span class="p">;</span>
+  <span class="err">@</span><span class="n">optionalConfiguration</span>
+  <span class="kt">int</span> <span class="n">identifier</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>This technique is valuable when Aqueduct can't do something you want it to do or when using <a href="../websockets/">websockets</a>.</p>
+<p>This would read a YAML file like this:</p>
+<div class="codehilite"><pre><span></span><span class="n">database</span><span class="o">:</span>
+  <span class="n">username</span><span class="o">:</span> <span class="n">fred</span>
+  <span class="n">password</span><span class="o">:</span> <span class="n">fredspassword</span>
+  <span class="n">host</span><span class="o">:</span> <span class="n">db</span><span class="o">.</span><span class="na">myapp</span><span class="o">.</span><span class="na">com</span>
+  <span class="n">port</span><span class="o">:</span> <span class="mi">5432</span>
+  <span class="n">databaseName</span><span class="o">:</span> <span class="n">fredsdb</span>
+<span class="n">apiBaseURL</span><span class="o">:</span> <span class="o">/</span><span class="n">api</span>
+<span class="n">identifier</span><span class="o">:</span> <span class="mi">2</span>
+</pre></div>
+
+
+<p>If required properties are omitted from the YAML file being read, application startup will fail and throw an informative error.</p>
+<p>You may use <code>Configuration</code>s to read values from environment variables. In <code>config.yaml</code>, use a <code>$</code>-prefixed environment variable name instead of a value:</p>
+<div class="codehilite"><pre><span></span>database: $DATABASE_CONNECTION_URL
+apiBaseURL: /api
+</pre></div>
+
+
+<p>If the environment variable <code>DATABASE_CONNECTION_URL</code>'s value were <code>"postgres://user:password@localhost:5432/test"</code>, the value of <code>TodoConfiguration.database</code> will be that string at runtime. (Note that <code>DatabaseConnectionConfiguration</code> may either have a YAML object for each connection attribute, or a database connection string.)</p>
+<p>The <a href="https://pub.dartlang.org/packages/safe_config">safe_config package</a> has instructions for more additional usages.</p>
+<h3 id="configuration-conventions-and-deployment-options">Configuration Conventions and Deployment Options</h3>
+<p>Aqueduct uses two configuration files for a project: <code>config.yaml</code> and <code>config.src.yaml</code>. The latter is the <em>configuration source file</em>. The configuration source file declares key-value pairs that will be used when running the application tests. Deployed instances use <code>config.yaml</code>.</p>
+<p>This pattern is used for two reasons:</p>
+<ul>
+<li>It is the template for the <code>config.yaml</code> that will be read on deployed applications, providing documentation for your application's configuration.</li>
+<li>It has the configuration values used during testing to inject mock dependencies.</li>
+</ul>
+<p>For example, a production API instance might have the following <code>config.yaml</code> file with connection info for a production database:</p>
+<div class="codehilite"><pre><span></span><span class="n">database</span><span class="o">:</span> <span class="n">postgres</span><span class="o">://</span><span class="n">app_user</span><span class="o">:</span><span class="n">$</span><span class="o">%</span><span class="mi">4</span><span class="n">jlkn</span><span class="err">#</span><span class="n">an</span><span class="o">*</span><span class="err">@</span><span class="n">mOZkea2</span><span class="err">@</span><span class="n">somedns</span><span class="o">.</span><span class="na">name</span><span class="o">.</span><span class="na">com</span><span class="o">:</span><span class="mi">5432</span><span class="o">/</span><span class="n">production_db</span>
+</pre></div>
+
+
+<p>Whereas <code>config.src.yaml</code> would have connection info for a local, test database:</p>
+<div class="codehilite"><pre><span></span><span class="n">database</span><span class="o">:</span> <span class="n">postgres</span><span class="o">://</span><span class="n">test</span><span class="o">:</span><span class="n">test</span><span class="err">@</span><span class="n">localhost</span><span class="o">:</span><span class="mi">5432</span><span class="o">/</span><span class="n">temporary_db</span>
+</pre></div>
+
+
+<p>The source configuration file should be checked into version control. Whether or not <code>config.yaml</code> is checked in depends on how you are deploying your code. If you are using environment variables to control application configuration, you should check <code>config.yaml</code> into source control and provide <code>$</code>-prefixed environment variable values. If you are using managing configuration files on each deployed instance, do not check <code>config.yaml</code> into source control because it'll be a different file for each instance.</p>
+<p>It can sometimes makes sense to have a <code>local.yaml</code> with values for running the application locally, e.g. when doing client testing. Use <code>--config-path</code> with <code>aqueduct serve</code> to use a non-default name.</p>
+<h2 id="preventing-resource-leaks">Preventing Resource Leaks</h2>
+<p>When an Aqueduct application starts, the application and its <code>ApplicationChannel</code>s will likely create services that they use to respond to requests. In order for application tests to complete successfully, these services must be "closed" when the application stops. For built-in services, like <code>PostgreSQLPersistentStore</code>, this happens automatically when <code>Application.stop()</code> is invoked.</p>
+<p>A <code>ServiceRegistry</code> automatically stops registered services. Registration looks like this:</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">connection</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ConnectionOfSomeKind</span><span class="p">();</span>
+<span class="kd">await</span> <span class="n">connection</span><span class="p">.</span><span class="n">open</span><span class="p">();</span>
+<span class="n">ServiceRegistry</span><span class="p">.</span><span class="n">defaultInstance</span>
+  <span class="p">.</span><span class="n">register</span><span class="o">&lt;</span><span class="n">ConnectionOfSomeKind</span><span class="o">&gt;</span><span class="p">(</span><span class="n">connection</span><span class="p">,</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">c</span><span class="p">.</span><span class="n">close</span><span class="p">());</span>
+</pre></div>
+
+
+<p>This method takes the service to be closed and a closure that closes it. The service is passed as an argument to the closure. If the closure returns a <code>Future</code>, <code>ServiceRegistry.close</code> will not complete until the <code>Future</code> completes. <code>ServiceRegistry.defaultInstance</code> is closed in <code>Application.stop()</code>, any registries created by the programmer must be closed manually.</p>
+<p>The return type of <code>ServiceRegistry.register</code> is the object being registered. This makes registration syntax a bit more palatable:</p>
+<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">connection</span> <span class="o">=</span> <span class="n">ServiceRegistry</span><span class="p">.</span><span class="n">defaultInstance</span>
+  <span class="p">.</span><span class="n">register</span><span class="o">&lt;</span><span class="n">ConnectionOfSomeKind</span><span class="o">&gt;</span><span class="p">(</span>
+    <span class="k">new</span> <span class="n">ConnectionOfSomeKind</span><span class="p">(),</span> <span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">c</span><span class="p">.</span><span class="n">close</span><span class="p">());</span>
+
+<span class="kd">await</span> <span class="n">connection</span><span class="p">.</span><span class="n">open</span><span class="p">();</span>
+</pre></div>
+
+
+<h2 id="configuring-cors-headers">Configuring CORS Headers</h2>
+<p>All controllers have built-in behavior for handling CORS requests from a browser. When a preflight request is received from a browser (an OPTIONS request with Access-Control-Request-Method header and Origin headers), the response is created by evaluating the policy of the <code>Controller</code> that will respond to the real request.</p>
+<p>In practice, this means that the policy of the last controller in a channel is used. For example, the policy of <code>FooController</code> generates the preflight response:</p>
+<div class="codehilite"><pre><span></span><span class="n">router</span>
+  <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/foo&quot;</span><span class="p">)</span>
+  <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">Authorizer</span><span class="p">(...))</span>
+  <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="k">new</span> <span class="n">FooController</span><span class="p">());</span>
+</pre></div>
+
+
+<p>Every <code>Controller</code> has a <code>policy</code> property (a <code>CORSPolicy</code> instance). The <code>policy</code> has properties for configuring CORS options for that particular endpoint. By having a <code>policy</code>, every <code>Controller</code> automatically implements logic to respond to preflight requests without any additional code.</p>
+<p>Policies can be set at the controller level or at the application level. The static property <code>CORSPolicy.defaultPolicy</code> can be modified at initialization time to set the CORS options for every controller.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyApplicationChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span> <span class="n">prepare</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="n">CORSPolicy</span><span class="p">.</span><span class="n">defaultPolicy</span><span class="p">.</span><span class="n">allowedOrigins</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;http://mywebsite.com/&quot;</span><span class="p">];</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The default policy is very permissive: POST, PUT, DELETE and GET are allowed methods. All origins are valid (*).</p>
+<p>Each individual controller can override or replace the default policy by modifying its own <code>policy</code> in its constructor.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyResourceController</span> <span class="kd">extends</span> <span class="n">ResourceController</span> <span class="p">{</span>
+  <span class="n">MyResourceController</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">policy</span><span class="p">.</span><span class="n">allowedMethods</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;POST&quot;</span><span class="p">];</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<h2 id="configuring-https">Configuring HTTPS</h2>
+<p>By default, an Aqueduct application does not use HTTPS. In many cases, an Aqueduct application sits behind an SSL-enabled load balancer or some other proxy. The traffic from the load balancer is sent to the Aqueduct application unencrypted over HTTP.</p>
+<p>However, Aqueduct may be configured to manage HTTPS connections itself. By passing the value private key and SSL certificate paths as options to <code>--ssl-key-path</code> <em>and</em> <code>--ssl-certificate-path</code> in <code>aqueduct serve</code>, an Aqueduct application will configure itself to only allow HTTPS connections.</p>
+<div class="codehilite"><pre><span></span>aqueduct serve --ssl-key-path server.key.pem --ssl-certificate-path server.cert.pem
+</pre></div>
+
+
+<p>Both the key and certificate file must be unencrypted PEM files, and both must be provided to this command. These files are typically issued by a "Certificate Authority", such as <a href="../letsencrypt.org">letsencrypt.org</a>.</p>
+<p>When an application is started with these options, the <code>certificateFilePath</code> and <code>keyFilePath</code> are set on the <code>ApplicationOptions</code> your application is being run with. (If you are not using <code>aqueduct serve</code>, you can set these values directly when instantiating <code>ApplicationOptions</code>.)</p>
+<p>For more granular control over setting up an HTTPS server, you may override <code>securityContext</code> in <code>ApplicationChannel</code>. By default, this property will create a <code>SecurityContext</code> from the <code>certificateFilePath</code> and <code>keyFilePath</code> in the channels's <code>options</code>. A <code>SecurityContext</code> allows for password-encrypted credential files, configuring client certificates and other less used HTTPS schemes.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyApplicationChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">SecurityContext</span> <span class="kd">get</span> <span class="n">securityContext</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="k">new</span> <span class="n">SecurityContext</span><span class="p">()</span>
+      <span class="p">..</span><span class="n">usePrivateKey</span><span class="p">(</span><span class="s2">&quot;server.key&quot;</span><span class="p">,</span> <span class="nl">password:</span> <span class="s2">&quot;1234&quot;</span><span class="p">)</span>
+      <span class="p">..</span><span class="n">useCertificateChain</span><span class="p">(</span><span class="s2">&quot;server.crt&quot;</span><span class="p">,</span> <span class="nl">password:</span> <span class="s2">&quot;1234&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
                 
                   
                 
@@ -1476,7 +1565,7 @@ test/
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../" title="Overview" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../channel/" title="Startup & Initialization" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -1485,19 +1574,19 @@ test/
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Overview
+                Startup & Initialization
               </span>
             </div>
           </a>
         
         
-          <a href="../request_and_response/" title="Request and Response Objects" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../structure/" title="Application Structure" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Request and Response Objects
+                Application Structure
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">

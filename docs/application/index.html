@@ -83,7 +83,7 @@
                 </span>
               
                 <span class="md-header-nav__parent">
-                  OpenAPI Documentation
+                  Application Structure and Behavior
                 </span>
               
             
@@ -453,10 +453,12 @@
           
           
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-1" type="checkbox" id="nav-10-1">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-1" type="checkbox" id="nav-10-1" checked>
     
     <label class="md-nav__link" for="nav-10-1">
       Application Structure and Behavior
@@ -472,11 +474,50 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="../application/" title="Overview" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        Overview
+      </label>
+    
+    <a href="./" title="Overview" class="md-nav__link md-nav__link--active">
       Overview
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#tasks" title="Tasks" class="md-nav__link">
+    Tasks
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#guides" title="Guides" class="md-nav__link">
+    Guides
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -486,7 +527,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../application/channel/" title="Startup & Initialization" class="md-nav__link">
+    <a href="channel/" title="Startup & Initialization" class="md-nav__link">
       Startup & Initialization
     </a>
   </li>
@@ -498,7 +539,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../application/configure/" title="Environment Configuration" class="md-nav__link">
+    <a href="configure/" title="Environment Configuration" class="md-nav__link">
       Environment Configuration
     </a>
   </li>
@@ -510,7 +551,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../application/structure/" title="Application Structure" class="md-nav__link">
+    <a href="structure/" title="Application Structure" class="md-nav__link">
       Application Structure
     </a>
   </li>
@@ -522,7 +563,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../application/threading/" title="Multi-threading" class="md-nav__link">
+    <a href="threading/" title="Multi-threading" class="md-nav__link">
       Multi-threading
     </a>
   </li>
@@ -1101,12 +1142,10 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-7" type="checkbox" id="nav-10-7" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-7" type="checkbox" id="nav-10-7">
     
     <label class="md-nav__link" for="nav-10-7">
       OpenAPI Documentation
@@ -1122,50 +1161,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="toc">
-        Overview
-      </label>
-    
-    <a href="./" title="Overview" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../openapi/" title="Overview" class="md-nav__link">
       Overview
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary">
-  
-  
-  
-    <label class="md-nav__title" for="toc">Table of contents</label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#tasks" title="Tasks" class="md-nav__link">
-    Tasks
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#guides" title="Guides" class="md-nav__link">
-    Guides
-  </a>
-  
-</li>
-      
-      
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -1175,7 +1175,7 @@
 
 
   <li class="md-nav__item">
-    <a href="cli/" title="Creating an OpenAPI Document" class="md-nav__link">
+    <a href="../openapi/cli/" title="Creating an OpenAPI Document" class="md-nav__link">
       Creating an OpenAPI Document
     </a>
   </li>
@@ -1187,7 +1187,7 @@
 
 
   <li class="md-nav__item">
-    <a href="components/" title="Documenting Components" class="md-nav__link">
+    <a href="../openapi/components/" title="Documenting Components" class="md-nav__link">
       Documenting Components
     </a>
   </li>
@@ -1199,7 +1199,7 @@
 
 
   <li class="md-nav__item">
-    <a href="endpoint/" title="Documenting Endpoint Controllers" class="md-nav__link">
+    <a href="../openapi/endpoint/" title="Documenting Endpoint Controllers" class="md-nav__link">
       Documenting Endpoint Controllers
     </a>
   </li>
@@ -1211,7 +1211,7 @@
 
 
   <li class="md-nav__item">
-    <a href="middleware/" title="Documenting Middleware Controllers" class="md-nav__link">
+    <a href="../openapi/middleware/" title="Documenting Middleware Controllers" class="md-nav__link">
       Documenting Middleware Controllers
     </a>
   </li>
@@ -1345,21 +1345,21 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/openapi/index.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/application/index.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
                   <h1>Overview</h1>
                 
                 <h2 id="tasks">Tasks</h2>
-<p>Aqueduct applications auto-generate an OpenAPI 3.0 document.</p>
-<p>Most of your OpenAPI document is generated by reflecting on your application code, especially <code>ResourceController</code> subclasses. You add customization or additional information by overriding methods in <code>APIComponentDocumenter</code> and <code>APIOperationDocumenter</code>. At minimum, you override methods in your <code>ResourceController</code> to document the responses your application will send for a particular endpoint.</p>
-<p>You create documents with the <code>aqueduct document</code> command-line tool.</p>
+<p>An Aqueduct application is centered around an <em>application channel</em>; an object that handles initialization tasks. For every application that you write, you create exactly one subclass of <code>ApplicationChannel</code> and implement its required methods. These methods prepare any <a href="../core_concepts/">service objects</a> (like database connections) and <a href="../http/controller/">controllers</a> (objects that handle requests) that your application will use.</p>
+<p>You manage loading and reading configuration data - such as development vs. production environment options - from within an application channel.</p>
+<p>An application channel is instantiated for each thread your application executes on.</p>
 <h2 id="guides">Guides</h2>
 <ul>
-<li><a href="cli/">Creating an OpenAPI Document</a></li>
-<li><a href="components/">Documenting Components</a></li>
-<li><a href="endpoint/">Documenting Endpoint Controllers</a></li>
-<li><a href="middleware/">Documenting Middleware Controllers</a></li>
+<li><a href="channel/">The Application Channel</a></li>
+<li><a href="configure/">Configuring an Application</a></li>
+<li><a href="structure/">Aqueduct Application Structure</a></li>
+<li><a href="threading/">Performance: Multi-threading</a></li>
 </ul>
                 
                   
@@ -1379,7 +1379,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../deploy/script/" title="Deploying without aqueduct serve" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../tut/writing-tests/" title="4. Configuration and Testing" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -1388,19 +1388,19 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Deploying without aqueduct serve
+                4. Configuration and Testing
               </span>
             </div>
           </a>
         
         
-          <a href="cli/" title="Creating an OpenAPI Document" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="channel/" title="Startup & Initialization" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Creating an OpenAPI Document
+                Startup & Initialization
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">

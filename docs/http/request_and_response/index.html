@@ -18,7 +18,7 @@
     
     
       
-        <title>Request and Response Objects - Aqueduct</title>
+        <title>Request and Response Objects; Serialization - Aqueduct</title>
       
     
     
@@ -83,11 +83,11 @@
                 </span>
               
                 <span class="md-header-nav__parent">
-                  Serving HTTP Requests
+                  Handling HTTP Requests
                 </span>
               
             
-            Request and Response Objects
+            Request and Response Objects; Serialization
           
         </span>
       </div>
@@ -453,19 +453,103 @@
           
           
 
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-1" type="checkbox" id="nav-10-1">
+    
+    <label class="md-nav__link" for="nav-10-1">
+      Application Structure and Behavior
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-1">
+        Application Structure and Behavior
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../application/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../application/channel/" title="Startup & Initialization" class="md-nav__link">
+      Startup & Initialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../application/configure/" title="Environment Configuration" class="md-nav__link">
+      Environment Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../application/structure/" title="Application Structure" class="md-nav__link">
+      Application Structure
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../application/threading/" title="Multi-threading" class="md-nav__link">
+      Multi-threading
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
   
 
 
   <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-1" type="checkbox" id="nav-10-1" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-2" type="checkbox" id="nav-10-2" checked>
     
-    <label class="md-nav__link" for="nav-10-1">
-      Serving HTTP Requests
+    <label class="md-nav__link" for="nav-10-2">
+      Handling HTTP Requests
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-1">
-        Serving HTTP Requests
+      <label class="md-nav__title" for="nav-10-2">
+        Handling HTTP Requests
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -486,18 +570,6 @@
           
           
 
-
-  <li class="md-nav__item">
-    <a href="../structure/" title="Application Structure" class="md-nav__link">
-      Application Structure
-    </a>
-  </li>
-
-        
-          
-          
-          
-
   
 
 
@@ -509,11 +581,11 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="toc">
-        Request and Response Objects
+        Request and Response Objects; Serialization
       </label>
     
-    <a href="./" title="Request and Response Objects" class="md-nav__link md-nav__link--active">
-      Request and Response Objects
+    <a href="./" title="Request and Response Objects; Serialization" class="md-nav__link md-nav__link--active">
+      Request and Response Objects; Serialization
     </a>
     
       
@@ -534,12 +606,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#response-objects-and-http-body-encoding" title="Response Objects and HTTP Body Encoding" class="md-nav__link">
-    Response Objects and HTTP Body Encoding
+  <a href="#the-response-object" title="The Response Object" class="md-nav__link">
+    The Response Object
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#encoding-and-decoding-the-http-body" title="Encoding and Decoding the HTTP Body" class="md-nav__link">
+    Encoding and Decoding the HTTP Body
   </a>
   
     <nav class="md-nav">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decoding-request-bodies" title="Decoding Request Bodies" class="md-nav__link">
+    Decoding Request Bodies
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#encoding-response-body-objects" title="Encoding Response Body Objects" class="md-nav__link">
+    Encoding Response Body Objects
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#streaming-response-bodies" title="Streaming Response Bodies" class="md-nav__link">
@@ -548,23 +641,42 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#custom-objects" title="Custom Objects" class="md-nav__link">
-    Custom Objects
-  </a>
+      </ul>
+    </nav>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#codecs-and-content-types" title="Codecs and Content Types" class="md-nav__link">
     Codecs and Content Types
   </a>
   
-</li>
+    <nav class="md-nav">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#compression-with-gzip" title="Compression with gzip" class="md-nav__link">
     Compression with gzip
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serializable-objects" title="Serializable Objects" class="md-nav__link">
+    Serializable Objects
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#serializable-and-openapi-generation" title="Serializable and OpenAPI Generation" class="md-nav__link">
+    Serializable and OpenAPI Generation
   </a>
   
 </li>
@@ -613,32 +725,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../channel/" title="Initialization and the ApplicationChannel" class="md-nav__link">
-      Initialization and the ApplicationChannel
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../resource_controller/" title="Handling Requests: ResourceController" class="md-nav__link">
-      Handling Requests: ResourceController
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../configure/" title="Configuration" class="md-nav__link">
-      Configuration
+    <a href="../resource_controller/" title="Request Binding with Resource Controllers" class="md-nav__link">
+      Request Binding with Resource Controllers
     </a>
   </li>
 
@@ -667,18 +755,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../threading/" title="Multi-threading" class="md-nav__link">
-      Multi-threading
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -691,13 +767,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-2" type="checkbox" id="nav-10-2">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-3" type="checkbox" id="nav-10-3">
     
-    <label class="md-nav__link" for="nav-10-2">
+    <label class="md-nav__link" for="nav-10-3">
       Databases and ORM
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-2">
+      <label class="md-nav__title" for="nav-10-3">
         Databases and ORM
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -847,13 +923,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-3" type="checkbox" id="nav-10-3">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-4" type="checkbox" id="nav-10-4">
     
-    <label class="md-nav__link" for="nav-10-3">
+    <label class="md-nav__link" for="nav-10-4">
       Authorization and OAuth 2.0
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-3">
+      <label class="md-nav__title" for="nav-10-4">
         Authorization and OAuth 2.0
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -955,13 +1031,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-4" type="checkbox" id="nav-10-4">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-5" type="checkbox" id="nav-10-5">
     
-    <label class="md-nav__link" for="nav-10-4">
+    <label class="md-nav__link" for="nav-10-5">
       Development and Testing
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-4">
+      <label class="md-nav__title" for="nav-10-5">
         Development and Testing
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1051,13 +1127,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-5" type="checkbox" id="nav-10-5">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-6" type="checkbox" id="nav-10-6">
     
-    <label class="md-nav__link" for="nav-10-5">
+    <label class="md-nav__link" for="nav-10-6">
       Deployment
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-5">
+      <label class="md-nav__title" for="nav-10-6">
         Deployment
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1147,13 +1223,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-6" type="checkbox" id="nav-10-6">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-7" type="checkbox" id="nav-10-7">
     
-    <label class="md-nav__link" for="nav-10-6">
+    <label class="md-nav__link" for="nav-10-7">
       OpenAPI Documentation
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-6">
+      <label class="md-nav__title" for="nav-10-7">
         OpenAPI Documentation
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1231,13 +1307,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-7" type="checkbox" id="nav-10-7">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-8" type="checkbox" id="nav-10-8">
     
-    <label class="md-nav__link" for="nav-10-7">
+    <label class="md-nav__link" for="nav-10-8">
       Command-line Tooling
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-7">
+      <label class="md-nav__title" for="nav-10-8">
         Command-line Tooling
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1291,18 +1367,6 @@
   </li>
 
         
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../cli/setup/" title="Other Tools" class="md-nav__link">
-      Other Tools
-    </a>
-  </li>
-
-        
       </ul>
     </nav>
   </li>
@@ -1341,12 +1405,33 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#response-objects-and-http-body-encoding" title="Response Objects and HTTP Body Encoding" class="md-nav__link">
-    Response Objects and HTTP Body Encoding
+  <a href="#the-response-object" title="The Response Object" class="md-nav__link">
+    The Response Object
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#encoding-and-decoding-the-http-body" title="Encoding and Decoding the HTTP Body" class="md-nav__link">
+    Encoding and Decoding the HTTP Body
   </a>
   
     <nav class="md-nav">
       <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#decoding-request-bodies" title="Decoding Request Bodies" class="md-nav__link">
+    Decoding Request Bodies
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#encoding-response-body-objects" title="Encoding Response Body Objects" class="md-nav__link">
+    Encoding Response Body Objects
+  </a>
+  
+</li>
         
           <li class="md-nav__item">
   <a href="#streaming-response-bodies" title="Streaming Response Bodies" class="md-nav__link">
@@ -1355,23 +1440,42 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#custom-objects" title="Custom Objects" class="md-nav__link">
-    Custom Objects
-  </a>
+      </ul>
+    </nav>
   
 </li>
-        
-          <li class="md-nav__item">
+      
+        <li class="md-nav__item">
   <a href="#codecs-and-content-types" title="Codecs and Content Types" class="md-nav__link">
     Codecs and Content Types
   </a>
   
-</li>
+    <nav class="md-nav">
+      <ul class="md-nav__list">
         
           <li class="md-nav__item">
   <a href="#compression-with-gzip" title="Compression with gzip" class="md-nav__link">
     Compression with gzip
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#serializable-objects" title="Serializable Objects" class="md-nav__link">
+    Serializable Objects
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#serializable-and-openapi-generation" title="Serializable and OpenAPI Generation" class="md-nav__link">
+    Serializable and OpenAPI Generation
   </a>
   
 </li>
@@ -1398,29 +1502,92 @@
                   <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/http/request_and_response.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="request-and-response-objects">Request and Response Objects</h1>
+                <h1 id="request-and-response-objects-serialization">Request and Response Objects; Serialization</h1>
 <p>In Aqueduct, HTTP requests and responses are instances of <code>Request</code> and <code>Response</code>, respectively. For every HTTP request an application receives, an instance of <code>Request</code> is created. A <code>Response</code> must be created for each <code>Request</code>. Requests pass through a channel of <a href="../controller/">Controllers</a> to be validated, modified and finally responded to.</p>
 <h2 id="the-request-object">The Request Object</h2>
 <p>An instance of <code>Request</code> represents an HTTP request and are automatically created when the application receives a request. A <code>Request</code> is a wrapper around the Dart standard library <code>HttpRequest</code> and its values - such as its URI or headers - can be accessed through its <code>raw</code> property.</p>
-<p>A <code>Request</code> has a <code>body</code> property. This property decodes the HTTP request body into Dart objects based on the request's content type. The mechanism to decode the body is determined by <code>CodecRegistry</code>, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data. The size of a request body is limited to 10MB by default and can be changed by setting the value of <code>RequestBody.maxSize</code> during application initialization.</p>
+<p>A <code>Request</code> has a <code>body</code> property. This property decodes the body contents into Dart objects based on the request's content type. The mechanism to decode the body is determined by <code>CodecRegistry</code>, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data. The size of a request body is limited to 10MB by default and can be changed by setting the value of <code>RequestBody.maxSize</code> during application initialization.</p>
 <p>A <code>Request</code> is handled by one or more <code>Controller</code>s before to be responded to. <code>Controller</code>s may validate or add more information to the request, so that later controllers can use this information. For example, an <code>Authorizer</code> controller will validate the Authorization header of a request. Once validated, it will add authorization info to the request - like the authorized user ID - and pass it to the next controller. The next controller in the channel has access to the authorization info without having to perform another fetch.</p>
-<p>These additional values are added to a <code>Request.attachments</code> property. A <code>Request</code> also has two built-in attachments, <code>authorization</code> and <code>path</code>. <code>authorization</code> contains authorization information from an <code>Authorizer</code> and <code>path</code> has request path information from a <code>Router</code>.</p>
-<p><code>Request</code>s are responded to when a controller creates a <code>Response</code>.</p>
-<h2 id="response-objects-and-http-body-encoding">Response Objects and HTTP Body Encoding</h2>
-<p>A <code>Response</code> has a status code, HTTP headers and an HTTP body. There are a number of convenience constructors for <code>Response</code> for commonly used status codes. For example, <code>Response.ok</code> creates a 200 OK status code response.</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">({</span><span class="s2">&quot;key&quot;</span><span class="o">:</span> <span class="s2">&quot;value&quot;</span><span class="p">});</span>
+<p>These additional values are added to a <code>Request.attachments</code> property. Subsequent controllers can access these values.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">APIKeyController</span> <span class="kd">extends</span> <span class="n">Controller</span> <span class="p">{</span>
+  <span class="n">APIKeyController</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="n">apiService</span><span class="p">);</span>
+
+  <span class="kd">final</span> <span class="n">APIService</span> <span class="n">apiService</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">RequestOrResponse</span><span class="o">&gt;</span> <span class="n">handle</span><span class="p">(</span><span class="n">Request</span> <span class="n">request</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">final</span> <span class="n">apiKey</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">raw</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">value</span><span class="p">(</span><span class="s2">&quot;x-api-key&quot;</span><span class="p">);</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">apiKey</span> <span class="o">==</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">Response</span><span class="p">.</span><span class="n">badRequest</span><span class="p">(</span><span class="nl">body:</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="o">:</span> <span class="s2">&quot;missing required header x-api-key&quot;</span><span class="p">});</span>
+    <span class="p">}</span>
+
+    <span class="n">request</span><span class="p">.</span><span class="n">attachments</span><span class="p">[</span><span class="s2">&quot;clientId&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">apiService</span><span class="p">.</span><span class="n">getClientId</span><span class="p">(</span><span class="n">apiKey</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">request</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 
 
-<p>When a <code>Response</code> is returned from a controller, Aqueduct handles sending the HTTP response back to the client.</p>
+<p>A <code>Request</code> also has two built-in attachments, <code>authorization</code> and <code>path</code>. <code>authorization</code> contains authorization information from an <code>Authorizer</code> and <code>path</code> has request path information from a <code>Router</code>.</p>
+<p><code>Request</code>s are responded to when a controller creates a <code>Response</code>.</p>
+<h2 id="the-response-object">The Response Object</h2>
+<p>An instance of <code>Response</code> represents the status code, headers and body of an HTTP response. <code>Response</code> objects are returned from controller methods like <a href="../controller/">handle</a> or a <a href="../resource_controller/">ResourceController operation method</a>. Aqueduct sends the contents of a response returned from a controller to the requesting HTTP client. The default constructor takes a status code, header map and body object. There are many named constructors for common response types:</p>
+<div class="codehilite"><pre><span></span><span class="n">Response</span><span class="p">(</span><span class="m">200</span><span class="p">,</span> <span class="p">{</span><span class="s2">&quot;x-header&quot;</span><span class="o">:</span> <span class="s2">&quot;value&quot;</span><span class="p">},</span> <span class="nl">body:</span> <span class="p">[</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">,</span> <span class="m">3</span><span class="p">]);</span>
+<span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">({</span><span class="s2">&quot;key&quot;</span><span class="o">:</span> <span class="s2">&quot;value&quot;</span><span class="p">});</span>
+<span class="n">Response</span><span class="p">.</span><span class="n">created</span><span class="p">();</span>
+<span class="n">Response</span><span class="p">.</span><span class="n">badRequest</span><span class="p">(</span><span class="nl">body:</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="o">:</span> <span class="s2">&quot;reason&quot;</span><span class="p">});</span>
+</pre></div>
+
+
+<p>A response can be modified after it is created by middleware controllers. Middleware controllers add <em>response modifiers</em> to a <code>Request</code>; when the response is created for that request, the modifiers are ran in the order they were added.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">RequestIdentifyingController</span> <span class="kd">extends</span> <span class="n">Controller</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">RequestOrResponse</span><span class="o">&gt;</span> <span class="n">handle</span><span class="p">(</span><span class="n">Request</span> <span class="n">request</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="c1">// Invoked after another controller in the channel creates a response</span>
+    <span class="n">request</span><span class="p">.</span><span class="n">addResponseModifier</span><span class="p">((</span><span class="n">resp</span><span class="p">)</span> <span class="p">{</span>      
+      <span class="n">resp</span><span class="p">.</span><span class="n">headers</span><span class="p">[</span><span class="s2">&quot;x-request-id&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">generateRequestId</span><span class="p">();</span>
+    <span class="p">});</span>
+
+    <span class="k">return</span> <span class="n">request</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Headers are encoded according to <a href="https://api.dartlang.org/stable/2.0.0/dart-io/HttpHeaders/add.html">dart:io.HttpHeaders.add</a>. For body encoding behavior, see the following sections.</p>
+<h2 id="encoding-and-decoding-the-http-body">Encoding and Decoding the HTTP Body</h2>
+<p><code>Request</code> and <code>Response</code> objects have behavior for handling the HTTP body. You decode the contents of a <code>Request</code> body into Dart objects that are used in your code. You provide a Dart object to a <code>Response</code> and it is automatically encoded according to the content-type of the response.</p>
+<h3 id="decoding-request-bodies">Decoding Request Bodies</h3>
+<p>Every <code>Request</code> has a <code>Request.body</code> property. This object decodes the bytestream from the request body into Dart objects, and caches that decoded object for subsequent access. The behavior for decoding is determined by the content-type header of the request (see the section on <code>CodecRegistry</code> later in this guide). When you decode a body, you can specify the Dart object type you expect it to be. If the decoded body object is not the expected type, an exception that sends a 400 Bad Request error is thrown.</p>
+<div class="codehilite"><pre><span></span><span class="c1">// Ensures that the decoded body is a Map&lt;String, dynamic&gt;</span>
+<span class="kd">final</span> <span class="n">map</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="n">decode</span><span class="o">&lt;</span><span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span> <span class="kt">dynamic</span><span class="o">&gt;&gt;</span><span class="p">();</span>
+
+<span class="c1">// Takes whatever object the body is decoded into</span>
+<span class="kd">final</span> <span class="n">anyObject</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="n">decode</span><span class="p">();</span>
+</pre></div>
+
+
+<p>Once a request's body has been decoded, it can be accessed through a synchronous <code>as</code> method. This method also takes a type argument to enforce the type of the decoded body object.</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">map</span> <span class="o">=</span> <span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="o">as&lt;</span><span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span> <span class="kt">dynamic</span><span class="o">&gt;&gt;</span><span class="p">();</span>
+</pre></div>
+
+
+<div class="admonition tip">
+<p class="admonition-title">Inferred Types</p>
+<p>You don't need to provide a type argument to <code>as</code> or <code>decode</code> if the type can be inferred. For example, <code>ManagedObject.readFromMap(await request.body.decode())</code> will infer the type of the decoded body as a <code>Map&lt;String, dynamic&gt;</code> without having to provide type parameters.</p>
+</div>
+<p>If a body cannot be decoded according to its content-type (the data is malformed), an error is thrown that sends the appropriate error response to the client. By default, the maximum size of a request body is 10MB (see <code>RequestBody.maxSize</code>).</p>
+<p>For more request body behavior, see the API reference for <code>RequestBody</code>, the <a href="../resource_controller/">section on body binding for ResourceControllers</a> and a later section in this guide on <code>Serializable</code>.</p>
+<h3 id="encoding-response-body-objects">Encoding Response Body Objects</h3>
 <p>An HTTP response often contains a <em>body</em>. For example, the body in response to <code>GET /users/1</code> might be JSON object that represents a user. To ensure the client understands that the body is a JSON object, it includes the header <code>Content-Type: application/json; charset=utf-8</code>.</p>
 <p>When creating a <code>Response</code> that has a body, you provide a <em>body object</em> and a <code>contentType</code>. For example:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">map</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;key&quot;</span><span class="o">:</span> <span class="s2">&quot;value&quot;</span><span class="p">};</span>
 
-<span class="c1">// ContentType.JSON is the default, setting it may be omitted.</span>
-<span class="c1">// ContentType.JSON == `application/json; charset=utf-8&#39;</span>
-<span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">map</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">contentType</span> <span class="o">=</span> <span class="n">ContentType</span><span class="p">.</span><span class="n">JSON</span><span class="p">;</span>
+<span class="c1">// ContentType.json is the default, setting it may be omitted.</span>
+<span class="c1">// ContentType.json == `application/json; charset=utf-8&#39;</span>
+<span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">map</span><span class="p">)</span>
+  <span class="p">..</span><span class="n">contentType</span> <span class="o">=</span> <span class="n">ContentType</span><span class="p">.</span><span class="n">json</span><span class="p">;</span>
 </pre></div>
 
 
@@ -1428,36 +1595,83 @@
 <p><img alt="Map Encoding" src="../../img/object_body_flow.png" /></p>
 <p>A <code>ContentType</code> is made up of three components: a primary type, a subtype and an optional character set.</p>
 <p><img alt="Content Type Components" src="../../img/content_type_components.png" /></p>
-<p>The primary and subtype determine the first conversion step and the charset determines the next. Each step is performed by an instance of <code>Codec</code> (from <code>dart:convert</code>). For example, the content type <code>application/json</code> selects <code>JsonCodec</code>, while charset <code>utf-8</code> selects <code>Utf8Codec</code>. These two codecs are run in succession to convert the <code>Map</code> to a list of bytes.</p>
-<p>The body object must be a valid input selected codec. In the above example, a <code>Map&lt;String, dynamic&gt;</code> can be encoded by a <code>JsonCodec</code>. But if the body object was something silly - like an <code>Controller</code> - encoding would fail at runtime and the client would be sent a 500 Server Error response. A valid input for one <code>Codec</code> may not be valid for another; it is up to you to ensure that the body object is valid for the <code>contentType</code> of the response.</p>
+<p>The primary and subtype determine the first conversion step and the charset determines the next. Each step is performed by an instance of <code>Codec</code> (from <code>dart:convert</code>). For example, the content type <code>application/json</code> selects <code>JsonCodec</code>, while charset <code>utf-8</code> selects <code>Utf8Codec</code>. These two codecs are run in succession to convert the <code>Map</code> to a list of bytes. The codec is selected by your application's <code>CodecRegistry</code>; this is covered in later section.</p>
+<p>The body object must be a valid input for the selected codec. In the above example, a <code>Map&lt;String, dynamic&gt;</code> can be encoded by a <code>JsonCodec</code>. But if the body object was something silly - like an <code>Controller</code> - encoding would fail at runtime and the client would be sent a 500 Server Error response. A valid input for one <code>Codec</code> may not be valid for another; it is up to you to ensure that the body object is valid for the <code>contentType</code> of the response.</p>
 <p>Not all content types require two conversion steps. For example, when serving an HTML file, the body object is already an HTML <code>String</code>. It will only be converted by a charset encoder:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">html</span> <span class="o">=</span> <span class="s2">&quot;&lt;html&gt;&lt;/html&gt;&quot;</span><span class="p">;</span>
-<span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">contentType</span> <span class="o">=</span> <span class="n">ContentType</span><span class="p">.</span><span class="n">HTML</span><span class="p">;</span>
+<span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+  <span class="p">..</span><span class="n">contentType</span> <span class="o">=</span> <span class="n">ContentType</span><span class="p">.</span><span class="n">html</span><span class="p">;</span>
 </pre></div>
 
 
-<p>And an image body object needs no conversion at all, since it is already a list of bytes:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">imageFile</span> <span class="o">=</span> <span class="k">new</span> <span class="n">File</span><span class="p">(</span><span class="s2">&quot;image.jpg&quot;</span><span class="p">);</span>
-<span class="kd">var</span> <span class="n">imageBytes</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">imageFile</span><span class="p">.</span><span class="n">readAsBytes</span><span class="p">();</span>
-<span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">imageBytes</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">contentType</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;jpeg&quot;</span><span class="p">);</span>
+<p>And an image body object needs no conversion at all, since it is already a list of bytes. If there is no registered codec for a content-type, the body object must be a byte array (<code>List&lt;int&gt;</code> where each value is between 0-255).</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">imageFile</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="s2">&quot;image.jpg&quot;</span><span class="p">);</span>
+<span class="kd">final</span> <span class="n">imageBytes</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">imageFile</span><span class="p">.</span><span class="n">readAsBytes</span><span class="p">();</span>
+<span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">imageBytes</span><span class="p">)</span>
+  <span class="p">..</span><span class="n">contentType</span> <span class="o">=</span> <span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;jpeg&quot;</span><span class="p">);</span>
+</pre></div>
+
+
+<p>You may disable the automatic encoding of a body as long as the body object is a byte array:</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">jsonBytes</span> <span class="o">=</span> <span class="n">utf8</span><span class="p">.</span><span class="n">encode</span><span class="p">(</span><span class="n">json</span><span class="p">.</span><span class="n">encode</span><span class="p">({</span><span class="s2">&quot;key&quot;</span><span class="o">:</span> <span class="s2">&quot;value&quot;</span><span class="p">}));</span>
+<span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">jsonBytes</span><span class="p">)..</span><span class="n">encodeBody</span> <span class="o">=</span> <span class="kc">false</span><span class="p">;</span>
 </pre></div>
 
 
 <p>See a later section for more details on content type to codec mappings. Also, see the documentation for <code>CodecRegistry</code> for details on built-in codecs and adding codecs.</p>
 <h3 id="streaming-response-bodies">Streaming Response Bodies</h3>
 <p>A body object may also be a <code>Stream&lt;T&gt;</code>. <code>Stream&lt;T&gt;</code> body objects are most often used when serving files. This allows the contents of the file to be streamed from disk to the HTTP client without having to load the whole file into memory first. (See also <code>FileController</code>.)</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">imageFile</span> <span class="o">=</span> <span class="k">new</span> <span class="n">File</span><span class="p">(</span><span class="s2">&quot;image.jpg&quot;</span><span class="p">);</span>
-<span class="kd">var</span> <span class="n">imageByteStream</span> <span class="o">=</span> <span class="n">imageFile</span><span class="p">.</span><span class="n">openRead</span><span class="p">();</span>
-<span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">imageByteStream</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">imageFile</span> <span class="o">=</span> <span class="n">File</span><span class="p">(</span><span class="s2">&quot;image.jpg&quot;</span><span class="p">);</span>
+<span class="kd">final</span> <span class="n">imageByteStream</span> <span class="o">=</span> <span class="n">imageFile</span><span class="p">.</span><span class="n">openRead</span><span class="p">();</span>
+<span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">imageByteStream</span><span class="p">)</span>
   <span class="p">..</span><span class="n">contentType</span> <span class="o">=</span> <span class="k">new</span> <span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;image&quot;</span><span class="p">,</span> <span class="s2">&quot;jpeg&quot;</span><span class="p">);</span>
 </pre></div>
 
 
 <p>When a body object is a <code>Stream&lt;T&gt;</code>, the response will not be sent until the stream is closed. For finite streams - like those from opened filed - this happens as soon as the entire file is read. For streams that you construct yourself, you must close the stream some time after the response has been returned.</p>
-<h3 id="custom-objects">Custom Objects</h3>
-<p>Any object may be the body object of a <code>Response</code> if it implements <code>Serializable</code>. An object conforming to this type must implement <code>asMap()</code>, which gets invoked on the body object prior to it being sent to the first encoding step. For example, the following object can be used as a body object and is automatically converted into a <code>Map</code> and then JSON encoded:</p>
+<h2 id="codecs-and-content-types">Codecs and Content Types</h2>
+<p>In the above sections, we glossed over how a codec gets selected when preparing the response body. The common case of <code>ManagedObject&lt;T&gt;</code> body objects that are sent as UTF8 encoded JSON 'just works' and is suitable for most applications. When serving assets for a web application or different data formats like XML, it becomes important to understand how Aqueduct's codec registry works.</p>
+<p><code>CodecRegistry</code> contains mappings from content types to <code>Codec</code>s. These codecs encode response bodies and decode request bodies. There are three built-in codecs for <code>application/json</code>, <code>application/x-www-form-urlencoded</code> and <code>text/*</code>. When a response is being sent, the repository is searched for an entry that exactly matches the primary and subtype of the <code>Response.contentType</code>. If an entry exists, the associated <code>Codec</code> starts the conversion. For example, if the content type is <code>application/json; charset=utf-8</code>, the built-in <code>application/json</code> codec encodes the body object.</p>
+<p>If there isn't an exact match, but there is an entry for the primary type with the wildcard (<code>*</code>) subtype, that codec is used. For example, the built-in codec for <code>text/*</code> will be selected for both <code>text/plain</code> and <code>text/html</code>. If there was something special that had to be done for <code>text/html</code>, a more specific codec may be added for that type:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span> <span class="n">prepare</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="n">CodecRegistry</span><span class="p">.</span><span class="n">defaultInstance</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;application&quot;</span><span class="p">,</span> <span class="s2">&quot;html&quot;</span><span class="p">),</span> <span class="n">HTMLCodec</span><span class="p">());</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Codecs must be added in your <code>ApplicationChannel.prepare</code> method. The codec must implement <code>Codec</code> from <code>dart:convert</code>. In the above example, when a response's content type is <code>text/html</code>, the <code>HTMLCodec</code> will encode the body object. This codec takes precedence over <code>text/*</code> because it is more specific.</p>
+<p>When selecting a codec for a response body, the <code>ContentType.charset</code> doesn't impact which codec is selected. If a response's content-type has a charset, then a charset encoder like <code>UTF8</code> will be applied as a last encoding step. For example, a response with content-type <code>application/json; charset=utf-8</code> will encode the body object as a JSON string, which is then encoded as a list of UTF8 bytes. It is required that a response body's eventually encoded type is a list of bytes, so it follows that a codec that produces a string must have a charset.</p>
+<p>If there is no codec in the repository for the content type of a <code>Response</code>, the body object must be a <code>List&lt;int&gt;</code> or <code>Stream&lt;List&lt;int&gt;&gt;</code>. If you find yourself converting data prior to setting it as a body object, it may make sense to add your own codec to <code>CodecRegistry</code>.</p>
+<p>A request's body always starts as a list of bytes and is decoded into Dart objects. To decode a JSON request body, it first must be decoded from the list of UTF8 bytes into a string. It is possible that a client could omit the charset in its content-type header. Codecs added to <code>CodecRegistry</code> may specify a default charset to interpret a charset-less content-type. When a codec is added to the repository, if content-type's charset is non-null, that is the default. For example, the JSON codec is added like this:</p>
+<div class="codehilite"><pre><span></span><span class="n">CodecRegistry</span><span class="p">.</span><span class="n">defaultInstance</span><span class="p">.</span><span class="n">add</span><span class="p">(</span>
+  <span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;application&quot;</span><span class="p">,</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="nl">charset:</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">),</span>
+  <span class="kd">const</span> <span class="n">JsonCodec</span><span class="p">(),</span>
+  <span class="nl">allowCompression:</span> <span class="kc">true</span><span class="p">);</span>
+</pre></div>
+
+
+<p>If no charset is specified when registering a codec, no charset decoding occurs on a request body if one doesn't exist. Content-types that are decoded from a <code>String</code> should not use a default charset because the repository would always attempt to decode the body as a string first.</p>
+<h3 id="compression-with-gzip">Compression with gzip</h3>
+<p>Body objects may be compressed with <code>gzip</code> if the HTTP client allows it <em>and</em> the <code>CodecRegistry</code> has been configured to compress the content type of the response. The three built-in codecs - <code>application/json</code>, <code>application/x-www-form-urlencoded</code> and <code>text/*</code> - are all configured to allow compression. Compression occurs as the last step of conversion and only if the HTTP client sends the <code>Accept-Encoding: gzip</code> header.</p>
+<p>Content types that are not in the codec repository will not trigger compression, even if the HTTP client allows compression with the <code>Accept-Encoding</code> header. This is to prevent binary contents like images from being 'compressed', since they are likely already compressed by a content-specific algorithm. In order for Aqueduct to compress a content type other than the built-in types, you may add a codec to the repository with the <code>allowCompression</code> flag. (The default value is <code>true</code>.)</p>
+<div class="codehilite"><pre><span></span><span class="n">CodecRegistry</span><span class="p">.</span><span class="n">add</span><span class="p">(</span>
+  <span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;application&quot;</span><span class="p">,</span> <span class="s2">&quot;x-special&quot;</span><span class="p">),</span>
+   <span class="n">MyCodec</span><span class="p">(),</span>
+  <span class="nl">allowCompression:</span> <span class="kc">true</span><span class="p">);</span>
+</pre></div>
+
+
+<p>You may also set whether or not a content type uses compression without having to specify a codec if no conversion step needs to occur:</p>
+<div class="codehilite"><pre><span></span><span class="n">CodecRegistry</span><span class="p">.</span><span class="n">setAllowsCompression</span><span class="p">(</span><span class="k">new</span> <span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;application&quot;</span><span class="p">,</span> <span class="s2">&quot;x-special&quot;</span><span class="p">),</span> <span class="kc">true</span><span class="p">);</span>
+</pre></div>
+
+
+<h2 id="serializable-objects">Serializable Objects</h2>
+<p>Encoding and decoding primarily takes or yields simple Dart objects like <code>Map</code>, <code>List</code> and <code>String</code>. It is often beneficial to add structure to body objects for use in your code. Classes that implement <code>Serializable</code> provide this structure. A <code>Serializable</code> object must implement a <code>readFromMap()</code> and <code>asMap()</code> method to convert their structure into or from a Dart <code>Map</code>.</p>
+<p>An object that implements <code>Serializable</code> may be used as a response body object directly:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Person</span> <span class="kd">implements</span> <span class="n">Serializable</span> <span class="p">{</span>
   <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
   <span class="kt">String</span> <span class="n">email</span><span class="p">;</span>
@@ -1469,75 +1683,49 @@
     <span class="p">};</span>
   <span class="p">}</span>
 
-  <span class="p">...</span>
+  <span class="kt">void</span> <span class="n">readFromMap</span><span class="p">(</span><span class="n">Map</span><span class="o">&lt;</span><span class="kt">String</span><span class="p">,</span> <span class="kt">dynamic</span><span class="o">&gt;</span> <span class="n">inputMap</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">name</span> <span class="o">=</span> <span class="n">inputMap</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">];</span>
+    <span class="n">email</span> <span class="o">=</span> <span class="n">inputMap</span><span class="p">[</span><span class="s1">&#39;email&#39;</span><span class="p">];</span>
+  <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="kd">var</span> <span class="n">person</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Person</span><span class="p">();</span>
-<span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">person</span><span class="p">);</span>
+<span class="kd">final</span> <span class="n">person</span> <span class="o">=</span> <span class="n">Person</span><span class="p">();</span>
+<span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">person</span><span class="p">);</span>
 </pre></div>
 
 
-<p><code>ManagedObject&lt;T&gt;</code>, part of the Aqueduct ORM, implements <code>Serializable</code> so results from <code>Query&lt;T&gt;</code> may be body objects:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Person</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)..</span><span class="n">where</span><span class="p">((</span><span class="n">p</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">p</span><span class="p">.</span><span class="n">id</span><span class="p">).</span><span class="n">equalTo</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
-<span class="kd">var</span> <span class="n">person</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
-<span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">person</span><span class="p">);</span>
-
-<span class="c1">// or List&lt;Serializable&gt;</span>
-
-<span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Person</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
-<span class="kd">var</span> <span class="n">people</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
-<span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">people</span><span class="p">);</span>
+<p>When responding with a <code>Serializable</code>, its <code>asMap()</code> is called prior to any encoding by the codec registry. <code>ManagedObject&lt;T&gt;</code>, part of the Aqueduct ORM, implements <code>Serializable</code> so results from <code>Query&lt;T&gt;</code> may be body objects:</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Person</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)..</span><span class="n">where</span><span class="p">((</span><span class="n">p</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">p</span><span class="p">.</span><span class="n">id</span><span class="p">).</span><span class="n">equalTo</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
+<span class="kd">final</span> <span class="n">person</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
+<span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">person</span><span class="p">);</span>
 </pre></div>
 
 
-<p>Note that a <code>Map</code> itself is not <code>Serializable</code> and can't have <code>Serializable</code> values. For example, the following wouldn't work:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">map</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s2">&quot;person&quot;</span><span class="o">:</span> <span class="k">new</span> <span class="n">Person</span><span class="p">()</span>
-<span class="p">};</span>
-<span class="kd">var</span> <span class="n">response</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">map</span><span class="p">);</span>
+<p>A response body object can also be a list of <code>Serializable</code> objects.</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Person</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+<span class="kd">final</span> <span class="n">people</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
+<span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">people</span><span class="p">);</span>
 </pre></div>
 
 
 <p>The entire flow of a body object is shown in the following diagram. Each orange item is an allowed body object type and shows the steps it will go through when being encoded to the HTTP response body. For example, a <code>Serializable</code> goes through three steps, whereas a <code>List&lt;int&gt;</code> goes through zero steps and is added as-is to the HTTP response.</p>
 <p><img alt="Response Body Object Flow" src="../../img/response_flow.png" /></p>
-<h3 id="codecs-and-content-types">Codecs and Content Types</h3>
-<p>In the above sections, we glossed over how a codec gets selected when preparing the response body. The common case of <code>ManagedObject&lt;T&gt;</code> body objects that are sent as UTF8 encoded JSON 'just works' and is suitable for most applications. When serving assets for a web application or different data formats like XML, it becomes important to understand how Aqueduct's codec repository works.</p>
-<p><code>CodecRegistry</code> contains mappings from content types to <code>Codec</code>s. These codecs encode response bodies and decode request bodies. There are three built-in codecs for <code>application/json</code>, <code>application/x-www-form-urlencoded</code> and <code>text/*</code>. When a response is being sent, the repository is searched for an entry that exactly matches the primary and subtype of the <code>Response.contentType</code>. If an entry exists, the associated <code>Codec</code> starts the conversion. For example, if the content type is <code>application/json; charset=utf-8</code>, the built-in <code>application/json</code> codec encodes the body object. The character set is not evaluated at this stage.</p>
-<p>If there isn't an exact match, but there is an entry for the primary type with the wildcard (<code>*</code>) subtype, that codec is used. For example, the built-in codec for <code>text/*</code> will be selected for both <code>text/plain</code> and <code>text/html</code>. If there was something special that had to be done for <code>text/html</code>, a more specific codec may be added for that type:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">override</span>
-  <span class="n">Future</span> <span class="n">prepare</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="n">CodecRegistry</span><span class="p">.</span><span class="n">defaultInstance</span><span class="p">.</span><span class="n">add</span><span class="p">(</span><span class="k">new</span> <span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;application&quot;</span><span class="p">,</span> <span class="s2">&quot;html&quot;</span><span class="p">),</span> <span class="k">new</span> <span class="n">HTMLCodec</span><span class="p">());</span>
-  <span class="p">}</span>
+<p>A serializable object can be read from a request body:</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">person</span> <span class="o">=</span> <span class="n">Person</span><span class="p">()..</span><span class="n">readFromMap</span><span class="p">(</span><span class="kd">await</span> <span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="n">decode</span><span class="p">());</span>
+</pre></div>
+
+
+<p>Serializable objects are the only types of objects that can be <a href="../resource_controller/">bound to a ResourceController argument</a>.</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">Operation</span><span class="p">.</span><span class="n">post</span><span class="p">()</span>
+<span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">addPerson</span><span class="p">(</span><span class="err">@</span><span class="n">Bind</span><span class="p">.</span><span class="n">body</span><span class="p">()</span> <span class="n">Person</span> <span class="n">person</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">final</span> <span class="n">insertedPerson</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">Query</span><span class="p">.</span><span class="n">insertObject</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">person</span><span class="p">);</span>
+  <span class="k">return</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">insertedPerson</span><span class="p">);</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>Codecs must be added in your <code>ApplicationChannel.prepare</code> method. The codec must implement <code>Codec</code> from <code>dart:convert</code>. In the above example, when a response's content type is <code>text/html</code>, the <code>HTMLCodec</code> will encode the body object. This codec takes precedence over <code>text/*</code> because it is more specific. When selecting a codec for a response body, the <code>ContentType.charset</code> doesn't impact which codec is selected.</p>
-<p>If a response's content-type has a charset, then a charset encoder like <code>UTF8</code> will be applied as a last encoding step. For example, a response with content-type <code>application/json; charset=utf-8</code> will encode the body object as a JSON string, which is then encoded as a list of UTF8 bytes. It is required that a response body's eventually encoded type is a list of bytes, so it follows that a codec that produces a string must have a charset.</p>
-<p>If there is no codec in the repository for the content type of a <code>Response</code>, the body object must be a <code>List&lt;int&gt;</code> or <code>Stream&lt;List&lt;int&gt;&gt;</code>. If you find yourself converting data prior to setting it as a body object, it may make sense to add your own codec to <code>CodecRegistry</code>.</p>
-<p>A request's body, on the other hand, always starts as a list of bytes. To decode a JSON request body, it first must be decoded from the list of UTF8 bytes into a string. It is possible that a client could omit the charset in its content-type header. Codecs added to <code>CodecRegistry</code> may specify a default charset to interpret a charset-less content-type. When a codec is added to the repository, if content-type's charset is non-null, that is the default. For example, the JSON codec is added like this:</p>
-<div class="codehilite"><pre><span></span><span class="n">CodecRegistry</span><span class="p">.</span><span class="n">defaultInstance</span><span class="p">.</span><span class="n">add</span><span class="p">(</span>
-  <span class="k">new</span> <span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;application&quot;</span><span class="p">,</span> <span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="nl">charset:</span> <span class="s2">&quot;utf-8&quot;</span><span class="p">),</span>
-  <span class="kd">const</span> <span class="n">JsonCodec</span><span class="p">(),</span>
-  <span class="nl">allowCompression:</span> <span class="kc">true</span><span class="p">);</span>
-</pre></div>
-
-
-<p>If the charset is null, no charset decoding occurs on a request body if one doesn't exist. Content-types that are decoded from a <code>String</code> should not use a default charset because the repository would always attempt to decode the body as a string first.</p>
-<h3 id="compression-with-gzip">Compression with gzip</h3>
-<p>Body objects may be compressed with <code>gzip</code> if the HTTP client allows it <em>and</em> the <code>CodecRegistry</code> has been configured to compress the content type of the response. The three built-in codecs - <code>application/json</code>, <code>application/x-www-form-urlencoded</code> and <code>text/*</code> - are all configured to allow compression. Compression occurs as the last step of conversion and only if the HTTP client sends the <code>Accept-Encoding: gzip</code> header.</p>
-<p>Content types that are not in the codec repository will not trigger compression, even if the HTTP client allows compression with the <code>Accept-Encoding</code> header. This is to prevent binary contents like images from being 'compressed', since they are likely already compressed by a content-specific algorithm. In order for Aqueduct to compress a content type other than the built-in types, you may add a codec to the repository with the <code>allowCompression</code> flag. (The default value is <code>true</code>.)</p>
-<div class="codehilite"><pre><span></span><span class="n">CodecRegistry</span><span class="p">.</span><span class="n">add</span><span class="p">(</span>
-  <span class="k">new</span> <span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;application&quot;</span><span class="p">,</span> <span class="s2">&quot;x-special&quot;</span><span class="p">),</span>
-  <span class="k">new</span> <span class="n">MyCodec</span><span class="p">(),</span>
-  <span class="nl">allowCompression:</span> <span class="kc">true</span><span class="p">);</span>
-</pre></div>
-
-
-<p>You may also set whether or not a content type uses compression without having to specify a codec if no conversion step needs to occur:</p>
-<div class="codehilite"><pre><span></span><span class="n">CodecRegistry</span><span class="p">.</span><span class="n">setAllowsCompression</span><span class="p">(</span><span class="k">new</span> <span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;application&quot;</span><span class="p">,</span> <span class="s2">&quot;x-special&quot;</span><span class="p">),</span> <span class="kc">true</span><span class="p">);</span>
-</pre></div>
+<h3 id="serializable-and-openapi-generation">Serializable and OpenAPI Generation</h3>
+<p>See the section on how <code>Serializable</code> types work with OpenAPI documentation generation <a href="../../openapi/components/">here</a>.</p>
                 
                   
                 
@@ -1556,7 +1744,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../structure/" title="Application Structure" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../" title="Overview" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -1565,7 +1753,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Application Structure
+                Overview
               </span>
             </div>
           </a>
