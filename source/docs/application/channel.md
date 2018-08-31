@@ -4,7 +4,7 @@ Learn how an application is initialized so it can serve requests.
 
 ## Overview
 
-Applications fulfill HTTP requests using [controllers](controller.md). A controller is an object that can handle a request in some way. In general, there are two types of controllers:
+Applications fulfill HTTP requests using [controllers](../http/controller.md). A controller is an object that can handle a request in some way. In general, there are two types of controllers:
 
 - Endpoint controllers fulfill a request (e.g., insert a row into a database and send a 200 OK response).
 - Middleware controllers verify something about a request (e.g., verifying the Authorization header has valid credentials) or modify the response created by an endpoint controller (e.g., add a response header).
@@ -38,7 +38,7 @@ This method links together a `Router`, `Authorizer` and `UserController` in that
 By contrast, if the request's path doesn't match '/users', the `Router` sends a 404 Not Found response and doesn't pass it to the `Authorizer`. Likewise, if the request isn't authorized, the `Authorizer` will send a 401 Unauthorized response and prevent it from being passed to the `UserController`. In other words, a request 'falls out' of the channel once a controller responds to it, so that no further controllers will receive it.
 
 !!! note "Linking Controllers"
-    The `link()` method takes a closure that creates a new controller. Some controllers get instantiated for each request, and others get reused for every request. See [the chapter on controllers](controller.md) for more information.
+    The `link()` method takes a closure that creates a new controller. Some controllers get instantiated for each request, and others get reused for every request. See [the chapter on controllers](../http/controller.md) for more information.
 
 ## Providing Services for Controllers
 

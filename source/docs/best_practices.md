@@ -61,7 +61,7 @@ In IntelliJ IDEA, right-click on any file with a `main` function (which includes
 
 ### Use the Suggested Project Directory Structure
 
-See [Aqueduct Project Structure](http/structure.md#aqueduct-project-structure-and-organization).
+See [Aqueduct Project Structure](application/structure.md#aqueduct-project-structure-and-organization).
 
 ### Pass Services to Controllers in entryPoint
 
@@ -105,11 +105,11 @@ A test harness initializes your application in a test suite. It has built in beh
 
 ### Use config.src.yaml
 
-Use the convention of [config.src.yaml file](http/configure.md) to prevent configuration errors and inject test dependencies.
+Use the convention of [config.src.yaml file](application/configure.md) to prevent configuration errors and inject test dependencies.
 
 ### Understand how Aqueduct Uses Isolates
 
-See more in [Application Structure](http/structure.md).
+See more in [Application Structure](application/structure.md).
 
 ### Use ResourceController Subclasses
 

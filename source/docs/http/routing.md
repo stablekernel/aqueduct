@@ -10,7 +10,7 @@ More generally, the "About" page URL has the three required components of a URL:
 
 An Aqueduct application receives requests when the scheme is `http` (or `https`) and the host refers to a machine where the application is running. Therefore, once the application gets the request, it only cares about the remaining component: the path.
 
-In Aqueduct, a `Router` routes `Request`s to a `Controller` based on the request path. This process is known as *routing*. When an application starts up, routes are registered in a subclass of `ApplicationChannel`. Each registered route creates a new [channel](structure.md) of `Controller`s that will handle the request.
+In Aqueduct, a `Router` routes `Request`s to a `Controller` based on the request path. This process is known as *routing*. When an application starts up, routes are registered in a subclass of `ApplicationChannel`. Each registered route creates a new [channel](../application/structure.md) of `Controller`s that will handle the request.
 
 ## Route Specifications Match HTTP Request Paths
 

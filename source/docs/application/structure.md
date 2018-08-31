@@ -4,7 +4,7 @@ The purpose of this document is to understand the objects that comprise an Aqued
 
 ## Controllers are Building Blocks
 
-The building blocks of an Aqueduct application are [Controllers](controller.md). Each controller type has logic to handle an HTTP request in some way. Controllers are linked together to form a *channel*; an ordered series of controllers. A channel is a composition of its controllers' behaviors.
+The building blocks of an Aqueduct application are [Controllers](../http/controller.md). Each controller type has logic to handle an HTTP request in some way. Controllers are linked together to form a *channel*; an ordered series of controllers. A channel is a composition of its controllers' behaviors.
 
 For example, consider an `Authorizer` controller that verifies the request's authorization credentials are correct, and a `SecretController` that sends a response with secret information. By composing these two controllers together, we have a channel that verifies credentials before sending a secret. The benefit of controllers and channels is that controllers can be reused in multiple channels; the `Authorizer` can protect other types of controllers without any change to its logic.
 
@@ -18,11 +18,11 @@ For example, an "authorization" controller could send a `401 Unauthorized` respo
 
 Both middleware and endpoint controllers are instances of `Controller` (or a subclass). Middleware controllers are typically reusable, while endpoint controllers are typically not. If a middleware controller is not reusable, its logic might be better suited for the endpoint controller it precedes in the channel.
 
-Most endpoint controllers are created by subclassing [ResourceController](resource_controller.md) (itself a subclass of `Controller`). This class allows you to implement methods for each HTTP method (like GET or POST) for a given endpoint.
+Most endpoint controllers are created by subclassing [ResourceController](../http/resource_controller.md) (itself a subclass of `Controller`). This class allows you to implement methods for each HTTP method (like GET or POST) for a given endpoint.
 
 ## The Application Channel and Entry Point
 
-Each application designates one controller as the *entry point* of the application. This controller is the first to receive a new request and is the head of the application's channel. In most applications, the entry point is a [Router](routing.md); this controller allows multiple channels to be linked, effectively splitting the channel into sub-channels.
+Each application designates one controller as the *entry point* of the application. This controller is the first to receive a new request and is the head of the application's channel. In most applications, the entry point is a [Router](../http/routing.md); this controller allows multiple channels to be linked, effectively splitting the channel into sub-channels.
 
 ![Structure](../img/structure.png)
 
@@ -121,4 +121,4 @@ Controller get entryPoint {
 }
 ```
 
-This technique is valuable when Aqueduct can't do something you want it to do or when using [websockets](websockets.md).
+This technique is valuable when Aqueduct can't do something you want it to do or when using [websockets](../http/websockets.md).

@@ -29,7 +29,7 @@ When your application is started in this way, its options have some default valu
 - the application listens on a random port
 - the `configurationFilePath` is `config.src.yaml`
 
-The `config.src.yaml` file must have the same structure as your deployment configurations, but values are substituted with test control values. For example, database connection configuration will point at a local test database instead of a production database. For more details on configuring an application, see [this guide](../http/configure.md).
+The `config.src.yaml` file must have the same structure as your deployment configurations, but values are substituted with test control values. For example, database connection configuration will point at a local test database instead of a production database. For more details on configuring an application, see [this guide](../application/configure.md).
 
 !!! note "Harness Install"
     The `install` method calls `setUpAll` and `tearDownAll` from `package:test` to start and stop your application. You can manually start and stop your application by invoking `TestHarness.start` and `TestHarness.stop`. However, this is not recommended because `onSetUp` and `onTearDown` will not be called for each test.

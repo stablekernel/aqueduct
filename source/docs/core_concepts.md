@@ -30,7 +30,7 @@ A channel must have exactly one endpoint controller. It can be preceded by zero 
 
 The application channel is an object that contains all of the controllers in an application. It designates one controller as the first controller to receive every request called its *entry point*. Controllers are linked to the entry point (directly or transitively) to form the entire application channel. In nearly every application, the entry point is a router; this controller splits the channel into sub-channels for a given route.
 
-The application channel is also responsible for initializing the application's services, reading configuration files and other startup related tasks. See the guide on the [Application Channel](http/channel.md) for more details.
+The application channel is also responsible for initializing the application's services, reading configuration files and other startup related tasks. See the guide on the [Application Channel](application/channel.md) for more details.
 
 ## Services
 
@@ -38,7 +38,7 @@ A service is an object that encapsulates complex tasks or algorithms, external c
 
 The primary user of service objects are controllers. Services are injected into controllers by passing them as arguments to the controller's constructor. The controller keeps a reference to the service, so that it can use it when handling a request.
 
-For more details on injecting services, see the guide on the [Application Channel](http/channel.md).
+For more details on injecting services, see the guide on the [Application Channel](application/channel.md).
 
 ## Isolates
 

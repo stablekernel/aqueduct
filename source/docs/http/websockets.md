@@ -42,7 +42,7 @@ router
   });
 ```
 
-It's important that a request that is upgraded to a websocket is removed from the channel by returning null from the controller. (See the section on `Aqueduct and dart:io` [in this guide](structure.md) for more details.)
+It's important that a request that is upgraded to a websocket is removed from the channel by returning null from the controller. (See the section on `Aqueduct and dart:io` [in this guide](../application/structure.md) for more details.)
 
 A client application can connect to the URL `ws://localhost:8888/connect`. A Dart application would make this connection like so:
 

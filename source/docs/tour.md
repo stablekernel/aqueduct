@@ -16,7 +16,7 @@ aqueduct serve
 
 ### Initialization
 
-An Aqueduct application starts at an [ApplicationChannel](http/channel.md). You subclass it once per application to handle initialization tasks like setting up routes and database connections. An example application looks like this:
+An Aqueduct application starts at an [ApplicationChannel](application/channel.md). You subclass it once per application to handle initialization tasks like setting up routes and database connections. An example application looks like this:
 
 ```dart
 import 'package:aqueduct/aqueduct.dart';

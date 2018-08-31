@@ -70,7 +70,7 @@ void main() {
 }
 ```
 
-An instance of `MockHTTPServer` listens on localhost on a specific port. An application that makes testable external service requests should provide the base URI for those services in a configuration file. The URI for that service in the [configuration file used during testing](../http/configure.md) should point at localhost and a specific port. For example, if a deployed `config.yaml` file has the following key-values:
+An instance of `MockHTTPServer` listens on localhost on a specific port. An application that makes testable external service requests should provide the base URI for those services in a configuration file. The URI for that service in the [configuration file used during testing](../application/configure.md) should point at localhost and a specific port. For example, if a deployed `config.yaml` file has the following key-values:
 
 ```
 github:

@@ -77,4 +77,44 @@ class RepositoryController extends ResourceController {
 
 All controllers are can document components when they are linked to the entry point. Objects other than controllers will automatically document their components if they implement `APIComponentDocumenter` *and* are declared properties of your `ApplicationChannel`. (See [this guide](cli.md) for other options.)
 
-Built-in Aqueduct types will register any applicable components. This includes the types that handle OAuth2 as well as all `ManagedObject` subclasses in your application. 
+Built-in Aqueduct types will register any applicable components. This includes the types that handle OAuth2 as well as all `ManagedObject` subclasses in your application.
+
+### ManagedObject Discovery
+
+Declaring a `ManagedContext` as a property of your `ApplicationChannel` will automatically document the managed objects of your application as schema components.
+
+### Serializable Discovery
+
+If a `Serializable` object is bound to a request body in a `ResourceController`, it will automatically be documented as a schema component. By default, the properties of the `Serializable` object are reflected on to produce this component. To override this behavior and provide your own component documentation, implement the following method in your `Serializable` subclass:
+
+```dart
+class Person extends Serializable {
+  String name;
+
+  Map<String, dynamic> asMap() => {"name": name};
+  void readFromMap(Map<String, dynamic> map) {
+    name = map['name'];
+  }
+
+  static APISchemaObject document(APIDocumentContext context, Type serializable) {
+    return APISchemaObject.object(properties: {
+      "name": APISchemaObject.string()
+    });
+  }
+}
+```
+
+If you `Serializable` type is not bound to a resource controller operation, you must register it yourself. This typically occurs by overriding `documentComponents` in the controller that uses the type.
+
+```dart
+class MyController extends ResourceController {
+  ...
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    super.documentComponents(context);
+
+    Serializable.document(context, Person);
+  }
+}
+```

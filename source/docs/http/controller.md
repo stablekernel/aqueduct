@@ -23,7 +23,7 @@ controller.link(() => Controller());
 
 When `controllerA` handles a request, it can choose to respond to the request or let the request continue in the channel. When the request continues in this channel, the controller created by the closure passed to `link` handles the request. Any number of controllers can be linked together in a channel, but the last controller must respond to the request. Controllers that always responder to request are called *endpoint controllers*, as opposed to *middleware controllers* that verify or modify the request and let the next controller in the channel handle it.
 
-Linking occurs in an [application channel](channel.md), and is finalized during startup of your application (i.e., once you have set up your controllers, the cannot be changed once the application starts receiving requests). In a typical application, a `Router` controller splits an application channel into multiple sub-channels.
+Linking occurs in an [application channel](../application/channel.md), and is finalized during startup of your application (i.e., once you have set up your controllers, the cannot be changed once the application starts receiving requests). In a typical application, a `Router` controller splits an application channel into multiple sub-channels.
 
 ## Creating Request Handling Behavior by Subclassing Controller
 
@@ -132,7 +132,7 @@ The `recycledState` getter is called once, when the controller is first linked. 
 
 ## Exception Handling
 
-If an exception or error is thrown during the handling of a request, the controller currently handling the request will catch it. For the majority of values caught, a controller will send a 500 Server Response. The details of the exception or error will be [logged](configure.md), and the request is removed from the channel (it will not be passed to a linked controller).
+If an exception or error is thrown during the handling of a request, the controller currently handling the request will catch it. For the majority of values caught, a controller will send a 500 Server Response. The details of the exception or error will be [logged](../application/configure.md), and the request is removed from the channel (it will not be passed to a linked controller).
 
 This is the default behavior for all thrown values except `Response` and `HandlerException`.
 
@@ -195,4 +195,4 @@ The Aqueduct ORM exceptions (`QueryException`) implement `HandlerException` to r
 
 ## CORS Headers and Preflight Requests
 
-`Controller`s have built-in behavior for handling CORS requests. They will automatically respond to `OPTIONS` preflight requests and attach CORS headers to any other response. See [the chapter on CORS](configure.md) for more details.
+`Controller`s have built-in behavior for handling CORS requests. They will automatically respond to `OPTIONS` preflight requests and attach CORS headers to any other response. See [the chapter on CORS](../application/configure.md) for more details.

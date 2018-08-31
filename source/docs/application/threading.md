@@ -18,7 +18,7 @@ While you don't have to do anything in an Aqueduct application to take advantage
 
 First, you must be careful of keeping any state in your application. After initialization, any objects created while handling a request should be destroyed once the request is fulfilled. Any data that needs to be persisted must be stored in a database or other data store. This is just good practice for a REST API anyhow, so nothing is really lost here.
 
-However, there are times where you do need to track state. For example, if you are managing websocket connections, you do need to store some state after initialization - a reference to the websocket. [This guide](websockets.md) covers this topic in detail; the simple explanation is to use the `ApplicationMessageHub`.
+However, there are times where you do need to track state. For example, if you are managing websocket connections, you do need to store some state after initialization - a reference to the websocket. [This guide](../http/websockets.md) covers this topic in detail; the simple explanation is to use the `ApplicationMessageHub`.
 
 Another thing that is important to consider is initialization. The methods `prepare()` and `entryPoint` in an application channel will be invoked on each isolate. This behavior is guaranteed to occur for each isolate and there is often little to worry about.
 
