@@ -1,7 +1,7 @@
 ## 3.0.2
 
 - Fix regression when generating OpenAPI documentation for `ManagedObject`s
--
+- Adds `--resolve-relative-urls` flag to `document` commands to improve client applications
 
 ## 3.0.1
 

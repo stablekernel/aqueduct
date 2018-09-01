@@ -7,9 +7,6 @@ class User extends ManagedObject<_User>
 }
 
 class _User extends ResourceOwnerTableDefinition {
-  @Column(unique: true)
-  String email;
-
 /* This class inherits the following from ManagedAuthenticatable:
 
   @primaryKey

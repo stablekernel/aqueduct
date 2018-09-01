@@ -165,11 +165,12 @@ class AuthController extends ResourceController {
       ];
     });
 
-    authServer.documentedAuthorizationCodeFlow.tokenURL = Uri(path: route);
-    authServer.documentedAuthorizationCodeFlow.refreshURL = Uri(path: route);
+    final relativeUri = Uri(path: route.substring(1));
+    authServer.documentedAuthorizationCodeFlow.tokenURL = relativeUri;
+    authServer.documentedAuthorizationCodeFlow.refreshURL = relativeUri;
 
-    authServer.documentedPasswordFlow.tokenURL = Uri(path: route);
-    authServer.documentedPasswordFlow.refreshURL = Uri(path: route);
+    authServer.documentedPasswordFlow.tokenURL = relativeUri;
+    authServer.documentedPasswordFlow.refreshURL = relativeUri;
 
     return operations;
   }

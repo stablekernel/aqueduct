@@ -13,6 +13,7 @@ class CLIDocumentClient extends CLICommand with CLIProject, CLIDocumentOptions {
   Future<int> handle() async {
     final doc = await documentProject(
         projectDirectory.uri, libraryName, projectSpecificationFile);
+
     final source = _getHtmlSource(json.encode(doc));
     final file = File("client.html");
     file.writeAsStringSync(source);

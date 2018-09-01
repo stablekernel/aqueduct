@@ -218,6 +218,7 @@ class TestChannel extends ApplicationChannel {
     // This supports a test in 'Controller Registration and Scopes'.
 
     final router = Router();
+
     router
         .route("/basic/[:id]")
         .link(() => Authorizer.basic(authServer))
