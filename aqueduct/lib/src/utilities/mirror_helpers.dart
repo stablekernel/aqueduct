@@ -1,5 +1,13 @@
 import 'dart:mirrors';
 
+Iterable<ClassMirror> classHierarchyForClass(ClassMirror t) sync* {
+  var tableDefinitionPtr = t;
+  while (tableDefinitionPtr.superclass != null) {
+    yield tableDefinitionPtr;
+    tableDefinitionPtr = tableDefinitionPtr.superclass;
+  }
+}
+
 dynamic runtimeCast(dynamic object, TypeMirror intoType) {
   if (intoType.reflectedType == dynamic) {
     return object;

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
@@ -22,6 +23,13 @@ void main() {
       ..paths = {}
       ..components = APIComponents();
     final ctx = APIDocumentContext(doc);
+
+    final router = Router()
+      ..route("/path").link(() => BindManagedObjectController());
+    router.didAddToChannel();
+    router.documentComponents(ctx);
+    router.documentPaths(ctx);
+
     dbCtx.documentComponents(ctx);
     await ctx.finalize();
   });
@@ -235,6 +243,19 @@ void main() {
       expect(schema.properties["model2s"].description, contains("description"));
     });
   });
+
+  group("ResourceController integration", () {
+    test("If ResourceController binds ManagedObject, schema component definition comes from context", () async {
+      final schema = doc.components.schemas["Model1"];
+      expect(schema.properties["string"].type, APIType.string);
+      expect(schema.properties["dateTime"], isNotNull);
+      expect(schema.properties["getter"], isNotNull);
+      expect(schema.properties["setter"], isNotNull);
+      expect(schema.properties["field"], isNotNull);
+      expect(schema.properties["id"], isNotNull);
+      expect(schema.properties["boolean"], isNotNull);
+    });
+  });
 }
 
 /// title
@@ -346,5 +367,12 @@ class CustomValidate extends Validate {
   void constrainSchemaObject(
       APIDocumentContext context, APISchemaObject object) {
     object.maxProperties = 2;
+  }
+}
+
+class BindManagedObjectController extends ResourceController {
+  @Operation.post()
+  Future<Response> post(@Bind.body() Model1 m) async {
+    return Response.ok(null);
   }
 }

@@ -1,3 +1,8 @@
+## 3.0.2
+
+- Fix regression when generating OpenAPI documentation for `ManagedObject`s
+-
+
 ## 3.0.1
 
 - `Controller` is now an abstract class that requires implementing `handle`. This is a minor breaking change that should not have an impact.
