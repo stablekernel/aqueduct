@@ -27,7 +27,7 @@ Future main() async {
   });
 
   test("Updating user fails if not owner", () async {
-    final response = await agents[4].put("/users/1", body: {"email": "a@a.com"});
+    final response = await agents[4].put("/users/1", body: {"username": "a@a.com"});
     expect(response, hasStatus(401));
   });
 }

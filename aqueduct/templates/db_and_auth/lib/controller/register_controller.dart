@@ -23,8 +23,8 @@ class RegisterController extends ResourceController {
 
     final u = await query.insert();
     final token = await authServer.authenticate(
-        u.username,
-        query.values.password,
+        user.username,
+        user.password,
         request.authorization.credentials.username,
         request.authorization.credentials.password);
 
