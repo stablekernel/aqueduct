@@ -47,15 +47,21 @@ class RegisterController extends ResourceController {
     super.documentComponents(context);
 
     final userSchemaRef = context.schema.getObjectWithType(User);
-    final tokenSchemaRef = context.schema.getObjectWithType(ManagedAuthToken);
-    final userRegistration = APISchemaObject.object({});
+    final userRegistration = APISchemaObject.object({
+      "authorization": APISchemaObject.object({
+        "access_token": APISchemaObject.string(),
+        "token_type": APISchemaObject.string(),
+        "expires_in": APISchemaObject.integer(),
+        "refresh_token": APISchemaObject.string(),
+        "scope": APISchemaObject.string()
+      })
+    });
+
     context.schema.register("UserRegistration", userRegistration);
 
     context.defer(() {
       final userSchema = context.document.components.resolve(userSchemaRef);
-      final tokenSchema = context.document.components.resolve(tokenSchemaRef);
       userRegistration.properties.addAll(userSchema.properties);
-      userRegistration.properties["authorization"] = tokenSchema;
     });
   }
 
