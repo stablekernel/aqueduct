@@ -236,6 +236,10 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       }
     }
 
+    if (autoincrement) {
+      prop.isReadOnly = true;
+    }
+
     if (isUnique) {
       prop.description +=
           "\nNo two objects may have the same value for this field.";
