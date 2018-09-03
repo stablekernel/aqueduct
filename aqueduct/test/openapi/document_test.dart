@@ -319,6 +319,29 @@ void main() {
         expect(doc.components.schemas["a"].format, "original");
         expect(ctx.schema.getObjectWithType(String), isNotNull);
       });
+
+      test("getObject and getObjectWithType always return new instance", () {
+        final doc = APIDocument()..components = APIComponents();
+        final ctx = APIDocumentContext(doc);
+
+        final original = APISchemaObject.string(format: "original");
+        ctx.schema.register("a", original, representation: String);
+
+        final ref1 = ctx.schema.getObjectWithType(String);
+        final ref2 = ctx.schema.getObjectWithType(String);
+        final ref3 = ctx.schema.getObject("a");
+        final ref4 = ctx.schema.getObject("a");
+
+        expect(ref1.referenceURI.path, "/components/schemas/a");
+        expect(ref2.referenceURI.path, "/components/schemas/a");
+        expect(ref3.referenceURI.path, "/components/schemas/a");
+        expect(ref4.referenceURI.path, "/components/schemas/a");
+
+        expect(identical(ref1, original), false);
+        expect(identical(ref1, ref2), false);
+        expect(identical(ref3, original), false);
+        expect(identical(ref3, ref4), false);
+      });
     });
   });
 
