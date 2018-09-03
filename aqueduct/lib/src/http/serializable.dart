@@ -58,15 +58,11 @@ abstract class Serializable {
     if (failureReason == null) {
       context.defer(() async {
         final docs = await DocumentedElement.get(serializable);
-        obj
-          ..title = docs?.summary
-          ..description = docs?.description;
+        obj.description = (docs?.summary ?? "") + (docs?.description ?? "");
       });
     } else {
       obj.additionalPropertyPolicy = APISchemaAdditionalPropertyPolicy.freeForm;
-      obj.title =
-          "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}'. See description for error.";
-      obj.description = failureReason;
+      obj.description = "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}': $failureReason";
     }
 
     return obj;

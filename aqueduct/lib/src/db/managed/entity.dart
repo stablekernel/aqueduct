@@ -309,10 +309,8 @@ class ManagedEntity implements APIComponentDocumenter {
     context.defer(() async {
       final entityDocs =
           await DocumentedElement.get(instanceType.reflectedType);
-      obj.description = entityDocs.description ?? "";
-      if (entityDocs.summary.isNotEmpty) {
-        obj.title = entityDocs.summary;
-      }
+      obj.description =
+          (entityDocs?.summary ?? "") + (entityDocs?.description ?? "");
 
       if (uniquePropertySet != null) {
         final propString =
@@ -344,9 +342,9 @@ class ManagedEntity implements APIComponentDocumenter {
           attrDocs = entityDocs[Symbol(name)];
         }
 
-        schemaProperty.title = attrDocs?.summary;
-        schemaProperty.description =
-            (attrDocs?.description ?? "") + (schemaProperty.description ?? "");
+        schemaProperty.description = (attrDocs?.summary ?? "") +
+            (attrDocs?.description ?? "") +
+            (schemaProperty.description ?? "");
       });
     });
 
