@@ -93,7 +93,7 @@ abstract class ManagedPropertyDescription {
   /// Used during documentation.
   APISchemaObject documentSchemaObject(APIDocumentContext context);
 
-  APISchemaObject _typedSchemaObject(ManagedType type) {
+  static APISchemaObject _typedSchemaObject(ManagedType type) {
     switch (type.kind) {
       case ManagedPropertyType.integer:
         return APISchemaObject.integer();
@@ -220,7 +220,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   APISchemaObject documentSchemaObject(APIDocumentContext context) {
-    final prop = _typedSchemaObject(type)..description = "";
+    final prop = ManagedPropertyDescription._typedSchemaObject(type)..description = "";
 
     // Add'l schema info
     prop.isNullable = isNullable;
@@ -447,10 +447,16 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
         .getObjectWithType(inverse.entity.instanceType.reflectedType);
 
     if (relationshipType == ManagedRelationshipType.hasMany) {
-      return APISchemaObject.array(ofSchema: relatedType);
+      return APISchemaObject.array(ofSchema: relatedType)..isReadOnly = true..isNullable = true;
+    } else if (relationshipType == ManagedRelationshipType.hasOne) {
+      return relatedType..isReadOnly = true..isNullable = true;
     }
 
-    return relatedType;
+
+    final destPk = destinationEntity.primaryKeyAttribute;
+    return APISchemaObject.object({
+      destPk.name: ManagedPropertyDescription._typedSchemaObject(destPk.type)
+    });
   }
 
   @override
