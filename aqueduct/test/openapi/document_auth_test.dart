@@ -147,10 +147,10 @@ void main() {
           ApplicationOptions(), {"name": "Test", "version": "1.0"});
       expect(
           doc.components.securitySchemes["oauth2"].flows["password"].refreshURL,
-          Uri(path: "/auth/token"));
+          Uri(path: "auth/token"));
       expect(
           doc.components.securitySchemes["oauth2"].flows["password"].tokenURL,
-          Uri(path: "/auth/token"));
+          Uri(path: "auth/token"));
       expect(
           doc.components.securitySchemes["oauth2"].flows["password"]
               .authorizationURL,
@@ -166,10 +166,10 @@ void main() {
           ApplicationOptions(), {"name": "Test", "version": "1.0"});
       expect(
           doc.components.securitySchemes["oauth2"].flows["password"].refreshURL,
-          Uri(path: "/auth/token"));
+          Uri(path: "auth/token"));
       expect(
           doc.components.securitySchemes["oauth2"].flows["password"].tokenURL,
-          Uri(path: "/auth/token"));
+          Uri(path: "auth/token"));
       expect(
           doc.components.securitySchemes["oauth2"].flows["password"]
               .authorizationURL,
@@ -178,15 +178,15 @@ void main() {
       expect(
           doc.components.securitySchemes["oauth2"].flows["authorizationCode"]
               .refreshURL,
-          Uri(path: "/auth/token"));
+          Uri(path: "auth/token"));
       expect(
           doc.components.securitySchemes["oauth2"].flows["authorizationCode"]
               .tokenURL,
-          Uri(path: "/auth/token"));
+          Uri(path: "auth/token"));
       expect(
           doc.components.securitySchemes["oauth2"].flows["authorizationCode"]
               .authorizationURL,
-          Uri(path: "/auth/code"));
+          Uri(path: "auth/code"));
     });
 
     test(
@@ -218,6 +218,7 @@ class TestChannel extends ApplicationChannel {
     // This supports a test in 'Controller Registration and Scopes'.
 
     final router = Router();
+
     router
         .route("/basic/[:id]")
         .link(() => Authorizer.basic(authServer))

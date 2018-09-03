@@ -1,13 +1,16 @@
 import '../model/user.dart';
 import '../wildfire.dart';
 
-class UserController extends QueryController<User> {
-  UserController(ManagedContext context, this.authServer) : super(context);
+class UserController extends ResourceController {
+  UserController(this.context, this.authServer);
 
-  AuthServer authServer;
+  final ManagedContext context;
+  final AuthServer authServer;
 
   @Operation.get("id")
   Future<Response> getUser(@Bind.path("id") int id) async {
+    final query = Query<User>(context)
+      ..where((o) => o.id).equalTo(id);
     final u = await query.fetchOne();
     if (u == null) {
       return Response.notFound();
@@ -21,10 +24,14 @@ class UserController extends QueryController<User> {
   }
 
   @Operation.put("id")
-  Future<Response> updateUser(@Bind.path("id") int id) async {
+  Future<Response> updateUser(@Bind.path("id") int id, @Bind.body() User user) async {
     if (request.authorization.ownerID != id) {
       return Response.unauthorized();
     }
+
+    final query = Query<User>(context)
+      ..values = user
+      ..where((o) => o.id).equalTo(id);
 
     final u = await query.updateOne();
     if (u == null) {
@@ -40,6 +47,8 @@ class UserController extends QueryController<User> {
       return Response.unauthorized();
     }
 
+    final query = Query<User>(context)
+      ..where((o) => o.id).equalTo(id);
     await authServer.revokeAllGrantsForResourceOwner(id);
     await query.delete();
 

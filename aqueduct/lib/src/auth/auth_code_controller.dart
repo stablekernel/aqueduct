@@ -213,7 +213,7 @@ class AuthCodeController extends ResourceController {
       APIDocumentContext context, String route, APIPath path) {
     final ops = super.documentOperations(context, route, path);
     authServer.documentedAuthorizationCodeFlow.authorizationURL =
-        Uri(path: route);
+        Uri(path: route.substring(1));
     return ops;
   }
 

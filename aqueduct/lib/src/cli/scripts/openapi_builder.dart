@@ -29,6 +29,7 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
                 ?.map((uri) => APIServerDescription(Uri.parse(uri)))
                 ?.toList() ??
             [],
+        resolveRelativeUrls = message["resolveRelativeUrls"] as bool,
         super(message);
 
   OpenAPIBuilder.input(Map<String, dynamic> variables) : super(variables);
@@ -45,6 +46,7 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
   Uri licenseURL;
   String licenseName;
   List<APIServerDescription> hosts;
+  bool resolveRelativeUrls;
 
   @override
   Future<Map<String, dynamic>> execute() async {
@@ -98,6 +100,24 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
       document.info ??= APIInfo.empty();
       document.info.license ??= APILicense.empty();
       document.info.license.name = licenseName;
+    }
+
+    if (resolveRelativeUrls) {
+      final baseUri =
+          document.servers?.first?.url ?? Uri.parse("http://localhost:8888");
+      document.components.securitySchemes.values?.forEach((scheme) {
+        scheme.flows?.values?.forEach((flow) {
+          if (flow.refreshURL != null && !flow.refreshURL.isAbsolute) {
+            flow.refreshURL = baseUri.resolveUri(flow.refreshURL);
+          }
+          if (flow.authorizationURL != null && !flow.authorizationURL.isAbsolute) {
+            flow.authorizationURL = baseUri.resolveUri(flow.authorizationURL);
+          }
+          if (flow.tokenURL != null && !flow.tokenURL.isAbsolute) {
+            flow.tokenURL = baseUri.resolveUri(flow.tokenURL);
+          }
+        });
+      });
     }
 
     return document.asMap();

@@ -186,11 +186,3 @@ Column attributeMetadataFromDeclaration(DeclarationMirror dm) =>
 
 Relate relationshipMetadataFromProperty(DeclarationMirror dm) =>
     firstMetadataOfType(dm);
-
-Iterable<ClassMirror> classHierarchyForClass(ClassMirror t) sync* {
-  var tableDefinitionPtr = t;
-  while (tableDefinitionPtr.superclass != null) {
-    yield tableDefinitionPtr;
-    tableDefinitionPtr = tableDefinitionPtr.superclass;
-  }
-}

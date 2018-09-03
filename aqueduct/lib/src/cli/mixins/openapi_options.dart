@@ -7,6 +7,11 @@ import 'package:aqueduct/src/cli/scripts/openapi_builder.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
 abstract class CLIDocumentOptions implements CLICommand {
+  @Flag("resolve-relative-urls", defaultsTo: true,
+    abbr: "r",
+    help: "Whether relative URLs are resolved against the first server in document")
+  bool get resolveRelativeUrls => decode("resolve-relative-urls");
+
   @Option("title", help: "API Docs: Title")
   String get title => decode("title");
 
@@ -63,6 +68,7 @@ abstract class CLIDocumentOptions implements CLICommand {
 
   Future<Map<dynamic, dynamic>> documentProject(
       Uri projectDirectory, String libraryName, File pubspecFile) async {
+
     final variables = <String, dynamic>{
       "pubspec": pubspecFile.readAsStringSync(),
       "hosts": hosts?.map((u) => u.toString())?.toList(),
@@ -75,7 +81,8 @@ abstract class CLIDocumentOptions implements CLICommand {
       "contactName": contactName,
       "contactURL": contactURL,
       "licenseURL": licenseURL,
-      "licenseName": licenseName
+      "licenseName": licenseName,
+      "resolveRelativeUrls": resolveRelativeUrls
     };
 
     return IsolateExecutor.run(OpenAPIBuilder(variables),
