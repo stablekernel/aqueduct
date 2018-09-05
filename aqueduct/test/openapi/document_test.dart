@@ -475,7 +475,7 @@ void main() {
       await ctx.finalize();
 
       expect(titleOnly.title, "title");
-      expect(titleOnly.description, "title");
+      expect(titleOnly.description, "");
       expect(titleAndSummary.title, "title");
       expect(titleAndSummary.description, contains("summary"));
       expect(noDocs.title, isEmpty);

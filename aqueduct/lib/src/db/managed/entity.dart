@@ -309,14 +309,16 @@ class ManagedEntity implements APIComponentDocumenter {
     context.defer(() async {
       final entityDocs =
           await DocumentedElement.get(instanceType.reflectedType);
-      obj.description =
-          (entityDocs?.summary ?? "") + (entityDocs?.description ?? "");
 
-      if (uniquePropertySet != null) {
-        final propString =
-            uniquePropertySet.map((s) => "'${s.name}'").join(", ");
-        obj.description +=
-            "\nNo two objects may have the same value for all of: $propString.";
+      if (obj.description == null) {
+        obj.description = entityDocs?.description;
+
+        if (uniquePropertySet != null) {
+          final propString =
+          uniquePropertySet.map((s) => "'${s.name}'").join(", ");
+          obj.description ??= "";
+          obj.description += "\nNo two objects may have the same value for all of: $propString.";
+        }
       }
     });
 
@@ -342,9 +344,8 @@ class ManagedEntity implements APIComponentDocumenter {
           attrDocs = entityDocs[Symbol(name)];
         }
 
-        schemaProperty.description = (attrDocs?.summary ?? "") +
-            (attrDocs?.description ?? "") +
-            (schemaProperty.description ?? "");
+        schemaProperty.title ??= attrDocs?.summary;
+        schemaProperty.description ??= attrDocs?.description;
       });
     });
 

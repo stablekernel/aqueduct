@@ -33,8 +33,8 @@ abstract class APIComponentDocumenter {
         final docs = await DocumentedElement.get(
             (mirror.owner as ClassMirror).reflectedType);
         final declDocs = docs[mirror.simpleName];
-        object.description =
-            (declDocs?.summary ?? "") + (declDocs?.description ?? "");
+        object.title ??= declDocs?.summary;
+        object.description ??= declDocs?.description;
       });
     }
 

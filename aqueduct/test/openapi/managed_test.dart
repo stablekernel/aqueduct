@@ -54,7 +54,7 @@ void main() {
     test("Autoincrementing fields are read-only", () {
       final entity = doc.components.schemas["Model1"];
       expect(entity.properties["id"].isReadOnly, true);
-      expect(entity.properties["datetime"].isReadOnly, false);
+      expect(entity.properties["dateTime"].isReadOnly, false);
     });
 
     test("Schema object contains all transient attributes", () {
@@ -86,14 +86,16 @@ void main() {
           "/components/schemas/Model3");
     });
 
-    test("Schema contains belongs-to relationships", () {
+    test("Schema contains belongs-to relationships as the primary key", () {
       final model2 = doc.components.schemas["Model2"];
-      expect(model2.properties["model1"].referenceURI.path,
-          "/components/schemas/Model1");
+      expect(model2.properties["model1"].type, APIType.object);
+      expect(model2.properties["model1"].properties.length, 1);
+      expect(model2.properties["model1"].properties["id"].type, APIType.integer);
 
       final model3 = doc.components.schemas["Model3"];
-      expect(model3.properties["model1"].referenceURI.path,
-          "/components/schemas/Model1");
+      expect(model3.properties["model1"].type, APIType.object);
+      expect(model3.properties["model1"].properties.length, 1);
+      expect(model3.properties["model1"].properties["id"].type, APIType.integer);
     });
 
     test(

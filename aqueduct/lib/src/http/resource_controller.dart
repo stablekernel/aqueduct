@@ -285,6 +285,7 @@ abstract class ResourceController extends Controller
           final type = await DocumentedElement.get(runtimeType);
           op.description = type[binder.methodSymbol].description;
         }
+
         if (method.scopes != null) {
           op.security?.forEach((sec) {
             sec.requirements.forEach((name, operationScopes) {
@@ -367,7 +368,7 @@ abstract class ResourceController extends Controller
       final documentation =
           controllerDocs[param.symbol] ?? operationDocs[param.symbol];
       if (documentation != null) {
-        documentedParameter.description =
+        documentedParameter.description ??=
             "${documentation.summary ?? ""} ${documentation.description ?? ""}";
       }
     });
