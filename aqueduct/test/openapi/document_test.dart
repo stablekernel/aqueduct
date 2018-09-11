@@ -194,10 +194,6 @@ void main() {
               ["schema"][r"$ref"],
           "#/components/schemas/foo");
     });
-
-    test("If exception is thrown in deferred statement, log to console but don't fail the process", () async {
-      fail('nyi');
-    });
   });
 
   group("Happy path", () {
@@ -464,25 +460,6 @@ void main() {
       expect(stringListMap.type, APIType.object);
       expect(stringListMap.additionalPropertySchema.type, APIType.array);
       expect(stringListMap.additionalPropertySchema.items.type, APIType.string);
-    });
-
-    test(
-        "Documentation comments for declarations are available in schema object",
-        () async {
-      final titleOnly = APIComponentDocumenter.documentVariable(
-          ctx, reflectClass(ComplexTypes).declarations[#a] as VariableMirror);
-      final titleAndSummary = APIComponentDocumenter.documentVariable(
-          ctx, reflectClass(ComplexTypes).declarations[#b] as VariableMirror);
-      final noDocs = APIComponentDocumenter.documentVariable(
-          ctx, reflectClass(ComplexTypes).declarations[#c] as VariableMirror);
-      await ctx.finalize();
-
-      expect(titleOnly.title, "title");
-      expect(titleOnly.description, "");
-      expect(titleAndSummary.title, "title");
-      expect(titleAndSummary.description, contains("summary"));
-      expect(noDocs.title, isEmpty);
-      expect(noDocs.description, isEmpty);
     });
   });
 }

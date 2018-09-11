@@ -41,22 +41,16 @@ abstract class Serializable {
       }
     }
 
-    String failureReason;
-    final properties = <String, APISchemaObject>{};
+    final obj = APISchemaObject.object({})..title = MirrorSystem.getName(mirror.simpleName);
     try {
       for (final property
           in mirror.declarations.values.whereType<VariableMirror>()) {
-        properties[MirrorSystem.getName(property.simpleName)] =
-            APIComponentDocumenter.documentVariable(context, property);
+        final propName = MirrorSystem.getName(property.simpleName);
+        obj.properties[propName] = APIComponentDocumenter.documentVariable(context, property);
       }
     } catch (e) {
-      failureReason = e.toString();
-    }
-
-    final obj = APISchemaObject.object(properties);
-    if (failureReason != null) {
       obj.additionalPropertyPolicy = APISchemaAdditionalPropertyPolicy.freeForm;
-      obj.description = "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}': $failureReason";
+      obj.description = "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}': ${e.toString()}";
     }
 
     return obj;

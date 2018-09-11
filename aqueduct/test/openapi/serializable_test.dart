@@ -32,16 +32,12 @@ void main() {
     await ctx.finalize();
 
     expect(doc.properties.length, 2);
-    expect(doc.title, isEmpty);
-    expect(doc.description, isEmpty);
 
     expect(doc.properties["x"].type, APIType.integer);
     expect(doc.properties["x"].title, "x");
-    expect(doc.properties["x"].description, contains("yz"));
 
     expect(doc.properties["b"].type, APIType.object);
-    expect(doc.properties["b"].title, "bvar");
-    expect(doc.properties["b"].description, isEmpty);
+    expect(doc.properties["b"].title, "b");
   });
 
   test("Nested serializable is documented", () async {
@@ -50,22 +46,13 @@ void main() {
     expect(doc.properties["b"].properties["y"].type, APIType.string);
   });
 
-  test("Types with documentation comments are documented", () async {
-    final doc = Serializable.document(ctx, B);
-    await ctx.finalize();
-
-    expect(doc.title, "b");
-    expect(doc.description, isEmpty);
-  });
-
   test(
       "If Serializable cannot be documented, it still allows doc generation but shows error in document",
       () async {
     final doc = Serializable.document(ctx, FailsToDocument);
     await ctx.finalize();
 
-    expect(doc.title, contains("Failed to auto"));
-    expect(doc.title, contains("FailsToDocument"));
+    expect(doc.title, "FailsToDocument");
     expect(doc.description, contains("HttpServer"));
     expect(doc.additionalPropertyPolicy,
         APISchemaAdditionalPropertyPolicy.freeForm);
@@ -92,12 +79,8 @@ void main() {
 }
 
 class A extends Serializable {
-  /// x
-  ///
-  /// yz
   int x;
 
-  /// bvar
   B b;
 
   @override
@@ -109,7 +92,6 @@ class A extends Serializable {
   }
 }
 
-/// b
 class B extends Serializable {
   String y;
 
