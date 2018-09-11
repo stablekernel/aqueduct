@@ -325,11 +325,13 @@ void main() {
         final ctx = APIDocumentContext(doc);
 
         final original = APISchemaObject.string(format: "original");
-        ctx.schema.register("a", original, representation: String);
 
+        // Use both variants, before and after registration
         final ref1 = ctx.schema.getObjectWithType(String);
-        final ref2 = ctx.schema.getObjectWithType(String);
-        final ref3 = ctx.schema.getObject("a");
+        final ref2 = ctx.schema.getObject("a");
+
+        ctx.schema.register("a", original, representation: String);
+        final ref3 = ctx.schema.getObjectWithType(String);
         final ref4 = ctx.schema.getObject("a");
 
         expect(ref1.referenceURI.path, "/components/schemas/a");
