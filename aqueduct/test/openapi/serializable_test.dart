@@ -2,13 +2,10 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/documented_element.dart';
-import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
 void main() {
-  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
   APIDocumentContext ctx;
   setUp(() {
     ctx = APIDocumentContext(APIDocument()

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/utilities/documented_element.dart';
 import 'package:open_api/v3.dart';
 
 /// The methods you implement to document OpenAPI components.
@@ -26,17 +25,8 @@ abstract class APIComponentDocumenter {
   /// Any documentation comments for the declared variable will available in the returned object.
   static APISchemaObject documentVariable(
       APIDocumentContext context, VariableMirror mirror) {
-    APISchemaObject object = documentType(context, mirror.type);
-
-    if (object != null && mirror.owner is ClassMirror) {
-      context.defer(() async {
-        final docs = await DocumentedElement.get(
-            (mirror.owner as ClassMirror).reflectedType);
-        final declDocs = docs[mirror.simpleName];
-        object.title ??= declDocs?.summary;
-        object.description ??= declDocs?.description;
-      });
-    }
+    APISchemaObject object = documentType(context, mirror.type)
+      ..title = MirrorSystem.getName(mirror.simpleName);
 
     return object;
   }

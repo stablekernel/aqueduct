@@ -3,8 +3,6 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/documented_element.dart';
-import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 
 /*
@@ -13,7 +11,6 @@ will have their own tests. It does test Router, though.
  */
 
 void main() {
-  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
   group("Default channel", () {
     APIDocument doc;
     DateTime controllerDocumented;
@@ -196,6 +193,10 @@ void main() {
           map["components"]["responses"]["test"]["content"]["application/json"]
               ["schema"][r"$ref"],
           "#/components/schemas/foo");
+    });
+
+    test("If exception is thrown in deferred statement, log to console but don't fail the process", () async {
+      fail('nyi');
     });
   });
 

@@ -1,8 +1,6 @@
 import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/utilities/documented_element.dart';
-import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 import 'package:yaml/yaml.dart';
 
@@ -50,8 +48,6 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
 
   @override
   Future<Map<String, dynamic>> execute() async {
-    DocumentedElement.provider = AnalyzerDocumentedElementProvider();
-
     var config = ApplicationOptions()..configurationFilePath = configPath;
 
     final yaml = (loadYaml(pubspecContents) as Map<dynamic, dynamic>)
@@ -127,8 +123,6 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
         "package:aqueduct/aqueduct.dart",
         "package:$packageName/$packageName.dart",
         "package:yaml/yaml.dart",
-        "package:aqueduct/src/utilities/documented_element.dart",
-        "package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart",
         "dart:convert",
         "dart:io"
       ];

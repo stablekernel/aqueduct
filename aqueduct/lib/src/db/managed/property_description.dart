@@ -220,7 +220,8 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   APISchemaObject documentSchemaObject(APIDocumentContext context) {
-    final prop = ManagedPropertyDescription._typedSchemaObject(type)..description = "";
+    final prop = ManagedPropertyDescription._typedSchemaObject(type)..title = name;
+    final buf = StringBuffer();
 
     // Add'l schema info
     prop.isNullable = isNullable;
@@ -241,15 +242,19 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
     }
 
     if (isUnique) {
-      prop.description +=
-          "\nNo two objects may have the same value for this field.";
+      buf.writeln("No two objects may have the same value for this field.");
     }
+
     if (isPrimaryKey) {
-      prop.description += "\nThis is the primary identifier for this object.";
+      buf.writeln("This is the primary identifier for this object.");
     }
 
     if (defaultValue != null) {
       prop.defaultValue = defaultValue;
+    }
+
+    if (buf.isNotEmpty) {
+      prop.description = buf.toString();
     }
 
     return prop;
@@ -452,11 +457,10 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       return relatedType..isReadOnly = true..isNullable = true;
     }
 
-
     final destPk = destinationEntity.primaryKeyAttribute;
     return APISchemaObject.object({
       destPk.name: ManagedPropertyDescription._typedSchemaObject(destPk.type)
-    });
+    })..title = name;
   }
 
   @override

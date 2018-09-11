@@ -1,7 +1,6 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/documented_element.dart';
 
 import 'http.dart';
 
@@ -55,12 +54,7 @@ abstract class Serializable {
     }
 
     final obj = APISchemaObject.object(properties);
-    if (failureReason == null) {
-      context.defer(() async {
-        final docs = await DocumentedElement.get(serializable);
-        obj.description = (docs?.summary ?? "") + (docs?.description ?? "");
-      });
-    } else {
+    if (failureReason != null) {
       obj.additionalPropertyPolicy = APISchemaAdditionalPropertyPolicy.freeForm;
       obj.description = "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}': $failureReason";
     }
