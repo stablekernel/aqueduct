@@ -3,15 +3,11 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/documented_element.dart';
-import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 
 import '../helpers.dart';
 
 void main() {
-  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
-
   APIDocument doc;
   ManagedDataModel dataModel;
 
@@ -47,6 +43,16 @@ void main() {
       expect(entity.properties["dateTime"].format, "date-time");
       expect(entity.properties["id"].type, APIType.integer);
       expect(entity.properties["boolean"].type, APIType.boolean);
+
+      expect(entity.properties["id"].isReadOnly, true);
+      expect(entity.properties["id"].description, contains("This is the primary identifier"));
+      expect(entity.properties["string"].description, contains("No two objects may have the same value for this field"));
+    });
+
+    test("Autoincrementing fields are read-only", () {
+      final entity = doc.components.schemas["Model1"];
+      expect(entity.properties["id"].isReadOnly, true);
+      expect(entity.properties["dateTime"].isReadOnly, false);
     });
 
     test("Schema object contains all transient attributes", () {
@@ -68,24 +74,36 @@ void main() {
     test("Schema contains to-many relationships", () {
       final entity = doc.components.schemas["Model1"];
       expect(entity.properties["model2s"].type, APIType.array);
+      expect(entity.properties["model2s"].isReadOnly, true);
       expect(entity.properties["model2s"].items.referenceURI.path,
           "/components/schemas/Model2");
     });
 
     test("Schema contains to-one relationships", () {
       final entity = doc.components.schemas["Model1"];
+      expect(entity.properties["model3"].isReadOnly, true);
       expect(entity.properties["model3"].referenceURI.path,
           "/components/schemas/Model3");
     });
 
-    test("Schema contains belongs-to relationships", () {
+    test("Entity with uniquePropertySet is included in description", () {
+      final entity = doc.components.schemas["Model1"];
+      expect(entity.description, contains("string"));
+      expect(entity.description, contains("dateTime"));
+    });
+
+    test("Schema contains belongs-to relationships as the primary key", () {
       final model2 = doc.components.schemas["Model2"];
-      expect(model2.properties["model1"].referenceURI.path,
-          "/components/schemas/Model1");
+      expect(model2.properties["model1"].type, APIType.object);
+      expect(model2.properties["model1"].isReadOnly, false);
+      expect(model2.properties["model1"].properties.length, 1);
+      expect(model2.properties["model1"].properties["id"].type, APIType.integer);
 
       final model3 = doc.components.schemas["Model3"];
-      expect(model3.properties["model1"].referenceURI.path,
-          "/components/schemas/Model1");
+      expect(model3.properties["model1"].type, APIType.object);
+      expect(model2.properties["model1"].isReadOnly, false);
+      expect(model3.properties["model1"].properties.length, 1);
+      expect(model3.properties["model1"].properties["id"].type, APIType.integer);
     });
 
     test(
@@ -183,64 +201,6 @@ void main() {
       expect(schema.properties["nonNumCompare"].minimum, isNull);
       expect(schema.properties["nonNumCompare"].exclusiveMaximum, isNull);
       expect(schema.properties["nonNumCompare"].maximum, isNull);
-    });
-  });
-
-  group("Comment Documentation", () {
-    APISchemaObject schema;
-
-    setUpAll(() {
-      schema = doc.components.schemas["Model1"];
-    });
-
-    test("Entity itself has docs pre-prended with comments", () {
-      expect(schema.title, "title");
-      expect(schema.description, contains("description"));
-      expect(schema.description,
-          contains("No two objects may have the same value for all of"));
-    });
-
-    test("Entity has notes even if it doesn't have comments", () {
-      expect(doc.components.schemas["Model3"].title, "Model3");
-      expect(doc.components.schemas["Model3"].description,
-          "\nNo two objects may have the same value for all of: 'matches', 'lessThan'.");
-    });
-
-    test(
-        "Title and description contain docs, even if no docs added by auto-generated docs",
-        () {
-      expect(schema.properties["getter"].title, "title");
-      expect(schema.properties["getter"].description, "description");
-    });
-
-    test(
-        "Title and description are pre-pended to docs auto-generate for property",
-        () {
-      expect(schema.properties["string"].title, "title");
-      expect(schema.properties["string"].description, contains("description"));
-      expect(schema.properties["string"].description,
-          contains("No two objects may have the same value for this field."));
-    });
-
-    test("Description contains 'unique identifier' for primary key", () {
-      expect(schema.properties["id"].description,
-          contains("This is the primary identifier for this object."));
-    });
-
-    test("Description contains note if has unique constraint", () {
-      expect(schema.properties["string"].description,
-          contains("No two objects may have the same value for this field."));
-    });
-
-    test("No autogenerated doc comments yields null for property description",
-        () {
-      expect(schema.properties["dateTime"].title, "");
-      expect(schema.properties["dateTime"].description, "");
-    });
-
-    test("Relationship can have doc comments", () {
-      expect(schema.properties["model2s"].title, "title");
-      expect(schema.properties["model2s"].description, contains("description"));
     });
   });
 

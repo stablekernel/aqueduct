@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/utilities/documented_element.dart';
 import 'package:open_api/v3.dart';
 
 /// The methods you implement to document OpenAPI components.
@@ -26,17 +25,8 @@ abstract class APIComponentDocumenter {
   /// Any documentation comments for the declared variable will available in the returned object.
   static APISchemaObject documentVariable(
       APIDocumentContext context, VariableMirror mirror) {
-    APISchemaObject object = documentType(context, mirror.type);
-
-    if (object != null && mirror.owner is ClassMirror) {
-      context.defer(() async {
-        final docs = await DocumentedElement.get(
-            (mirror.owner as ClassMirror).reflectedType);
-        final declDocs = docs[mirror.simpleName];
-        object.title = declDocs?.summary;
-        object.description = declDocs?.description;
-      });
-    }
+    APISchemaObject object = documentType(context, mirror.type)
+      ..title = MirrorSystem.getName(mirror.simpleName);
 
     return object;
   }
@@ -247,29 +237,6 @@ class APIDocumentContext {
 
     return document.asMap();
   }
-
-//  void _validateReferences(Map<String, dynamic> spec) {
-//    String refUri = spec[r"$ref"];
-//    if (refUri != null) {
-//      final resolved = document.components.resolveUri(refUri);
-//      if (resolved == null) {
-//        if (refUri.contains("aqueduct-typeref:")) {
-//          final segments = refUri.split("/");
-//          throw new StateError(
-//              "Unresolved OpenAPI reference. No component was registered in '${segments[2]}' for type '${segments.last
-//                  .split(":")
-//                  .last}'.");
-//        }
-//        throw new StateError("Unresolved OpenAPI reference. No component was registered for '$refUri'.");
-//      }
-//    }
-//
-//    spec.values.forEach((v) {
-//      if (v is Map) {
-//        _validateReferences(v);
-//      }
-//    });
-//  }
 }
 
 /// A collection of reusable OpenAPI objects.
@@ -341,21 +308,21 @@ class APIComponentCollection<T extends APIObject> {
   /// for [type]. If after [APIDocumentContext.finalize] is called and no object
   /// has been registered for [type], an error is thrown.
   T getObjectWithType(Type type) {
-    if (_typeReferenceMap.containsKey(type)) {
-      return _typeReferenceMap[type];
-    }
-
     T obj = reflectClass(T).newInstance(#empty, []).reflectee;
     obj.referenceURI = Uri(
         path:
             "/components/$_typeName/aqueduct-typeref:${MirrorSystem.getName(reflectType(type).simpleName)}");
 
-    final completer =
-        _resolutionMap.putIfAbsent(type, () => Completer<T>.sync());
+    if (_typeReferenceMap.containsKey(type)) {
+      obj.referenceURI = _typeReferenceMap[type].referenceURI;
+    } else {
+      final completer =
+          _resolutionMap.putIfAbsent(type, () => Completer<T>.sync());
 
-    completer.future.then((refObject) {
-      obj.referenceURI = refObject.referenceURI;
-    });
+      completer.future.then((refObject) {
+        obj.referenceURI = refObject.referenceURI;
+      });
+    }
 
     return obj;
   }

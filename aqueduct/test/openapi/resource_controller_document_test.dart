@@ -2,12 +2,9 @@ import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/documented_element.dart';
-import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 
 void main() {
-  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
   Map<String, APIOperation> collectionOperations;
   Map<String, APIOperation> idOperations;
   APIOperation serializeCheckOperation;
@@ -46,18 +43,12 @@ void main() {
       expect(op.parameterNamed("optionalQueryProperty").isRequired, false);
       expect(op.parameterNamed("optionalQueryProperty").location,
           APIParameterLocation.query);
-      expect(op.parameterNamed("optionalQueryProperty").description,
-          contains("1"));
 
       expect(op.parameterNamed("requiredHeaderProperty").schema.type,
           APIType.string);
       expect(op.parameterNamed("requiredHeaderProperty").isRequired, true);
       expect(op.parameterNamed("requiredHeaderProperty").location,
           APIParameterLocation.header);
-      expect(op.parameterNamed("requiredHeaderProperty").description,
-          contains("2"));
-      expect(op.parameterNamed("requiredHeaderProperty").description,
-          contains("3"));
     }
   });
 
@@ -68,20 +59,12 @@ void main() {
     expect(idOperations, {"get": isNotNull, "put": isNotNull});
 
     expect(collectionOperations["get"].id, "getAllAs");
-    expect(collectionOperations["get"].summary, contains("3"));
-    expect(collectionOperations["get"].description, contains("1"));
 
     expect(collectionOperations["post"].id, "createA");
-    expect(collectionOperations["post"].summary, contains("5"));
-    expect(collectionOperations["post"].description, contains("3"));
 
     expect(idOperations["get"].id, "getOneA");
-    expect(idOperations["get"].summary, contains("4"));
-    expect(idOperations["get"].description, contains("2"));
 
     expect(idOperations["put"].id, "undocumented");
-    expect(idOperations["put"].summary, isEmpty);
-    expect(idOperations["put"].description, isEmpty);
   });
 
   test("Method parameters are configured appropriately", () {
@@ -109,11 +92,6 @@ void main() {
             .schema
             .format,
         "date-time");
-    expect(
-        collectionOperations["get"]
-            .parameterNamed("requiredHeaderParameter")
-            .description,
-        contains("1"));
 
     expect(
         collectionOperations["get"]
@@ -137,11 +115,6 @@ void main() {
             .schema
             .format,
         isNull);
-    expect(
-        collectionOperations["get"]
-            .parameterNamed("optionalQueryParameter")
-            .description,
-        contains("2"));
 
     expect(collectionOperations["post"].parameters.length, 3);
 
@@ -167,11 +140,6 @@ void main() {
             .schema
             .format,
         isNull);
-    expect(
-        collectionOperations["post"]
-            .parameterNamed("requiredQueryParameter")
-            .description,
-        isNull);
   });
 
   test(
@@ -196,50 +164,31 @@ void main() {
 }
 
 class A extends ResourceController {
-  /// 1
   @Bind.query("optionalQueryProperty")
   int propQ;
 
-  /// 2
-  ///
-  /// 3
   @requiredBinding
   @Bind.header("requiredHeaderProperty")
   String propH;
 
-  /// 3
-  ///
-  /// 1
   @Operation.get()
   Future<Response> getAllAs(
 
-      /// 1
       @Bind.header("requiredHeaderParameter") DateTime paramH,
       {
 
-      /// 2
       @Bind.query("optionalQueryParameter") String paramQ}) async {
     return Response.ok(null);
   }
 
-  /// 4
-  ///
-  /// 2
   @Operation.get('id')
   Future<Response> getOneA(
       {@Bind.query("optionalQueryParameter") String paramQ}) async {
     return Response.ok(null);
   }
 
-  /// 5
-  ///
-  /// 3
   @Operation.post()
   Future<Response> createA(
-
-      /// 1
-      ///
-      /// 2
       @Bind.body() AModel model,
       @Bind.query("requiredQueryParameter") int q) async {
     return Response.ok(null);

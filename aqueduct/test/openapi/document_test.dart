@@ -3,8 +3,6 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/documented_element.dart';
-import 'package:aqueduct/src/utilities/documented_element_analyzer_bridge.dart';
 import 'package:test/test.dart';
 
 /*
@@ -13,7 +11,6 @@ will have their own tests. It does test Router, though.
  */
 
 void main() {
-  DocumentedElement.provider = AnalyzerDocumentedElementProvider();
   group("Default channel", () {
     APIDocument doc;
     DateTime controllerDocumented;
@@ -319,6 +316,31 @@ void main() {
         expect(doc.components.schemas["a"].format, "original");
         expect(ctx.schema.getObjectWithType(String), isNotNull);
       });
+
+      test("getObject and getObjectWithType always return new instance", () {
+        final doc = APIDocument()..components = APIComponents();
+        final ctx = APIDocumentContext(doc);
+
+        final original = APISchemaObject.string(format: "original");
+
+        // Use both variants, before and after registration
+        final ref1 = ctx.schema.getObjectWithType(String);
+        final ref2 = ctx.schema.getObject("a");
+
+        ctx.schema.register("a", original, representation: String);
+        final ref3 = ctx.schema.getObjectWithType(String);
+        final ref4 = ctx.schema.getObject("a");
+
+        expect(ref1.referenceURI.path, "/components/schemas/a");
+        expect(ref2.referenceURI.path, "/components/schemas/a");
+        expect(ref3.referenceURI.path, "/components/schemas/a");
+        expect(ref4.referenceURI.path, "/components/schemas/a");
+
+        expect(identical(ref1, original), false);
+        expect(identical(ref1, ref2), false);
+        expect(identical(ref3, original), false);
+        expect(identical(ref3, ref4), false);
+      });
     });
   });
 
@@ -438,25 +460,6 @@ void main() {
       expect(stringListMap.type, APIType.object);
       expect(stringListMap.additionalPropertySchema.type, APIType.array);
       expect(stringListMap.additionalPropertySchema.items.type, APIType.string);
-    });
-
-    test(
-        "Documentation comments for declarations are available in schema object",
-        () async {
-      final titleOnly = APIComponentDocumenter.documentVariable(
-          ctx, reflectClass(ComplexTypes).declarations[#a] as VariableMirror);
-      final titleAndSummary = APIComponentDocumenter.documentVariable(
-          ctx, reflectClass(ComplexTypes).declarations[#b] as VariableMirror);
-      final noDocs = APIComponentDocumenter.documentVariable(
-          ctx, reflectClass(ComplexTypes).declarations[#c] as VariableMirror);
-      await ctx.finalize();
-
-      expect(titleOnly.title, "title");
-      expect(titleOnly.description, isEmpty);
-      expect(titleAndSummary.title, "title");
-      expect(titleAndSummary.description, contains("summary"));
-      expect(noDocs.title, isEmpty);
-      expect(noDocs.description, isEmpty);
     });
   });
 }

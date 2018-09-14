@@ -4,7 +4,6 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/auth/objects.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/documented_element.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 import 'http.dart';
@@ -265,7 +264,8 @@ abstract class ResourceController extends Controller
       Operation operation = firstMetadataOfType(
           reflect(this).type.instanceMembers[method.methodSymbol]);
 
-      final op = APIOperation(MirrorSystem.getName(method.methodSymbol),
+      final operationDoc = APIOperation(
+          MirrorSystem.getName(method.methodSymbol),
           documentOperationResponses(context, operation),
           summary: documentOperationSummary(context, operation),
           description: documentOperationDescription(context, operation),
@@ -273,20 +273,9 @@ abstract class ResourceController extends Controller
           requestBody: documentOperationRequestBody(context, operation),
           tags: documentOperationTags(context, operation));
 
-      final binder = _boundMethodForOperation(operation);
-
-      context.defer(() async {
-        if (op.summary == null) {
-          final type = await DocumentedElement.get(runtimeType);
-          op.summary = type[binder.methodSymbol].summary;
-        }
-
-        if (op.description == null) {
-          final type = await DocumentedElement.get(runtimeType);
-          op.description = type[binder.methodSymbol].description;
-        }
-        if (method.scopes != null) {
-          op.security?.forEach((sec) {
+      if (method.scopes != null) {
+        context.defer(() async {
+          operationDoc.security?.forEach((sec) {
             sec.requirements.forEach((name, operationScopes) {
               final secType = context.document.components.securitySchemes[name];
               if (secType?.type == APISecuritySchemeType.oauth2 ||
@@ -295,10 +284,10 @@ abstract class ResourceController extends Controller
               }
             });
           });
-        }
-      });
+        });
+      }
 
-      prev[method.httpMethod.toLowerCase()] = op;
+      prev[method.httpMethod.toLowerCase()] = operationDoc;
       return prev;
     });
   }
@@ -325,11 +314,14 @@ abstract class ResourceController extends Controller
 
   bool _shouldDocumentSerializable(Type type) {
     final hierarchy = classHierarchyForClass(reflectClass(type));
-    final definingType = hierarchy.firstWhere((cm) => cm.staticMembers.containsKey(#shouldAutomaticallyDocument), orElse: () => null);
+    final definingType = hierarchy.firstWhere(
+        (cm) => cm.staticMembers.containsKey(#shouldAutomaticallyDocument),
+        orElse: () => null);
     if (definingType == null) {
       return Serializable.shouldAutomaticallyDocument;
     }
-    return definingType.getField(#shouldAutomaticallyDocument).reflectee as bool;
+    return definingType.getField(#shouldAutomaticallyDocument).reflectee
+        as bool;
   }
 
   /// Adds [methodScopes] to [operationScopes] if they do not exist.
@@ -359,18 +351,6 @@ abstract class ResourceController extends Controller
         schema: schema,
         required: param.isRequired,
         allowEmptyValue: schema.type == APIType.boolean);
-
-    context.defer(() async {
-      final controllerDocs = await DocumentedElement.get(runtimeType);
-      final operationDocs =
-          controllerDocs[_boundMethodForOperation(operation).methodSymbol];
-      final documentation =
-          controllerDocs[param.symbol] ?? operationDocs[param.symbol];
-      if (documentation != null) {
-        documentedParameter.description =
-            "${documentation.summary ?? ""} ${documentation.description ?? ""}";
-      }
-    });
 
     return documentedParameter;
   }

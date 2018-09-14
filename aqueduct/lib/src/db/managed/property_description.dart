@@ -93,7 +93,7 @@ abstract class ManagedPropertyDescription {
   /// Used during documentation.
   APISchemaObject documentSchemaObject(APIDocumentContext context);
 
-  APISchemaObject _typedSchemaObject(ManagedType type) {
+  static APISchemaObject _typedSchemaObject(ManagedType type) {
     switch (type.kind) {
       case ManagedPropertyType.integer:
         return APISchemaObject.integer();
@@ -220,7 +220,8 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   APISchemaObject documentSchemaObject(APIDocumentContext context) {
-    final prop = _typedSchemaObject(type)..description = "";
+    final prop = ManagedPropertyDescription._typedSchemaObject(type)..title = name;
+    final buf = StringBuffer();
 
     // Add'l schema info
     prop.isNullable = isNullable;
@@ -236,16 +237,24 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       }
     }
 
-    if (isUnique) {
-      prop.description +=
-          "\nNo two objects may have the same value for this field.";
+    if (autoincrement) {
+      prop.isReadOnly = true;
     }
+
+    if (isUnique) {
+      buf.writeln("No two objects may have the same value for this field.");
+    }
+
     if (isPrimaryKey) {
-      prop.description += "\nThis is the primary identifier for this object.";
+      buf.writeln("This is the primary identifier for this object.");
     }
 
     if (defaultValue != null) {
       prop.defaultValue = defaultValue;
+    }
+
+    if (buf.isNotEmpty) {
+      prop.description = buf.toString();
     }
 
     return prop;
@@ -443,10 +452,15 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
         .getObjectWithType(inverse.entity.instanceType.reflectedType);
 
     if (relationshipType == ManagedRelationshipType.hasMany) {
-      return APISchemaObject.array(ofSchema: relatedType);
+      return APISchemaObject.array(ofSchema: relatedType)..isReadOnly = true..isNullable = true;
+    } else if (relationshipType == ManagedRelationshipType.hasOne) {
+      return relatedType..isReadOnly = true..isNullable = true;
     }
 
-    return relatedType;
+    final destPk = destinationEntity.primaryKeyAttribute;
+    return APISchemaObject.object({
+      destPk.name: ManagedPropertyDescription._typedSchemaObject(destPk.type)
+    })..title = name;
   }
 
   @override

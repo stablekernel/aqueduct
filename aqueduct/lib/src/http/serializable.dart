@@ -1,7 +1,6 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/documented_element.dart';
 
 import 'http.dart';
 
@@ -42,31 +41,16 @@ abstract class Serializable {
       }
     }
 
-    String failureReason;
-    final properties = <String, APISchemaObject>{};
+    final obj = APISchemaObject.object({})..title = MirrorSystem.getName(mirror.simpleName);
     try {
       for (final property
           in mirror.declarations.values.whereType<VariableMirror>()) {
-        properties[MirrorSystem.getName(property.simpleName)] =
-            APIComponentDocumenter.documentVariable(context, property);
+        final propName = MirrorSystem.getName(property.simpleName);
+        obj.properties[propName] = APIComponentDocumenter.documentVariable(context, property);
       }
     } catch (e) {
-      failureReason = e.toString();
-    }
-
-    final obj = APISchemaObject.object(properties);
-    if (failureReason == null) {
-      context.defer(() async {
-        final docs = await DocumentedElement.get(serializable);
-        obj
-          ..title = docs?.summary
-          ..description = docs?.description;
-      });
-    } else {
       obj.additionalPropertyPolicy = APISchemaAdditionalPropertyPolicy.freeForm;
-      obj.title =
-          "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}'. See description for error.";
-      obj.description = failureReason;
+      obj.description = "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}': ${e.toString()}";
     }
 
     return obj;

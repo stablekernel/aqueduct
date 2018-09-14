@@ -4,7 +4,6 @@ import 'package:aqueduct/src/db/managed/backing.dart';
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/documented_element.dart';
 
 import '../query/query.dart';
 import 'managed.dart';
@@ -303,24 +302,18 @@ class ManagedEntity implements APIComponentDocumenter {
   @override
   void documentComponents(APIDocumentContext context) {
     final schemaProperties = <String, APISchemaObject>{};
-    final obj = APISchemaObject.object(schemaProperties)..title = "$name";
+    final obj = APISchemaObject.object(schemaProperties)
+      ..title = "$name";
 
-    // Documentation comments
-    context.defer(() async {
-      final entityDocs =
-          await DocumentedElement.get(instanceType.reflectedType);
-      obj.description = entityDocs.description ?? "";
-      if (entityDocs.summary.isNotEmpty) {
-        obj.title = entityDocs.summary;
-      }
+    final buffer = StringBuffer();
+    if (uniquePropertySet != null) {
+      final propString =
+      uniquePropertySet.map((s) => "'${s.name}'").join(", ");
+      buffer.writeln(
+        "No two objects may have the same value for all of: $propString.");
+    }
 
-      if (uniquePropertySet != null) {
-        final propString =
-            uniquePropertySet.map((s) => "'${s.name}'").join(", ");
-        obj.description +=
-            "\nNo two objects may have the same value for all of: $propString.";
-      }
-    });
+    obj.description = buffer.toString();
 
     properties.forEach((name, def) {
       if (def is ManagedAttributeDescription &&
@@ -331,23 +324,6 @@ class ManagedEntity implements APIComponentDocumenter {
 
       final schemaProperty = def.documentSchemaObject(context);
       schemaProperties[name] = schemaProperty;
-
-      context.defer(() async {
-        DocumentedElement attrDocs;
-        if (def is ManagedAttributeDescription && def.isTransient) {
-          final entityDocs =
-              await DocumentedElement.get(instanceType.reflectedType);
-          attrDocs = entityDocs[Symbol(name)];
-        } else {
-          final entityDocs =
-              await DocumentedElement.get(tableDefinition.reflectedType);
-          attrDocs = entityDocs[Symbol(name)];
-        }
-
-        schemaProperty.title = attrDocs?.summary;
-        schemaProperty.description =
-            (attrDocs?.description ?? "") + (schemaProperty.description ?? "");
-      });
     });
 
     context.schema
