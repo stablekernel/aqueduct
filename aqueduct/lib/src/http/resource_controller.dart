@@ -264,7 +264,8 @@ abstract class ResourceController extends Controller
       Operation operation = firstMetadataOfType(
           reflect(this).type.instanceMembers[method.methodSymbol]);
 
-      final operationDoc = APIOperation(MirrorSystem.getName(method.methodSymbol),
+      final operationDoc = APIOperation(
+          MirrorSystem.getName(method.methodSymbol),
           documentOperationResponses(context, operation),
           summary: documentOperationSummary(context, operation),
           description: documentOperationDescription(context, operation),
@@ -272,8 +273,8 @@ abstract class ResourceController extends Controller
           requestBody: documentOperationRequestBody(context, operation),
           tags: documentOperationTags(context, operation));
 
-      context.defer(() async {
-        if (method.scopes != null) {
+      if (method.scopes != null) {
+        context.defer(() async {
           operationDoc.security?.forEach((sec) {
             sec.requirements.forEach((name, operationScopes) {
               final secType = context.document.components.securitySchemes[name];
@@ -283,8 +284,8 @@ abstract class ResourceController extends Controller
               }
             });
           });
-        }
-      });
+        });
+      }
 
       prev[method.httpMethod.toLowerCase()] = operationDoc;
       return prev;
@@ -313,11 +314,14 @@ abstract class ResourceController extends Controller
 
   bool _shouldDocumentSerializable(Type type) {
     final hierarchy = classHierarchyForClass(reflectClass(type));
-    final definingType = hierarchy.firstWhere((cm) => cm.staticMembers.containsKey(#shouldAutomaticallyDocument), orElse: () => null);
+    final definingType = hierarchy.firstWhere(
+        (cm) => cm.staticMembers.containsKey(#shouldAutomaticallyDocument),
+        orElse: () => null);
     if (definingType == null) {
       return Serializable.shouldAutomaticallyDocument;
     }
-    return definingType.getField(#shouldAutomaticallyDocument).reflectee as bool;
+    return definingType.getField(#shouldAutomaticallyDocument).reflectee
+        as bool;
   }
 
   /// Adds [methodScopes] to [operationScopes] if they do not exist.

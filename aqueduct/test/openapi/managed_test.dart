@@ -45,6 +45,8 @@ void main() {
       expect(entity.properties["boolean"].type, APIType.boolean);
 
       expect(entity.properties["id"].isReadOnly, true);
+      expect(entity.properties["id"].description, contains("This is the primary identifier"));
+      expect(entity.properties["string"].description, contains("No two objects may have the same value for this field"));
     });
 
     test("Autoincrementing fields are read-only", () {
@@ -72,24 +74,34 @@ void main() {
     test("Schema contains to-many relationships", () {
       final entity = doc.components.schemas["Model1"];
       expect(entity.properties["model2s"].type, APIType.array);
+      expect(entity.properties["model2s"].isReadOnly, true);
       expect(entity.properties["model2s"].items.referenceURI.path,
           "/components/schemas/Model2");
     });
 
     test("Schema contains to-one relationships", () {
       final entity = doc.components.schemas["Model1"];
+      expect(entity.properties["model3"].isReadOnly, true);
       expect(entity.properties["model3"].referenceURI.path,
           "/components/schemas/Model3");
+    });
+
+    test("Entity with uniquePropertySet is included in description", () {
+      final entity = doc.components.schemas["Model1"];
+      expect(entity.description, contains("string"));
+      expect(entity.description, contains("dateTime"));
     });
 
     test("Schema contains belongs-to relationships as the primary key", () {
       final model2 = doc.components.schemas["Model2"];
       expect(model2.properties["model1"].type, APIType.object);
+      expect(model2.properties["model1"].isReadOnly, false);
       expect(model2.properties["model1"].properties.length, 1);
       expect(model2.properties["model1"].properties["id"].type, APIType.integer);
 
       final model3 = doc.components.schemas["Model3"];
       expect(model3.properties["model1"].type, APIType.object);
+      expect(model2.properties["model1"].isReadOnly, false);
       expect(model3.properties["model1"].properties.length, 1);
       expect(model3.properties["model1"].properties["id"].type, APIType.integer);
     });
