@@ -2,6 +2,8 @@ import 'package:args/args.dart' as args;
 
 abstract class Argument {
   void addToParser(args.ArgParser parser);
+
+  Map<String, dynamic> describe();
 }
 
 class Flag implements Argument {
@@ -27,6 +29,18 @@ class Flag implements Argument {
         defaultsTo: defaultsTo,
         negatable: negatable,
         hide: hide);
+  }
+
+  Map<String, dynamic> describe() {
+    return {
+      "type": "flag",
+      "name": name,
+      "abbr": abbr,
+      "help": help,
+      "defaultsTo": defaultsTo,
+      "negatable": negatable,
+      "hide": hide
+    };
   }
 }
 
@@ -59,6 +73,20 @@ class Option implements Argument {
         allowedHelp: allowedHelp,
         defaultsTo: defaultsTo,
         hide: hide);
+  }
+
+  Map<String, dynamic> describe() {
+    return {
+      "type": "option",
+      "name": name,
+      "abbr": abbr,
+      "help": help,
+      "valueHelp": valueHelp,
+      "allowed": allowed,
+      "allowedHelp": allowedHelp,
+      "defaultsTo": defaultsTo,
+      "hide": hide
+    };
   }
 }
 
@@ -94,5 +122,20 @@ class MultiOption implements Argument {
         defaultsTo: defaultsTo,
         hide: hide,
         splitCommas: splitsCommas);
+  }
+
+  Map<String, dynamic> describe() {
+    return {
+      "type": "multiOption",
+      "name": name,
+      "abbr": abbr,
+      "help": help,
+      "valueHelp": valueHelp,
+      "allowed": allowed,
+      "allowedHelp": allowedHelp,
+      "defaultsTo": defaultsTo,
+      "hide": hide,
+      "splitsCommas": splitsCommas
+    };
   }
 }

@@ -42,6 +42,7 @@ abstract class CLICommand {
 
       final Argument argType = firstMetadataOfType(arg);
       argType.addToParser(options);
+      _argumentDescriptions.add(argType.describe());
     });
   }
 
@@ -49,6 +50,19 @@ abstract class CLICommand {
   args.ArgParser options = args.ArgParser(allowTrailingOptions: true);
 
   args.ArgResults _argumentValues;
+
+  List<Map<String, dynamic>> _argumentDescriptions = [];
+
+  Map<String, dynamic> describe() {
+    final output = <String, dynamic>{};
+    output["name"] = name;
+    output["description"] = description;
+    output["details"] = detailedDescription;
+    output["arguments"] = Map.fromIterable(_argumentDescriptions, key: (k) => k["name"], value: (v) => v);
+    output["commands"] = _commandMap.map((k, cmd) => MapEntry(k, cmd.describe()));
+
+    return output;
+  }
 
   List<String> get remainingArguments => _argumentValues.rest;
 
