@@ -1,5 +1,21 @@
 # Connecting to a Database from Aqueduct
 
+The purpose of this document is to guide you through creating a new PostgreSQL database and setting up an Aqueduct application that connects to it.
+
+## Creating a Database
+
+To use the Aqueduct ORM, you must have a PostgreSQL database server and create a database for your application. When developing locally, use [Postgres.app](https://postgresapp.com) to set up a development database server quickly. Open a terminal session to your database server by selecting `Open psql` from `Postgres.app`'s status menu item (if you are not using `Postgres.app`, use the `psql` command-line utility that comes with a PostgreSQL installation).
+
+Inside `psql`, enter the following commands:
+
+```sql
+CREATE DATABASE my_app_name;
+CREATE USER my_app_name_user WITH PASSWORD 'password';
+GRANT ALL ON DATABASE my_app_name TO my_app_name_user;
+```
+
+## Using ManagedContext to Connect to a Database
+
 The interface to a database from Aqueduct is an instance of `ManagedContext`, which contains the following two objects:
 
 - a `ManagedDataModel` that describes your application's data model
@@ -15,7 +31,7 @@ class MyApplicationChannel extends ApplicationChannel {
   Future prepare() async {
     var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
     var psc = PostgreSQLPersistentStore.fromConnectionInfo(
-        "username", "password", "host", 5432, "databaseName");
+        "my_app_name_user", "password", "localhost", 5432, "my_app_name");
 
     context = ManagedContext(dataModel, psc);
   }
@@ -30,7 +46,7 @@ var dataModel = ManagedDataModel([User, Post, Friendship]);
 
 A `ManagedContext` is required to create and execute a `Query<T>`. The context determines which database the query is executed in. A context must exist before creating instances of any `ManagedObject` subclass in your application. Controllers that need to execute database queries must have a reference to a context; this is typically accomplished by passing the context to a controller's constructor.
 
-### Using a Configuration File
+## Using a Configuration File
 
 Connection information for a database is most often configured through a configuration file. This allows you to build configurations for different environments (production, testing, etc.), without having to modify code.
 

@@ -247,7 +247,7 @@ Since there is only one request body, `Bind.body()` doesn't take any identifying
 The bound parameter type (`City` in this example) must implement `Serializable`. This interface requires two methods to be implemented: one to read data from a request body and another to write data to a response body. Here is an example:
 
 ```dart
-class City implements Serializable {
+class City extends Serializable {
   int id;
   String name;
 
