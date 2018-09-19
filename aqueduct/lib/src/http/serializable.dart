@@ -8,38 +8,14 @@ import 'http.dart';
 ///
 /// Implementers of this interface may be a [Response.body] and bound with an [Bind.body] in [ResourceController].
 abstract class Serializable {
-  /// Documents [serializable].
+  /// Returns an [APISchemaObject] describing this object's type.
   ///
-  /// [serializable] must implement, extend or mixin [Serializable]. The returned [APISchemaObject]
-  /// will be of type 'object'. Each instance variable declared in [serializable] will be a property of this object.
-  /// Instance variables are documented according to [APIComponentDocumenter.documentVariable]. See the API reference
+  /// The returned [APISchemaObject] will be of type [APIType.object]. By default, each instance variable
+  /// of the receiver's type will be a property of the return value. These variables are documented
+  /// with [APIComponentDocumenter.documentVariable]. See the API reference
   /// for this method for supported types.
-  ///
-  /// You may override the default behavior: f [serializable] implements a static [document] method
-  /// with the same signature of this method, the 'overridden' will be invoked instead of the default behavior.
-  static APISchemaObject document(
-      APIDocumentContext context, Type serializable) {
-    final mirror = reflectClass(serializable);
-    if (!mirror.isAssignableTo(reflectType(Serializable))) {
-      throw ArgumentError(
-          "Cannot document '${MirrorSystem.getName(mirror.simpleName)}' as 'Serializable', because it is not an 'Serializable'.");
-    }
-
-    final overridden = mirror.staticMembers[#document];
-    if (overridden != null) {
-      final isValidInvocation = overridden.returnType.isAssignableTo(reflectType(APISchemaObject)) &&
-        overridden.parameters.length == 2 &&
-        overridden.parameters.first.type
-          .isAssignableTo(reflectType(APIDocumentContext)) &&
-        overridden.parameters.last.type.isAssignableTo(reflectType(Type));
-
-      if (isValidInvocation) {
-        return mirror.invoke(#document, [context, serializable]).reflectee as APISchemaObject;
-      } else {
-        throw StateError("Type '$serializable' provides static method 'document', "
-          "but does not have same signature as 'Serializable.document'.");
-      }
-    }
+  APISchemaObject documentSchema(APIDocumentContext context) {
+    final mirror = reflect(this).type;
 
     final obj = APISchemaObject.object({})..title = MirrorSystem.getName(mirror.simpleName);
     try {

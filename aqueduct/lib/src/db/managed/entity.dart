@@ -288,19 +288,7 @@ class ManagedEntity implements APIComponentDocumenter {
     return tracker.keyPaths;
   }
 
-  /// Two entities are considered equal if they have the same [tableName].
-  @override
-  bool operator ==(dynamic other) {
-    return tableName == other.tableName;
-  }
-
-  @override
-  String toString() {
-    return "ManagedEntity on $tableName";
-  }
-
-  @override
-  void documentComponents(APIDocumentContext context) {
+  APISchemaObject document(APIDocumentContext context) {
     final schemaProperties = <String, APISchemaObject>{};
     final obj = APISchemaObject.object(schemaProperties)
       ..title = "$name";
@@ -317,8 +305,8 @@ class ManagedEntity implements APIComponentDocumenter {
 
     properties.forEach((name, def) {
       if (def is ManagedAttributeDescription &&
-          !def.isIncludedInDefaultResultSet &&
-          !def.isTransient) {
+        !def.isIncludedInDefaultResultSet &&
+        !def.isTransient) {
         return;
       }
 
@@ -326,6 +314,23 @@ class ManagedEntity implements APIComponentDocumenter {
       schemaProperties[name] = schemaProperty;
     });
 
+    return obj;
+  }
+
+  /// Two entities are considered equal if they have the same [tableName].
+  @override
+  bool operator ==(dynamic other) {
+    return tableName == other.tableName;
+  }
+
+  @override
+  String toString() {
+    return "ManagedEntity on $tableName";
+  }
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    final obj = document(context);
     context.schema
         .register(name, obj, representation: instanceType.reflectedType);
   }

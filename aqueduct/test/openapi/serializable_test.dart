@@ -19,16 +19,8 @@ void main() {
     await ctx.finalize();
   });
 
-  test("Try to decode non-serializable throws error", () async {
-    try {
-      Serializable.document(ctx, String);
-      fail("unreachable");
-      // ignore: empty_catches
-    } on ArgumentError {}
-  });
-
   test("Serializable contains properties for each declared field", () async {
-    final doc = Serializable.document(ctx, A);
+    final doc = A().documentSchema(ctx);
     await ctx.finalize();
 
     expect(doc.properties.length, 2);
@@ -41,7 +33,7 @@ void main() {
   });
 
   test("Nested serializable is documented", () async {
-    final doc = Serializable.document(ctx, A);
+    final doc = A().documentSchema(ctx);
     expect(doc.properties["b"].properties.length, 1);
     expect(doc.properties["b"].properties["y"].type, APIType.string);
   });
@@ -49,7 +41,7 @@ void main() {
   test(
       "If Serializable cannot be documented, it still allows doc generation but shows error in document",
       () async {
-    final doc = Serializable.document(ctx, FailsToDocument);
+    final doc = FailsToDocument().documentSchema(ctx);
     await ctx.finalize();
 
     expect(doc.title, "FailsToDocument");
@@ -59,7 +51,7 @@ void main() {
   });
 
   test("Serializable can override static document method", () async {
-    final doc = Serializable.document(ctx, OverrideDocument);
+    final doc = OverrideDocument().documentSchema(ctx);
     await ctx.finalize();
 
     expect(doc.properties["k"], isNotNull);
@@ -115,8 +107,9 @@ class FailsToDocument extends Serializable {
 }
 
 class OverrideDocument extends Serializable {
-  static APISchemaObject document(
-      APIDocumentContext context, Type serializable) {
+  @override
+  APISchemaObject documentSchema(
+      APIDocumentContext context) {
     return APISchemaObject.object({"k": APISchemaObject.string()});
   }
 
@@ -128,7 +121,7 @@ class OverrideDocument extends Serializable {
 }
 
 
-class BoundBody implements Serializable {
+class BoundBody extends Serializable {
   int x;
 
   @override

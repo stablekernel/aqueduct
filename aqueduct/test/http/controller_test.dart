@@ -355,7 +355,7 @@ void main() {
   });
 }
 
-class SomeObject implements Serializable {
+class SomeObject extends Serializable {
   String name;
 
   @override
