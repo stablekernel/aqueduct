@@ -21,10 +21,12 @@ void main() {
     final ctx = APIDocumentContext(doc);
 
     final router = Router()
-      ..route("/path").link(() => BindManagedObjectController());
+      ..route("/path").link(() => BindManagedObjectController())
+      ..route("/model/[:id]").link(() => ManagedObjectController<Model1>(dbCtx))
+      ..route("/subclass/[:id]").link(() => MOCSubclass(dbCtx));
     router.didAddToChannel();
     router.documentComponents(ctx);
-    router.documentPaths(ctx);
+    doc.paths = router.documentPaths(ctx);
 
     dbCtx.documentComponents(ctx);
     await ctx.finalize();
@@ -204,8 +206,8 @@ void main() {
     });
   });
 
-  group("ResourceController integration", () {
-    test("If ResourceController binds ManagedObject, schema component definition comes from context", () async {
+  group("Controller integration", () {
+    test("If ResourceController binds ManagedObject, schema component definition comes from context", () {
       final schema = doc.components.schemas["Model1"];
       expect(schema.properties["string"].type, APIType.string);
       expect(schema.properties["dateTime"], isNotNull);
@@ -214,6 +216,18 @@ void main() {
       expect(schema.properties["field"], isNotNull);
       expect(schema.properties["id"], isNotNull);
       expect(schema.properties["boolean"], isNotNull);
+    });
+
+    test("Can emit document for ManagedObjectController", () {
+      expect(doc.paths["/model"].operations.length, 2);
+      expect(doc.paths["/model"].operations["get"].responses["200"].content["application/json"].schema.type, APIType.array);
+      expect(doc.paths["/model"].operations["get"].responses["200"].content["application/json"].schema.items.referenceURI.path, "/components/schemas/Model1");
+      expect(doc.paths["/model"].operations["post"].requestBody.content["application/json"].schema.referenceURI.path, "/components/schemas/Model1");
+
+      expect(doc.paths["/model/{id}"].operations.length, 3);
+
+      expect(doc.paths["/subclass"].operations.length, 2);
+      expect(doc.paths["/subclass/{id}"].operations.length, 3);
     });
   });
 }
@@ -335,4 +349,8 @@ class BindManagedObjectController extends ResourceController {
   Future<Response> post(@Bind.body() Model1 m) async {
     return Response.ok(null);
   }
+}
+
+class MOCSubclass extends ManagedObjectController<Model1> {
+  MOCSubclass(ManagedContext ctx) : super(ctx);
 }

@@ -1,6 +1,7 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/data_model_manager.dart';
+import 'package:aqueduct/src/openapi/openapi.dart';
 
 import '../../http/serializable.dart';
 import '../query/query.dart';
@@ -301,6 +302,9 @@ abstract class ManagedObject<T> implements Serializable {
 
     return outputMap;
   }
+
+  @override
+  APISchemaObject documentSchema(APIDocumentContext context) => entity.document(context);
 
   static bool _isPropertyPrivate(String propertyName) =>
       propertyName.startsWith("_");

@@ -304,8 +304,9 @@ abstract class ResourceController extends Controller
         final type = b.reflectedType;
         if (!context.schema.hasRegisteredType(type) &&
             _shouldDocumentSerializable(type)) {
+          final instance = b.newInstance(const Symbol(''), []).reflectee as Serializable;
           context.schema.register(MirrorSystem.getName(b.simpleName),
-              Serializable.document(context, type),
+              instance.documentSchema(context),
               representation: type);
         }
       });

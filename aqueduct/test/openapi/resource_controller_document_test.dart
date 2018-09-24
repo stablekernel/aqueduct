@@ -8,6 +8,7 @@ void main() {
   Map<String, APIOperation> collectionOperations;
   Map<String, APIOperation> idOperations;
   APIOperation serializeCheckOperation;
+  Map<String, APIOperation> subclassOperations;
   APIDocumentContext context;
 
   setUpAll(() async {
@@ -24,12 +25,18 @@ void main() {
     bc.restore(bc.recycledState);
     bc.didAddToChannel();
     bc.documentComponents(context);
+    final bSubclass = BSubclass();
+    bSubclass.restore(bSubclass.recycledState);
+    bSubclass.didAddToChannel();
+    bSubclass.documentComponents(context);
 
     collectionOperations = ac.documentOperations(context, "/", APIPath());
     idOperations = ac.documentOperations(
         context, "/", APIPath(parameters: [APIParameter.path("id")]));
 
     serializeCheckOperation = bc.documentOperations(context, "/a", APIPath())["post"];
+
+    subclassOperations = bSubclass.documentOperations(context, "/subclass", APIPath());
 
     await context.finalize();
   });
@@ -161,6 +168,12 @@ void main() {
     expect(context.document.components.schemas["OverrideGeneration"], isNull);
     expect(context.document.components.schemas["Override"].properties["k"], isNotNull);
   });
+
+  test("Inherited operation methods are available in document", () {
+    expect(subclassOperations.length, 2);
+    expect(subclassOperations["get"].id, "get");
+    expect(subclassOperations["post"].id, "post");
+  });
 }
 
 class A extends ResourceController {
@@ -224,6 +237,13 @@ class B extends ResourceController {
   void documentComponents(APIDocumentContext context) {
     super.documentComponents(context);
     context.schema.register("Override", APISchemaObject.object({"k": APISchemaObject.boolean()}), representation: OverrideGeneration);
+  }
+}
+
+class BSubclass extends B {
+  @Operation.get()
+  Future<Response> get() async {
+    return Response.ok(null);
   }
 }
 

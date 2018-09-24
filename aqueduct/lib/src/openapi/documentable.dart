@@ -36,7 +36,7 @@ abstract class APIComponentDocumenter {
   /// [type] must be representable as an [APISchemaObject]. This includes primitive types (int, String, etc.),
   /// maps, lists and any type that implements [Serializable].
   ///
-  /// See [Serializable.document] for details on automatic document generation behavior for these types.
+  /// See [Serializable.documentSchema] for details on automatic document generation behavior for these types.
   static APISchemaObject documentType(
       APIDocumentContext context, TypeMirror type) {
     if (type.isAssignableTo(reflectType(int))) {
@@ -61,7 +61,8 @@ abstract class APIComponentDocumenter {
         ..additionalPropertySchema =
             documentType(context, type.typeArguments.last);
     } else if (type.isAssignableTo(reflectType(Serializable))) {
-      return Serializable.document(context, type.reflectedType);
+      final instance = (type as ClassMirror).newInstance(const Symbol(''), []).reflectee as Serializable;
+      return instance.documentSchema(context);
     }
 
     throw ArgumentError(

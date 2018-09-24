@@ -2,6 +2,7 @@
 
 - Fix regression when generating OpenAPI documentation for `ManagedObject`s
 - Adds `--resolve-relative-urls` flag to `document` commands to improve client applications
+- Adds `Serializable.documentSchema` instance method. Removes `Serializable.document` static method.
 
 ## 3.0.1
 
