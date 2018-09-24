@@ -58,8 +58,8 @@ abstract class CLICommand {
     output["name"] = name;
     output["description"] = description;
     output["details"] = detailedDescription;
-    output["arguments"] = Map.fromIterable(_argumentDescriptions, key: (k) => k["name"], value: (v) => v);
-    output["commands"] = _commandMap.map((k, cmd) => MapEntry(k, cmd.describe()));
+    output["arguments"] = _argumentDescriptions;
+    output["commands"] = _commandMap.values.map((cmd) => cmd.describe()).toList();
 
     return output;
   }
