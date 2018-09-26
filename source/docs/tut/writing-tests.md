@@ -103,7 +103,7 @@ void main() {
 
 In `config.src.yaml`, we target the database `dart:dart@localhost:5432/dart_test`. This is a 'special' database that is used by all Aqueduct applications for automated testing (by default). When your application is tested, its tables are temporarily added to this database and then discarded after tests complete. This means that no data is stored in between test runs.
 
-Create this database by running `psql` and enter the following SQL:
+Create this database by running [psql](https://postgresapp.com/documentation/cli-tools.html) and enter the following SQL:
 
 ```sql
 CREATE DATABASE dart_test;
@@ -164,7 +164,7 @@ class Harness extends TestHarness<WildfireChannel> with TestHarnessORMMixin {
 The mixin gives our harness the method `resetData`. This method deletes everything from the test database and uploads the schema in a pristine state. By calling this method in `onSetUp`, our test harness will reset data before each test.
 
 !!! tip "New Project Templates"
-    Using the `-t` command-line argument with `aqueduct create` allows you to select a template. Templates like `db` and `db_and_auth` have a test harness that already mixes in `TestHarnessORMMixin`. 
+    Using the `-t` command-line argument with `aqueduct create` allows you to select a template. Templates like `db` and `db_and_auth` have a test harness that already mixes in `TestHarnessORMMixin`.
 
 Now, we can run this test by right-clicking on the `main` function in `hero_controller_test.dart` and selecting `Run tests in 'hero_controller_test.dart'`. A panel will appear that shows the results of your tests. You'll see a green checkmark next to the test in this panel to show that your test succeeded. If your test did not succeed, the reason will be printed to the console. If your test failed because of an error in your code, you will also be able to see the stack trace of the error.
 

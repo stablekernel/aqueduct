@@ -189,14 +189,17 @@ We have now written code that fetches heroes from a database instead of from in 
 Setting Up a Database
 ---
 
-For development, you'll need to install a PostgreSQL server on your local machine. If you are on macOS, your best bet is to use [Postgres.app](http://postgresapp.com). This application starts a PostgreSQL instance when it is open, and closes it when the application is shut down. For other platforms, see [this page](https://www.postgresql.org/download/).
+For development, you'll need to install a PostgreSQL server on your local machine. If you are on macOS, use [Postgres.app](http://postgresapp.com). This native macOS application manages starting and stopping PostgreSQL servers on your machine. For other platforms, see [this page](https://www.postgresql.org/download/).
 
-The minimum version of PostgreSQL needed to work with Aqueduct is 9.6.
+!!! warning "9.6 or Greater"
+    The minimum version of PostgreSQL needed to work with Aqueduct is 9.6.
 
-Once you have PostgreSQL installed and running, open a command line interface to it. If you are using `Postgres.app`, select the elephant icon in your status bar and then select `Open psql`. Otherwise, enter `psql` into the command-line.
+If you installed Postgres.app, open the application and select the `+` button on the bottom left corner of the screen to create a new database server. Choose a version (at least 9.6, but the most recent version is best), name the server whatever you like, and leave the rest of the options unchanged before clicking `Create Server`. Once the server has been created, click `Start`.
 
-!!! warning "If you installed Postgres.app"
-    The `psql` command-line utility is inside the `Postgres.app` application bundle, so entering `psql` from the command-line won't find the executable. Once you open `psql` from the status bar item, you'll see the full path to `psql` on your machine. This is typically `/Applications/Postgres.app/Contents/Versions/9.6/psql`.
+A list of databases available on this server will be shown as named, database icons. Double-click on any of them to open the `psql` command-line tool.
+
+!!! tip "psql"
+    For other platforms, `psql` should be available in your `$PATH`. You can also add `Postgres.app`'s `psql` to your path with the directions [here](https://postgresapp.com/documentation/cli-tools.html).
 
 In `psql`, create a new database and a user to manage it.
 

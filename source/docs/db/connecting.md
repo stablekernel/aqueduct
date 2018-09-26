@@ -4,9 +4,9 @@ The purpose of this document is to guide you through creating a new PostgreSQL d
 
 ## Creating a Database
 
-To use the Aqueduct ORM, you must have a PostgreSQL database server and create a database for your application. When developing locally, use [Postgres.app](https://postgresapp.com) to set up a development database server quickly. Open a terminal session to your database server by selecting `Open psql` from `Postgres.app`'s status menu item (if you are not using `Postgres.app`, use the `psql` command-line utility that comes with a PostgreSQL installation).
+To use the Aqueduct ORM, you must have a PostgreSQL database server and create a database for your application. When developing locally, use [Postgres.app](https://postgresapp.com) to set up a development database server quickly. After running this application, create or select a new database server from the left-hand menu, and then double-click any of the database icons to open the `psql` command-line tool. (If you are not using `Postgres.app`, make sure `psql` is in your `$PATH` and run it from the command-line.)
 
-Inside `psql`, enter the following commands:
+Inside `psql`, enter the following commands to create a database and a database user for your application:
 
 ```sql
 CREATE DATABASE my_app_name;
