@@ -1604,12 +1604,16 @@ this is called <em>dependency injection</em>. Unlike many frameworks, Aqueduct d
 <p>If more than one database row meets the criteria of a <code>fetchOne()</code>, an exception is thrown. It's only safe to use <code>fetchOne()</code> when applying an expression to a unique property, like a primary key.</p>
 </div>
 <h2 id="setting-up-a-database">Setting Up a Database</h2>
-<p>For development, you'll need to install a PostgreSQL server on your local machine. If you are on macOS, your best bet is to use <a href="http://postgresapp.com">Postgres.app</a>. This application starts a PostgreSQL instance when it is open, and closes it when the application is shut down. For other platforms, see <a href="https://www.postgresql.org/download/">this page</a>.</p>
-<p>The minimum version of PostgreSQL needed to work with Aqueduct is 9.6.</p>
-<p>Once you have PostgreSQL installed and running, open a command line interface to it. If you are using <code>Postgres.app</code>, select the elephant icon in your status bar and then select <code>Open psql</code>. Otherwise, enter <code>psql</code> into the command-line.</p>
+<p>For development, you'll need to install a PostgreSQL server on your local machine. If you are on macOS, use <a href="http://postgresapp.com">Postgres.app</a>. This native macOS application manages starting and stopping PostgreSQL servers on your machine. For other platforms, see <a href="https://www.postgresql.org/download/">this page</a>.</p>
 <div class="admonition warning">
-<p class="admonition-title">If you installed Postgres.app</p>
-<p>The <code>psql</code> command-line utility is inside the <code>Postgres.app</code> application bundle, so entering <code>psql</code> from the command-line won't find the executable. Once you open <code>psql</code> from the status bar item, you'll see the full path to <code>psql</code> on your machine. This is typically <code>/Applications/Postgres.app/Contents/Versions/9.6/psql</code>.</p>
+<p class="admonition-title">9.6 or Greater</p>
+<p>The minimum version of PostgreSQL needed to work with Aqueduct is 9.6.</p>
+</div>
+<p>If you installed Postgres.app, open the application and select the <code>+</code> button on the bottom left corner of the screen to create a new database server. Choose a version (at least 9.6, but the most recent version is best), name the server whatever you like, and leave the rest of the options unchanged before clicking <code>Create Server</code>. Once the server has been created, click <code>Start</code>.</p>
+<p>A list of databases available on this server will be shown as named, database icons. Double-click on any of them to open the <code>psql</code> command-line tool.</p>
+<div class="admonition tip">
+<p class="admonition-title">psql</p>
+<p>For other platforms, <code>psql</code> should be available in your <code>$PATH</code>. You can also add <code>Postgres.app</code>'s <code>psql</code> to your path with the directions <a href="https://postgresapp.com/documentation/cli-tools.html">here</a>.</p>
 </div>
 <p>In <code>psql</code>, create a new database and a user to manage it.</p>
 <div class="codehilite"><pre><span></span><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">heroes</span><span class="p">;</span>

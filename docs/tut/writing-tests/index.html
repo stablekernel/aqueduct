@@ -1516,7 +1516,7 @@
 
 <h3 id="setting-up-your-development-environment">Setting up your Development Environment</h3>
 <p>In <code>config.src.yaml</code>, we target the database <code>dart:dart@localhost:5432/dart_test</code>. This is a 'special' database that is used by all Aqueduct applications for automated testing (by default). When your application is tested, its tables are temporarily added to this database and then discarded after tests complete. This means that no data is stored in between test runs.</p>
-<p>Create this database by running <code>psql</code> and enter the following SQL:</p>
+<p>Create this database by running <a href="https://postgresapp.com/documentation/cli-tools.html">psql</a> and enter the following SQL:</p>
 <div class="codehilite"><pre><span></span><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">dart_test</span><span class="p">;</span>
 <span class="k">CREATE</span> <span class="k">USER</span> <span class="n">dart</span> <span class="k">WITH</span> <span class="k">createdb</span><span class="p">;</span>
 <span class="k">ALTER</span> <span class="k">USER</span> <span class="n">dart</span> <span class="k">WITH</span> <span class="n">password</span> <span class="s1">&#39;dart&#39;</span><span class="p">;</span>
@@ -1572,7 +1572,7 @@
 <p>The mixin gives our harness the method <code>resetData</code>. This method deletes everything from the test database and uploads the schema in a pristine state. By calling this method in <code>onSetUp</code>, our test harness will reset data before each test.</p>
 <div class="admonition tip">
 <p class="admonition-title">New Project Templates</p>
-<p>Using the <code>-t</code> command-line argument with <code>aqueduct create</code> allows you to select a template. Templates like <code>db</code> and <code>db_and_auth</code> have a test harness that already mixes in <code>TestHarnessORMMixin</code>. </p>
+<p>Using the <code>-t</code> command-line argument with <code>aqueduct create</code> allows you to select a template. Templates like <code>db</code> and <code>db_and_auth</code> have a test harness that already mixes in <code>TestHarnessORMMixin</code>.</p>
 </div>
 <p>Now, we can run this test by right-clicking on the <code>main</code> function in <code>hero_controller_test.dart</code> and selecting <code>Run tests in 'hero_controller_test.dart'</code>. A panel will appear that shows the results of your tests. You'll see a green checkmark next to the test in this panel to show that your test succeeded. If your test did not succeed, the reason will be printed to the console. If your test failed because of an error in your code, you will also be able to see the stack trace of the error.</p>
 <div class="admonition tip">

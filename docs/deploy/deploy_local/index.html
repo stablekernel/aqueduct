@@ -1460,7 +1460,7 @@
 </ol>
 <p>Estimated Time: 5 minutes.</p>
 <h3 id="step-1-create-a-local-database">Step 1: Create a Local Database</h3>
-<p>Create a database with the same name as your application and a user that can access that database. Run the following SQL locally with a user that has privileges to create databases. (If using <code>Postgres.app</code>, open the <code>psql</code> terminal from the <code>Postgres.app</code> status menu item <code>Open psql</code>.)</p>
+<p>Create a database with the same name as your application and a user that can access that database. Run the following SQL locally with a user that has privileges to create databases.</p>
 <div class="codehilite"><pre><span></span><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">app_name</span><span class="p">;</span>
 <span class="k">CREATE</span> <span class="k">USER</span> <span class="n">app_name_user</span> <span class="k">WITH</span> <span class="k">CREATEDB</span><span class="p">;</span>
 <span class="k">ALTER</span> <span class="k">USER</span> <span class="n">app_name_user</span> <span class="k">WITH</span> <span class="n">PASSWORD</span> <span class="s1">&#39;yourpassword&#39;</span><span class="p">;</span>
