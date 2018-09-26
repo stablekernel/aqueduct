@@ -67,8 +67,8 @@ heroku config:set PUB_CACHE=/app/pub-cache
 Then, create a new file in your project directory named `Procfile` (with no suffix) and enter the following:
 
 ```
-release: /app/dart-sdk/bin/pub global run aqueduct:aqueduct db upgrade --connect \$DATABASE_URL
-web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port \$PORT --config-path heroku.yaml
+release: /app/dart-sdk/bin/pub global run aqueduct:aqueduct db upgrade --connect $DATABASE_URL
+web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port $PORT --config-path heroku.yaml
 ```
 
 This file tells Heroku how to run your application, and to execute any database migrations each time you push a release. Make sure this file is checked into version control:
