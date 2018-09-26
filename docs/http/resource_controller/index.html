@@ -1755,7 +1755,7 @@
 
 <p>Since there is only one request body, <code>Bind.body()</code> doesn't take any identifying arguments.</p>
 <p>The bound parameter type (<code>City</code> in this example) must implement <code>Serializable</code>. This interface requires two methods to be implemented: one to read data from a request body and another to write data to a response body. Here is an example:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">City</span> <span class="kd">implements</span> <span class="n">Serializable</span> <span class="p">{</span>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">City</span> <span class="kd">extends</span> <span class="n">Serializable</span> <span class="p">{</span>
   <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
   <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
 

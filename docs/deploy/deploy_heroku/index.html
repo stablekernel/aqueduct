@@ -1480,8 +1480,8 @@ heroku config:set <span class="nv">PUB_CACHE</span><span class="o">=</span>/app/
 
 
 <p>Then, create a new file in your project directory named <code>Procfile</code> (with no suffix) and enter the following:</p>
-<div class="codehilite"><pre><span></span>release: /app/dart-sdk/bin/pub global run aqueduct:aqueduct db upgrade --connect \$DATABASE_URL
-web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port \$PORT --config-path heroku.yaml
+<div class="codehilite"><pre><span></span>release: /app/dart-sdk/bin/pub global run aqueduct:aqueduct db upgrade --connect $DATABASE_URL
+web: /app/dart-sdk/bin/pub global run aqueduct:aqueduct serve --port $PORT --config-path heroku.yaml
 </pre></div>
 
 

@@ -1343,7 +1343,7 @@
                 <h1 id="documenting-endpoint-controllers">Documenting Endpoint Controllers</h1>
 <p>In this document, you'll learn how to document endpoint controllers.</p>
 <h2 id="resourcecontroller-auto-documentation">ResourceController Auto-Documentation</h2>
-<p>A <code>ResourceController</code> does most of the heavy lifting when it comes to generating OpenAPI documents. It will reflect on the bound variables of operation methods and their documentation comments to provide the majority of an OpenAPI document. You only need to provide the possible responses. You do this by overriding <code>documentOperationResponses</code> in your <code>ResourceController</code> subclass. The below shows a trivial example of a resource controller that returns a 200 OK with no body for every request.</p>
+<p>A <code>ResourceController</code> does most of the heavy lifting when it comes to generating OpenAPI documents. It will reflect on the bound variables of operation methods to provide the majority of an OpenAPI document. You only need to provide the possible responses. You do this by overriding <code>documentOperationResponses</code> in your <code>ResourceController</code> subclass. The below shows a trivial example of a resource controller that returns a 200 OK with no body for every request.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyController</span> <span class="kd">extends</span> <span class="n">ResourceController</span> <span class="p">{</span>
   <span class="p">...</span>
 

@@ -1671,8 +1671,8 @@
 
 <h2 id="serializable-objects">Serializable Objects</h2>
 <p>Encoding and decoding primarily takes or yields simple Dart objects like <code>Map</code>, <code>List</code> and <code>String</code>. It is often beneficial to add structure to body objects for use in your code. Classes that implement <code>Serializable</code> provide this structure. A <code>Serializable</code> object must implement a <code>readFromMap()</code> and <code>asMap()</code> method to convert their structure into or from a Dart <code>Map</code>.</p>
-<p>An object that implements <code>Serializable</code> may be used as a response body object directly:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Person</span> <span class="kd">implements</span> <span class="n">Serializable</span> <span class="p">{</span>
+<p>An object that extends <code>Serializable</code> may be used as a response body object directly:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Person</span> <span class="kd">extends</span> <span class="n">Serializable</span> <span class="p">{</span>
   <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
   <span class="kt">String</span> <span class="n">email</span><span class="p">;</span>
 

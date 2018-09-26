@@ -1488,7 +1488,7 @@
     <span class="n">name</span> <span class="o">=</span> <span class="n">map</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">];</span>
   <span class="p">}</span>
 
-  <span class="kd">static</span> <span class="n">APISchemaObject</span> <span class="n">document</span><span class="p">(</span><span class="n">APIDocumentContext</span> <span class="n">context</span><span class="p">,</span> <span class="n">Type</span> <span class="n">serializable</span><span class="p">)</span> <span class="p">{</span>
+  <span class="n">APISchemaObject</span> <span class="n">documentSchema</span><span class="p">(</span><span class="n">APIDocumentContext</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">return</span> <span class="n">APISchemaObject</span><span class="p">.</span><span class="n">object</span><span class="p">(</span><span class="nl">properties:</span> <span class="p">{</span>
       <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="n">APISchemaObject</span><span class="p">.</span><span class="n">string</span><span class="p">()</span>
     <span class="p">});</span>
@@ -1505,7 +1505,11 @@
   <span class="kt">void</span> <span class="n">documentComponents</span><span class="p">(</span><span class="n">APIDocumentContext</span> <span class="n">context</span><span class="p">)</span> <span class="p">{</span>
     <span class="k">super</span><span class="p">.</span><span class="n">documentComponents</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
 
-    <span class="n">Serializable</span><span class="p">.</span><span class="n">document</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">Person</span><span class="p">);</span>
+    <span class="kd">final</span> <span class="n">personSchema</span> <span class="o">=</span> <span class="n">Person</span><span class="p">().</span><span class="n">documentSchema</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+    <span class="n">context</span><span class="p">.</span><span class="n">schema</span><span class="p">.</span><span class="n">register</span><span class="p">(</span>
+      <span class="s2">&quot;Person&quot;</span><span class="p">,</span>
+      <span class="n">personSchema</span><span class="p">,</span>
+      <span class="nl">representation:</span> <span class="n">Person</span><span class="p">);</span>          
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>

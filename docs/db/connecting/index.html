@@ -707,6 +707,20 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#creating-a-database" title="Creating a Database" class="md-nav__link">
+    Creating a Database
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-managedcontext-to-connect-to-a-database" title="Using ManagedContext to Connect to a Database" class="md-nav__link">
+    Using ManagedContext to Connect to a Database
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#using-a-configuration-file" title="Using a Configuration File" class="md-nav__link">
     Using a Configuration File
   </a>
@@ -1317,6 +1331,20 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#creating-a-database" title="Creating a Database" class="md-nav__link">
+    Creating a Database
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#using-managedcontext-to-connect-to-a-database" title="Using ManagedContext to Connect to a Database" class="md-nav__link">
+    Using ManagedContext to Connect to a Database
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#using-a-configuration-file" title="Using a Configuration File" class="md-nav__link">
     Using a Configuration File
   </a>
@@ -1341,6 +1369,17 @@
                 
                 
                 <h1 id="connecting-to-a-database-from-aqueduct">Connecting to a Database from Aqueduct</h1>
+<p>The purpose of this document is to guide you through creating a new PostgreSQL database and setting up an Aqueduct application that connects to it.</p>
+<h2 id="creating-a-database">Creating a Database</h2>
+<p>To use the Aqueduct ORM, you must have a PostgreSQL database server and create a database for your application. When developing locally, use <a href="https://postgresapp.com">Postgres.app</a> to set up a development database server quickly. Open a terminal session to your database server by selecting <code>Open psql</code> from <code>Postgres.app</code>'s status menu item (if you are not using <code>Postgres.app</code>, use the <code>psql</code> command-line utility that comes with a PostgreSQL installation).</p>
+<p>Inside <code>psql</code>, enter the following commands:</p>
+<div class="codehilite"><pre><span></span><span class="k">CREATE</span> <span class="k">DATABASE</span> <span class="n">my_app_name</span><span class="p">;</span>
+<span class="k">CREATE</span> <span class="k">USER</span> <span class="n">my_app_name_user</span> <span class="k">WITH</span> <span class="n">PASSWORD</span> <span class="s1">&#39;password&#39;</span><span class="p">;</span>
+<span class="k">GRANT</span> <span class="k">ALL</span> <span class="k">ON</span> <span class="k">DATABASE</span> <span class="n">my_app_name</span> <span class="k">TO</span> <span class="n">my_app_name_user</span><span class="p">;</span>
+</pre></div>
+
+
+<h2 id="using-managedcontext-to-connect-to-a-database">Using ManagedContext to Connect to a Database</h2>
 <p>The interface to a database from Aqueduct is an instance of <code>ManagedContext</code>, which contains the following two objects:</p>
 <ul>
 <li>a <code>ManagedDataModel</code> that describes your application's data model</li>
@@ -1354,7 +1393,7 @@
   <span class="n">Future</span> <span class="n">prepare</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="n">dataModel</span> <span class="o">=</span> <span class="n">ManagedDataModel</span><span class="p">.</span><span class="n">fromCurrentMirrorSystem</span><span class="p">();</span>
     <span class="kd">var</span> <span class="n">psc</span> <span class="o">=</span> <span class="n">PostgreSQLPersistentStore</span><span class="p">.</span><span class="n">fromConnectionInfo</span><span class="p">(</span>
-        <span class="s2">&quot;username&quot;</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;host&quot;</span><span class="p">,</span> <span class="m">5432</span><span class="p">,</span> <span class="s2">&quot;databaseName&quot;</span><span class="p">);</span>
+        <span class="s2">&quot;my_app_name_user&quot;</span><span class="p">,</span> <span class="s2">&quot;password&quot;</span><span class="p">,</span> <span class="s2">&quot;localhost&quot;</span><span class="p">,</span> <span class="m">5432</span><span class="p">,</span> <span class="s2">&quot;my_app_name&quot;</span><span class="p">);</span>
 
     <span class="n">context</span> <span class="o">=</span> <span class="n">ManagedContext</span><span class="p">(</span><span class="n">dataModel</span><span class="p">,</span> <span class="n">psc</span><span class="p">);</span>
   <span class="p">}</span>
@@ -1368,7 +1407,7 @@
 
 
 <p>A <code>ManagedContext</code> is required to create and execute a <code>Query&lt;T&gt;</code>. The context determines which database the query is executed in. A context must exist before creating instances of any <code>ManagedObject</code> subclass in your application. Controllers that need to execute database queries must have a reference to a context; this is typically accomplished by passing the context to a controller's constructor.</p>
-<h3 id="using-a-configuration-file">Using a Configuration File</h3>
+<h2 id="using-a-configuration-file">Using a Configuration File</h2>
 <p>Connection information for a database is most often configured through a configuration file. This allows you to build configurations for different environments (production, testing, etc.), without having to modify code.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyConfiguration</span> <span class="kd">extends</span> <span class="n">Configuration</span> <span class="p">{</span>
   <span class="n">MyConfiguration</span><span class="p">(</span><span class="kt">String</span> <span class="n">configPath</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">configPath</span><span class="p">);</span>
