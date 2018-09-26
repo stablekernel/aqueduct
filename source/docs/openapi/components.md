@@ -96,7 +96,7 @@ class Person extends Serializable {
     name = map['name'];
   }
 
-  static APISchemaObject document(APIDocumentContext context, Type serializable) {
+  APISchemaObject documentSchema(APIDocumentContext context) {
     return APISchemaObject.object(properties: {
       "name": APISchemaObject.string()
     });
@@ -114,7 +114,11 @@ class MyController extends ResourceController {
   void documentComponents(APIDocumentContext context) {
     super.documentComponents(context);
 
-    Serializable.document(context, Person);
+    final personSchema = Person().documentSchema(context);
+    context.schema.register(
+      "Person",
+      personSchema,
+      representation: Person);          
   }
 }
 ```

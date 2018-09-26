@@ -4,7 +4,7 @@ In this document, you'll learn how to document endpoint controllers.
 
 ## ResourceController Auto-Documentation
 
-A `ResourceController` does most of the heavy lifting when it comes to generating OpenAPI documents. It will reflect on the bound variables of operation methods and their documentation comments to provide the majority of an OpenAPI document. You only need to provide the possible responses. You do this by overriding `documentOperationResponses` in your `ResourceController` subclass. The below shows a trivial example of a resource controller that returns a 200 OK with no body for every request.
+A `ResourceController` does most of the heavy lifting when it comes to generating OpenAPI documents. It will reflect on the bound variables of operation methods to provide the majority of an OpenAPI document. You only need to provide the possible responses. You do this by overriding `documentOperationResponses` in your `ResourceController` subclass. The below shows a trivial example of a resource controller that returns a 200 OK with no body for every request.
 
 ```dart
 class MyController extends ResourceController {
