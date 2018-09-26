@@ -20,7 +20,7 @@ abstract class PersistentStore {
   /// specific to this type. Objects returned from this method must implement [Query]. They
   /// should mixin [QueryMixin] to most of the behavior provided by a query.
   Query<T> newQuery<T extends ManagedObject>(
-      ManagedContext context, ManagedEntity entity);
+      ManagedContext context, ManagedEntity entity, {T values});
 
   /// Executes an arbitrary command.
   Future execute(String sql, {Map<String, dynamic> substitutionValues});

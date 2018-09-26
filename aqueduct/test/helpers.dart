@@ -274,8 +274,12 @@ class InMemoryAuthStorage extends AuthServerDelegate {
 class DefaultPersistentStore extends PersistentStore {
   @override
   Query<T> newQuery<T extends ManagedObject>(
-      ManagedContext context, ManagedEntity entity) {
-    return _MockQuery<T>.withEntity(context, entity);
+      ManagedContext context, ManagedEntity entity, {T values}) {
+    final q = _MockQuery<T>.withEntity(context, entity);
+    if (values != null) {
+      q.values = values;
+    }
+    return q;
   }
 
   @override

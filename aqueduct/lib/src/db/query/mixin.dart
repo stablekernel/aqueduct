@@ -55,6 +55,11 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
 
   @override
   set values(InstanceType obj) {
+    if (obj == null) {
+      _valueObject = null;
+      return;
+    }
+
     _valueObject = entity.instanceOf(
         backing: ManagedBuilderBacking.from(entity, obj.backing));
   }

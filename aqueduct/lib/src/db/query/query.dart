@@ -23,14 +23,17 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// Creates a new [Query].
   ///
   /// The query will be sent to the database described by [context].
-  factory Query(ManagedContext context) {
+  /// For insert or update queries, you may provide [values] through this constructor
+  /// or set the field of the same name later. If set in the constructor,
+  /// [InstanceType] is inferred.
+  factory Query(ManagedContext context, {InstanceType values}) {
     final entity = context.dataModel.entityForType(InstanceType);
     if (entity == null) {
       throw ArgumentError(
           "Invalid context. The data model of 'context' does not contain '$InstanceType'.");
     }
 
-    return context.persistentStore.newQuery<InstanceType>(context, entity);
+    return context.persistentStore.newQuery<InstanceType>(context, entity, values: values);
   }
 
   /// Creates a new [Query] without a static type.

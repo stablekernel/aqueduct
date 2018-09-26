@@ -21,6 +21,20 @@ void main() {
     expect(q.values.id, 1);
   });
 
+  test("May set values to null, but the query will fail", () async {
+    context = await contextWithModels([TestModel]);
+
+    final q = Query<TestModel>(context);
+    q.values = null;
+
+    try {
+      await q.insert();
+      fail('unreachable');
+    } on QueryException catch (e) {
+      expect(e.message, contains("non_null_violation"));
+    }
+  });
+
   test("Insert Bad Key", () async {
     context = await contextWithModels([TestModel]);
 
@@ -297,6 +311,16 @@ void main() {
 
     var result = await q.insert();
     expect(result.enumValues, isNull);
+  });
+
+  test("Can infer query from values in constructor", () async {
+    context = await contextWithModels([TestModel]);
+
+    final tm = TestModel()..id = 1..name = "Fred";
+    final q = Query(context, values: tm);
+    final t = await q.insert();
+    expect(t.id, 1);
+    expect(t.name, "Fred");
   });
 }
 
