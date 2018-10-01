@@ -12,7 +12,7 @@ void main() {
     ManagedDataModel dataModel;
     setUp(() {
       dataModel =
-          ManagedDataModel([User, Item, Manager, EnumObject, DocumentObject]);
+          ManagedDataModel([User, Item, Manager, EnumObject, DocumentObject, AnnotatedTable]);
       context = ManagedContext(dataModel, DefaultPersistentStore());
     });
 
@@ -189,6 +189,15 @@ void main() {
       final entity = dataModel.entityForType(DocumentObject);
       expect(entity.attributes["document"].type.kind,
           ManagedPropertyType.document);
+    });
+
+    test("Table names are derived from table definition type, can be overridden by annotation", () {
+      expect(dataModel.entityForType(User).tableName, "_User");
+      expect(dataModel.entityForType(Item).tableName, "_Item");
+      expect(dataModel.entityForType(Manager).tableName, "_Manager");
+      expect(dataModel.entityForType(EnumObject).tableName, "_EnumObject");
+      expect(dataModel.entityForType(DocumentObject).tableName, "_DocumentObject");
+      expect(dataModel.entityForType(AnnotatedTable).tableName, "foobar");
     });
   });
 
@@ -1090,4 +1099,12 @@ class _DocumentObject {
   int id;
 
   Document document;
+}
+
+
+class AnnotatedTable extends ManagedObject<_AnnotatedTable> {}
+@Table(name: "foobar")
+class _AnnotatedTable {
+  @primaryKey
+  int id;
 }

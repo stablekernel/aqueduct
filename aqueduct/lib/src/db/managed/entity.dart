@@ -325,7 +325,20 @@ class ManagedEntity implements APIComponentDocumenter {
 
   @override
   String toString() {
-    return "ManagedEntity on $tableName";
+    final buf = StringBuffer();
+    buf.writeln("Entity: $tableName");
+
+    buf.writeln("Attributes:");
+    attributes.forEach((name, attr) {
+      buf.writeln("\t$attr");
+    });
+
+    buf.writeln("Relationships:");
+    relationships.forEach((name, rel) {
+      buf.writeln("\t$rel");
+    });
+
+    return buf.toString();
   }
 
   @override

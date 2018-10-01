@@ -20,7 +20,7 @@ class Table {
   /// Annotation for table definition.
   ///
   /// See also [Table.unique].
-  const Table({this.uniquePropertySet});
+  const Table({this.name, this.uniquePropertySet});
 
   /// Configures each instance of a table definition to be unique for the combination of [properties].
   ///
@@ -35,6 +35,11 @@ class Table {
   ///
   /// null if not set.
   final List<Symbol> uniquePropertySet;
+
+  /// The name of the underlying database table.
+  ///
+  /// If this value is not set, the name defaults to the name of the table definition class.
+  final String name;
 }
 
 /// Possible values for a delete rule in a [Relate].
