@@ -102,13 +102,10 @@ class ManagedDataModelError extends Error {
       Symbol tableSymbol, Symbol propertySymbol) {
     return ManagedDataModelError("Property '${_getName(propertySymbol)}' on "
         "'${_getName(tableSymbol)}'"
-        " has an unsupported type. Must be "
-        "${ManagedType.supportedDartTypes.join(", ")}"
-        ", an enum, or ManagedObject subclass (see also 'Relate.deferred'). "
-        "If you want to store something "
-        "weird in the database, try declaring accessors in the ManagedObject subclass, "
-        "and have those set values of the properties in the table definition that are "
-        "supported.");
+        " has an unsupported type. This can occur when the type cannot be stored in a database, or when"
+        " a relationship does not have a valid inverse. If this property is supposed to be a relationship, "
+        " ensure the inverse property annotation is 'Relate(#${_getName(propertySymbol)}, ...)'."
+        " If this is not supposed to be a relationship property, its type must be one of: ${ManagedType.supportedDartTypes.join(", ")}.");
   }
 
   factory ManagedDataModelError.invalidMetadata(
@@ -164,16 +161,12 @@ class ManagedDataModelError extends Error {
   }
 
   factory ManagedDataModelError.duplicateInverse(
-      ManagedEntity entity,
-      Symbol property,
-      ManagedEntity destinationEntity,
-      List<Symbol> inversePropertyCandidates) {
-    return ManagedDataModelError("Relationship '${_getName(property)}' "
-        "on '${_getPersistentClassName(entity)}' "
-        "has more than one inverse property declared in "
-        "${_getPersistentClassName(destinationEntity)}, but can only"
-        "have one. The properties that claim to be an inverse "
-        "are ${inversePropertyCandidates.map(_getName).join(",")}.");
+      String tableName,
+      String inverseName,
+      List<String> conflictingNames) {
+    return ManagedDataModelError("Entity '${tableName}' has multiple relationship "
+      "properties that claim to be the inverse of '$inverseName'. A property may "
+      "only have one inverse. The claiming properties are: ${conflictingNames.join(", ")}.");
   }
 
   factory ManagedDataModelError.noDestinationEntity(

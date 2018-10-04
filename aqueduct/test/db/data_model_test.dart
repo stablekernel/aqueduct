@@ -376,7 +376,9 @@ void main() {
       ManagedDataModel([InvalidModel]);
       expect(true, false);
     } on ManagedDataModelError catch (e) {
-      expect(e.message, contains("Invalid declaration '_InvalidModel.uri'"));
+      expect(e.message, contains("'_InvalidModel'"));
+      expect(e.message, contains("'uri'"));
+      expect(e.message, contains("unsupported type"));
     }
   });
 
@@ -386,8 +388,9 @@ void main() {
       ManagedDataModel([InvalidTransientModel]);
       expect(true, false);
     } on ManagedDataModelError catch (e) {
-      expect(e.message,
-          startsWith("Invalid declaration 'InvalidTransientModel.uri'"));
+      expect(e.message, contains("'InvalidTransientModel'"));
+      expect(e.message, contains("'uri'"));
+      expect(e.message, contains("unsupported type"));
     }
   });
 
@@ -413,9 +416,9 @@ void main() {
         var _ = ManagedDataModel([InvalidCyclicLeft, InvalidCyclicRight]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("InvalidCyclicLeft"));
-        expect(e.message, contains("InvalidCyclicRight"));
-        expect(e.message, contains("but only one side"));
+        expect(e.message, contains("_InvalidCyclicLeft"));
+        expect(e.message, contains("_InvalidCyclicRight"));
+        expect(e.message, contains("but only one can"));
       }
     });
 
@@ -444,13 +447,12 @@ void main() {
     });
 
     test("Managed objects with missing inverses fail compilation", () {
-      // This needs to find the probable property
       try {
         ManagedDataModel([MissingInverse1, MissingInverseWrongSymbol]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
         expect(e.message, contains("has no inverse property"));
-        expect(e.message, contains("'inverse'"));
+        expect(e.message, contains("'_MissingInverseWrongSymbol'"));
         expect(e.message, contains("'has'"));
       }
 
@@ -458,7 +460,7 @@ void main() {
         ManagedDataModel([MissingInverse2, MissingInverseAbsent]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("has no inverse property"));
+        expect(e.message, contains("'_MissingInverse2'"));
         expect(e.message, contains("'inverseMany'"));
       }
     });
@@ -468,8 +470,9 @@ void main() {
         ManagedDataModel([DupInverse, DupInverseHas]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("has more than one inverse property"));
-        expect(e.message, contains("foo,bar"));
+        expect(e.message, contains("has multiple relationship properties"));
+        expect(e.message, contains("'inverse'"));
+        expect(e.message, contains("foo, bar"));
       }
     });
   });

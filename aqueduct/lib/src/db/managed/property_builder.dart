@@ -77,7 +77,7 @@ class PropertyBuilder {
     relatedProperty = foreignKey;
     includeInDefaultResultSet = false;
 
-    if (_getDeclarationType().isSubtypeOf(reflectType(ManagedSet))) {
+    if (getDeclarationType().isSubtypeOf(reflectType(ManagedSet))) {
       relationshipType = ManagedRelationshipType.hasMany;
     } else {
       relationshipType = ManagedRelationshipType.hasOne;
@@ -133,7 +133,7 @@ class PropertyBuilder {
           includedInDefaultResultSet: includeInDefaultResultSet);
     } else {
       attribute = ManagedAttributeDescription(
-          parent.entity, name, type, _getDeclarationType(),
+          parent.entity, name, type, getDeclarationType(),
           primaryKey: primaryKey,
           transientStatus: serialize,
           defaultValue: defaultValue,
@@ -146,7 +146,7 @@ class PropertyBuilder {
     }
   }
 
-  ClassMirror _getDeclarationType() {
+  ClassMirror getDeclarationType() {
     final decl = declaration;
     TypeMirror type;
     if (decl is MethodMirror) {
@@ -169,7 +169,7 @@ class PropertyBuilder {
   }
 
   ManagedType _getType() {
-    final declType = _getDeclarationType();
+    final declType = getDeclarationType();
     try {
       if (column?.databaseType != null) {
         return ManagedType.fromKind(column.databaseType);
@@ -198,27 +198,8 @@ class PropertyBuilder {
         "as this method shouldn't be invoked on non-property or non-accessors.");
   }
 
-  ClassMirror _getRelatedInstanceType() {
-    final d = declaration;
-
-    if (d is VariableMirror) {
-      final modelMirror = reflectType(ManagedObject);
-      final setMirror = reflectType(ManagedSet);
-
-      if (d.type.isSubtypeOf(modelMirror)) {
-        return d.type as ClassMirror;
-      } else if (d.type.isSubtypeOf(setMirror)) {
-        return d.type.typeArguments.first as ClassMirror;
-      } else if (relate?.isDeferred ?? false) {
-        return modelMirror as ClassMirror;
-      }
-    }
-
-    return null;
-  }
-
   EntityBuilder _getRelatedEntityBuilderFrom(List<EntityBuilder> builders) {
-    final expectedInstanceType = _getDeclarationType();
+    final expectedInstanceType = getDeclarationType();
     if (!relate.isDeferred) {
       return builders.firstWhere((b) => b.instanceType == expectedInstanceType,
           orElse: () {
@@ -230,7 +211,7 @@ class PropertyBuilder {
     }
 
     final possibleEntities = builders.where((e) {
-      return e.instanceType.isSubtypeOf(expectedInstanceType);
+      return e.tableDefinitionType.isSubtypeOf(expectedInstanceType);
     }).toList();
 
     if (possibleEntities.length > 1) {
@@ -238,7 +219,7 @@ class PropertyBuilder {
           parent.tableDefinitionTypeName,
           declaration.simpleName,
           possibleEntities.map((e) => e.instanceTypeName).toList(),
-          _getDeclarationType().simpleName);
+          getDeclarationType().simpleName);
     } else if (possibleEntities.length == 1) {
       return possibleEntities.first;
     }
@@ -247,20 +228,6 @@ class PropertyBuilder {
         parent.tableDefinitionTypeName,
         declaration.simpleName,
         expectedInstanceType.simpleName);
-  }
-
-  ManagedRelationshipType _getRelationshipType() {
-    if (isRelationship) {
-      if (relate != null) {
-        return ManagedRelationshipType.belongsTo;
-      } else if (_getDeclarationType().isSubtypeOf(reflectType(ManagedSet))) {
-        return ManagedRelationshipType.hasMany;
-      } else {
-        return ManagedRelationshipType.hasOne;
-      }
-    }
-
-    return null;
   }
 
   static Serialize _getTransienceForProperty(DeclarationMirror declaration) {
