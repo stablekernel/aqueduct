@@ -90,7 +90,7 @@ class ManagedDataModelError extends Error {
 
   factory ManagedDataModelError.noPrimaryKey(ManagedEntity entity) {
     return ManagedDataModelError("Class '${_getPersistentClassName(entity)}'"
-        " doesn't declare a primary key property. All 'ManagedObject' subclasses "
+        " doesn't declare a primary key property or declares more than one primary key. All 'ManagedObject' subclasses "
         "must have a primary key. Usually, this means you want to add '@primaryKey int id;' "
         "to ${_getPersistentClassName(entity)}, but if you want more control over "
         "the type of primary key, declare the property as one of "
@@ -216,9 +216,9 @@ class ManagedDataModelError extends Error {
   }
 
   factory ManagedDataModelError.duplicateTables(
-      String existingName, String conflictingName, String tableName) {
+      String tableName, List<String> instanceTypes) {
     return ManagedDataModelError(
-        "Entities '${existingName}' and '${conflictingName}' "
+        "Entities ${instanceTypes.map((i) => "'$i'").join(",")} "
         "have the same table name: '$tableName'. Rename these "
         "the table definitions, or add a '@Table(name: ...)' annotation to the table definition.");
   }

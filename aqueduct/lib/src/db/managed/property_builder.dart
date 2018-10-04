@@ -8,135 +8,141 @@ import 'package:aqueduct/src/db/managed/validation/managed.dart';
 import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
+/*
+Move all validation steps into validate.
+Fix issue when compiling relationships, esp. deferred.
+ */
+
 class PropertyBuilder {
-  PropertyBuilder(this.entity, this.declaration)
+  PropertyBuilder(this.parent, this.declaration)
       : relate = firstMetadataOfType(declaration),
         column = firstMetadataOfType(declaration),
-        validators = validatorsFromDeclaration(declaration) {
-    if (relate != null && column != null) {
-      throw ManagedDataModelError.invalidMetadata(
-          entity.tableDefinitionTypeName, declaration.simpleName);
-    }
-    _type = _getType();
-    _relatedInstanceType = _getRelatedInstanceType();
-    _relationshipType = _getRelationshipType();
-    _name = _getName();
-    serialize = _getTransienceForProperty();
+        validators = validatorsFromDeclaration(declaration),
+        serialize = _getTransienceForProperty(declaration) {
+    name = _getName();
+    type = _getType();
   }
 
-  final EntityBuilder entity;
+  final EntityBuilder parent;
   final DeclarationMirror declaration;
   final Relate relate;
   final Column column;
   final List<Validate> validators;
   Serialize serialize;
 
-  String get name => _name;
+  ManagedAttributeDescription attribute;
+  ManagedRelationshipDescription relationship;
 
-  bool get isRelationship => relatedInstanceType != null;
+  String name;
+  ManagedType type;
 
-  ManagedType get type => _type;
+  bool get isRelationship => relatedProperty != null;
+  ManagedEntity destinationEntity;
+  PropertyBuilder relatedProperty;
+  ManagedRelationshipType relationshipType;
+  bool primaryKey = false;
+  String defaultValue;
+  bool nullable = false;
+  bool unique = false;
+  bool includeInDefaultResultSet = true;
+  bool indexed = false;
+  bool autoincrement = false;
+  DeleteRule deleteRule;
 
-  ClassMirror get relatedInstanceType => _relatedInstanceType;
-
-  PropertyBuilder get relatedProperty => _relatedProperty;
-
-  ManagedRelationshipType get relationshipType => _relationshipType;
-  PropertyBuilder _relatedProperty;
-
-  ClassMirror _relatedInstanceType;
-
-  String _name;
-  ManagedType _type;
-  ManagedAttributeDescription _attribute;
-  ManagedRelationshipDescription _relationship;
-  ManagedRelationshipType _relationshipType;
-
-  void linkBuilders(List<EntityBuilder> others) {
-    if (!isRelationship) {
-      return;
-    }
-
-    // We only care about belongsTo, because we'll set both sides
-    // of the relationship when we find it. We'll check for missing
-    // relationships when the data model validates itself.
-    if (relationshipType == ManagedRelationshipType.belongsTo) {
-      final relatedEntityBuilder = _getRelatedBuilderFrom(others);
-      _relatedProperty = _getInverseBuilderFrom(relatedEntityBuilder);
-      _relatedProperty._relatedProperty = this;
-    }
-  }
-
-  ManagedAttributeDescription getAttribute(ManagedEntity entity) {
-    if (isRelationship) {
-      return null;
-    }
-    return _attribute ??= ManagedAttributeDescription(
-        entity, name, type, _getDeclarationType(),
-        primaryKey: column?.isPrimaryKey ?? false,
-        defaultValue: column?.defaultValue,
-        unique: column?.isUnique ?? false,
-        indexed: column?.isIndexed ?? false,
-        nullable: column?.isNullable ?? false,
-        includedInDefaultResultSet: !(column?.shouldOmitByDefault ?? false),
-        autoincrement: column?.autoincrement ?? false,
-        validators: validators);
-  }
-
-  ManagedRelationshipDescription getRelationship(ManagedEntity entity, List<ManagedEntity> others) {
-    if (!isRelationship) {
-      return null;
-    }
-
-    if (_relationship == null) {
-      var destinationEntity = others.fir;
-      var columnType =
-        destinationEntity.attributes[destinationEntity.primaryKey].type;
-      var unique = false;
-      var required = false;
-      var includeDefault = false;
-      if (relationshipType == ManagedRelationshipType.belongsTo) {
-        includeDefault = true;
-        if (relatedProperty.relationshipType == ManagedRelationshipType.hasOne) {
-          unique = true;
-        }
-        if (relate.isRequired) {
-          required = true;
-        }
+  void compile(List<EntityBuilder> others) {
+    if (type == null) {
+      if (relate != null) {
+        relatedProperty = _getRelatedEntityBuilderFrom(others).getInverseOf(this);
+        type = relatedProperty.parent.primaryKeyProperty.type;
+        relationshipType = ManagedRelationshipType.belongsTo;
+        includeInDefaultResultSet = true;
+        deleteRule = relate.onDelete;
+        nullable = !relate.isRequired;
+        relatedProperty.setInverse(this);
+        unique =
+          relatedProperty?.relationshipType == ManagedRelationshipType.hasOne;
       }
-
-      _relationship = ManagedRelationshipDescription(
-        entity,
-        name,
-        columnType,
-        relatedInstanceType,
-        destinationEntity,
-        relate?.onDelete,
-        relationshipType,
-        Symbol(relatedProperty.name),
-        unique: unique,
-        indexed: true,
-        nullable: !required,
-        includedInDefaultResultSet: includeDefault);
+    } else {
+      primaryKey = column?.isPrimaryKey ?? false;
+      defaultValue = column?.defaultValue;
+      unique = column?.isUnique ?? false;
+      indexed = column?.isIndexed ?? false;
+      nullable = column?.isNullable ?? false;
+      includeInDefaultResultSet = !(column?.shouldOmitByDefault ?? false);
+      autoincrement = column?.autoincrement ?? false;
     }
+  }
 
-    return _relationship;
+  void setInverse(PropertyBuilder foreignKey) {
+    relatedProperty = foreignKey;
+    includeInDefaultResultSet = false;
+
+    if (_getDeclarationType().isSubtypeOf(reflectType(ManagedSet))) {
+      relationshipType = ManagedRelationshipType.hasMany;
+    } else {
+      relationshipType = ManagedRelationshipType.hasOne;
+    }
   }
 
   void validate() {
-    if (relatedInstanceType == entity.instanceType) {
-      throw ManagedDataModelError.cyclicReference(entity.instanceTypeName, name);
+    if (type == null) {
+      if (!isRelationship || relationshipType == ManagedRelationshipType.belongsTo) {
+        throw ManagedDataModelError.invalidType(
+          declaration.owner.simpleName, declaration.simpleName);
+      }
+    }
+
+    if (isRelationship) {
+      if (column != null) {
+        throw ManagedDataModelError.invalidMetadata(
+          parent.tableDefinitionTypeName, declaration.simpleName);
+      }
+      if (relate != null && relatedProperty.relate != null) {
+        throw ManagedDataModelError.dualMetadata(
+          parent.tableDefinitionTypeName,
+          declaration.simpleName,
+          relatedProperty.parent.tableDefinitionTypeName,
+          relatedProperty.name);
+      }
     }
 
     if (relate?.onDelete == DeleteRule.nullify &&
         (relate?.isRequired ?? false)) {
       throw ManagedDataModelError.incompatibleDeleteRule(
-          entity.tableDefinitionTypeName, declaration.simpleName);
+          parent.tableDefinitionTypeName, declaration.simpleName);
     }
+  }
 
-    if (type == null) {
-      throw ManagedDataModelError.invalidType(
-          declaration.owner.simpleName, declaration.simpleName);
+  void link(List<ManagedEntity> others) {
+    if (isRelationship) {
+      var destinationEntity =
+          others.firstWhere((e) => e == relatedProperty.parent.entity);
+
+      relationship = ManagedRelationshipDescription(
+          parent.entity,
+          name,
+          type,
+          (declaration as VariableMirror).type as ClassMirror,
+          destinationEntity,
+          deleteRule,
+          relationshipType,
+          Symbol(relatedProperty.name),
+          unique: unique,
+          indexed: true,
+          nullable: nullable,
+          includedInDefaultResultSet: includeInDefaultResultSet);
+    } else {
+      attribute = ManagedAttributeDescription(
+          parent.entity, name, type, _getDeclarationType(),
+          primaryKey: primaryKey,
+          transientStatus: serialize,
+          defaultValue: defaultValue,
+          unique: unique,
+          indexed: indexed,
+          nullable: nullable,
+          includedInDefaultResultSet: includeInDefaultResultSet,
+          autoincrement: autoincrement,
+          validators: validators);
     }
   }
 
@@ -156,7 +162,7 @@ class PropertyBuilder {
     if (type is! ClassMirror) {
       throw ManagedDataModelError(
           "Invalid type for field '${MirrorSystem.getName(declaration.simpleName)}' "
-          "in table definition '${entity.tableDefinitionTypeName}'.");
+          "in table definition '${parent.tableDefinitionTypeName}'.");
     }
 
     return type as ClassMirror;
@@ -164,17 +170,14 @@ class PropertyBuilder {
 
   ManagedType _getType() {
     final declType = _getDeclarationType();
-    TypeMirror type;
     try {
       if (column?.databaseType != null) {
         return ManagedType.fromKind(column.databaseType);
       }
 
       return ManagedType(declType);
-    } on UnsupportedError catch (e) {
-      throw ManagedDataModelError("Invalid declaration "
-          "'${MirrorSystem.getName(declaration.owner.simpleName)}.${MirrorSystem.getName(declaration.simpleName)}'. "
-          "Reason: $e");
+    } on UnsupportedError {
+      return null;
     }
   }
 
@@ -193,22 +196,6 @@ class PropertyBuilder {
     throw ManagedDataModelError(
         "Tried getting property type description from non-property. This is an internal error, "
         "as this method shouldn't be invoked on non-property or non-accessors.");
-  }
-
-  Serialize _getTransienceForProperty() {
-    Serialize metadata = firstMetadataOfType<Serialize>(declaration);
-    if (declaration is VariableMirror) {
-      return metadata;
-    }
-
-    MethodMirror m = declaration as MethodMirror;
-    if (m.isGetter && metadata.isAvailableAsOutput) {
-      return const Serialize(output: true, input: false);
-    } else if (m.isSetter && metadata.isAvailableAsInput) {
-      return const Serialize(input: true, output: false);
-    }
-
-    return null;
   }
 
   ClassMirror _getRelatedInstanceType() {
@@ -230,68 +217,36 @@ class PropertyBuilder {
     return null;
   }
 
-  EntityBuilder _getRelatedBuilderFrom(List<EntityBuilder> builders) {
-    EntityBuilder relatedEntityBuilder;
-    if (relate?.isDeferred ?? false) {
-      final possibleEntities = builders.where((e) {
-        return e.instanceType.isSubtypeOf(relatedInstanceType);
-      }).toList();
-
-      if (possibleEntities.length > 1) {
-        throw ManagedDataModelError.multipleDestinationEntities(
-            entity.tableDefinitionTypeName,
-            declaration.simpleName,
-            possibleEntities.map((e) => e.instanceTypeName).toList(),
-            _getDeclarationType().simpleName);
-      } else if (possibleEntities.length == 1) {
-        relatedEntityBuilder = possibleEntities.first;
-      }
-    } else {
-      relatedEntityBuilder = builders.firstWhere(
-          (b) => b.tableDefinitionType == relatedInstanceType,
-          orElse: () => null);
+  EntityBuilder _getRelatedEntityBuilderFrom(List<EntityBuilder> builders) {
+    final expectedInstanceType = _getDeclarationType();
+    if (!relate.isDeferred) {
+      return builders.firstWhere((b) => b.instanceType == expectedInstanceType,
+          orElse: () {
+            throw ManagedDataModelError.noDestinationEntity(
+              parent.tableDefinitionTypeName,
+              declaration.simpleName,
+              expectedInstanceType.simpleName);
+          });
     }
 
-    if (relatedEntityBuilder == null) {
-      throw ManagedDataModelError.noDestinationEntity(
-          entity.tableDefinitionTypeName,
+    final possibleEntities = builders.where((e) {
+      return e.instanceType.isSubtypeOf(expectedInstanceType);
+    }).toList();
+
+    if (possibleEntities.length > 1) {
+      throw ManagedDataModelError.multipleDestinationEntities(
+          parent.tableDefinitionTypeName,
           declaration.simpleName,
-          relatedInstanceType.simpleName);
+          possibleEntities.map((e) => e.instanceTypeName).toList(),
+          _getDeclarationType().simpleName);
+    } else if (possibleEntities.length == 1) {
+      return possibleEntities.first;
     }
 
-    return relatedEntityBuilder;
-  }
-
-  PropertyBuilder _getInverseBuilderFrom(EntityBuilder relatedEntityBuilder) {
-    PropertyBuilder inverse;
-    if (relationshipType == ManagedRelationshipType.belongsTo) {
-      inverse = relatedEntityBuilder.properties.firstWhere(
-          (p) => p.name == MirrorSystem.getName(relate.inversePropertyName),
-          orElse: () => null);
-
-      if (inverse.relate != null) {
-        throw ManagedDataModelError.dualMetadata(
-            entity.tableDefinitionTypeName,
-            declaration.simpleName,
-            relatedEntityBuilder.tableDefinitionTypeName,
-            inverse.name);
-      }
-    } else {
-      inverse = relatedEntityBuilder.properties.firstWhere(
-          (p) => p.relate?.inversePropertyName == declaration.simpleName,
-          orElse: () => null);
-    }
-
-    if (inverse == null) {
-      throw ManagedDataModelError.missingInverse(
-          entity.tableDefinitionTypeName,
-          entity.instanceTypeName,
-          declaration.simpleName,
-          relatedEntityBuilder.tableDefinitionTypeName,
-          null);
-    }
-
-    return inverse;
+    throw ManagedDataModelError.noDestinationEntity(
+        parent.tableDefinitionTypeName,
+        declaration.simpleName,
+        expectedInstanceType.simpleName);
   }
 
   ManagedRelationshipType _getRelationshipType() {
@@ -303,6 +258,22 @@ class PropertyBuilder {
       } else {
         return ManagedRelationshipType.hasOne;
       }
+    }
+
+    return null;
+  }
+
+  static Serialize _getTransienceForProperty(DeclarationMirror declaration) {
+    Serialize metadata = firstMetadataOfType<Serialize>(declaration);
+    if (declaration is VariableMirror) {
+      return metadata;
+    }
+
+    final m = declaration as MethodMirror;
+    if (m.isGetter && metadata.isAvailableAsOutput) {
+      return const Serialize(output: true, input: false);
+    } else if (m.isSetter && metadata.isAvailableAsInput) {
+      return const Serialize(input: true, output: false);
     }
 
     return null;

@@ -11,77 +11,139 @@ import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:logging/logging.dart';
 
 class EntityBuilder {
-  EntityBuilder(Type type)
+  EntityBuilder(ManagedDataModel dataModel, Type type)
       : instanceType = reflectClass(type),
         tableDefinitionType = _getTableDefinitionForType(type),
         metadata = firstMetadataOfType(_getTableDefinitionForType(type)) {
-    _name = _getName();
-    _properties = _getProperties();
-    _uniqueProperties = _getTableUniqueProperties();
-
-    _validators = properties
-        .map((builder) => builder.validators)
-        .expand((e) => e)
-        .toList();
+    name = _getName();
+    entity = ManagedEntity(dataModel, name, instanceType, tableDefinitionType)
+      ..validators = [];
+    properties = _getProperties();
+    primaryKeyProperty = properties.firstWhere((p) => p.column?.isPrimaryKey ?? false, orElse: () => null);
   }
 
   final ClassMirror instanceType;
   final ClassMirror tableDefinitionType;
-
   final Table metadata;
 
-  List<Validate> get validators => _validators;
+  Map<String, ManagedAttributeDescription> attributes = {};
+  Map<String, ManagedRelationshipDescription> relationships = {};
+  ManagedEntity entity;
+  List<Validate> validators;
+  List<PropertyBuilder> properties = [];
+  List<String> uniquePropertySet;
+  String name;
 
-  List<PropertyBuilder> get properties => _properties;
-
-  List<String> get uniquePropertyNames =>
-      _uniqueProperties.map((p) => p.name).toList();
-
-  String get name => _name;
+  PropertyBuilder primaryKeyProperty;
 
   String get instanceTypeName => MirrorSystem.getName(instanceType.simpleName);
 
   String get tableDefinitionTypeName =>
       MirrorSystem.getName(tableDefinitionType.simpleName);
 
-  String _name;
-  List<PropertyBuilder> _properties;
-  List<PropertyBuilder> _uniqueProperties;
-  List<Validate> _validators;
-  ManagedEntity _entity;
-
-  void linkBuilders(List<EntityBuilder> others) {
-    final existing =
-        others.firstWhere((placed) => placed.name == name, orElse: () => null);
-    if (existing != null) {
-      throw ManagedDataModelError.duplicateTables(
-          existing.instanceTypeName, instanceTypeName, existing.name);
-    }
+  void compile(List<EntityBuilder> others) {
+    validators = properties
+        .map((builder) => builder.validators)
+        .expand((e) => e)
+        .toList();
 
     properties.forEach((p) {
-      p.linkBuilders(others);
+      p.compile(others);
     });
+
+    uniquePropertySet =
+        metadata?.uniquePropertySet?.map(MirrorSystem.getName)?.toList();
   }
 
   void validate() {
+    // Check that we have a default constructor
     if (!classHasDefaultConstructor(instanceType)) {
       throw ManagedDataModelError.noConstructor(instanceType);
     }
 
+    // Check that we only have one primary key
+    if (properties.where((pb) => pb.primaryKey).length != 1) {
+      throw ManagedDataModelError.noPrimaryKey(entity);
+    }
+
+    // CHeck that our unique property set is valid
+    if (uniquePropertySet != null) {
+      if (uniquePropertySet.isEmpty) {
+        throw ManagedDataModelError.emptyEntityUniqueProperties(
+            tableDefinitionTypeName);
+      } else if (uniquePropertySet.length == 1) {
+        throw ManagedDataModelError.singleEntityUniqueProperty(
+            tableDefinitionTypeName, metadata.uniquePropertySet.first);
+      }
+
+      uniquePropertySet.forEach((key) {
+        final prop = properties.firstWhere((p) => p.name == key, orElse: () {
+          throw ManagedDataModelError.invalidEntityUniqueProperty(
+              tableDefinitionTypeName, Symbol(key));
+        });
+
+        if (prop.isRelationship &&
+            prop.relationshipType != ManagedRelationshipType.belongsTo) {
+          throw ManagedDataModelError.relationshipEntityUniqueProperty(
+              tableDefinitionTypeName, Symbol(key));
+        }
+      });
+    }
+
+    // Check each property
     properties.forEach((p) => p.validate());
   }
 
+  void link(List<ManagedEntity> entities) {
+    entity.symbolMap = {};
+    properties.forEach((p) {
+      p.link(entities);
+
+      entity.symbolMap[Symbol(p.name)] = p.name;
+      entity.symbolMap[Symbol("${p.name}=")] = p.name;
+
+      if (p.isRelationship) {
+        relationships[p.name] = p.relationship;
+      } else {
+        attributes[p.name] = p.attribute;
+        entity.validators.addAll(
+            p.attribute.validators.map((v) => v.getValidator(p.attribute)));
+        if (p.primaryKey) {
+          entity.primaryKey = p.name;
+        }
+      }
+    });
+
+    entity.attributes = attributes;
+    entity.relationships = relationships;
+    entity.uniquePropertySet =
+        uniquePropertySet?.map((key) => entity.properties[key])?.toList();
+  }
+
+  PropertyBuilder getInverseOf(PropertyBuilder foreignKey) {
+    final expectedSymbol = foreignKey.relate.inversePropertyName;
+    return properties.firstWhere(
+        (p) => p.declaration.simpleName == expectedSymbol, orElse: () {
+      throw ManagedDataModelError.missingInverse(
+          foreignKey.parent.tableDefinitionTypeName,
+          foreignKey.parent.instanceTypeName,
+          foreignKey.declaration.simpleName,
+          tableDefinitionTypeName,
+          null);
+    });
+  }
+
   String _getName() {
-    if (metadata.name != null) {
+    if (metadata?.name != null) {
       return metadata.name;
     }
 
-    var declaredTableNameClass = classHierarchyForClass(instanceType)
+    var declaredTableNameClass = classHierarchyForClass(tableDefinitionType)
         .firstWhere((cm) => cm.staticMembers[#tableName] != null,
             orElse: () => null);
 
     if (declaredTableNameClass == null) {
-      return instanceTypeName;
+      return tableDefinitionTypeName;
     }
 
     Logger("aqueduct").warning(
@@ -120,7 +182,7 @@ class EntityBuilder {
   }
 
   static ClassMirror _getTableDefinitionForType(Type instanceType) {
-    var ifNotFoundException = ManagedDataModelError(
+    final ifNotFoundException = ManagedDataModelError(
         "Invalid instance type '$instanceType' '${reflectClass(instanceType).simpleName}' is not subclass of 'ManagedObject'.");
 
     return classHierarchyForClass(reflectClass(instanceType))
@@ -129,75 +191,5 @@ class EntityBuilder {
             orElse: () => throw ifNotFoundException)
         .typeArguments
         .first as ClassMirror;
-  }
-
-  List<PropertyBuilder> _getTableUniqueProperties() {
-    if (metadata?.uniquePropertySet != null) {
-      if (metadata.uniquePropertySet.isEmpty) {
-        throw ManagedDataModelError.emptyEntityUniqueProperties(
-            tableDefinitionTypeName);
-      } else if (metadata.uniquePropertySet.length == 1) {
-        throw ManagedDataModelError.singleEntityUniqueProperty(
-            tableDefinitionTypeName, metadata.uniquePropertySet.first);
-      }
-
-      return metadata.uniquePropertySet.map((sym) {
-        final symbolName = MirrorSystem.getName(sym);
-        var prop = properties.firstWhere((p) => p.name == symbolName,
-            orElse: () => null);
-        if (prop == null) {
-          throw ManagedDataModelError.invalidEntityUniqueProperty(
-              tableDefinitionTypeName, sym);
-        }
-
-        if (prop.isRelationship &&
-            prop.relationshipType != ManagedRelationshipType.belongsTo) {
-          throw ManagedDataModelError.relationshipEntityUniqueProperty(
-              tableDefinitionTypeName, sym);
-        }
-
-        return prop;
-      }).toList();
-    }
-
-    return null;
-  }
-
-  ManagedEntity getEntity(ManagedDataModel dataModel) {
-    if (_entity == null) {
-      _entity =
-          ManagedEntity(dataModel, name, instanceType, tableDefinitionType);
-
-      final validators = <ManagedValidator>[];
-      Map<String, ManagedAttributeDescription> attributes = {};
-      _properties.forEach((builder) {
-        final prop = builder.getAttribute(_entity);
-        if (prop != null) {
-          attributes[prop.name] = prop;
-          validators.addAll(prop.validators.map((v) => v.getValidator(prop)));
-        }
-      });
-
-      _entity.attributes = attributes;
-      _entity.uniquePropertySet = _entity.attributes.values
-          .where((a) => uniquePropertyNames.contains(a.name))
-          .toList();
-      _entity.validators = validators;
-    }
-
-    return _entity;
-  }
-
-  void linkEntities(ManagedDataModel dataModel, List<ManagedEntity> entities) {
-      final entity = getEntity(dataModel);
-      entity.symbolMap = {};
-      entity.attributes.forEach((name, _) {
-        entity.symbolMap[Symbol(name)] = name;
-        entity.symbolMap[Symbol("$name=")] = name;
-      });
-      entity.relationships.forEach((name, _) {
-        entity.symbolMap[Symbol(name)] = name;
-        entity.symbolMap[Symbol("$name=")] = name;
-      });
   }
 }
