@@ -6,9 +6,10 @@ By the end of this tutorial, you will have created an Aqueduct application that 
 - Route HTTP requests to the appropriate handler in your code
 - Store and retrieve database data
 - Write automated tests for each endpoint
+- Require authorization for HTTP requests
 
 !!! tip "Getting Help"
-    If at anytime you get stuck, hop on over to the [Aqueduct Slack channel](http://slackaqueductsignup.herokuapp.com).
+    If at anytime you get stuck, hop on over to the [Aqueduct Slack channel](http://slackaqueductsignup.herokuapp.com). You can also see a finished version of this application [here](https://github.com/stablekernel/aqueduct_examples/tree/master/heroes).
 
 ## Installation
 

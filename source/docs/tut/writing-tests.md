@@ -150,7 +150,7 @@ A harness has an `Agent` that can send requests to the application it started. M
 Because our application makes database queries, we have to to upload our database schema to the test database before each test. Fortunately, this is something our test harness can also do. In `test/harness/app.dart`, mixin `TestHarnessORMMixin` and override two methods:
 
 ```dart
-class Harness extends TestHarness<WildfireChannel> with TestHarnessORMMixin {
+class Harness extends TestHarness<HeroesChannel> with TestHarnessORMMixin {
   @override
   ManagedContext get context => channel.context;
 
@@ -293,3 +293,5 @@ test("POST /heroes returns 200 OK", () async {
 ```
 
 In this test, we request two 'Fred' heroes be created, and the second request fails with a 409 because `name` is a unique property of a hero. Notice that the first request didn't fail, even though we had created a 'Fred' hero in the previous test - that's because we reset the database for each test in our harness.
+
+## [Next Chapter: Authentication and Authorization](oauth2.md)

@@ -28,6 +28,7 @@ pages:
   - '2. Reading from a Database': 'tut/executing-queries.md'
   - '3. Storing Data in a Database': 'tut/storing-data.md'
   - '4. Configuration and Testing': 'tut/writing-tests.md'
+  - '5. Authentication and Authorization': 'tut/oauth2.md'
 - Guides:
   - Application Structure and Behavior:
     - 'Overview': 'application/index.md'
