@@ -495,12 +495,31 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#next-chapter-authentication-and-authorization" title="Next Chapter: Authentication and Authorization" class="md-nav__link">
+    Next Chapter: Authentication and Authorization
+  </a>
+  
+</li>
+      
       
       
     </ul>
   
 </nav>
     
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../oauth2/" title="5. Authentication and Authorization" class="md-nav__link">
+      5. Authentication and Authorization
+    </a>
   </li>
 
         
@@ -1411,6 +1430,13 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#next-chapter-authentication-and-authorization" title="Next Chapter: Authentication and Authorization" class="md-nav__link">
+    Next Chapter: Authentication and Authorization
+  </a>
+  
+</li>
+      
       
       
     </ul>
@@ -1557,7 +1583,7 @@
 
 <p>A harness has an <code>Agent</code> that can send requests to the application it started. Methods like <code>get</code> and <code>post</code> take a path (and optionally headers and a body) and return a response object. This object is used in <code>expectResponse</code> to validate the status code and other values. Tests in Aqueduct are written in this way: make a request, expect that the response is intended.</p>
 <p>Because our application makes database queries, we have to to upload our database schema to the test database before each test. Fortunately, this is something our test harness can also do. In <code>test/harness/app.dart</code>, mixin <code>TestHarnessORMMixin</code> and override two methods:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Harness</span> <span class="kd">extends</span> <span class="n">TestHarness</span><span class="o">&lt;</span><span class="n">WildfireChannel</span><span class="o">&gt;</span> <span class="kd">with</span> <span class="n">TestHarnessORMMixin</span> <span class="p">{</span>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Harness</span> <span class="kd">extends</span> <span class="n">TestHarness</span><span class="o">&lt;</span><span class="n">HeroesChannel</span><span class="o">&gt;</span> <span class="kd">with</span> <span class="n">TestHarnessORMMixin</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">override</span>
   <span class="n">ManagedContext</span> <span class="kd">get</span> <span class="n">context</span> <span class="o">=&gt;</span> <span class="n">channel</span><span class="p">.</span><span class="n">context</span><span class="p">;</span>
 
@@ -1693,6 +1719,7 @@
 
 
 <p>In this test, we request two 'Fred' heroes be created, and the second request fails with a 409 because <code>name</code> is a unique property of a hero. Notice that the first request didn't fail, even though we had created a 'Fred' hero in the previous test - that's because we reset the database for each test in our harness.</p>
+<h2 id="next-chapter-authentication-and-authorization"><a href="../oauth2/">Next Chapter: Authentication and Authorization</a></h2>
                 
                   
                 
@@ -1726,13 +1753,13 @@
           </a>
         
         
-          <a href="../../application/" title="Overview" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../oauth2/" title="5. Authentication and Authorization" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Overview
+                5. Authentication and Authorization
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">

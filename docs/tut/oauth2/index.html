@@ -1,0 +1,1783 @@
+
+<!DOCTYPE html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      <meta http-equiv="x-ua-compatible" content="ie=edge">
+      
+        <meta name="description" content="Documentation for Aqueduct, a Dart server-side framework.">
+      
+      
+      
+      
+        <link rel="shortcut icon" href="../../assets/images/favicon.png">
+      
+      <meta name="generator" content="mkdocs-0.16.3, mkdocs-material-1.9.0">
+    
+    
+      
+        <title>5. Authentication and Authorization - Aqueduct</title>
+      
+    
+    
+      <script src="../../assets/javascripts/modernizr-e826f8942a.js"></script>
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/application-0a3554af36.css">
+      
+    
+    
+      
+        
+        
+        
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,400i,700|Roboto+Mono">
+        <style>body,input{font-family:"Roboto","Helvetica Neue",Helvetica,Arial,sans-serif}code,kbd,pre{font-family:"Roboto Mono","Courier New",Courier,monospace}</style>
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    
+    
+      <link rel="stylesheet" href="../../style/css/override.css">
+    
+    
+  </head>
+  
+  
+  
+  
+    <body>
+  
+    <svg class="md-svg">
+      <defs>
+        
+        
+          <svg xmlns="http://www.w3.org/2000/svg" width="416" height="448" viewBox="0 0 416 448" id="github"><path fill="currentColor" d="M160 304q0 10-3.125 20.5t-10.75 19T128 352t-18.125-8.5-10.75-19T96 304t3.125-20.5 10.75-19T128 256t18.125 8.5 10.75 19T160 304zm160 0q0 10-3.125 20.5t-10.75 19T288 352t-18.125-8.5-10.75-19T256 304t3.125-20.5 10.75-19T288 256t18.125 8.5 10.75 19T320 304zm40 0q0-30-17.25-51T296 232q-10.25 0-48.75 5.25Q229.5 240 208 240t-39.25-2.75Q130.75 232 120 232q-29.5 0-46.75 21T56 304q0 22 8 38.375t20.25 25.75 30.5 15 35 7.375 37.25 1.75h42q20.5 0 37.25-1.75t35-7.375 30.5-15 20.25-25.75T360 304zm56-44q0 51.75-15.25 82.75-9.5 19.25-26.375 33.25t-35.25 21.5-42.5 11.875-42.875 5.5T212 416q-19.5 0-35.5-.75t-36.875-3.125-38.125-7.5-34.25-12.875T37 371.5t-21.5-28.75Q0 312 0 260q0-59.25 34-99-6.75-20.5-6.75-42.5 0-29 12.75-54.5 27 0 47.5 9.875t47.25 30.875Q171.5 96 212 96q37 0 70 8 26.25-20.5 46.75-30.25T376 64q12.75 25.5 12.75 54.5 0 21.75-6.75 42 34 40 34 99.5z"/></svg>
+        
+      </defs>
+    </svg>
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="drawer">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="search">
+    <label class="md-overlay" data-md-component="overlay" for="drawer"></label>
+    
+      <header class="md-header" data-md-component="header">
+  <nav class="md-header-nav md-grid">
+    <div class="md-flex">
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <a href="../.." title="Aqueduct" class="md-icon md-icon--home md-header-nav__button">
+          </a>
+        
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        <label class="md-icon md-icon--menu md-header-nav__button" for="drawer"></label>
+      </div>
+      <div class="md-flex__cell md-flex__cell--stretch">
+        <span class="md-flex__ellipsis md-header-nav__title">
+          
+            
+              
+                <span class="md-header-nav__parent">
+                  Tutorial
+                </span>
+              
+            
+            5. Authentication and Authorization
+          
+        </span>
+      </div>
+      <div class="md-flex__cell md-flex__cell--shrink">
+        
+          <label class="md-icon md-icon--search md-header-nav__button" for="search"></label>
+          
+<div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="search"></label>
+  <div class="md-search__inner">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" required placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="query">
+      <label class="md-icon md-search__icon" for="search"></label>
+      <button type="reset" class="md-icon md-search__icon" data-md-component="reset">&#xE5CD;</button>
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="result" data-md-lang-search="" data-md-lang-tokenizer="[\s\-]+">
+          <div class="md-search-result__meta" data-md-lang-result-none="No matching documents" data-md-lang-result-one="1 matching document" data-md-lang-result-other="# matching documents">
+            Type to start searching
+          </div>
+          <ol class="md-search-result__list"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+        
+      </div>
+      
+        <div class="md-flex__cell md-flex__cell--shrink">
+          <div class="md-header-nav__source">
+            
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+          </div>
+        </div>
+      
+    </div>
+  </nav>
+</header>
+    
+    <div class="md-container">
+      
+      
+      <main class="md-main">
+        <div class="md-main__inner md-grid" data-md-component="container">
+          
+            
+              <div class="md-sidebar md-sidebar--primary" data-md-component="navigation">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    <nav class="md-nav md-nav--primary" data-md-level="0">
+  <label class="md-nav__title md-nav__title--site" for="drawer">
+    
+      <i class="md-icon md-icon--home md-nav__button"></i>
+    
+    Aqueduct
+  </label>
+  
+    <div class="md-nav__source">
+      
+
+
+  
+
+
+  <a href="https://github.com/stablekernel/aqueduct" title="Go to repository" class="md-source" data-md-source="github">
+    
+      <div class="md-source__icon">
+        <svg viewBox="0 0 24 24" width="24" height="24">
+          <use xlink:href="#github" width="24" height="24"></use>
+        </svg>
+      </div>
+    
+    <div class="md-source__repository">
+      GitHub
+    </div>
+  </a>
+
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../.." title="Home" class="md-nav__link">
+      Home
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../core_concepts/" title="Core Concepts" class="md-nav__link">
+      Core Concepts
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../getting_started/" title="Getting Started" class="md-nav__link">
+      Getting Started
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../tour/" title="Tour" class="md-nav__link">
+      Tour
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../migration/" title="3.0 Migration Guide" class="md-nav__link">
+      3.0 Migration Guide
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../best_practices/" title="Best Practices" class="md-nav__link">
+      Best Practices
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item">
+    <a href="../../intellij/" title="IntelliJ IDEA Templates" class="md-nav__link">
+      IntelliJ IDEA Templates
+    </a>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
+    
+    <label class="md-nav__link" for="nav-8">
+      Snippets
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-8">
+        Snippets
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/http/" title="HTTP" class="md-nav__link">
+      HTTP
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/orm/" title="ORM" class="md-nav__link">
+      ORM
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/auth/" title="Authentication and Authorization" class="md-nav__link">
+      Authentication and Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/test/" title="Testing" class="md-nav__link">
+      Testing
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9" checked>
+    
+    <label class="md-nav__link" for="nav-9">
+      Tutorial
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-9">
+        Tutorial
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../getting-started/" title="1. Getting Started" class="md-nav__link">
+      1. Getting Started
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../executing-queries/" title="2. Reading from a Database" class="md-nav__link">
+      2. Reading from a Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../storing-data/" title="3. Storing Data in a Database" class="md-nav__link">
+      3. Storing Data in a Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../writing-tests/" title="4. Configuration and Testing" class="md-nav__link">
+      4. Configuration and Testing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+  
+
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        5. Authentication and Authorization
+      </label>
+    
+    <a href="./" title="5. Authentication and Authorization" class="md-nav__link md-nav__link--active">
+      5. Authentication and Authorization
+    </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-basics-of-oauth-20" title="The Basics of OAuth 2.0" class="md-nav__link">
+    The Basics of OAuth 2.0
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-oauth-20-creating-a-user-type" title="Setting up OAuth 2.0: Creating a User Type" class="md-nav__link">
+    Setting up OAuth 2.0: Creating a User Type
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-oauth-20-authserver-and-its-delegate" title="Setting up OAuth 2.0: AuthServer and its Delegate" class="md-nav__link">
+    Setting up OAuth 2.0: AuthServer and its Delegate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-oauth-20-registering-users" title="Setting up OAuth 2.0: Registering Users" class="md-nav__link">
+    Setting up OAuth 2.0: Registering Users
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-oauth-20-authenticating-users" title="Setting up OAuth 2.0: Authenticating Users" class="md-nav__link">
+    Setting up OAuth 2.0: Authenticating Users
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-oauth-20-securing-routes" title="Setting up OAuth 2.0: Securing Routes" class="md-nav__link">
+    Setting up OAuth 2.0: Securing Routes
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+    
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+    
+    <label class="md-nav__link" for="nav-10">
+      Guides
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-10">
+        Guides
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-1" type="checkbox" id="nav-10-1">
+    
+    <label class="md-nav__link" for="nav-10-1">
+      Application Structure and Behavior
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-1">
+        Application Structure and Behavior
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../application/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../application/channel/" title="Startup & Initialization" class="md-nav__link">
+      Startup & Initialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../application/configure/" title="Environment Configuration" class="md-nav__link">
+      Environment Configuration
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../application/structure/" title="Application Structure" class="md-nav__link">
+      Application Structure
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../application/threading/" title="Multi-threading" class="md-nav__link">
+      Multi-threading
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-2" type="checkbox" id="nav-10-2">
+    
+    <label class="md-nav__link" for="nav-10-2">
+      Handling HTTP Requests
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-2">
+        Handling HTTP Requests
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
+      Request and Response Objects; Serialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/controller/" title="Handling Requests: Fundamentals" class="md-nav__link">
+      Handling Requests: Fundamentals
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/routing/" title="Routing" class="md-nav__link">
+      Routing
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/resource_controller/" title="Request Binding with Resource Controllers" class="md-nav__link">
+      Request Binding with Resource Controllers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/serving_files/" title="Serving Files and Caching" class="md-nav__link">
+      Serving Files and Caching
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../http/websockets/" title="Websockets" class="md-nav__link">
+      Websockets
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-3" type="checkbox" id="nav-10-3">
+    
+    <label class="md-nav__link" for="nav-10-3">
+      Databases and ORM
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-3">
+        Databases and ORM
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/connecting/" title="Connecting to a Database" class="md-nav__link">
+      Connecting to a Database
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/modeling_data/" title="Modeling Data" class="md-nav__link">
+      Modeling Data
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
+      Storage, Serialization and Deserialization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/executing_queries/" title="Executing Queries" class="md-nav__link">
+      Executing Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/advanced_queries/" title="Advanced Queries" class="md-nav__link">
+      Advanced Queries
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/transactions/" title="Transactions" class="md-nav__link">
+      Transactions
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/validations/" title="Validations" class="md-nav__link">
+      Validations
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/db_tools/" title="Migration and Tooling" class="md-nav__link">
+      Migration and Tooling
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/json_columns/" title="JSON Document Storage" class="md-nav__link">
+      JSON Document Storage
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../db/transactions/" title="Transactions" class="md-nav__link">
+      Transactions
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-4" type="checkbox" id="nav-10-4">
+    
+    <label class="md-nav__link" for="nav-10-4">
+      Authorization and OAuth 2.0
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-4">
+        Authorization and OAuth 2.0
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/server/" title="Setting up Authorization" class="md-nav__link">
+      Setting up Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/authorizer/" title="Protecting Routes" class="md-nav__link">
+      Protecting Routes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/controllers/" title="Issuing Access Tokens" class="md-nav__link">
+      Issuing Access Tokens
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/cli/" title="Managing OAuth 2.0 Clients" class="md-nav__link">
+      Managing OAuth 2.0 Clients
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/auth_scopes/" title="OAuth 2.0 Scoping" class="md-nav__link">
+      OAuth 2.0 Scoping
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../auth/what_is_oauth/" title="What is OAuth 2.0?" class="md-nav__link">
+      What is OAuth 2.0?
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-5" type="checkbox" id="nav-10-5">
+    
+    <label class="md-nav__link" for="nav-10-5">
+      Development and Testing
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-5">
+        Development and Testing
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/tests/" title="Writing Tests" class="md-nav__link">
+      Writing Tests
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/mixins/" title="Testing with the ORM and OAuth 2.0" class="md-nav__link">
+      Testing with the ORM and OAuth 2.0
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/debugger/" title="Using the Debugger" class="md-nav__link">
+      Using the Debugger
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/clients/" title="Developing Client Applications" class="md-nav__link">
+      Developing Client Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../testing/mock/" title="Mocking Services" class="md-nav__link">
+      Mocking Services
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-6" type="checkbox" id="nav-10-6">
+    
+    <label class="md-nav__link" for="nav-10-6">
+      Deployment
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-6">
+        Deployment
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_local/" title="Deploy Locally" class="md-nav__link">
+      Deploy Locally
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_docker/" title="Deploying with Docker and Kubernetes" class="md-nav__link">
+      Deploying with Docker and Kubernetes
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_heroku/" title="Deploy on Heroku" class="md-nav__link">
+      Deploy on Heroku
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/deploy_aws/" title="Deploy on AWS" class="md-nav__link">
+      Deploy on AWS
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../deploy/script/" title="Deploying without aqueduct serve" class="md-nav__link">
+      Deploying without aqueduct serve
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-7" type="checkbox" id="nav-10-7">
+    
+    <label class="md-nav__link" for="nav-10-7">
+      OpenAPI Documentation
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-7">
+        OpenAPI Documentation
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/cli/" title="Creating an OpenAPI Document" class="md-nav__link">
+      Creating an OpenAPI Document
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/components/" title="Documenting Components" class="md-nav__link">
+      Documenting Components
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/endpoint/" title="Documenting Endpoint Controllers" class="md-nav__link">
+      Documenting Endpoint Controllers
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../openapi/middleware/" title="Documenting Middleware Controllers" class="md-nav__link">
+      Documenting Middleware Controllers
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-8" type="checkbox" id="nav-10-8">
+    
+    <label class="md-nav__link" for="nav-10-8">
+      Command-line Tooling
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
+      <label class="md-nav__title" for="nav-10-8">
+        Command-line Tooling
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/create/" title="Creating Applications" class="md-nav__link">
+      Creating Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/running/" title="Running Applications" class="md-nav__link">
+      Running Applications
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../cli/document/" title="Generating an OpenAPI/Swagger Specification" class="md-nav__link">
+      Generating an OpenAPI/Swagger Specification
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="toc">
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#the-basics-of-oauth-20" title="The Basics of OAuth 2.0" class="md-nav__link">
+    The Basics of OAuth 2.0
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-oauth-20-creating-a-user-type" title="Setting up OAuth 2.0: Creating a User Type" class="md-nav__link">
+    Setting up OAuth 2.0: Creating a User Type
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-oauth-20-authserver-and-its-delegate" title="Setting up OAuth 2.0: AuthServer and its Delegate" class="md-nav__link">
+    Setting up OAuth 2.0: AuthServer and its Delegate
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-oauth-20-registering-users" title="Setting up OAuth 2.0: Registering Users" class="md-nav__link">
+    Setting up OAuth 2.0: Registering Users
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-oauth-20-authenticating-users" title="Setting up OAuth 2.0: Authenticating Users" class="md-nav__link">
+    Setting up OAuth 2.0: Authenticating Users
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#setting-up-oauth-20-securing-routes" title="Setting up OAuth 2.0: Securing Routes" class="md-nav__link">
+    Setting up OAuth 2.0: Securing Routes
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          <div class="md-content">
+            <article class="md-content__inner md-typeset">
+              
+                
+                  <a href="https://github.com/stablekernel/aqueduct/edit/master/docs/tut/oauth2.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                
+                
+                <h1 id="5-adding-authentication-and-authorization-with-oauth-20">5. Adding Authentication and Authorization with OAuth 2.0</h1>
+<p>Our <code>heroes</code> application lets anyone create or view the same set of heroes. We will continue to build on the last chapter's project, <code>heroes</code>, requiring a user to log in before viewing or creating heroes.</p>
+<div class="admonition note">
+<p class="admonition-title">We're Done With the Browser App</p>
+<p>We're at the point now where using the browser application to test our Aqueduct app gets a bit cumbersome. From here on out, we'll use <code>curl</code>, <code>aqueduct document client</code> and tests.</p>
+</div>
+<h2 id="the-basics-of-oauth-20">The Basics of OAuth 2.0</h2>
+<p><a href="https://tools.ietf.org/html/rfc6749">OAuth 2.0</a> is an authorization framework that also contains guidance on authentication. Authentication is the process of proving you are a particular user, typically through a username and password. Authorization is the process of ensuring that a user can access a particular resource or collection of resources. In our application, a user will have to be authenticated before being authorized to view or create heroes.</p>
+<p>In a simple authentication and authorization scheme, each HTTP request contains the username and password (credentials) of the user in an <code>Authorization</code> header. There are a number of security risks involved in doing this, so OAuth 2.0 takes another approach: you send your credentials once, and get a 'access token' in return. You then send this access token in each request. Because the server grants the token, it knows that you've already entered your credentials (you've <em>authenticated</em>) and it remembers who the token belongs to. It's effectively the same thing as sending your credentials each time, except that the token has a time limit and can be revoked when things go wrong.</p>
+<p>Aqueduct has a built-in OAuth 2.0 implementation that leverages the ORM. This implementation is part of the <code>aqueduct</code> package, but it is a separate library named <code>aqueduct/managed_auth</code>. It takes a few steps to set up that might be difficult to understand if you are not familiar with OAuth 2.0, but you'll get a well-tested, secure authorization implementation.</p>
+<div class="admonition note">
+<p class="admonition-title">Alternative Implementations</p>
+<p>Using <code>package:aqueduct/managed_auth</code> is preferable in most cases. In some cases, you may wish to store authorization information in different database system or use token formats like <a href="https://jwt.io">JWT</a>. This is a complex topic that requires significant testing efforts, and is outside the scope of this tutorial.</p>
+</div>
+<h2 id="setting-up-oauth-20-creating-a-user-type">Setting up OAuth 2.0: Creating a User Type</h2>
+<p>Our application needs some concept of a 'user' - a person who logs into the application to manage heroes. This user will have a username and password. In a later exercise, a user will also have a list of heroes that belong to them. Create a new file <code>model/user.dart</code> and enter the following code:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:aqueduct/managed_auth.dart&#39;</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">&#39;package:heroes/heroes.dart&#39;</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">&#39;package:heroes/model/hero.dart&#39;</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span><span class="p">,</span> <span class="n">ManagedAuthResourceOwner</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="p">{}</span>
+
+<span class="kd">class</span> <span class="nc">_User</span> <span class="kd">extends</span> <span class="n">ResourceOwnerTableDefinition</span> <span class="p">{}</span>
+</pre></div>
+
+
+<p>The imported library <code>package:aqueduct/managed_auth.dart</code> contains types that use the ORM to store users, tokens and other OAuth 2.0 related data. One of those types is <code>ResourceOwnerTableDefinition</code>, the superclass of our user's table definition. This type contains all of the required fields that Aqueduct needs to implement authentication.</p>
+<div class="admonition tip">
+<p class="admonition-title">Resource Owners</p>
+<p>A <em>resource owner</em> is a more general term for a 'user' that comes from the OAuth 2.0 specification. In the framework, you'll see types and variables using some variant of <em>resource owner</em>, but for all intents and purposes, you can consider this a 'user'.</p>
+</div>
+<p>If you are curious, <code>ResourceOwnerTableDefinition</code> looks like this:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">ResourceOwnerTableDefinition</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">primaryKey</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">Column</span><span class="p">(</span><span class="nl">unique:</span> <span class="kc">true</span><span class="p">,</span> <span class="nl">indexed:</span> <span class="kc">true</span><span class="p">)</span>
+  <span class="kt">String</span> <span class="n">username</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">Column</span><span class="p">(</span><span class="nl">omitByDefault:</span> <span class="kc">true</span><span class="p">)</span>
+  <span class="kt">String</span> <span class="n">hashedPassword</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">Column</span><span class="p">(</span><span class="nl">omitByDefault:</span> <span class="kc">true</span><span class="p">)</span>
+  <span class="kt">String</span> <span class="n">salt</span><span class="p">;</span>
+
+  <span class="n">ManagedSet</span><span class="o">&lt;</span><span class="n">ManagedAuthToken</span><span class="o">&gt;</span> <span class="n">tokens</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Because these fields are in <code>User</code>'s table definition, our <code>User</code> table has all of these database columns.</p>
+<div class="admonition note">
+<p class="admonition-title">ManagedAuthResourceOwner</p>
+<p>Note that <code>User</code> implements <code>ManagedAuthResourceOwner&lt;_User&gt;</code> - this is a requirement of any OAuth 2.0 resource owner type when using <code>package:aqueduct/managed_auth</code>.</p>
+</div>
+<h2 id="setting-up-oauth-20-authserver-and-its-delegate">Setting up OAuth 2.0: AuthServer and its Delegate</h2>
+<p>Now that we have a user, we need some way to create new users and authenticate them. Authentication is fairly tricky, especially in OAuth 2.0, so there is a service object that does the hard part for us called an <code>AuthServer</code>. This type has all of the logic needed to authentication and authorize users. For example, an <code>AuthServer</code> can generate a new token if given valid user credentials.</p>
+<p>In <code>channel.dart</code>, add the following imports to the top of your file:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:aqueduct/managed_auth.dart&#39;</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">&#39;package:heroes/model/user.dart&#39;</span><span class="p">;</span>
+</pre></div>
+
+
+<p>Then, declare a new <code>authServer</code> property in your channel and initialize it in <code>prepare</code>:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">HeroesChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
+  <span class="n">ManagedContext</span> <span class="n">context</span><span class="p">;</span>
+
+  <span class="c1">// Add this field</span>
+  <span class="n">AuthServer</span> <span class="n">authServer</span><span class="p">;</span>
+
+  <span class="n">Future</span> <span class="n">prepare</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="n">logger</span><span class="p">.</span><span class="n">onRecord</span><span class="p">.</span><span class="n">listen</span><span class="p">((</span><span class="n">rec</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">rec</span><span class="s2"> </span><span class="si">${</span><span class="n">rec</span><span class="p">.</span><span class="n">error</span> <span class="o">??</span> <span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2"> </span><span class="si">${</span><span class="n">rec</span><span class="p">.</span><span class="n">stackTrace</span> <span class="o">??</span> <span class="s2">&quot;&quot;</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">));</span>
+
+    <span class="kd">final</span> <span class="n">config</span> <span class="o">=</span> <span class="n">HeroConfig</span><span class="p">(</span><span class="n">options</span><span class="p">.</span><span class="n">configurationFilePath</span><span class="p">);</span>
+    <span class="kd">final</span> <span class="n">dataModel</span> <span class="o">=</span> <span class="n">ManagedDataModel</span><span class="p">.</span><span class="n">fromCurrentMirrorSystem</span><span class="p">();</span>
+    <span class="kd">final</span> <span class="n">persistentStore</span> <span class="o">=</span> <span class="n">PostgreSQLPersistentStore</span><span class="p">.</span><span class="n">fromConnectionInfo</span><span class="p">(</span>
+      <span class="n">config</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">username</span><span class="p">,</span>
+      <span class="n">config</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">password</span><span class="p">,</span>
+      <span class="n">config</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">host</span><span class="p">,</span>
+      <span class="n">config</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">port</span><span class="p">,</span>
+      <span class="n">config</span><span class="p">.</span><span class="n">database</span><span class="p">.</span><span class="n">databaseName</span><span class="p">);</span>
+
+    <span class="n">context</span> <span class="o">=</span> <span class="n">ManagedContext</span><span class="p">(</span><span class="n">dataModel</span><span class="p">,</span> <span class="n">persistentStore</span><span class="p">);</span>
+
+    <span class="c1">// Add these two lines:</span>
+    <span class="kd">final</span> <span class="n">authStorage</span> <span class="o">=</span> <span class="n">ManagedAuthDelegate</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+    <span class="n">authServer</span> <span class="o">=</span> <span class="n">AuthServer</span><span class="p">(</span><span class="n">authStorage</span><span class="p">);</span>
+  <span class="p">}</span>
+  <span class="p">...</span>
+</pre></div>
+
+
+<p>While an <code>AuthServer</code> handles the logic of authentication and authorization, it doesn't know how to store or fetch the data it uses for those tasks. Instead, it relies on a <em>delegate</em> object to handle storing and fetching data from a database. In our application, we use <code>ManagedAuthDelegate&lt;T&gt;</code> - from <code>package:aqueduct/managed_auth</code> - as the delegate. This type uses the ORM for these tasks; the type argument must be our application's user object.</p>
+<div class="admonition tip">
+<p class="admonition-title">Delegation</p>
+<p>Delegation is a design pattern where an object has multiple callbacks that are grouped into an interface. Instead of defining a closure for each callback, a type implements methods that get called by the delegating object. It is a way of organizing large amounts of related callbacks into a tidy class.</p>
+</div>
+<p>By importing <code>aqueduct/managed_auth</code>, we've added a few more managed objects to our application (to store tokens and other authentication data) and we also have a new <code>User</code> managed object. It's a good time to run a database migration. From your project directory, run the following commands:</p>
+<div class="codehilite"><pre><span></span>aqueduct db generate
+aqueduct db upgrade --connect postgres://heroes_user:password@localhost:5432/heroes
+</pre></div>
+
+
+<h2 id="setting-up-oauth-20-registering-users">Setting up OAuth 2.0: Registering Users</h2>
+<p>Now that we have the concept of a user, our database and application are set up to handle authentication, we can start creating new users. Let's create a new controller for registering users. This controller will accept <code>POST</code> requests that contain a username and password in the body. It will insert a new user into the database and securely hash the user's password.</p>
+<p>Before we create this controller, there is something we need to consider: our registration endpoint will require the user's password, but we store the user's password as a cryptographic hash. This prevents someone with access to your database from knowing a user's password. In order to bind the body of a request to a <code>User</code> object, it needs a password field, but we don't want to store the password in the database without first hashing it.</p>
+<p>We can accomplish this with <em>transient properties</em>. A transient property is a property of a managed object that isn't stored in the database. They are declared in the managed object subclass instead of the table definition. By default, a transient property is not read from a request body or encoded into a response body; unless we add the <code>Serialize</code> annotation to it. Add this property to your <code>User</code> type:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span><span class="p">,</span> <span class="n">ManagedAuthResourceOwner</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">Serialize</span><span class="p">(</span><span class="nl">input:</span> <span class="kc">true</span><span class="p">,</span> <span class="nl">output:</span> <span class="kc">false</span><span class="p">)</span>
+  <span class="kt">String</span> <span class="n">password</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>This declares that a <code>User</code> has a transient property <code>password</code> that can be read on input (from a request body), but is not sent on output (to a response body). We don't have to run a database migration because transient properties are not stored in a database.</p>
+<p>Now, create the file <code>controller/register_controller.dart</code> and enter the following code:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;dart:async&#39;</span><span class="p">;</span>
+
+<span class="k">import</span> <span class="s1">&#39;package:aqueduct/aqueduct.dart&#39;</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">&#39;package:heroes/model/user.dart&#39;</span><span class="p">;</span>
+
+<span class="kd">class</span> <span class="nc">RegisterController</span> <span class="kd">extends</span> <span class="n">ResourceController</span> <span class="p">{</span>
+  <span class="n">RegisterController</span><span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="n">context</span><span class="p">,</span> <span class="k">this</span><span class="p">.</span><span class="n">authServer</span><span class="p">);</span>
+
+  <span class="kd">final</span> <span class="n">ManagedContext</span> <span class="n">context</span><span class="p">;</span>
+  <span class="kd">final</span> <span class="n">AuthServer</span> <span class="n">authServer</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">Operation</span><span class="p">.</span><span class="n">post</span><span class="p">()</span>
+  <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">createUser</span><span class="p">(</span><span class="err">@</span><span class="n">Bind</span><span class="p">.</span><span class="n">body</span><span class="p">()</span> <span class="n">User</span> <span class="n">user</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="c1">// Check for required parameters before we spend time hashing</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">username</span> <span class="o">==</span> <span class="kc">null</span> <span class="o">||</span> <span class="n">user</span><span class="p">.</span><span class="n">password</span> <span class="o">==</span> <span class="kc">null</span><span class="p">)</span> <span class="p">{</span>
+      <span class="k">return</span> <span class="n">Response</span><span class="p">.</span><span class="n">badRequest</span><span class="p">(</span>
+        <span class="nl">body:</span> <span class="p">{</span><span class="s2">&quot;error&quot;</span><span class="o">:</span> <span class="s2">&quot;username and password required.&quot;</span><span class="p">});</span>
+    <span class="p">}</span>
+
+    <span class="n">user</span>
+      <span class="p">..</span><span class="n">salt</span> <span class="o">=</span> <span class="n">AuthUtility</span><span class="p">.</span><span class="n">generateRandomSalt</span><span class="p">()</span>
+      <span class="p">..</span><span class="n">hashedPassword</span> <span class="o">=</span> <span class="n">authServer</span><span class="p">.</span><span class="n">hashPassword</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">password</span><span class="p">,</span> <span class="n">user</span><span class="p">.</span><span class="n">salt</span><span class="p">);</span>
+
+    <span class="k">return</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">Query</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="nl">values:</span> <span class="n">user</span><span class="p">).</span><span class="n">insert</span><span class="p">());</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>This controller takes POST requests that contain a user. A user has many fields (username, password, hashedPassword, salt), but we will calculate the latter two and only require that the request contain the first two. The controller generates a salt and hash of the password before storing it in the database. In <code>channel.dart</code>, let's link this controller - don't forget to import it!</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:heroes/controller/register_controller.dart&#39;</span><span class="p">;</span>
+
+<span class="p">...</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Controller</span> <span class="kd">get</span> <span class="n">entryPoint</span> <span class="p">{</span>
+    <span class="kd">final</span> <span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="p">();</span>
+
+    <span class="n">router</span>
+      <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/heroes/[:id]&#39;</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="n">HeroesController</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
+
+      <span class="n">router</span>
+      <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/register&#39;</span><span class="p">)</span>
+      <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="n">RegisterController</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">authServer</span><span class="p">));</span>
+
+    <span class="k">return</span> <span class="n">router</span><span class="p">;</span>
+  <span class="p">}</span>
+<span class="p">}</span>    
+</pre></div>
+
+
+<p>Let's run the application and create a new user using <code>curl</code> from the command-line. (We'll specify <code>-n1</code> to designate using one isolate and speed up startup.)</p>
+<div class="codehilite"><pre><span></span>aqueduct serve -n1
+</pre></div>
+
+
+<p>Then, issue a request to your server:</p>
+<div class="codehilite"><pre><span></span><span class="n">curl</span> <span class="o">-</span><span class="n">X</span> <span class="n">POST</span> <span class="nl">http:</span><span class="c1">//localhost:8888/register -H &#39;Content-Type: application/json&#39; -d &#39;{&quot;username&quot;:&quot;bob&quot;, &quot;password&quot;:&quot;password&quot;}&#39;</span>
+</pre></div>
+
+
+<p>You'll get back the new user object and its username:</p>
+<div class="codehilite"><pre><span></span>{&quot;id&quot;:1,&quot;username&quot;:&quot;bob&quot;}
+</pre></div>
+
+
+<h2 id="setting-up-oauth-20-authenticating-users">Setting up OAuth 2.0: Authenticating Users</h2>
+<p>Now that we have a user with a password, we can can create an endpoint that takes user credentials and returns an access token. The good news is that this controller already exists in Aqueduct, you just have to hook it up to a route. Update <code>entryPoint</code> in <code>channel.dart</code> to add an <code>AuthController</code> for the route <code>/auth/token</code>:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">override</span>
+<span class="n">Controller</span> <span class="kd">get</span> <span class="n">entryPoint</span> <span class="p">{</span>
+  <span class="kd">final</span> <span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="p">();</span>
+
+  <span class="c1">// add this route</span>
+  <span class="n">router</span>
+    <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/auth/token&#39;</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="n">AuthController</span><span class="p">(</span><span class="n">authServer</span><span class="p">));</span>
+
+  <span class="n">router</span>
+    <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/heroes/[:id]&#39;</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="n">HeroesController</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
+
+  <span class="n">router</span>
+    <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/register&#39;</span><span class="p">)</span>
+    <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="n">RegisterController</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">authServer</span><span class="p">));</span>
+
+  <span class="k">return</span> <span class="n">router</span><span class="p">;</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>An <code>AuthController</code> follows the OAuth 2.0 specification for granting access tokens when given valid user credentials. To understand how a request to this endpoint must be structured, we need to discuss OAuth 2.0 <em>clients</em>. In OAuth 2.0, a client is an application that is allowed to access your server on behalf of a user. A client can be a browser application, a mobile application, another server, a voice assistant, etc. A client always has an identifier string, typically something like 'com.stablekernel.account_app.mobile'.</p>
+<p>When authenticating, a user is always authenticated through a client. This client information must be attached to every authentication request, and the server must validate that the client had been previously registered. Therefore, we need to register a new client for our application. A client is stored in our application's database using the <code>aqueduct auth add-client</code> CLI. Run the following command from your project directory:</p>
+<div class="codehilite"><pre><span></span>aqueduct auth add-client --id com.heroes.tutorial --connect postgres://heroes_user:password@localhost:5432/heroes
+</pre></div>
+
+
+<div class="admonition note">
+<p class="admonition-title">OAuth 2.0 Clients</p>
+<p>A client must have an identifier, but it may also have a secret, redirect URI and list of allowed scopes. See the <a href="../../auth/">guides on OAuth 2.0</a> for how these options impacts authentication. Most notably, a client identifier must have a secret to issue a <em>refresh token</em>. Clients are stored in an application's database.</p>
+</div>
+<p>This will insert a new row into an OAuth 2.0 client table created by our last round of database migration and allow us to make authentication requests. An authentication request must meet all of the following criteria:</p>
+<ul>
+<li>the client identifier (and secret, if it exists) are included as a basic <code>Authorization</code> header.</li>
+<li>the username and password are included in the request body</li>
+<li>the key-value <code>grant_type=password</code> is included in the request body</li>
+<li>the request body content-type is <code>application/x-www-form-urlencoded</code>; this means the request body is effectively a query string (e.g. <code>username=bob&amp;password=pw&amp;grant_type=password</code>)</li>
+</ul>
+<p>In Dart code, this would like this:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:http/http.dart&#39;</span> <span class="k">as</span> <span class="n">http</span><span class="p">;</span> <span class="c1">// Must include http package in your pubspec.yaml</span>
+
+<span class="kd">final</span> <span class="n">clientID</span> <span class="o">=</span> <span class="s2">&quot;com.heroes.tutorial&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">body</span> <span class="o">=</span> <span class="s2">&quot;username=bob&amp;password=password&amp;grant_type=password&quot;</span><span class="p">;</span>
+
+<span class="c1">// Note the trailing colon (:) after the clientID.</span>
+<span class="c1">// A client identifier secret would follow this, but there is no secret, so it is the empty string.</span>
+<span class="kd">final</span> <span class="n">clientCredentials</span> <span class="o">=</span> <span class="n">Base64Encoder</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">clientID</span><span class="s2">:&quot;</span><span class="p">);</span>
+
+<span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">http</span><span class="p">.</span><span class="n">post</span><span class="p">(</span>
+  <span class="s2">&quot;https://stablekernel.com/auth/token&quot;</span><span class="p">,</span>
+  <span class="nl">headers:</span> <span class="p">{</span>
+    <span class="s2">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s2">&quot;application/x-www-form-urlencoded&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;Authorization&quot;</span><span class="o">:</span> <span class="s2">&quot;Basic </span><span class="si">$</span><span class="n">clientCredentials</span><span class="s2">&quot;</span>
+  <span class="p">},</span>
+  <span class="nl">body:</span> <span class="n">body</span><span class="p">);</span>
+</pre></div>
+
+
+<p>You can execute that code or you can use the following <code>curl</code>:</p>
+<div class="codehilite"><pre><span></span>curl -X POST http://localhost:8888/auth/token -H &#39;Authorization: Basic Y29tLmhlcm9lcy50dXRvcmlhbDo=&#39; -H &#39;Content-Type: application/x-www-form-urlencoded&#39; -d &#39;username=bob&amp;password=password&amp;grant_type=password&#39;
+</pre></div>
+
+
+<p>If you were successful, you'll get the following response containing an access token:</p>
+<div class="codehilite"><pre><span></span>{&quot;access_token&quot;:&quot;687PWKFHRTQ9MveQ2dKvP95D4cWie1gh&quot;,&quot;token_type&quot;:&quot;bearer&quot;,&quot;expires_in&quot;:86399}
+</pre></div>
+
+
+<p>Hang on to this access token, we'll use it in a moment.</p>
+<h2 id="setting-up-oauth-20-securing-routes">Setting up OAuth 2.0: Securing Routes</h2>
+<p>Now that we can create and authenticate users, we can protect our heroes from anonymous users by requiring an access token for hero requests. In <code>channel.dart</code>, link an <code>Authorizer</code> in the middle of the <code>/heroes</code> channel:</p>
+<div class="codehilite"><pre><span></span><span class="n">router</span>
+  <span class="p">.</span><span class="n">route</span><span class="p">(</span><span class="s1">&#39;/heroes/[:id]&#39;</span><span class="p">)</span>
+  <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="n">Authorizer</span><span class="p">.</span><span class="n">bearer</span><span class="p">(</span><span class="n">authServer</span><span class="p">))</span>
+  <span class="p">.</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="n">HeroesController</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
+</pre></div>
+
+
+<p>An <code>Authorizer</code> protects a channel from unauthorized requests by validating the <code>Authorization</code> header of a request. When created with <code>Authorizer.bearer</code>, it ensures that the authorization header contains a valid access token. Restart your application and try and access the <code>/heroes</code> endpoint without including any authorization:</p>
+<div class="codehilite"><pre><span></span>curl -X GET --verbose http://localhost:8080/heroes
+</pre></div>
+
+
+<p>You'll get a 401 Unauthorized response. Now, include your access token in a bearer authorization header (note that your token will be different):</p>
+<div class="codehilite"><pre><span></span>curl -X GET http://localhost:8080/heroes -H &#39;Authorization: Bearer 687PWKFHRTQ9MveQ2dKvP95D4cWie1gh&#39;
+</pre></div>
+
+
+<p>You'll get back your list of heroes!</p>
+<div class="admonition note">
+<p class="admonition-title">Other Uses of Authorizer</p>
+<p>An <code>Authorizer</code> can validate access token scopes and basic authorization credentials. You'll see examples of these in a later exercise.</p>
+</div>
+                
+                  
+                
+              
+              
+                
+              
+            </article>
+          </div>
+        </div>
+      </main>
+      
+        
+<footer class="md-footer">
+  
+    <div class="md-footer-nav">
+      <nav class="md-footer-nav__inner md-grid">
+        
+          <a href="../writing-tests/" title="4. Configuration and Testing" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
+            </div>
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Previous
+                </span>
+                4. Configuration and Testing
+              </span>
+            </div>
+          </a>
+        
+        
+          <a href="../../application/" title="Overview" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+            <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
+              <span class="md-flex__ellipsis">
+                <span class="md-footer-nav__direction">
+                  Next
+                </span>
+                Overview
+              </span>
+            </div>
+            <div class="md-flex__cell md-flex__cell--shrink">
+              <i class="md-icon md-icon--arrow-forward md-footer-nav__button"></i>
+            </div>
+          </a>
+        
+      </nav>
+    </div>
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-footer-copyright">
+        
+          <div class="md-footer-copyright__highlight">
+            Built by stable|kernel
+          </div>
+        
+        powered by
+        <a href="http://www.mkdocs.org" title="MkDocs">MkDocs</a>
+        and
+        <a href="http://squidfunk.github.io/mkdocs-material/" title="Material for MkDocs">
+          Material for MkDocs</a>
+      </div>
+      
+        
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    
+      <script src="../../assets/javascripts/application-3700c4cc12.js"></script>
+      
+      
+      <script>app.initialize({url:{base:"../.."}})</script>
+      
+    
+    
+      
+      <script>!function(e,t,a,n,o,c,i){e.GoogleAnalyticsObject=o,e[o]=e[o]||function(){(e[o].q=e[o].q||[]).push(arguments)},e[o].l=1*new Date,c=t.createElement(a),i=t.getElementsByTagName(a)[0],c.async=1,c.src=n,i.parentNode.insertBefore(c,i)}(window,document,"script","https://www.google-analytics.com/analytics.js","ga"),ga("create","UA-41269877-2","aqueduct.io"),ga("set","anonymizeIp",!0),ga("send","pageview");var links=document.getElementsByTagName("a");Array.prototype.map.call(links,function(e){e.host!=document.location.host&&e.addEventListener("click",function(){var t=e.getAttribute("data-md-action")||"follow";ga("send","event","outbound",t,e.href)})});var query=document.forms.search.query;query.addEventListener("blur",function(){if(this.value){var e=document.location.pathname;ga("send","pageview",e+"?q="+this.value)}})</script>
+      
+    
+  </body>
+</html>
