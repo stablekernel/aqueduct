@@ -1099,6 +1099,7 @@ class _Bottom {
 }
 
 class OverrideField extends ManagedObject<_OverrideField> implements _OverrideField {
+  @override
   String field;
 }
 class _OverrideField {

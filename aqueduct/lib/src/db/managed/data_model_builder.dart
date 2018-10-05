@@ -1,11 +1,6 @@
-import 'dart:mirrors';
-
 import 'package:aqueduct/src/db/managed/entity_builder.dart';
-import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
-import 'entity_mirrors.dart';
 import 'managed.dart';
-import 'relationship_type.dart';
 
 class DataModelBuilder {
   DataModelBuilder(ManagedDataModel dataModel, List<Type> instanceTypes) {

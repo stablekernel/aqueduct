@@ -2,10 +2,9 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/attributes.dart';
 import 'package:aqueduct/src/db/managed/entity_builder.dart';
+import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
-import 'package:aqueduct/src/db/managed/validation/managed.dart';
-import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 /*

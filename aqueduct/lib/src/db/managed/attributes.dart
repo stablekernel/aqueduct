@@ -17,9 +17,12 @@ import 'managed.dart';
 ///           String email;
 ///         }
 class Table {
-  /// Annotation for table definition.
+  /// Default constructor.
   ///
-  /// See also [Table.unique].
+  /// If [name] is provided, the name of the underlying table will be its value. Otherwise,
+  /// the name of the underlying table matches the name of the table definition class.
+  ///
+  /// See also [Table.unique] for the behavior of [uniquePropertySet].
   const Table({this.name, this.uniquePropertySet});
 
   /// Configures each instance of a table definition to be unique for the combination of [properties].

@@ -151,7 +151,6 @@ class ManagedEntity implements APIComponentDocumenter {
 
   String _tableName;
   List<String> _defaultProperties;
-  Map<String, ManagedAttributeDescription> _attributes;
 
   /// Derived from this' [tableName].
   @override
