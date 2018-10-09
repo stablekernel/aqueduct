@@ -11,8 +11,8 @@ void main() {
     ManagedContext context;
     ManagedDataModel dataModel;
     setUp(() {
-      dataModel =
-          ManagedDataModel([User, Item, Manager, EnumObject, DocumentObject]);
+      dataModel = ManagedDataModel(
+          [User, Item, Manager, EnumObject, DocumentObject, AnnotatedTable]);
       context = ManagedContext(dataModel, DefaultPersistentStore());
     });
 
@@ -189,6 +189,18 @@ void main() {
       final entity = dataModel.entityForType(DocumentObject);
       expect(entity.attributes["document"].type.kind,
           ManagedPropertyType.document);
+    });
+
+    test(
+        "Table names are derived from table definition type, can be overridden by annotation",
+        () {
+      expect(dataModel.entityForType(User).tableName, "_User");
+      expect(dataModel.entityForType(Item).tableName, "_Item");
+      expect(dataModel.entityForType(Manager).tableName, "_Manager");
+      expect(dataModel.entityForType(EnumObject).tableName, "_EnumObject");
+      expect(
+          dataModel.entityForType(DocumentObject).tableName, "_DocumentObject");
+      expect(dataModel.entityForType(AnnotatedTable).tableName, "foobar");
     });
   });
 
@@ -367,7 +379,9 @@ void main() {
       ManagedDataModel([InvalidModel]);
       expect(true, false);
     } on ManagedDataModelError catch (e) {
-      expect(e.message, contains("Invalid declaration '_InvalidModel.uri'"));
+      expect(e.message, contains("'_InvalidModel'"));
+      expect(e.message, contains("'uri'"));
+      expect(e.message, contains("unsupported type"));
     }
   });
 
@@ -377,8 +391,9 @@ void main() {
       ManagedDataModel([InvalidTransientModel]);
       expect(true, false);
     } on ManagedDataModelError catch (e) {
-      expect(e.message,
-          startsWith("Invalid declaration 'InvalidTransientModel.uri'"));
+      expect(e.message, contains("'InvalidTransientModel'"));
+      expect(e.message, contains("'uri'"));
+      expect(e.message, contains("unsupported type"));
     }
   });
 
@@ -404,9 +419,9 @@ void main() {
         var _ = ManagedDataModel([InvalidCyclicLeft, InvalidCyclicRight]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("InvalidCyclicLeft"));
-        expect(e.message, contains("InvalidCyclicRight"));
-        expect(e.message, contains("but only one side"));
+        expect(e.message, contains("_InvalidCyclicLeft"));
+        expect(e.message, contains("_InvalidCyclicRight"));
+        expect(e.message, contains("but only one can"));
       }
     });
 
@@ -421,7 +436,9 @@ void main() {
         expect(e.message, contains("rightRef"));
         expect(e.message, contains("leftRef"));
       }
-    });
+    },
+        skip:
+            "Temporarily skipping because this feature will become available shortly");
 
     test("Model with Relationship and Column fails compilation", () {
       try {
@@ -435,13 +452,12 @@ void main() {
     });
 
     test("Managed objects with missing inverses fail compilation", () {
-      // This needs to find the probable property
       try {
         ManagedDataModel([MissingInverse1, MissingInverseWrongSymbol]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
         expect(e.message, contains("has no inverse property"));
-        expect(e.message, contains("'inverse'"));
+        expect(e.message, contains("'_MissingInverseWrongSymbol'"));
         expect(e.message, contains("'has'"));
       }
 
@@ -449,7 +465,7 @@ void main() {
         ManagedDataModel([MissingInverse2, MissingInverseAbsent]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("has no inverse property"));
+        expect(e.message, contains("'_MissingInverse2'"));
         expect(e.message, contains("'inverseMany'"));
       }
     });
@@ -459,8 +475,9 @@ void main() {
         ManagedDataModel([DupInverse, DupInverseHas]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("has more than one inverse property"));
-        expect(e.message, contains("foo,bar"));
+        expect(e.message, contains("has multiple relationship properties"));
+        expect(e.message, contains("'inverse'"));
+        expect(e.message, contains("foo, bar"));
       }
     });
   });
@@ -646,7 +663,6 @@ class TransientTest extends ManagedObject<_TransientTest>
     text = str.split(" ").last;
   }
 
-
   @Serialize(input: true, output: false)
   set inputOnly(String s) {
     text = s;
@@ -654,6 +670,7 @@ class TransientTest extends ManagedObject<_TransientTest>
 
   @Serialize(input: false, output: true)
   String get outputOnly => text;
+
   set outputOnly(String s) {
     text = s;
   }
@@ -670,6 +687,7 @@ class TransientTest extends ManagedObject<_TransientTest>
 
   @Serialize()
   String get bothButOnlyOnOne => text;
+
   set bothButOnlyOnOne(String s) {
     text = s;
   }
@@ -685,6 +703,7 @@ class TransientTest extends ManagedObject<_TransientTest>
 
   @Serialize()
   String get bothOverQualified => text;
+
   @Serialize()
   set bothOverQualified(String s) {
     text = s;
@@ -1090,4 +1109,12 @@ class _DocumentObject {
   int id;
 
   Document document;
+}
+
+class AnnotatedTable extends ManagedObject<_AnnotatedTable> {}
+
+@Table(name: "foobar")
+class _AnnotatedTable {
+  @primaryKey
+  int id;
 }

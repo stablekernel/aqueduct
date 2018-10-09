@@ -94,6 +94,7 @@ class ManagedAuthToken extends ManagedObject<_ManagedAuthToken>
   }
 }
 
+@Table(name: "_authtoken")
 class _ManagedAuthToken {
   /// A primary key identifier.
   @primaryKey
@@ -148,8 +149,6 @@ class _ManagedAuthToken {
   /// The value 'bearer'.
   @Column(indexed: true, nullable: true)
   String type;
-
-  static String tableName() => "_authtoken";
 }
 
 /// Represent OAuth 2.0 clients.
@@ -183,6 +182,7 @@ class ManagedAuthClient extends ManagedObject<_ManagedAuthClient>
   }
 }
 
+@Table(name: "_authclient")
 class _ManagedAuthClient {
   /// The client identifier of this client.
   ///
@@ -218,8 +218,6 @@ class _ManagedAuthClient {
 
   /// Tokens that have been issued for this client.
   ManagedSet<ManagedAuthToken> tokens;
-
-  static String tableName() => "_authclient";
 }
 
 /// REQUIRED: Represents an OAuth 2.0 Resource Owner database table.

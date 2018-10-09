@@ -90,7 +90,7 @@ class ManagedDataModelError extends Error {
 
   factory ManagedDataModelError.noPrimaryKey(ManagedEntity entity) {
     return ManagedDataModelError("Class '${_getPersistentClassName(entity)}'"
-        " doesn't declare a primary key property. All 'ManagedObject' subclasses "
+        " doesn't declare a primary key property or declares more than one primary key. All 'ManagedObject' subclasses "
         "must have a primary key. Usually, this means you want to add '@primaryKey int id;' "
         "to ${_getPersistentClassName(entity)}, but if you want more control over "
         "the type of primary key, declare the property as one of "
@@ -99,112 +99,95 @@ class ManagedDataModelError extends Error {
   }
 
   factory ManagedDataModelError.invalidType(
-      ManagedEntity entity, Symbol property) {
-    return ManagedDataModelError("Property '${_getName(property)}' on "
-        "'${_getPersistentClassName(entity)}'"
-        " has an unsupported type. Must be "
-        "${ManagedType.supportedDartTypes.join(", ")}"
-        ", an enum, or ManagedObject subclass (see also 'Relationship.deferred'). "
-        "If you want to store something "
-        "weird in the database, try declaring accessors in the ManagedObject subclass, "
-        "and have those set values of the properties in the table definition that are "
-        "supported.");
+      Symbol tableSymbol, Symbol propertySymbol) {
+    return ManagedDataModelError("Property '${_getName(propertySymbol)}' on "
+        "'${_getName(tableSymbol)}'"
+        " has an unsupported type. This can occur when the type cannot be stored in a database, or when"
+        " a relationship does not have a valid inverse. If this property is supposed to be a relationship, "
+        " ensure the inverse property annotation is 'Relate(#${_getName(propertySymbol)}, ...)'."
+        " If this is not supposed to be a relationship property, its type must be one of: ${ManagedType.supportedDartTypes.join(", ")}.");
   }
 
   factory ManagedDataModelError.invalidMetadata(
-      ManagedEntity entity, Symbol property, ManagedEntity destinationEntity) {
+      String tableName, Symbol property) {
     return ManagedDataModelError("Relationship '${_getName(property)}' on "
-        "'${_getPersistentClassName(entity)}' (to '${_getPersistentClassName(destinationEntity)}') "
-        "cannot both have 'Column' and 'Relationship' metadata. "
+        "'$tableName' "
+        "cannot both have 'Column' and 'Relate' metadata. "
         "To add flags for indexing or nullability to a relationship, see the constructor "
-        "for 'Relationship'.");
+        "for 'Relate'.");
   }
 
   factory ManagedDataModelError.missingInverse(
-      ManagedEntity entity,
+      String tableName,
+      String instanceName,
       Symbol property,
-      ManagedEntity destinationEntity,
+      String destinationTableName,
       Symbol expectedProperty) {
     var expectedString = "Some property";
     if (expectedProperty != null) {
       expectedString = "'${_getName(expectedProperty)}'";
     }
     return ManagedDataModelError("Relationship '${_getName(property)}' on "
-        "'${_getPersistentClassName(entity)}' has "
+        "'${tableName}' has "
         "no inverse property. Every relationship must have an inverse. "
         "$expectedString on "
-        "'${_getPersistentClassName(destinationEntity)}'"
+        "'${destinationTableName}'"
         "is supposed to exist, and it should be either a "
-        "'${_getInstanceClassName(entity)}' or"
-        "'ManagedSet<${_getInstanceClassName(entity)} >'.");
+        "'${instanceName}' or"
+        "'ManagedSet<${instanceName}>'.");
   }
 
   factory ManagedDataModelError.incompatibleDeleteRule(
-      ManagedEntity entity, Symbol property) {
+      String tableName, Symbol property) {
     return ManagedDataModelError("Relationship '${_getName(property)}' on "
-        "'${_getPersistentClassName(entity)}' "
+        "'$tableName' "
         "has both 'RelationshipDeleteRule.nullify' and 'isRequired' equal to true, which "
         "couldn't possibly be true at the same. 'isRequired' means the column "
         "can't be null and 'nullify' means the column has to be null.");
   }
 
   factory ManagedDataModelError.dualMetadata(
-      ManagedEntity entity,
+      String tableName,
       Symbol property,
-      ManagedEntity destinationEntity,
-      Symbol inverseProperty) {
+      String destinationTableName,
+      String inverseProperty) {
     return ManagedDataModelError("Relationship '${_getName(property)}' "
-        "on '${_getPersistentClassName(entity)}' "
-        "and '${_getName(inverseProperty)}' "
-        "on '${_getPersistentClassName(destinationEntity)}' "
-        "both have 'Relationship' metadata, but only one side can. "
-        "The property with 'Relationship' metadata is actually a foreign key column "
-        "in the database. The other one isn't a column, but an entire row or rows."
-        "Ask yourself which makes more sense: "
-        "\"${_getInstanceClassName(entity)}.${_getName(property)} has "
-        "${_getInstanceClassName(destinationEntity)}.${_getName(inverseProperty)}\" "
-        "or \"${_getInstanceClassName(destinationEntity)}.${_getName(inverseProperty)} has "
-        "${_getInstanceClassName(entity)}.${_getName(property)}\"? If it is the first,"
-        "keep the metadata on "
-        "${_getInstanceClassName(destinationEntity)}.${_getName(inverseProperty)} "
-        "otherwise, delete that metadata.");
+        "on '${tableName}' "
+        "and '${inverseProperty}' "
+        "on '${destinationTableName}' "
+        "both have 'Relate' metadata, but only one can. "
+        "The property with 'Relate' metadata is a foreign key column "
+        "in the database.");
   }
 
   factory ManagedDataModelError.duplicateInverse(
-      ManagedEntity entity,
-      Symbol property,
-      ManagedEntity destinationEntity,
-      List<Symbol> inversePropertyCandidates) {
-    return ManagedDataModelError("Relationship '${_getName(property)}' "
-        "on '${_getPersistentClassName(entity)}' "
-        "has more than one inverse property declared in "
-        "${_getPersistentClassName(destinationEntity)}, but can only"
-        "have one. The properties that claim to be an inverse "
-        "are ${inversePropertyCandidates.map(_getName).join(",")}.");
+      String tableName,
+      String inverseName,
+      List<String> conflictingNames) {
+    return ManagedDataModelError("Entity '${tableName}' has multiple relationship "
+      "properties that claim to be the inverse of '$inverseName'. A property may "
+      "only have one inverse. The claiming properties are: ${conflictingNames.join(", ")}.");
   }
 
   factory ManagedDataModelError.noDestinationEntity(
-      ManagedEntity entity, Symbol property) {
-    var typeMirror =
-        entity.tableDefinition.instanceMembers[property].returnType;
+      String tableName, Symbol property, Symbol expectedType) {
     return ManagedDataModelError("Relationship '${_getName(property)}' on "
-        "'${_getPersistentClassName(entity)}' expects that there is a subclass "
-        "of 'ManagedObject' named '${_getName(typeMirror.simpleName)}', "
+        "'${tableName}' expects that there is a subclass "
+        "of 'ManagedObject' named '${_getName(expectedType)}', "
         "but there isn't one. If you have declared one - and you really checked "
         "hard for typos - make sure the file it is declared in is imported appropriately.");
   }
 
   factory ManagedDataModelError.multipleDestinationEntities(
-      ManagedEntity entity,
+      String tableName,
       Symbol property,
-      List<ManagedEntity> possibleEntities) {
-    var destType =
-        entity.tableDefinition.instanceMembers[property].returnType.simpleName;
+      List<String> possibleEntities,
+      Symbol expected) {
     return ManagedDataModelError("Relationship '${_getName(property)}' on "
-        "'${_getPersistentClassName(entity)}' expects that just one "
+        "'${tableName}' expects that just one "
         "'ManagedObject' subclass uses a table definition that extends "
-        "'${_getName(destType)}. But the following implementations were found: "
-        "${possibleEntities.map(_getInstanceClassName)}. That's just "
+        "'${_getName(expected)}. But the following implementations were found: "
+        "${possibleEntities.join(",")}. That's just "
         "how it is for now.");
   }
 
@@ -226,12 +209,11 @@ class ManagedDataModelError extends Error {
   }
 
   factory ManagedDataModelError.duplicateTables(
-      ManagedEntity entity1, ManagedEntity entity2) {
+      String tableName, List<String> instanceTypes) {
     return ManagedDataModelError(
-        "Entities '${_getInstanceClassName(entity1)}' and '${_getInstanceClassName(entity2)}' "
-        "have the same table name: '${entity1.tableName}'. Rename these "
-        "tables by changing the value in their 'tableName' method or removing "
-        "the 'tableName' method altogether.");
+        "Entities ${instanceTypes.map((i) => "'$i'").join(",")} "
+        "have the same table name: '$tableName'. Rename these "
+        "the table definitions, or add a '@Table(name: ...)' annotation to the table definition.");
   }
 
   factory ManagedDataModelError.conflictingTypes(
@@ -242,17 +224,11 @@ class ManagedDataModelError extends Error {
   }
 
   factory ManagedDataModelError.cyclicReference(
-      ManagedEntity entity,
-      Symbol property,
-      ManagedEntity destinationEntity,
-      Symbol inverseProperty) {
+      String instanceTypeName,
+      String propertyName) {
     return ManagedDataModelError(
-        "Managed objects '${_getPersistentClassName(entity)}' "
-        "and '${_getPersistentClassName(destinationEntity)}' "
-        "have cyclic relationship properties. This would yield two tables "
-        "with foreign key references to eachother. Try creating "
-        "a 'ManagedObject' subclass that represents a join table between the two tables. "
-        "The offending properties are: '${_getName(property)}' and '${_getName(inverseProperty)}'");
+        "Relationship '${propertyName}' refers to its own type "
+          "('${instanceTypeName}'). This is currently illegal.");
   }
 
   factory ManagedDataModelError.invalidValidator(
@@ -262,30 +238,30 @@ class ManagedDataModelError extends Error {
   }
 
   factory ManagedDataModelError.emptyEntityUniqueProperties(
-      ManagedEntity entity) {
-    return ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
+      String tableName) {
+    return ManagedDataModelError("Type '$tableName' "
         "has empty set for unique 'Table'. Must contain two or "
         "more attributes (or belongs-to relationship properties).");
   }
 
   factory ManagedDataModelError.singleEntityUniqueProperty(
-      ManagedEntity entity, Symbol property) {
-    return ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
+      String tableName, Symbol property) {
+    return ManagedDataModelError("Type '$tableName' "
         "has only one attribute for unique 'Table'. Must contain two or "
         "more attributes (or belongs-to relationship properties). To make this property unique, "
         "add 'Column(unique: true)' to declaration of '${_getName(property)}'.");
   }
 
   factory ManagedDataModelError.invalidEntityUniqueProperty(
-      ManagedEntity entity, Symbol property) {
-    return ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
+      String tableName, Symbol property) {
+    return ManagedDataModelError("Type '${tableName}' "
         "declares '${MirrorSystem.getName(property)}' as unique in 'Table', "
         "but '${MirrorSystem.getName(property)}' is not a property of this type.");
   }
 
   factory ManagedDataModelError.relationshipEntityUniqueProperty(
-      ManagedEntity entity, Symbol property) {
-    return ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
+      String tableName, Symbol property) {
+    return ManagedDataModelError("Type '${tableName}' "
         "declares '${_getName(property)}' as unique in 'Table'. This property cannot "
         "be used to make an instance unique; only attributes or belongs-to relationships may used "
         "in this way.");

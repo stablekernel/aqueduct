@@ -24,7 +24,8 @@ void main() {
       ConstructorOverride,
       Top,
       Middle,
-      Bottom
+      Bottom,
+      OverrideField,
     ]);
     context = ManagedContext(dm, ps);
   });
@@ -1095,6 +1096,17 @@ class _Bottom {
 
   @Relate(#bottoms)
   Middle middles;
+}
+
+class OverrideField extends ManagedObject<_OverrideField> implements _OverrideField {
+  @override
+  String field;
+}
+class _OverrideField {
+  @primaryKey
+  int id;
+
+  String field;
 }
 
 T wash<T>(dynamic data) {

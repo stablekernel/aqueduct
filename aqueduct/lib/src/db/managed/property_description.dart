@@ -141,12 +141,10 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       bool nullable = false,
       bool includedInDefaultResultSet = true,
       bool autoincrement = false,
-      List<Validate> validators = const [],
-      Map<String, dynamic> enumerationValueMap})
+      List<Validate> validators = const []})
       : this.isPrimaryKey = primaryKey,
         this.defaultValue = defaultValue,
         this.transientStatus = transientStatus,
-        this.enumerationValueMap = enumerationValueMap,
         this._validators = validators,
         super(entity, name, type, declaredType,
             unique: unique,
@@ -158,7 +156,6 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   ManagedAttributeDescription.transient(ManagedEntity entity, String name,
       ManagedType type, ClassMirror declaredType, this.transientStatus)
       : this.isPrimaryKey = false,
-        this.enumerationValueMap = null,
         this.defaultValue = null,
         this._validators = [],
         super(entity, name, type, declaredType,
@@ -195,7 +192,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   ///           "option2": Options.option2
   ///          }
   ///
-  final Map<String, dynamic> enumerationValueMap;
+  Map<String, dynamic> get enumerationValueMap => type.enumerationMap;
 
   /// The validity of a transient attribute as input, output or both.
   ///
@@ -271,7 +268,32 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   @override
   String toString() {
-    return "${entity.name}.$name";
+    final flagBuffer = StringBuffer();
+    if (isPrimaryKey) {
+      flagBuffer.write("primary_key ");
+    }
+    if (isTransient) {
+      flagBuffer.write("transient ");
+    }
+    if (autoincrement) {
+      flagBuffer.write("autoincrementing ");
+    }
+    if (isUnique) {
+      flagBuffer.write("unique ");
+    }
+    if (defaultValue != null) {
+      flagBuffer.write("defaults to $defaultValue ");
+    }
+    if (isIndexed) {
+      flagBuffer.write("indexed ");
+    }
+    if (isNullable) {
+      flagBuffer.write("nullable ");
+    } else {
+      flagBuffer.write("required ");
+    }
+
+    return "- $name | $type | Flags: ${flagBuffer.toString()}";
   }
 
   @override
@@ -477,8 +499,6 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
         relTypeString = "has-a";
         break;
     }
-    return "${entity.name}.$name - "
-        "$relTypeString '${destinationEntity.name}' "
-        "(inverse: ${MirrorSystem.getName(inverseKey)})";
+    return "- $name -> '${destinationEntity.name}' | Type: $relTypeString | Inverse: ${MirrorSystem.getName(inverseKey)}";
   }
 }

@@ -58,15 +58,7 @@ class ManagedEntity implements APIComponentDocumenter {
   /// transient property declared in the instance type.
   /// The keys are the case-sensitive name of the attribute. Values that represent a relationship to another object
   /// are not stored in [attributes].
-  Map<String, ManagedAttributeDescription> get attributes => _attributes;
-
-  set attributes(Map<String, ManagedAttributeDescription> m) {
-    _attributes = m;
-    _primaryKey = m.values
-        .firstWhere((attrDesc) => attrDesc.isPrimaryKey,
-            orElse: () => throw ManagedDataModelError.noPrimaryKey(this))
-        ?.name;
-  }
+  Map<String, ManagedAttributeDescription> attributes;
 
   /// All relationship values of this entity.
   ///
@@ -132,11 +124,8 @@ class ManagedEntity implements APIComponentDocumenter {
 
   /// Name of primary key property.
   ///
-  /// If this has a primary key (as determined by the having an [Column] with [Column.isPrimaryKey] set to true,
-  /// returns the name of that property. Otherwise, returns null. Entities should always have a primary key.
-  String get primaryKey {
-    return _primaryKey;
-  }
+  /// This is determined by the attribute with the [primaryKey] annotation.
+  String primaryKey;
 
   ManagedAttributeDescription get primaryKeyAttribute {
     return attributes[primaryKey];
@@ -161,9 +150,7 @@ class ManagedEntity implements APIComponentDocumenter {
   }
 
   String _tableName;
-  String _primaryKey;
   List<String> _defaultProperties;
-  Map<String, ManagedAttributeDescription> _attributes;
 
   /// Derived from this' [tableName].
   @override
@@ -325,7 +312,20 @@ class ManagedEntity implements APIComponentDocumenter {
 
   @override
   String toString() {
-    return "ManagedEntity on $tableName";
+    final buf = StringBuffer();
+    buf.writeln("Entity: $tableName");
+
+    buf.writeln("Attributes:");
+    attributes.forEach((name, attr) {
+      buf.writeln("\t$attr");
+    });
+
+    buf.writeln("Relationships:");
+    relationships.forEach((name, rel) {
+      buf.writeln("\t$rel");
+    });
+
+    return buf.toString();
   }
 
   @override

@@ -63,6 +63,12 @@ class ManagedType {
       kind = ManagedPropertyType.document;
     } else if (mirror is ClassMirror && (mirror as ClassMirror).isEnum) {
       kind = ManagedPropertyType.string;
+      List<dynamic> enumeratedCases = (mirror as ClassMirror).getField(#values).reflectee;
+      enumerationMap =
+        enumeratedCases.fold(<String, dynamic>{}, (m, v) {
+          m[v.toString().split(".").last] = v;
+          return m;
+        });
     } else {
       throw UnsupportedError(
           "Invalid type '${mirror.reflectedType}' for 'ManagedType'.");
@@ -129,6 +135,9 @@ class ManagedType {
 
   /// Dart representation of this type.
   TypeMirror mirror;
+
+  /// For enumerated types, this is a map of the name of the option to its Dart enum type.
+  Map<String, dynamic> enumerationMap;
 
   /// Whether [dartValue] can be assigned to properties with this type.
   bool isAssignableWith(dynamic dartValue) {
