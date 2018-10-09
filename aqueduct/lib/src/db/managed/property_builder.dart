@@ -51,7 +51,8 @@ class PropertyBuilder {
   void compile(List<EntityBuilder> others) {
     if (type == null) {
       if (relate != null) {
-        relatedProperty = _getRelatedEntityBuilderFrom(others).getInverseOf(this);
+        relatedProperty =
+            _getRelatedEntityBuilderFrom(others).getInverseOf(this);
         type = relatedProperty.parent.primaryKeyProperty.type;
         relationshipType = ManagedRelationshipType.belongsTo;
         includeInDefaultResultSet = true;
@@ -59,7 +60,7 @@ class PropertyBuilder {
         nullable = !relate.isRequired;
         relatedProperty.setInverse(this);
         unique =
-          relatedProperty?.relationshipType == ManagedRelationshipType.hasOne;
+            relatedProperty?.relationshipType == ManagedRelationshipType.hasOne;
       }
     } else {
       primaryKey = column?.isPrimaryKey ?? false;
@@ -85,23 +86,24 @@ class PropertyBuilder {
 
   void validate() {
     if (type == null) {
-      if (!isRelationship || relationshipType == ManagedRelationshipType.belongsTo) {
+      if (!isRelationship ||
+          relationshipType == ManagedRelationshipType.belongsTo) {
         throw ManagedDataModelError.invalidType(
-          declaration.owner.simpleName, declaration.simpleName);
+            declaration.owner.simpleName, declaration.simpleName);
       }
     }
 
     if (isRelationship) {
       if (column != null) {
         throw ManagedDataModelError.invalidMetadata(
-          parent.tableDefinitionTypeName, declaration.simpleName);
+            parent.tableDefinitionTypeName, declaration.simpleName);
       }
       if (relate != null && relatedProperty.relate != null) {
         throw ManagedDataModelError.dualMetadata(
-          parent.tableDefinitionTypeName,
-          declaration.simpleName,
-          relatedProperty.parent.tableDefinitionTypeName,
-          relatedProperty.name);
+            parent.tableDefinitionTypeName,
+            declaration.simpleName,
+            relatedProperty.parent.tableDefinitionTypeName,
+            relatedProperty.name);
       }
     }
 
@@ -202,11 +204,11 @@ class PropertyBuilder {
     if (!relate.isDeferred) {
       return builders.firstWhere((b) => b.instanceType == expectedInstanceType,
           orElse: () {
-            throw ManagedDataModelError.noDestinationEntity(
-              parent.tableDefinitionTypeName,
-              declaration.simpleName,
-              expectedInstanceType.simpleName);
-          });
+        throw ManagedDataModelError.noDestinationEntity(
+            parent.tableDefinitionTypeName,
+            declaration.simpleName,
+            expectedInstanceType.simpleName);
+      });
     }
 
     final possibleEntities = builders.where((e) {

@@ -26,7 +26,10 @@ class DataModelBuilder {
   void _validate() {
     // Check for dupe tables
     _builders.forEach((builder) {
-      final withSameName = _builders.where((eb) => eb.name == builder.name).map((eb) => eb.instanceTypeName).toList();
+      final withSameName = _builders
+          .where((eb) => eb.name == builder.name)
+          .map((eb) => eb.instanceTypeName)
+          .toList();
       if (withSameName.length > 1) {
         throw ManagedDataModelError.duplicateTables(builder.name, withSameName);
       }

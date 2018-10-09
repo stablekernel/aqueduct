@@ -11,8 +11,8 @@ void main() {
     ManagedContext context;
     ManagedDataModel dataModel;
     setUp(() {
-      dataModel =
-          ManagedDataModel([User, Item, Manager, EnumObject, DocumentObject, AnnotatedTable]);
+      dataModel = ManagedDataModel(
+          [User, Item, Manager, EnumObject, DocumentObject, AnnotatedTable]);
       context = ManagedContext(dataModel, DefaultPersistentStore());
     });
 
@@ -191,12 +191,15 @@ void main() {
           ManagedPropertyType.document);
     });
 
-    test("Table names are derived from table definition type, can be overridden by annotation", () {
+    test(
+        "Table names are derived from table definition type, can be overridden by annotation",
+        () {
       expect(dataModel.entityForType(User).tableName, "_User");
       expect(dataModel.entityForType(Item).tableName, "_Item");
       expect(dataModel.entityForType(Manager).tableName, "_Manager");
       expect(dataModel.entityForType(EnumObject).tableName, "_EnumObject");
-      expect(dataModel.entityForType(DocumentObject).tableName, "_DocumentObject");
+      expect(
+          dataModel.entityForType(DocumentObject).tableName, "_DocumentObject");
       expect(dataModel.entityForType(AnnotatedTable).tableName, "foobar");
     });
   });
@@ -433,7 +436,9 @@ void main() {
         expect(e.message, contains("rightRef"));
         expect(e.message, contains("leftRef"));
       }
-    });
+    },
+        skip:
+            "Temporarily skipping because this feature will become available shortly");
 
     test("Model with Relationship and Column fails compilation", () {
       try {
@@ -658,7 +663,6 @@ class TransientTest extends ManagedObject<_TransientTest>
     text = str.split(" ").last;
   }
 
-
   @Serialize(input: true, output: false)
   set inputOnly(String s) {
     text = s;
@@ -666,6 +670,7 @@ class TransientTest extends ManagedObject<_TransientTest>
 
   @Serialize(input: false, output: true)
   String get outputOnly => text;
+
   set outputOnly(String s) {
     text = s;
   }
@@ -682,6 +687,7 @@ class TransientTest extends ManagedObject<_TransientTest>
 
   @Serialize()
   String get bothButOnlyOnOne => text;
+
   set bothButOnlyOnOne(String s) {
     text = s;
   }
@@ -697,6 +703,7 @@ class TransientTest extends ManagedObject<_TransientTest>
 
   @Serialize()
   String get bothOverQualified => text;
+
   @Serialize()
   set bothOverQualified(String s) {
     text = s;
@@ -1104,8 +1111,8 @@ class _DocumentObject {
   Document document;
 }
 
-
 class AnnotatedTable extends ManagedObject<_AnnotatedTable> {}
+
 @Table(name: "foobar")
 class _AnnotatedTable {
   @primaryKey
