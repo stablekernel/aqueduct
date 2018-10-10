@@ -14,7 +14,7 @@ class PostgresQueryBuilder extends TableBuilder {
     : [(query.valueMap ?? query.values?.backing?.contents)];
 
     addListOfColumnValueBuilders(valuesList.toList());
-    
+
     finalize(variables);
   }
 
@@ -89,14 +89,14 @@ class PostgresQueryBuilder extends TableBuilder {
    */
 
   String get sqlColumnsAndValuesToUpdate {
-    return "(${columnValueBuildersList.map((columnValueBuilders) =>
+    return columnValueBuildersList.map((columnValueBuilders) =>
         columnValueBuilders.map((m) {
           final columnName = m.sqlColumnName();
           final variableName =
-          m.sqlColumnName(withPrefix: "@$valueKeyPrefix", withTypeSuffix: true);
+          m.sqlColumnName(withPrefix: "@$valueKeyPrefix" + 0.toString(), withTypeSuffix: true);
           return "$columnName=$variableName";
         }).join(","))
-        .join(",")})";
+        .join(",");
   }
 
   String get sqlColumnsToInsert {
