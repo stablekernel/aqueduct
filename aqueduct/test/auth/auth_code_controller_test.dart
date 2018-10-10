@@ -487,8 +487,8 @@ void main() {
         ..info = APIInfo("title", "1.0.0")
         ..paths = {}
         ..components = APIComponents());
-      AuthCodeController ac =
-          AuthCodeController(AuthServer(InMemoryAuthStorage()));
+      AuthRedirectController ac =
+          AuthRedirectController(AuthServer(InMemoryAuthStorage()));
       ac.restore(ac.recycledState);
       ac.didAddToChannel();
       operations = ac.documentOperations(context, "/", APIPath());
@@ -566,7 +566,7 @@ void main() {
 }
 
 class TestChannel extends ApplicationChannel
-    implements AuthCodeControllerDelegate {
+    implements AuthRedirectControllerDelegate {
   AuthServer authServer;
 
   @override
@@ -580,14 +580,14 @@ class TestChannel extends ApplicationChannel
     final router = Router();
     router
         .route("/auth/code")
-        .link(() => AuthCodeController(authServer, delegate: this));
+        .link(() => AuthRedirectController(authServer, delegate: this));
 
-    router.route("/nopage").link(() => AuthCodeController(authServer));
+    router.route("/nopage").link(() => AuthRedirectController(authServer));
     return router;
   }
 
   @override
-  Future<String> render(AuthCodeController forController, Uri requestUri,
+  Future<String> render(AuthRedirectController forController, Uri requestUri,
       String responseType, String clientID, String state, String scope) async {
     return json.encode({
       "response_type": responseType,

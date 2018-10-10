@@ -9,7 +9,8 @@ import 'wildfire.dart';
 ///
 /// Override methods in this class to set up routes and initialize services like
 /// database connections. See http://aqueduct.io/docs/http/channel/.
-class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDelegate {
+class WildfireChannel extends ApplicationChannel
+    implements AuthRedirectControllerDelegate {
   final HTMLRenderer htmlRenderer = HTMLRenderer();
   AuthServer authServer;
   ManagedContext context;
@@ -22,7 +23,8 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
   /// This method is invoked prior to [entryPoint] being accessed.
   @override
   Future prepare() async {
-    logger.onRecord.listen((rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
+    logger.onRecord.listen(
+        (rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
     final config = WildfireConfiguration(options.configurationFilePath);
 
@@ -45,7 +47,9 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
     /* OAuth 2.0 Endpoints */
     router.route("/auth/token").link(() => AuthController(authServer));
 
-    router.route("/auth/code").link(() => AuthCodeController(authServer, delegate: this));
+    router
+        .route("/auth/code")
+        .link(() => AuthRedirectController(authServer, delegate: this));
 
     /* Create an account */
     router
@@ -54,7 +58,10 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
         .link(() => RegisterController(context, authServer));
 
     /* Gets profile for user with bearer token */
-    router.route("/me").link(() => Authorizer.bearer(authServer)).link(() => IdentityController(context));
+    router
+        .route("/me")
+        .link(() => Authorizer.bearer(authServer))
+        .link(() => IdentityController(context));
 
     /* Gets all users or one specific user by id */
     router
@@ -69,18 +76,27 @@ class WildfireChannel extends ApplicationChannel implements AuthCodeControllerDe
    * Helper methods
    */
 
-  ManagedContext contextWithConnectionInfo(DatabaseConfiguration connectionInfo) {
+  ManagedContext contextWithConnectionInfo(
+      DatabaseConfiguration connectionInfo) {
     final dataModel = ManagedDataModel.fromCurrentMirrorSystem();
-    final psc = PostgreSQLPersistentStore(connectionInfo.username, connectionInfo.password, connectionInfo.host,
-        connectionInfo.port, connectionInfo.databaseName);
+    final psc = PostgreSQLPersistentStore(
+        connectionInfo.username,
+        connectionInfo.password,
+        connectionInfo.host,
+        connectionInfo.port,
+        connectionInfo.databaseName);
 
     return ManagedContext(dataModel, psc);
   }
 
   @override
-  Future<String> render(AuthCodeController forController, Uri requestUri, String responseType, String clientID,
-      String state, String scope) async {
-    final map = {"response_type": responseType, "client_id": clientID, "state": state};
+  Future<String> render(AuthRedirectController forController, Uri requestUri,
+      String responseType, String clientID, String state, String scope) async {
+    final map = {
+      "response_type": responseType,
+      "client_id": clientID,
+      "state": state
+    };
 
     map["path"] = requestUri.path;
     if (scope != null) {
