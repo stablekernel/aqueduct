@@ -28,10 +28,11 @@ abstract class AuthRedirectControllerDelegate {
       String responseType, String clientID, String state, String scope);
 }
 
-/// [Controller] for issuing OAuth 2.0 authorization codes.
+/// [Controller] for issuing OAuth 2.0 authorization codes and tokens.
 ///
-/// This controller provides an endpoint for the creating an OAuth 2.0 authorization code. This authorization code
+/// This controller provides an endpoint for creating an OAuth 2.0 authorization code or access token. An authorization code
 /// can be exchanged for an access token with an [AuthController]. This is known as the OAuth 2.0 'Authorization Code Grant' flow.
+/// Returning an access token is known as the OAuth 2.0 'Implicit Grant' flow.
 ///
 /// See operation methods [getAuthorizationPage] and [authorize] for more details.
 ///
@@ -51,7 +52,7 @@ class AuthRedirectController extends ResourceController {
     ];
   }
 
-  /// A reference to the [AuthServer] used to grant authorization codes.
+  /// A reference to the [AuthServer] used to grant authorization codes and access tokens.
   final AuthServer authServer;
 
   /// A randomly generated value the client can use to verify the origin of the redirect.
@@ -62,7 +63,7 @@ class AuthRedirectController extends ResourceController {
   @Bind.query("state")
   String state;
 
-  /// Must be 'code'.
+  /// Must be 'code' or 'token'.
   @Bind.query("response_type")
   String responseType;
 
@@ -102,11 +103,11 @@ class AuthRedirectController extends ResourceController {
     return Response.ok(renderedPage)..contentType = ContentType.html;
   }
 
-  /// Creates a one-time use authorization code.
+  /// Creates a one-time use authorization code or an access token.
   ///
-  /// This method will respond with a redirect that contains an authorization code ('code')
-  /// and the passed in 'state'. If this request fails, the redirect URL
-  /// will contain an 'error' key instead of the authorization code.
+  /// This method will respond with a redirect that either contains an authorization code ('code')
+  /// or an access token ('token') along with the passed in 'state'. If this request fails,
+  /// the redirect URL will contain an 'error' instead of the authorization code or access token.
   ///
   /// This method is typically invoked by the login form returned from the GET to this controller.
   @Operation.post()
@@ -192,8 +193,11 @@ class AuthRedirectController extends ResourceController {
     } else if (operation.method == "POST") {
       return {
         "${HttpStatus.movedTemporarily}": APIResponse(
-            "If successful, the query parameter of the redirect URI named 'code' contains authorization code. "
-            "Otherwise, the query parameter 'error' is present and contains a error string.",
+            "If successful, in the case of a 'response type' of 'code', the query "
+            "parameter of the redirect URI named 'code' contains authorization code. "
+            "Otherwise, the query parameter 'error' is present and contains a error string. "
+            "In the case of a 'response type' of 'token', the redurect URI's fragment "
+            "contain san access token. Otherwise, the fragment contains an error code.",
             headers: {
               "Location": APIHeader()
                 ..schema = APISchemaObject.string(format: "uri")
