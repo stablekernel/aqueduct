@@ -216,9 +216,9 @@ class AuthRedirectController extends ResourceController {
   Map<String, APIOperation> documentOperations(
       APIDocumentContext context, String route, APIPath path) {
     final ops = super.documentOperations(context, route, path);
-    final urlPath = route.substring(1);
-    authServer.documentedAuthorizationCodeFlow.authorizationURL = Uri(path: urlPath);
-    authServer.documentedImplicitFlow.authorizationURL = Uri(path: urlPath);
+    final uri = Uri(path: route.substring(1));
+    authServer.documentedAuthorizationCodeFlow.authorizationURL = uri;
+    authServer.documentedImplicitFlow.authorizationURL = uri;
     return ops;
   }
 
