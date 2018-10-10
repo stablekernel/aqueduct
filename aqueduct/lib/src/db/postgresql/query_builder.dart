@@ -41,7 +41,9 @@ class PostgresQueryBuilder extends TableBuilder {
       final map = maps[i];
       List<ColumnValueBuilder> columnValueBuilders = [];
       map.forEach((k, v) => addColumnValueBuilder(columnValueBuilders, i, k, v));
-      columnValueBuildersList.add(columnValueBuilders);
+      if (columnValueBuilders.isNotEmpty) {
+        columnValueBuildersList.add(columnValueBuilders);
+      }
     }
   }
 
