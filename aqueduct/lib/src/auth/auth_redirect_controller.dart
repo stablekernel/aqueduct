@@ -196,7 +196,7 @@ class AuthRedirectController extends ResourceController {
             "If successful, in the case of a 'response type' of 'code', the query "
             "parameter of the redirect URI named 'code' contains authorization code. "
             "Otherwise, the query parameter 'error' is present and contains a error string. "
-            "In the case of a 'response type' of 'token', the redurect URI's fragment "
+            "In the case of a 'response type' of 'token', the redirect URI's fragment "
             "contain san access token. Otherwise, the fragment contains an error code.",
             headers: {
               "Location": APIHeader()
@@ -216,8 +216,9 @@ class AuthRedirectController extends ResourceController {
   Map<String, APIOperation> documentOperations(
       APIDocumentContext context, String route, APIPath path) {
     final ops = super.documentOperations(context, route, path);
-    authServer.documentedAuthorizationCodeFlow.authorizationURL =
-        Uri(path: route.substring(1));
+    final uri = Uri(path: route.substring(1));
+    authServer.documentedAuthorizationCodeFlow.authorizationURL = uri;
+    authServer.documentedImplicitFlow.authorizationURL = uri;
     return ops;
   }
 

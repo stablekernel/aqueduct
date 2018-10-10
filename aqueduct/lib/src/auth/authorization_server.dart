@@ -93,6 +93,10 @@ class AuthServer implements AuthValidator, APIComponentDocumenter {
   final APISecuritySchemeOAuth2Flow documentedPasswordFlow =
       APISecuritySchemeOAuth2Flow.empty()..scopes = {};
 
+  /// Used during OpenAPI documentation.
+  final APISecuritySchemeOAuth2Flow documentedImplicitFlow =
+  APISecuritySchemeOAuth2Flow.empty()..scopes = {};
+
   /// Hashes a [password] with [salt] using PBKDF2 algorithm.
   ///
   /// See [hashRounds], [hashLength] and [hashFunction] for more details. This method
