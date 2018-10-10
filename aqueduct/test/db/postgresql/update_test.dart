@@ -35,6 +35,33 @@ void main() {
     expect(result.emailAddress, "2@a.com");
   });
 
+  test("Updating non-nullable property to null gives error that specifies the offending property", () async {
+    context = await contextWithModels([TestModel]);
+
+    var m = TestModel()
+      ..name = "Bob"
+      ..emailAddress = "1@a.com";
+
+    var req = Query<TestModel>(context)..values = m;
+    await req.insert();
+
+    m
+      ..name = null
+      ..emailAddress = "2@a.com";
+
+    req = Query<TestModel>(context)
+      ..predicate = QueryPredicate("name = @name", {"name": "Bob"})
+      ..values = m;
+
+    try {
+      await req.update();
+      fail('unreachable');
+    } on QueryException catch (e) {
+      expect(e.message, contains("non_null_violation"));
+      expect(e.response.body["detail"], contains("_testmodel.name"));
+    }
+  });
+
   test("Setting relationship to a new value succeeds", () async {
     context = await contextWithModels([Child, Parent]);
 

@@ -32,8 +32,19 @@ class QueryException<T> implements HandlerException {
 
   @override
   Response get response {
-    return Response(
-        _getStatus(event), null, {"error": message ?? "query failed"});
+    return Response(_getStatus(event), null, _getBody(message, offendingItems));
+  }
+
+  static Map<String, String> _getBody(String message, List<String> offendingItems) {
+    var body = {
+      "error": message ?? "query failed",
+    };
+
+    if (offendingItems != null && offendingItems.isNotEmpty) {
+      body["detail"] = "Offending Items: ${offendingItems.join(", ")}";
+    }
+
+    return body;
   }
 
   static int _getStatus(QueryExceptionEvent event) {

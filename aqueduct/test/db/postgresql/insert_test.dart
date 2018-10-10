@@ -35,6 +35,24 @@ void main() {
     }
   });
 
+  test("Setting a non-null value to null will identify offending column in response", () async {
+    context = await contextWithModels([TestModel]);
+
+    var m = TestModel()
+      ..name = null
+      ..emailAddress = "dup@a.com";
+
+    final q = Query<TestModel>(context)..values = m;
+
+    try {
+      await q.insert();
+      fail('unreachable');
+    } on QueryException catch (e) {
+      expect(e.message, contains("non_null_violation"));
+      expect(e.response.body["detail"], contains("simple.name"));
+    }
+  });
+
   test("Insert Bad Key", () async {
     context = await contextWithModels([TestModel]);
 
