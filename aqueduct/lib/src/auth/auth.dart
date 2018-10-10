@@ -5,6 +5,7 @@ import 'objects.dart';
 
 export 'auth_code_controller.dart';
 export 'auth_controller.dart';
+export 'auth_redirect_controller.dart';
 export 'authorization_parser.dart';
 export 'authorization_server.dart';
 export 'authorizer.dart';

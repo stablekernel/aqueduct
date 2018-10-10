@@ -9,7 +9,7 @@ import 'auth.dart';
 /// [Controller] for issuing and refreshing OAuth 2.0 access tokens.
 ///
 /// This controller issues and refreshes access tokens. Access tokens are issued for valid username and password (resource owner password grant)
-/// or for an authorization code (authorization code grant) from a [AuthCodeController].
+/// or for an authorization code (authorization code grant) from a [AuthRedirectController].
 ///
 /// See operation method [grant] for more details.
 ///
