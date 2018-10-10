@@ -212,6 +212,8 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// [where] instead of this property directly.
   QueryPredicate predicate;
 
+  List<InstanceType> valuesList;
+
   /// Values to be used when inserting or updating an object.
   ///
   /// This method is an unsafe version of [values]. Prefer to use [values] instead.
@@ -296,6 +298,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// will be executed prior to sending the query to the database.
   Future<InstanceType> insert();
 
+  Future<List<InstanceType>> insertList();
   /// Updates [InstanceType]s in the underlying database.
   ///
   /// The [Query] must have its [values] or [valueMap] property set and should likely have its [predicate] or [where] set as well. This operation will

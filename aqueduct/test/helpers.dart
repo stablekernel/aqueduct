@@ -395,6 +395,11 @@ class _MockQuery<InstanceType extends ManagedObject> extends Object
   ManagedEntity _entity;
 
   @override
+  Future<List<InstanceType>> insertList() async {
+    throw Exception("insertList() in _MockQuery");
+  }
+
+  @override
   Future<InstanceType> insert() async {
     throw Exception("insert() in _MockQuery");
   }

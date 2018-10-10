@@ -30,6 +30,12 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<InstanceType> insert() async {
+    final list = await insertList();
+    return Future.value(list.first);
+  }
+
+  @override
+  Future<List<InstanceType>> insertList() async {
     validateInput(Validating.insert);
 
     var builder = PostgresQueryBuilder(this);
@@ -37,11 +43,11 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var buffer = StringBuffer();
     buffer.write("INSERT INTO ${builder.sqlTableName} ");
 
-    if (builder.columnValueBuilders.isEmpty) {
+    if (builder.columnValueBuildersList.isEmpty) {
       buffer.write("VALUES (DEFAULT) ");
     } else {
       buffer.write("(${builder.sqlColumnsToInsert}) ");
-      buffer.write("VALUES (${builder.sqlValuesToInsert}) ");
+      buffer.write("VALUES ${builder.sqlValuesToInsert} ");
     }
 
     if ((builder.returning?.length ?? 0) > 0) {
@@ -51,7 +57,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     List<List<dynamic>> results = await context.persistentStore
         .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
-    return builder.instancesForRows<InstanceType>(results).first;
+    return builder.instancesForRows<InstanceType>(results);
   }
 
   @override
