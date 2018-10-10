@@ -154,6 +154,36 @@ void main() {
     expect(result.emailAddress, "1@a.com");
   });
 
+
+  test("Inserting multiple objects works and returns the object", () async {
+    context = await contextWithModels([TestModel]);
+
+    var m = TestModel()
+      ..name = "bob"
+      ..emailAddress = "1@a.com";
+
+    var n = TestModel()
+      ..name = "jay"
+      ..emailAddress = "2@a.com";
+
+    var insertReq = Query<TestModel>(context)..valuesList = [m, n];
+
+    var list = await insertReq.insertList();
+
+    var first = list[0];
+    var second = list[1];
+
+    expect(first is TestModel, true);
+    expect(first.id, greaterThan(0));
+    expect(first.name, "bob");
+    expect(first.emailAddress, "1@a.com");
+
+    expect(second is TestModel, true);
+    expect(second.id, greaterThan(0));
+    expect(second.name, "jay");
+    expect(second.emailAddress, "2@a.com");
+  });
+
   test("Inserting an object works", () async {
     context = await contextWithModels([TestModel]);
 

@@ -9,13 +9,12 @@ import 'row_instantiator.dart';
 
 class PostgresQueryBuilder extends TableBuilder {
   PostgresQueryBuilder(PostgresQuery query) : super(query) {
-    (query.valueMap ?? query.values?.backing?.contents)
-        .forEach(addColumnValueBuilder);
+    final valuesList = (query.valuesList != null && query.valuesList.isNotEmpty)
+    ? query.valuesList.map((v) => v?.backing.contents)
+    : [(query.valueMap ?? query.values?.backing?.contents)];
 
-    columnValueBuilders.forEach((cv) {
-      variables[cv.sqlColumnName(withPrefix: valueKeyPrefix)] = cv.value;
-    });
-
+    addListOfColumnValueBuilders(valuesList.toList());
+    
     finalize(variables);
   }
 
@@ -23,7 +22,7 @@ class PostgresQueryBuilder extends TableBuilder {
 
   final Map<String, dynamic> variables = {};
 
-  final List<ColumnValueBuilder> columnValueBuilders = [];
+  final List<List<ColumnValueBuilder>> columnValueBuildersList = [];
 
   bool get containsJoins => returning.reversed.any((p) => p is TableBuilder);
 
@@ -37,10 +36,19 @@ class PostgresQueryBuilder extends TableBuilder {
     return predicate.format;
   }
 
-  void addColumnValueBuilder(String key, dynamic value) {
-    final builder = _createColumnValueBuilder(key, value);
+  void addListOfColumnValueBuilders(List<Map<String, dynamic>> maps) {
+    for (var i = 0; i < maps.length; i++) {
+      final map = maps[i];
+      List<ColumnValueBuilder> columnValueBuilders = [];
+      map.forEach((k, v) => addColumnValueBuilder(columnValueBuilders, i, k, v));
+      columnValueBuildersList.add(columnValueBuilders);
+    }
+  }
+
+  void addColumnValueBuilder(List<ColumnValueBuilder> columnValueBuilders, int index, String key, dynamic value) {
+      final builder = _createColumnValueBuilder(key, value);
     columnValueBuilders.add(builder);
-    variables[builder.sqlColumnName(withPrefix: valueKeyPrefix)] =
+    variables[builder.sqlColumnName(withPrefix: valueKeyPrefix + index.toString()) ] =
         builder.value;
   }
 
@@ -81,23 +89,33 @@ class PostgresQueryBuilder extends TableBuilder {
    */
 
   String get sqlColumnsAndValuesToUpdate {
-    return columnValueBuilders.map((m) {
-      final columnName = m.sqlColumnName();
-      final variableName =
+    return "(${columnValueBuildersList.map((columnValueBuilders) =>
+        columnValueBuilders.map((m) {
+          final columnName = m.sqlColumnName();
+          final variableName =
           m.sqlColumnName(withPrefix: "@$valueKeyPrefix", withTypeSuffix: true);
-      return "$columnName=$variableName";
-    }).join(",");
+          return "$columnName=$variableName";
+        }).join(","))
+        .join(",")})";
   }
 
   String get sqlColumnsToInsert {
-    return columnValueBuilders.map((c) => c.sqlColumnName()).join(",");
+    return columnValueBuildersList.first.map((c) => c.sqlColumnName()).join(",");
   }
 
   String get sqlValuesToInsert {
-    return columnValueBuilders
-        .map((c) => c.sqlColumnName(
-            withTypeSuffix: true, withPrefix: "@$valueKeyPrefix"))
-        .join(",");
+    List<String> valueEntries = [];
+
+    for (var i = 0; i < columnValueBuildersList.length; i++) {
+      final columnValueBuilders = columnValueBuildersList[i];
+      final valueEntry = "(${columnValueBuilders
+          .map((c) => c.sqlColumnName(
+          withTypeSuffix: true, withPrefix: "@$valueKeyPrefix" + i.toString()) )
+          .join(",")})";
+      valueEntries.add(valueEntry);
+    }
+
+    return valueEntries.join(",");
   }
 
   String get sqlColumnsToReturn {

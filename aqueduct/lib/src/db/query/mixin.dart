@@ -22,6 +22,9 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   bool canModifyAllInstances = false;
 
   @override
+  List<InstanceType> valuesList;
+
+  @override
   Map<String, dynamic> valueMap;
 
   @override
