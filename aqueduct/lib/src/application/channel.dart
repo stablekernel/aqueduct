@@ -177,6 +177,7 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
     return doc;
   }
 
+  @mustCallSuper
   @override
   void documentComponents(APIDocumentContext registry) {
     entryPoint.documentComponents(registry);

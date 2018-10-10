@@ -2,6 +2,7 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/data_model_manager.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:meta/meta.dart';
 
 import '../../http/serializable.dart';
 import '../query/query.dart';
@@ -186,6 +187,7 @@ abstract class ManagedObject<T> implements Serializable {
   ///
   ///           return context;
   ///         }
+  @mustCallSuper
   ValidationContext validate({Validating forEvent = Validating.insert}) {
     return ManagedValidator.run(this, event: forEvent);
   }

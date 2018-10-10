@@ -5,6 +5,7 @@ import 'dart:mirrors';
 import 'package:aqueduct/src/auth/objects.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+import 'package:meta/meta.dart';
 
 import 'http.dart';
 import 'resource_controller_internal/internal.dart';
@@ -149,6 +150,7 @@ abstract class ResourceController extends Controller
   /// If an operation method requires additional parameters that cannot be bound using [Bind] annotations, override
   /// this method. When overriding this method, call the superclass' implementation and add the additional parameters
   /// to the returned list before returning the combined list.
+  @mustCallSuper
   List<APIParameter> documentOperationParameters(
       APIDocumentContext context, Operation operation) {
     bool usesFormEncodedData = operation.method == "POST" &&
