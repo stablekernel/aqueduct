@@ -52,6 +52,8 @@ class AuthRedirectController extends ResourceController {
     ];
   }
 
+  static Response _unsupportedResponseTypeResponse = Response.badRequest(body: "<h1>Error</h1><p>unsupported_response_type</p>")..contentType = ContentType.html;
+
   /// A reference to the [AuthServer] used to grant authorization codes and access tokens.
   final AuthServer authServer;
 
@@ -94,7 +96,7 @@ class AuthRedirectController extends ResourceController {
       return Response(405, {}, null);
     }
 
-    if (!_isValidResponseType(responseType)) {
+    if (responseType != "code" && responseType != "token") {
       return _unsupportedResponseTypeResponse;
     }
 
@@ -136,12 +138,12 @@ class AuthRedirectController extends ResourceController {
     try {
       final scopes = scope?.split(" ")?.map((s) => AuthScope(s))?.toList();
 
-      if (responseType == _responseTypeCode) {
+      if (responseType == "code") {
         final authCode = await authServer.authenticateForCode(
             username, password, clientID,
             requestedScopes: scopes);
         return _redirectResponse(client.redirectURI, state, code: authCode.code);
-      } else if (responseType == _responseTypeToken) {
+      } else if (responseType == "token") {
         final token = await authServer.authenticate(username, password, clientID, null, requestedScopes: scopes);
         return _redirectResponse(client.redirectURI, state, token: token);
       } else {
@@ -242,7 +244,7 @@ class AuthRedirectController extends ResourceController {
         Map<String, String>.from(redirectURI.queryParameters);
     String fragment;
 
-    if (responseType == _responseTypeCode) {
+    if (responseType == "code") {
       if (code != null) {
         queryParameters["code"] = code;
       }
@@ -252,23 +254,23 @@ class AuthRedirectController extends ResourceController {
       if (error != null) {
         queryParameters["error"] = error.reasonString;
       }
-    } else if (responseType == _responseTypeToken) {
-      Map<String, dynamic> fragmentParams;
+    } else if (responseType == "token") {
+      Map<String, dynamic> params;
 
       if (token != null) {
-        fragmentParams = token.asMap();
+        params = token.asMap();
       } else {
-        fragmentParams = {};
+        params = {};
       }
 
       if (clientStateOrNull != null) {
-        fragmentParams["state"] = clientStateOrNull;
+        params["state"] = clientStateOrNull;
       }
       if (error != null) {
-        fragmentParams["error"] = error.reasonString;
+        params["error"] = error.reasonString;
       }
 
-      fragment = _fragmentFromParams(fragmentParams);
+      fragment = params.keys.map((key) => "$key=${Uri.encodeComponent(params[key].toString())}").join("&");
     } else {
       return _unsupportedResponseTypeResponse;
     }
@@ -290,36 +292,4 @@ class AuthRedirectController extends ResourceController {
         },
         null);
   }
-}
-
-const String _responseTypeCode = "code";
-const String _responseTypeToken = "token";
-final Response _unsupportedResponseTypeResponse = Response.ok("<h1>Error</h1><p>unsupported_response_type</p>")..contentType = ContentType.html;
-
-bool _isValidResponseType(String responseType) {
-  return responseType == _responseTypeCode && responseType == _responseTypeToken;
-}
-
-String _fragmentFromParams(Map<String, dynamic> params) {
-  var result = StringBuffer();
-  var separator = "";
-
-  void writeParameter(String key, String value) {
-    result.write(separator);
-    separator = "&";
-    result.write(Uri.encodeQueryComponent(key));
-    if (value != null && value.isNotEmpty) {
-      result.write("=");
-      result.write(Uri.encodeQueryComponent(value));
-    }
-  }
-
-  params.forEach((key, value) {
-    if (value == null || value is String) {
-      writeParameter(key, value as String);
-    } else {
-      writeParameter(key, value.toString());
-    }
-  });
-  return result.toString();
 }
