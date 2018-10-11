@@ -51,13 +51,21 @@ abstract class Query<InstanceType extends ManagedObject> {
     return context.persistentStore.newQuery<InstanceType>(context, entity);
   }
 
-  /// Inserts [object] into the database managed by [context].
+  /// Inserts a single [object] into the database managed by [context].
   ///
   /// This is equivalent to creating a [Query], assigning [object] to [values], and invoking [insert].
   static Future<T> insertObject<T extends ManagedObject>(
       ManagedContext context, T object) {
     final query = Query<T>(context)..values = object;
     return query.insert();
+  }
+
+  /// Inserts [object]s into the database managed by [context].
+  ///
+  /// This currently has no Query instance equivalent
+  static Future<List<T>> insertObjects<T extends ManagedObject>(
+      ManagedContext context, List<T> objects) async {
+    return context.transaction((transitionCtx) => Future.wait(objects.map((o) =>  insertObject(transitionCtx, o))));
   }
 
   /// Configures this instance to fetch a relationship property identified by [object] or [set].
