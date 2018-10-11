@@ -51,11 +51,6 @@ class AuthUtility {
       int hashRounds = 1000,
       Hash hashFunction}) {
     if (secret == null) {
-      if (redirectURI != null) {
-        throw ArgumentError(
-            "Invalid input to generateAPICredentialPair. Only confidential clients may have 'redirectURI'. "
-            "Clients are confidential when 'secret' is not null.");
-      }
       return AuthClient.withRedirectURI(clientID, null, null, redirectURI);
     }
 
