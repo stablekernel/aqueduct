@@ -207,7 +207,7 @@ class _ManagedAuthClient {
   /// This value must be a valid URI to allow the authorization code flow. A user agent
   /// is redirected to this URI with an authorization code that can be exchanged
   /// for a token. Only confidential clients may have a value.
-  @Column(unique: true, nullable: true)
+  @Column(nullable: true)
   String redirectURI;
 
   /// Scopes that this client allows.
