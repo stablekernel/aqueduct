@@ -130,6 +130,10 @@ class AuthRedirectController extends ResourceController {
       @Bind.query("scope") String scope}) async {
     final client = await authServer.getClient(clientID);
 
+    if (client?.redirectURI == null) {
+      return Response.badRequest();
+    }
+
     if (state == null) {
       return _redirectResponse(null, null,
           error: AuthServerException(AuthRequestError.invalidRequest, client));
@@ -147,10 +151,6 @@ class AuthRedirectController extends ResourceController {
         final token = await authServer.authenticate(username, password, clientID, null, requestedScopes: scopes);
         return _redirectResponse(client.redirectURI, state, token: token);
       } else {
-        if (client?.redirectURI == null) {
-          return Response.badRequest();
-        }
-
         return _redirectResponse(null, state,
             error: AuthServerException(AuthRequestError.invalidRequest, client));
       }
@@ -239,7 +239,14 @@ class AuthRedirectController extends ResourceController {
       return Response.badRequest(body: {"error": error.reasonString});
     }
 
-    final redirectURI = Uri.parse(uriString);
+    Uri redirectURI;
+
+    try {
+      redirectURI = Uri.parse(uriString);
+    } catch (error) {
+      return Response.badRequest();
+    }
+
     final queryParameters =
         Map<String, String>.from(redirectURI.queryParameters);
     String fragment;

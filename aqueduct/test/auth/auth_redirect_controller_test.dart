@@ -289,7 +289,7 @@ void main() {
   });
 
   group("response_type failures", () {
-    test("response_type is invalid returns 302 with error", () async {
+    test("response_type is invalid returns 400 with error", () async {
       var encodedUsername = Uri.encodeQueryComponent(user1["username"]);
       var encodedPassword = Uri.encodeQueryComponent(user1["password"]);
 
@@ -299,9 +299,7 @@ void main() {
             "username=$encodedUsername&password=$encodedPassword&response_type=notcode&client_id=com.stablekernel.redirect&state=a")
         ..contentType = ContentType("application", "x-www-form-urlencoded");
       var resp = await req.post();
-      expectErrorRedirect(resp, Uri.http("stablekernel.com", "/auth/redirect"),
-          "invalid_request",
-          state: "a");
+      expect(resp, hasStatus(400));
     });
 
     test("response_type is duplicated returns 302 with error", () async {
