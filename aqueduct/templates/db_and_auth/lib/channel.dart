@@ -48,7 +48,7 @@ class WildfireChannel extends ApplicationChannel
     router.route("/auth/token").link(() => AuthController(authServer));
 
     router
-        .route("/auth/code")
+        .route("/auth/form")
         .link(() => AuthRedirectController(authServer, delegate: this));
 
     /* Create an account */
