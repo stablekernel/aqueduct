@@ -78,14 +78,6 @@ class CLIAuthAddClient extends CLICommand
       return 1;
     }
 
-    if (secret == null && redirectUri != null) {
-      displayError(
-          "A client that supports the authorization code flow must be a confidential client");
-      displayProgress(
-          "Using option --redirect-uri creates a client that supports the authorization code flow. Either provide --secret or remove --redirect-uri.");
-      return 1;
-    }
-
     var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
     context = ManagedContext(dataModel, persistentStore);
 

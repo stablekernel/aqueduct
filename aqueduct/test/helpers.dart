@@ -150,11 +150,22 @@ class InMemoryAuthStorage extends AuthServerDelegate {
           AuthUtility.generatePasswordHash("gibraltar", salt),
           salt,
           "http://stablekernel.com/auth/redirect2"),
+      "com.stablekernel.public.redirect": AuthClient.withRedirectURI(
+          "com.stablekernel.public.redirect",
+          null,
+          salt,
+          "http://stablekernel.com/auth/public-redirect"),
       "com.stablekernel.scoped": AuthClient.withRedirectURI(
           "com.stablekernel.scoped",
           AuthUtility.generatePasswordHash("kilimanjaro", salt),
           salt,
           "http://stablekernel.com/auth/scoped",
+          allowedScopes: [AuthScope("user"), AuthScope("other_scope")]),
+      "com.stablekernel.public.scoped": AuthClient.withRedirectURI(
+          "com.stablekernel.public.scoped",
+          null,
+          salt,
+          "http://stablekernel.com/auth/public-scoped",
           allowedScopes: [AuthScope("user"), AuthScope("other_scope")]),
     };
     users = {};

@@ -46,14 +46,19 @@ class AuthRedirectController extends ResourceController {
   /// Creates a new instance of an [AuthRedirectController].
   ///
   /// [authServer] is the required authorization server. If [delegate] is provided, this controller will return a login page for all GET requests.
-  AuthRedirectController(this.authServer, {this.delegate}) {
+  AuthRedirectController(this.authServer, {this.delegate, this.allowsImplicit = true}) {
     acceptedContentTypes = [
       ContentType("application", "x-www-form-urlencoded")
     ];
   }
 
+  static Response _unsupportedResponseTypeResponse = Response.badRequest(body: "<h1>Error</h1><p>unsupported_response_type</p>")..contentType = ContentType.html;
+
   /// A reference to the [AuthServer] used to grant authorization codes and access tokens.
   final AuthServer authServer;
+
+  /// When true, the controller allows for the Implicit Grant Flow
+  bool allowsImplicit;
 
   /// A randomly generated value the client can use to verify the origin of the redirect.
   ///
@@ -94,6 +99,14 @@ class AuthRedirectController extends ResourceController {
       return Response(405, {}, null);
     }
 
+    if (responseType != "code" && responseType != "token") {
+      return _unsupportedResponseTypeResponse;
+    }
+
+    if (responseType == "token" && !allowsImplicit) {
+      return _unsupportedResponseTypeResponse;
+    }
+
     final renderedPage = await delegate.render(
         this, request.raw.uri, responseType, clientID, state, scope);
     if (renderedPage == null) {
@@ -124,31 +137,48 @@ class AuthRedirectController extends ResourceController {
       @Bind.query("scope") String scope}) async {
     final client = await authServer.getClient(clientID);
 
-    if (state == null) {
-      return _redirectResponse(null, null,
-          error: AuthServerException(AuthRequestError.invalidRequest, client));
+    if (client?.redirectURI == null) {
+      return Response.badRequest();
     }
 
-    if (responseType != "code") {
-      if (client?.redirectURI == null) {
-        return Response.badRequest();
-      }
+    if (responseType == "token" && !allowsImplicit) {
+      return _unsupportedResponseTypeResponse;
+    }
 
-      return _redirectResponse(null, state,
+    if (state == null) {
+      return _redirectResponse(null, null,
           error: AuthServerException(AuthRequestError.invalidRequest, client));
     }
 
     try {
       final scopes = scope?.split(" ")?.map((s) => AuthScope(s))?.toList();
 
-      final authCode = await authServer.authenticateForCode(
-          username, password, clientID,
-          requestedScopes: scopes);
-      return _redirectResponse(client.redirectURI, state, code: authCode.code);
+      if (responseType == "code") {
+        if (client.hashedSecret == null) {
+          return _redirectResponse(null, state,
+              error: AuthServerException(AuthRequestError.unauthorizedClient, client));
+        }
+
+        final authCode = await authServer.authenticateForCode(
+            username, password, clientID,
+            requestedScopes: scopes);
+        return _redirectResponse(client.redirectURI, state, code: authCode.code);
+      } else if (responseType == "token") {
+        final token = await authServer.authenticate(username, password, clientID, null, requestedScopes: scopes);
+        return _redirectResponse(client.redirectURI, state, token: token);
+      } else {
+        return _redirectResponse(null, state,
+            error: AuthServerException(AuthRequestError.invalidRequest, client));
+      }
     } on FormatException {
       return _redirectResponse(null, state,
           error: AuthServerException(AuthRequestError.invalidScope, client));
     } on AuthServerException catch (e) {
+      if (responseType == "token" && e.reason == AuthRequestError.invalidGrant) {
+        return _redirectResponse(null, state,
+            error: AuthServerException(AuthRequestError.accessDenied, client));
+      }
+
       return _redirectResponse(null, state, error: e);
     }
   }
@@ -222,26 +252,49 @@ class AuthRedirectController extends ResourceController {
     return ops;
   }
 
-  static Response _redirectResponse(
+  Response _redirectResponse(
       final String inputUri, String clientStateOrNull,
-      {String code, AuthServerException error}) {
+      {String code, AuthToken token, AuthServerException error}) {
     final uriString = inputUri ?? error.client?.redirectURI;
     if (uriString == null) {
       return Response.badRequest(body: {"error": error.reasonString});
     }
 
-    final redirectURI = Uri.parse(uriString);
+    Uri redirectURI;
+
+    try {
+      redirectURI = Uri.parse(uriString);
+    } catch (error) {
+      return Response.badRequest();
+    }
+
     final queryParameters =
         Map<String, String>.from(redirectURI.queryParameters);
+    String fragment;
 
-    if (code != null) {
-      queryParameters["code"] = code;
-    }
-    if (clientStateOrNull != null) {
-      queryParameters["state"] = clientStateOrNull;
-    }
-    if (error != null) {
-      queryParameters["error"] = error.reasonString;
+    if (responseType == "code") {
+      if (code != null) {
+        queryParameters["code"] = code;
+      }
+      if (clientStateOrNull != null) {
+        queryParameters["state"] = clientStateOrNull;
+      }
+      if (error != null) {
+        queryParameters["error"] = error.reasonString;
+      }
+    } else if (responseType == "token") {
+      final params = token?.asMap() ?? {};
+
+      if (clientStateOrNull != null) {
+        params["state"] = clientStateOrNull;
+      }
+      if (error != null) {
+        params["error"] = error.reasonString;
+      }
+
+      fragment = params.keys.map((key) => "$key=${Uri.encodeComponent(params[key].toString())}").join("&");
+    } else {
+      return _unsupportedResponseTypeResponse;
     }
 
     final responseURI = Uri(
@@ -250,7 +303,8 @@ class AuthRedirectController extends ResourceController {
         host: redirectURI.host,
         port: redirectURI.port,
         path: redirectURI.path,
-        queryParameters: queryParameters);
+        queryParameters: queryParameters,
+        fragment: fragment);
     return Response(
         HttpStatus.movedTemporarily,
         {
