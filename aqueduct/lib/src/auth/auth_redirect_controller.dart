@@ -46,7 +46,7 @@ class AuthRedirectController extends ResourceController {
   /// Creates a new instance of an [AuthRedirectController].
   ///
   /// [authServer] is the required authorization server. If [delegate] is provided, this controller will return a login page for all GET requests.
-  AuthRedirectController(this.authServer, {this.delegate}) {
+  AuthRedirectController(this.authServer, {this.delegate, this.allowsImplicit = true}) {
     acceptedContentTypes = [
       ContentType("application", "x-www-form-urlencoded")
     ];
@@ -56,6 +56,9 @@ class AuthRedirectController extends ResourceController {
 
   /// A reference to the [AuthServer] used to grant authorization codes and access tokens.
   final AuthServer authServer;
+
+  /// When true, the controller allows for the Implicit Grant Flow
+  bool allowsImplicit;
 
   /// A randomly generated value the client can use to verify the origin of the redirect.
   ///
@@ -100,6 +103,10 @@ class AuthRedirectController extends ResourceController {
       return _unsupportedResponseTypeResponse;
     }
 
+    if (responseType == "token" && !allowsImplicit) {
+      return _unsupportedResponseTypeResponse;
+    }
+
     final renderedPage = await delegate.render(
         this, request.raw.uri, responseType, clientID, state, scope);
     if (renderedPage == null) {
@@ -134,6 +141,10 @@ class AuthRedirectController extends ResourceController {
       return Response.badRequest();
     }
 
+    if (responseType == "token" && !allowsImplicit) {
+      return _unsupportedResponseTypeResponse;
+    }
+
     if (state == null) {
       return _redirectResponse(null, null,
           error: AuthServerException(AuthRequestError.invalidRequest, client));
@@ -143,6 +154,11 @@ class AuthRedirectController extends ResourceController {
       final scopes = scope?.split(" ")?.map((s) => AuthScope(s))?.toList();
 
       if (responseType == "code") {
+        if (client.hashedSecret == null) {
+          return _redirectResponse(null, state,
+              error: AuthServerException(AuthRequestError.unauthorizedClient, client));
+        }
+
         final authCode = await authServer.authenticateForCode(
             username, password, clientID,
             requestedScopes: scopes);
@@ -158,6 +174,11 @@ class AuthRedirectController extends ResourceController {
       return _redirectResponse(null, state,
           error: AuthServerException(AuthRequestError.invalidScope, client));
     } on AuthServerException catch (e) {
+      if (responseType == "token" && e.reason == AuthRequestError.invalidGrant) {
+        return _redirectResponse(null, state,
+            error: AuthServerException(AuthRequestError.accessDenied, client));
+      }
+
       return _redirectResponse(null, state, error: e);
     }
   }
