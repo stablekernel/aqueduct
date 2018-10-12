@@ -283,13 +283,7 @@ class AuthRedirectController extends ResourceController {
         queryParameters["error"] = error.reasonString;
       }
     } else if (responseType == "token") {
-      Map<String, dynamic> params;
-
-      if (token != null) {
-        params = token.asMap();
-      } else {
-        params = {};
-      }
+      final params = token?.asMap() ?? {};
 
       if (clientStateOrNull != null) {
         params["state"] = clientStateOrNull;
