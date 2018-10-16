@@ -23,7 +23,7 @@ class CLIAuthAddClient extends CLICommand
   @Option("redirect-uri",
       abbr: "r",
       help:
-          "The redirect URI of the client if it supports the authorization code flow. May be omitted.")
+          "The redirect URI of the client if it supports the authorization code or implicit flow. May be omitted.")
   String get redirectUri => decode("redirect-uri");
 
   @Option("hash-function",

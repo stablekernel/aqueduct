@@ -58,7 +58,7 @@ class AuthRedirectController extends ResourceController {
   final AuthServer authServer;
 
   /// When true, the controller allows for the Implicit Grant Flow
-  bool allowsImplicit;
+  final bool allowsImplicit;
 
   /// A randomly generated value the client can use to verify the origin of the redirect.
   ///
@@ -227,7 +227,7 @@ class AuthRedirectController extends ResourceController {
             "parameter of the redirect URI named 'code' contains authorization code. "
             "Otherwise, the query parameter 'error' is present and contains a error string. "
             "In the case of a 'response type' of 'token', the redirect URI's fragment "
-            "contain san access token. Otherwise, the fragment contains an error code.",
+            "contains an access token. Otherwise, the fragment contains an error code.",
             headers: {
               "Location": APIHeader()
                 ..schema = APISchemaObject.string(format: "uri")
