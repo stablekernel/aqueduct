@@ -4,6 +4,7 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 
 import 'http.dart';
 
@@ -152,7 +153,8 @@ abstract class Controller
   /// must be stored in a static structure, not the instance itself, since that instance will only be used to handle one request
   /// before it is garbage collected.
   ///
-  /// If you override this method, you must call the superclass' implementation.
+  /// If you override this method you should call the superclass' implementation so that linked controllers invoke this same method.
+  /// If you do not invoke the superclass' implementation, you must ensure that any linked controllers invoked this method through other means.
   void didAddToChannel() {
     _nextController?.didAddToChannel();
   }
