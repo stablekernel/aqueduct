@@ -91,10 +91,14 @@ If an insert query fails because of a unique constraint is violated, a `QueryExc
 !!! warning "Setting Query.values"
     By default, `Query.values` is an empty instance of the object being inserted. If you replace it with an object - that you got from a request body or instantiated yourself - the properties are *copied* into `Query.values`. Further modifications of the replacement object have no effect on `Query.values`.
 
-There is a convenience static method on `Query` for inserting objects without having to create a `Query` object.
+There are convenience static methods on `Query` for inserting object(s) without having to create a `Query` object.
 
 ```dart
-final insertedObject = await Query.insertObject(context, User()..name = "Bob");
+final bob = User()..name = "Bob";
+final jay = User()..name = "Jay";
+
+final insertedObject = await Query.insertObject(context, bob);
+final insertedObjects = await Query.insertObjects(context, [bob, jay]);
 ```
 
 ### Updating Data with a Query
