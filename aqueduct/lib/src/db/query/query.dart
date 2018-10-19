@@ -60,7 +60,7 @@ abstract class Query<InstanceType extends ManagedObject> {
     return query.insert();
   }
 
-  /// Inserts [objects] into the database managed by [context].
+  /// Inserts each object in [objects] into the database managed by [context] in a single transaction.
   ///
   /// This currently has no Query instance equivalent
   static Future<List<T>> insertObjects<T extends ManagedObject>(
