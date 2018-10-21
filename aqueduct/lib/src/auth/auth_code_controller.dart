@@ -30,6 +30,8 @@ abstract class AuthCodeControllerDelegate {
 
 /// [Controller] for issuing OAuth 2.0 authorization codes.
 ///
+/// Deprecated, use [AuthRedirectController] instead.
+///
 /// This controller provides an endpoint for the creating an OAuth 2.0 authorization code. This authorization code
 /// can be exchanged for an access token with an [AuthController]. This is known as the OAuth 2.0 'Authorization Code Grant' flow.
 ///
@@ -41,6 +43,7 @@ abstract class AuthCodeControllerDelegate {
 ///         .route("/auth/code")
 ///         .link(() => new AuthCodeController(authServer));
 ///
+@deprecated
 class AuthCodeController extends ResourceController {
   /// Creates a new instance of an [AuthCodeController].
   ///
