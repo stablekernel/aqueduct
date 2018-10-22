@@ -30,7 +30,7 @@ void main() {
     expect(clientContents, contains('<script src="https://unpkg.com/swagger-ui-dist@3.12.1/swagger-ui-bundle.js"></script>'));
 
     // make sure auth urls were replaced
-    expect(clientContents, contains('"authorizationUrl":"http://localhost:8888/auth/code"'));
+    expect(clientContents, contains('"authorizationUrl":"http://localhost:8888/auth/form"'));
     expect(clientContents, contains('"tokenUrl":"http://localhost:8888/auth/token"'));
     expect(clientContents, contains('"refreshUrl":"http://localhost:8888/auth/token"'));
   });
@@ -46,6 +46,6 @@ void main() {
     expect(clientContents, contains('<script src="https://unpkg.com/swagger-ui-dist@3.12.1/swagger-ui-bundle.js"></script>'));
 
     // make sure auth urls were replaced
-    expect(clientContents, contains('"authorizationUrl":"https://server.com/v1/auth/code"'));
+    expect(clientContents, contains('"authorizationUrl":"https://server.com/v1/auth/form"'));
   });
 }

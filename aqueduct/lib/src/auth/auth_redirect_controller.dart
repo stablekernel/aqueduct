@@ -6,11 +6,11 @@ import 'package:aqueduct/src/openapi/openapi.dart';
 import '../http/http.dart';
 import 'auth.dart';
 
-/// Provides [AuthCodeController] with application-specific behavior.
-abstract class AuthCodeControllerDelegate {
+/// Provides [AuthRedirectController] with application-specific behavior.
+abstract class AuthRedirectControllerDelegate {
   /// Returns an HTML representation of a login form.
   ///
-  /// Invoked when [AuthCodeController.getAuthorizationPage] is called in response to a GET request.
+  /// Invoked when [AuthRedirectController.getAuthorizationPage] is called in response to a GET request.
   /// Must provide HTML that will be returned to the browser for rendering. This form submission of this page
   /// should be a POST to [requestUri].
   ///
@@ -24,16 +24,15 @@ abstract class AuthCodeControllerDelegate {
   ///
   ///
   /// If not null, [scope] should also be included as an additional form parameter.
-  Future<String> render(AuthCodeController forController, Uri requestUri,
+  Future<String> render(AuthRedirectController forController, Uri requestUri,
       String responseType, String clientID, String state, String scope);
 }
 
-/// [Controller] for issuing OAuth 2.0 authorization codes.
+/// [Controller] for issuing OAuth 2.0 authorization codes and tokens.
 ///
-/// Deprecated, use [AuthRedirectController] instead.
-///
-/// This controller provides an endpoint for the creating an OAuth 2.0 authorization code. This authorization code
+/// This controller provides an endpoint for creating an OAuth 2.0 authorization code or access token. An authorization code
 /// can be exchanged for an access token with an [AuthController]. This is known as the OAuth 2.0 'Authorization Code Grant' flow.
+/// Returning an access token is known as the OAuth 2.0 'Implicit Grant' flow.
 ///
 /// See operation methods [getAuthorizationPage] and [authorize] for more details.
 ///
@@ -41,21 +40,25 @@ abstract class AuthCodeControllerDelegate {
 ///
 ///       router
 ///         .route("/auth/code")
-///         .link(() => new AuthCodeController(authServer));
+///         .link(() => new AuthRedirectController(authServer));
 ///
-@deprecated
-class AuthCodeController extends ResourceController {
-  /// Creates a new instance of an [AuthCodeController].
+class AuthRedirectController extends ResourceController {
+  /// Creates a new instance of an [AuthRedirectController].
   ///
   /// [authServer] is the required authorization server. If [delegate] is provided, this controller will return a login page for all GET requests.
-  AuthCodeController(this.authServer, {this.delegate}) {
+  AuthRedirectController(this.authServer, {this.delegate, this.allowsImplicit = true}) {
     acceptedContentTypes = [
       ContentType("application", "x-www-form-urlencoded")
     ];
   }
 
-  /// A reference to the [AuthServer] used to grant authorization codes.
+  static Response _unsupportedResponseTypeResponse = Response.badRequest(body: "<h1>Error</h1><p>unsupported_response_type</p>")..contentType = ContentType.html;
+
+  /// A reference to the [AuthServer] used to grant authorization codes and access tokens.
   final AuthServer authServer;
+
+  /// When true, the controller allows for the Implicit Grant Flow
+  final bool allowsImplicit;
 
   /// A randomly generated value the client can use to verify the origin of the redirect.
   ///
@@ -65,7 +68,7 @@ class AuthCodeController extends ResourceController {
   @Bind.query("state")
   String state;
 
-  /// Must be 'code'.
+  /// Must be 'code' or 'token'.
   @Bind.query("response_type")
   String responseType;
 
@@ -76,7 +79,7 @@ class AuthCodeController extends ResourceController {
   String clientID;
 
   /// Renders an HTML login form.
-  final AuthCodeControllerDelegate delegate;
+  final AuthRedirectControllerDelegate delegate;
 
   /// Returns an HTML login form.
   ///
@@ -96,6 +99,14 @@ class AuthCodeController extends ResourceController {
       return Response(405, {}, null);
     }
 
+    if (responseType != "code" && responseType != "token") {
+      return _unsupportedResponseTypeResponse;
+    }
+
+    if (responseType == "token" && !allowsImplicit) {
+      return _unsupportedResponseTypeResponse;
+    }
+
     final renderedPage = await delegate.render(
         this, request.raw.uri, responseType, clientID, state, scope);
     if (renderedPage == null) {
@@ -105,11 +116,11 @@ class AuthCodeController extends ResourceController {
     return Response.ok(renderedPage)..contentType = ContentType.html;
   }
 
-  /// Creates a one-time use authorization code.
+  /// Creates a one-time use authorization code or an access token.
   ///
-  /// This method will respond with a redirect that contains an authorization code ('code')
-  /// and the passed in 'state'. If this request fails, the redirect URL
-  /// will contain an 'error' key instead of the authorization code.
+  /// This method will respond with a redirect that either contains an authorization code ('code')
+  /// or an access token ('token') along with the passed in 'state'. If this request fails,
+  /// the redirect URL will contain an 'error' instead of the authorization code or access token.
   ///
   /// This method is typically invoked by the login form returned from the GET to this controller.
   @Operation.post()
@@ -126,31 +137,48 @@ class AuthCodeController extends ResourceController {
       @Bind.query("scope") String scope}) async {
     final client = await authServer.getClient(clientID);
 
-    if (state == null) {
-      return _redirectResponse(null, null,
-          error: AuthServerException(AuthRequestError.invalidRequest, client));
+    if (client?.redirectURI == null) {
+      return Response.badRequest();
     }
 
-    if (responseType != "code") {
-      if (client?.redirectURI == null) {
-        return Response.badRequest();
-      }
+    if (responseType == "token" && !allowsImplicit) {
+      return _unsupportedResponseTypeResponse;
+    }
 
-      return _redirectResponse(null, state,
+    if (state == null) {
+      return _redirectResponse(null, null,
           error: AuthServerException(AuthRequestError.invalidRequest, client));
     }
 
     try {
       final scopes = scope?.split(" ")?.map((s) => AuthScope(s))?.toList();
 
-      final authCode = await authServer.authenticateForCode(
-          username, password, clientID,
-          requestedScopes: scopes);
-      return _redirectResponse(client.redirectURI, state, code: authCode.code);
+      if (responseType == "code") {
+        if (client.hashedSecret == null) {
+          return _redirectResponse(null, state,
+              error: AuthServerException(AuthRequestError.unauthorizedClient, client));
+        }
+
+        final authCode = await authServer.authenticateForCode(
+            username, password, clientID,
+            requestedScopes: scopes);
+        return _redirectResponse(client.redirectURI, state, code: authCode.code);
+      } else if (responseType == "token") {
+        final token = await authServer.authenticate(username, password, clientID, null, requestedScopes: scopes);
+        return _redirectResponse(client.redirectURI, state, token: token);
+      } else {
+        return _redirectResponse(null, state,
+            error: AuthServerException(AuthRequestError.invalidRequest, client));
+      }
     } on FormatException {
       return _redirectResponse(null, state,
           error: AuthServerException(AuthRequestError.invalidScope, client));
     } on AuthServerException catch (e) {
+      if (responseType == "token" && e.reason == AuthRequestError.invalidGrant) {
+        return _redirectResponse(null, state,
+            error: AuthServerException(AuthRequestError.accessDenied, client));
+      }
+
       return _redirectResponse(null, state, error: e);
     }
   }
@@ -195,8 +223,11 @@ class AuthCodeController extends ResourceController {
     } else if (operation.method == "POST") {
       return {
         "${HttpStatus.movedTemporarily}": APIResponse(
-            "If successful, the query parameter of the redirect URI named 'code' contains authorization code. "
-            "Otherwise, the query parameter 'error' is present and contains a error string.",
+            "If successful, in the case of a 'response type' of 'code', the query "
+            "parameter of the redirect URI named 'code' contains authorization code. "
+            "Otherwise, the query parameter 'error' is present and contains a error string. "
+            "In the case of a 'response type' of 'token', the redirect URI's fragment "
+            "contains an access token. Otherwise, the fragment contains an error code.",
             headers: {
               "Location": APIHeader()
                 ..schema = APISchemaObject.string(format: "uri")
@@ -208,38 +239,62 @@ class AuthCodeController extends ResourceController {
       };
     }
 
-    throw StateError("AuthCodeController documentation failed.");
+    throw StateError("AuthRedirectController documentation failed.");
   }
 
   @override
   Map<String, APIOperation> documentOperations(
       APIDocumentContext context, String route, APIPath path) {
     final ops = super.documentOperations(context, route, path);
-    authServer.documentedAuthorizationCodeFlow.authorizationURL =
-        Uri(path: route.substring(1));
+    final uri = Uri(path: route.substring(1));
+    authServer.documentedAuthorizationCodeFlow.authorizationURL = uri;
+    authServer.documentedImplicitFlow.authorizationURL = uri;
     return ops;
   }
 
-  static Response _redirectResponse(
+  Response _redirectResponse(
       final String inputUri, String clientStateOrNull,
-      {String code, AuthServerException error}) {
+      {String code, AuthToken token, AuthServerException error}) {
     final uriString = inputUri ?? error.client?.redirectURI;
     if (uriString == null) {
       return Response.badRequest(body: {"error": error.reasonString});
     }
 
-    final redirectURI = Uri.parse(uriString);
+    Uri redirectURI;
+
+    try {
+      redirectURI = Uri.parse(uriString);
+    } catch (error) {
+      return Response.badRequest();
+    }
+
     final queryParameters =
         Map<String, String>.from(redirectURI.queryParameters);
+    String fragment;
 
-    if (code != null) {
-      queryParameters["code"] = code;
-    }
-    if (clientStateOrNull != null) {
-      queryParameters["state"] = clientStateOrNull;
-    }
-    if (error != null) {
-      queryParameters["error"] = error.reasonString;
+    if (responseType == "code") {
+      if (code != null) {
+        queryParameters["code"] = code;
+      }
+      if (clientStateOrNull != null) {
+        queryParameters["state"] = clientStateOrNull;
+      }
+      if (error != null) {
+        queryParameters["error"] = error.reasonString;
+      }
+    } else if (responseType == "token") {
+      final params = token?.asMap() ?? {};
+
+      if (clientStateOrNull != null) {
+        params["state"] = clientStateOrNull;
+      }
+      if (error != null) {
+        params["error"] = error.reasonString;
+      }
+
+      fragment = params.keys.map((key) => "$key=${Uri.encodeComponent(params[key].toString())}").join("&");
+    } else {
+      return _unsupportedResponseTypeResponse;
     }
 
     final responseURI = Uri(
@@ -248,7 +303,8 @@ class AuthCodeController extends ResourceController {
         host: redirectURI.host,
         port: redirectURI.port,
         path: redirectURI.path,
-        queryParameters: queryParameters);
+        queryParameters: queryParameters,
+        fragment: fragment);
     return Response(
         HttpStatus.movedTemporarily,
         {

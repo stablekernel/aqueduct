@@ -23,7 +23,7 @@ class CLIAuthAddClient extends CLICommand
   @Option("redirect-uri",
       abbr: "r",
       help:
-          "The redirect URI of the client if it supports the authorization code flow. May be omitted.")
+          "The redirect URI of the client if it supports the authorization code or implicit flow. May be omitted.")
   String get redirectUri => decode("redirect-uri");
 
   @Option("hash-function",
@@ -75,14 +75,6 @@ class CLIAuthAddClient extends CLICommand
   Future<int> handle() async {
     if (clientID == null) {
       displayError("Option --id required.");
-      return 1;
-    }
-
-    if (secret == null && redirectUri != null) {
-      displayError(
-          "A client that supports the authorization code flow must be a confidential client");
-      displayProgress(
-          "Using option --redirect-uri creates a client that supports the authorization code flow. Either provide --secret or remove --redirect-uri.");
       return 1;
     }
 
