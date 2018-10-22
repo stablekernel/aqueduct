@@ -1,3 +1,4 @@
+
 import '../managed/managed.dart';
 
 import 'schema_table.dart';
@@ -52,12 +53,6 @@ class Schema {
   ///
   /// Returns an immutable list of tables in this schema.
   List<SchemaTable> get tables => List.unmodifiable(_tableStorage ?? []);
-
-  /// An ordered list of tables in this schema.
-  ///
-  /// This ordering ensures that tables that depend on another table (like those that have a foreign key reference) come
-  /// after the tables they depend on.
-  List<SchemaTable> get dependencyOrderedTables => _orderedTables([], tables);
 
   // Do not set this directly. Use _tables= instead.
   List<SchemaTable> _tableStorage;
@@ -138,34 +133,6 @@ class Schema {
   Map<String, dynamic> asMap() {
     return {"tables": tables.map((t) => t.asMap()).toList()};
   }
-
-  static List<SchemaTable> _orderedTables(
-      List<SchemaTable> tablesAccountedFor, List<SchemaTable> remainingTables) {
-    if (remainingTables.isEmpty) {
-      return tablesAccountedFor;
-    }
-
-    var tableIsReady = (SchemaTable t) {
-      var foreignKeyColumns =
-          t.columns.where((sc) => sc.relatedTableName != null).toList();
-
-      if (foreignKeyColumns.isEmpty) {
-        return true;
-      }
-
-      return foreignKeyColumns.map((sc) => sc.relatedTableName).every(
-          (tableName) =>
-              tablesAccountedFor.map((st) => st.name).contains(tableName));
-    };
-
-    tablesAccountedFor.addAll(remainingTables.where(tableIsReady));
-
-    return _orderedTables(
-        tablesAccountedFor,
-        remainingTables
-            .where((st) => !tablesAccountedFor.contains(st))
-            .toList());
-  }
 }
 
 /// The difference between two compared [Schema]s.
@@ -215,35 +182,43 @@ class SchemaDifference {
 
   /// Returns Dart code to change [expectedSchema] to [actualSchema].
   String generateUpgradeSource({List<String> changeList}) {
-    var builder = StringBuffer();
+    final builder = StringBuffer();
 
-    var tablesToAdd = _differingTables
-        .where((diff) => diff.expectedTable == null && diff.actualTable != null)
-        .map((d) => d.actualTable)
-        .toList();
-    actualSchema.dependencyOrderedTables
-        .where((t) => tablesToAdd.map((toAdd) => toAdd.name).contains(t.name))
-        .forEach((t) {
+    final tablesToAdd = _getTablesToAdd();
+    final tablesToRemove = _getTablesToDelete();
+    final tableToModify = _getTablesToModify();
+
+    // add tables (minus foreign keys)
+    tablesToAdd.forEach((t) {
       changeList?.add("Adding table '${t.name}'");
       builder.writeln(createTableSource(t));
     });
 
-    var tablesToRemove = _differingTables
-        .where((diff) => diff.expectedTable != null && diff.actualTable == null)
-        .map((diff) => diff.expectedTable)
-        .toList();
-    expectedSchema.dependencyOrderedTables.reversed
-        .where((t) =>
-            tablesToRemove.map((toRemove) => toRemove.name).contains(t.name))
-        .forEach((t) {
+    // remove tables
+    tablesToRemove.forEach((t) {
       changeList?.add("Deleting table '${t.name}'");
       builder.writeln(deleteTableSource(t));
     });
 
-    _differingTables
-        .where((diff) => diff.expectedTable != null && diff.actualTable != null)
-        .forEach((tableDiff) {
-      var lines = tableDiff.generateUpgradeSource(changeList: changeList);
+    // add foreign keys/multi-column unique
+    tablesToAdd.forEach((table) {
+      table.columns
+          .where((column) => column.isForeignKey)
+          .forEach((foreignKey) {
+        changeList?.add(
+            "Adding foreign key '${foreignKey.name}' from '${foreignKey.table.name}' to '${foreignKey.relatedTableName}'");
+        builder.writeln(SchemaTableDifference.createColumnSource(foreignKey));
+      });
+
+      if (table.uniqueColumnSet?.isNotEmpty ?? false) {
+        final colNames = table.uniqueColumnSet.map((c) => "'$c'").join(",");
+        builder.writeln("database.alterTable('${table.name}', (t) { t.uniqueColumnSet = [$colNames]; });");
+      }
+    });
+
+    // modify table/columns
+    tableToModify.forEach((tableDiff) {
+      final lines = tableDiff.generateUpgradeSource(changeList: changeList);
       builder.writeln(lines);
     });
 
@@ -252,24 +227,38 @@ class SchemaDifference {
 
   static String createTableSource(SchemaTable table) {
     var builder = StringBuffer();
+
     builder.writeln('database.createTable(SchemaTable("${table.name}", [');
-    table.columns.forEach((col) {
+    table.columns.where((c) => !c.isForeignKey).forEach((col) {
       builder.writeln("${col.source},");
     });
-    builder.writeln("],");
-
-    if (table.uniqueColumnSet != null) {
-      var set = table.uniqueColumnSet.map((p) => '"$p"').join(",");
-      builder.writeln("uniqueColumnSetNames: [$set],");
-    }
-
-    builder.writeln('));');
+    builder.writeln("]));");
 
     return builder.toString();
   }
 
   static String deleteTableSource(SchemaTable table) {
     return 'database.deleteTable("${table.name}");';
+  }
+
+  List<SchemaTable> _getTablesToAdd() {
+    return _differingTables
+        .where((diff) => diff.expectedTable == null && diff.actualTable != null)
+        .map((d) => d.actualTable)
+        .toList();
+  }
+
+  List<SchemaTable> _getTablesToDelete() {
+    return _differingTables
+        .where((diff) => diff.expectedTable != null && diff.actualTable == null)
+        .map((diff) => diff.expectedTable)
+        .toList();
+  }
+
+  List<SchemaTableDifference> _getTablesToModify() {
+    return _differingTables
+        .where((diff) => diff.expectedTable != null && diff.actualTable != null)
+        .toList();
   }
 }
 

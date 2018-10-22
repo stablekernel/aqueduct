@@ -12,7 +12,24 @@ class SchemaBuilder {
   SchemaBuilder.toSchema(this.store, Schema targetSchema,
       {this.isTemporary = false}) {
     schema = Schema.empty();
-    targetSchema.dependencyOrderedTables.forEach(createTable);
+    targetSchema.tables.forEach((t) {
+      final independentTable = SchemaTable.from(t);
+      independentTable.columns.where((c) => c.isForeignKey).forEach((c) {
+        independentTable.removeColumn(c);
+      });
+      independentTable.uniqueColumnSet = null;
+      createTable(independentTable);
+    });
+
+    targetSchema.tables.forEach((t) {
+      t.columns.where((c) => c.isForeignKey).forEach((c) {
+        addColumn(t.name, c);
+      });
+
+      if (t.uniqueColumnSet != null) {
+        commands.addAll(store?.addTableUniqueColumnSet(t) ?? []);
+      }
+    });
   }
 
   /// The starting schema of this builder.

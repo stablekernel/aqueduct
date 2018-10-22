@@ -302,7 +302,7 @@ class DefaultPersistentStore extends PersistentStore {
       throw Exception("Transaciton not supported on mock");
 
   @override
-  List<String> createTable(SchemaTable t, {bool isTemporary = false}) => [];
+  List<String> createTable(SchemaTable t, {bool isTemporary = false, bool includeUniqueColumnSet = true}) => [];
 
   @override
   List<String> renameTable(SchemaTable table, String name) => [];
