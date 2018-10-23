@@ -231,9 +231,7 @@ void main() {
 }
 
 Future expectSchema(Schema schema,
-    {Schema becomesSchema,
-    List<String> afterCommands,
-    void alsoVerify(Schema createdSchema)}) async {
+    {Schema becomesSchema}) async {
   var migrationSource =
       Migration.sourceForSchemaUpgrade(schema, becomesSchema, 1);
   migrationSource = migrationSource
@@ -253,10 +251,6 @@ Future expectSchema(Schema schema,
   var diff = createdSchema.differenceFrom(becomesSchema);
 
   expect(diff.hasDifferences, false);
-
-  if (alsoVerify != null) {
-    alsoVerify(createdSchema);
-  }
 }
 
 class MigrateSchema extends Executable<Map<String, dynamic>> {
