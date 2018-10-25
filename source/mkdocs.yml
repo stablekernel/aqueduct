@@ -6,6 +6,7 @@ markdown_extensions:
 extra_css:
   - style/css/override.css
 repo_url: https://github.com/stablekernel/aqueduct
+edit_uri: edit/docs/source/source/docs/
 google_analytics: ['UA-41269877-2', 'aqueduct.io']
 site_description: Documentation for Aqueduct, a Dart server-side framework.
 copyright: Built by stable|kernel
