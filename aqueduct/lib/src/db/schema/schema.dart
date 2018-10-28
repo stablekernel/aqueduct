@@ -214,29 +214,27 @@ class SchemaDifference {
   /// The differences, if any, between tables in [expectedSchema] and [actualSchema].
   List<SchemaTableDifference> get tableDifferences => _differingTables;
 
+  List<SchemaTable> get tablesToAdd {
+    return _differingTables
+      .where((diff) => diff.expectedTable == null && diff.actualTable != null)
+      .map((d) => d.actualTable)
+      .toList();
+  }
+
+  List<SchemaTable> get tablesToDelete {
+    return _differingTables
+      .where((diff) => diff.expectedTable != null && diff.actualTable == null)
+      .map((diff) => diff.expectedTable)
+      .toList();
+  }
+
+  List<SchemaTableDifference> get tablesToModify {
+    return _differingTables
+      .where((diff) => diff.expectedTable != null && diff.actualTable != null)
+      .toList();
+  }
+
   List<SchemaTableDifference> _differingTables = [];
-
-  static String createTableSource(SchemaTable table) {
-    var builder = StringBuffer();
-    builder.writeln('database.createTable(SchemaTable("${table.name}", [');
-    table.columns.forEach((col) {
-      builder.writeln("${col.source},");
-    });
-    builder.writeln("],");
-
-    if (table.uniqueColumnSet != null) {
-      var set = table.uniqueColumnSet.map((p) => '"$p"').join(",");
-      builder.writeln("uniqueColumnSetNames: [$set],");
-    }
-
-    builder.writeln('));');
-
-    return builder.toString();
-  }
-
-  static String deleteTableSource(SchemaTable table) {
-    return 'database.deleteTable("${table.name}");';
-  }
 }
 
 /// Thrown when a [Schema] encounters an error.

@@ -12,6 +12,9 @@ class SchemaBuilder {
   SchemaBuilder.toSchema(this.store, Schema targetSchema,
       {this.isTemporary = false}) {
     schema = Schema.empty();
+
+    final diff = SchemaDifference(schema, targetSchema);
+    _buildSchema(diff);
     targetSchema.dependencyOrderedTables.forEach(createTable);
   }
 
@@ -31,44 +34,11 @@ class SchemaBuilder {
   List<String> commands = [];
 
   static List<String> getCommandsToFixDifferences(SchemaDifference difference,
-      {List<String> changeList}) {
-    final generator = _CodeGeneratingSchemaBuilder();
-    final lines = <String>[];
+      {List<String> changeList, bool temporary = false}) {
+    final generator = _CodeGeneratingSchemaBuilder(difference);
 
-    var tablesToAdd = difference.tableDifferences
-        .where((diff) => diff.expectedTable == null && diff.actualTable != null)
-        .map((d) => d.actualTable)
-        .toList();
-    difference.actualSchema.dependencyOrderedTables
-        .where((t) => tablesToAdd.map((toAdd) => toAdd.name).contains(t.name))
-        .forEach((t) {
-      changeList?.add("Adding table '${t.name}'");
-      builder.writeln(createTableSource(t));
-    });
-
-    var tablesToRemove = difference.tableDifferences
-        .where((diff) => diff.expectedTable != null && diff.actualTable == null)
-        .map((diff) => diff.expectedTable)
-        .toList();
-    difference.expectedSchema.dependencyOrderedTables.reversed
-        .where((t) =>
-            tablesToRemove.map((toRemove) => toRemove.name).contains(t.name))
-        .forEach((t) {
-      changeList?.add("Deleting table '${t.name}'");
-      builder.writeln(deleteTableSource(t));
-    });
-
-    difference.tableDifferences
-        .where((diff) => diff.expectedTable != null && diff.actualTable != null)
-        .forEach((tableDiff) {
-      var lines = tableDiff.generateUpgradeSource(changeList: changeList);
-      builder.writeln(lines);
-    });
-
-    return lines;
+    return generator.commands;
   }
-
-  void
 
   /// Validates and adds a table to [schema].
   void createTable(SchemaTable table) {
@@ -288,9 +258,34 @@ class SchemaBuilder {
       }
     }
   }
+
+  void _buildSchema(SchemaDifference difference, {List<String> changeList, bool temporary = false}) {
+    difference.tablesToAdd.forEach((t) {
+      changeList?.add("Adding table '${t.name}'");
+      createTable(t);
+    });
+
+    difference.tablesToDelete.forEach((t) {
+      changeList?.add("Deleting table '${t.name}'");
+      deleteTable(t.name);
+    });
+
+    difference.tablesToModify.forEach((t) {
+      _buildTable(t, changeList: changeList);
+    });
+  }
+
+  void _buildTable(SchemaTableDifference difference, {List<String> changeList}) {
+
+  }
 }
 
 class _CodeGeneratingSchemaBuilder implements SchemaBuilder {
+  _CodeGeneratingSchemaBuilder(SchemaDifference difference) {
+    inputSchema = difference.expectedSchema;
+    _buildSchema(difference);
+  }
+
   @override
   Schema inputSchema;
 
@@ -328,8 +323,26 @@ class _CodeGeneratingSchemaBuilder implements SchemaBuilder {
   void alterTable(String tableName, void modify(SchemaTable targetTable)) {}
 
   @override
-  void deleteTable(String tableName) {}
+  void deleteTable(String tableName) {
+    commands.add('database.deleteTable("${tableName}")');
+  }
 
   @override
-  void createTable(SchemaTable table) {}
+  void createTable(SchemaTable table) {
+    var builder = StringBuffer();
+    builder.write('database.createTable(SchemaTable("${table.name}", [');
+    table.columns.forEach((col) {
+      builder.write("${col.source},");
+    });
+    builder.write("],");
+
+    if (table.uniqueColumnSet != null) {
+      var set = table.uniqueColumnSet.map((p) => '"$p"').join(",");
+      builder.write("uniqueColumnSetNames: [$set],");
+    }
+
+    builder.write('))');
+
+    commands.add(builder.toString());
+  }
 }
