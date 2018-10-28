@@ -57,8 +57,8 @@ abstract class Migration {
   static String sourceForSchemaUpgrade(
       Schema existingSchema, Schema newSchema, int version,
       {List<String> changeList}) {
-    var diff = existingSchema.differenceFrom(newSchema);
-    var source = diff.generateUpgradeSource(changeList: changeList);
+    final diff = existingSchema.differenceFrom(newSchema);
+    final source = SchemaBuilder.getCommandsToFixDifferences(diff, changeList: changeList).map((line) => "\t\t$line;").join("\n");
 
     return """
 import 'dart:async';

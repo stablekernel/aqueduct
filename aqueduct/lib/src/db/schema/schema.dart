@@ -211,44 +211,10 @@ class SchemaDifference {
   List<String> get errorMessages =>
       _differingTables.expand((diff) => diff.errorMessages).toList();
 
+  /// The differences, if any, between tables in [expectedSchema] and [actualSchema].
+  List<SchemaTableDifference> get tableDifferences => _differingTables;
+
   List<SchemaTableDifference> _differingTables = [];
-
-  /// Returns Dart code to change [expectedSchema] to [actualSchema].
-  String generateUpgradeSource({List<String> changeList}) {
-    var builder = StringBuffer();
-
-    var tablesToAdd = _differingTables
-        .where((diff) => diff.expectedTable == null && diff.actualTable != null)
-        .map((d) => d.actualTable)
-        .toList();
-    actualSchema.dependencyOrderedTables
-        .where((t) => tablesToAdd.map((toAdd) => toAdd.name).contains(t.name))
-        .forEach((t) {
-      changeList?.add("Adding table '${t.name}'");
-      builder.writeln(createTableSource(t));
-    });
-
-    var tablesToRemove = _differingTables
-        .where((diff) => diff.expectedTable != null && diff.actualTable == null)
-        .map((diff) => diff.expectedTable)
-        .toList();
-    expectedSchema.dependencyOrderedTables.reversed
-        .where((t) =>
-            tablesToRemove.map((toRemove) => toRemove.name).contains(t.name))
-        .forEach((t) {
-      changeList?.add("Deleting table '${t.name}'");
-      builder.writeln(deleteTableSource(t));
-    });
-
-    _differingTables
-        .where((diff) => diff.expectedTable != null && diff.actualTable != null)
-        .forEach((tableDiff) {
-      var lines = tableDiff.generateUpgradeSource(changeList: changeList);
-      builder.writeln(lines);
-    });
-
-    return builder.toString();
-  }
 
   static String createTableSource(SchemaTable table) {
     var builder = StringBuffer();

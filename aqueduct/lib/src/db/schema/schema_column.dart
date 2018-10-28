@@ -322,6 +322,31 @@ class SchemaColumnDifference {
   /// Creates a new instance that represents the difference between [expectedColumn] and [actualColumn].
   SchemaColumnDifference(this.expectedColumn, this.actualColumn) {
     if (actualColumn != null && expectedColumn != null) {
+      if (actualColumn.isPrimaryKey != expectedColumn.isPrimaryKey) {
+        throw SchemaException(
+          "Cannot change primary key of '${expectedColumn.table.name}'");
+      }
+
+      if (actualColumn.relatedColumnName != expectedColumn.relatedColumnName) {
+        throw SchemaException(
+          "Cannot change Relationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
+      }
+
+      if (actualColumn.relatedTableName != expectedColumn.relatedTableName) {
+        throw SchemaException(
+          "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
+      }
+
+      if (actualColumn.type != expectedColumn.type) {
+        throw SchemaException(
+          "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
+      }
+
+      if (actualColumn.autoincrement != expectedColumn.autoincrement) {
+        throw SchemaException(
+          "Cannot change autoincrement behavior of '${expectedColumn.table.name}.${expectedColumn.name}'");
+      }
+
       var expectedColumnRefl = reflect(expectedColumn);
       var actualColumnRefl = reflect(actualColumn);
 
@@ -385,31 +410,6 @@ class SchemaColumnDifference {
 
   /// Dart code to upgrade [expectedColumn] to [actualColumn].
   String generateUpgradeSource({List<String> changeList}) {
-    if (actualColumn.isPrimaryKey != expectedColumn.isPrimaryKey) {
-      throw SchemaException(
-          "Cannot change primary key of '${expectedColumn.table.name}'");
-    }
-
-    if (actualColumn.relatedColumnName != expectedColumn.relatedColumnName) {
-      throw SchemaException(
-          "Cannot change Relationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
-    }
-
-    if (actualColumn.relatedTableName != expectedColumn.relatedTableName) {
-      throw SchemaException(
-          "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
-    }
-
-    if (actualColumn.type != expectedColumn.type) {
-      throw SchemaException(
-          "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
-    }
-
-    if (actualColumn.autoincrement != expectedColumn.autoincrement) {
-      throw SchemaException(
-          "Cannot change autoincrement behavior of '${expectedColumn.table.name}.${expectedColumn.name}'");
-    }
-
     var builder = StringBuffer();
 
     builder.writeln(
