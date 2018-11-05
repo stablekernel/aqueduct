@@ -301,7 +301,7 @@ This body can be bound by declaring the bound parameter to be a `List` of the de
 Future<Response> addCity(@Bind.body() List<City> cities)
 ```
 
-!!! tip 'List vs Object'
+!!! tip "List vs Object"
     An endpoint should either take a single object or a list of objects, but not both. If the request body is a JSON list and the bound variable is not a list, a 400 Bad Request response will be sent (and vice versa). Declaring a body binding of the appropriate type validates the expected value and aids in automatically generating an OpenAPI specification for your application.
 
 Note that if the request's `Content-Type` is 'x-www-form-urlencoded', its must be bound with `Bind.query` and not `Bind.body`.
