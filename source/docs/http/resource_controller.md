@@ -193,12 +193,14 @@ Header names are case-insensitive per the HTTP specification. Therefore, the hea
 
 The following operation methods binds the query parameter named 'name' to the parameter `cityName`:
 
+```dart
 class CityController extends ResourceController {
   @Operation.get()
   Future<Response> getAllCities(@Bind.query('name') String cityName) async {
     return new Response.ok(cities.where((c) => c.name == cityName).toList());
   }
 }
+```
 
 Query parameters can be required or optional. If required, a 400 Bad Request response is sent and no operation method is called if the query parameter is not present in the request URL. If optional, the bound variable is null or a default value.
 
