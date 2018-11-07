@@ -86,11 +86,24 @@ class Schema {
   /// Sets [table]'s [SchemaTable.schema] to this instance.
   void addTable(SchemaTable table) {
     if (this[table.name] != null) {
-      throw SchemaException("Table ${table.name} already exists.");
+      throw SchemaException(
+          "Table ${table.name} already exists and cannot be added.");
     }
 
     _tableStorage.add(table);
     table.schema = this;
+  }
+
+  void replaceTable(SchemaTable existingTable, SchemaTable newTable) {
+    if (!_tableStorage.contains(existingTable)) {
+      throw SchemaException(
+          "Table ${existingTable.name} does not exist and cannot be replaced.");
+    }
+
+    var index = _tableStorage.indexOf(existingTable);
+    _tableStorage[index] = newTable;
+    newTable.schema = this;
+    existingTable.schema = null;
   }
 
   void renameTable(SchemaTable table, String newName) {
@@ -215,23 +228,27 @@ class SchemaDifference {
   List<SchemaTableDifference> get tableDifferences => _differingTables;
 
   List<SchemaTable> get tablesToAdd {
-    return _differingTables
-      .where((diff) => diff.expectedTable == null && diff.actualTable != null)
-      .map((d) => d.actualTable)
-      .toList();
+    final tables = _differingTables
+        .where((diff) => diff.expectedTable == null && diff.actualTable != null)
+        .map((d) => d.actualTable)
+        .toList();
+
+    return actualSchema.dependencyOrderedTables.where(tables.contains).toList();
   }
 
   List<SchemaTable> get tablesToDelete {
-    return _differingTables
-      .where((diff) => diff.expectedTable != null && diff.actualTable == null)
-      .map((diff) => diff.expectedTable)
-      .toList();
+    final tables =_differingTables
+        .where((diff) => diff.expectedTable != null && diff.actualTable == null)
+        .map((diff) => diff.expectedTable)
+        .toList();
+
+    return expectedSchema.dependencyOrderedTables.reversed.where(tables.contains).toList();
   }
 
   List<SchemaTableDifference> get tablesToModify {
     return _differingTables
-      .where((diff) => diff.expectedTable != null && diff.actualTable != null)
-      .toList();
+        .where((diff) => diff.expectedTable != null && diff.actualTable != null)
+        .toList();
   }
 
   List<SchemaTableDifference> _differingTables = [];
