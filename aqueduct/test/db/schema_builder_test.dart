@@ -215,15 +215,6 @@ void main() {
         expect(e.message, contains("May not change"));
       }
 
-      try {
-        builder.alterColumn("_ExtensiveModel", "nullableValue", (c) {
-          c.isNullable = false;
-        });
-        expect(true, false);
-      } on SchemaException catch (e) {
-        expect(e.message, contains("May not change"));
-      }
-
       builder.alterColumn("_LoadedItem", "someIndexedThing", (c) {
         c.isIndexed = false;
         c.isNullable = true;

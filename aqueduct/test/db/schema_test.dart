@@ -499,16 +499,16 @@ void main() {
           .columns
           .firstWhere((c) => c.name == "id");
 
-      column.isPrimaryKey = !column.isPrimaryKey;
-      var diff = baseSchema.differenceFrom(newSchema);
-      expect(diff.hasDifferences, true);
-      expect(diff.errorMessages.length, 1);
-      expect(diff.errorMessages.first,
-          "Column 'id' in table '_DefaultItem' expected 'true' for 'isPrimaryKey', but migration files yield 'false'");
-      column.isPrimaryKey = !column.isPrimaryKey;
+      /*
+        Note that some properties cannot be diffed because they cannot be changed:
+          primary key, type, related table/column name
+
+        These are tested in schema_invalid_difference_test.dart. Anything that can change is accounted
+        for here.
+       */
 
       column.isIndexed = !column.isIndexed;
-      diff = baseSchema.differenceFrom(newSchema);
+      var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
       expect(diff.errorMessages.length, 1);
       expect(diff.errorMessages.first,
@@ -522,14 +522,6 @@ void main() {
       expect(diff.errorMessages.first,
           'Column \'id\' in table \'_DefaultItem\' expected \'false\' for \'isNullable\', but migration files yield \'true\'');
       column.isNullable = !column.isNullable;
-
-      column.autoincrement = !column.autoincrement;
-      diff = baseSchema.differenceFrom(newSchema);
-      expect(diff.hasDifferences, true);
-      expect(diff.errorMessages.length, 1);
-      expect(diff.errorMessages.first,
-          'Column \'id\' in table \'_DefaultItem\' expected \'true\' for \'autoincrement\', but migration files yield \'false\'');
-      column.autoincrement = !column.autoincrement;
 
       column.isUnique = !column.isUnique;
       diff = baseSchema.differenceFrom(newSchema);
@@ -548,33 +540,6 @@ void main() {
           'Column \'id\' in table \'_DefaultItem\' expected \'null\' for \'defaultValue\', but migration files yield \'foobar\'');
       column.defaultValue = captureValue;
 
-      var capType = column.type;
-      column.type = ManagedPropertyType.boolean;
-      diff = baseSchema.differenceFrom(newSchema);
-      expect(diff.hasDifferences, true);
-      expect(diff.errorMessages.length, 1);
-      expect(diff.errorMessages.first,
-          'Column \'id\' in table \'_DefaultItem\' expected \'ManagedPropertyType.bigInteger\' for \'type\', but migration files yield \'ManagedPropertyType.boolean\'');
-      column.type = capType;
-
-      captureValue = column.relatedColumnName;
-      column.relatedColumnName = "whatever";
-      diff = baseSchema.differenceFrom(newSchema);
-      expect(diff.hasDifferences, true);
-      expect(diff.errorMessages.length, 1);
-      expect(diff.errorMessages.first,
-          'Column \'id\' in table \'_DefaultItem\' expected \'null\' for \'relatedColumnName\', but migration files yield \'whatever\'');
-      column.relatedColumnName = captureValue;
-
-      captureValue = column.relatedTableName;
-      column.relatedTableName = "whatever";
-      diff = baseSchema.differenceFrom(newSchema);
-      expect(diff.hasDifferences, true);
-      expect(diff.errorMessages.length, 1);
-      expect(diff.errorMessages.first,
-          'Column \'id\' in table \'_DefaultItem\' expected \'null\' for \'relatedTableName\', but migration files yield \'whatever\'');
-      column.relatedTableName = captureValue;
-
       var capDeleteRule = column.deleteRule;
       column.deleteRule = DeleteRule.setDefault;
       diff = baseSchema.differenceFrom(newSchema);
@@ -590,7 +555,7 @@ void main() {
       newSchema.addTable(SchemaTable("foo", []));
       var df = newSchema.tables.firstWhere((t) => t.name == "_DefaultItem");
       df.addColumn(SchemaColumn("foobar", ManagedPropertyType.integer));
-      df.columns.firstWhere((sc) => sc.name == "id").isPrimaryKey = false;
+      newSchema.tableForName("_LoadedItem").columns.firstWhere((sc) => sc.name == "someIndexedThing").isIndexed = false;
 
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
@@ -598,7 +563,7 @@ void main() {
       expect(
           diff.errorMessages,
           contains(
-              'Column \'id\' in table \'_DefaultItem\' expected \'true\' for \'isPrimaryKey\', but migration files yield \'false\''));
+              'Column \'someIndexedThing\' in table \'_LoadedItem\' expected \'true\' for \'isIndexed\', but migration files yield \'false\''));
       expect(
           diff.errorMessages,
           contains(

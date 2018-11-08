@@ -541,14 +541,10 @@ class _GenPost {
 }
 
 class GenNamed extends ManagedObject<_GenNamed> implements _GenNamed {}
-
+@Table(name: "GenNamed")
 class _GenNamed {
   @Column(primaryKey: true)
   int id;
-
-  static String tableName() {
-    return "GenNamed";
-  }
 }
 
 class GenOwner extends ManagedObject<_GenOwner> implements _GenOwner {}

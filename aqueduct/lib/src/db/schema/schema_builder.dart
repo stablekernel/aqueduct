@@ -15,7 +15,7 @@ to the invocation. These tests are in generate_code_test.dart.
 
 The code to ensure the generated SQL is accurate is in db/postgresql/schema_generator_sql_mapping_test.dart.
 
-The logic that goes into testing that the commands generated to build a valid schema in an actual database are in db/postgresql/migration_test.dart.
+The logic that goes into testing that the commands generated to build a valid schema in an actual postgresql are in db/postgresql/migration_test.dart.
  */
 
 /// Used during migration to modify a schema.
@@ -303,7 +303,9 @@ class SchemaBuilder {
       if (store != null) {
         commands.addAll(store.alterColumnDefaultValue(table, newColumn));
       } else {
-        final value = newColumn.defaultValue == null ? 'null' : '"${newColumn.defaultValue}"';
+        final value = newColumn.defaultValue == null
+            ? 'null'
+            : '"${newColumn.defaultValue}"';
         innerCommands.add('c.defaultValue = $value');
       }
     }
@@ -374,8 +376,10 @@ class SchemaBuilder {
     });
 
     difference.columnsToModify.forEach((columnDiff) {
-      changeList?.add("Modifying column '${columnDiff.actualColumn.name}' in '${difference.actualTable.name}'");
-      alterColumn(difference.actualTable.name, columnDiff.actualColumn.name, (c) {
+      changeList?.add(
+          "Modifying column '${columnDiff.actualColumn.name}' in '${difference.actualTable.name}'");
+      alterColumn(difference.actualTable.name, columnDiff.actualColumn.name,
+          (c) {
         c.isIndexed = columnDiff.actualColumn.isIndexed;
         c.defaultValue = columnDiff.actualColumn.defaultValue;
         c.isUnique = columnDiff.actualColumn.isUnique;
