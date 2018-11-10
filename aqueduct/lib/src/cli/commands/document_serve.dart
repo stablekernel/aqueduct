@@ -8,6 +8,7 @@ import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:aqueduct/src/cli/running_process.dart';
 
 import 'package:aqueduct/src/cli/command.dart';
+import 'package:aqueduct/src/cli/scripts/openapi_builder.dart';
 import 'package:aqueduct/src/http/http.dart';
 
 /// Used internally.
@@ -74,8 +75,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
   Future _build() async {
     _hostedDirectory.createSync();
 
-    final documentJSON = json.encode(await documentProject(
-        projectDirectory.uri, libraryName, projectSpecificationFile));
+    final documentJSON = json.encode(await documentProject(this, this));
     final jsonSpecFile =
         File.fromUri(_hostedDirectory.uri.resolve("openapi.json"));
     jsonSpecFile.writeAsStringSync(documentJSON);

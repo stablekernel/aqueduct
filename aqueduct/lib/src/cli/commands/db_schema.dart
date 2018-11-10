@@ -5,7 +5,6 @@ import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/mixins/database_managing.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:aqueduct/src/cli/scripts/get_schema.dart';
-import 'package:isolate_executor/isolate_executor.dart';
 
 class CLIDatabaseSchema extends CLICommand
     with CLIDatabaseManagingCommand, CLIProject {
@@ -32,9 +31,6 @@ class CLIDatabaseSchema extends CLICommand
   }
 
   Future<dynamic> getSchema() {
-    return IsolateExecutor.run(GetSchemaExecutable({}),
-        packageConfigURI: packageConfigUri,
-        imports: GetSchemaExecutable.importsForPackage(packageName),
-        logHandler: displayProgress);
+    return getProjectSchema(this);
   }
 }
