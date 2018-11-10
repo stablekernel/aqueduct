@@ -1,6 +1,11 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
+/*
+These tests ensure that a SchemaBuilder generates equivalent Dart expressions, that when those expressions
+are executed in a script, would recreate the same invocations applied to the generating SchemaBuilder.
+ */
+
 void main() {
   SchemaBuilder builder;
 
