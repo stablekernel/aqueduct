@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/cli/command.dart';
+import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
 class MigrationBuilderExecutable extends Executable<Map<String, dynamic>> {
@@ -18,18 +20,24 @@ class MigrationBuilderExecutable extends Executable<Map<String, dynamic>> {
 
   @override
   Future<Map<String, dynamic>> execute() async {
-    var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
-    var schema = Schema.fromDataModel(dataModel);
-    var changeList = <String>[];
+    try {
+      var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+      var schema = Schema.fromDataModel(dataModel);
+      var changeList = <String>[];
 
-    final source = Migration.sourceForSchemaUpgrade(
-        inputSchema, schema, versionTag,
-        changeList: changeList);
-    return {
-      "source": source,
-      "tablesEvaluated": dataModel.entities.map((e) => e.name).toList(),
-      "changeList": changeList
-    };
+      final source = Migration.sourceForSchemaUpgrade(
+          inputSchema, schema, versionTag,
+          changeList: changeList);
+      return {
+        "source": source,
+        "tablesEvaluated": dataModel.entities.map((e) => e.name).toList(),
+        "changeList": changeList
+      };
+    } on SchemaException catch (e) {
+      return {"error": e.message};
+    } on ManagedDataModelError catch (e) {
+      return {"error": e.message};
+    }
   }
 
   static List<String> importsForPackage(String packageName) => [
@@ -47,4 +55,20 @@ class MigrationBuilderResult {
   final String source;
   final List<String> tablesEvaluated;
   final List<String> changeList;
+}
+
+Future<MigrationBuilderResult> generateMigrationFileForProject(
+    CLIProject project, Schema initialSchema, int inputVersion) async {
+  final resultMap = await IsolateExecutor.run(
+      MigrationBuilderExecutable.input(initialSchema, inputVersion),
+      packageConfigURI: project.packageConfigUri,
+      imports:
+          MigrationBuilderExecutable.importsForPackage(project.packageName),
+      logHandler: project.displayProgress);
+
+  if (resultMap.containsKey("error")) {
+    throw CLIException(resultMap["error"] as String);
+  }
+
+  return MigrationBuilderResult.fromMap(resultMap);
 }
