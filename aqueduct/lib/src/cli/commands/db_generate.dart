@@ -26,7 +26,7 @@ class CLIDatabaseGenerate extends CLICommand
     final result = await generateMigrationFileForProject(this, schema, versionNumber);
 
     displayInfo("The following ManagedObject<T> subclasses were found:");
-    result.tablesEvaluated.forEach(displayProgress);
+    displayProgress("${result.tablesEvaluated.join(", ")}");
     displayProgress("");
     displayProgress(
         "* If you were expecting more declarations, ensure the files are visible in the application library file.");
@@ -34,14 +34,8 @@ class CLIDatabaseGenerate extends CLICommand
 
     result.changeList?.forEach(displayProgress);
 
-    if (result.source.contains("<<set>>")) {
-      displayInfo("File requires input.");
-      displayProgress(
-          "This migration file requires extra configuration. This is likely because "
-          "a non-nullable column was added to your schema, and needs a default value. "
-          "Search for <<set>> in the migration file and replace it with a valid value. "
-          "(Note that text columns require a single-quoted string, e.g. \"'default'\".)");
-    }
+
+
     newMigrationFile.writeAsStringSync(result.source);
 
     displayInfo("Created new migration file (version $versionNumber).",

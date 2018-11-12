@@ -18,14 +18,7 @@ class MigrationSource {
   }
 
   factory MigrationSource.fromFile(Uri uri) {
-    CompilationUnit fileUnit;
-    try {
-      fileUnit = parseDartFile(uri.toFilePath(windows: Platform.isWindows));
-    } catch (_) {
-      throw StateError(
-          "Migration file '${uri.path}' failed to compile. If this file was generated and required additional input, "
-          "search for the phrase '<<set>>' in the file and replace it with an appropriate expression.");
-    }
+    final fileUnit = parseDartFile(uri.toFilePath(windows: Platform.isWindows));
 
     final sources = fileUnit.declarations
         .whereType<ClassDeclaration>()

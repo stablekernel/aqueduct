@@ -166,13 +166,8 @@ class SchemaBuilder {
       commands.addAll(store.addColumn(table, column,
           unencodedInitialValue: unencodedInitialValue));
     } else {
-      if (column.isNullable || column.defaultValue != null) {
-        commands.add(
-            'database.addColumn("${column.table.name}", ${_getNewColumnExpression(column)});');
-      } else {
-        commands.add(
-            'database.addColumn("${column.table.name}", ${_getNewColumnExpression(column)}, unencodedInitialValue: <<set>>);');
-      }
+      commands.add(
+          'database.addColumn("${column.table.name}", ${_getNewColumnExpression(column)});');
     }
   }
 
@@ -328,19 +323,7 @@ class SchemaBuilder {
     }
 
     if (store == null && innerCommands.isNotEmpty) {
-      final buf = StringBuffer();
-      buf.write(
-          "database.alterColumn(\"$tableName\", \"$columnName\", (c) {${innerCommands.join(";")};}");
-      // If we are altering this column to make it non-nullable, we need a default value
-      // that will get applied to existing rows. If there is no default value, we need an initial
-      // value to do a one-time set on existing rows
-      if (newColumn.isNullable == false &&
-          existingColumn.isNullable == true &&
-          newColumn.defaultValue == null) {
-        buf.write(", unencodedInitialValue: <<set>>");
-      }
-      buf.write(");");
-      commands.add(buf.toString());
+      commands.add("database.alterColumn(\"$tableName\", \"$columnName\", (c) {${innerCommands.join(";")};});");
     }
   }
 
@@ -367,6 +350,12 @@ class SchemaBuilder {
       changeList?.add(
           "Adding column '${c.name}' to table '${difference.actualTable.name}'");
       addColumn(difference.actualTable.name, c);
+
+      if (!c.isNullable && c.defaultValue == null) {
+        changeList?.add("WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
+          "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
+          "SchemaColumn(\"${c.name}\", ...)'.");
+      }
     });
 
     difference.columnsToRemove.forEach((c) {
@@ -386,6 +375,13 @@ class SchemaBuilder {
         c.isNullable = columnDiff.actualColumn.isNullable;
         c.deleteRule = columnDiff.actualColumn.deleteRule;
       });
+
+      if (columnDiff.expectedColumn.isNullable &&
+        !columnDiff.actualColumn.isNullable && columnDiff.actualColumn.defaultValue == null) {
+        changeList?.add("WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
+          "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
+          "SchemaColumn(\"${columnDiff.actualColumn.name}\", ...)'.");
+      }
     });
 
     if (difference.uniqueSetDifference?.hasDifferences ?? false) {
