@@ -6,13 +6,13 @@ import 'package:aqueduct/src/cli/mixins/openapi_options.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 
 import 'package:aqueduct/src/cli/command.dart';
+import 'package:aqueduct/src/cli/scripts/openapi_builder.dart';
 
 /// Used internally.
 class CLIDocumentClient extends CLICommand with CLIProject, CLIDocumentOptions {
   @override
   Future<int> handle() async {
-    final doc = await documentProject(
-        projectDirectory.uri, libraryName, projectSpecificationFile);
+    final doc = await documentProject(this, this);
 
     final source = _getHtmlSource(json.encode(doc));
     final file = File("client.html");

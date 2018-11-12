@@ -1,10 +1,5 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/metadata.dart';
-import 'package:aqueduct/src/cli/scripts/openapi_builder.dart';
-import 'package:isolate_executor/isolate_executor.dart';
 
 abstract class CLIDocumentOptions implements CLICommand {
   @Flag("resolve-relative-urls", defaultsTo: true,
@@ -64,29 +59,5 @@ abstract class CLIDocumentOptions implements CLICommand {
 
       return uri;
     }).toList();
-  }
-
-  Future<Map<dynamic, dynamic>> documentProject(
-      Uri projectDirectory, String libraryName, File pubspecFile) async {
-
-    final variables = <String, dynamic>{
-      "pubspec": pubspecFile.readAsStringSync(),
-      "hosts": hosts?.map((u) => u.toString())?.toList(),
-      "configPath": configurationPath,
-      "title": title,
-      "description": apiDescription,
-      "version": apiVersion,
-      "termsOfServiceURL": termsOfServiceURL,
-      "contactEmail": contactEmail,
-      "contactName": contactName,
-      "contactURL": contactURL,
-      "licenseURL": licenseURL,
-      "licenseName": licenseName,
-      "resolveRelativeUrls": resolveRelativeUrls
-    };
-
-    return IsolateExecutor.run(OpenAPIBuilder(variables),
-        packageConfigURI: projectDirectory.resolve(".packages"),
-        imports: OpenAPIBuilder.importsForPackage(libraryName));
   }
 }

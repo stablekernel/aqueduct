@@ -5,8 +5,6 @@ import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/mixins/database_managing.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:aqueduct/src/cli/scripts/migration_builder.dart';
-import 'package:aqueduct/src/db/schema/schema.dart';
-import 'package:isolate_executor/isolate_executor.dart';
 
 class CLIDatabaseGenerate extends CLICommand
     with CLIDatabaseManagingCommand, CLIProject {
@@ -25,7 +23,7 @@ class CLIDatabaseGenerate extends CLICommand
     }
 
     final schema = await schemaByApplyingMigrationSources(projectMigrations);
-    var result = await generateMigrationSource(schema, versionNumber);
+    final result = await generateMigrationFileForProject(this, schema, versionNumber);
 
     displayInfo("The following ManagedObject<T> subclasses were found:");
     result.tablesEvaluated.forEach(displayProgress);
@@ -51,17 +49,6 @@ class CLIDatabaseGenerate extends CLICommand
     displayProgress("New file is located at ${newMigrationFile.path}");
 
     return 0;
-  }
-
-  Future<MigrationBuilderResult> generateMigrationSource(
-      Schema initialSchema, int inputVersion) async {
-    final resultMap = await IsolateExecutor.run(
-        MigrationBuilderExecutable.input(initialSchema, inputVersion),
-        packageConfigURI: packageConfigUri,
-        imports: MigrationBuilderExecutable.importsForPackage(packageName),
-        logHandler: displayProgress);
-
-    return MigrationBuilderResult.fromMap(resultMap);
   }
 
   @override

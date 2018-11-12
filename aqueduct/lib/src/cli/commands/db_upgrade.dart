@@ -6,6 +6,7 @@ import 'package:aqueduct/src/cli/mixins/database_managing.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:aqueduct/src/cli/scripts/run_upgrade.dart';
 import 'package:aqueduct/src/db/postgresql/postgresql_persistent_store.dart';
+import 'package:aqueduct/src/db/query/query.dart';
 import 'package:aqueduct/src/db/schema/migration_source.dart';
 import 'package:aqueduct/src/db/schema/schema.dart';
 import 'package:isolate_executor/isolate_executor.dart';
@@ -23,30 +24,43 @@ class CLIDatabaseUpgrade extends CLICommand
       return 0;
     }
 
-    final currentVersion = await persistentStore.schemaVersion;
-    final appliedMigrations =
-        migrations.where((mig) => mig.versionNumber <= currentVersion).toList();
-    final migrationsToExecute =
-        migrations.where((mig) => mig.versionNumber > currentVersion).toList();
-    if (migrationsToExecute.isEmpty) {
-      displayInfo(
-          "Database version is already current (version: $currentVersion).");
-      return 0;
+    try {
+      final currentVersion = await persistentStore.schemaVersion;
+      final appliedMigrations = migrations
+          .where((mig) => mig.versionNumber <= currentVersion)
+          .toList();
+      final migrationsToExecute = migrations
+          .where((mig) => mig.versionNumber > currentVersion)
+          .toList();
+      if (migrationsToExecute.isEmpty) {
+        displayInfo(
+            "Database version is already current (version: $currentVersion).");
+        return 0;
+      }
+
+      if (currentVersion == 0) {
+        displayInfo(
+            "Updating to version ${migrationsToExecute.last.versionNumber} on new database...");
+      } else {
+        displayInfo(
+            "Updating to version ${migrationsToExecute.last.versionNumber} from version $currentVersion...");
+      }
+
+      final currentSchema =
+          await schemaByApplyingMigrationSources(appliedMigrations);
+
+      await executeMigrations(
+          migrationsToExecute, currentSchema, currentVersion);
+    } on QueryException catch (e) {
+      if (e.event == QueryExceptionEvent.transport) {
+        final databaseUrl =
+            "${connectedDatabase.username}:${connectedDatabase.password}@${connectedDatabase.host}:${connectedDatabase.port}/${connectedDatabase.databaseName}";
+        throw CLIException(
+            "There was an error connecting to the database '$databaseUrl'. Reason: ${e.message}.");
+      }
+
+      rethrow;
     }
-
-    if (currentVersion == 0) {
-      displayInfo(
-          "Updating to version ${migrationsToExecute.last.versionNumber} on new database...");
-    } else {
-      displayInfo(
-          "Updating to version ${migrationsToExecute.last.versionNumber} from version $currentVersion...");
-    }
-
-    final currentSchema =
-        await schemaByApplyingMigrationSources(appliedMigrations);
-
-    await executeMigrations(migrationsToExecute, currentSchema, currentVersion);
-
     return 0;
   }
 
@@ -70,6 +84,10 @@ class CLIDatabaseUpgrade extends CLICommand
         additionalContents: MigrationSource.combine(migrations),
         additionalTypes: [DBInfo],
         logHandler: displayProgress);
+
+    if (schemaMap.containsKey("error")) {
+      throw CLIException(schemaMap["error"] as String);
+    }
 
     return Schema.fromMap(schemaMap);
   }
