@@ -94,7 +94,7 @@ void main() {
       expect(builder.commands.length, 2);
       expect(builder.commands.last, "database.addColumn(\"foo\", "
         "SchemaColumn(\"x\", ManagedPropertyType.integer, isPrimaryKey: false, autoincrement: false, "
-        "isIndexed: false, isNullable: false, isUnique: false), unencodedInitialValue: <<set>>);");
+        "isIndexed: false, isNullable: false, isUnique: false));");
     });
 
     test("Add relationship column", () {
@@ -197,7 +197,7 @@ void main() {
         c.isNullable = false;
       });
       expect(builder.commands.length, 3);
-      expect(builder.commands.last, "database.alterColumn(\"foo\", \"id\", (c) {c.isNullable = false;}, unencodedInitialValue: <<set>>);");
+      expect(builder.commands.last, "database.alterColumn(\"foo\", \"id\", (c) {c.isNullable = false;});");
 
       builder.alterColumn("foo", "id", (c) {
         c.isNullable = false;
@@ -221,7 +221,7 @@ void main() {
         c.isNullable = false;
       });
       expect(builder.commands.length, 4);
-      expect(builder.commands.last, "database.alterColumn(\"bar\", \"foo_id\", (c) {c.isNullable = false;}, unencodedInitialValue: <<set>>);");
+      expect(builder.commands.last, "database.alterColumn(\"bar\", \"foo_id\", (c) {c.isNullable = false;});");
 
       builder.alterColumn("bar", "foo_id", (c) {
         c.isNullable = false;
