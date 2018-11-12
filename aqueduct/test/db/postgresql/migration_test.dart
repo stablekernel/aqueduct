@@ -258,8 +258,27 @@ void main() {
       defs["foo"].expectColumn("y", "timestamp without time zone", defaultValue: "'1900-01-01 00:00:00'::timestamp", nullable: true, indexed: true, unique: true);
     });
 
-    test("Add column with autoincrementing", () {
+    test("Add column with autoincrementing", () async {
+      final schemas = [
+        Schema.empty(),
+        Schema([
+          SchemaTable("foo", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)
+          ]),
+        ]),
+        Schema([
+          SchemaTable("foo", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn("x", ManagedPropertyType.bigInteger, autoincrement: true),
+          ]),
+        ])
+      ];
 
+      await applyDifference(store, schemas[0], schemas[1]);
+      await applyDifference(store, schemas[1], schemas[2]);
+      final defs = await TableDefinition.get(store, ["foo"]);
+      defs["foo"].expectColumn("id", "integer", primaryKey: true);
+      defs["foo"].expectColumn("x", "integer8", autoincrementing: true);
     });
 
     test("Delete column", () async {});
