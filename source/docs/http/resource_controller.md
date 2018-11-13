@@ -104,7 +104,7 @@ Operation methods may *bind* properties of an HTTP request to its parameters. Wh
 
 ```dart
 @Operation.get('name')
-Future<Response> getCityByName(@Bind.path('x-api-key') String apiKey) async {
+Future<Response> getCityByName(@Bind.header('x-api-key') String apiKey) async {
   if (!isValid(apiKey)) {
     return new Response.unauthorized();
   }

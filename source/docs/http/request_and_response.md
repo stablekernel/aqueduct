@@ -280,3 +280,34 @@ Future<Response> addPerson(@Bind.body() Person person) async {
 ### Serializable and OpenAPI Generation
 
 See the section on how `Serializable` types work with OpenAPI documentation generation [here](../openapi/components.md).
+
+### Example: multipart/form-data
+
+Add `package:mime` to your `pubspec.yaml` as a dependency.
+
+```yaml
+dependencies:
+  mime: any # prefer a better constraint than this
+```
+
+And then decode the body with the objects from that package:
+
+```dart
+import 'package:aqueduct/aqueduct.dart';
+import 'package:mime/mime.dart';
+
+class MyController extends ResourceController {
+  @Operation.post()
+  Future<Response> postForm() async {}
+    final transformer = MimeMultipartTransformer(request.raw.headers.contentType.parameters["boundary"]);
+    final bodyStream = Stream.fromIterable([await request.body.decode<List<int>>()]);
+    final parts = await transformer.bind(bodyStream).toList();
+
+    for (var part in parts) {
+      final headers = part.headers;
+      final content = await part.toList();
+      ...
+    }    
+  }
+}
+```

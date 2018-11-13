@@ -72,12 +72,12 @@ class _Article {
 !!! note "Creating Tables"
     Tables are created in a database by using the `aqueduct` command line tool to generate and execute migration scripts. The tool inspects your database types and automatically synchronizes a databases schema to match your them.
 
-The ORM assumes that a database table has the same name as a table definition, i.e. the `_Article` table definition instructs the ORM that there is a table named `_Article`. You may provide another name for the table by implementing a *static* `tableName` method in your table definition to return this name:
+The ORM assumes that a database table has the same name as a table definition, i.e. the `_Article` table definition instructs the ORM that there is a table named `_Article`. You may provide another name with the `@Table` annotation on the table definition.
+
 
 ```dart
+@Table(name: "ArticleTable")
 class _Article {
-  static String tableName() => "ArticleTable";
-
   @primaryKey
   int id;
 
@@ -227,6 +227,167 @@ A relationship has a delete rule. When an object is deleted, any objects that be
 | cascade | related objects are also deleted | When deleting an author, its articles are deleted |
 | restrict | delete fails | When attempting to delete an author with articles, the delete operation fails |
 | default | inverse set to a default value | When deleting an author, its articles author is set to the default value of the column |
+
+### Example: One-to-Many Relationship
+
+An author has many books:
+
+```dart
+class Author extends ManagedObject<_Author> implements _Author {}
+class _Author {
+  @primaryKey
+  int id;
+
+  String name;
+
+  ManagedSet<Book> books;
+}
+
+class Book extends ManagedObject<_Book> implements _Book {}
+class _Book {
+  @primaryKey
+  int id;
+
+  String name;
+
+  @Relate(#books)
+  Author author;
+}
+```
+
+To fetch authors and their books:
+
+```dart
+final query = Query<Author>(context)
+  ..join(set: (a) => a.books);
+final authors = await query.fetch();
+```
+
+To fetch a book and their full author object:
+
+```dart
+final query = Query<Book>(context)
+  ..where((b) => b.id).equalTo(1)
+  ..join(object: (a) => a.author);
+final books = await query.fetch();
+```
+
+### Example: One-to-One Relationship
+
+```dart
+class Country extends ManagedObject<_Country> implements _Country {}
+class _Country {
+  @primaryKey
+  int id;
+
+  String name;
+
+  City capital;
+}
+
+class City extends ManagedObject<_City> implements _City {}
+class _City {
+  @primaryKey
+  int id;
+
+  String name;
+
+  @Relate(#capital)
+  Country country;
+}
+```
+
+To fetch a country and its capital:
+
+```dart
+final query = Query<Country>(context)
+  ..where((c) => c.id).equalTo(1)
+  ..join(object: (a) => a.capital);
+final countries = await query.fetch();
+```
+
+### Example: Many-to-Many Relationship
+
+```dart
+class Team extends ManagedObject<_Team> implements _Team {}
+class _Team {
+  @primaryKey
+  int id;
+
+  String name;
+
+  ManagedSet<TeamPlayer> teamPlayers;
+}
+
+// This type is a join table
+class _TeamPlayer extends ManagedObject<_TeamPlayer> implements _TeamPlayer {}
+class _TeamPlayer {
+  @primaryKey
+  int id;  
+
+  @Relate(#players)
+  Team team;
+
+  @Relate(#team)
+  Player player;
+}
+
+class Player extends ManagedObject<_Player> implements _Player {}
+class _Player {
+  @primaryKey
+  int id;
+
+  String name;
+
+  ManagedSet<TeamPlayer> teamPlayers;
+}
+```
+
+To fetch a team and its players:
+
+```dart
+// Note that the final join is not cascaded from the Team query,
+// but from the Query created by joining with TeamPlayer
+final query = Query<Team>(context)
+  ..where((t) => t.id).equalTo(1)
+  ..join(set: (t) => t.teamPlayers).join(object: (tp) => tp.player);
+final team = await query.fetchOne();
+```
+
+The structure of this object is:
+
+```json
+{
+  "id": 1,
+  "name": "Badgers",
+  "teamPlayers": [
+    {
+      "id": 1,
+      "team": {
+        "id": 1
+      },
+      "player": {
+        "id": 1,
+        "name": "Fred"
+      }
+    }
+  ]
+}
+```
+
+You can flatten this structure in a number of ways. In general, add a `Serialize`-annotated property to the `ManagedObject` subclass:
+
+```dart
+class Team extends ManagedObject<_Team> implements _Team {
+  @Serialize(input: false, output: true)
+  List<Player> players;
+}
+
+final team = ...;
+team.players = team.teamPlayers.map((t) => t.player).toList();
+// Remove teamPlayers; it is redundant
+team.backing.removeProperty("teamPlayers");
+```
 
 ## Additional Data Modeling
 
