@@ -21,6 +21,9 @@ class QueryExpression<T, U, InstanceType> {
       : keyPath = KeyPath.byAddingKey(original.keyPath, byAdding),
         _expression = original.expression;
 
+  QueryExpression.and(QueryExpression<T, T, InstanceType> lhs, QueryExpression<U, U, InstanceType> rhs):
+        _expression = AndExpression(lhs, rhs);
+
   final KeyPath keyPath;
 
   // todo: This needs to be extended to an expr tree

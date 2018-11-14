@@ -73,8 +73,13 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
           "Invalid property selector. Must reference a single property only.");
     }
 
-    final expr = QueryExpression<T, InstanceType>(properties.first);
-    expressions.add(expr);
+    final expr = QueryExpression<T, T, InstanceType>(properties.first);
+    if (expressions.isNotEmpty) {
+      final expression = expressions.first;
+      expressions = [QueryExpression.and(expression, expr)];
+    } else {
+      expressions = [expr];
+    }
     return expr;
   }
 

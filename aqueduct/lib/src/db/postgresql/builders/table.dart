@@ -130,50 +130,64 @@ class TableBuilder implements Returnable {
   }
 
   void addColumnExpressions(
-      List<QueryExpression<dynamic, dynamic>> expressions) {
+      List<QueryExpression<dynamic, dynamic, dynamic>> expressions) {
     if (expressions == null) {
       return;
     }
 
-    expressions.forEach((expression) {
-      final firstElement = expression.keyPath.path.first;
-      final lastElement = expression.keyPath.path.last;
+    if (expressions.isEmpty) {
+      return;
+    }
 
-      bool isPropertyOnThisEntity = expression.keyPath.length == 1;
-      bool isForeignKey = expression.keyPath.length == 2 &&
-          lastElement is ManagedAttributeDescription &&
-          lastElement.isPrimaryKey &&
-          firstElement is ManagedRelationshipDescription &&
-          firstElement.isBelongsTo;
+    final expression = expressions.first;
+    final predicateExpression = expression.expression;
+    if (predicateExpression is AndExpression) {
+      addColumnExpressions([predicateExpression.lhs]);
+      addColumnExpressions([predicateExpression.rhs]);
+      return;
+    }
 
-      if (isPropertyOnThisEntity) {
-        bool isBelongsTo = lastElement is ManagedRelationshipDescription &&
-            lastElement.isBelongsTo;
-        bool isColumn =
-            lastElement is ManagedAttributeDescription || isBelongsTo;
+    expressions.forEach(addColumnExpression);
+  }
 
-        if (isColumn) {
-          // This will occur if we selected a column.
-          final expr =
-              ColumnExpressionBuilder(this, lastElement, expression.expression);
-          expressionBuilders.add(expr);
-          return;
-        }
-      } else if (isForeignKey) {
-        // This will occur if we selected a belongs to relationship or a belongs to relationship's
-        // primary key. In either case, this is a column in this table (a foreign key column).
-        final expr = ColumnExpressionBuilder(
-            this, expression.keyPath.path.first, expression.expression);
+  void addColumnExpression(QueryExpression<dynamic, dynamic, dynamic> expression) {
+    final firstElement = expression.keyPath.path.first;
+    final lastElement = expression.keyPath.path.last;
+
+    bool isPropertyOnThisEntity = expression.keyPath.length == 1;
+    bool isForeignKey = expression.keyPath.length == 2 &&
+        lastElement is ManagedAttributeDescription &&
+        lastElement.isPrimaryKey &&
+        firstElement is ManagedRelationshipDescription &&
+        firstElement.isBelongsTo;
+
+    if (isPropertyOnThisEntity) {
+      bool isBelongsTo = lastElement is ManagedRelationshipDescription &&
+          lastElement.isBelongsTo;
+      bool isColumn =
+          lastElement is ManagedAttributeDescription || isBelongsTo;
+
+      if (isColumn) {
+        // This will occur if we selected a column.
+        final expr =
+        ColumnExpressionBuilder(this, lastElement, expression.expression);
         expressionBuilders.add(expr);
         return;
       }
+    } else if (isForeignKey) {
+      // This will occur if we selected a belongs to relationship or a belongs to relationship's
+      // primary key. In either case, this is a column in this table (a foreign key column).
+      final expr = ColumnExpressionBuilder(
+          this, expression.keyPath.path.first, expression.expression);
+      expressionBuilders.add(expr);
+      return;
+    }
 
-      addColumnExpressionToJoinedTable(expression);
-    });
+    addColumnExpressionToJoinedTable(expression);
   }
 
   void addColumnExpressionToJoinedTable(
-      QueryExpression<dynamic, dynamic> expression) {
+      QueryExpression<dynamic, dynamic, dynamic> expression) {
     TableBuilder joinedTable = _findJoinedTable(expression.keyPath);
     final lastElement = expression.keyPath.path.last;
     if (lastElement is ManagedRelationshipDescription) {
