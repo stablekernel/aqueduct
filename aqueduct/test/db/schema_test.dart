@@ -147,7 +147,7 @@ void main() {
         "name": "loadedValue",
         "type": "bigInteger",
         "nullable": true,
-        "autoincrement": true,
+        "autoincrement": false,
         "unique": true,
         "defaultValue": "7",
         "primaryKey": false,
@@ -714,8 +714,7 @@ class _ExtensiveModel {
       nullable: true,
       defaultValue: "7",
       unique: true,
-      indexed: true,
-      autoincrement: true)
+      indexed: true)
   int loadedValue;
 }
 

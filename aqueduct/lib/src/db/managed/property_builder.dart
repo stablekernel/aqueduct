@@ -108,7 +108,7 @@ class PropertyBuilder {
     } else {
       if (defaultValue != null && autoincrement) {
         throw ManagedDataModelError("Property '${parent.name}.$name' is invalid. "
-          "A property cannot be both have a default value and be autoincrementing. ");
+          "A property cannot have a default value and be autoincrementing. ");
       }
     }
 

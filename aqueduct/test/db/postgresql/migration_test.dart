@@ -769,6 +769,35 @@ void main() {
       defs = await TableDefinition.get(store, ["t", "u"]);
       defs["u"].expectColumn("ref_id", "integer", nullable: false, relatedTableName: "t", relatedColumnName: "id", deleteRule: "CASCADE");
     });
+
+    test("Delete tables that have a relationship", () async {
+      final schemas = [
+        Schema.empty(),
+        Schema([
+          SchemaTable("v", [SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)]),
+          SchemaTable("u", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+            SchemaColumn.relationship("ref", ManagedPropertyType.integer,
+              relatedTableName: "t", relatedColumnName: "id")
+          ]),
+          SchemaTable("t", [
+            SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true),
+          ]),
+        ]),
+        Schema([
+          SchemaTable("v", [SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true)]),
+        ])
+      ];
+
+      await applyDifference(store, schemas[0], schemas[1]);
+      var defs = await TableDefinition.get(store, ["t", "u"]);
+      defs["u"].expectColumn("ref_id", "integer", nullable: true, relatedTableName: "t", relatedColumnName: "id", deleteRule: "SET NULL");
+
+      await applyDifference(store, schemas[1], schemas[2]);
+      defs = await TableDefinition.get(store, ["t", "u", "v"]);
+      expect(defs.length, 1);
+      expect(defs.containsKey("v"), true);
+    });
   });
 }
 

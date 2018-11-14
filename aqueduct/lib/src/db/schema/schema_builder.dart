@@ -18,14 +18,20 @@ The code to ensure the generated SQL is accurate is in db/postgresql/schema_gene
 The logic that goes into testing that the commands generated to build a valid schema in an actual postgresql are in db/postgresql/migration_test.dart.
  */
 
-/// Used during migration to modify a schema.
+/// Generates SQL or Dart code that modifies a database schema.
 class SchemaBuilder {
   /// Creates a builder starting from an existing schema.
+  ///
+  /// If [store] is null, this builder will emit [commands] that are Dart statements that replicate the methods invoked on this object.
+  /// Otherwise, [commands] are SQL commands (for the database represented by [store]) that are equivalent to the method invoked on this object.
   SchemaBuilder(this.store, this.inputSchema, {this.isTemporary = false}) {
     schema = Schema.from(inputSchema);
   }
 
   /// Creates a builder starting from the empty schema.
+  ///
+  /// If [store] is null, this builder will emit [commands] that are Dart statements that replicate the methods invoked on this object.
+  ///  Otherwise, [commands] are SQL commands (for the database represented by [store]) that are equivalent to the method invoked on this object.
   SchemaBuilder.toSchema(PersistentStore store, Schema targetSchema,
       {bool isTemporary = false, List<String> changeList})
       : this.fromDifference(
@@ -47,6 +53,9 @@ class SchemaBuilder {
   Schema schema;
 
   /// The persistent store to validate and construct operations.
+  ///
+  /// If this value is not-null, [commands] is a list of SQL commands for the underlying database that change the schema in response to
+  /// methods invoked on this object. If this value is null, [commands] is a list Dart statements that replicate the methods invoked on this object.
   PersistentStore store;
 
   /// Whether or not this builder should create temporary tables.
