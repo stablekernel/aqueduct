@@ -187,7 +187,7 @@ void main() {
     expect(await tableExists(store, "_testobject"), false);
   });
   
-  test("If migration fails because adding a new non-nullable column to an table ", () async {
+  test("If migration fails because adding a new non-nullable column to an table, a friendly error is emitted", () async {
     StringBuffer buf = StringBuffer();
     expect(await runMigrationCases(["Case81", "Case82"], log: buf), isNot(0));
     expect(buf.toString(), contains("adding or altering"));
