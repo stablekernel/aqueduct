@@ -97,4 +97,54 @@ class QueryPredicate {
     final predicateFormat = "(${allFormatStrings.join(" AND ")})";
     return QueryPredicate(predicateFormat, valueMap);
   }
+
+  factory QueryPredicate.or(Iterable<QueryPredicate> predicates) {
+    var predicateList = predicates
+        ?.where((p) => p?.format != null && p.format.isNotEmpty)
+        ?.toList();
+    if (predicateList == null) {
+      return QueryPredicate.empty();
+    }
+
+    if (predicateList.isEmpty) {
+      return QueryPredicate.empty();
+    }
+
+    if (predicateList.length == 1) {
+      return predicateList.first;
+    }
+
+    // If we have duplicate keys anywhere, we need to disambiguate them.
+    int dupeCounter = 0;
+    final allFormatStrings = [];
+    final valueMap = <String, dynamic>{};
+    for (var predicate in predicateList) {
+      final duplicateKeys = predicate.parameters?.keys
+          ?.where((k) => valueMap.keys.contains(k))
+          ?.toList() ??
+          [];
+
+      if (duplicateKeys.isNotEmpty) {
+        var fmt = predicate.format;
+        Map<String, String> dupeMap = {};
+        duplicateKeys.forEach((key) {
+          final replacementKey = "$key$dupeCounter";
+          fmt = fmt.replaceAll("@$key", "@$replacementKey");
+          dupeMap[key] = replacementKey;
+          dupeCounter++;
+        });
+
+        allFormatStrings.add(fmt);
+        predicate?.parameters?.forEach((key, value) {
+          valueMap[dupeMap[key] ?? key] = value;
+        });
+      } else {
+        allFormatStrings.add(predicate.format);
+        valueMap.addAll(predicate?.parameters ?? {});
+      }
+    }
+
+    final predicateFormat = "(${allFormatStrings.join(" OR ")})";
+    return QueryPredicate(predicateFormat, valueMap);
+  }
 }
