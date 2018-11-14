@@ -57,6 +57,10 @@ abstract class CLIDatabaseManagingCommand implements CLICommand, CLIProject {
         additionalContents: MigrationSource.combine(sources),
         logHandler: displayProgress);
 
+    if (schemaMap.containsKey("error")) {
+      throw CLIException(schemaMap["error"] as String);
+    }
+
     return Schema.fromMap(schemaMap);
   }
 }

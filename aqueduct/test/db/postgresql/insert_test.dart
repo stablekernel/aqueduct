@@ -154,6 +154,54 @@ void main() {
     expect(result.emailAddress, "1@a.com");
   });
 
+  test("Inserting multiple objects works and returns the objects", () async {
+    context = await contextWithModels([TestModel]);
+
+      var m = TestModel()
+      ..name = "bob"
+      ..emailAddress = "1@a.com";
+
+    var n = TestModel()
+      ..name = "jay"
+      ..emailAddress = "2@a.com";
+
+    final models = await Query.insertObjects(context, [m, n]);
+    final bob = models[0];
+    final jay = models[1];
+
+    expect(bob is TestModel, true);
+    expect(bob.id, greaterThan(0));
+    expect(bob.name, "bob");
+    expect(bob.emailAddress, "1@a.com");
+
+    expect(jay is TestModel, true);
+    expect(jay.id, greaterThan(0));
+    expect(jay.name, "jay");
+    expect(jay.emailAddress, "2@a.com");
+  });
+
+  test("Inserting multiple objects with at least one bad one does not insert any objects into the database", () async {
+    context = await contextWithModels([TestModel]);
+
+    var goodModel = TestModel()
+      ..name = "bob"
+      ..emailAddress = "1@a.com";
+
+    var badModel = TestModel()
+      ..name = null
+      ..emailAddress = "2@a.com";
+
+    try {
+      await Query.insertObjects(context, [goodModel, badModel]);
+      fail("unreachable");
+    } catch (e) {
+      expect(e, isNotNull);
+    }
+
+    final insertedModels = await Query<TestModel>(context).fetch();
+    expect(insertedModels.length, isZero);
+  });
+
   test("Inserting an object works", () async {
     context = await contextWithModels([TestModel]);
 

@@ -13,7 +13,7 @@ import 'auth.dart';
 /// issues, refreshes and revokes access tokens. It also verifies previously issued tokens, as
 /// well as client and resource owner credentials.
 ///
-/// [AuthServer]s are typically used in conjunction with [AuthController] and [AuthCodeController].
+/// [AuthServer]s are typically used in conjunction with [AuthController] and [AuthRedirectController].
 /// These controllers provide HTTP interfaces to the [AuthServer] for issuing and refreshing tokens.
 /// Likewise, [Authorizer]s verify these issued tokens to protect endpoint controllers.
 ///
@@ -92,6 +92,10 @@ class AuthServer implements AuthValidator, APIComponentDocumenter {
   /// Used during OpenAPI documentation.
   final APISecuritySchemeOAuth2Flow documentedPasswordFlow =
       APISecuritySchemeOAuth2Flow.empty()..scopes = {};
+
+  /// Used during OpenAPI documentation.
+  final APISecuritySchemeOAuth2Flow documentedImplicitFlow =
+  APISecuritySchemeOAuth2Flow.empty()..scopes = {};
 
   /// Hashes a [password] with [salt] using PBKDF2 algorithm.
   ///

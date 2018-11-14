@@ -20,6 +20,11 @@ String connectString =
 void main() {
   PostgreSQLPersistentStore store;
 
+  setUpAll(() async {
+    terminal = await Terminal.createProject();
+    await terminal.getDependencies(offline: true);
+  });
+
   setUp(() async {
     // create a working directory to store migrations in, inside terminal temporary directory
     store = PostgreSQLPersistentStore(
@@ -28,8 +33,10 @@ void main() {
         connectInfo.host,
         connectInfo.port,
         connectInfo.databaseName);
-    terminal = await Terminal.createProject();
-    await terminal.getDependencies(offline: true);
+
+    if (terminal.defaultMigrationDirectory.existsSync()) {
+      terminal.defaultMigrationDirectory.deleteSync(recursive: true);
+    }
     terminal.defaultMigrationDirectory.createSync();
   });
 
@@ -44,9 +51,9 @@ void main() {
       return store.execute("DROP TABLE IF EXISTS $t");
     }));
     await store?.close();
-
-    Terminal.deleteTemporaryDirectory();
   });
+
+  tearDownAll(Terminal.deleteTemporaryDirectory);
 
   test("Upgrade with no migration files returns 0 exit code", () async {
     expect(await runMigrationCases([]), 0);
@@ -179,6 +186,15 @@ void main() {
     expect(await tableExists(store, store.versionTable.name), false);
     expect(await tableExists(store, "_testobject"), false);
   });
+  
+  test("If migration fails because adding a new non-nullable column to an table, a friendly error is emitted", () async {
+    StringBuffer buf = StringBuffer();
+    expect(await runMigrationCases(["Case81", "Case82"], log: buf), isNot(0));
+    expect(buf.toString(), contains("adding or altering"));
+    expect(buf.toString(), contains("_testobject.name"));
+    expect(buf.toString(), contains("unencodedInitialValue"));
+  });
+
 }
 
 Future<List<String>> columnsOfTable(
@@ -226,7 +242,7 @@ List<MigrationSource> getOrderedTestMigrations(List<String> names,
 }
 
 Future runMigrationCases(List<String> migrationNames,
-    {int fromVersion = 0}) async {
+    {int fromVersion = 0, StringSink log}) async {
   final migs =
       getOrderedTestMigrations(migrationNames, fromVersion: fromVersion);
 
@@ -240,7 +256,7 @@ Future runMigrationCases(List<String> migrationNames,
   final res = await terminal
       .runAqueductCommand("db", ["upgrade", "--connect", connectString]);
 
-  print("${terminal.output}");
+  log?.write(terminal.output);
 
   return res;
 }
@@ -558,4 +574,49 @@ class Case7 extends Migration {
     await database.store
         .execute("INSERT INTO InvalidTable (foo) VALUES ('foo')");
   }
+}
+
+class Case81 extends Migration {
+  @override
+  Future upgrade() async {
+    database.createTable(SchemaTable(
+      "_TestObject",
+      [
+        SchemaColumn("id", ManagedPropertyType.bigInteger,
+          isPrimaryKey: true,
+          autoincrement: true,
+          isIndexed: false,
+          isNullable: false,
+          isUnique: false),
+      ],
+    ));
+  }
+
+  @override
+  Future downgrade() async {}
+
+  @override
+  Future seed() async {
+    await store.execute("INSERT INTO _TestObject VALUES (default)");
+  }
+}
+
+class Case82 extends Migration {
+  @override
+  Future upgrade() async {
+    database.addColumn(
+      "_TestObject",
+      SchemaColumn("name", ManagedPropertyType.string,
+        isPrimaryKey: false,
+        autoincrement: false,
+        isIndexed: false,
+        isNullable: false,
+        isUnique: false));
+  }
+
+  @override
+  Future downgrade() async {}
+
+  @override
+  Future seed() async {}
 }

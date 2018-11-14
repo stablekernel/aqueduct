@@ -352,7 +352,6 @@ void main() {
 
       // Remove nullability, but don't provide value to update things to:
       col.isNullable = false;
-
       cmds = psc.alterColumnNullability(schema.tables.first, col, "'foo'");
       expect(cmds, [
         "UPDATE _GeneratorModel1 SET name='foo' WHERE name IS NULL",
@@ -537,7 +536,6 @@ class _GenPost {
 }
 
 class GenNamed extends ManagedObject<_GenNamed> implements _GenNamed {}
-
 @Table(name: "GenNamed")
 class _GenNamed {
   @Column(primaryKey: true)

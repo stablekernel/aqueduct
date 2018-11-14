@@ -57,7 +57,7 @@ class PostgreSQLSchemaGenerator {
       {String unencodedInitialValue}) {
     var commands = <String>[];
 
-    if (!column.isNullable && column.defaultValue == null) {
+    if (unencodedInitialValue != null) {
       column.defaultValue = unencodedInitialValue;
       commands.addAll([
         "ALTER TABLE ${table.name} ADD COLUMN ${_columnStringForColumn(column)}",
@@ -99,7 +99,7 @@ class PostgreSQLSchemaGenerator {
         "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} DROP NOT NULL"
       ];
     } else {
-      if (column.defaultValue == null) {
+      if (unencodedInitialValue != null) {
         return [
           "UPDATE ${table.name} SET ${_columnNameForColumn(column)}=$unencodedInitialValue WHERE ${_columnNameForColumn(column)} IS NULL",
           "ALTER TABLE ${table.name} ALTER COLUMN ${_columnNameForColumn(column)} SET NOT NULL",

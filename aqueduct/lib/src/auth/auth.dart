@@ -5,6 +5,7 @@ import 'objects.dart';
 
 export 'auth_code_controller.dart';
 export 'auth_controller.dart';
+export 'auth_redirect_controller.dart';
 export 'authorization_parser.dart';
 export 'authorization_server.dart';
 export 'authorizer.dart';
@@ -50,11 +51,6 @@ class AuthUtility {
       int hashRounds = 1000,
       Hash hashFunction}) {
     if (secret == null) {
-      if (redirectURI != null) {
-        throw ArgumentError(
-            "Invalid input to generateAPICredentialPair. Only confidential clients may have 'redirectURI'. "
-            "Clients are confidential when 'secret' is not null.");
-      }
       return AuthClient.withRedirectURI(clientID, null, null, redirectURI);
     }
 

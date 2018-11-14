@@ -254,65 +254,33 @@ class SchemaTableDifference {
     return diffs;
   }
 
-  List<SchemaColumnDifference> _differingColumns = [];
+  List<SchemaColumnDifference> get columnDifferences => _differingColumns;
 
-  /// Returns Dart code to upgrade [expectedTable] to [actualTable].
-  String generateUpgradeSource({List<String> changeList}) {
-    var builder = StringBuffer();
-
-    _differingColumns
+  List<SchemaColumn> get columnsToAdd {
+    return _differingColumns
         .where(
             (diff) => diff.expectedColumn == null && diff.actualColumn != null)
         .map((diff) => diff.actualColumn)
-        .forEach((c) {
-      changeList
-          ?.add("Adding column '${c.name}' to table '${actualTable.name}'");
-      builder.writeln(createColumnSource(c));
-    });
+        .toList();
+  }
 
-    _differingColumns
+  List<SchemaColumn> get columnsToRemove {
+    return _differingColumns
         .where(
             (diff) => diff.expectedColumn != null && diff.actualColumn == null)
         .map((diff) => diff.expectedColumn)
-        .forEach((c) {
-      changeList
-          ?.add("Deleting column '${c.name}' from table '${actualTable.name}'");
-      builder.writeln(deleteColumnSource(c));
-    });
+        .toList();
+  }
 
-    _differingColumns
+  List<SchemaColumnDifference> get columnsToModify {
+    return _differingColumns
         .where((columnDiff) =>
             columnDiff.expectedColumn != null &&
             columnDiff.actualColumn != null)
-        .forEach((columnDiff) {
-      var lines = columnDiff.generateUpgradeSource(changeList: changeList);
-      builder.writeln(lines);
-    });
-
-    if (uniqueSetDifference?.hasDifferences ?? false) {
-      builder.writeln(
-          uniqueSetDifference.generateUpgradeSource(changeList: changeList));
-    }
-
-    return builder.toString();
+        .toList();
   }
 
-  static String createColumnSource(SchemaColumn column) {
-    var builder = StringBuffer();
-
-    if (column.isNullable || column.defaultValue != null) {
-      builder.writeln(
-          'database.addColumn("${column.table.name}", ${column.source});');
-    } else {
-      builder.writeln(
-          'database.addColumn("${column.table.name}", ${column.source}, unencodedInitialValue: <<set>>);');
-    }
-    return builder.toString();
-  }
-
-  static String deleteColumnSource(SchemaColumn column) {
-    return 'database.deleteColumn("${column.table.name}", "${column.name}");';
-  }
+  List<SchemaColumnDifference> _differingColumns = [];
 }
 
 /// Difference between two [SchemaTable.uniqueColumnSet]s.
@@ -365,22 +333,5 @@ class SchemaTableUniqueSetDifference {
     }
 
     return [];
-  }
-
-  /// Dart code to upgrade [expectedColumnNames] to [actualColumnNames].
-  String generateUpgradeSource({List<String> changeList}) {
-    var setString = "null";
-    if (actualColumnNames.isNotEmpty) {
-      setString = "[${actualColumnNames.map((s) => '"$s"').join(",")}]";
-    }
-
-    changeList?.add(
-        "Setting unique column constraint of '$_tableName' to $setString.");
-
-    return """
-database.alterTable("$_tableName", (t) {
-  t.uniqueColumnSet = $setString;
-});      
-    """;
   }
 }

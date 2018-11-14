@@ -1,4 +1,3 @@
-
 import '../managed/managed.dart';
 
 import 'schema_table.dart';
@@ -81,11 +80,24 @@ class Schema {
   /// Sets [table]'s [SchemaTable.schema] to this instance.
   void addTable(SchemaTable table) {
     if (this[table.name] != null) {
-      throw SchemaException("Table ${table.name} already exists.");
+      throw SchemaException(
+          "Table ${table.name} already exists and cannot be added.");
     }
 
     _tableStorage.add(table);
     table.schema = this;
+  }
+
+  void replaceTable(SchemaTable existingTable, SchemaTable newTable) {
+    if (!_tableStorage.contains(existingTable)) {
+      throw SchemaException(
+          "Table ${existingTable.name} does not exist and cannot be replaced.");
+    }
+
+    var index = _tableStorage.indexOf(existingTable);
+    _tableStorage[index] = newTable;
+    newTable.schema = this;
+    existingTable.schema = null;
   }
 
   void renameTable(SchemaTable table, String newName) {
@@ -178,88 +190,30 @@ class SchemaDifference {
   List<String> get errorMessages =>
       _differingTables.expand((diff) => diff.errorMessages).toList();
 
-  List<SchemaTableDifference> _differingTables = [];
+  /// The differences, if any, between tables in [expectedSchema] and [actualSchema].
+  List<SchemaTableDifference> get tableDifferences => _differingTables;
 
-  /// Returns Dart code to change [expectedSchema] to [actualSchema].
-  String generateUpgradeSource({List<String> changeList}) {
-    final builder = StringBuffer();
-
-    final tablesToAdd = _getTablesToAdd();
-    final tablesToRemove = _getTablesToDelete();
-    final tableToModify = _getTablesToModify();
-
-    // add tables (minus foreign keys)
-    tablesToAdd.forEach((t) {
-      changeList?.add("Adding table '${t.name}'");
-      builder.writeln(createTableSource(t));
-    });
-
-    // remove tables
-    tablesToRemove.forEach((t) {
-      changeList?.add("Deleting table '${t.name}'");
-      builder.writeln(deleteTableSource(t));
-    });
-
-    // add foreign keys/multi-column unique
-    tablesToAdd.forEach((table) {
-      table.columns
-          .where((column) => column.isForeignKey)
-          .forEach((foreignKey) {
-        changeList?.add(
-            "Adding foreign key '${foreignKey.name}' from '${foreignKey.table.name}' to '${foreignKey.relatedTableName}'");
-        builder.writeln(SchemaTableDifference.createColumnSource(foreignKey));
-      });
-
-      if (table.uniqueColumnSet?.isNotEmpty ?? false) {
-        final colNames = table.uniqueColumnSet.map((c) => "'$c'").join(",");
-        builder.writeln("database.alterTable('${table.name}', (t) { t.uniqueColumnSet = [$colNames]; });");
-      }
-    });
-
-    // modify table/columns
-    tableToModify.forEach((tableDiff) {
-      final lines = tableDiff.generateUpgradeSource(changeList: changeList);
-      builder.writeln(lines);
-    });
-
-    return builder.toString();
-  }
-
-  static String createTableSource(SchemaTable table) {
-    var builder = StringBuffer();
-
-    builder.writeln('database.createTable(SchemaTable("${table.name}", [');
-    table.columns.where((c) => !c.isForeignKey).forEach((col) {
-      builder.writeln("${col.source},");
-    });
-    builder.writeln("]));");
-
-    return builder.toString();
-  }
-
-  static String deleteTableSource(SchemaTable table) {
-    return 'database.deleteTable("${table.name}");';
-  }
-
-  List<SchemaTable> _getTablesToAdd() {
+  List<SchemaTable> get tablesToAdd {
     return _differingTables
         .where((diff) => diff.expectedTable == null && diff.actualTable != null)
         .map((d) => d.actualTable)
         .toList();
   }
 
-  List<SchemaTable> _getTablesToDelete() {
+  List<SchemaTable> get tablesToDelete {
     return _differingTables
         .where((diff) => diff.expectedTable != null && diff.actualTable == null)
         .map((diff) => diff.expectedTable)
         .toList();
   }
 
-  List<SchemaTableDifference> _getTablesToModify() {
+  List<SchemaTableDifference> get tablesToModify {
     return _differingTables
         .where((diff) => diff.expectedTable != null && diff.actualTable != null)
         .toList();
   }
+
+  List<SchemaTableDifference> _differingTables = [];
 }
 
 /// Thrown when a [Schema] encounters an error.

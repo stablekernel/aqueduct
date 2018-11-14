@@ -157,15 +157,17 @@ class Terminal {
     return res;
   }
 
-  Future writeMigrations(List<Schema> schemas) async {
+  Future<List<File>> writeMigrations(List<Schema> schemas) async {
     try {
       defaultMigrationDirectory.createSync();
     } catch (_) {}
-    var currentNumberOfMigrations = defaultMigrationDirectory
+
+    final currentNumberOfMigrations = defaultMigrationDirectory
         .listSync()
         .where((e) => e.path.endsWith("migration.dart"))
         .length;
 
+    final files = <File>[];
     for (var i = 1; i < schemas.length; i++) {
       var source =
           Migration.sourceForSchemaUpgrade(schemas[i - 1], schemas[i], i);
@@ -173,7 +175,10 @@ class Terminal {
       var file = File.fromUri(defaultMigrationDirectory.uri
           .resolve("${i + currentNumberOfMigrations}.migration.dart"));
       file.writeAsStringSync(source);
+      files.add(file);
     }
+
+    return files;
   }
 
   Future<ProcessResult> getDependencies({bool offline = true}) async {

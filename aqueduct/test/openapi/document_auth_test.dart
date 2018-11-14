@@ -156,7 +156,7 @@ void main() {
     });
 
     test(
-        "If both AuthController and AuthCodeController added to channel, support both flows and have appropriate urls",
+        "If both AuthController and AuthRedirectController added to channel, support both flows and have appropriate urls",
         () async {
       final doc = await Application.document(ScopedControllerChannel,
           ApplicationOptions(), {"name": "Test", "version": "1.0"});
@@ -210,7 +210,7 @@ class TestChannel extends ApplicationChannel {
 
   @override
   Controller get entryPoint {
-    // Note that AuthCodeController/AuthController are not added to channel.
+    // Note that AuthRedirectController/AuthController are not added to channel.
     // This supports a test in 'Controller Registration and Scopes'.
 
     final router = Router();
@@ -305,7 +305,7 @@ class ScopedControllerChannel extends ApplicationChannel {
   Controller get entryPoint {
     final router = Router();
     router.route("/auth/token").link(() => AuthController(authServer));
-    router.route("/auth/code").link(() => AuthCodeController(authServer));
+    router.route("/auth/code").link(() => AuthRedirectController(authServer));
     router
         .route("/r1")
         .link(() => Authorizer.bearer(authServer, scopes: ["scope1"]))
