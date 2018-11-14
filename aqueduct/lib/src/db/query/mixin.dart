@@ -32,7 +32,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   Map<ManagedRelationshipDescription, Query> subQueries;
 
   QueryMixin _parentQuery;
-  List<QueryExpression<dynamic, dynamic>> expressions = [];
+  List<QueryExpression<dynamic, dynamic, dynamic>> expressions = [];
   InstanceType _valueObject;
 
   List<KeyPath> _propertiesToFetch;
@@ -65,7 +65,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   }
 
   @override
-  QueryExpression<T, InstanceType> where<T>(
+  QueryExpression<T, T, InstanceType> where<T>(
       T propertyIdentifier(InstanceType x)) {
     final properties = entity.identifyProperties(propertyIdentifier);
     if (properties.length != 1) {

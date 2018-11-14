@@ -187,7 +187,7 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///         final query = Query<Employee>()
   ///           ..where((e) => e.manager.name).equalTo("Sally");
   ///
-  QueryExpression<T, InstanceType> where<T>(
+  QueryExpression<T, T, InstanceType> where<T>(
       T propertyIdentifier(InstanceType x));
 
   /// Confirms that a query has no predicate before executing it.

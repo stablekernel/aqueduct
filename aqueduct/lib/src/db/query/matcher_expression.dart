@@ -13,10 +13,10 @@ import 'query.dart';
 ///         final query = new Query<Employee>()
 ///           ..where((e) => e.name).equalTo("Bob");
 ///
-class QueryExpression<T, InstanceType> {
+class QueryExpression<T, U, InstanceType> {
   QueryExpression(this.keyPath);
 
-  QueryExpression.byAddingKey(QueryExpression<T, InstanceType> original,
+  QueryExpression.byAddingKey(QueryExpression<T, U, InstanceType> original,
       ManagedPropertyDescription byAdding)
       : keyPath = KeyPath.byAddingKey(original.keyPath, byAdding),
         _expression = original.expression;
@@ -45,7 +45,7 @@ class QueryExpression<T, InstanceType> {
   ///
   ///         final query = new Query<Employee>()
   ///           ..where((e) => e.name).not.equalTo("Bob");
-  QueryExpression<T, InstanceType> get not {
+  QueryExpression<T, U, InstanceType> get not {
     _invertNext = !_invertNext;
 
     return this;
