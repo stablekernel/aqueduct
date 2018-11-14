@@ -425,6 +425,17 @@ void main() {
       }
     });
 
+    test("Propery is both autoincrement and default value, fails", () {
+      try {
+        var _ = ManagedDataModel([AutoincrementAndDefault]);
+        expect(true, false);
+      } on ManagedDataModelError catch (e) {
+        expect(e.message, contains("_AutoincrementAndDefault.i"));
+        expect(e.message, contains("autoincrement"));
+        expect(e.message, contains("default value"));
+      }
+    });
+
     test("ManagedObjects cannot have foreign key refs to eachother", () {
       try {
         var _ = ManagedDataModel([CyclicLeft, CyclicRight]);
@@ -1117,4 +1128,13 @@ class AnnotatedTable extends ManagedObject<_AnnotatedTable> {}
 class _AnnotatedTable {
   @primaryKey
   int id;
+}
+
+class AutoincrementAndDefault extends ManagedObject<_AutoincrementAndDefault> {}
+class _AutoincrementAndDefault {
+  @primaryKey
+  int id;
+
+  @Column(autoincrement: true, defaultValue: "1")
+  int i;
 }

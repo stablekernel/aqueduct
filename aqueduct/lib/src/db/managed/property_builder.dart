@@ -105,6 +105,11 @@ class PropertyBuilder {
             relatedProperty.parent.tableDefinitionTypeName,
             relatedProperty.name);
       }
+    } else {
+      if (defaultValue != null && autoincrement) {
+        throw ManagedDataModelError("Property '${parent.name}.$name' is invalid. "
+          "A property cannot have a default value and be autoincrementing. ");
+      }
     }
 
     if (relate?.onDelete == DeleteRule.nullify &&

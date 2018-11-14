@@ -253,51 +253,6 @@ class SchemaColumn {
 
   @override
   String toString() => "$name $relatedTableName";
-
-  /// Returns Dart code to create this instance again in a script.
-  String get source {
-    var builder = StringBuffer();
-    if (relatedTableName != null) {
-      builder.write('SchemaColumn.relationship("${name}", ${type}');
-      builder.write(", relatedTableName: \"${relatedTableName}\"");
-      builder.write(", relatedColumnName: \"${relatedColumnName}\"");
-      builder.write(", rule: ${deleteRule}");
-    } else {
-      builder.write('SchemaColumn("${name}", ${type}');
-      if (isPrimaryKey) {
-        builder.write(", isPrimaryKey: true");
-      } else {
-        builder.write(", isPrimaryKey: false");
-      }
-      if (autoincrement) {
-        builder.write(", autoincrement: true");
-      } else {
-        builder.write(", autoincrement: false");
-      }
-      if (defaultValue != null) {
-        builder.write(', defaultValue: "${defaultValue}"');
-      }
-      if (isIndexed) {
-        builder.write(", isIndexed: true");
-      } else {
-        builder.write(", isIndexed: false");
-      }
-    }
-
-    if (isNullable) {
-      builder.write(", isNullable: true");
-    } else {
-      builder.write(", isNullable: false");
-    }
-    if (isUnique) {
-      builder.write(", isUnique: true");
-    } else {
-      builder.write(", isUnique: false");
-    }
-
-    builder.write(")");
-    return builder.toString();
-  }
 }
 
 /// The difference between two compared [SchemaColumn]s.
@@ -322,6 +277,31 @@ class SchemaColumnDifference {
   /// Creates a new instance that represents the difference between [expectedColumn] and [actualColumn].
   SchemaColumnDifference(this.expectedColumn, this.actualColumn) {
     if (actualColumn != null && expectedColumn != null) {
+      if (actualColumn.isPrimaryKey != expectedColumn.isPrimaryKey) {
+        throw SchemaException(
+          "Cannot change primary key of '${expectedColumn.table.name}'");
+      }
+
+      if (actualColumn.relatedColumnName != expectedColumn.relatedColumnName) {
+        throw SchemaException(
+          "Cannot change Relationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
+      }
+
+      if (actualColumn.relatedTableName != expectedColumn.relatedTableName) {
+        throw SchemaException(
+          "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
+      }
+
+      if (actualColumn.type != expectedColumn.type) {
+        throw SchemaException(
+          "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
+      }
+
+      if (actualColumn.autoincrement != expectedColumn.autoincrement) {
+        throw SchemaException(
+          "Cannot change autoincrement behavior of '${expectedColumn.table.name}.${expectedColumn.name}'");
+      }
+
       var expectedColumnRefl = reflect(expectedColumn);
       var actualColumnRefl = reflect(actualColumn);
 
@@ -382,67 +362,4 @@ class SchemaColumnDifference {
   }
 
   List<String> _differingProperties = [];
-
-  /// Dart code to upgrade [expectedColumn] to [actualColumn].
-  String generateUpgradeSource({List<String> changeList}) {
-    if (actualColumn.isPrimaryKey != expectedColumn.isPrimaryKey) {
-      throw SchemaException(
-          "Cannot change primary key of '${expectedColumn.table.name}'");
-    }
-
-    if (actualColumn.relatedColumnName != expectedColumn.relatedColumnName) {
-      throw SchemaException(
-          "Cannot change Relationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
-    }
-
-    if (actualColumn.relatedTableName != expectedColumn.relatedTableName) {
-      throw SchemaException(
-          "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
-    }
-
-    if (actualColumn.type != expectedColumn.type) {
-      throw SchemaException(
-          "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
-    }
-
-    if (actualColumn.autoincrement != expectedColumn.autoincrement) {
-      throw SchemaException(
-          "Cannot change autoincrement behavior of '${expectedColumn.table.name}.${expectedColumn.name}'");
-    }
-
-    var builder = StringBuffer();
-
-    builder.writeln(
-        'database.alterColumn("${expectedColumn.table.name}", "${expectedColumn.name}", (c) {');
-
-    if (expectedColumn.isIndexed != actualColumn.isIndexed) {
-      builder.writeln("c.isIndexed = ${actualColumn.isIndexed};");
-    }
-
-    if (expectedColumn.isUnique != actualColumn.isUnique) {
-      builder.writeln("c.isUnique = ${actualColumn.isUnique};");
-    }
-
-    if (expectedColumn.defaultValue != actualColumn.defaultValue) {
-      builder.writeln("c.defaultValue = \"${actualColumn.defaultValue}\";");
-    }
-
-    if (expectedColumn.deleteRule != actualColumn.deleteRule) {
-      builder.writeln("c.deleteRule = ${actualColumn.deleteRule};");
-    }
-
-    if (expectedColumn.isNullable != actualColumn.isNullable) {
-      builder.writeln("c.isNullable = ${actualColumn.isNullable};");
-    }
-
-    if (expectedColumn.isNullable == true &&
-        actualColumn.isNullable == false &&
-        actualColumn.defaultValue == null) {
-      builder.writeln("}, unencodedInitialValue: <<set>>);");
-    } else {
-      builder.writeln("});");
-    }
-
-    return builder.toString();
-  }
 }

@@ -86,11 +86,24 @@ class Schema {
   /// Sets [table]'s [SchemaTable.schema] to this instance.
   void addTable(SchemaTable table) {
     if (this[table.name] != null) {
-      throw SchemaException("Table ${table.name} already exists.");
+      throw SchemaException(
+          "Table ${table.name} already exists and cannot be added.");
     }
 
     _tableStorage.add(table);
     table.schema = this;
+  }
+
+  void replaceTable(SchemaTable existingTable, SchemaTable newTable) {
+    if (!_tableStorage.contains(existingTable)) {
+      throw SchemaException(
+          "Table ${existingTable.name} does not exist and cannot be replaced.");
+    }
+
+    var index = _tableStorage.indexOf(existingTable);
+    _tableStorage[index] = newTable;
+    newTable.schema = this;
+    existingTable.schema = null;
   }
 
   void renameTable(SchemaTable table, String newName) {
@@ -211,66 +224,34 @@ class SchemaDifference {
   List<String> get errorMessages =>
       _differingTables.expand((diff) => diff.errorMessages).toList();
 
-  List<SchemaTableDifference> _differingTables = [];
+  /// The differences, if any, between tables in [expectedSchema] and [actualSchema].
+  List<SchemaTableDifference> get tableDifferences => _differingTables;
 
-  /// Returns Dart code to change [expectedSchema] to [actualSchema].
-  String generateUpgradeSource({List<String> changeList}) {
-    var builder = StringBuffer();
-
-    var tablesToAdd = _differingTables
+  List<SchemaTable> get tablesToAdd {
+    final tables = _differingTables
         .where((diff) => diff.expectedTable == null && diff.actualTable != null)
         .map((d) => d.actualTable)
         .toList();
-    actualSchema.dependencyOrderedTables
-        .where((t) => tablesToAdd.map((toAdd) => toAdd.name).contains(t.name))
-        .forEach((t) {
-      changeList?.add("Adding table '${t.name}'");
-      builder.writeln(createTableSource(t));
-    });
 
-    var tablesToRemove = _differingTables
+    return actualSchema.dependencyOrderedTables.where(tables.contains).toList();
+  }
+
+  List<SchemaTable> get tablesToDelete {
+    final tables =_differingTables
         .where((diff) => diff.expectedTable != null && diff.actualTable == null)
         .map((diff) => diff.expectedTable)
         .toList();
-    expectedSchema.dependencyOrderedTables.reversed
-        .where((t) =>
-            tablesToRemove.map((toRemove) => toRemove.name).contains(t.name))
-        .forEach((t) {
-      changeList?.add("Deleting table '${t.name}'");
-      builder.writeln(deleteTableSource(t));
-    });
 
-    _differingTables
+    return expectedSchema.dependencyOrderedTables.reversed.where(tables.contains).toList();
+  }
+
+  List<SchemaTableDifference> get tablesToModify {
+    return _differingTables
         .where((diff) => diff.expectedTable != null && diff.actualTable != null)
-        .forEach((tableDiff) {
-      var lines = tableDiff.generateUpgradeSource(changeList: changeList);
-      builder.writeln(lines);
-    });
-
-    return builder.toString();
+        .toList();
   }
 
-  static String createTableSource(SchemaTable table) {
-    var builder = StringBuffer();
-    builder.writeln('database.createTable(SchemaTable("${table.name}", [');
-    table.columns.forEach((col) {
-      builder.writeln("${col.source},");
-    });
-    builder.writeln("],");
-
-    if (table.uniqueColumnSet != null) {
-      var set = table.uniqueColumnSet.map((p) => '"$p"').join(",");
-      builder.writeln("uniqueColumnSetNames: [$set],");
-    }
-
-    builder.writeln('));');
-
-    return builder.toString();
-  }
-
-  static String deleteTableSource(SchemaTable table) {
-    return 'database.deleteTable("${table.name}");';
-  }
+  List<SchemaTableDifference> _differingTables = [];
 }
 
 /// Thrown when a [Schema] encounters an error.
