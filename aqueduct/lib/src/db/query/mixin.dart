@@ -32,7 +32,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   Map<ManagedRelationshipDescription, Query> subQueries;
 
   QueryMixin _parentQuery;
-  List<QueryExpression<dynamic, dynamic, dynamic>> expressions = [];
+  QueryExpression<dynamic, dynamic, dynamic> expression;
   InstanceType _valueObject;
 
   List<KeyPath> _propertiesToFetch;
@@ -74,11 +74,10 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     }
 
     final expr = QueryExpression<T, T, InstanceType>(properties.first);
-    if (expressions.isNotEmpty) {
-      final expression = expressions.first;
-      expressions = [QueryExpression.and(expression, expr)];
+    if (expression == null) {
+      expression = expr;
     } else {
-      expressions = [expr];
+      expression = QueryExpression.and(expression, expr);
     }
     return expr;
   }

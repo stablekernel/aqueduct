@@ -45,7 +45,7 @@ class TableBuilder implements Returnable {
           parent: this, joinedBy: relationshipDesc));
     });
 
-    addColumnExpressions(query.expressions);
+    addColumnExpressions(query.expression);
   }
 
   TableBuilder.implicit(this.parent, this.joinedBy)
@@ -130,24 +130,19 @@ class TableBuilder implements Returnable {
   }
 
   void addColumnExpressions(
-      List<QueryExpression<dynamic, dynamic, dynamic>> expressions) {
-    if (expressions == null) {
+      QueryExpression<dynamic, dynamic, dynamic> expression) {
+    if (expression == null) {
       return;
     }
 
-    if (expressions.isEmpty) {
-      return;
-    }
-
-    final expression = expressions.first;
     final predicateExpression = expression.expression;
     if (predicateExpression is AndExpression) {
-      addColumnExpressions([predicateExpression.lhs]);
-      addColumnExpressions([predicateExpression.rhs]);
+      addColumnExpressions(predicateExpression.lhs);
+      addColumnExpressions(predicateExpression.rhs);
       return;
     }
 
-    expressions.forEach(addColumnExpression);
+    addColumnExpression(expression);
   }
 
   void addColumnExpression(QueryExpression<dynamic, dynamic, dynamic> expression) {
