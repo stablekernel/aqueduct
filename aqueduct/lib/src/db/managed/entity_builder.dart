@@ -42,14 +42,14 @@ class EntityBuilder {
   String get tableDefinitionTypeName =>
       MirrorSystem.getName(tableDefinitionType.simpleName);
 
-  void compile(List<EntityBuilder> others) {
+  void compile(List<EntityBuilder> entityBuilders) {
     validators = properties
         .map((builder) => builder.validators)
         .expand((e) => e)
         .toList();
 
     properties.forEach((p) {
-      p.compile(others);
+      p.compile(entityBuilders);
     });
 
     uniquePropertySet =

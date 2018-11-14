@@ -48,11 +48,11 @@ class PropertyBuilder {
   bool autoincrement = false;
   DeleteRule deleteRule;
 
-  void compile(List<EntityBuilder> others) {
+  void compile(List<EntityBuilder> entityBuilders) {
     if (type == null) {
       if (relate != null) {
         relatedProperty =
-            _getRelatedEntityBuilderFrom(others).getInverseOf(this);
+            _getRelatedEntityBuilderFrom(entityBuilders).getInverseOf(this);
         type = relatedProperty.parent.primaryKeyProperty.type;
         relationshipType = ManagedRelationshipType.belongsTo;
         includeInDefaultResultSet = true;

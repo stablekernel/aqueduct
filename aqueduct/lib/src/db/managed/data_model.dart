@@ -223,14 +223,6 @@ class ManagedDataModelError extends Error {
         "'$propertyName', but they have conflicting types.");
   }
 
-  factory ManagedDataModelError.cyclicReference(
-      String instanceTypeName,
-      String propertyName) {
-    return ManagedDataModelError(
-        "Relationship '${propertyName}' refers to its own type "
-          "('${instanceTypeName}'). This is currently illegal.");
-  }
-
   factory ManagedDataModelError.invalidValidator(
       ManagedEntity entity, String property, String reason) {
     return ManagedDataModelError("Type '${_getPersistentClassName(entity)}' "
