@@ -4,7 +4,6 @@ import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
 void main() {
-  group("Metadata", () {
     var store = PostgreSQLPersistentStore(
         "dart", "dart", "localhost", 5432, "dart_test");
 
@@ -93,7 +92,14 @@ void main() {
           temporary: true);
       expect(await store.schemaVersion, 4);
     });
-  });
+
+    test("Can apply an unencoded initial value", () {
+      fail('nyi');
+    });
+
+    test("If migration adds nullable column with autoincrementing, it is successful", () {
+      fail('nyi');
+    });
 }
 
 class EmptyMigration extends Migration {

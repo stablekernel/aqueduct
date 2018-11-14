@@ -194,6 +194,7 @@ void main() {
     expect(buf.toString(), contains("_testobject.name"));
     expect(buf.toString(), contains("unencodedInitialValue"));
   });
+
 }
 
 Future<List<String>> columnsOfTable(
