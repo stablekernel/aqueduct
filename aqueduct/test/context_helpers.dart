@@ -31,3 +31,15 @@ List<String> commandsForModelInstanceTypes(List<Type> instanceTypes,
   var dataModel = ManagedDataModel(instanceTypes);
   return commandsFromDataModel(dataModel, temporary: temporary);
 }
+
+Future dropSchemaTables(Schema schema, PersistentStore store) async {
+  final tables = List<SchemaTable>.from(schema.tables);
+  while (tables.isNotEmpty) {
+    try {
+      await store.execute("DROP TABLE IF EXISTS ${tables.last.name}");
+      tables.removeLast();
+    } catch (_) {
+      tables.insert(0, tables.removeLast());
+    }
+  }
+}

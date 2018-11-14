@@ -3,6 +3,7 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
+import '../context_helpers.dart';
 import 'cli_helpers.dart';
 
 void main() {
@@ -16,11 +17,9 @@ void main() {
     store = PostgreSQLPersistentStore(
         "dart", "dart", "localhost", 5432, "dart_test");
 
-    for (final t in schema.dependencyOrderedTables) {
-      final tableCommands = store.createTable(t);
-      for (final c in tableCommands) {
-        await store.execute(c);
-      }
+    final builder = SchemaBuilder.toSchema(store, schema);
+    for (var command in builder.commands) {
+      await store.execute(command);
     }
 
     context = ManagedContext(dataModel, store);
@@ -33,12 +32,7 @@ void main() {
   });
 
   tearDown(() async {
-    for (final t in schema.dependencyOrderedTables.reversed) {
-      final tableCommands = store.deleteTable(t);
-      for (final c in tableCommands) {
-        await store.execute(c);
-      }
-    }
+    await dropSchemaTables(schema, store);
     await context.close();
   });
 

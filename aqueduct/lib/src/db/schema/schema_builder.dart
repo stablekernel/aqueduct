@@ -338,9 +338,28 @@ class SchemaBuilder {
 
   void _generateSchemaCommands(SchemaDifference difference,
       {List<String> changeList, bool temporary = false}) {
+    // We need to remove foreign keys from the initial table add and defer
+    // them until after all tables in the schema have been created.
+    // These can occur in both columns and multi column unique.
+    // We'll split the creation of those tables into two different sets
+    // of commands and run the difference afterwards
+    final fkDifferences = <SchemaTableDifference>[];
+
     difference.tablesToAdd.forEach((t) {
-      changeList?.add("Adding table '${t.name}'");
-      createTable(t);
+      final copy = SchemaTable.from(t);
+      if (copy.hasForeignKeyInUniqueSet) {
+        copy.uniqueColumnSet = null;
+      }
+      copy.columns.where((c) => c.isForeignKey).forEach(copy.removeColumn);
+
+      changeList?.add("Adding table '${copy.name}'");
+      createTable(copy);
+
+      fkDifferences.add(SchemaTableDifference(copy, t));
+    });
+
+    fkDifferences.forEach((td) {
+      _generateTableCommands(td, changeList: changeList);
     });
 
     difference.tablesToDelete.forEach((t) {

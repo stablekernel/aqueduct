@@ -173,7 +173,7 @@ void main() {
       var schema = Schema.fromDataModel(dataModel);
 
       expect(schema.tables.length, 4);
-      expect(schema.dependencyOrderedTables.map((t) => t.name).toList(),
+      expect(schema.tables.map((t) => t.name).toList()..sort((s1, s2) => s1.compareTo(s2)),
           ["_Container", "_DefaultItem", "_LoadedItem", "_LoadedSingleItem"]);
 
       var containerTable =

@@ -4,6 +4,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
+// These tests verifying that the raw persistent store migration commands are mapped to one or more specific SQL statements
 void main() {
   group("Table generation command mapping", () {
     PostgreSQLPersistentStore psc;
@@ -78,7 +79,7 @@ void main() {
           "CREATE TABLE _GeneratorModel3 (creationDate TIMESTAMP NOT NULL DEFAULT (now() at time zone 'utc'),id INT PRIMARY KEY,textValue TEXT NOT NULL DEFAULT \$\$dflt\$\$,option BOOLEAN NOT NULL DEFAULT true,otherTime TIMESTAMP NOT NULL DEFAULT '1900-01-01T00:00:00.000Z',value DOUBLE PRECISION NOT NULL DEFAULT 20.0)");
     });
 
-    test("Table with tableName() overrides class name", () {
+    test("Table with @Table(name) overrides class name", () {
       var dm = ManagedDataModel([GenNamed]);
       var schema = Schema.fromDataModel(dm);
       var commands = schema.tables

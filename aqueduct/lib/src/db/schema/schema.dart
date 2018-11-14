@@ -53,12 +53,6 @@ class Schema {
   /// Returns an immutable list of tables in this schema.
   List<SchemaTable> get tables => List.unmodifiable(_tableStorage ?? []);
 
-  /// An ordered list of tables in this schema.
-  ///
-  /// This ordering ensures that tables that depend on another table (like those that have a foreign key reference) come
-  /// after the tables they depend on.
-  List<SchemaTable> get dependencyOrderedTables => _orderedTables([], tables);
-
   // Do not set this directly. Use _tables= instead.
   List<SchemaTable> _tableStorage;
 
@@ -151,34 +145,6 @@ class Schema {
   Map<String, dynamic> asMap() {
     return {"tables": tables.map((t) => t.asMap()).toList()};
   }
-
-  static List<SchemaTable> _orderedTables(
-      List<SchemaTable> tablesAccountedFor, List<SchemaTable> remainingTables) {
-    if (remainingTables.isEmpty) {
-      return tablesAccountedFor;
-    }
-
-    var tableIsReady = (SchemaTable t) {
-      var foreignKeyColumns =
-          t.columns.where((sc) => sc.relatedTableName != null).toList();
-
-      if (foreignKeyColumns.isEmpty) {
-        return true;
-      }
-
-      return foreignKeyColumns.map((sc) => sc.relatedTableName).every(
-          (tableName) =>
-              tablesAccountedFor.map((st) => st.name).contains(tableName));
-    };
-
-    tablesAccountedFor.addAll(remainingTables.where(tableIsReady));
-
-    return _orderedTables(
-        tablesAccountedFor,
-        remainingTables
-            .where((st) => !tablesAccountedFor.contains(st))
-            .toList());
-  }
 }
 
 /// The difference between two compared [Schema]s.
@@ -228,21 +194,17 @@ class SchemaDifference {
   List<SchemaTableDifference> get tableDifferences => _differingTables;
 
   List<SchemaTable> get tablesToAdd {
-    final tables = _differingTables
+    return _differingTables
         .where((diff) => diff.expectedTable == null && diff.actualTable != null)
         .map((d) => d.actualTable)
         .toList();
-
-    return actualSchema.dependencyOrderedTables.where(tables.contains).toList();
   }
 
   List<SchemaTable> get tablesToDelete {
-    final tables =_differingTables
+    return _differingTables
         .where((diff) => diff.expectedTable != null && diff.actualTable == null)
         .map((diff) => diff.expectedTable)
         .toList();
-
-    return expectedSchema.dependencyOrderedTables.reversed.where(tables.contains).toList();
   }
 
   List<SchemaTableDifference> get tablesToModify {
