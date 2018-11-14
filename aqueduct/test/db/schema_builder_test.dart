@@ -343,7 +343,6 @@ class _ExtensiveModel {
       nullable: true,
       defaultValue: "7",
       unique: true,
-      indexed: true,
-      autoincrement: true)
+      indexed: true)
   int loadedValue;
 }
