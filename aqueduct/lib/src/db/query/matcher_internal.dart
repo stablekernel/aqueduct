@@ -1,3 +1,5 @@
+import 'package:aqueduct/src/db/query/matcher_expression.dart';
+
 /// The operator in a comparison matcher.
 enum PredicateOperator {
   lessThan,
@@ -44,6 +46,28 @@ class ComparisonExpression implements PredicateExpression {
 
     // this line just shuts up the analyzer
     return null;
+  }
+}
+
+class AndExpression implements PredicateExpression {
+  const AndExpression(this.lhs, this.rhs);
+
+  final QueryExpression lhs, rhs; //FIXME: this should probably be more generic
+
+  @override
+  PredicateExpression get inverse {
+    return RangeExpression(rhs, lhs);
+  }
+}
+
+class OrExpression implements PredicateExpression {
+  const OrExpression(this.lhs, this.rhs);
+
+  final QueryExpression lhs, rhs; //FIXME: this should probably be more generic
+
+  @override
+  PredicateExpression get inverse {
+    return RangeExpression(rhs, lhs);
   }
 }
 
