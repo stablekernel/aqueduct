@@ -25,7 +25,7 @@ void main() {
   group("Happy path", () {
     test("Can read Map body object into Serializable", () async {
       server = await enableController("/", TestController);
-      var m = {"id": 2, "name": "Bob"};
+      var m = {"name": "Bob"};
       var response = await postJSON(m);
       expect(response.statusCode, 200);
       expect(json.decode(response.body), m);
@@ -35,8 +35,8 @@ void main() {
         () async {
       server = await enableController("/", ListTestController);
       var m = [
-        {"id": 2, "name": "Bob"},
-        {"id": 3, "name": "Fred"}
+        {"name": "Bob"},
+        {"name": "Fred"}
       ];
       var response = await postJSON(m);
       expect(response.statusCode, 200);
@@ -53,7 +53,7 @@ void main() {
 
     test("Body arg can be optional", () async {
       server = await enableController("/", OptionalTestController);
-      var m = {"id": 2, "name": "Bob"};
+      var m = {"name": "Bob"};
       var response = await postJSON(m);
       expect(response.statusCode, 200);
       expect(json.decode(response.body), m);
@@ -66,7 +66,7 @@ void main() {
 
     test("Can read body object declared as property", () async {
       server = await enableController("/", PropertyTestController);
-      var m = {"id": 2, "name": "Bob"};
+      var m = {"name": "Bob"};
       var response = await postJSON(m);
       expect(response.statusCode, 200);
       expect(json.decode(response.body), m);
@@ -85,7 +85,7 @@ void main() {
   group("Input error cases", () {
     test("Provide unknown key returns 400", () async {
       server = await enableController("/", TestController);
-      var m = {"id": 2, "name": "Bob", "job": "programmer"};
+      var m = {"name": "Bob", "job": "programmer"};
       var response = await postJSON(m);
       expect(response.statusCode, 400);
       expect(json.decode(response.body)["error"], "entity validation failed");
@@ -94,7 +94,7 @@ void main() {
 
     test("Body is empty returns 400", () async {
       server = await enableController("/", TestController);
-      var m = {"id": 2, "name": "Bob", "job": "programmer"};
+      var m = {"name": "Bob", "job": "programmer"};
       var response = await postJSON(m);
       expect(response.statusCode, 400);
       expect(json.decode(response.body)["error"], "entity validation failed");

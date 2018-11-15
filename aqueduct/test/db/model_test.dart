@@ -26,6 +26,7 @@ void main() {
       Middle,
       Bottom,
       OverrideField,
+      AutoField,
     ]);
     context = ManagedContext(dm, ps);
   });
@@ -179,10 +180,16 @@ void main() {
     expect(user.name, "Bob");
 
     var posts = postMap.map((e) => Post()..readFromMap(wash(e))).toList();
-    expect(posts[0].id, 1);
-    expect(posts[1].id, 2);
+    expect(posts[0].id, isNull);
+    expect(posts[1].id, isNull);
     expect(posts[0].text, "hey");
     expect(posts[1].text, "ho");
+  });
+
+  test("Autoincrementing fields are not populated when read from map", () {
+    final map = {"id": 1, "foo": 2};
+    final a = AutoField()..readFromMap(wash(map));
+    expect(a.backing.contents.isEmpty, true);
   });
 
   test("Reading from map with bad key fails", () {
@@ -248,7 +255,7 @@ void main() {
 
     var post = Post()..readFromMap(wash(postMap));
     expect(post.text, "hey");
-    expect(post.id, 1);
+    expect(post.id, isNull);
     expect(post.owner.id, 18);
     expect(post.owner.name, "Alex");
   });
@@ -305,7 +312,7 @@ void main() {
   test("mappableInput properties are read in readMap", () {
     var t = TransientTest()
       ..readFromMap(wash({"id": 1, "defaultedText": "bar foo"}));
-    expect(t.id, 1);
+    expect(t.id, isNull);
     expect(t.text, "foo");
     expect(t.inputInt, isNull);
     expect(t.inOut, isNull);
@@ -544,7 +551,7 @@ void main() {
       ]
     }));
     expect(u.posts.length, 1);
-    expect(u.posts[0].id, 1);
+    expect(u.posts[0].id, isNull);
     expect(u.posts[0].text, "Hi");
   });
 
@@ -1066,7 +1073,7 @@ class _ConstructorTableDef {
 class Top extends ManagedObject<_Top> implements _Top {}
 
 class _Top {
-  @primaryKey
+  @Column(primaryKey: true)
   int id;
 
   ManagedSet<Middle> middles;
@@ -1075,7 +1082,7 @@ class _Top {
 class Middle extends ManagedObject<_Middle> implements _Middle {}
 
 class _Middle {
-  @primaryKey
+  @Column(primaryKey: true)
   int id;
 
   @Relate(#middles)
@@ -1088,7 +1095,7 @@ class _Middle {
 class Bottom extends ManagedObject<_Bottom> implements _Bottom {}
 
 class _Bottom {
-  @primaryKey
+  @Column(primaryKey: true)
   int id;
 
   @Relate(#bottom)
@@ -1107,6 +1114,15 @@ class _OverrideField {
   int id;
 
   String field;
+}
+
+class AutoField extends ManagedObject<_AutoField> {}
+class _AutoField {
+  @primaryKey
+  int id;
+
+  @Column(autoincrement: true)
+  int foo;
 }
 
 T wash<T>(dynamic data) {
