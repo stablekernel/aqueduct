@@ -6,7 +6,7 @@ class DataModelBuilder {
   DataModelBuilder(ManagedDataModel dataModel, List<Type> instanceTypes) {
     _builders = instanceTypes.map((t) => EntityBuilder(dataModel, t)).toList();
     _builders.forEach((b) {
-      b.compile(_builders.where((i) => i != b).toList());
+      b.compile(_builders);
     });
     _validate();
 

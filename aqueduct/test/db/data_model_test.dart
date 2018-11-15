@@ -202,6 +202,34 @@ void main() {
           dataModel.entityForType(DocumentObject).tableName, "_DocumentObject");
       expect(dataModel.entityForType(AnnotatedTable).tableName, "foobar");
     });
+
+    test("Managed objects can have foreign key references to one another", () {
+      final dm = ManagedDataModel([CyclicLeft, CyclicRight]);
+
+      expect(dm.entityForType(CyclicLeft).relationships["leftRef"].destinationEntity.name, "CyclicRight");
+      expect(dm.entityForType(CyclicLeft).relationships["leftRef"].inverse.name, "from");
+      expect(dm.entityForType(CyclicLeft).relationships["leftRef"].isBelongsTo, true);
+      expect(dm.entityForType(CyclicLeft).relationships["from"].destinationEntity.name, "CyclicRight");
+      expect(dm.entityForType(CyclicLeft).relationships["from"].inverse.name, "rightRef");
+      expect(dm.entityForType(CyclicLeft).relationships["from"].isBelongsTo, false);
+
+      expect(dm.entityForType(CyclicRight).relationships["rightRef"].destinationEntity.name, "CyclicLeft");
+      expect(dm.entityForType(CyclicRight).relationships["rightRef"].inverse.name, "from");
+      expect(dm.entityForType(CyclicRight).relationships["rightRef"].isBelongsTo, true);
+      expect(dm.entityForType(CyclicRight).relationships["from"].destinationEntity.name, "CyclicLeft");
+      expect(dm.entityForType(CyclicRight).relationships["from"].inverse.name, "leftRef");
+      expect(dm.entityForType(CyclicRight).relationships["from"].isBelongsTo, false);
+    });
+
+    test("Managed objecs can have foreign key references to themselves", () {
+      final dm = ManagedDataModel([SelfReferential]);
+      expect(dm.entityForType(SelfReferential).relationships["parent"].destinationEntity.name, "SelfReferential");
+      expect(dm.entityForType(SelfReferential).relationships["parent"].inverse.name, "child");
+      expect(dm.entityForType(SelfReferential).relationships["parent"].isBelongsTo, true);
+      expect(dm.entityForType(SelfReferential).relationships["child"].destinationEntity.name, "SelfReferential");
+      expect(dm.entityForType(SelfReferential).relationships["child"].inverse.name, "parent");
+      expect(dm.entityForType(SelfReferential).relationships["child"].isBelongsTo, false);
+    });
   });
 
   group("Edge cases", () {
@@ -435,21 +463,6 @@ void main() {
         expect(e.message, contains("default value"));
       }
     });
-
-    test("ManagedObjects cannot have foreign key refs to eachother", () {
-      try {
-        var _ = ManagedDataModel([CyclicLeft, CyclicRight]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("CyclicLeft"));
-        expect(e.message, contains("CyclicRight"));
-        expect(e.message, contains("have cyclic relationship properties"));
-        expect(e.message, contains("rightRef"));
-        expect(e.message, contains("leftRef"));
-      }
-    },
-        skip:
-            "Temporarily skipping because this feature will become available shortly");
 
     test("Model with Relationship and Column fails compilation", () {
       try {
@@ -1137,4 +1150,17 @@ class _AutoincrementAndDefault {
 
   @Column(autoincrement: true, defaultValue: "1")
   int i;
+}
+
+class SelfReferential extends ManagedObject<_SelfReferential> implements _SelfReferential {}
+class _SelfReferential {
+  @primaryKey
+  int id;
+
+  String name;
+
+  @Relate(#child)
+  SelfReferential parent;
+
+  SelfReferential child;
 }
