@@ -17,15 +17,15 @@ void main() {
 
     test("Insert an object that references an existing object", () async {
       final parent =
-          await Query.insertObject(context, SelfRef()..name = "Parent");
+          await Query.insertObject(context, SelfRef()..name = "parent");
 
       var q = Query<SelfRef>(context)
-        ..values.name = "Child"
+        ..values.name = "child"
         ..values.parent = parent;
       final child = await q.insert();
 
-      expect(parent.name, "Parent");
-      expect(child.name, "Child");
+      expect(parent.name, "parent");
+      expect(child.name, "child");
       expect(child.parent.id, parent.id);
 
       q = Query<SelfRef>(context);
@@ -54,7 +54,7 @@ void main() {
     });
 
     test("Join from table without foreign key", () async {
-      var q = Query<SelfRef>(context)..values.name = "Parent";
+      var q = Query<SelfRef>(context)..values.name = "parent";
       final parent = await q.insert();
 
       await Query.insertObjects(
@@ -73,7 +73,7 @@ void main() {
       expect(all.map((s) => s.asMap()).toList(), [
         {
           "id": parent.id,
-          "name": "Parent",
+          "name": "parent",
           "parent": null,
           "children": [
             {
@@ -97,7 +97,7 @@ void main() {
     });
 
     test("Join from table with foreign key", () async {
-      var q = Query<SelfRef>(context)..values.name = "Parent";
+      var q = Query<SelfRef>(context)..values.name = "parent";
       final parent = await q.insert();
 
       final objs = await Query.insertObjects(
@@ -116,13 +116,13 @@ void main() {
         {
           "id": objs.first.id,
           "name": "a",
-          "parent": {"id": parent.id, "name": "Parent", "parent": null},
+          "parent": {"id": parent.id, "name": "parent", "parent": null},
         }
       ]);
     });
 
     test("Join multiple times", () async {
-      var q = Query<SelfRef>(context)..values.name = "Parent";
+      var q = Query<SelfRef>(context)..values.name = "parent";
       final parent = await q.insert();
 
       final objs = await Query.insertObjects(
@@ -147,33 +147,6 @@ void main() {
 
       final all = await q.fetch();
       expect(all.map((s) => s.asMap()).toList(), [
-        {
-          "id": parent.id,
-          "name": "Parent",
-          "parent": null,
-          "children": [
-            {
-              "id": isNotNull,
-              "name": "a",
-              "parent": {"id": parent.id},
-              "children": [
-                {"id": isNotNull, "name": "x", "parent": isNotNull}
-              ]
-            },
-            {
-              "id": isNotNull,
-              "name": "b",
-              "parent": {"id": parent.id},
-              "children": []
-            },
-            {
-              "id": isNotNull,
-              "name": "c",
-              "parent": {"id": parent.id},
-              "children": []
-            },
-          ]
-        },
         {
           "id": isNotNull,
           "name": "a",
@@ -200,6 +173,33 @@ void main() {
           "children": []
         },
         {
+          "id": parent.id,
+          "name": "parent",
+          "parent": null,
+          "children": [
+            {
+              "id": isNotNull,
+              "name": "a",
+              "parent": {"id": parent.id},
+              "children": [
+                {"id": isNotNull, "name": "x", "parent": isNotNull}
+              ]
+            },
+            {
+              "id": isNotNull,
+              "name": "b",
+              "parent": {"id": parent.id},
+              "children": []
+            },
+            {
+              "id": isNotNull,
+              "name": "c",
+              "parent": {"id": parent.id},
+              "children": []
+            },
+          ]
+        },
+        {
           "id": isNotNull,
           "name": "x",
           "parent": {"id": isNotNull},
@@ -209,7 +209,7 @@ void main() {
     });
 
     test("Join with a where clause on the primary table", () async {
-      var q = Query<SelfRef>(context)..values.name = "Parent";
+      var q = Query<SelfRef>(context)..values.name = "parent";
       final parent = await q.insert();
 
       final objs = await Query.insertObjects(
@@ -233,7 +233,7 @@ void main() {
       expect(all.map((s) => s.asMap()).toList(), [
         {
           "id": parent.id,
-          "name": "Parent",
+          "name": "parent",
           "parent": null,
           "children": [
             {
@@ -257,7 +257,7 @@ void main() {
     });
 
     test("Join with a where clause on the joined table", () async {
-      var q = Query<SelfRef>(context)..values.name = "Parent";
+      var q = Query<SelfRef>(context)..values.name = "parent";
       final parent = await q.insert();
 
       final objs = await Query.insertObjects(
@@ -274,32 +274,32 @@ void main() {
           ..name = "x"
           ..parent = objs.first);
 
-      q = Query<SelfRef>(context);
+      q = Query<SelfRef>(context)..sortBy((s) => s.name, QuerySortOrder.ascending);
       q.join(set: (s) => s.children).where((s) => s.name).greaterThan("b");
 
       final all = await q.fetch();
       expect(all.map((s) => s.asMap()).toList(), [
-        {
-          'id': 1,
-          'name': 'Parent',
-          'parent': null,
-          'children': [{'id': 4, 'name': 'c', 'parent': {'id': 1}}]
-        },
         {
           'id': 2,
           'name': 'a',
           'parent': {'id': 1},
           'children': [{'id': 5, 'name': 'x', 'parent': {'id': 2}}]
         },
-        {'id': 5, 'name': 'x', 'parent': {'id': 2}, 'children': []},
+        {'id': 3, 'name': 'b', 'parent': {'id': 1}, 'children': []},
         {'id': 4, 'name': 'c', 'parent': {'id': 1}, 'children': []},
-        {'id': 3, 'name': 'b', 'parent': {'id': 1}, 'children': []}
+        {
+          'id': 1,
+          'name': 'parent',
+          'parent': null,
+          'children': [{'id': 4, 'name': 'c', 'parent': {'id': 1}}]
+        },
+        {'id': 5, 'name': 'x', 'parent': {'id': 2}, 'children': []},
       ]);
     });
 
     test("Join with where clause on both the primary and joined table",
         () async {
-          var q = Query<SelfRef>(context)..values.name = "Parent";
+          var q = Query<SelfRef>(context)..values.name = "parent";
           final parent = await q.insert();
 
           final objs = await Query.insertObjects(
@@ -316,17 +316,18 @@ void main() {
               ..name = "x"
               ..parent = objs.first);
 
-          q = Query<SelfRef>(context)..where((s) => s.name).lessThan("a");
+          q = Query<SelfRef>(context)..where((s) => s.name).greaterThan("o");
           q.join(set: (s) => s.children).where((s) => s.name).greaterThan("b");
 
           final all = await q.fetch();
           expect(all.map((s) => s.asMap()).toList(), [
             {
               'id': 1,
-              'name': 'Parent',
+              'name': 'parent',
               'parent': null,
               'children': [{'id': 4, 'name': 'c', 'parent': {'id': 1}}]
             },
+            {"id": 5, "name": "x", "parent": {"id": 2}, "children": []}
           ]);
         });
   });
