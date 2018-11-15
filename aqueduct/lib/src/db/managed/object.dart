@@ -245,13 +245,12 @@ abstract class ManagedObject<T> implements Serializable {
         return;
       }
 
-      var property = entity.properties[k];
-      if (property.autoincrement) {
-        return;
-      }
-
+      final property = entity.properties[k];
       if (property == null) {
         throw ValidationException(["invalid input key '$k'"]);
+      }
+      if (property.autoincrement) {
+        return;
       }
 
       if (property is ManagedAttributeDescription) {
