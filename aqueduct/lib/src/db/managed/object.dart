@@ -225,10 +225,12 @@ abstract class ManagedObject<T> implements Serializable {
     return name;
   }
 
-  /// Populates the properties of a this instance from a map.
+  /// Reads values from [keyValues] and assigns them to properties of this object.
   ///
   /// This method will thrown an exception if a key in the map does not
   /// match a property of the receiver.
+  ///
+  /// Properties that are auto-incrementing will not be read from the map.
   ///
   /// Usage:
   ///     var values = json.decode(requestBody);
@@ -244,6 +246,9 @@ abstract class ManagedObject<T> implements Serializable {
       }
 
       var property = entity.properties[k];
+      if (property.autoincrement) {
+        return;
+      }
 
       if (property == null) {
         throw ValidationException(["invalid input key '$k'"]);

@@ -170,10 +170,12 @@ class Column {
   /// This flag will remove the associated property from the result set unless it is explicitly specified by [Query.returningProperties].
   final bool shouldOmitByDefault;
 
-  /// Indicate to the underlying database to use a serial counter when inserted an instance.
+  /// A sequence generator will be used to generate the next value for this column when a row is inserted.
   ///
-  /// This is typically used for integer primary keys. In PostgreSQL, for example, an auto-incrementing bigInteger type
-  /// will be represented by "bigserial".
+  /// When this flag is true, the database will generate a value for this column on insert.
+  ///
+  /// Additionally, when [ManagedObject.readFromMap] is invoked, values in the map corresponding to columns with this flag set to true
+  /// will not be read.
   final bool autoincrement;
 
   /// Creates an instance of this type.

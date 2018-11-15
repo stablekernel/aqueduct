@@ -26,6 +26,7 @@ void main() {
       Middle,
       Bottom,
       OverrideField,
+      AutoField,
     ]);
     context = ManagedContext(dm, ps);
   });
@@ -183,6 +184,12 @@ void main() {
     expect(posts[1].id, 2);
     expect(posts[0].text, "hey");
     expect(posts[1].text, "ho");
+  });
+
+  test("Autoincrementing fields are not populated when read from map", () {
+    final map = {"id": 1, "foo": 2};
+    final a = AutoField()..readFromMap(map);
+    expect(a.backing.contents.isEmpty, true);
   });
 
   test("Reading from map with bad key fails", () {
@@ -1107,6 +1114,15 @@ class _OverrideField {
   int id;
 
   String field;
+}
+
+class AutoField extends ManagedObject<_AutoField> {}
+class _AutoField {
+  @primaryKey
+  int id;
+
+  @Column(autoincrement: true)
+  int foo;
 }
 
 T wash<T>(dynamic data) {
