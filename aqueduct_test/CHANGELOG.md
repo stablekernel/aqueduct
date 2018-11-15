@@ -1,3 +1,7 @@
+## 1.0.0+1
+
+- Bumps some dependency constraints to be more permissive
+
 ## 1.0.0
 
 - Initial version from `package:aqueduct`.
