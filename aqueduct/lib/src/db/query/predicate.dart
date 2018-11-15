@@ -94,7 +94,7 @@ class QueryPredicate {
       }
     }
 
-    final predicateFormat = "(${allFormatStrings.join(" AND ")})";
+    final predicateFormat = "${allFormatStrings.join(" AND ")}";
     return QueryPredicate(predicateFormat, valueMap);
   }
 
@@ -144,7 +144,7 @@ class QueryPredicate {
       }
     }
 
-    final predicateFormat = "(${allFormatStrings.join(" OR ")})";
+    final predicateFormat = "${allFormatStrings.join(" OR ")}";
     return QueryPredicate(predicateFormat, valueMap);
   }
 }

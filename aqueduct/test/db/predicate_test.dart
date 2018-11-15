@@ -7,7 +7,7 @@ void main() {
       var p1 = QueryPredicate("p=@p", {"p": 1});
       var p2 = QueryPredicate("p=@p", {"p": 2});
       final combined = QueryPredicate.and([p1, p2]);
-      expect(combined.format, "(p=@p AND p=@p0)");
+      expect(combined.format, "p=@p AND p=@p0");
       expect(combined.parameters, {"p": 1, "p0": 2});
     });
 
@@ -16,7 +16,7 @@ void main() {
       var p2 = QueryPredicate("p=@p", {"p": 2});
       var p3 = QueryPredicate("p=@p", {"p": 3});
       final combined = QueryPredicate.and([p1, p2, p3]);
-      expect(combined.format, "(p=@p AND p=@p0 AND p=@p1)");
+      expect(combined.format, "p=@p AND p=@p0 AND p=@p1");
       expect(combined.parameters, {"p": 1, "p0": 2, "p1": 3});
     });
 
@@ -64,7 +64,7 @@ void main() {
       var p1 = QueryPredicate("p=q", null);
       var p2 = QueryPredicate("a=b", null);
       final combined = QueryPredicate.or([p1, p2]);
-      expect(combined.format, "(p=q OR a=b)");
+      expect(combined.format, "p=q OR a=b");
     });
 
     test("A few predicates", () {
@@ -72,14 +72,14 @@ void main() {
       var p2 = QueryPredicate("a=b", null);
       var p3 = QueryPredicate("x=y", null);
       final combined = QueryPredicate.or([p1, p2, p3]);
-      expect(combined.format, "(p=q OR a=b OR x=y)");
+      expect(combined.format, "p=q OR a=b OR x=y");
     });
 
     test("Duplicate keys are replaced", () {
       var p1 = QueryPredicate("p=@p", {"p": 1});
       var p2 = QueryPredicate("p=@p", {"p": 2});
       final combined = QueryPredicate.or([p1, p2]);
-      expect(combined.format, "(p=@p OR p=@p0)");
+      expect(combined.format, "p=@p OR p=@p0");
       expect(combined.parameters, {"p": 1, "p0": 2});
     });
 
