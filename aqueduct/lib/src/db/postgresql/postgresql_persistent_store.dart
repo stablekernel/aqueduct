@@ -305,6 +305,7 @@ class PostgreSQLPersistentStore extends PersistentStore
     } on PostgreSQLException catch (e) {
       logger.fine(() =>
           "Query (${DateTime.now().toUtc().difference(now).inMilliseconds}ms) $formatString $values");
+      logger.warning(() => e.toString());
       final interpreted = _interpretException(e);
       if (interpreted != null) {
         throw interpreted;
