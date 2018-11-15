@@ -1,3 +1,13 @@
+## 3.1.0
+
+- Adds the implicit authorization grant flow via the `AuthRedirectController` type.
+- Deprecates `AuthCodeController` in favor of `AuthRedirectController`.
+- Improves speed of many database CLI commands
+- Improves error messaging of the CLI; no longer includes stack trace for expected errors.
+- Adds `Query.insertObjects` to insert a list of managed objects.
+- Allows self-referencing and cyclical relationships between managed objects
+- Autoincrementing managed object properties are no longer consumed in `ManagedObject.readFromMap`.
+
 ## 3.0.2
 
 - Fix regression when generating OpenAPI documentation for `ManagedObject`s
