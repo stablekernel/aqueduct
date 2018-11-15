@@ -173,7 +173,9 @@ void main() {
       var schema = Schema.fromDataModel(dataModel);
 
       expect(schema.tables.length, 4);
-      expect(schema.tables.map((t) => t.name).toList()..sort((s1, s2) => s1.compareTo(s2)),
+      expect(
+          schema.tables.map((t) => t.name).toList()
+            ..sort((s1, s2) => s1.compareTo(s2)),
           ["_Container", "_DefaultItem", "_LoadedItem", "_LoadedSingleItem"]);
 
       var containerTable =
@@ -327,6 +329,60 @@ void main() {
       var tableFromMap = SchemaTable.fromMap(tableMap);
       expect(tableFromMap.differenceFrom(schema.tables.first).hasDifferences,
           false);
+    });
+  });
+
+  group("Cyclic references", () {
+    test("Self-referencing table can be emitted as map", () {
+      var dataModel = ManagedDataModel([SelfRef]);
+      var schema = Schema.fromDataModel(dataModel);
+      final map = schema.asMap();
+      expect(map["tables"].first["columns"].last, {
+        'name': 'parent',
+        'type': 'bigInteger',
+        'nullable': true,
+        'autoincrement': false,
+        'unique': false,
+        'defaultValue': null,
+        'primaryKey': false,
+        'relatedTableName': '_SelfRef',
+        'relatedColumnName': 'id',
+        'deleteRule': 'nullify',
+        'indexed': true
+      });
+    });
+
+    test("Two tables related to one another can be emitted in asMap", () {
+      var dataModel = ManagedDataModel([Left, Right]);
+      var schema = Schema.fromDataModel(dataModel);
+      final map = schema.asMap();
+      expect(map["tables"].firstWhere((t) => t["name"] == "_Left")["columns"].firstWhere((c) => c["name"] == "belongsToRight"), {
+        'name': 'belongsToRight',
+        'type': 'bigInteger',
+        'nullable': true,
+        'autoincrement': false,
+        'unique': true,
+        'defaultValue': null,
+        'primaryKey': false,
+        'relatedTableName': '_Right',
+        'relatedColumnName': 'id',
+        'deleteRule': 'nullify',
+        'indexed': true
+      });
+
+      expect(map["tables"].firstWhere((t) => t["name"] == "_Right")["columns"].firstWhere((c) => c["name"] == "belongsToLeft"), {
+        'name': 'belongsToLeft',
+        'type': 'bigInteger',
+        'nullable': true,
+        'autoincrement': false,
+        'unique': true,
+        'defaultValue': null,
+        'primaryKey': false,
+        'relatedTableName': '_Left',
+        'relatedColumnName': 'id',
+        'deleteRule': 'nullify',
+        'indexed': true
+      });
     });
   });
 
@@ -555,7 +611,11 @@ void main() {
       newSchema.addTable(SchemaTable("foo", []));
       var df = newSchema.tables.firstWhere((t) => t.name == "_DefaultItem");
       df.addColumn(SchemaColumn("foobar", ManagedPropertyType.integer));
-      newSchema.tableForName("_LoadedItem").columns.firstWhere((sc) => sc.name == "someIndexedThing").isIndexed = false;
+      newSchema
+          .tableForName("_LoadedItem")
+          .columns
+          .firstWhere((sc) => sc.name == "someIndexedThing")
+          .isIndexed = false;
 
       var diff = baseSchema.differenceFrom(newSchema);
       expect(diff.hasDifferences, true);
@@ -746,4 +806,46 @@ class _Unique {
   String a;
   String b;
   String c;
+}
+
+class SelfRef extends ManagedObject<_SelfRef> implements _SelfRef {}
+
+class _SelfRef {
+  @primaryKey
+  int id;
+
+  String name;
+
+  ManagedSet<SelfRef> children;
+
+  @Relate(#children)
+  SelfRef parent;
+}
+
+class Left extends ManagedObject<_Left> implements _Left {}
+
+class _Left {
+  @primaryKey
+  int id;
+
+  String name;
+
+  Right right;
+
+  @Relate(#left)
+  Right belongsToRight;
+}
+
+class Right extends ManagedObject<_Right> implements _Right {}
+
+class _Right {
+  @primaryKey
+  int id;
+
+  String name;
+
+  Left left;
+
+  @Relate(#right)
+  Left belongsToLeft;
 }
