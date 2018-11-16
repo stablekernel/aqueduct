@@ -257,7 +257,7 @@ final body = "username=bob&password=password&grant_type=password";
 
 // Note the trailing colon (:) after the clientID.
 // A client identifier secret would follow this, but there is no secret, so it is the empty string.
-final clientCredentials = Base64Encoder().convert("$clientID:");
+final clientCredentials = Base64Encoder().convert("$clientID:".codeUnits);
 
 final response = await http.post(
   "https://stablekernel.com/auth/token",

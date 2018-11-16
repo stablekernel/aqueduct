@@ -255,6 +255,19 @@ class _Book {
 }
 ```
 
+To insert an author and a book associated with that author:
+
+```dart
+final authorQuery = Query<Author>(context)
+  ..values.name = "Fred";
+final author = await authorQuery.insert();
+
+final bookQuery = Query<Author>(context)
+  ..values.name = "Title"
+  ..values.author.id = author.id;
+final book = await bookQuery.insert();  
+```
+
 To fetch authors and their books:
 
 ```dart
@@ -375,7 +388,7 @@ The structure of this object is:
 }
 ```
 
-You can flatten this structure in a number of ways. In general, add a `Serialize`-annotated property to the `ManagedObject` subclass:
+You can flatten this structure in a number of ways. In the simplest form, add a `Serialize`-annotated transient property to the `ManagedObject` subclass, and each time you fetch, remove the join table from the object and place the players in the transient property.
 
 ```dart
 class Team extends ManagedObject<_Team> implements _Team {
