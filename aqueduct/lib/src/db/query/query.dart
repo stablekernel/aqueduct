@@ -190,6 +190,14 @@ abstract class Query<InstanceType extends ManagedObject> {
   QueryExpression<T, T, InstanceType> where<T>(
       T propertyIdentifier(InstanceType x));
 
+  QueryExpression<T, U, InstanceType> orWhere<T, U>(
+      T propertyIdentifier(InstanceType x));
+
+  void whereGroup<T, U>(
+      void expressionGetter(Query<InstanceType> q));
+
+  void orWhereGroup<T, U>(
+      void expressionGetter(Query<InstanceType> q));
   /// Confirms that a query has no predicate before executing it.
   ///
   /// This is a safety measure for update and delete queries to prevent accidentally updating or deleting every row.

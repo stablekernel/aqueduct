@@ -4,7 +4,37 @@ import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:aqueduct/src/db/query/query.dart';
 
-class ColumnExpressionBuilder extends ColumnBuilder {
+abstract class ColumnExpressionBuilderNode {}
+
+abstract class ColumnExpressionCombiner {
+  ColumnExpressionBuilderNode lhs;
+  ColumnExpressionBuilderNode rhs;
+}
+
+class ColumnExpressionBuilderORNode implements ColumnExpressionBuilderNode, ColumnExpressionCombiner {
+  ColumnExpressionBuilderNode lhs;
+  ColumnExpressionBuilderNode rhs;
+  ColumnExpressionBuilderORNode(this.lhs, this.rhs);
+}
+class ColumnExpressionBuilderANDNode implements ColumnExpressionBuilderNode, ColumnExpressionCombiner {
+  ColumnExpressionBuilderNode lhs;
+  ColumnExpressionBuilderNode rhs;
+  ColumnExpressionBuilderANDNode(this.lhs, this.rhs);
+}
+
+class ColumnExpressionBuilderGroupORNode implements ColumnExpressionBuilderNode, ColumnExpressionCombiner {
+  ColumnExpressionBuilderNode lhs;
+  ColumnExpressionBuilderNode rhs;
+  ColumnExpressionBuilderGroupORNode(this.lhs, this.rhs);
+}
+
+class ColumnExpressionBuilderGroupAndNode implements ColumnExpressionBuilderNode, ColumnExpressionCombiner {
+  ColumnExpressionBuilderNode lhs;
+  ColumnExpressionBuilderNode rhs;
+  ColumnExpressionBuilderGroupAndNode(this.lhs, this.rhs);
+}
+
+class ColumnExpressionBuilder extends ColumnBuilder implements ColumnExpressionBuilderNode {
   ColumnExpressionBuilder(
       TableBuilder table, ManagedPropertyDescription property, this.expression,
       {this.prefix = ""})

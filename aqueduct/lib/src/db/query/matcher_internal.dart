@@ -49,6 +49,26 @@ class ComparisonExpression implements PredicateExpression {
   }
 }
 
+class AndGroupExpression implements PredicateExpression {
+  final QueryExpression lhs, rhs;
+  const AndGroupExpression(this.lhs, this.rhs);
+
+  @override
+  PredicateExpression get inverse {
+    return RangeExpression(rhs, lhs);
+  }
+}
+
+class OrGroupExpression implements PredicateExpression {
+  final QueryExpression lhs, rhs;
+  const OrGroupExpression(this.lhs, this.rhs);
+
+  @override
+  PredicateExpression get inverse {
+    return RangeExpression(rhs, lhs);
+  }
+}
+
 class AndExpression implements PredicateExpression {
   const AndExpression(this.lhs, this.rhs);
 

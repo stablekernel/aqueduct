@@ -36,7 +36,7 @@ class TableBuilder implements Returnable {
             : PredicateOperator.lessThan;
         final expr = ColumnExpressionBuilder(this, prop,
             ComparisonExpression(query.pageDescriptor.boundingValue, operator));
-        expressionBuilders.add(expr);
+        columnExpressionBuilderNode = expr;
       }
     }
 
@@ -45,7 +45,13 @@ class TableBuilder implements Returnable {
           parent: this, joinedBy: relationshipDesc));
     });
 
-    addColumnExpressions(query.expression);
+    if (columnExpressionBuilderNode == null) {
+      columnExpressionBuilderNode = addColumnExpressions(query.expression);
+    } else {
+      columnExpressionBuilderNode = ColumnExpressionBuilderANDNode(
+          columnExpressionBuilderNode,
+          addColumnExpressions(query.expression));
+    }
   }
 
   TableBuilder.implicit(this.parent, this.joinedBy)
@@ -59,7 +65,7 @@ class TableBuilder implements Returnable {
   final ManagedEntity entity;
   final TableBuilder parent;
   final ManagedRelationshipDescription joinedBy;
-  final List<ColumnExpressionBuilder> expressionBuilders = [];
+  ColumnExpressionBuilderNode columnExpressionBuilderNode;
   String tableAlias;
   QueryPredicate predicate;
   List<ColumnSortBuilder> columnSortBuilders;
@@ -116,10 +122,12 @@ class TableBuilder implements Returnable {
   }
 
   void finalize(Map<String, dynamic> variables) {
-    final allExpressions = [_manualPredicate]
-      ..addAll(expressionBuilders.map((c) => c.predicate));
+    final expressionPredicate = queryPredicateFromNode(columnExpressionBuilderNode);
 
-    predicate = QueryPredicate.and(allExpressions);
+    predicate = _manualPredicate != null
+    ? QueryPredicate.and([_manualPredicate, expressionPredicate])
+    : queryPredicateFromNode(columnExpressionBuilderNode);
+
     if (predicate?.parameters != null) {
       variables.addAll(predicate.parameters);
     }
@@ -129,23 +137,67 @@ class TableBuilder implements Returnable {
     });
   }
 
-  void addColumnExpressions(
+  QueryPredicate queryPredicateFromNode(ColumnExpressionBuilderNode node) {
+    if (node is ColumnExpressionBuilderANDNode) {
+      return QueryPredicate.and(
+          [queryPredicateFromNode(node.lhs), queryPredicateFromNode(node.rhs)]);
+    }
+    if (node is ColumnExpressionBuilderORNode) {
+      return QueryPredicate.or(
+          [queryPredicateFromNode(node.lhs), queryPredicateFromNode(node.rhs)]);
+    }
+
+    if ( node is ColumnExpressionBuilderGroupAndNode ) {
+      return QueryPredicate.andGroup(queryPredicateFromNode(node.lhs), queryPredicateFromNode(node.rhs));
+    }
+
+    if ( node is ColumnExpressionBuilderGroupORNode ) {
+      return QueryPredicate.orGroup(queryPredicateFromNode(node.lhs), queryPredicateFromNode(node.rhs));
+    }
+
+    if (node is ColumnExpressionBuilder) {
+      return node.predicate;
+    }
+
+    return QueryPredicate.empty();
+  }
+
+  ColumnExpressionBuilderNode addColumnExpressions(
       QueryExpression<dynamic, dynamic, dynamic> expression) {
     if (expression == null) {
       return;
     }
 
     final predicateExpression = expression.expression;
-    if (predicateExpression is AndExpression) {
-      addColumnExpressions(predicateExpression.lhs);
-      addColumnExpressions(predicateExpression.rhs);
-      return;
+
+    if (predicateExpression is AndGroupExpression) {
+      return ColumnExpressionBuilderGroupAndNode(
+          addColumnExpressions(predicateExpression.lhs),
+          addColumnExpressions(predicateExpression.rhs)
+      );
     }
 
-    addColumnExpression(expression);
-  }
+    if (predicateExpression is OrGroupExpression) {
+      return ColumnExpressionBuilderGroupORNode(
+          addColumnExpressions(predicateExpression.lhs),
+          addColumnExpressions(predicateExpression.rhs)
+      );
+    }
 
-  void addColumnExpression(QueryExpression<dynamic, dynamic, dynamic> expression) {
+    if (predicateExpression is AndExpression) {
+      return ColumnExpressionBuilderANDNode(
+          addColumnExpressions(predicateExpression.lhs),
+          addColumnExpressions(predicateExpression.rhs)
+      );
+    }
+
+    if (predicateExpression is OrExpression) {
+      return ColumnExpressionBuilderORNode(
+          addColumnExpressions(predicateExpression.lhs),
+          addColumnExpressions(predicateExpression.rhs)
+      );
+    }
+
     final firstElement = expression.keyPath.path.first;
     final lastElement = expression.keyPath.path.last;
 
@@ -166,22 +218,20 @@ class TableBuilder implements Returnable {
         // This will occur if we selected a column.
         final expr =
         ColumnExpressionBuilder(this, lastElement, expression.expression);
-        expressionBuilders.add(expr);
-        return;
+        return expr;
       }
     } else if (isForeignKey) {
       // This will occur if we selected a belongs to relationship or a belongs to relationship's
       // primary key. In either case, this is a column in this table (a foreign key column).
       final expr = ColumnExpressionBuilder(
           this, expression.keyPath.path.first, expression.expression);
-      expressionBuilders.add(expr);
-      return;
+      return expr;
     }
 
-    addColumnExpressionToJoinedTable(expression);
+    return addColumnExpressionToJoinedTable(expression);
   }
 
-  void addColumnExpressionToJoinedTable(
+  ColumnExpressionBuilder addColumnExpressionToJoinedTable(
       QueryExpression<dynamic, dynamic, dynamic> expression) {
     TableBuilder joinedTable = _findJoinedTable(expression.keyPath);
     final lastElement = expression.keyPath.path.last;
@@ -190,12 +240,12 @@ class TableBuilder implements Returnable {
       final expr = ColumnExpressionBuilder(
           joinedTable, inversePrimaryKey, expression.expression,
           prefix: tableAlias);
-      expressionBuilders.add(expr);
+      return expr;
     } else {
       final expr = ColumnExpressionBuilder(
           joinedTable, lastElement, expression.expression,
           prefix: tableAlias);
-      expressionBuilders.add(expr);
+      return expr;
     }
   }
 
@@ -285,7 +335,11 @@ class TableBuilder implements Returnable {
     // If we have a predicate that references a column in a joined table,
     // then we can't use a simple join, we have to use an inner select.
     final joinedTables = returning.whereType<TableBuilder>().toList();
-    if (expressionBuilders.any((e) => joinedTables.contains(e.table))) {
+    final columnExpressionTables = columnExpressionBuilderNode != null
+        ? getTablesFromBuilderNode(columnExpressionBuilderNode)
+        : [];
+
+    if (columnExpressionTables.any((table) => joinedTables.contains(table))) {
       return sqlInnerSelect;
     }
 
@@ -303,5 +357,14 @@ class TableBuilder implements Returnable {
     }
 
     return thisJoin;
+  }
+
+  List<TableBuilder> getTablesFromBuilderNode(ColumnExpressionBuilderNode node) {
+    if (node is ColumnExpressionCombiner) {
+      final combinerNode = node as ColumnExpressionCombiner;
+      return getTablesFromBuilderNode(combinerNode.lhs).addAll(getTablesFromBuilderNode(combinerNode.rhs));
+    }
+
+    return [(node as ColumnExpressionBuilder).table];
   }
 }

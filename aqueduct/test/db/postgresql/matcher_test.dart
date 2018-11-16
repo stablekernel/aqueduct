@@ -6,7 +6,7 @@ void main() {
   ManagedContext context;
 
   setUpAll(() async {
-    context = await contextWithModels([TestModel, InnerModel]);
+    context = await contextWithModels([TestModel, InnerModel, AnotherTestModel]);
     var counter = 0;
     var names = ["Bob", "Fred", "Tim", "Sally", "Kanye", "Lisa"];
     for (var name in names) {
@@ -379,6 +379,219 @@ void main() {
       expect(results.first.id, 1);
     });
   });
+
+  group("Or Where", () {
+    justLogEverything();
+
+    setUpAll(() async {
+      var realBob = Query<AnotherTestModel>(context)
+        ..values.name = "Bob"
+        ..values.email = "founder@company.com"
+        ..values.rank = "8000";
+      await realBob.insert();
+
+      var alsoRealBob = Query<AnotherTestModel>(context)
+        ..values.name = "Bob"
+        ..values.email = "bob@company.com"
+        ..values.rank = "9999";
+      await alsoRealBob.insert();
+
+      var decoyDude = Query<AnotherTestModel>(context)
+        ..values.name = "The Dude"
+        ..values.email = "bowling@alley.com"
+        ..values.rank = '1';
+      await decoyDude.insert();
+
+      var imposterBob = Query<AnotherTestModel>(context)
+        ..values.name = "Bob"
+        ..values.email = "contractor@company.com"
+        ..values.rank = "8000";
+      await imposterBob.insert();
+
+      var anotherImposterBob = Query<AnotherTestModel>(context)
+        ..values.name = "Bob"
+        ..values.email = "bobby@company.com"
+        ..values.rank = "100";
+      await anotherImposterBob.insert();
+
+      var cofounder = Query<AnotherTestModel>(context)
+        ..values.name = "Jeff"
+        ..values.email = "founder@company.com"
+        ..values.rank = "9998";
+      await cofounder.insert();
+
+      var imposterCoFounder = Query<AnotherTestModel>(context)
+        ..values.name = "Jeff"
+        ..values.email = "intern@company.com"
+        ..values.rank = "2";
+      await imposterCoFounder.insert();
+    });
+
+    test("simple Or", () async {
+      //select * from users where name = 'Bob' and (email = "ceo@company.com" or rank > 9000)
+
+      var r = Query<AnotherTestModel>(context)
+        ..where((o) => o.email).equalTo("founder@company.com")
+        ..orWhere((o) => o.rank).greaterThan("9000")
+        ..sortBy((r) => r.name, QuerySortOrder.ascending);
+
+      var results = await r.fetch();
+
+      expect(results.length, 3);
+
+      final firstResult = results[0];
+      expect(firstResult.name, "Bob");
+      expect(firstResult.email, "founder@company.com");
+      expect(firstResult.rank, "8000");
+
+      final secondResult = results[1];
+      expect(secondResult.name, "Bob");
+      expect(secondResult.email, "bob@company.com");
+      expect(secondResult.rank, "9999");
+
+      final thirdResult = results[2];
+      expect(thirdResult.name, "Jeff");
+      expect(thirdResult.email, "founder@company.com");
+      expect(thirdResult.rank, "9998");
+    });
+
+    test("And Or", () async {
+      // SELECT id,name,rank,email FROM _AnotherTestModel
+      // WHERE _AnotherTestModel.rank > @_AnotherTestModel_rank:text AND _AnotherTestModel.name LIKE @_AnotherTestModel_name:text OR _AnotherTestModel.email LIKE @_AnotherTestModel_email:text
+
+      var r1 = Query<AnotherTestModel>(context)
+        ..where((o) => o.email).equalTo("founder@company.com")
+        ..where((o) => o.name).equalTo("Bob")
+        ..orWhere((o) => o.rank).equalTo("9999")
+        ..sortBy((r) => r.name, QuerySortOrder.ascending);
+
+      var results1 = await r1.fetch();
+
+      expect(results1.length, 2);
+
+      final firstResult1 = results1[0];
+      expect(firstResult1.name, "Bob");
+      expect(firstResult1.email, "founder@company.com");
+      expect(firstResult1.rank, "8000");
+
+      final secondResult1 = results1[1];
+      expect(secondResult1.name, "Bob");
+      expect(secondResult1.email, "bob@company.com");
+      expect(secondResult1.rank, "9999");
+
+      var r2 = Query<AnotherTestModel>(context)
+        ..where((o) => o.email).equalTo("founder@company.com")
+        ..orWhere((o) => o.rank).equalTo("9999") //switching these
+        ..where((o) => o.name).equalTo("Bob")    // switching these
+        ..sortBy((r) => r.name, QuerySortOrder.ascending);
+
+      var results2 = await r2.fetch();
+
+      expect(results2.length, 3);
+
+      final firstResult2 = results2[0];
+      expect(firstResult2.name, "Bob");
+      expect(firstResult2.email, "founder@company.com");
+      expect(firstResult2.rank, "8000");
+
+      final secondResult2 = results2[1];
+      expect(secondResult2.name, "Bob");
+      expect(secondResult2.email, "bob@company.com");
+      expect(secondResult2.rank, "9999");
+
+      final thirdResult2 = results2[2];
+      expect(thirdResult2.name, "Jeff");
+      expect(thirdResult2.email, "founder@company.com");
+      expect(thirdResult2.rank, "9998");
+    });
+
+    test("Complex And Or", () async {
+      // SELECT id,name,rank,email FROM _AnotherTestModel
+      // WHERE _AnotherTestModel.name LIKE @_AnotherTestModel_name:text AND _AnotherTestModel.email LIKE @_AnotherTestModel_email:text OR _AnotherTestModel.rank > @_AnotherTestModel_rank:text AND _AnotherTestModel.name LIKE @_AnotherTestModel_name0:text
+      // ORDER BY _AnotherTestModel.name ASC
+
+      var r = Query<AnotherTestModel>(context)
+        ..where((o) => o.name).equalTo("Bob")
+        ..where((o) => o.email).equalTo("founder@company.com")
+        ..orWhere((o) => o.rank).greaterThan("9000")
+        ..where((o) => o.name).equalTo("Bob")
+        ..sortBy((r) => r.name, QuerySortOrder.ascending);
+
+      var results1 = await r.fetch();
+
+      expect(results1.length, 2);
+
+      final firstResult = results1[0];
+      expect(firstResult.name, "Bob");
+      expect(firstResult.email, "founder@company.com");
+      expect(firstResult.rank, "8000");
+
+      final secondResult = results1[1];
+      expect(secondResult.name, "Bob");
+      expect(secondResult.email, "bob@company.com");
+      expect(secondResult.rank, "9999");
+    });
+
+    test("whereGroup (implicit and)", () async {
+      // SELECT id,name,rank,email FROM _AnotherTestModel WHERE (_AnotherTestModel.name LIKE @_AnotherTestModel_name:text AND ((_AnotherTestModel.email LIKE @_AnotherTestModel_email:text OR _AnotherTestModel.rank > @_AnotherTestModel_rank:text)))   Substitutes: {_AnotherTestModel_name: Bob, _AnotherTestModel_email: ceo@company.com, _AnotherTestModel_rank: 9000} -> [[1, Bob, 8000, ceo@company.com], [2, Bob, 9999, bob@company.com]] null null
+
+      var r = Query<AnotherTestModel>(context)
+        ..where((o) => o.email).equalTo("founder@company.com")
+        ..whereGroup((query) => query
+            ..where((o) => o.name).equalTo("Bob")
+            ..orWhere((o) => o.name).equalTo("Jeff"))
+      ..sortBy((r) => r.name, QuerySortOrder.ascending);
+
+      var results= await r.fetch();
+
+      expect(results.length, 3);
+
+      final firstResult = results[0];
+      expect(firstResult.name, "Bob");
+      expect(firstResult.email, "founder@company.com");
+      expect(firstResult.rank, "8000");
+
+      final secondResult = results[1];
+      expect(secondResult.name, "Jeff");
+      expect(secondResult.email, "founder@company.com");
+      expect(secondResult.rank, "9998");
+
+      final thirdResult = results[2];
+      expect(thirdResult.name, "Jeff");
+      expect(thirdResult.email, "intern@company.com");
+      expect(thirdResult.rank, "2");
+    });
+
+    test("orWhereGroup", () async {
+      // SELECT id,name,rank,email FROM _AnotherTestModel
+      // WHERE (_AnotherTestModel.email LIKE @_AnotherTestModel_email:text OR (_AnotherTestModel.name LIKE @_AnotherTestModel_name:text AND _AnotherTestModel.rank > @_AnotherTestModel_rank:text))
+      var r = Query<AnotherTestModel>(context)
+        ..where((o) => o.email).equalTo("founder@company.com")
+        ..orWhereGroup((query) => query
+          ..where((o) => o.name).equalTo("Bob")
+          ..where((o) => o.rank).greaterThan("9000"))
+        ..sortBy((r) => r.name, QuerySortOrder.ascending);
+
+      var results = await r.fetch();
+
+      expect(results.length, 3);
+
+      final firstResult = results[0];
+      expect(firstResult.name, "Bob");
+      expect(firstResult.email, "founder@company.com");
+      expect(firstResult.rank, "8000");
+
+      final secondResult = results[1];
+      expect(secondResult.name, "Bob");
+      expect(secondResult.email, "bob@company.com");
+      expect(secondResult.rank, "9999");
+
+      final thirdResult = results[2];
+      expect(thirdResult.name, "Jeff");
+      expect(thirdResult.email, "founder@company.com");
+      expect(thirdResult.rank, "9998");
+    });
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
@@ -405,4 +618,18 @@ class _InnerModel {
 
   @Relate(Symbol('inner'))
   TestModel owner;
+}
+
+class AnotherTestModel extends ManagedObject<_AnotherTestModel>
+    implements _AnotherTestModel {}
+
+class _AnotherTestModel {
+  @primaryKey
+  int id;
+
+  String name;
+  String rank;
+
+  @Column(nullable: true, unique: false)
+  String email;
 }

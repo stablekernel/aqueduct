@@ -1,3 +1,5 @@
+import "dart:async";
+
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
@@ -80,6 +82,48 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
       expression = QueryExpression.and(expression, expr);
     }
     return expr;
+  }
+
+  @override
+  QueryExpression<T, U, InstanceType> orWhere<T, U>(
+      T propertyIdentifier(InstanceType x)) {
+    final properties = entity.identifyProperties(propertyIdentifier);
+    if (properties.length != 1) {
+      throw ArgumentError(
+          "Invalid property selector. Must reference a single property only.");
+    }
+
+    final expr = QueryExpression<T, U, InstanceType>(properties.first);
+    if (expression == null) {
+      expression = expr;
+    } else {
+      expression = QueryExpression.or(expression, expr);
+    }
+    return expr;
+  }
+
+  @override
+  void whereGroup<T, U>(
+      void expressionGetter(Query<InstanceType> q)) {
+    final standin = QueryStandin<InstanceType>(entity);
+    expressionGetter(standin);
+    if (expression == null) {
+      expression = standin.expression;
+    } else {
+      expression = QueryExpression.andGroup(expression, standin.expression);
+    }
+  }
+
+  @override
+  void orWhereGroup<T, U>(
+      void expressionGetter(Query<InstanceType> q)) {
+    final standin = QueryStandin<InstanceType>(entity);
+    expressionGetter(standin);
+    if (expression == null) {
+      expression = standin.expression;
+    } else {
+      expression = QueryExpression.orGroup(expression, standin.expression);
+    }
   }
 
   @override
@@ -170,5 +214,53 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     subQueries[fromRelationship] = subquery;
 
     return subquery;
+  }
+}
+
+class QueryStandin<InstanceType extends ManagedObject> extends Object
+    with QueryMixin<InstanceType> implements Query<InstanceType> {
+  ManagedEntity _entity;
+  QueryStandin(ManagedEntity entity) {
+    this._entity = entity;
+  }
+
+  @override
+  ManagedEntity get entity => _entity;
+
+  @override
+  ManagedContext get context => null;
+
+  @override
+  Future<int> delete() {
+    // TODO: implement delete
+  }
+
+  @override
+  Future<List<InstanceType>> fetch() {
+    // TODO: implement fetch
+  }
+
+  @override
+  Future<InstanceType> fetchOne() {
+    // TODO: implement fetchOne
+  }
+
+  @override
+  Future<InstanceType> insert() {
+    // TODO: implement insert
+  }
+
+  // TODO: implement reduce
+  @override
+  QueryReduceOperation<InstanceType> get reduce => null;
+
+  @override
+  Future<List<InstanceType>> update() {
+    // TODO: implement update
+  }
+
+  @override
+  Future<InstanceType> updateOne() {
+    // TODO: implement updateOne
   }
 }

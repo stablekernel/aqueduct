@@ -23,6 +23,12 @@ class QueryExpression<T, U, InstanceType> {
 
   QueryExpression.and(QueryExpression<T, T, InstanceType> lhs, QueryExpression<U, U, InstanceType> rhs):
         _expression = AndExpression(lhs, rhs);
+  QueryExpression.or(QueryExpression<T, T, InstanceType> lhs, QueryExpression<U, U, InstanceType> rhs):
+        _expression = OrExpression(lhs, rhs);
+  QueryExpression.andGroup(QueryExpression<T, T, InstanceType> lhs, QueryExpression<U, U, InstanceType> rhs):
+      _expression = AndGroupExpression(lhs, rhs);
+  QueryExpression.orGroup(QueryExpression<T, T, InstanceType> lhs, QueryExpression<U, U, InstanceType> rhs):
+        _expression = OrGroupExpression(lhs, rhs);
 
   final KeyPath keyPath;
 
