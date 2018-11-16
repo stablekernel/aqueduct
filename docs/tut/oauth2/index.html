@@ -1648,7 +1648,7 @@ aqueduct db upgrade --connect postgres://heroes_user:password@localhost:5432/her
 
 <span class="c1">// Note the trailing colon (:) after the clientID.</span>
 <span class="c1">// A client identifier secret would follow this, but there is no secret, so it is the empty string.</span>
-<span class="kd">final</span> <span class="n">clientCredentials</span> <span class="o">=</span> <span class="n">Base64Encoder</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">clientID</span><span class="s2">:&quot;</span><span class="p">);</span>
+<span class="kd">final</span> <span class="n">clientCredentials</span> <span class="o">=</span> <span class="n">Base64Encoder</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">clientID</span><span class="s2">:&quot;</span><span class="p">.</span><span class="n">codeUnits</span><span class="p">);</span>
 
 <span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">http</span><span class="p">.</span><span class="n">post</span><span class="p">(</span>
   <span class="s2">&quot;https://stablekernel.com/auth/token&quot;</span><span class="p">,</span>

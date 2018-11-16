@@ -1860,6 +1860,18 @@
 </pre></div>
 
 
+<p>To insert an author and a book associated with that author:</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">authorQuery</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Author</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Fred&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">author</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">authorQuery</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
+
+<span class="kd">final</span> <span class="n">bookQuery</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Author</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Title&quot;</span>
+  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">author</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="n">author</span><span class="p">.</span><span class="n">id</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">book</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">bookQuery</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>  
+</pre></div>
+
+
 <p>To fetch authors and their books:</p>
 <div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Author</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
   <span class="p">..</span><span class="n">join</span><span class="p">(</span><span class="kd">set</span><span class="o">:</span> <span class="p">(</span><span class="n">a</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">a</span><span class="p">.</span><span class="n">books</span><span class="p">);</span>
@@ -1973,7 +1985,7 @@
 </pre></div>
 
 
-<p>You can flatten this structure in a number of ways. In general, add a <code>Serialize</code>-annotated property to the <code>ManagedObject</code> subclass:</p>
+<p>You can flatten this structure in a number of ways. In the simplest form, add a <code>Serialize</code>-annotated transient property to the <code>ManagedObject</code> subclass, and each time you fetch, remove the join table from the object and place the players in the transient property.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Team</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Team</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Team</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">Serialize</span><span class="p">(</span><span class="nl">input:</span> <span class="kc">false</span><span class="p">,</span> <span class="nl">output:</span> <span class="kc">true</span><span class="p">)</span>
   <span class="n">List</span><span class="o">&lt;</span><span class="n">Player</span><span class="o">&gt;</span> <span class="n">players</span><span class="p">;</span>
