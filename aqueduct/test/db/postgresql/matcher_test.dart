@@ -428,7 +428,7 @@ void main() {
     });
 
     test("simple Or", () async {
-      //select * from users where name = 'Bob' and (email = "ceo@company.com" or rank > 9000)
+      // WHERE _AnotherTestModel.rank > @_AnotherTestModel_rank:text OR _AnotherTestModel.email LIKE @_AnotherTestModel_email:text
 
       var r = Query<AnotherTestModel>(context)
         ..where((o) => o.email).equalTo("founder@company.com")
@@ -456,8 +456,7 @@ void main() {
     });
 
     test("And Or", () async {
-      // SELECT id,name,rank,email FROM _AnotherTestModel
-      // WHERE _AnotherTestModel.rank > @_AnotherTestModel_rank:text AND _AnotherTestModel.name LIKE @_AnotherTestModel_name:text OR _AnotherTestModel.email LIKE @_AnotherTestModel_email:text
+      // WHERE _AnotherTestModel.rank LIKE @_AnotherTestModel_rank:text OR _AnotherTestModel.name LIKE @_AnotherTestModel_name:text AND _AnotherTestModel.email LIKE @_AnotherTestModel_email:text
 
       var r1 = Query<AnotherTestModel>(context)
         ..where((o) => o.email).equalTo("founder@company.com")
@@ -478,6 +477,8 @@ void main() {
       expect(secondResult1.name, "Bob");
       expect(secondResult1.email, "bob@company.com");
       expect(secondResult1.rank, "9999");
+
+      // WHERE _AnotherTestModel.name LIKE @_AnotherTestModel_name:text AND _AnotherTestModel.rank LIKE @_AnotherTestModel_rank:text OR _AnotherTestModel.email LIKE @_AnotherTestModel_email:text
 
       var r2 = Query<AnotherTestModel>(context)
         ..where((o) => o.email).equalTo("founder@company.com")
@@ -506,9 +507,7 @@ void main() {
     });
 
     test("Complex And Or", () async {
-      // SELECT id,name,rank,email FROM _AnotherTestModel
-      // WHERE _AnotherTestModel.name LIKE @_AnotherTestModel_name:text AND _AnotherTestModel.email LIKE @_AnotherTestModel_email:text OR _AnotherTestModel.rank > @_AnotherTestModel_rank:text AND _AnotherTestModel.name LIKE @_AnotherTestModel_name0:text
-      // ORDER BY _AnotherTestModel.name ASC
+      // WHERE _AnotherTestModel.name LIKE @_AnotherTestModel_name0:text AND _AnotherTestModel.rank > @_AnotherTestModel_rank:text OR _AnotherTestModel.email LIKE @_AnotherTestModel_email:text AND _AnotherTestModel.name LIKE @_AnotherTestModel_name:text
 
       var r = Query<AnotherTestModel>(context)
         ..where((o) => o.name).equalTo("Bob")
@@ -533,7 +532,7 @@ void main() {
     });
 
     test("whereGroup (implicit and)", () async {
-      // SELECT id,name,rank,email FROM _AnotherTestModel WHERE (_AnotherTestModel.name LIKE @_AnotherTestModel_name:text AND ((_AnotherTestModel.email LIKE @_AnotherTestModel_email:text OR _AnotherTestModel.rank > @_AnotherTestModel_rank:text)))   Substitutes: {_AnotherTestModel_name: Bob, _AnotherTestModel_email: ceo@company.com, _AnotherTestModel_rank: 9000} -> [[1, Bob, 8000, ceo@company.com], [2, Bob, 9999, bob@company.com]] null null
+      // WHERE _AnotherTestModel.name LIKE @_AnotherTestModel_name0:text OR _AnotherTestModel.name LIKE @_AnotherTestModel_name:text AND (_AnotherTestModel.email LIKE @_AnotherTestModel_email:text)
 
       var r = Query<AnotherTestModel>(context)
         ..where((o) => o.email).equalTo("founder@company.com")
@@ -563,8 +562,8 @@ void main() {
     });
 
     test("orWhereGroup", () async {
-      // SELECT id,name,rank,email FROM _AnotherTestModel
-      // WHERE (_AnotherTestModel.email LIKE @_AnotherTestModel_email:text OR (_AnotherTestModel.name LIKE @_AnotherTestModel_name:text AND _AnotherTestModel.rank > @_AnotherTestModel_rank:text))
+      // WHERE _AnotherTestModel.rank > @_AnotherTestModel_rank:text AND _AnotherTestModel.name LIKE @_AnotherTestModel_name:text OR (_AnotherTestModel.email LIKE @_AnotherTestModel_email:text)
+
       var r = Query<AnotherTestModel>(context)
         ..where((o) => o.email).equalTo("founder@company.com")
         ..orWhereGroup((query) => query

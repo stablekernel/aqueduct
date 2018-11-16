@@ -83,11 +83,8 @@ class QueryPredicate {
       }
     }
 
-    var predicateFormat = "${allFormatStrings.join(" $infixOperator ")}";
 
-    if (isGrouped) {
-      predicateFormat = "(${predicateFormat})";
-    }
+    String predicateFormat = allFormatStrings.reduce((accum, value) => "$accum $infixOperator ${isGrouped ? "($value)" : "$value"}");
 
     return QueryPredicate(predicateFormat, valueMap);
   }
