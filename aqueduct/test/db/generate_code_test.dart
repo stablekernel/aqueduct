@@ -6,6 +6,16 @@ These tests ensure that a SchemaBuilder generates equivalent Dart expressions, t
 are executed in a script, would recreate the same invocations applied to the generating SchemaBuilder.
  */
 
+final List<SchemaColumn> columnsWithAllAttributeOptions = [
+  SchemaColumn("id", ManagedPropertyType.integer, isPrimaryKey: true, autoincrement: true, defaultValue: null, isIndexed: true, isNullable: false, isUnique: false),
+  SchemaColumn("t", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, defaultValue: '\'x\'', isIndexed: false, isNullable: true, isUnique: true),
+];
+
+final List<String> dartExpressionForColumnsWithAllAttributeOptions = [
+  "SchemaColumn(\"id\", ManagedPropertyType.integer, isPrimaryKey: true, autoincrement: true, isIndexed: true, isNullable: false, isUnique: false)",
+  "SchemaColumn(\"t\", ManagedPropertyType.string, isPrimaryKey: false, autoincrement: false, defaultValue: \"'x'\", isIndexed: false, isNullable: true, isUnique: true)"
+];
+
 void main() {
   SchemaBuilder builder;
 
@@ -15,13 +25,11 @@ void main() {
 
   group("Create table", () {
     test("Create basic table", () {
-      builder.createTable(SchemaTable("foo", [SchemaColumn("id", ManagedPropertyType.integer,)]));
+      builder.createTable(SchemaTable("foo", columnsWithAllAttributeOptions));
 
       expect(builder.commands.length, 1);
       expect(builder.commands.first, "database.createTable(SchemaTable(\"foo\", ["
-        "SchemaColumn(\"id\", ManagedPropertyType.integer, isPrimaryKey: false, autoincrement: false, "
-        "isIndexed: false, isNullable: false, isUnique: false)"
-        "]));");
+        "${dartExpressionForColumnsWithAllAttributeOptions[0]},${dartExpressionForColumnsWithAllAttributeOptions[1]}]));");
     });
 
     test("Create table with unique constraints", () {
@@ -88,13 +96,17 @@ void main() {
         "isIndexed: false, isNullable: true, isUnique: false));");
     });
 
-    test("Add column with requiring input", () {
+    test("Add multiple columns", () {
       builder.createTable(SchemaTable("foo", [SchemaColumn("id", ManagedPropertyType.integer)]));
       builder.addColumn("foo", SchemaColumn("x", ManagedPropertyType.integer));
-      expect(builder.commands.length, 2);
-      expect(builder.commands.last, "database.addColumn(\"foo\", "
+      builder.addColumn("foo", SchemaColumn("y", ManagedPropertyType.integer, defaultValue: "2"));
+      expect(builder.commands.length, 3);
+      expect(builder.commands[1], "database.addColumn(\"foo\", "
         "SchemaColumn(\"x\", ManagedPropertyType.integer, isPrimaryKey: false, autoincrement: false, "
         "isIndexed: false, isNullable: false, isUnique: false));");
+      expect(builder.commands[2], "database.addColumn(\"foo\", "
+        "SchemaColumn(\"y\", ManagedPropertyType.integer, isPrimaryKey: false, autoincrement: false, "
+        "defaultValue: \"2\", isIndexed: false, isNullable: false, isUnique: false));");
     });
 
     test("Add relationship column", () {
