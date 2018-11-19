@@ -541,9 +541,9 @@ void main() {
             ..orWhere((o) => o.name).equalTo("Jeff"))
       ..sortBy((r) => r.name, QuerySortOrder.ascending);
 
-      var results= await r.fetch();
+      var results = await r.fetch();
 
-      expect(results.length, 3);
+      expect(results.length, 2);
 
       final firstResult = results[0];
       expect(firstResult.name, "Bob");
@@ -554,11 +554,6 @@ void main() {
       expect(secondResult.name, "Jeff");
       expect(secondResult.email, "founder@company.com");
       expect(secondResult.rank, "9998");
-
-      final thirdResult = results[2];
-      expect(thirdResult.name, "Jeff");
-      expect(thirdResult.email, "intern@company.com");
-      expect(thirdResult.rank, "2");
     });
 
     test("orWhereGroup", () async {
