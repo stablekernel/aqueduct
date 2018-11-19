@@ -381,8 +381,6 @@ void main() {
   });
 
   group("Or Where", () {
-    justLogEverything();
-
     setUpAll(() async {
       var realBob = Query<AnotherTestModel>(context)
         ..values.name = "Bob"
