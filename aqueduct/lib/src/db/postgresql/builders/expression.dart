@@ -5,129 +5,137 @@ import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:aqueduct/src/db/query/query.dart';
 import 'package:aqueduct/src/db/managed/key_path.dart';
 
-abstract class AbstractNode<E> {
-  E lhs, rhs;
-  AbstractNode(this.lhs, this.rhs);
-}
+class ColumnExpressionBuilder {
+  QueryExpression queryExpression;
+  PredicateExpression predicateExpression;
+  TableBuilder _table;
+  List<TableBuilder> tables;
+  ManagedPropertyDescription explicitProperty;
+  bool areTablesLinked = false;
 
-abstract class AbstractLeaf {}
+  ColumnExpressionBuilder(this._table, this.queryExpression, {this.explicitProperty});
+  ColumnExpressionBuilder.property(this._table, this.predicateExpression, this.explicitProperty);
 
-
-abstract class LogicalOperantNode<E> extends AbstractNode<E> {
-  LogicalOperator operant;
-
-  LogicalOperantNode(E lhs, E rhs, this.operant) : super(lhs, rhs);
-}
-
-abstract class ColumnExpressionLeaf implements ColumnExpression {}
-
-
-enum LogicalOperator { and, or }
-
-abstract class ColumnExpression {
-  List<TableBuilder> get tables;
-  ColumnExpressionNode or(ColumnExpression node);
-  ColumnExpressionNode and(ColumnExpression node);
-  QueryPredicate get predicate;
-}
-
-class ColumnExpressionNode extends LogicalOperantNode<ColumnExpression> implements ColumnExpression {
-  bool isGrouped;
-
-  ColumnExpressionNode(ColumnExpression lhs, ColumnExpression rhs, LogicalOperator logicalOperator, {this.isGrouped = false}) : super(lhs, rhs, logicalOperator);
-
-  ColumnExpressionNode or(ColumnExpression node) => ColumnExpressionNode(this, node, LogicalOperator.or);
-  ColumnExpressionNode and(ColumnExpression node) => ColumnExpressionNode(this, node, LogicalOperator.and);
-
-  QueryPredicate get predicate => _getPredicateFromNode(this);
-
-  static QueryPredicate _getPredicateFromNode(ColumnExpression expression) {
-    if (expression is ColumnExpressionLeaf) {
-      return expression.predicate;
-    }
-
-    if (expression is ColumnExpressionNode) {
-      final logicalOperator = expression.operant;
-
-      if (logicalOperator == LogicalOperator.and) {
-        return QueryPredicate.and(
-            [
-              _getPredicateFromNode(expression.lhs),
-              _getPredicateFromNode(expression.rhs)
-            ],
-            isGrouped: expression.isGrouped
-        );
-      }
-      if (logicalOperator == LogicalOperator.or) {
-        return QueryPredicate.or(
-            [
-              _getPredicateFromNode(expression.lhs),
-              _getPredicateFromNode(expression.rhs)
-            ],
-            isGrouped: expression.isGrouped
-        );
-      }
-    }
-
-    return QueryPredicate.empty();
+  QueryPredicate get predicate {
+    finalize();
+    return _getPredicate(queryExpression: queryExpression,
+        predicateExpression: predicateExpression,
+        property: explicitProperty);
   }
 
-  List<TableBuilder> get tables => _getTables(this);
+  void finalize() {
+    // this will discover all joined tables and ensure all necessary table aliases are created
+    tables = _tables;
+  }
 
-  List<TableBuilder> _getTables(ColumnExpression node) {
-    if (node is ColumnExpressionBuilder) {
-      return [node.table];
-    } else if (node is ColumnExpressionNode) {
-      final tables = lhs.tables;
-      if (rhs != null) {
-        tables.addAll(rhs.tables);
-      }
-      return tables;
+  List<TableBuilder> get _tables {
+    final tables = [_table];
+
+    if (queryExpression != null) {
+      tables.addAll(_getTablesFromQuery(queryExpression, _table));
+    }
+
+    return tables;
+  }
+
+  List<TableBuilder> _getTablesFromQuery(QueryExpression queryExpression, TableBuilder table) {
+    final predicateExpression = queryExpression.expression;
+    List<TableBuilder> tables = [];
+
+    if (predicateExpression is LogicalOperantNode<QueryExpression>) {
+      final expr = predicateExpression as LogicalOperantNode<QueryExpression>;
+      tables.addAll(_getTablesFromQuery(expr.operand, table));
+      tables.addAll(_getTablesFromQuery(expr.operand2, table));
     } else {
-      throw "Unkown Tree type: ${node.runtimeType}";
+      final keyPath = queryExpression.keyPath;
+      final derivedTable = _isOnJoinedTable(keyPath) ? _findJoinedTable(_table, keyPath) : _table;
+      final derivedProperty = _getProperty(keyPath);
+      tables.add(ColumnExpressionConcrete(derivedTable, predicateExpression, derivedProperty).table);
     }
+
+    return tables;
   }
-}
 
-class ColumnExpressionBuilder extends ColumnBuilder implements ColumnExpressionLeaf {
-  ColumnExpressionBuilder.property(TableBuilder table, this.expression, ManagedPropertyDescription property) :
-      super.mixin(table, property);
-  ColumnExpressionBuilder.keyPath(TableBuilder table, this.expression, KeyPath keyPath) :
-        super.mixin(isOnJoinedTable(keyPath)
-              ? _findJoinedTable(table, keyPath)
-              : table,
-          getProperty(keyPath)
-      );
+  QueryPredicate _getPredicate({QueryExpression queryExpression, PredicateExpression predicateExpression, ManagedPropertyDescription property}) {
+    final explicitPredicate = (predicateExpression != null &&
+        property != null)
+        ? _getExplicitPredicate(predicateExpression, property)
+        : QueryPredicate.empty();
 
-  static ColumnExpression query(TableBuilder table,
-      QueryExpression expression) {
+    final predicateFromQuery = queryExpression != null
+        ? _getPredicateFromQuery(queryExpression)
+        : QueryPredicate.empty();
 
-    final predicateExpression = expression.expression;
+    return QueryPredicate.and([explicitPredicate, predicateFromQuery]);
+  }
 
-    if (predicateExpression is AndExpression<QueryExpression>) {
-      return ColumnExpressionNode(
-          ColumnExpressionBuilder.query(table, predicateExpression.operand),
-          ColumnExpressionBuilder.query(table, predicateExpression.operand2),
-          LogicalOperator.and,
-          isGrouped: predicateExpression.isGrouped
-      );
-    } else if (predicateExpression is OrExpression<QueryExpression>) {
-      return ColumnExpressionNode(
-          ColumnExpressionBuilder.query(table, predicateExpression.operand),
-          ColumnExpressionBuilder.query(table, predicateExpression.operand2),
-          LogicalOperator.or,
-          isGrouped: predicateExpression.isGrouped
-      );
+  QueryPredicate _getExplicitPredicate(PredicateExpression predicateExpression, ManagedPropertyDescription property) {
+    if (predicateExpression is LogicalOperantNode<QueryExpression>) {
+      final node = predicateExpression as LogicalOperantNode<QueryExpression>;
+      return _getPredicateFromNode(node);
     } else {
-      return ColumnExpressionBuilder.keyPath(
-          table,
-          expression.expression,
-          expression.keyPath
-      );
+      return _getPredicateFromLeaf(predicateExpression, property: property);
     }
   }
 
-  static bool isOnJoinedTable(KeyPath keyPath) {
+  QueryPredicate _getPredicateFromQuery(QueryExpression queryExpression) {
+    final predicateExpression = queryExpression.expression;
+
+    if (predicateExpression is LogicalOperantNode<QueryExpression>) {
+      final node = predicateExpression as LogicalOperantNode<QueryExpression>;
+      return _getPredicateFromNode(node);
+    } else {
+      return _getPredicateFromLeaf(predicateExpression, keyPath: queryExpression.keyPath);
+    }
+  }
+
+  QueryPredicate _getPredicateFromNode(LogicalOperantNode<QueryExpression> expression) {
+    final lhs = _getPredicate(queryExpression: expression.operand);
+    final rhs = _getPredicate(queryExpression: expression.operand2);
+
+    if (expression is AndExpression<QueryExpression>) {
+      return QueryPredicate.and([lhs, rhs], isGrouped: expression.isGrouped);
+    } else if (expression is OrExpression<QueryExpression>) {
+      return QueryPredicate.or([lhs, rhs], isGrouped: expression.isGrouped);
+    }
+  }
+
+  QueryPredicate _getPredicateFromLeaf(PredicateExpression predicateExpression, {ManagedPropertyDescription property, KeyPath keyPath}) {
+    if (property == null && keyPath == null) {
+      throw "You must provide either a property or a keypath with which to derive a property";
+    }
+
+    ColumnExpressionConcrete columnExpression;
+
+    if (property != null) {
+      columnExpression = ColumnExpressionConcrete(_table, predicateExpression, property);
+    } else {
+      final derivedTable = _isOnJoinedTable(keyPath) ? _findJoinedTable(_table, keyPath) : _table;
+      final derivedProperty = _getProperty(keyPath);
+      columnExpression = ColumnExpressionConcrete(derivedTable, predicateExpression, derivedProperty);
+    }
+
+    if (predicateExpression is ComparisonExpression) {
+      return columnExpression.comparisonPredicate(predicateExpression.operant, predicateExpression.operand);
+    } else if (predicateExpression is RangeExpression) {
+      return columnExpression.rangePredicate(predicateExpression.operand, predicateExpression.operand2, insideRange: predicateExpression.operant == RangeOperant.between);
+    } else if (predicateExpression is NullCheckExpression) {
+      return columnExpression.nullPredicate(isNull: predicateExpression.operand);
+    } else if (predicateExpression is SetMembershipExpression) {
+      return columnExpression.containsPredicate(predicateExpression.operand, within: predicateExpression.within);
+    } else if (predicateExpression is StringExpression) {
+      return columnExpression.stringPredicate(
+          predicateExpression.operator, predicateExpression.operand,
+          caseSensitive: predicateExpression.caseSensitive,
+          invertOperator: predicateExpression.invertOperator
+      );
+    }
+
+    throw UnsupportedError(
+        "Unknown expression applied to 'Query'. '${predicateExpression.runtimeType}' is not supported by 'PostgreSQL'.");
+  }
+
+  bool _isOnJoinedTable(KeyPath keyPath) {
     final firstElement = keyPath.path.first;
     final lastElement = keyPath.path.last;
 
@@ -141,16 +149,14 @@ class ColumnExpressionBuilder extends ColumnBuilder implements ColumnExpressionL
         lastElement.isBelongsTo;
     bool isColumn = lastElement is ManagedAttributeDescription || isBelongsTo;
 
-    return (!((isPropertyOnThisEntity && isColumn) || // TODO: further understand to decmopose these into named variables
-        isForeignKey)
+    return (
+        !((isPropertyOnThisEntity && isColumn) || isForeignKey) // TODO: further understand why these checks mean the property is on another table and decmopose into named variables
         && !(keyPath.length == 0
-            || (keyPath.length == 1 &&
-                keyPath[0] is! ManagedRelationshipDescription)
-        )
+            || (keyPath.length == 1 && keyPath[0] is! ManagedRelationshipDescription))
     );
   }
 
-  static TableBuilder _findJoinedTable(TableBuilder table, KeyPath keyPath) {
+  TableBuilder _findJoinedTable(TableBuilder table, KeyPath keyPath) {
     // creates & joins a TableBuilder for any relationship in keyPath
     // if it doesn't exist.
     if (keyPath.length == 0) {
@@ -170,7 +176,7 @@ class ColumnExpressionBuilder extends ColumnBuilder implements ColumnExpressionL
     }
   }
 
-  static ManagedPropertyDescription getProperty(KeyPath keyPath) {
+  ManagedPropertyDescription _getProperty(KeyPath keyPath) {
     final firstElement = keyPath.path.first;
     final lastElement = keyPath.path.last;
 
@@ -198,37 +204,17 @@ class ColumnExpressionBuilder extends ColumnBuilder implements ColumnExpressionL
       return lastElement;
     }
   }
+}
+
+class ColumnExpressionConcrete extends ColumnBuilder {
+  ColumnExpressionConcrete(TableBuilder table, this.expression, ManagedPropertyDescription property) :
+      super(table, property);
 
   PredicateExpression expression;
 
   String get defaultPrefix => "$prefix${table.sqlTableReference}_";
 
   String get prefix => table.tableAlias != null ? table.tableAlias : "";
-
-  List<TableBuilder> get tables => [table];
-
-  ColumnExpressionNode or(ColumnExpression node) => ColumnExpressionNode(this, node, LogicalOperator.or);
-  ColumnExpressionNode and(ColumnExpression node) => ColumnExpressionNode(this, node, LogicalOperator.and);
-
-  QueryPredicate get predicate {
-    var expr = expression;
-    if (expr is ComparisonExpression) {
-      return comparisonPredicate(expr.operant, expr.operand);
-    } else if (expr is RangeExpression) {
-      return rangePredicate(expr.operand, expr.operand2, insideRange: expr.operant == RangeOperant.between);
-    } else if (expr is NullCheckExpression) {
-      return nullPredicate(isNull: expr.operand);
-    } else if (expr is SetMembershipExpression) {
-      return containsPredicate(expr.operand, within: expr.within);
-    } else if (expr is StringExpression) {
-      return stringPredicate(expr.operator, expr.operand,
-          caseSensitive: expr.caseSensitive,
-          invertOperator: expr.invertOperator);
-    }
-
-    throw UnsupportedError(
-        "Unknown expression applied to 'Query'. '${expr.runtimeType}' is not supported by 'PostgreSQL'.");
-  }
 
   QueryPredicate comparisonPredicate(
       ComparisonOperant operator, dynamic value) {

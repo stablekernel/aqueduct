@@ -154,7 +154,7 @@ class AndExpression<E> extends LogicalOperantNode<E> implements PredicateExpress
 
 class OrExpression<E> extends LogicalOperantNode<E> implements PredicateExpression {
   const OrExpression(E lhs, E rhs, {this.isGrouped = false})
-      : super(lhs, rhs, LogicalOperant.and);
+      : super(lhs, rhs, LogicalOperant.or);
 
   final bool isGrouped;
 

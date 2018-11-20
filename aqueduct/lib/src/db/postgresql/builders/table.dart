@@ -1,4 +1,3 @@
-import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
@@ -6,7 +5,6 @@ import 'package:aqueduct/src/db/postgresql/builders/column.dart';
 import 'package:aqueduct/src/db/postgresql/builders/expression.dart';
 import 'package:aqueduct/src/db/postgresql/builders/sort.dart';
 import 'package:aqueduct/src/db/postgresql/postgresql_query.dart';
-import 'package:aqueduct/src/db/query/matcher_expression.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:aqueduct/src/db/query/predicate.dart';
 import 'package:aqueduct/src/db/query/query.dart';
@@ -34,9 +32,12 @@ class TableBuilder implements Returnable {
         final operator = query.pageDescriptor.order == QuerySortOrder.ascending
             ? ComparisonOperant.greaterThan
             : ComparisonOperant.lessThan;
-        final expr = ColumnExpressionBuilder.property(this,
-            ComparisonExpression(query.pageDescriptor.boundingValue, operator), prop);
-        columnExpressionBuilderNode = expr;
+        final expr = ColumnExpressionBuilder.property(
+            this,
+            ComparisonExpression(query.pageDescriptor.boundingValue, operator),
+            prop
+        );
+        columnExpressionBuilder = expr;
       }
     }
 
@@ -51,11 +52,11 @@ class TableBuilder implements Returnable {
       return;
     }
 
-    final queryNode = ColumnExpressionBuilder.query(this, query.expression);
-
-    columnExpressionBuilderNode = (columnExpressionBuilderNode == null)
-        ? queryNode
-        : columnExpressionBuilderNode.and(queryNode);
+    if (columnExpressionBuilder != null) {
+      columnExpressionBuilder.queryExpression = query.expression;
+    } else {
+      columnExpressionBuilder = ColumnExpressionBuilder(this, query.expression);
+    }
   }
 
   TableBuilder.implicit(this.parent, this.joinedBy)
@@ -69,7 +70,7 @@ class TableBuilder implements Returnable {
   final ManagedEntity entity;
   final TableBuilder parent;
   final ManagedRelationshipDescription joinedBy;
-  ColumnExpression columnExpressionBuilderNode;
+  ColumnExpressionBuilder columnExpressionBuilder;
   String tableAlias;
   QueryPredicate predicate;
   List<ColumnSortBuilder> columnSortBuilders;
@@ -126,8 +127,8 @@ class TableBuilder implements Returnable {
   }
 
   void finalize(Map<String, dynamic> variables) {
-    final expressionPredicate = columnExpressionBuilderNode != null
-        ? columnExpressionBuilderNode.predicate
+    final expressionPredicate = columnExpressionBuilder != null
+        ? columnExpressionBuilder.predicate
         : QueryPredicate.empty();
 
     predicate = _manualPredicate != null
@@ -209,8 +210,8 @@ class TableBuilder implements Returnable {
     // then we can't use a simple join, we have to use an inner select.
     final joinedTables = returning.whereType<TableBuilder>().toList();
 
-    if (columnExpressionBuilderNode != null
-        && columnExpressionBuilderNode.tables.any((table) => joinedTables.contains(table))) {
+    if (columnExpressionBuilder != null
+        && columnExpressionBuilder.tables.any(joinedTables.contains)) {
       return sqlInnerSelect;
     }
 
