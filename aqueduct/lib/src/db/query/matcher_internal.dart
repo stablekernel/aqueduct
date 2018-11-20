@@ -1,7 +1,49 @@
-import 'package:aqueduct/src/db/query/matcher_expression.dart';
+abstract class AbstractUnaryNode<E> {
+  final E operand;
+  const AbstractUnaryNode(this.operand);
+}
+
+abstract class AbstractBinaryNode<E> {
+  final E operand, operand2;
+  const AbstractBinaryNode(this.operand, this.operand2);
+}
+
+abstract class AbstractLeaf {}
+
+abstract class PredicateExpressionLeaf<E> {}
+
+abstract class UnaryOperantNode<E, O> extends AbstractUnaryNode<E> {
+  final O operant;
+
+  const UnaryOperantNode(E lhs, this.operant) : super(lhs);
+}
+
+abstract class BinaryOperantNode<E, O> extends AbstractBinaryNode<E> {
+  final O operant;
+
+  const BinaryOperantNode(E lhs, E rhs, this.operant) : super(lhs, rhs);
+}
+
+abstract class ComparisonBinaryNode<E> extends BinaryOperantNode<E, ComparisonOperant> {
+  const ComparisonBinaryNode(E lhs, E rhs, ComparisonOperant operant) : super(lhs, rhs, operant);
+}
+
+abstract class StringComparisonOperantNode<String> extends BinaryOperantNode<String, StringComparisonOperant> {
+  StringComparisonOperantNode(String lhs, String rhs, StringComparisonOperant operant) : super(lhs, rhs, operant);
+}
+
+abstract class LogicalOperantNode<E> extends BinaryOperantNode<E, LogicalOperant> {
+  const LogicalOperantNode(E lhs, E rhs, LogicalOperant operant) : super(lhs, rhs, operant);
+}
+
+abstract class ComparisonUnaryNode<E> extends UnaryOperantNode<E, ComparisonOperant> {
+  const ComparisonUnaryNode(E lhs, ComparisonOperant operant) : super(lhs, operant);
+}
+
+enum LogicalOperant { and, or }
 
 /// The operator in a comparison matcher.
-enum PredicateOperator {
+enum ComparisonOperant {
   lessThan,
   greaterThan,
   notEqual,
@@ -11,37 +53,34 @@ enum PredicateOperator {
 }
 
 /// The operator in a string matcher.
-enum PredicateStringOperator { beginsWith, contains, endsWith, equals }
+enum StringComparisonOperant { beginsWith, contains, endsWith, equals }
 
 abstract class PredicateExpression {
   PredicateExpression get inverse;
 }
 
-class ComparisonExpression implements PredicateExpression {
-  const ComparisonExpression(this.value, this.operator);
-
-  final dynamic value;
-  final PredicateOperator operator;
+class ComparisonExpression<E> extends ComparisonUnaryNode<E> implements PredicateExpression {
+  const ComparisonExpression(E value, ComparisonOperant operant): super(value, operant);
 
   @override
   PredicateExpression get inverse {
-    return ComparisonExpression(value, inverseOperator);
+    return ComparisonExpression(operand, inverseOperator);
   }
 
-  PredicateOperator get inverseOperator {
-    switch (operator) {
-      case PredicateOperator.lessThan:
-        return PredicateOperator.greaterThanEqualTo;
-      case PredicateOperator.greaterThan:
-        return PredicateOperator.lessThanEqualTo;
-      case PredicateOperator.notEqual:
-        return PredicateOperator.equalTo;
-      case PredicateOperator.lessThanEqualTo:
-        return PredicateOperator.greaterThan;
-      case PredicateOperator.greaterThanEqualTo:
-        return PredicateOperator.lessThan;
-      case PredicateOperator.equalTo:
-        return PredicateOperator.notEqual;
+  ComparisonOperant get inverseOperator {
+    switch (operant) {
+      case ComparisonOperant.lessThan:
+        return ComparisonOperant.greaterThanEqualTo;
+      case ComparisonOperant.greaterThan:
+        return ComparisonOperant.lessThanEqualTo;
+      case ComparisonOperant.notEqual:
+        return ComparisonOperant.equalTo;
+      case ComparisonOperant.lessThanEqualTo:
+        return ComparisonOperant.greaterThan;
+      case ComparisonOperant.greaterThanEqualTo:
+        return ComparisonOperant.lessThan;
+      case ComparisonOperant.equalTo:
+        return ComparisonOperant.notEqual;
     }
 
     // this line just shuts up the analyzer
@@ -49,95 +88,78 @@ class ComparisonExpression implements PredicateExpression {
   }
 }
 
-class AndGroupExpression implements PredicateExpression {
-  final QueryExpression lhs, rhs;
-  const AndGroupExpression(this.lhs, this.rhs);
+enum RangeOperant {
+  between,
+  notBetween
+}
+
+class RangeExpression<E> extends BinaryOperantNode<E, RangeOperant> implements PredicateExpression {
+  const RangeExpression(E operand, E operand2, {RangeOperant scope = RangeOperant.between}): super(operand, operand2, scope);
 
   @override
   PredicateExpression get inverse {
-    return RangeExpression(rhs, lhs);
+    final inverseOperant = operant == RangeOperant.between
+        ? RangeOperant.notBetween
+        : RangeOperant.between;
+    return RangeExpression(operand, operand2, scope: inverseOperant);
   }
 }
 
-class OrGroupExpression implements PredicateExpression {
-  final QueryExpression lhs, rhs;
-  const OrGroupExpression(this.lhs, this.rhs);
+class NullCheckExpression extends AbstractUnaryNode<bool> implements PredicateExpression {
+  const NullCheckExpression({bool shouldBeNull = true}): super(shouldBeNull);
 
   @override
   PredicateExpression get inverse {
-    return RangeExpression(rhs, lhs);
+    return NullCheckExpression(shouldBeNull: !operand);
   }
 }
 
-class AndExpression implements PredicateExpression {
-  const AndExpression(this.lhs, this.rhs);
+class SetMembershipExpression<E> extends AbstractUnaryNode<List<E>> implements PredicateExpression {
+  const SetMembershipExpression(List<E> values, {this.within = true}): super(values);
 
-  final QueryExpression lhs, rhs; //FIXME: this should probably be more generic
-
-  @override
-  PredicateExpression get inverse {
-    return RangeExpression(rhs, lhs);
-  }
-}
-
-class OrExpression implements PredicateExpression {
-  const OrExpression(this.lhs, this.rhs);
-
-  final QueryExpression lhs, rhs; //FIXME: this should probably be more generic
-
-  @override
-  PredicateExpression get inverse {
-    return RangeExpression(rhs, lhs);
-  }
-}
-
-class RangeExpression implements PredicateExpression {
-  const RangeExpression(this.lhs, this.rhs, {this.within = true});
-
-  final bool within;
-  final dynamic lhs, rhs;
-
-  @override
-  PredicateExpression get inverse {
-    return RangeExpression(lhs, rhs, within: !within);
-  }
-}
-
-class NullCheckExpression implements PredicateExpression {
-  const NullCheckExpression({this.shouldBeNull = true});
-
-  final bool shouldBeNull;
-
-  @override
-  PredicateExpression get inverse {
-    return NullCheckExpression(shouldBeNull: !shouldBeNull);
-  }
-}
-
-class SetMembershipExpression implements PredicateExpression {
-  const SetMembershipExpression(this.values, {this.within = true});
-
-  final List<dynamic> values;
   final bool within;
 
   @override
   PredicateExpression get inverse {
-    return SetMembershipExpression(values, within: !within);
+    return SetMembershipExpression(operand, within: !within);
   }
 }
 
-class StringExpression implements PredicateExpression {
-  const StringExpression(this.value, this.operator,
-      {this.caseSensitive = true, this.invertOperator = false});
+class StringExpression extends AbstractUnaryNode<String> implements PredicateExpression {
+  const StringExpression(String value, this.operator,
+      {this.caseSensitive = true, this.invertOperator = false}): super(value);
 
-  final PredicateStringOperator operator;
+  final StringComparisonOperant operator;
   final bool invertOperator;
   final bool caseSensitive;
-  final String value;
 
   @override
   PredicateExpression get inverse {
-    return StringExpression(value, operator,
+    return StringExpression(operand, operator,
         caseSensitive: caseSensitive, invertOperator: !invertOperator);
+  }
+}
+
+class AndExpression<E> extends LogicalOperantNode<E> implements PredicateExpression {
+  const AndExpression(E lhs, E rhs, {this.isGrouped = false})
+      : super(lhs, rhs, LogicalOperant.and);
+
+  final bool isGrouped;
+
+  @override
+  PredicateExpression get inverse {
+    return RangeExpression(operand, operand2);
+  }
+}
+
+class OrExpression<E> extends LogicalOperantNode<E> implements PredicateExpression {
+  const OrExpression(E lhs, E rhs, {this.isGrouped = false})
+      : super(lhs, rhs, LogicalOperant.and);
+
+  final bool isGrouped;
+
+  @override
+  PredicateExpression get inverse {
+    return RangeExpression(operand, operand2);
   }
 }

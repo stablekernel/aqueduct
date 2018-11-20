@@ -110,7 +110,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     if (expression == null) {
       expression = standin.expression;
     } else {
-      expression = QueryExpression.andGroup(expression, standin.expression);
+      expression = QueryExpression.and(expression, standin.expression, isGrouped: true);
     }
   }
 
@@ -122,7 +122,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     if (expression == null) {
       expression = standin.expression;
     } else {
-      expression = QueryExpression.orGroup(expression, standin.expression);
+      expression = QueryExpression.or(expression, standin.expression, isGrouped: true);
     }
   }
 

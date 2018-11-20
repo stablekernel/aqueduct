@@ -32,8 +32,8 @@ class TableBuilder implements Returnable {
       if (query.pageDescriptor.boundingValue != null) {
         final prop = entity.properties[query.pageDescriptor.propertyName];
         final operator = query.pageDescriptor.order == QuerySortOrder.ascending
-            ? PredicateOperator.greaterThan
-            : PredicateOperator.lessThan;
+            ? ComparisonOperant.greaterThan
+            : ComparisonOperant.lessThan;
         final expr = ColumnExpressionBuilder.property(this,
             ComparisonExpression(query.pageDescriptor.boundingValue, operator), prop);
         columnExpressionBuilderNode = expr;
@@ -69,7 +69,7 @@ class TableBuilder implements Returnable {
   final ManagedEntity entity;
   final TableBuilder parent;
   final ManagedRelationshipDescription joinedBy;
-  Tree columnExpressionBuilderNode;
+  ColumnExpression columnExpressionBuilderNode;
   String tableAlias;
   QueryPredicate predicate;
   List<ColumnSortBuilder> columnSortBuilders;
