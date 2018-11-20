@@ -100,11 +100,11 @@ class QueryPredicate {
   ///
   /// If [predicates] is null or empty, an empty predicate is returned. If [predicates] contains only
   /// one predicate, that predicate is returned.
-  factory QueryPredicate.and(Iterable<QueryPredicate> predicates) {
+  factory QueryPredicate.and(Iterable<QueryPredicate> predicates, {isGrouped: false}) {
     return QueryPredicate._(predicates, "AND");
   }
 
-  factory QueryPredicate.or(Iterable<QueryPredicate> predicates) {
+  factory QueryPredicate.or(Iterable<QueryPredicate> predicates, {isGrouped: false}) {
     return QueryPredicate._(predicates, "OR");
   }
 

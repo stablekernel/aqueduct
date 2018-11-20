@@ -9,8 +9,6 @@ import 'package:postgres/postgres.dart';
 abstract class Returnable {}
 
 class ColumnBuilder extends Returnable {
-  // this constructor exists to allow subclasses to have mixins: https://github.com/dart-lang/sdk/issues/15101#issuecomment-108403919
-  ColumnBuilder.mixin(this.table, this.property);
   ColumnBuilder(this.table, this.property, {this.documentKeyPath});
 
   static List<Returnable> fromKeys(TableBuilder table, List<KeyPath> keys) {

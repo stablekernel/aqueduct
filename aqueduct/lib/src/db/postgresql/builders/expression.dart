@@ -5,114 +5,78 @@ import 'package:aqueduct/src/db/query/matcher_internal.dart';
 import 'package:aqueduct/src/db/query/query.dart';
 import 'package:aqueduct/src/db/managed/key_path.dart';
 
-abstract class ColumnExpressionBuilderNode
-    implements ColumnExpressionWithTables, ColumnExpressionWithPredicate {
-  ColumnExpressionBuilderORNode or(ColumnExpressionBuilderNode builder);
-  ColumnExpressionBuilderANDNode and(ColumnExpressionBuilderNode builder);
+//abstract class AbstractNode<E> {
+//  E element;
+//  AbstractBranch branch;
+//  AbstractNode(this.element, {this.branch})
+//}
+
+abstract class AbstractNode<E> extends Object {
+  E lhs, rhs;
+  LogicalOperator logicalOperator;
+
+  AbstractNode.branch(this.lhs, {this.rhs, this.logicalOperator});
+  AbstractNode.leaf(this.lhs);
 }
 
-abstract class AbstractColumnExpressionCombiner {
-  ColumnExpressionBuilderNode lhs;
-  ColumnExpressionBuilderNode rhs;
-  AbstractColumnExpressionCombiner(this.lhs, this.rhs);
+enum LogicalOperator { and, or }
+
+class AbstractColumnExpressionNode {
+  AbstractColumnExpressionNode lhs, rhs;
 }
 
-abstract class ColumnExpressionWithPredicate {
-  QueryPredicate get predicate;
+abstract class JunctionCreatorMixin implements AbstractColumnExpressionNode {
+  ColumnExpressionNode or(ColumnExpressionNode node) => ColumnExpressionNode.branch(this, rhs: node, logicalOperator: LogicalOperator.or);
+  ColumnExpressionNode and(ColumnExpressionNode node) => ColumnExpressionNode.branch(this, rhs: node, logicalOperator: LogicalOperator.and);
 }
 
-abstract class ColumnExpressionWithPredicateMixin
-    implements ColumnExpressionBuilderNode {
+class ColumnExpressionNode extends AbstractNode<AbstractColumnExpressionNode> with JunctionCreatorMixin implements AbstractColumnExpressionNode {
+  bool isGrouped;
+
+  ColumnExpressionNode(AbstractColumnExpressionNode lhs) : super.leaf(lhs);
+  ColumnExpressionNode.branch(AbstractColumnExpressionNode lhs, {AbstractColumnExpressionNode rhs, LogicalOperator logicalOperator, this.isGrouped = false}) : super.branch(lhs, rhs: rhs, logicalOperator: logicalOperator);
+
   QueryPredicate get predicate => getPredicateFromNode(this);
 
-  static QueryPredicate getPredicateFromNode(ColumnExpressionBuilderNode node) {
-    if (node is ColumnExpressionBuilder) {
+  static QueryPredicate getPredicateFromNode(ColumnExpressionNode node) {
+    final logicalOperator = node.logicalOperator;
+
+    if (logicalOperator == null) {
       return node.predicate;
     }
-    if (node is ColumnExpressionBuilderANDNode) {
-      return QueryPredicate.and([
-        getPredicateFromNode(node.lhs),
-        getPredicateFromNode(node.rhs)
-      ]);
-    }
-    if (node is ColumnExpressionBuilderORNode) {
-      return QueryPredicate.or([
-        getPredicateFromNode(node.lhs),
-        getPredicateFromNode(node.rhs)
-      ]);
-    }
-    if (node is ColumnExpressionBuilderGroupAndNode) {
-      return QueryPredicate.andGroup(
-          getPredicateFromNode(node.lhs),
-          getPredicateFromNode(node.rhs)
+
+    if (logicalOperator == LogicalOperator.and) {
+      return QueryPredicate.and(
+          [
+            getPredicateFromNode(node.lhs),
+            getPredicateFromNode(node.rhs)
+          ],
+          isGrouped: node.isGrouped
       );
     }
-    if (node is ColumnExpressionBuilderGroupORNode) {
-      return QueryPredicate.orGroup(
-          getPredicateFromNode(node.lhs),
-          getPredicateFromNode(node.rhs)
+    if (logicalOperator == LogicalOperator.or) {
+      return QueryPredicate.or(
+          [
+            getPredicateFromNode(node.lhs),
+            getPredicateFromNode(node.rhs)
+          ],
+          isGrouped: node.isGrouped
       );
     }
 
     return QueryPredicate.empty();
   }
-}
 
-abstract class ColumnExpressionWithTables {
-  List<TableBuilder> get tables;
-}
-
-abstract class ColumnExpressionWithTablesMixin
-    implements ColumnExpressionBuilderNode {
   List<TableBuilder> get tables {
-    if (this is ColumnExpressionBuilder) {
-      return [(this as ColumnExpressionBuilder).table];
-    } else if (this is AbstractColumnExpressionCombiner) {
-      final combiner = this as AbstractColumnExpressionCombiner;
-      return combiner.lhs.tables..addAll(combiner.rhs.tables);
-    } else {
-      return []; //should assert here?
+    final tables = lhs.tables;
+    if (rhs != null) {
+      tables.addAll(rhs.tables);
     }
+    return tables;
   }
 }
 
-abstract class ExpressionMixin implements ColumnExpressionBuilderNode {
-  ColumnExpressionBuilderORNode or(ColumnExpressionBuilderNode builder) =>
-      ColumnExpressionBuilderORNode(this, builder);
-
-  ColumnExpressionBuilderANDNode and(ColumnExpressionBuilderNode builder) =>
-      ColumnExpressionBuilderANDNode(this, builder);
-}
-
-class ColumnExpressionBuilderORNode = AbstractColumnExpressionCombiner
-    with
-        ExpressionMixin,
-        ColumnExpressionWithTablesMixin,
-        ColumnExpressionWithPredicateMixin
-    implements ColumnExpressionBuilderNode;
-
-class ColumnExpressionBuilderANDNode = AbstractColumnExpressionCombiner
-    with
-        ExpressionMixin,
-        ColumnExpressionWithTablesMixin,
-        ColumnExpressionWithPredicateMixin
-    implements ColumnExpressionBuilderNode;
-
-class ColumnExpressionBuilderGroupORNode = AbstractColumnExpressionCombiner
-    with
-        ExpressionMixin,
-        ColumnExpressionWithTablesMixin,
-        ColumnExpressionWithPredicateMixin
-    implements ColumnExpressionBuilderNode;
-
-class ColumnExpressionBuilderGroupAndNode = AbstractColumnExpressionCombiner
-    with
-        ExpressionMixin,
-        ColumnExpressionWithTablesMixin,
-        ColumnExpressionWithPredicateMixin
-    implements ColumnExpressionBuilderNode;
-
-class ColumnExpressionBuilder extends ColumnBuilder with ExpressionMixin, ColumnExpressionWithTablesMixin, ColumnExpressionWithPredicateMixin implements ColumnExpressionBuilderNode {
+class ColumnExpressionBuilder extends ColumnBuilder implements ColumnExpressionNode {
   ColumnExpressionBuilder.property(TableBuilder table, this.expression, ManagedPropertyDescription property) :
       super.mixin(table, property);
   ColumnExpressionBuilder.keyPath(TableBuilder table, this.expression, KeyPath keyPath) :
@@ -122,32 +86,42 @@ class ColumnExpressionBuilder extends ColumnBuilder with ExpressionMixin, Column
           getProperty(keyPath)
       );
 
-  static ColumnExpressionBuilderNode query(TableBuilder table,
+  static ColumnExpressionNode query(TableBuilder table,
       QueryExpression expression) {
+
     final predicateExpression = expression.expression;
+
     if (predicateExpression is AndExpression) {
-      return ColumnExpressionBuilderANDNode(
+      return ColumnExpressionNode(
           ColumnExpressionBuilder.query(table, predicateExpression.lhs),
-          ColumnExpressionBuilder.query(table, predicateExpression.rhs)
+          rhs: ColumnExpressionBuilder.query(table, predicateExpression.rhs),
+          logicalOperator: LogicalOperator.and)
       );
     } else if (predicateExpression is AndGroupExpression) {
-        return ColumnExpressionBuilderGroupAndNode(
-            ColumnExpressionBuilder.query(table, predicateExpression.lhs),
-            ColumnExpressionBuilder.query(table, predicateExpression.rhs)
-        );
+    return ColumnExpressionNode(
+        ColumnExpressionBuilder.query(table, predicateExpression.lhs),
+        rhs: ColumnExpressionBuilder.query(table, predicateExpression.rhs),
+    logicalOperator: LogicalOperator.and,
+        isGrouped: true
+    );
     } else if (predicateExpression is OrExpression) {
-      return ColumnExpressionBuilderORNode(
+      return ColumnExpressionNode(
           ColumnExpressionBuilder.query(table, predicateExpression.lhs),
-          ColumnExpressionBuilder.query(table, predicateExpression.rhs)
+          rhs: ColumnExpressionBuilder.query(table, predicateExpression.rhs),
+    logicalOperator: LogicalOperator.or
       );
     } else if (predicateExpression is OrGroupExpression) {
-      return ColumnExpressionBuilderGroupORNode(
+      return ColumnExpressionNode(
           ColumnExpressionBuilder.query(table, predicateExpression.lhs),
-          ColumnExpressionBuilder.query(table, predicateExpression.rhs)
+          rhs: ColumnExpressionBuilder.query(table, predicateExpression.rhs),
+          logicalOperator: LogicalOperator.or,
+          isGrouped: true
       );
     } else {
-      return ColumnExpressionBuilder.keyPath(
-          table, expression.expression, expression.keyPath);
+      return ColumnExpressionNode(
+      ColumnExpressionBuilder.keyPath(
+      table, expression.expression, expression.keyPath)
+      );
     }
   }
 
@@ -328,4 +302,30 @@ class ColumnExpressionBuilder extends ColumnBuilder with ExpressionMixin, Column
     return QueryPredicate("$n $operation @$variableName$sqlTypeSuffix",
         {variableName: matchValue});
   }
+
+  @override
+  bool isGrouped;
+
+  @override
+  ColumnExpressionNode lhs;
+
+  @override
+  LogicalOperator operator;
+
+  @override
+  ColumnExpressionNode rhs;
+
+  @override
+  ColumnExpressionNode and(ColumnExpressionNode node) {
+    // TODO: implement and
+  }
+
+  @override
+  ColumnExpressionNode or(ColumnExpressionNode node) {
+    // TODO: implement or
+  }
+
+  // TODO: implement tables
+  @override
+  List<TableBuilder> get tables => null;
 }

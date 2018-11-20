@@ -69,7 +69,7 @@ class TableBuilder implements Returnable {
   final ManagedEntity entity;
   final TableBuilder parent;
   final ManagedRelationshipDescription joinedBy;
-  ColumnExpressionBuilderNode columnExpressionBuilderNode;
+  ColumnExpressionNode columnExpressionBuilderNode;
   String tableAlias;
   QueryPredicate predicate;
   List<ColumnSortBuilder> columnSortBuilders;
