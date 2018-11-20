@@ -11,72 +11,89 @@ import 'package:aqueduct/src/db/managed/key_path.dart';
 //  AbstractNode(this.element, {this.branch})
 //}
 
-abstract class AbstractNode<E> extends Object {
+abstract class Tree {
+  List<TableBuilder> get tables;
+  ColumnExpressionNode or(Tree node);
+  ColumnExpressionNode and(Tree node);
+  QueryPredicate get predicate;
+}
+
+abstract class AbstractLeaf implements Tree {}
+
+abstract class AbstractNode<E> implements Tree {
   E lhs, rhs;
   LogicalOperator logicalOperator;
 
-  AbstractNode.branch(this.lhs, {this.rhs, this.logicalOperator});
-  AbstractNode.leaf(this.lhs);
+  AbstractNode(this.lhs, this.rhs, this.logicalOperator);
 }
+
 
 enum LogicalOperator { and, or }
 
-class AbstractColumnExpressionNode {
-  AbstractColumnExpressionNode lhs, rhs;
-}
+//abstract class JunctionCreatorMixin implements AbstractColumnExpressionNode {
+//  ColumnExpressionNode or(ColumnExpressionNode node) => ColumnExpressionNode.branch(this, rhs: node, logicalOperator: LogicalOperator.or);
+//  ColumnExpressionNode and(ColumnExpressionNode node) => ColumnExpressionNode.branch(this, rhs: node, logicalOperator: LogicalOperator.and);
+//}
 
-abstract class JunctionCreatorMixin implements AbstractColumnExpressionNode {
-  ColumnExpressionNode or(ColumnExpressionNode node) => ColumnExpressionNode.branch(this, rhs: node, logicalOperator: LogicalOperator.or);
-  ColumnExpressionNode and(ColumnExpressionNode node) => ColumnExpressionNode.branch(this, rhs: node, logicalOperator: LogicalOperator.and);
-}
-
-class ColumnExpressionNode extends AbstractNode<AbstractColumnExpressionNode> with JunctionCreatorMixin implements AbstractColumnExpressionNode {
+class ColumnExpressionNode extends AbstractNode<Tree>  { //with JunctionCreatorMixin
   bool isGrouped;
 
-  ColumnExpressionNode(AbstractColumnExpressionNode lhs) : super.leaf(lhs);
-  ColumnExpressionNode.branch(AbstractColumnExpressionNode lhs, {AbstractColumnExpressionNode rhs, LogicalOperator logicalOperator, this.isGrouped = false}) : super.branch(lhs, rhs: rhs, logicalOperator: logicalOperator);
+  ColumnExpressionNode(Tree lhs, Tree rhs, LogicalOperator logicalOperator, {this.isGrouped = false}) : super(lhs, rhs, logicalOperator);
 
-  QueryPredicate get predicate => getPredicateFromNode(this);
+  // We want this stuff mixed in
 
-  static QueryPredicate getPredicateFromNode(ColumnExpressionNode node) {
-    final logicalOperator = node.logicalOperator;
+  ColumnExpressionNode or(Tree node) => ColumnExpressionNode(this, node, LogicalOperator.or);
+  ColumnExpressionNode and(Tree node) => ColumnExpressionNode(this, node, LogicalOperator.and);
 
-    if (logicalOperator == null) {
-      return node.predicate;
-    }
+  QueryPredicate get predicate => _getPredicateFromNode(this);
 
-    if (logicalOperator == LogicalOperator.and) {
-      return QueryPredicate.and(
-          [
-            getPredicateFromNode(node.lhs),
-            getPredicateFromNode(node.rhs)
-          ],
-          isGrouped: node.isGrouped
-      );
-    }
-    if (logicalOperator == LogicalOperator.or) {
-      return QueryPredicate.or(
-          [
-            getPredicateFromNode(node.lhs),
-            getPredicateFromNode(node.rhs)
-          ],
-          isGrouped: node.isGrouped
-      );
-    }
+  static QueryPredicate _getPredicateFromNode(ColumnExpressionNode node) {
+      final logicalOperator = node.logicalOperator;
+
+      if (logicalOperator == null) {
+        return node.predicate;
+      }
+
+      if (logicalOperator == LogicalOperator.and) {
+        return QueryPredicate.and(
+            [
+              getPredicateFromNode(node.lhs),
+              getPredicateFromNode(node.rhs)
+            ],
+            isGrouped: node.isGrouped
+        );
+      }
+      if (logicalOperator == LogicalOperator.or) {
+        return QueryPredicate.or(
+            [
+              getPredicateFromNode(node.lhs),
+              getPredicateFromNode(node.rhs)
+            ],
+            isGrouped: node.isGrouped
+        );
+      }
 
     return QueryPredicate.empty();
   }
 
-  List<TableBuilder> get tables {
-    final tables = lhs.tables;
-    if (rhs != null) {
-      tables.addAll(rhs.tables);
+  List<TableBuilder> get tables => _getTables(this);
+
+  List<TableBuilder> _getTables(Tree node) {
+    if (node is ColumnExpressionBuilder) {
+      return [node.table];
+    } else if (node is ColumnExpressionNode) {
+      final tables = lhs.tables;
+      if (rhs != null) {
+        tables.addAll(rhs.tables);
+      }
+      return tables;
+    } else {
+      throw "Unkown Tree type: ${node.runtimeType}";
     }
-    return tables;
   }
 }
 
-class ColumnExpressionBuilder extends ColumnBuilder implements ColumnExpressionNode {
+class ColumnExpressionBuilder extends ColumnBuilder implements AbstractLeaf {
   ColumnExpressionBuilder.property(TableBuilder table, this.expression, ManagedPropertyDescription property) :
       super.mixin(table, property);
   ColumnExpressionBuilder.keyPath(TableBuilder table, this.expression, KeyPath keyPath) :
@@ -86,7 +103,7 @@ class ColumnExpressionBuilder extends ColumnBuilder implements ColumnExpressionN
           getProperty(keyPath)
       );
 
-  static ColumnExpressionNode query(TableBuilder table,
+  static Tree query(TableBuilder table,
       QueryExpression expression) {
 
     final predicateExpression = expression.expression;
@@ -94,33 +111,34 @@ class ColumnExpressionBuilder extends ColumnBuilder implements ColumnExpressionN
     if (predicateExpression is AndExpression) {
       return ColumnExpressionNode(
           ColumnExpressionBuilder.query(table, predicateExpression.lhs),
-          rhs: ColumnExpressionBuilder.query(table, predicateExpression.rhs),
-          logicalOperator: LogicalOperator.and)
+          ColumnExpressionBuilder.query(table, predicateExpression.rhs),
+          LogicalOperator.and
       );
     } else if (predicateExpression is AndGroupExpression) {
     return ColumnExpressionNode(
         ColumnExpressionBuilder.query(table, predicateExpression.lhs),
-        rhs: ColumnExpressionBuilder.query(table, predicateExpression.rhs),
-    logicalOperator: LogicalOperator.and,
+        ColumnExpressionBuilder.query(table, predicateExpression.rhs),
+        LogicalOperator.and,
         isGrouped: true
     );
     } else if (predicateExpression is OrExpression) {
       return ColumnExpressionNode(
           ColumnExpressionBuilder.query(table, predicateExpression.lhs),
-          rhs: ColumnExpressionBuilder.query(table, predicateExpression.rhs),
-    logicalOperator: LogicalOperator.or
+          ColumnExpressionBuilder.query(table, predicateExpression.rhs),
+          LogicalOperator.or
       );
     } else if (predicateExpression is OrGroupExpression) {
       return ColumnExpressionNode(
           ColumnExpressionBuilder.query(table, predicateExpression.lhs),
-          rhs: ColumnExpressionBuilder.query(table, predicateExpression.rhs),
-          logicalOperator: LogicalOperator.or,
+          ColumnExpressionBuilder.query(table, predicateExpression.rhs),
+          LogicalOperator.or,
           isGrouped: true
       );
     } else {
-      return ColumnExpressionNode(
-      ColumnExpressionBuilder.keyPath(
-      table, expression.expression, expression.keyPath)
+      return ColumnExpressionBuilder.keyPath(
+          table,
+          expression.expression,
+          expression.keyPath
       );
     }
   }
@@ -202,6 +220,11 @@ class ColumnExpressionBuilder extends ColumnBuilder implements ColumnExpressionN
   String get defaultPrefix => "$prefix${table.sqlTableReference}_";
 
   String get prefix => table.tableAlias != null ? table.tableAlias : "";
+
+  List<TableBuilder> get tables => [table];
+
+  ColumnExpressionNode or(Tree node) => ColumnExpressionNode(this, node, LogicalOperator.or);
+  ColumnExpressionNode and(Tree node) => ColumnExpressionNode(this, node, LogicalOperator.and);
 
   QueryPredicate get predicate {
     var expr = expression;
@@ -302,30 +325,4 @@ class ColumnExpressionBuilder extends ColumnBuilder implements ColumnExpressionN
     return QueryPredicate("$n $operation @$variableName$sqlTypeSuffix",
         {variableName: matchValue});
   }
-
-  @override
-  bool isGrouped;
-
-  @override
-  ColumnExpressionNode lhs;
-
-  @override
-  LogicalOperator operator;
-
-  @override
-  ColumnExpressionNode rhs;
-
-  @override
-  ColumnExpressionNode and(ColumnExpressionNode node) {
-    // TODO: implement and
-  }
-
-  @override
-  ColumnExpressionNode or(ColumnExpressionNode node) {
-    // TODO: implement or
-  }
-
-  // TODO: implement tables
-  @override
-  List<TableBuilder> get tables => null;
 }
