@@ -80,7 +80,7 @@ void main() {
     test("QueryPredicate.orGroup", () {
       var p1 = QueryPredicate("p=q", null);
       var p2 = QueryPredicate("a=b", null);
-      final combined = QueryPredicate.orGroup(p1, p2);
+      final combined = QueryPredicate.or([p1, p2], isGrouped: true);
       expect(combined.format, "p=q OR (a=b)");
     });
 
@@ -88,7 +88,7 @@ void main() {
       test("Simplest", () {
         var p1 = QueryPredicate("p=q", null);
         var p2 = QueryPredicate("a=b", null);
-        final combined = QueryPredicate.andGroup(p1, p2);
+        final combined = QueryPredicate.and([p1, p2], isGrouped: true);
         expect(combined.format, "p=q AND (a=b)");
       });
     });
