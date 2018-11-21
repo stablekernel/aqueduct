@@ -232,35 +232,37 @@ class QueryStandin<InstanceType extends ManagedObject> extends Object
 
   @override
   Future<int> delete() {
-    // TODO: implement delete
+    throw getStateError("delete");
   }
 
   @override
   Future<List<InstanceType>> fetch() {
-    // TODO: implement fetch
+    throw getStateError("fetch");
   }
 
   @override
   Future<InstanceType> fetchOne() {
-    // TODO: implement fetchOne
+    throw getStateError("fetchOne");
   }
 
   @override
   Future<InstanceType> insert() {
-    // TODO: implement insert
+    throw getStateError("insert");
   }
 
-  // TODO: implement reduce
   @override
-  QueryReduceOperation<InstanceType> get reduce => null;
+  QueryReduceOperation<InstanceType> get reduce => throw getStateError("reduce");
+
 
   @override
   Future<List<InstanceType>> update() {
-    // TODO: implement update
+    throw getStateError("update");
   }
 
   @override
   Future<InstanceType> updateOne() {
-    // TODO: implement updateOne
+    throw getStateError("updateOne");
   }
+
+  StateError getStateError(String methodName) => StateError("Cannot call ${methodName} on QueryStandin. Do you mean to call ${methodName} on the Query itself?");
 }
