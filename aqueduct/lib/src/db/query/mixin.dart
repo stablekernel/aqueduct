@@ -68,7 +68,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   }
 
   @override
-  QueryExpression<T, T, InstanceType> where<T>(
+  QueryExpression<T, InstanceType> where<T>(
       T propertyIdentifier(InstanceType x)) {
     final properties = entity.identifyProperties(propertyIdentifier);
     if (properties.length != 1) {
@@ -76,7 +76,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
           "Invalid property selector. Must reference a single property only.");
     }
 
-    final expr = QueryExpression<T, T, InstanceType>(properties.first);
+    final expr = QueryExpression<T, InstanceType>(properties.first);
     final leaf = LeafNode(expr);
     if (expression == null) {
       expression = leaf;
@@ -87,7 +87,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   }
 
   @override
-  QueryExpression<T, U, InstanceType> orWhere<T, U>(
+  QueryExpression<T, InstanceType> orWhere<T, U>(
       T propertyIdentifier(InstanceType x)) {
     final properties = entity.identifyProperties(propertyIdentifier);
     if (properties.length != 1) {
@@ -95,7 +95,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
           "Invalid property selector. Must reference a single property only.");
     }
 
-    final expr = QueryExpression<T, U, InstanceType>(properties.first);
+    final expr = QueryExpression<T, InstanceType>(properties.first);
     final leaf = LeafNode(expr);
     if (expression == null) {
       expression = leaf;

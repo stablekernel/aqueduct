@@ -187,10 +187,10 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///         final query = Query<Employee>()
   ///           ..where((e) => e.manager.name).equalTo("Sally");
   ///
-  QueryExpression<T, T, InstanceType> where<T>(
+  QueryExpression<T, InstanceType> where<T>(
       T propertyIdentifier(InstanceType x));
 
-  QueryExpression<T, U, InstanceType> orWhere<T, U>(
+  QueryExpression<T, InstanceType> orWhere<T, U>(
       T propertyIdentifier(InstanceType x));
 
   void whereGroup<T, U>(
