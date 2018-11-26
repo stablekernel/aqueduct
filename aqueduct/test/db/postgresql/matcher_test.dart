@@ -486,7 +486,7 @@ void main() {
 
       var results2 = await r2.fetch();
 
-      expect(results2.length, 3);
+      expect(results2.length, 2);
 
       final firstResult2 = results2[0];
       expect(firstResult2.name, "Bob");
@@ -497,11 +497,6 @@ void main() {
       expect(secondResult2.name, "Bob");
       expect(secondResult2.email, "bob@company.com");
       expect(secondResult2.rank, "9999");
-
-      final thirdResult2 = results2[2];
-      expect(thirdResult2.name, "Jeff");
-      expect(thirdResult2.email, "founder@company.com");
-      expect(thirdResult2.rank, "9998");
     });
 
     test("Complex And Or", () async {

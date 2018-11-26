@@ -94,9 +94,9 @@ class ColumnExpressionBuilder {
     final rhs = _getPredicate(queryExpression: expression.operand2);
 
     if (expression is AndExpression<QueryExpression>) {
-      return QueryPredicate.and([lhs, rhs], isGrouped: expression.isGrouped);
+      return QueryPredicate.and([lhs, rhs]);
     } else if (expression is OrExpression<QueryExpression>) {
-      return QueryPredicate.or([lhs, rhs], isGrouped: expression.isGrouped);
+      return QueryPredicate.or([lhs, rhs]);
     }
   }
 

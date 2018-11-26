@@ -84,7 +84,8 @@ class QueryPredicate {
     }
 
 
-    String predicateFormat = allFormatStrings.reduce((accum, value) => "$accum $infixOperator ${isGrouped ? "($value)" : "$value"}");
+    String predicateInnerString = allFormatStrings.reduce((accum, value) => "$accum $infixOperator $value");
+    String predicateFormat = "($predicateInnerString)";
 
     return QueryPredicate(predicateFormat, valueMap);
   }
@@ -100,19 +101,11 @@ class QueryPredicate {
   ///
   /// If [predicates] is null or empty, an empty predicate is returned. If [predicates] contains only
   /// one predicate, that predicate is returned.
-  factory QueryPredicate.and(Iterable<QueryPredicate> predicates, {bool isGrouped: false}) {
-    return QueryPredicate._(predicates, "AND", isGrouped: isGrouped);
+  factory QueryPredicate.and(Iterable<QueryPredicate> predicates) {
+    return QueryPredicate._(predicates, "AND");
   }
 
-  factory QueryPredicate.or(Iterable<QueryPredicate> predicates, {bool isGrouped: false}) {
-    return QueryPredicate._(predicates, "OR", isGrouped: isGrouped);
-  }
-
-  factory QueryPredicate.andGroup(QueryPredicate lhs, QueryPredicate rhs) {
-    return QueryPredicate._([lhs, rhs], "AND", isGrouped: true);
-  }
-
-  factory QueryPredicate.orGroup(QueryPredicate lhs, QueryPredicate rhs) {
-    return QueryPredicate._([lhs, rhs], "OR", isGrouped: true);
+  factory QueryPredicate.or(Iterable<QueryPredicate> predicates) {
+    return QueryPredicate._(predicates, "OR");
   }
 }
