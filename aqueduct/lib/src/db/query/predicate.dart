@@ -37,7 +37,7 @@ class QueryPredicate {
       : format = "",
         parameters = {};
 
-  factory QueryPredicate._(Iterable<QueryPredicate> predicates, String infixOperator, {bool isGrouped: false}) {
+  factory QueryPredicate._(Iterable<QueryPredicate> predicates, String infixOperator) {
     var predicateList = predicates
         ?.where((p) => p?.format != null && p.format.isNotEmpty)
         ?.toList();
