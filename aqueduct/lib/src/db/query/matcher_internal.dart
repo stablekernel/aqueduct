@@ -3,9 +3,9 @@ abstract class AbstractUnaryNode<E> {
   const AbstractUnaryNode(this.operand);
 }
 
-abstract class AbstractBinaryNode<E> {
-  final E operand, operand2;
-  const AbstractBinaryNode(this.operand, this.operand2);
+abstract class AbstractBinaryNode<E> extends AbstractUnaryNode<E> {
+  final E operand2;
+  const AbstractBinaryNode(E operand, this.operand2): super(operand);
 }
 
 abstract class AbstractLeaf {}

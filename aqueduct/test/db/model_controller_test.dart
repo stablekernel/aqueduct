@@ -96,15 +96,6 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    ComparisonExpression comparisonMatcher = (query as QueryMixin)
-        .expressions
-        .firstWhere((expr) => expr.keyPath.path.first.name == "id")
-        .expression;
-    if (comparisonMatcher.operator != PredicateOperator.equalTo ||
-        comparisonMatcher.value != id) {
-      statusCode = 400;
-    }
-
     if (query.values.backing.contents.isNotEmpty) {
       statusCode = 400;
     }
@@ -123,15 +114,6 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
     if (query == null) {
-      statusCode = 400;
-    }
-
-    ComparisonExpression comparisonMatcher = (query as QueryMixin)
-        .expressions
-        .firstWhere((expr) => expr.keyPath.path.first.name == "id")
-        .expression;
-    if (comparisonMatcher.operator != PredicateOperator.equalTo ||
-        comparisonMatcher.value != id) {
       statusCode = 400;
     }
 
@@ -183,11 +165,23 @@ class StringController extends QueryController<StringModel> {
 
   @Operation.get("id")
   Future<Response> get(@Bind.path("id") String id) async {
-    StringExpression comparisonMatcher = (query as QueryMixin)
-        .expressions
+    final expressions = getExpressionListFromExpression((query as QueryMixin).expression);
+    final expression = expressions
         .firstWhere((expr) => expr.keyPath.path.first.name == "foo")
-        .expression;
-    return Response.ok(comparisonMatcher.value);
+        .expression as AbstractUnaryNode;
+    return Response.ok(expression.operand);
+  }
+
+  List<QueryExpression>getExpressionListFromExpression(QueryExpression queryExpression) {
+    final predicateExpression = queryExpression.expression;
+    if (predicateExpression is LogicalOperantNode<QueryExpression>) {
+      final node = predicateExpression as LogicalOperantNode<QueryExpression>;
+      final expressions = getExpressionListFromExpression(node.operand);
+      expressions.addAll(getExpressionListFromExpression(node.operand2));
+      return expressions;
+    }
+
+    return [queryExpression];
   }
 }
 
