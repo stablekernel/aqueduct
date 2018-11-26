@@ -9,7 +9,6 @@ import 'package:postgres/postgres.dart';
 abstract class Returnable {}
 
 class ColumnBuilder extends Returnable {
-  ColumnBuilder.mixin(this.table, this.property);
   ColumnBuilder(this.table, this.property, {this.documentKeyPath});
 
   static List<Returnable> fromKeys(TableBuilder table, List<KeyPath> keys) {
