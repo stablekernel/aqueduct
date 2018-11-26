@@ -53,7 +53,7 @@ class TableBuilder implements Returnable {
     }
 
     if (columnExpressionBuilder != null) {
-      columnExpressionBuilder.queryExpression = query.expression;
+      columnExpressionBuilder.expressionTree = query.expression;
     } else {
       columnExpressionBuilder = ColumnExpressionBuilder(this, query.expression);
     }

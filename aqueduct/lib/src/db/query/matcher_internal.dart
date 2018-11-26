@@ -140,26 +140,24 @@ class StringExpression extends AbstractUnaryNode<String> implements PredicateExp
   }
 }
 
-class AndExpression<E> extends LogicalOperantNode<E> implements PredicateExpression {
-  const AndExpression(E lhs, E rhs, {this.isGrouped = false})
+class Expression<E> extends AbstractUnaryNode<E> {
+  Expression(E operand): super(operand);
+}
+abstract class Tree<E> {}
+
+class LeafNode<E> implements Tree<E> {
+ E value;
+ LeafNode(this.value);
+}
+
+class AndNode<E> extends LogicalOperantNode<Tree<E>> implements Tree<E> {
+  const AndNode(Tree<E> lhs, Tree<E> rhs)
       : super(lhs, rhs, LogicalOperant.and);
-
-  final bool isGrouped;
-
-  @override
-  PredicateExpression get inverse {
-    return RangeExpression(operand, operand2);
-  }
 }
 
-class OrExpression<E> extends LogicalOperantNode<E> implements PredicateExpression {
-  const OrExpression(E lhs, E rhs, {this.isGrouped = false})
+class OrNode<E> extends LogicalOperantNode<Tree<E>> implements Tree<E> {
+  const OrNode(Tree<E> lhs, Tree<E> rhs)
       : super(lhs, rhs, LogicalOperant.or);
-
-  final bool isGrouped;
-
-  @override
-  PredicateExpression get inverse {
-    return RangeExpression(operand, operand2);
-  }
 }
+
+

@@ -6,19 +6,19 @@ import 'package:aqueduct/src/db/query/query.dart';
 import 'package:aqueduct/src/db/managed/key_path.dart';
 
 class ColumnExpressionBuilder {
-  QueryExpression queryExpression;
+  Tree<QueryExpression> expressionTree;
   PredicateExpression predicateExpression;
   TableBuilder _table;
   List<TableBuilder> tables;
   ManagedPropertyDescription explicitProperty;
   bool areTablesLinked = false;
 
-  ColumnExpressionBuilder(this._table, this.queryExpression, {this.explicitProperty});
+  ColumnExpressionBuilder(this._table, this.expressionTree, {this.explicitProperty});
   ColumnExpressionBuilder.property(this._table, this.predicateExpression, this.explicitProperty);
 
   QueryPredicate get predicate {
     finalize();
-    return _getPredicate(queryExpression: queryExpression,
+    return _getPredicate(expression: expressionTree,
         predicateExpression: predicateExpression,
         property: explicitProperty);
   }
@@ -31,73 +31,83 @@ class ColumnExpressionBuilder {
   List<TableBuilder> get _tables {
     final tables = [_table];
 
-    if (queryExpression != null) {
-      tables.addAll(_getTablesFromQuery(queryExpression, _table));
+    if (expressionTree != null) {
+      tables.addAll(_getTablesFromExpression(expressionTree, _table));
     }
 
     return tables;
   }
 
-  List<TableBuilder> _getTablesFromQuery(QueryExpression queryExpression, TableBuilder table) {
-    final predicateExpression = queryExpression.expression;
+  List<TableBuilder> _getTablesFromExpression(Tree<QueryExpression> expression, TableBuilder table) {
     List<TableBuilder> tables = [];
 
-    if (predicateExpression is LogicalOperantNode<QueryExpression>) {
-      final expr = predicateExpression as LogicalOperantNode<QueryExpression>;
-      tables.addAll(_getTablesFromQuery(expr.operand, table));
-      tables.addAll(_getTablesFromQuery(expr.operand2, table));
-    } else {
-      final keyPath = queryExpression.keyPath;
-      final derivedTable = _isOnJoinedTable(keyPath) ? _findJoinedTable(_table, keyPath) : _table;
-      final derivedProperty = _getProperty(keyPath);
-      tables.add(ColumnExpressionConcrete(derivedTable, predicateExpression, derivedProperty).table);
+    if (expression is LogicalOperantNode<Tree<QueryExpression>>) {
+      final node = expression as LogicalOperantNode<Tree<QueryExpression>>;
+      tables.addAll(_getTablesFromExpression(node.operand, table));
+      tables.addAll(_getTablesFromExpression(node.operand2, table));
+    } else if (expression is LeafNode<QueryExpression>) {
+      tables.addAll(_getTablesFromQuery(expression.value, table));
     }
 
     return tables;
   }
 
-  QueryPredicate _getPredicate({QueryExpression queryExpression, PredicateExpression predicateExpression, ManagedPropertyDescription property}) {
+  List<TableBuilder> _getTablesFromQuery(QueryExpression queryExpression,
+      TableBuilder table) {
+    final predicateExpression = queryExpression.expression;
+    final keyPath = queryExpression.keyPath;
+    final derivedTable = _isOnJoinedTable(keyPath) ? _findJoinedTable(
+        _table, keyPath) : _table;
+    final derivedProperty = _getProperty(keyPath);
+    return [ColumnExpressionConcrete(
+        derivedTable, predicateExpression, derivedProperty).table
+    ];
+  }
+
+  QueryPredicate _getPredicate({Tree<QueryExpression> expression, PredicateExpression predicateExpression, ManagedPropertyDescription property}) {
     final explicitPredicate = (predicateExpression != null &&
         property != null)
         ? _getExplicitPredicate(predicateExpression, property)
         : QueryPredicate.empty();
 
-    final predicateFromQuery = queryExpression != null
-        ? _getPredicateFromQuery(queryExpression)
+    final predicateFromQuery = expression != null
+        ? _getPredicateFromExpression(expression)
         : QueryPredicate.empty();
 
     return QueryPredicate.and([explicitPredicate, predicateFromQuery]);
   }
 
   QueryPredicate _getExplicitPredicate(PredicateExpression predicateExpression, ManagedPropertyDescription property) {
-    if (predicateExpression is LogicalOperantNode<QueryExpression>) {
-      final node = predicateExpression as LogicalOperantNode<QueryExpression>;
-      return _getPredicateFromNode(node);
+    if (predicateExpression is LogicalOperantNode<Tree<QueryExpression>>) {
+      final node = predicateExpression as LogicalOperantNode<Tree<QueryExpression>>;
+      return _getPredicateFromBranchNode(node);
     } else {
       return _getPredicateFromLeaf(predicateExpression, property: property);
     }
   }
 
-  QueryPredicate _getPredicateFromQuery(QueryExpression queryExpression) {
-    final predicateExpression = queryExpression.expression;
-
-    if (predicateExpression is LogicalOperantNode<QueryExpression>) {
-      final node = predicateExpression as LogicalOperantNode<QueryExpression>;
-      return _getPredicateFromNode(node);
-    } else {
-      return _getPredicateFromLeaf(predicateExpression, keyPath: queryExpression.keyPath);
+  QueryPredicate _getPredicateFromExpression(Tree<QueryExpression> expression) {
+    if (expression is LogicalOperantNode<Tree<QueryExpression>>) {
+      final node = expression as LogicalOperantNode<Tree<QueryExpression>>;
+      return _getPredicateFromBranchNode(node);
+    } else if (expression is LeafNode<QueryExpression>){
+      return _getPredicateFromLeaf(expression.value.expression, keyPath: expression.value.keyPath);
     }
+
+    throw "Unreachable";
   }
 
-  QueryPredicate _getPredicateFromNode(LogicalOperantNode<QueryExpression> expression) {
-    final lhs = _getPredicate(queryExpression: expression.operand);
-    final rhs = _getPredicate(queryExpression: expression.operand2);
+  QueryPredicate _getPredicateFromBranchNode(LogicalOperantNode<Tree<QueryExpression>> expression) {
+    final lhs = _getPredicateFromExpression(expression.operand);
+    final rhs = _getPredicateFromExpression(expression.operand2);
 
-    if (expression is AndExpression<QueryExpression>) {
+    if (expression is AndNode<QueryExpression>) {
       return QueryPredicate.and([lhs, rhs]);
-    } else if (expression is OrExpression<QueryExpression>) {
+    } else if (expression is OrNode<QueryExpression>) {
       return QueryPredicate.or([lhs, rhs]);
     }
+
+    throw "Unreachable";
   }
 
   QueryPredicate _getPredicateFromLeaf(PredicateExpression predicateExpression, {ManagedPropertyDescription property, KeyPath keyPath}) {

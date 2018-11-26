@@ -2,6 +2,7 @@ import "dart:async";
 
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
+import 'package:aqueduct/src/db/query/matcher_internal.dart';
 
 import '../managed/backing.dart';
 import '../managed/managed.dart';
@@ -34,7 +35,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
   Map<ManagedRelationshipDescription, Query> subQueries;
 
   QueryMixin _parentQuery;
-  QueryExpression<dynamic, dynamic, dynamic> expression;
+  Tree<QueryExpression> expression;
   InstanceType _valueObject;
 
   List<KeyPath> _propertiesToFetch;
@@ -76,10 +77,11 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     }
 
     final expr = QueryExpression<T, T, InstanceType>(properties.first);
+    final leaf = LeafNode(expr);
     if (expression == null) {
-      expression = expr;
+      expression = leaf;
     } else {
-      expression = QueryExpression.and(expression, expr);
+      expression = AndNode(expression, leaf);
     }
     return expr;
   }
@@ -94,10 +96,11 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     }
 
     final expr = QueryExpression<T, U, InstanceType>(properties.first);
+    final leaf = LeafNode(expr);
     if (expression == null) {
-      expression = expr;
+      expression = leaf;
     } else {
-      expression = QueryExpression.or(expression, expr);
+      expression = OrNode(expression, leaf);
     }
     return expr;
   }
@@ -110,7 +113,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     if (expression == null) {
       expression = standin.expression;
     } else {
-      expression = QueryExpression.and(expression, standin.expression);
+      expression = AndNode(expression, standin.expression);
     }
   }
 
@@ -122,7 +125,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     if (expression == null) {
       expression = standin.expression;
     } else {
-      expression = QueryExpression.or(expression, standin.expression);
+      expression = OrNode(expression, standin.expression);
     }
   }
 

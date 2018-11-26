@@ -21,14 +21,8 @@ class QueryExpression<T, U, InstanceType> {
       : keyPath = KeyPath.byAddingKey(original.keyPath, byAdding),
         _expression = original.expression;
 
-  QueryExpression.and(QueryExpression lhs, QueryExpression rhs, {bool isGrouped = false}):
-        _expression = AndExpression(lhs, rhs, isGrouped: isGrouped);
-  QueryExpression.or(QueryExpression lhs, QueryExpression rhs, {bool isGrouped = false}):
-        _expression = OrExpression(lhs, rhs, isGrouped: isGrouped);
-
   final KeyPath keyPath;
 
-  // todo: This needs to be extended to an expr tree
   PredicateExpression get expression => _expression;
 
   set expression(PredicateExpression expr) {

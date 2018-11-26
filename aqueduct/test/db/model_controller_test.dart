@@ -172,16 +172,17 @@ class StringController extends QueryController<StringModel> {
     return Response.ok(expression.operand);
   }
 
-  List<QueryExpression>getExpressionListFromExpression(QueryExpression queryExpression) {
-    final predicateExpression = queryExpression.expression;
-    if (predicateExpression is LogicalOperantNode<QueryExpression>) {
-      final node = predicateExpression as LogicalOperantNode<QueryExpression>;
+  List<QueryExpression>getExpressionListFromExpression(Tree<QueryExpression> tree) {
+    if (tree is LogicalOperantNode<Tree<QueryExpression>>) {
+      final node = tree as LogicalOperantNode<Tree<QueryExpression>>;
       final expressions = getExpressionListFromExpression(node.operand);
       expressions.addAll(getExpressionListFromExpression(node.operand2));
       return expressions;
+    } else if (tree is LeafNode<QueryExpression>) {
+      return [tree.value];
     }
 
-    return [queryExpression];
+    throw "Unreachable";
   }
 }
 
