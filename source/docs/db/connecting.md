@@ -54,7 +54,7 @@ Connection information for a database is most often configured through a configu
 class MyConfiguration extends Configuration {
   MyConfiguration(String configPath) : super.fromFile(configPath);
 
-  DatabaseConnectionConfiguration database;
+  DatabaseConfiguration database;
 }
 
 class MyApplicationChannel extends ApplicationChannel {
