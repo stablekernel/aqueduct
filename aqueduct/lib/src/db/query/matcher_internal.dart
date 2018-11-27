@@ -8,42 +8,28 @@ abstract class AbstractBinaryNode<E> extends AbstractUnaryNode<E> {
   const AbstractBinaryNode(E operand, this.operand2): super(operand);
 }
 
-abstract class AbstractLeaf {}
-
-abstract class PredicateExpressionLeaf<E> {}
-
-abstract class UnaryOperantNode<E, O> extends AbstractUnaryNode<E> {
-  final O operant;
-
-  const UnaryOperantNode(E lhs, this.operant) : super(lhs);
+abstract class UnaryOperatorNode<E, O> extends AbstractUnaryNode<E> {
+  final O operator;
+  const UnaryOperatorNode(E lhs, this.operator) : super(lhs);
 }
 
-abstract class BinaryOperantNode<E, O> extends AbstractBinaryNode<E> {
-  final O operant;
-
-  const BinaryOperantNode(E lhs, E rhs, this.operant) : super(lhs, rhs);
+abstract class BinaryOperatorNode<E, O> extends AbstractBinaryNode<E> {
+  final O operator;
+  const BinaryOperatorNode(E lhs, E rhs, this.operator) : super(lhs, rhs);
 }
 
-abstract class ComparisonBinaryNode<E> extends BinaryOperantNode<E, ComparisonOperant> {
-  const ComparisonBinaryNode(E lhs, E rhs, ComparisonOperant operant) : super(lhs, rhs, operant);
+abstract class LogicalOperatorNode<E> extends BinaryOperatorNode<E, LogicalOperator> {
+  const LogicalOperatorNode(E lhs, E rhs, LogicalOperator operator) : super(lhs, rhs, operator);
 }
 
-abstract class StringComparisonOperantNode<String> extends BinaryOperantNode<String, StringComparisonOperant> {
-  StringComparisonOperantNode(String lhs, String rhs, StringComparisonOperant operant) : super(lhs, rhs, operant);
+abstract class ComparisonUnaryNode<E> extends UnaryOperatorNode<E, ComparisonOperator> {
+  const ComparisonUnaryNode(E lhs, ComparisonOperator operator) : super(lhs, operator);
 }
 
-abstract class LogicalOperantNode<E> extends BinaryOperantNode<E, LogicalOperant> {
-  const LogicalOperantNode(E lhs, E rhs, LogicalOperant operant) : super(lhs, rhs, operant);
-}
-
-abstract class ComparisonUnaryNode<E> extends UnaryOperantNode<E, ComparisonOperant> {
-  const ComparisonUnaryNode(E lhs, ComparisonOperant operant) : super(lhs, operant);
-}
-
-enum LogicalOperant { and, or }
+enum LogicalOperator { and, or }
 
 /// The operator in a comparison matcher.
-enum ComparisonOperant {
+enum ComparisonOperator {
   lessThan,
   greaterThan,
   notEqual,
@@ -53,34 +39,34 @@ enum ComparisonOperant {
 }
 
 /// The operator in a string matcher.
-enum StringComparisonOperant { beginsWith, contains, endsWith, equals }
+enum StringComparisonOperator { beginsWith, contains, endsWith, equals }
 
 abstract class PredicateExpression {
   PredicateExpression get inverse;
 }
 
 class ComparisonExpression<E> extends ComparisonUnaryNode<E> implements PredicateExpression {
-  const ComparisonExpression(E value, ComparisonOperant operant): super(value, operant);
+  const ComparisonExpression(E value, ComparisonOperator operator): super(value, operator);
 
   @override
   PredicateExpression get inverse {
     return ComparisonExpression(operand, inverseOperator);
   }
 
-  ComparisonOperant get inverseOperator {
-    switch (operant) {
-      case ComparisonOperant.lessThan:
-        return ComparisonOperant.greaterThanEqualTo;
-      case ComparisonOperant.greaterThan:
-        return ComparisonOperant.lessThanEqualTo;
-      case ComparisonOperant.notEqual:
-        return ComparisonOperant.equalTo;
-      case ComparisonOperant.lessThanEqualTo:
-        return ComparisonOperant.greaterThan;
-      case ComparisonOperant.greaterThanEqualTo:
-        return ComparisonOperant.lessThan;
-      case ComparisonOperant.equalTo:
-        return ComparisonOperant.notEqual;
+  ComparisonOperator get inverseOperator {
+    switch (operator) {
+      case ComparisonOperator.lessThan:
+        return ComparisonOperator.greaterThanEqualTo;
+      case ComparisonOperator.greaterThan:
+        return ComparisonOperator.lessThanEqualTo;
+      case ComparisonOperator.notEqual:
+        return ComparisonOperator.equalTo;
+      case ComparisonOperator.lessThanEqualTo:
+        return ComparisonOperator.greaterThan;
+      case ComparisonOperator.greaterThanEqualTo:
+        return ComparisonOperator.lessThan;
+      case ComparisonOperator.equalTo:
+        return ComparisonOperator.notEqual;
     }
 
     // this line just shuts up the analyzer
@@ -88,20 +74,20 @@ class ComparisonExpression<E> extends ComparisonUnaryNode<E> implements Predicat
   }
 }
 
-enum RangeOperant {
+enum RangeOperator {
   between,
   notBetween
 }
 
-class RangeExpression<E> extends BinaryOperantNode<E, RangeOperant> implements PredicateExpression {
-  const RangeExpression(E operand, E operand2, {RangeOperant scope = RangeOperant.between}): super(operand, operand2, scope);
+class RangeExpression<E> extends BinaryOperatorNode<E, RangeOperator> implements PredicateExpression {
+  const RangeExpression(E operand, E operand2, {RangeOperator scope = RangeOperator.between}): super(operand, operand2, scope);
 
   @override
   PredicateExpression get inverse {
-    final inverseOperant = operant == RangeOperant.between
-        ? RangeOperant.notBetween
-        : RangeOperant.between;
-    return RangeExpression(operand, operand2, scope: inverseOperant);
+    final inverseOperator = operator == RangeOperator.between
+        ? RangeOperator.notBetween
+        : RangeOperator.between;
+    return RangeExpression(operand, operand2, scope: inverseOperator);
   }
 }
 
@@ -129,7 +115,7 @@ class StringExpression extends AbstractUnaryNode<String> implements PredicateExp
   const StringExpression(String value, this.operator,
       {this.caseSensitive = true, this.invertOperator = false}): super(value);
 
-  final StringComparisonOperant operator;
+  final StringComparisonOperator operator;
   final bool invertOperator;
   final bool caseSensitive;
 
@@ -140,9 +126,6 @@ class StringExpression extends AbstractUnaryNode<String> implements PredicateExp
   }
 }
 
-class Expression<E> extends AbstractUnaryNode<E> {
-  Expression(E operand): super(operand);
-}
 abstract class Tree<E> {}
 
 class LeafNode<E> implements Tree<E> {
@@ -150,14 +133,12 @@ class LeafNode<E> implements Tree<E> {
  LeafNode(this.value);
 }
 
-class AndNode<E> extends LogicalOperantNode<Tree<E>> implements Tree<E> {
+class AndNode<E> extends LogicalOperatorNode<Tree<E>> implements Tree<E> {
   const AndNode(Tree<E> lhs, Tree<E> rhs)
-      : super(lhs, rhs, LogicalOperant.and);
+      : super(lhs, rhs, LogicalOperator.and);
 }
 
-class OrNode<E> extends LogicalOperantNode<Tree<E>> implements Tree<E> {
+class OrNode<E> extends LogicalOperatorNode<Tree<E>> implements Tree<E> {
   const OrNode(Tree<E> lhs, Tree<E> rhs)
-      : super(lhs, rhs, LogicalOperant.or);
+      : super(lhs, rhs, LogicalOperator.or);
 }
-
-

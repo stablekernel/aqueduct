@@ -66,10 +66,10 @@ class QueryExpression<T, InstanceType> {
   void equalTo(T value,
       {bool caseSensitive = true}) {
     if (value is String) {
-      expression = StringExpression(value, StringComparisonOperant.equals,
+      expression = StringExpression(value, StringComparisonOperator.equals,
           caseSensitive: caseSensitive);
     } else {
-      expression = ComparisonExpression(value, ComparisonOperant.equalTo);
+      expression = ComparisonExpression(value, ComparisonOperator.equalTo);
     }
   }
 
@@ -89,10 +89,10 @@ class QueryExpression<T, InstanceType> {
   void notEqualTo(T value,
       {bool caseSensitive = true}) {
     if (value is String) {
-      expression = StringExpression(value, StringComparisonOperant.equals,
+      expression = StringExpression(value, StringComparisonOperator.equals,
           caseSensitive: caseSensitive, invertOperator: true);
     } else {
-      expression = ComparisonExpression(value, ComparisonOperant.notEqual);
+      expression = ComparisonExpression(value, ComparisonOperator.notEqual);
     }
   }
 
@@ -109,7 +109,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).greaterThan(60000);
   void greaterThan(T value) {
-    expression = ComparisonExpression(value, ComparisonOperant.greaterThan);
+    expression = ComparisonExpression(value, ComparisonOperator.greaterThan);
     }
 
   /// Adds a 'greater than or equal to' expression to a query.
@@ -125,7 +125,7 @@ class QueryExpression<T, InstanceType> {
   ///         ..where((e) => e.salary).greaterThanEqualTo(60000);
   void greaterThanEqualTo(T value) {
     expression =
-        ComparisonExpression(value, ComparisonOperant.greaterThanEqualTo);
+        ComparisonExpression(value, ComparisonOperator.greaterThanEqualTo);
     }
 
   /// Adds a 'less than' expression to a query.
@@ -140,7 +140,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).lessThan(60000);
   void lessThan(T value) {
-    expression = ComparisonExpression(value, ComparisonOperant.lessThan);
+    expression = ComparisonExpression(value, ComparisonOperator.lessThan);
     }
 
   /// Adds a 'less than or equal to' expression to a query.
@@ -155,7 +155,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).lessThanEqualTo(60000);
   void lessThanEqualTo(T value) {
-    expression = ComparisonExpression(value, ComparisonOperant.lessThanEqualTo);
+    expression = ComparisonExpression(value, ComparisonOperator.lessThanEqualTo);
     }
 
   /// Adds a 'contains string' expression to a query.
@@ -172,7 +172,7 @@ class QueryExpression<T, InstanceType> {
   ///
   void contains(String value,
       {bool caseSensitive = true}) {
-    expression = StringExpression(value, StringComparisonOperant.contains,
+    expression = StringExpression(value, StringComparisonOperator.contains,
         caseSensitive: caseSensitive);
     }
 
@@ -188,7 +188,7 @@ class QueryExpression<T, InstanceType> {
   ///         ..where((s) => s.name).beginsWith("B");
   void beginsWith(String value,
       {bool caseSensitive = true}) {
-    expression = StringExpression(value, StringComparisonOperant.beginsWith,
+    expression = StringExpression(value, StringComparisonOperator.beginsWith,
         caseSensitive: caseSensitive);
     }
 
@@ -204,7 +204,7 @@ class QueryExpression<T, InstanceType> {
   ///         ..where((e) => e.name).endsWith("son");
   void endsWith(String value,
       {bool caseSensitive = true}) {
-    expression = StringExpression(value, StringComparisonOperant.endsWith,
+    expression = StringExpression(value, StringComparisonOperator.endsWith,
         caseSensitive: caseSensitive);
 
   }
@@ -239,7 +239,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).between(80000, 100000);
   void between(T lhs, T rhs) {
-    expression = RangeExpression<T>(lhs, rhs, scope: RangeOperant.between);
+    expression = RangeExpression<T>(lhs, rhs, scope: RangeOperator.between);
 
   }
 
@@ -256,7 +256,7 @@ class QueryExpression<T, InstanceType> {
   ///       var query = new Query<Employee>()
   ///         ..where((e) => e.salary).outsideOf(80000, 100000);
   void outsideOf(T lhs, T rhs) {
-    expression = RangeExpression(lhs, rhs, scope: RangeOperant.notBetween);
+    expression = RangeExpression(lhs, rhs, scope: RangeOperator.notBetween);
 
   }
 
@@ -270,7 +270,7 @@ class QueryExpression<T, InstanceType> {
   ///       var q = new Query<Employee>()
   ///         ..where((e) => e.manager).identifiedBy(5);
   void identifiedBy(dynamic identifier) {
-    expression = ComparisonExpression(identifier, ComparisonOperant.equalTo);
+    expression = ComparisonExpression(identifier, ComparisonOperator.equalTo);
 
   }
 

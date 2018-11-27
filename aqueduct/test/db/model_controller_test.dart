@@ -173,8 +173,8 @@ class StringController extends QueryController<StringModel> {
   }
 
   List<QueryExpression>getExpressionListFromExpression(Tree<QueryExpression> tree) {
-    if (tree is LogicalOperantNode<Tree<QueryExpression>>) {
-      final node = tree as LogicalOperantNode<Tree<QueryExpression>>;
+    if (tree is LogicalOperatorNode<Tree<QueryExpression>>) {
+      final node = tree as LogicalOperatorNode<Tree<QueryExpression>>;
       final expressions = getExpressionListFromExpression(node.operand);
       expressions.addAll(getExpressionListFromExpression(node.operand2));
       return expressions;

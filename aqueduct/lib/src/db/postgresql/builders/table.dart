@@ -30,8 +30,8 @@ class TableBuilder implements Returnable {
       if (query.pageDescriptor.boundingValue != null) {
         final prop = entity.properties[query.pageDescriptor.propertyName];
         final operator = query.pageDescriptor.order == QuerySortOrder.ascending
-            ? ComparisonOperant.greaterThan
-            : ComparisonOperant.lessThan;
+            ? ComparisonOperator.greaterThan
+            : ComparisonOperator.lessThan;
         final expr = ColumnExpressionBuilder.property(
             this,
             ComparisonExpression(query.pageDescriptor.boundingValue, operator),

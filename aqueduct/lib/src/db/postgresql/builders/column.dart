@@ -67,13 +67,13 @@ class ColumnBuilder extends Returnable {
     ManagedPropertyType.document: PostgreSQLDataType.json
   };
 
-  static Map<ComparisonOperant, String> symbolTable = {
-    ComparisonOperant.lessThan: "<",
-    ComparisonOperant.greaterThan: ">",
-    ComparisonOperant.notEqual: "!=",
-    ComparisonOperant.lessThanEqualTo: "<=",
-    ComparisonOperant.greaterThanEqualTo: ">=",
-    ComparisonOperant.equalTo: "="
+  static Map<ComparisonOperator, String> symbolTable = {
+    ComparisonOperator.lessThan: "<",
+    ComparisonOperator.greaterThan: ">",
+    ComparisonOperator.notEqual: "!=",
+    ComparisonOperator.lessThanEqualTo: "<=",
+    ComparisonOperator.greaterThanEqualTo: ">=",
+    ComparisonOperator.equalTo: "="
   };
 
   final TableBuilder table;

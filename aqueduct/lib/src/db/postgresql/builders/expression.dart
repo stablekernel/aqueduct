@@ -41,8 +41,8 @@ class ColumnExpressionBuilder {
   List<TableBuilder> _getTablesFromExpression(Tree<QueryExpression> expression, TableBuilder table) {
     List<TableBuilder> tables = [];
 
-    if (expression is LogicalOperantNode<Tree<QueryExpression>>) {
-      final node = expression as LogicalOperantNode<Tree<QueryExpression>>;
+    if (expression is LogicalOperatorNode<Tree<QueryExpression>>) {
+      final node = expression as LogicalOperatorNode<Tree<QueryExpression>>;
       tables.addAll(_getTablesFromExpression(node.operand, table));
       tables.addAll(_getTablesFromExpression(node.operand2, table));
     } else if (expression is LeafNode<QueryExpression>) {
@@ -78,8 +78,8 @@ class ColumnExpressionBuilder {
   }
 
   QueryPredicate _getExplicitPredicate(PredicateExpression predicateExpression, ManagedPropertyDescription property) {
-    if (predicateExpression is LogicalOperantNode<Tree<QueryExpression>>) {
-      final node = predicateExpression as LogicalOperantNode<Tree<QueryExpression>>;
+    if (predicateExpression is LogicalOperatorNode<Tree<QueryExpression>>) {
+      final node = predicateExpression as LogicalOperatorNode<Tree<QueryExpression>>;
       return _getPredicateFromBranchNode(node);
     } else {
       return _getPredicateFromLeaf(predicateExpression, property: property);
@@ -87,8 +87,8 @@ class ColumnExpressionBuilder {
   }
 
   QueryPredicate _getPredicateFromExpression(Tree<QueryExpression> expression) {
-    if (expression is LogicalOperantNode<Tree<QueryExpression>>) {
-      final node = expression as LogicalOperantNode<Tree<QueryExpression>>;
+    if (expression is LogicalOperatorNode<Tree<QueryExpression>>) {
+      final node = expression as LogicalOperatorNode<Tree<QueryExpression>>;
       return _getPredicateFromBranchNode(node);
     } else if (expression is LeafNode<QueryExpression>){
       return _getPredicateFromLeaf(expression.value.expression, keyPath: expression.value.keyPath);
@@ -97,7 +97,7 @@ class ColumnExpressionBuilder {
     throw "Unreachable";
   }
 
-  QueryPredicate _getPredicateFromBranchNode(LogicalOperantNode<Tree<QueryExpression>> expression) {
+  QueryPredicate _getPredicateFromBranchNode(LogicalOperatorNode<Tree<QueryExpression>> expression) {
     final lhs = _getPredicateFromExpression(expression.operand);
     final rhs = _getPredicateFromExpression(expression.operand2);
 
@@ -126,9 +126,9 @@ class ColumnExpressionBuilder {
     }
 
     if (predicateExpression is ComparisonExpression) {
-      return columnExpression.comparisonPredicate(predicateExpression.operant, predicateExpression.operand);
+      return columnExpression.comparisonPredicate(predicateExpression.operator, predicateExpression.operand);
     } else if (predicateExpression is RangeExpression) {
-      return columnExpression.rangePredicate(predicateExpression.operand, predicateExpression.operand2, insideRange: predicateExpression.operant == RangeOperant.between);
+      return columnExpression.rangePredicate(predicateExpression.operand, predicateExpression.operand2, insideRange: predicateExpression.operator == RangeOperator.between);
     } else if (predicateExpression is NullCheckExpression) {
       return columnExpression.nullPredicate(isNull: predicateExpression.operand);
     } else if (predicateExpression is SetMembershipExpression) {
@@ -227,7 +227,7 @@ class ColumnExpressionConcrete extends ColumnBuilder {
   String get prefix => table.tableAlias != null ? table.tableAlias : "";
 
   QueryPredicate comparisonPredicate(
-      ComparisonOperant operator, dynamic value) {
+      ComparisonOperator operator, dynamic value) {
     var name = sqlColumnName(withTableNamespace: true);
     var variableName = sqlColumnName(withPrefix: defaultPrefix);
 
@@ -278,7 +278,7 @@ class ColumnExpressionConcrete extends ColumnBuilder {
   }
 
   QueryPredicate stringPredicate(
-      StringComparisonOperant operator, dynamic value,
+      StringComparisonOperator operator, dynamic value,
       {bool caseSensitive = true, bool invertOperator = false}) {
     var n = sqlColumnName(withTableNamespace: true);
     var variableName = sqlColumnName(withPrefix: defaultPrefix);
@@ -289,13 +289,13 @@ class ColumnExpressionConcrete extends ColumnBuilder {
       operation = "NOT $operation";
     }
     switch (operator) {
-      case StringComparisonOperant.beginsWith:
+      case StringComparisonOperator.beginsWith:
         matchValue = "$value%";
         break;
-      case StringComparisonOperant.endsWith:
+      case StringComparisonOperator.endsWith:
         matchValue = "%$value";
         break;
-      case StringComparisonOperant.contains:
+      case StringComparisonOperator.contains:
         matchValue = "%$value%";
         break;
       default:
