@@ -37,7 +37,7 @@ class QueryPredicate {
       : format = "",
         parameters = {};
 
-  factory QueryPredicate._(Iterable<QueryPredicate> predicates, String infixOperator) {
+  factory QueryPredicate._compound(Iterable<QueryPredicate> predicates, String infixOperator) {
     var predicateList = predicates
         ?.where((p) => p?.format != null && p.format.isNotEmpty)
         ?.toList();
@@ -102,10 +102,21 @@ class QueryPredicate {
   /// If [predicates] is null or empty, an empty predicate is returned. If [predicates] contains only
   /// one predicate, that predicate is returned.
   factory QueryPredicate.and(Iterable<QueryPredicate> predicates) {
-    return QueryPredicate._(predicates, "AND");
+    return QueryPredicate._compound(predicates, "AND");
   }
 
+  /// Combines [predicates] with 'OR' keyword.
+  ///
+  /// The [format] of the return value is produced by joining together each [predicates]
+  /// [format] string with 'OR'. Each [parameters] from individual [predicates] is combined
+  /// into the returned [parameters].
+  ///
+  /// If there are duplicate parameter names in [predicates], they will be disambiguated by suffixing
+  /// the parameter name in both [format] and [parameters] with a unique integer.
+  ///
+  /// If [predicates] is null or empty, an empty predicate is returned. If [predicates] contains only
+  /// one predicate, that predicate is returned.
   factory QueryPredicate.or(Iterable<QueryPredicate> predicates) {
-    return QueryPredicate._(predicates, "OR");
+    return QueryPredicate._compound(predicates, "OR");
   }
 }
