@@ -382,50 +382,45 @@ void main() {
 
   group("Or Where", () {
     setUpAll(() async {
-      var realBob = Query<AnotherTestModel>(context)
-        ..values.name = "Bob"
-        ..values.email = "founder@company.com"
-        ..values.rank = "8000";
-      await realBob.insert();
+      var realBob = AnotherTestModel()
+        ..name = "Bob"
+        ..email = "founder@company.com"
+        ..rank = "8000";
 
-      var alsoRealBob = Query<AnotherTestModel>(context)
-        ..values.name = "Bob"
-        ..values.email = "bob@company.com"
-        ..values.rank = "9999";
-      await alsoRealBob.insert();
+      var alsoRealBob = AnotherTestModel()
+        ..name = "Bob"
+        ..email = "bob@company.com"
+        ..rank = "9999";
 
-      var decoyDude = Query<AnotherTestModel>(context)
-        ..values.name = "The Dude"
-        ..values.email = "bowling@alley.com"
-        ..values.rank = '1';
-      await decoyDude.insert();
+      var decoyDude = AnotherTestModel()
+        ..name = "The Dude"
+        ..email = "bowling@alley.com"
+        ..rank = '1';
 
-      var imposterBob = Query<AnotherTestModel>(context)
-        ..values.name = "Bob"
-        ..values.email = "contractor@company.com"
-        ..values.rank = "8000";
-      await imposterBob.insert();
+      var imposterBob = AnotherTestModel()
+        ..name = "Bob"
+        ..email = "contractor@company.com"
+        ..rank = "8000";
 
-      var anotherImposterBob = Query<AnotherTestModel>(context)
-        ..values.name = "Bob"
-        ..values.email = "bobby@company.com"
-        ..values.rank = "100";
-      await anotherImposterBob.insert();
+      var anotherImposterBob = AnotherTestModel()
+        ..name = "Bob"
+        ..email = "bobby@company.com"
+        ..rank = "100";
 
-      var cofounder = Query<AnotherTestModel>(context)
-        ..values.name = "Jeff"
-        ..values.email = "founder@company.com"
-        ..values.rank = "9998";
-      await cofounder.insert();
+      var cofounder = AnotherTestModel()
+        ..name = "Jeff"
+        ..email = "founder@company.com"
+        ..rank = "9998";
 
-      var imposterCoFounder = Query<AnotherTestModel>(context)
-        ..values.name = "Jeff"
-        ..values.email = "intern@company.com"
-        ..values.rank = "2";
-      await imposterCoFounder.insert();
+      var imposterCoFounder = AnotherTestModel()
+        ..name = "Jeff"
+        ..email = "intern@company.com"
+        ..rank = "2";
+
+      await Query.insertObjects(context, [realBob, alsoRealBob, decoyDude, imposterBob, anotherImposterBob, cofounder, imposterCoFounder]);
     });
 
-    test("simple Or", () async {
+      test("simple Or", () async {
       // WHERE _AnotherTestModel.rank > @_AnotherTestModel_rank:text OR _AnotherTestModel.email LIKE @_AnotherTestModel_email:text
 
       var r = Query<AnotherTestModel>(context)
