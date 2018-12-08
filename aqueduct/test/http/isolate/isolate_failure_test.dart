@@ -129,8 +129,9 @@ class TimeoutChannel extends ApplicationChannel {
 }
 
 class TestException implements Exception {
-  final String message;
   TestException(this.message);
+
+  final String message;
 
   @override
   String toString() {

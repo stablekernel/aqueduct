@@ -10,9 +10,6 @@ import 'isolate_supervisor.dart';
 import 'options.dart';
 
 class ApplicationIsolateServer extends ApplicationServer {
-  SendPort supervisingApplicationPort;
-  ReceivePort supervisingReceivePort;
-
   ApplicationIsolateServer(
       ClassMirror channelType,
       ApplicationOptions configuration,
@@ -32,6 +29,9 @@ class ApplicationIsolateServer extends ApplicationServer {
         .fine("ApplicationIsolateServer($identifier) listening, sending port");
     supervisingApplicationPort.send(supervisingReceivePort.sendPort);
   }
+
+  SendPort supervisingApplicationPort;
+  ReceivePort supervisingReceivePort;
 
   @override
   Future start({bool shareHttpServer = false}) async {
@@ -89,16 +89,16 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
 }
 
 class ApplicationInitialServerMessage {
+  ApplicationInitialServerMessage(this.streamTypeName, this.streamLibraryURI,
+      this.configuration, this.identifier, this.parentMessagePort,
+      {this.logToConsole = false});
+
   String streamTypeName;
   Uri streamLibraryURI;
   ApplicationOptions configuration;
   SendPort parentMessagePort;
   int identifier;
   bool logToConsole = false;
-
-  ApplicationInitialServerMessage(this.streamTypeName, this.streamLibraryURI,
-      this.configuration, this.identifier, this.parentMessagePort,
-      {this.logToConsole = false});
 }
 
 class MessageHubMessage {

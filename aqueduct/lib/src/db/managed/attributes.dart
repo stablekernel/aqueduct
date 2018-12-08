@@ -67,8 +67,6 @@ enum DeleteRule {
 /// has a property that refers to the other. Only one of those properties may have this metadata. The property with this metadata
 /// resolves to a column in the database. The relationship property without this metadata resolves to a row or rows in the database.
 class Relate {
-  static const Symbol _deferredSymbol = #mdrDeferred;
-
   /// Creates an instance of this type.
   const Relate(this.inversePropertyName,
       {this.onDelete = DeleteRule.nullify, this.isRequired = false});
@@ -98,6 +96,8 @@ class Relate {
   bool get isDeferred {
     return inversePropertyName == _deferredSymbol;
   }
+
+  static const Symbol _deferredSymbol = #mdrDeferred;
 }
 
 /// Metadata to mark a property as a primary key.
@@ -124,6 +124,29 @@ const Column primaryKey = Column(
 ///           String email;
 ///         }
 class Column {
+  /// Creates an instance of this type.
+  ///
+  /// [defaultValue] is sent as-is to the database, therefore, if the default value is the integer value 2,
+  /// pass the string "2". If the default value is a string, it must also be wrapped in single quotes: "'defaultValue'".
+  const Column(
+      {bool primaryKey = false,
+      ManagedPropertyType databaseType,
+      bool nullable = false,
+      String defaultValue,
+      bool unique = false,
+      bool indexed = false,
+      bool omitByDefault = false,
+      bool autoincrement = false})
+      : isPrimaryKey = primaryKey,
+        databaseType = databaseType,
+        isNullable = nullable,
+        defaultValue = defaultValue,
+        isUnique = unique,
+        isIndexed = indexed,
+        shouldOmitByDefault = omitByDefault,
+        autoincrement = autoincrement;
+
+
   /// When true, indicates that this property is the primary key.
   ///
   /// Only one property of a class may have primaryKey equal to true.
@@ -177,40 +200,12 @@ class Column {
   /// Additionally, when [ManagedObject.readFromMap] is invoked, values in the map corresponding to columns with this flag set to true
   /// will not be read.
   final bool autoincrement;
-
-  /// Creates an instance of this type.
-  ///
-  /// [defaultValue] is sent as-is to the database, therefore, if the default value is the integer value 2,
-  /// pass the string "2". If the default value is a string, it must also be wrapped in single quotes: "'defaultValue'".
-  const Column(
-      {bool primaryKey = false,
-      ManagedPropertyType databaseType,
-      bool nullable = false,
-      String defaultValue,
-      bool unique = false,
-      bool indexed = false,
-      bool omitByDefault = false,
-      bool autoincrement = false})
-      : this.isPrimaryKey = primaryKey,
-        this.databaseType = databaseType,
-        this.isNullable = nullable,
-        this.defaultValue = defaultValue,
-        this.isUnique = unique,
-        this.isIndexed = indexed,
-        this.shouldOmitByDefault = omitByDefault,
-        this.autoincrement = autoincrement;
 }
 
 /// Annotation for [ManagedObject] properties that allows them to participate in [ManagedObject.asMap] and/or [ManagedObject.readFromMap].
 ///
 /// See constructor.
 class Serialize {
-  /// See constructor.
-  final bool isAvailableAsInput;
-
-  /// See constructor.
-  final bool isAvailableAsOutput;
-
   /// Annotates a [ManagedObject] property so it can be serialized.
   ///
   /// Properties declared in a [ManagedObject] subclass are not included in the result of [ManagedObject.asMap]
@@ -226,4 +221,10 @@ class Serialize {
   const Serialize({bool input = true, bool output = true})
       : isAvailableAsInput = input,
         isAvailableAsOutput = output;
+
+  /// See constructor.
+  final bool isAvailableAsInput;
+
+  /// See constructor.
+  final bool isAvailableAsOutput;
 }

@@ -107,11 +107,11 @@ class TestToken implements AuthToken, AuthCode {
 }
 
 class InMemoryAuthStorage extends AuthServerDelegate {
-  static const String defaultPassword = "foobaraxegrind21%";
-
   InMemoryAuthStorage() {
     reset();
   }
+
+  static const String defaultPassword = "foobaraxegrind21%";
 
   Map<String, AuthClient> clients;
   Map<int, TestUser> users = {};

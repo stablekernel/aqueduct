@@ -19,8 +19,8 @@ class RequestBody extends BodyDecoder {
   ///
   /// Decoded data is cached the after it is decoded.
   RequestBody(HttpRequest request)
-      : this._request = request,
-        this._originalByteStream = request,
+      : _request = request,
+        _originalByteStream = request,
         super(request);
 
   /// The maximum size of a request body.

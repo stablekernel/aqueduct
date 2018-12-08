@@ -2,13 +2,14 @@ import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 
 class RootObject extends ManagedObject<_RootObject> implements _RootObject {
-  static int counter = 1;
   RootObject();
   RootObject.withCounter() {
     value1 = counter;
     value2 = counter;
     counter++;
   }
+
+  static int counter = 1;
 
   @override
   bool operator ==(dynamic other) {
@@ -33,13 +34,13 @@ class _RootObject {
 }
 
 class ChildObject extends ManagedObject<_ChildObject> implements _ChildObject {
-  static int counter = 1;
   ChildObject();
   ChildObject.withCounter() {
     value1 = counter;
     value2 = counter;
     counter++;
   }
+  static int counter = 1;
 
   @override
   bool operator ==(dynamic other) {
@@ -69,13 +70,13 @@ class _ChildObject {
 
 class GrandChildObject extends ManagedObject<_GrandChildObject>
     implements _GrandChildObject {
-  static int counter = 1;
   GrandChildObject();
   GrandChildObject.withCounter() {
     value1 = counter;
     value2 = counter;
     counter++;
   }
+  static int counter = 1;
 
   @override
   bool operator ==(dynamic other) {
@@ -102,13 +103,13 @@ class _GrandChildObject {
 
 class OtherRootObject extends ManagedObject<_OtherRootObject>
     implements _OtherRootObject {
-  static int counter = 1;
   OtherRootObject();
   OtherRootObject.withCounter() {
     value1 = counter;
     value2 = counter;
     counter++;
   }
+  static int counter = 1;
 
   @override
   bool operator ==(dynamic other) {

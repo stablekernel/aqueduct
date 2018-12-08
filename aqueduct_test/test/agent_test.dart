@@ -123,20 +123,20 @@ void main() {
 
     test("HTTP requests are issued", () async {
       final defaultTestClient = Agent.onPort(4040);
-      expect((await defaultTestClient.request("/foo").get()) is TestResponse,
+      expect(await defaultTestClient.request("/foo").get() is TestResponse,
           true);
       var msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.method, "GET");
 
-      expect((await defaultTestClient.request("/foo").delete()) is TestResponse,
+      expect(await defaultTestClient.request("/foo").delete() is TestResponse,
           true);
       msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.method, "DELETE");
 
       expect(
-          (await defaultTestClient.post("/foo", body: {"foo": "bar"}))
+          await defaultTestClient.post("/foo", body: {"foo": "bar"})
               is TestResponse,
           true);
       msg = await server.next();
@@ -145,8 +145,8 @@ void main() {
       expect(msg.body.as(), {"foo": "bar"});
 
       expect(
-          (await defaultTestClient
-              .execute("PATCH", "/foo", body: {"foo": "bar"})) is TestResponse,
+          await defaultTestClient
+              .execute("PATCH", "/foo", body: {"foo": "bar"}) is TestResponse,
           true);
       msg = await server.next();
       expect(msg.path.string, "/foo");
@@ -154,7 +154,7 @@ void main() {
       expect(msg.body.as(), {"foo": "bar"});
 
       expect(
-          (await defaultTestClient.put("/foo", body: {"foo": "bar"}))
+          await defaultTestClient.put("/foo", body: {"foo": "bar"})
               is TestResponse,
           true);
       msg = await server.next();

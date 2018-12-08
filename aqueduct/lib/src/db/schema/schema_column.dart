@@ -259,21 +259,6 @@ class SchemaColumn {
 ///
 /// This class is used for comparing database columns for validation and migration.
 class SchemaColumnDifference {
-  /// List of comparable properties of a [SchemaColumn].
-  static const List<Symbol> symbols = [
-    #name,
-    #isIndexed,
-    #type,
-    #isNullable,
-    #autoincrement,
-    #isUnique,
-    #defaultValue,
-    #isPrimaryKey,
-    #relatedTableName,
-    #relatedColumnName,
-    #deleteRule
-  ];
-
   /// Creates a new instance that represents the difference between [expectedColumn] and [actualColumn].
   SchemaColumnDifference(this.expectedColumn, this.actualColumn) {
     if (actualColumn != null && expectedColumn != null) {
@@ -362,4 +347,19 @@ class SchemaColumnDifference {
   }
 
   List<String> _differingProperties = [];
+
+  /// List of comparable properties of a [SchemaColumn].
+  static const List<Symbol> symbols = [
+    #name,
+    #isIndexed,
+    #type,
+    #isNullable,
+    #autoincrement,
+    #isUnique,
+    #defaultValue,
+    #isPrimaryKey,
+    #relatedTableName,
+    #relatedColumnName,
+    #deleteRule
+  ];
 }

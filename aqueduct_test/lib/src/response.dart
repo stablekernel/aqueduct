@@ -66,7 +66,7 @@ class TestResponseBody extends BodyDecoder {
   ///
   /// Decoded data is cached the after it is decoded.
   TestResponseBody(HttpClientResponse response)
-      : this._response = response,
+      : _response = response,
         super(response) {
     _hasContent = (response.headers.contentLength ?? 0) > 0 ||
         response.headers.chunkedTransferEncoding;
