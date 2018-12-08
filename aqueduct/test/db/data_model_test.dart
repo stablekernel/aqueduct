@@ -230,6 +230,8 @@ void main() {
       expect(dm.entityForType(SelfReferential).relationships["child"].inverse.name, "parent");
       expect(dm.entityForType(SelfReferential).relationships["child"].isBelongsTo, false);
     });
+
+
   });
 
   group("Edge cases", () {

@@ -41,23 +41,45 @@ class ManagedDataModel extends Object
   ///
   /// This is the preferred method of instantiating this type.
   ManagedDataModel.fromCurrentMirrorSystem() {
-    var managedObjectMirror = reflectClass(ManagedObject);
-    var classes = currentMirrorSystem()
-        .libraries
-        .values
-        .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
-        .expand((lib) => lib.declarations.values)
-        .where((decl) =>
-            decl is ClassMirror &&
-            decl.isSubclassOf(managedObjectMirror) &&
-            decl != managedObjectMirror)
-        .map((decl) => decl as ClassMirror)
-        .toList();
-
-    var builder =
-        DataModelBuilder(this, classes.map((cm) => cm.reflectedType).toList());
+    final builder =
+        DataModelBuilder(this, _packageManagedObjectTypes);
     _entities = builder.entities;
     _tableDefinitionToEntityMap = builder.tableDefinitionToEntityMap;
+  }
+
+  static List<Type> get _packageManagedObjectTypes {
+    final libraries = currentMirrorSystem().libraries.values.where(
+        (lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file");
+
+    final types = libraries
+        .expand((lib) => lib.declarations.values)
+        .whereType<ClassMirror>()
+        .where((decl) => decl.hasReflectedType)
+        .map((decl) => decl.reflectedType)
+        .where(_isTypeManagedObjectSubclass)
+        .toList();
+
+    return types;
+  }
+
+  static bool _isTypeManagedObjectSubclass(Type type) {
+    final managedObjectMirror = reflectClass(ManagedObject);
+    final mirror = reflectClass(type);
+    if (!mirror.isSubclassOf(managedObjectMirror)) {
+      return false;
+    }
+
+    if (mirror == managedObjectMirror) {
+      return false;
+    }
+
+    // mirror.mixin: If this class is the result of a mixin application of the form S with M, returns a class mirror on M.
+    // Otherwise returns a class mirror on the reflectee.
+    if (mirror.mixin != mirror) {
+      return false;
+    }
+
+    return true;
   }
 
   Iterable<ManagedEntity> get entities => _entities.values;
@@ -146,11 +168,8 @@ class ManagedDataModelError extends Error {
         "can't be null and 'nullify' means the column has to be null.");
   }
 
-  factory ManagedDataModelError.dualMetadata(
-      String tableName,
-      Symbol property,
-      String destinationTableName,
-      String inverseProperty) {
+  factory ManagedDataModelError.dualMetadata(String tableName, Symbol property,
+      String destinationTableName, String inverseProperty) {
     return ManagedDataModelError("Relationship '${_getName(property)}' "
         "on '${tableName}' "
         "and '${inverseProperty}' "
@@ -161,12 +180,11 @@ class ManagedDataModelError extends Error {
   }
 
   factory ManagedDataModelError.duplicateInverse(
-      String tableName,
-      String inverseName,
-      List<String> conflictingNames) {
-    return ManagedDataModelError("Entity '${tableName}' has multiple relationship "
-      "properties that claim to be the inverse of '$inverseName'. A property may "
-      "only have one inverse. The claiming properties are: ${conflictingNames.join(", ")}.");
+      String tableName, String inverseName, List<String> conflictingNames) {
+    return ManagedDataModelError(
+        "Entity '${tableName}' has multiple relationship "
+        "properties that claim to be the inverse of '$inverseName'. A property may "
+        "only have one inverse. The claiming properties are: ${conflictingNames.join(", ")}.");
   }
 
   factory ManagedDataModelError.noDestinationEntity(
@@ -178,11 +196,8 @@ class ManagedDataModelError extends Error {
         "hard for typos - make sure the file it is declared in is imported appropriately.");
   }
 
-  factory ManagedDataModelError.multipleDestinationEntities(
-      String tableName,
-      Symbol property,
-      List<String> possibleEntities,
-      Symbol expected) {
+  factory ManagedDataModelError.multipleDestinationEntities(String tableName,
+      Symbol property, List<String> possibleEntities, Symbol expected) {
     return ManagedDataModelError("Relationship '${_getName(property)}' on "
         "'${tableName}' expects that just one "
         "'ManagedObject' subclass uses a table definition that extends "
@@ -229,8 +244,7 @@ class ManagedDataModelError extends Error {
         "has invalid validator for property '$property'. Reason: $reason");
   }
 
-  factory ManagedDataModelError.emptyEntityUniqueProperties(
-      String tableName) {
+  factory ManagedDataModelError.emptyEntityUniqueProperties(String tableName) {
     return ManagedDataModelError("Type '$tableName' "
         "has empty set for unique 'Table'. Must contain two or "
         "more attributes (or belongs-to relationship properties).");

@@ -202,7 +202,16 @@ class EntityBuilder {
   Iterable<PropertyBuilder> _getTransientAttributes() {
     final attributes = instanceType.declarations.values
         .where(isTransientPropertyOrAccessor)
-        .map((declaration) => PropertyBuilder(this, declaration));
+        .map((declaration) => PropertyBuilder(this, declaration))
+        .toList();
+
+    if (instanceType.superclass.mixin != instanceType.superclass) {
+      final mixin = instanceType.superclass.mixin.declarations.values
+          .where(isTransientPropertyOrAccessor)
+          .map((declaration) => PropertyBuilder(this, declaration))
+          .toList();
+      attributes.addAll(mixin);
+    }
 
     final out = <PropertyBuilder>[];
     attributes.forEach((prop) {
