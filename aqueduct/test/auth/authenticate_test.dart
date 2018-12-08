@@ -46,7 +46,7 @@ void main() {
 
     test("Revoked client can no longer be accessed", () async {
       expect(
-          (await auth.getClient("com.stablekernel.app1")) is AuthClient, true);
+          await auth.getClient("com.stablekernel.app1") is AuthClient, true);
       await auth.removeClient("com.stablekernel.app1");
       expect(await auth.getClient("com.stablekernel.app1"), isNull);
     });
@@ -207,7 +207,7 @@ void main() {
           InMemoryAuthStorage.defaultPassword,
           "com.stablekernel.app1",
           "kilimanjaro");
-      expect((await auth.verify(token.accessToken)) is Authorization, true);
+      expect(await auth.verify(token.accessToken) is Authorization, true);
     });
 
     test("Cannot verify token that doesn't exist", () async {

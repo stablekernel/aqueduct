@@ -13,18 +13,6 @@ import 'query.dart';
 ///
 ///     var predicate = new QueryPredicate("x = @xValue", {"xValue" : 5});
 class QueryPredicate {
-  /// The string format of the this predicate.
-  ///
-  /// This is the predicate text. Do not write dynamic values directly to the format string, instead, prefix an identifier with @
-  /// and add that identifier to the [parameters] map.
-  String format;
-
-  /// A map of values to replace in the format string at execution time.
-  ///
-  /// Input values should not be in the format string, but instead provided in this map.
-  /// Keys of this map will be searched for in the format string and be replaced by the value in this map.
-  Map<String, dynamic> parameters;
-
   /// Default constructor
   ///
   /// The [format] and [parameters] of this predicate. [parameters] may be null.
@@ -33,9 +21,12 @@ class QueryPredicate {
     parameters ??= {};
   }
 
+  /// Creates an empty predicate.
+  ///
+  /// The format string is the empty string and parameters is the empty map.
   QueryPredicate.empty()
-      : format = "",
-        parameters = {};
+    : format = "",
+      parameters = {};
 
   /// Combines [predicates] with 'AND' keyword.
   ///
@@ -50,8 +41,8 @@ class QueryPredicate {
   /// one predicate, that predicate is returned.
   factory QueryPredicate.and(Iterable<QueryPredicate> predicates) {
     var predicateList = predicates
-        ?.where((p) => p?.format != null && p.format.isNotEmpty)
-        ?.toList();
+      ?.where((p) => p?.format != null && p.format.isNotEmpty)
+      ?.toList();
     if (predicateList == null) {
       return QueryPredicate.empty();
     }
@@ -70,9 +61,9 @@ class QueryPredicate {
     final valueMap = <String, dynamic>{};
     for (var predicate in predicateList) {
       final duplicateKeys = predicate.parameters?.keys
-              ?.where((k) => valueMap.keys.contains(k))
-              ?.toList() ??
-          [];
+        ?.where((k) => valueMap.keys.contains(k))
+        ?.toList() ??
+        [];
 
       if (duplicateKeys.isNotEmpty) {
         var fmt = predicate.format;
@@ -97,4 +88,16 @@ class QueryPredicate {
     final predicateFormat = "(${allFormatStrings.join(" AND ")})";
     return QueryPredicate(predicateFormat, valueMap);
   }
+
+  /// The string format of the this predicate.
+  ///
+  /// This is the predicate text. Do not write dynamic values directly to the format string, instead, prefix an identifier with @
+  /// and add that identifier to the [parameters] map.
+  String format;
+
+  /// A map of values to replace in the format string at execution time.
+  ///
+  /// Input values should not be in the format string, but instead provided in this map.
+  /// Keys of this map will be searched for in the format string and be replaced by the value in this map.
+  Map<String, dynamic> parameters;
 }

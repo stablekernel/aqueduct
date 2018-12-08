@@ -28,7 +28,7 @@ abstract class ManagedPropertyDescription {
         isIndexed = indexed,
         isNullable = nullable,
         isIncludedInDefaultResultSet = includedInDefaultResultSet,
-        this.autoincrement = autoincrement;
+        autoincrement = autoincrement;
 
   /// A reference to the [ManagedEntity] that contains this property.
   final ManagedEntity entity;
@@ -142,10 +142,10 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       bool includedInDefaultResultSet = true,
       bool autoincrement = false,
       List<Validate> validators = const []})
-      : this.isPrimaryKey = primaryKey,
-        this.defaultValue = defaultValue,
-        this.transientStatus = transientStatus,
-        this._validators = validators,
+      : isPrimaryKey = primaryKey,
+        defaultValue = defaultValue,
+        transientStatus = transientStatus,
+        _validators = validators,
         super(entity, name, type, declaredType,
             unique: unique,
             indexed: indexed,
@@ -155,9 +155,9 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
   ManagedAttributeDescription.transient(ManagedEntity entity, String name,
       ManagedType type, ClassMirror declaredType, this.transientStatus)
-      : this.isPrimaryKey = false,
-        this.defaultValue = null,
-        this._validators = [],
+      : isPrimaryKey = false,
+        defaultValue = null,
+        _validators = [],
         super(entity, name, type, declaredType,
             unique: false,
             indexed: false,

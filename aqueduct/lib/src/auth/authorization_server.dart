@@ -58,14 +58,12 @@ import 'auth.dart';
 ///         }
 ///
 class AuthServer implements AuthValidator, APIComponentDocumenter {
-  static const String tokenTypeBearer = "bearer";
-
   /// Creates a new instance of an [AuthServer] with a [delegate].
   ///
   /// [hashFunction] defaults to [sha256].
   AuthServer(this.delegate,
       {this.hashRounds = 1000, this.hashLength = 32, Hash hashFunction})
-      : this.hashFunction = hashFunction ?? sha256;
+      : hashFunction = hashFunction ?? sha256;
 
   /// The object responsible for carrying out the storage mechanisms of this instance.
   ///
@@ -96,6 +94,8 @@ class AuthServer implements AuthValidator, APIComponentDocumenter {
   /// Used during OpenAPI documentation.
   final APISecuritySchemeOAuth2Flow documentedImplicitFlow =
   APISecuritySchemeOAuth2Flow.empty()..scopes = {};
+
+  static const String tokenTypeBearer = "bearer";
 
   /// Hashes a [password] with [salt] using PBKDF2 algorithm.
   ///

@@ -14,6 +14,8 @@ import 'query.dart';
 ///
 /// A query page should be used in conjunction with [Query.fetchLimit].
 class QueryPage {
+  QueryPage(this.order, this.propertyName, {this.boundingValue});
+
   /// The order in which rows should be in before the page of values is searched for.
   ///
   /// The rows of a database table will be sorted according to this order on the column backing [propertyName] prior
@@ -35,6 +37,4 @@ class QueryPage {
   /// the [boundingValue] is set to be the just outside the first or last element of the ordered database table, depending on the direction.
   /// This allows for query pages that fetch the first or last page of elements when the starting/ending value is not known.
   dynamic boundingValue;
-
-  QueryPage(this.order, this.propertyName, {this.boundingValue});
 }

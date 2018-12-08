@@ -68,12 +68,12 @@ class Validate {
   const Validate({bool onUpdate = true, bool onInsert = true})
       : runOnUpdate = onUpdate,
         runOnInsert = onInsert,
-        this._value = null,
-        this._lessThan = null,
-        this._lessThanEqualTo = null,
-        this._greaterThan = null,
-        this._greaterThanEqualTo = null,
-        this._equalTo = null,
+        _value = null,
+        _lessThan = null,
+        _lessThanEqualTo = null,
+        _greaterThan = null,
+        _greaterThanEqualTo = null,
+        _equalTo = null,
         _type = null;
 
   const Validate._(
@@ -89,12 +89,12 @@ class Validate {
       : runOnUpdate = onUpdate,
         runOnInsert = onInsert,
         _type = validator,
-        this._value = value,
-        this._greaterThan = greaterThan,
-        this._greaterThanEqualTo = greaterThanEqualTo,
-        this._equalTo = equalTo,
-        this._lessThan = lessThan,
-        this._lessThanEqualTo = lessThanEqualTo;
+        _value = value,
+        _greaterThan = greaterThan,
+        _greaterThanEqualTo = greaterThanEqualTo,
+        _equalTo = equalTo,
+        _lessThan = lessThan,
+        _lessThanEqualTo = lessThanEqualTo;
 
   /// A validator for matching an input String against a regular expression.
   ///

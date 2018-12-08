@@ -10,9 +10,6 @@ import 'isolate_application_server.dart';
 ///
 /// You should not use this class directly.
 class ApplicationIsolateSupervisor {
-  static const String messageKeyStop = "_MessageStop";
-  static const String messageKeyListening = "_MessageListening";
-
   /// Create an instance of [ApplicationIsolateSupervisor].
   ApplicationIsolateSupervisor(this.supervisingApplication, this.isolate,
       this.receivePort, this.identifier, this.logger,
@@ -41,6 +38,9 @@ class ApplicationIsolateSupervisor {
   SendPort _serverSendPort;
   Completer _launchCompleter;
   Completer _stopCompleter;
+
+  static const String messageKeyStop = "_MessageStop";
+  static const String messageKeyListening = "_MessageListening";
 
   /// Resumes the [Isolate] being supervised.
   Future resume() {

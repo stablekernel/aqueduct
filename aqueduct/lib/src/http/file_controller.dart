@@ -12,6 +12,39 @@ typedef _OnFileNotFound = FutureOr<Response> Function(
 ///
 /// See the constructor for usage.
 class FileController extends Controller {
+  /// Creates a controller that serves files from [pathOfDirectoryToServe].
+  ///
+  /// File controllers append the path of an HTTP request to [pathOfDirectoryToServe] and attempt to read the file at that location.
+  ///
+  /// If the file exists, its contents are sent in the HTTP Response body. If the file does not exist, a 404 Not Found error is returned by default.
+  ///
+  /// A route to this controller must contain the match-all segment (`*`). For example:
+  ///
+  ///       router
+  ///        .route("/site/*")
+  ///        .link(() => FileController("build/web"));
+  ///
+  /// In the above, `GET /site/index.html` would return the file `build/web/index.html`.
+  ///
+  /// If [pathOfDirectoryToServe] contains a leading slash, it is an absolute path. Otherwise, it is relative to the current working directory
+  /// of the running application.
+  ///
+  /// If no file is found, the default behavior is to return a 404 Not Found. (If the [Request] accepts 'text/html', a simple 404 page is returned.) You may
+  /// override this behavior by providing [onFileNotFound].
+  ///
+  /// The content type of the response is determined by the file extension of the served file. There are many built-in extension-to-content-type mappings and you may
+  /// add more with [setContentTypeForExtension]. Unknown file extension will result in `application/octet-stream` content-type responses.
+  ///
+  /// The contents of a file will be compressed with 'gzip' if the request allows for it and the content-type of the file can be compressed
+  /// according to [CodecRegistry].
+  ///
+  /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
+  FileController(String pathOfDirectoryToServe,
+    {FutureOr<Response> onFileNotFound(
+      FileController controller, Request req)})
+    : _servingDirectory = Uri.directory(pathOfDirectoryToServe),
+      _onFileNotFound = onFileNotFound;
+
   static Map<String, ContentType> _defaultExtensionMap = {
     /* Web content */
     "html": ContentType("text", "html", charset: "utf-8"),
@@ -43,39 +76,6 @@ class FileController extends Controller {
     "woff": ContentType("font", "woff"),
     "otf": ContentType("font", "otf"),
   };
-
-  /// Creates a controller that serves files from [pathOfDirectoryToServe].
-  ///
-  /// File controllers append the path of an HTTP request to [pathOfDirectoryToServe] and attempt to read the file at that location.
-  ///
-  /// If the file exists, its contents are sent in the HTTP Response body. If the file does not exist, a 404 Not Found error is returned by default.
-  ///
-  /// A route to this controller must contain the match-all segment (`*`). For example:
-  ///
-  ///       router
-  ///        .route("/site/*")
-  ///        .link(() => FileController("build/web"));
-  ///
-  /// In the above, `GET /site/index.html` would return the file `build/web/index.html`.
-  ///
-  /// If [pathOfDirectoryToServe] contains a leading slash, it is an absolute path. Otherwise, it is relative to the current working directory
-  /// of the running application.
-  ///
-  /// If no file is found, the default behavior is to return a 404 Not Found. (If the [Request] accepts 'text/html', a simple 404 page is returned.) You may
-  /// override this behavior by providing [onFileNotFound].
-  ///
-  /// The content type of the response is determined by the file extension of the served file. There are many built-in extension-to-content-type mappings and you may
-  /// add more with [setContentTypeForExtension]. Unknown file extension will result in `application/octet-stream` content-type responses.
-  ///
-  /// The contents of a file will be compressed with 'gzip' if the request allows for it and the content-type of the file can be compressed
-  /// according to [CodecRegistry].
-  ///
-  /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
-  FileController(String pathOfDirectoryToServe,
-      {FutureOr<Response> onFileNotFound(
-          FileController controller, Request req)})
-      : _servingDirectory = Uri.directory(pathOfDirectoryToServe),
-        _onFileNotFound = onFileNotFound;
 
   final Map<String, ContentType> _extensionMap = Map.from(_defaultExtensionMap);
   final List<_PolicyPair> _policyPairs = [];

@@ -25,10 +25,6 @@ enum CLIColor { red, green, blue, boldRed, boldGreen, boldBlue, boldNone, none }
 
 /// A command line interface command.
 abstract class CLICommand {
-  static const _delimiter = "-- ";
-  static const _tabs = "    ";
-  static const _errorDelimiter = "*** ";
-
   CLICommand() {
     final arguments = reflect(this).type.instanceMembers.values.where((m) =>
         m.metadata.any((im) => im.type.isAssignableTo(reflectType(Argument))));
@@ -94,6 +90,11 @@ abstract class CLICommand {
 
   Version get toolVersion => _toolVersion;
   Version _toolVersion;
+
+  static const _delimiter = "-- ";
+  static const _tabs = "    ";
+  static const _errorDelimiter = "*** ";
+
 
   T decode<T>(String key) {
     final val = _argumentValues[key];

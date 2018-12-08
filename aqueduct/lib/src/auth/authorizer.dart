@@ -37,7 +37,7 @@ class Authorizer extends Controller {
   /// If [scopes] is provided, the authorization granted must have access to *all* scopes according to [validator].
   Authorizer(this.validator,
       {this.parser = const AuthorizationBearerParser(), List<String> scopes})
-      : this.scopes = scopes?.map((s) => AuthScope(s))?.toList();
+      : scopes = scopes?.map((s) => AuthScope(s))?.toList();
 
   /// Creates an instance of [Authorizer] with Basic Authentication parsing.
   ///
