@@ -7,6 +7,7 @@
 - Adds `Query.insertObjects` to insert a list of managed objects.
 - Allows self-referencing and cyclical relationships between managed objects
 - Autoincrementing managed object properties are no longer consumed in `ManagedObject.readFromMap`.
+- Fixes bug where ManagedObjects cannot have mixins
 
 ## 3.0.2
 
