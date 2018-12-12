@@ -2,7 +2,7 @@
 
 In the previous chapter, you have seen that `ManagedObject<T>`s subclasses are responsible for representing database rows and can be encoded to or decoded from formats like JSON or XML. This chapter explains the behavior of those transformations.
 
-`ManagedObject<T>` implements `Serializable` so that they can read from a `Map` or converted to a `Map`. A `ManagedObject<T>` can be passed as the body object of a `Response` and bound to `Bind.body` variables in `ResourceController`:
+`ManagedObject<T>` implements `Serializable` so that they can read from a `Map` or be converted to a `Map`. A `ManagedObject<T>` can be passed as the body object of a `Response` and bound to `Bind.body` variables in `ResourceController`:
 
 ```dart
 class UserController extends ResourceController {
