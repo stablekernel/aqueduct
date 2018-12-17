@@ -437,6 +437,47 @@ void main() {
               "Cannot select has-many or has-one relationship properties"));
     }
   });
+
+  group("Fetch by id", () {
+    int id;
+    setUp(() async {
+      context = await contextWithModels([TestModel]);
+      id = (await context.insertObject(TestModel(name: "bob"))).id;
+    });
+
+    test("If object exists and type is specified, find object", () async {
+      final o = await context.fetchObjectWithID<TestModel>(id);
+      expect(o.name, "bob");
+    });
+
+    test("If object does not exist and type is specified, return null", () async {
+      final o = await context.fetchObjectWithID<TestModel>(id + 1);
+      expect(o, isNull);
+    });
+
+    test("If type is not specified, throw error", () async {
+      try {
+        await context.fetchObjectWithID(id);
+        fail('unreachable');
+      } on ArgumentError catch (e) {
+        expect(e.message, contains("Unknown entity"));
+      }
+    });
+
+    test("If type is not found in data model, throw error", () async {
+      try {
+        await context.fetchObjectWithID<Omit>(id);
+        fail('unreachable');
+      } on ArgumentError catch (e) {
+        expect(e.message, contains("Unknown entity"));
+      }
+    });
+
+    test("If identifier type is not the same type as return type, throw exception with 404", () async {
+      final o = await context.fetchObjectWithID<TestModel>("not-an-int");
+      expect(o, isNull);
+    });
+  });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {
