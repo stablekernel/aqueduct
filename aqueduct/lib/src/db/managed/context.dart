@@ -111,6 +111,42 @@ class ManagedContext implements APIComponentDocumenter {
     return dataModel.entityForType(type);
   }
 
+  /// Inserts a single [object] into this context.
+  ///
+  /// This method is equivalent shorthand for [Query.insert].
+  Future<T> insertObject<T extends ManagedObject>(T object) {
+    final query = Query<T>(this)..values = object;
+    return query.insert();
+  }
+
+  /// Inserts each object in [objects] into this context.
+  ///
+  /// If any insertion fails, no objects will be inserted into the database and an exception
+  /// is thrown.
+  Future<List<T>> insertObjects<T extends ManagedObject>(List<T> objects) async {
+    return transaction((transitionCtx) => Future.wait(objects.map((o) => transitionCtx.insertObject(o))));
+  }
+
+  /// Returns an object of type [T] from this context if it exists, otherwise returns null.
+  ///
+  /// If [T] cannot be inferred, an error is thrown. If [identifier] is not the same type as [T]'s primary key,
+  /// null is returned.
+  Future<T> fetchObjectWithID<T extends ManagedObject>(dynamic identifier) async {
+    final entity = dataModel.entityForType(T);
+    if (entity == null) {
+      throw ArgumentError("Unknown entity '$T' in fetchObjectWithID. "
+        "Provide a type to this method and ensure it is in this context's data model.");
+    }
+
+    final primaryKey = entity.primaryKeyAttribute;
+    if (!primaryKey.type.isAssignableWith(identifier)) {
+      return null;
+    }
+
+    final query = Query<T>(this)..where((o) => o[primaryKey.name]).equalTo(identifier);
+    return query.fetchOne();
+  }
+
   @override
   void documentComponents(APIDocumentContext context) =>
       dataModel.documentComponents(context);
