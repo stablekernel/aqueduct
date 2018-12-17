@@ -4,11 +4,13 @@ Learn how to execute multiple `Query<T>`s in a database transaction.
 
 ## Transactions
 
-Consider an application that keeps employee records. Each employee belongs to a department. Management decides to combine two departments into a totally new department. To do this, the application must insert a new department, set each employee's foreign key reference to that department, and then delete the old departments. It'd look like this:
+A transaction is a series of queries that are executed together. If one of the queries in that set fails, then all of the queries fail and their changes are reversed if they had already been executed.
+
+Consider an application that stores employee records. Each employee belongs to a department. Management decides to combine two departments into a totally new department. To do this, the application must insert a new department, set each employee's foreign key reference to that department, and then delete the old departments. An straightforward (but problematic) implementation would look like this:
 
 ```dart
 // Create the new department
-final newDepartment = await Query.insertObject(ctx, Department()..name = "New Department");
+final newDepartment = await ctx.insertObject(Department()..name = "New Department");
 
 // Set employee's departments to the new one
 final changeDepartmentQuery = Query<Employee>(ctx)
@@ -29,7 +31,7 @@ A database transaction combines queries together as a single unit. If a query in
 ```dart
 await context.transaction((transaction) async {
   // note that 'transaction' is the context for each of these queries.
-  final newDepartment = await Query.insertObject(transaction, Department()..name = "New Department");
+  final newDepartment = await transaction.insertObject(Department()..name = "New Department");
 
   final changeDepartmentQuery = Query<Employee>(transaction)
     ..where((e) => e.department.id).oneOf([1, 2])      
@@ -38,17 +40,14 @@ await context.transaction((transaction) async {
 
   final deleteDepartmentQuery = Query<Department>(transaction)
     ..where((e) => e.department.id).oneOf([1, 2]);
-  await deleteDepartmentQuery();      
+  await deleteDepartmentQuery.delete();      
 });
 ```
 
-All of the queries in the transaction closure will run in the same transaction. Once they have all succeeded, the `transaction` method's future completes. If an exception is thrown in the closure, the transaction is rolled back and the `transaction` method re-throws that exception.
-
-Notice that the context for each query is the `transaction` object passed to the transaction closure. You must use this object when using `Query` in a transaction closure.
+The closure has a `transaction` object that all queries in the transaction must use as their context. Queries that use this transaction context will be grouped in the same transaction. Once they have all succeeded, the `transaction` method's future completes. If an exception is thrown in the closure, the transaction is rolled back and the `transaction` method re-throws that exception.
 
 !!! warning "Failing to Use the Transaction Context will Deadlock your Application"
-
-  A `ManagedContext` has a single database connection. While a transaction is in progress, any query sent by the same connection becomes part of that transaction. Because Dart is asynchronous, a its likely that another request will trigger a database request while a transaction is in progress. For this reason, a context must queue queries from outside of a transaction while the transaction is running. A new context is created for each transaction and the database connection is shared with the original context. If you await on a query on the original context from inside a transaction closure, it won't complete until the transaction completes - but the transaction can't complete because it is awaiting for the query to complete. This will prevent the connection from being used until the transaction or query times out.
+      If you use the transaction's parent context in a query inside a transaction closure, the database connection will deadlock and will stop working.
 
 ### Returning Values
 
@@ -56,8 +55,8 @@ The value returned from a transaction closure is returned to the caller, so valu
 
 ```dart
 final employees = [...];
-final insertedEmployees = await context.transaction((t) async {
-  return Future.wait(employees.map((e) => Query.insertObject(t, e)));
+final insertedEmployees = await context.transaction((transaction) async {
+  return Future.wait(employees.map((e) => transaction.insertObject(e)));
 });
 ```
 

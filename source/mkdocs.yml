@@ -39,7 +39,7 @@ pages:
     - 'Multi-threading': 'application/threading.md'
   - Handling HTTP Requests:
     - 'Overview': 'http/index.md'
-    - 'Request and Response Objects; Serialization': 'http/request_and_response.md'
+    - 'Request and Response Objects': 'http/request_and_response.md'
     - 'Handling Requests: Fundamentals': 'http/controller.md'
     - 'Routing': 'http/routing.md'
     - 'Request Binding with Resource Controllers': 'http/resource_controller.md'
@@ -48,15 +48,14 @@ pages:
   - Databases and ORM:
     - 'Overview': 'db/index.md'
     - 'Connecting to a Database': 'db/connecting.md'
-    - 'Modeling Data': 'db/modeling_data.md'
-    - 'Storage, Serialization and Deserialization': 'db/serialization.md'
-    - 'Executing Queries': 'db/executing_queries.md'
+    - 'Modeling Data and Relationships': 'db/modeling_data.md'
+    - 'Serialization and Deserialization': 'db/serialization.md'
+    - 'Basic Queries': 'db/executing_queries.md'
     - 'Advanced Queries': 'db/advanced_queries.md'
     - 'Transactions': 'db/transactions.md'
     - 'Validations': 'db/validations.md'
     - 'Migration and Tooling': 'db/db_tools.md'
     - 'JSON Document Storage': 'db/json_columns.md'
-    - 'Transactions': 'db/transactions.md'
   - Authorization and OAuth 2.0:
     - 'Overview': 'auth/index.md'
     - 'Setting up Authorization': 'auth/server.md'

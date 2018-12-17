@@ -1,8 +1,8 @@
 ## Tasks
 
-Aqueduct's ORM stores data in a database and maps database data to Dart objects.
+Aqueduct's ORM stores data in database tables and maps table rows to Dart objects.
 
-You create subclasses of `ManagedObject<T>` in your application code to define the database tables your application uses. The properties of these types have annotations like `Column` and `Validate` to customize the behavior of tables in your database.
+You declare subclasses of `ManagedObject<T>` in your application code to define the database tables your application uses. The properties of these types have annotations like `Column` and `Validate` to customize the behavior of tables in your database.
 
 Your application creates a `ManagedContext` service object during initialization that manages database access for your application. This service is injected into controllers that make database queries.
 

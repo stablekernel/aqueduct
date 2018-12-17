@@ -183,9 +183,9 @@ The `fetchOne()` execution method will fetch a single object that fulfills all o
 
 We have now written code that fetches heroes from a database instead of from in memory, but we don't have a database - yet.
 
-!!! tip "Use fetchOne() on Unique Properties"
-    If more than one database row meets the criteria of a `fetchOne()`, an exception is thrown. It's only safe to use `fetchOne()` when applying an expression to a unique property, like a primary key.
-
+!!! tip "fetchObjectWithID, fetchOne() and Unique Properties"
+    You can also fetch an object by its primary key with the method `ManagedContext.fetchObjectWithID`. When fetching with `fetchOne`, make sure the search criteria is guaranteed to be unique.
+    
 Setting Up a Database
 ---
 

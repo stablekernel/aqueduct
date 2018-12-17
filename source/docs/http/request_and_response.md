@@ -272,7 +272,7 @@ Serializable objects are the only types of objects that can be [bound to a Resou
 ```dart
 @Operation.post()
 Future<Response> addPerson(@Bind.body() Person person) async {
-  final insertedPerson = await Query.insertObject(context, person);
+  final insertedPerson = await context.insertObject(person);
   return Response.ok(insertedPerson);
 }
 ```

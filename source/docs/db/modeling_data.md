@@ -76,7 +76,7 @@ A primary key can be any supported data type, and it is always unique and indexe
 
 ```dart
 class _Article {
-  @primaryKey // == @Column(primaryKey: true, databaseType: ManagedType.bigInteger, autoincrement: true)
+  @primaryKey // equivalent to @Column(primaryKey: true, databaseType: ManagedType.bigInteger, autoincrement: true)
   int id;
 
   ...
@@ -333,7 +333,7 @@ final authorQuery = Query<Author>(context)
   ..values.name = "Fred";
 final author = await authorQuery.insert();
 
-final bookQuery = Query<Author>(context)
+final bookQuery = Query<Book>(context)
   ..values.name = "Title"
   ..values.author.id = author.id;
 final book = await bookQuery.insert();  
@@ -409,10 +409,10 @@ class _TeamPlayer {
   @primaryKey
   int id;  
 
-  @Relate(#players)
+  @Relate(#teamPlayers)
   Team team;
 
-  @Relate(#team)
+  @Relate(#teamPlayers)
   Player player;
 }
 

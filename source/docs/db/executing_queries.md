@@ -1,12 +1,12 @@
 # Inserting, Updating, Deleting and Fetching Objects
 
-To send commands to a database - whether to fetch, insert, delete or update objects - you will create, configure and execute instances of `Query<T>`. The type of object the query is performed on is determined by the type argument. The argument must be a subclass of `ManagedObject`.
+To send commands to a database - whether to fetch, insert, delete or update objects - you will create, configure and execute instances of `Query<T>`. The type argument must be a subclass of `ManagedObject`, which determines the table the query will operate on.
 
-A query compiles and executes a SQL query on a given [ManagedContext](connecting.db). Here's an example of a `Query<T>` that fetches all instances of `User`:
+A query compiles and executes a SQL query and requires a [ManagedContext](connecting.db) to determine the database to connect to. Here's an example of a `Query<T>` that fetches all instances of `User`:
 
 ```dart
-var query = Query<User>(context);
-var allUsers = await query.fetch();
+final query = Query<User>(context);
+final allUsers = await query.fetch();
 ```
 
 A `Query<T>` has four basic execution methods: `fetch`, `update`, `insert`, `delete`.
@@ -18,9 +18,7 @@ A `Query<T>` has four basic execution methods: `fetch`, `update`, `insert`, `del
 
 A `Query<T>` has many configurable properties. These properties will impact which objects get fetched, the data that gets sent to the database, the order that data is returned in, and so on.
 
-### Inserting Data with a Query
-
-Let's assume this `User` type exists:
+In the following sections, assume that a `User` managed object subclass exists that is declared like so:
 
 ```dart
 class User extends ManagedObject<_User> implements _User {}
@@ -35,70 +33,73 @@ class _User {
 }
 ```
 
-To insert a new row into the `_User` table, a `Query<T>` is constructed and executed:
+### Inserting Data with a Query
+
+To insert data with a query, you create a new `Query<T>` object, configure its `values` property and then call its `insert()` method.
 
 ```dart
-var query = Query<User>(context)
+final query = Query<User>(context)
   ..values.name = "Bob"
   ..values.email = "bob@stablekernel.com";  
 
-var user = await query.insert();  
-user.asMap() == {
-  "id": 1,
-  "name": "Bob",
-  "email": "bob@stablekernel.com"
-};
+final user = await query.insert();  
 ```
 
-Every `Query<T>` has a `values` property that is the type of managed object being inserted. Here, `values` is an instance of `User`. When a `Query<T>` is executed with `insert()`, a new row is created in the database with every property that has been set in `values`. In this case, both `name` and `email` have been set. The generated SQL looks like this:
+The `values` of a `Query<T>` is an instance of `T` (the managed object type you are inserting). You can configure individual properties of `values`, or you can assign `values` to an instance you have created elsewhere:
+
+```dart
+final userValues = User()
+  ..name = "Bob"
+  ..email = "bob@stablekernel.com";
+final query = Query<User>(context)..values = userValues;
+final user = await query.insert();  
+```
+
+Either way, this query is translated into the following SQL:
 
 ```sql
-INSERT INTO _user (name, email) VALUES ('Bob', 'bob@stablekernel.com')
+INSERT INTO _user (name, email) VALUES ('Bob', 'bob@stablekernel.com') RETURNING id, name, email;
 ```
 
-Note there is no value provided for the `id` property in this query. Recall that `primaryKey` is a convenience for `Column` with auto-incrementing behavior. Therefore, the database will assign a value for `id` during insertion. The object returned from `insert()` will be an instance of `User` that represents the inserted row and will include the auto-generated `id`.
+Notice that only the values set on the `values` object are included in the SQL INSERT query. In this example, both `name` and `email` were set, but not `id` and therefore only `name` and `email` were included in the query. (In this case, the primary key is auto-incrementing and the database will generate it.)
 
-Properties that are not set in the `values` property will not be sent to the database.
-
-Values that are explicitly set to `null` will be sent as `NULL`. For example, consider the following `Query<T>`:
+Values that are explicitly set to `null` will be sent as `NULL`. For example, consider the following `Query<T>` and its SQL:
 
 ```dart
 var query = Query<User>(context)
-  ..values.name = null;
+  ..values.name = null
+  ..email = "bob@stablekernel.com";
+
+// INSERT INTO _user (name, email) VALUES (NULL, 'bob@stablekernel.com') RETURNING id, name, email;
 await query.insert();
 ```
 
-The generated SQL for this query does not send `email` - because it isn't included - and sends `NULL` for `name`:
+An insert query will return a managed object that represents the row that is inserted.
 
-```sql
-INSERT INTO _user (name) VALUES (NULL);
-```
+!!! warning "Prefer the Inserted Object"
+    After you insert an object, you should prefer to use the object returned by an insert query rather than the values you used to populate the query. The object returned from the query will be an accurate representation of the database row, while the object used to build the query may be incomplete or different. For example, an auto-incrementing primary key won't be available in your query-building instance, but will in the object returned from the successful query.
 
-If a property is not nullable (its `Column` has `nullable: false`) and its value is not set in a query prior to inserting it, the query will fail and throw an exception.
-
-You may also set `Query.values` with an instance of a managed object. This is valuable when reading an object from a HTTP request body:
+There is one difference to note when choosing between assigning an instance to `values`, or configuring the properties of `values`. In an instance you create, a relationship property must be instantiated before accessing its properties. When accessing the relationship properties of `values`, an empty instance of the related object is created immediately upon access.
 
 ```dart
-var user = User()
-  ..readFromMap(request.body.asMap());
+final employee = Employee()
+  ..manager.id = 1; // this is a null pointer exception because manager is null
 
-var query = Query<User>(context)
-  ..values = user;
+final query = Query<Employee>(context)
+  ..values.manager.id = 1; // this is OK because of special behavior of Query
 ```
 
-If an insert query fails because of a unique constraint is violated, a `QueryException` will be thrown.  See a later section on how `QueryException`s are gracefully handled by `Controller`s. In short, it is unlikely that you have to handle `QueryException` directly - `Controller`s know how to turn them into the appropriate HTTP response.
+Once you assign an object to `values`, it will adopt the behavior of `values` and instantiate relationships when accessed. Also note that after assigning an object to `values`, changes to the original object are not reflected in `values`. In other words, the object is copied instead of referenced.
 
-!!! warning "Setting Query.values"
-    By default, `Query.values` is an empty instance of the object being inserted. If you replace it with an object - that you got from a request body or instantiated yourself - the properties are *copied* into `Query.values`. Further modifications of the replacement object have no effect on `Query.values`.
-
-There are convenience static methods on `Query` for inserting object(s) without having to create a `Query` object.
+For simple insertions and for inserting more than one object, you can use the methods on the context:
 
 ```dart
+final context = ManagedContext(...);
 final bob = User()..name = "Bob";
 final jay = User()..name = "Jay";
 
-final insertedObject = await Query.insertObject(context, bob);
-final insertedObjects = await Query.insertObjects(context, [bob, jay]);
+final insertedObject = await context.insertObject(bob);
+final insertedObjects = await context.insertObjects([bob, jay]);
 ```
 
 ### Updating Data with a Query
@@ -176,7 +177,9 @@ var query = Query<User>(context);
 List<User> allUsers = await query.fetch();
 ```
 
-A fetch `Query<T>` uses its `where` property to filter the result set, just like delete and update queries. Any properties set in the query's `values` are ignored when executing a fetch, since there is no need for them. In addition to fetching a list of instances from a database, you may also fetch a single instance with `fetchOne`. If no instance is found, `null` is returned.
+Fetch queries can be limited to a number of instances with the `fetchLimit` property. You may also set the `offset` of a `Query<T>` to skip the first `offset` number of rows. Between `fetchLimit` and `offset`, you can implement naive paging. However, this type of paging suffers from a number of problems and so there is another paging mechanism covered in later sections.
+
+A fetch `Query<T>` uses its `where` property to filter the result set, just like delete and update queries. The `values` of a query are ignored when fetching objects. You may also fetch a single instance with `fetchOne`. If no instance is found, `null` is returned. Only use this method when the search criteria is guaranteed to be unique.
 
 ```dart
 var query = Query<User>(context)
@@ -185,7 +188,11 @@ var query = Query<User>(context)
 User oneUser = await query.fetchOne();
 ```
 
-Fetch queries can be limited to a number of instances with the `fetchLimit` property. You may also set the `offset` of a `Query<T>` to skip the first `offset` number of rows. Between `fetchLimit` and `offset`, you can implement naive paging. However, this type of paging suffers from a number of problems and so there is another paging mechanism covered in later sections.
+When you are fetching an object by its primary key, you can use a shorthand method `ManagedContext.fetchObjectWithID`. The method must be able to infer the type of the object, or you must provide it:
+
+```dart
+final object = await context.fetchObjectWithID<User>(1);
+```
 
 ### Sorting
 

@@ -16,12 +16,14 @@ GRANT ALL ON DATABASE my_app_name TO my_app_name_user;
 
 ## Using ManagedContext to Connect to a Database
 
-The interface to a database from Aqueduct is an instance of `ManagedContext`, which contains the following two objects:
+The interface to a database from Aqueduct is an instance of `ManagedContext` that contains the following two objects:
 
 - a `ManagedDataModel` that describes your application's data model
-- a `PersistentStore` that creates database connections and transmits data across that connection.
+- a `PersistentStore` that manages a connection to a single database
 
-A `ManagedContext` uses these two objects to coordinate moving data to and from your application and a database when executing `Query<T>`s. A `ManagedContext` - and its store and data model - are created in a `ApplicationChannel` constructor.
+A `ManagedContext` uses these two objects to coordinate moving data to and from your application and a database. A`Query<T>` object uses a context's persistent store to determine which database to send commands to, and a data model to map database rows to objects and vice versa.
+
+A context, like all service objects, is created in `ApplicationChannel.prepare`.
 
 ```dart
 class MyApplicationChannel extends ApplicationChannel {
@@ -38,17 +40,37 @@ class MyApplicationChannel extends ApplicationChannel {
 }
 ```
 
-A `ManagedDataModel` should be instantiated with its `fromCurrentMirrorSystem` convenience constructor. You may optionally pass a list of `ManagedObject<T>` subclasses to its default constructor.
+The `ManagedDataModel.fromCurrentMirrorSystem` finds every `ManagedObject<T>` subclass in your application's code. Optionally, you may specify an exact list:
 
 ```dart
 var dataModel = ManagedDataModel([User, Post, Friendship]);
 ```
 
-A `ManagedContext` is required to create and execute a `Query<T>`. The context determines which database the query is executed in. A context must exist before creating instances of any `ManagedObject` subclass in your application. Controllers that need to execute database queries must have a reference to a context; this is typically accomplished by passing the context to a controller's constructor.
+!!! note "Finding ManagedObjects"
+        A managed object subclass must be directly or transitively imported into your application channel file. A file in your project directory that is not imported will not be found. There is typically no need to import a managed object subclass file directly: your application is initialized in your channel, where imports all of your controllers and services, which in turn import the managed object subclasses they use. As long as you are using your managed object declarations in your application, they'll be found.
+
+Controllers that need to execute database queries must have a reference to a context; this is typically accomplished by passing the context to a controller's constructor:
+
+```dart
+class MyApplicationChannel extends ApplicationChannel {
+  ManagedContext context;
+
+  @override
+  Future prepare() async {
+    context = ManagedContext(...);
+  }
+
+  @override
+  Controller get entryPoint {
+    return Router()
+      ..route("/users/[:id]").link(() => UserController(context));
+  }
+}
+```
 
 ## Using a Configuration File
 
-Connection information for a database is most often configured through a configuration file. This allows you to build configurations for different environments (production, testing, etc.), without having to modify code.
+Connection information for a database is most often read from a configuration file. This allows you to create configurations for different environments (production, development, etc.), without having to modify code. This is very important for testing, because you will want to run your automated tests against an empty database. ([See more on configuration files.](../application/configure.md).)
 
 ```dart
 class MyConfiguration extends Configuration {
@@ -77,7 +99,7 @@ class MyApplicationChannel extends ApplicationChannel {
 }
 ```
 
-A YAML configuration file loaded by this application must look like this:
+The declaration of `MyConfiguration` requires that a YAML file must have the following structure:
 
 ```
 database:
@@ -88,4 +110,6 @@ database:
   databaseName: my_app
 ```
 
-A `PersistentStore` is an interface. Concrete implementations - like `PostgreSQLPersistentStore` - implement that interface to transmit data to a database in the format it expects. A `PostgreSQLPersistentStore` will automatically connect and maintain a persistent connection to a database. If the connection is lost for some reason, it will automatically reconnect the next time a query is executed. If a connection cannot be established, an exception is thrown that sends a 503 status code response by default.
+### Connection Behavior
+
+A persistent store manages one database connection. This connection is automatically maintained - the first time a query is executed, the connection is opened. If the connection is lost, the next query will reopen the connection. If a connection fails to open, an exception is thrown when trying to execute a query. This connection will return a 503 response if left uncaught.

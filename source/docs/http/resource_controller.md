@@ -237,7 +237,7 @@ class CityController extends ResourceController {
 
   @Operation.post()
   Future<Response> addCity(@Bind.body() City city) async {
-    final insertedCity = await Query.insertObject(context, city);
+    final insertedCity = await context.insertObject(city);
 
     return new Response.ok(insertedCity);
   }

@@ -1,6 +1,6 @@
 # Validating Data
 
-Data is added to a database through `update` and `insert` queries. As part of these two operations, a `ManagedObject<T>` will ensure that its properties have valid values. For example, a `Person` object might ensure that its name starts with a capital letter and that its phone number has only numeric values.  If one or more validation fails, the update or insert operation will fail and the data is not sent to the database. A validation failure will throw a `QueryException`, which automatically sends an HTTP response with error messaging to help the client correct their request.
+Data is added to a database through `update` and `insert` queries. As part of these two operations, a `ManagedObject<T>` will ensure that its properties have valid values. For example, a `Person` object might ensure that its name starts with a capital letter and that its phone number has only numeric values.  If one or more validation fails, the update or insert operation will fail and the data is not sent to the database. A validation failure will throw a `QueryException` that returns an HTTP response with error messaging to help the client correct their request.
 
 The preferred way of setting a validation is to add `Validate` metadata to properties of a table definition. Here's an example of a validation that ensures a tweet is less than 140 characters:
 
@@ -17,7 +17,7 @@ class _Tweet {
 
 ### Built-in Validators
 
-There are a handful of built-in validations for common operations. For example, it is common to apply a regular expression to a value to ensure it formatted correctly or restrict the possible values to a list of available options. Common validators are available as named constructors on the `Validate` class. Here is an example:
+There are a handful of built-in validations for common operations. For example, it is common to apply a regular expression to a value to ensure it formatted correctly or restrict the possible values to a list of available options. Common validators are available as named constructors f the `Validate` class. Here is an example:
 
 ```dart
 class _Story {
@@ -37,11 +37,11 @@ A built-in validator is useful because it automatically generates an error messa
 
 See the API reference for `Validate` and its named constructors for possible options.
 
-`Validate` metadata on transient properties have no effect. This metadata is only valid for database-backed properties declared in a table definition.
+`Validate` annotations on transient properties have no effect. This annotation is only valid for properties declared in a table definition.
 
 ### Custom Validators
 
-There will be times where the built-in validators are not sufficient for your application's use case. You may create subclasses of `Validate` to provide custom validation behavior.For example, a `Validate` subclass you have declared named `ValidatePhoneNumber` would be used like so:
+There will be times where the built-in validators are not sufficient for your application's use case. You may create subclasses of `Validate` to provide custom validation behavior. For example, if there were a `ValidatePhoneNumber` class:
 
 ```dart
 class _Person {
@@ -105,7 +105,7 @@ await query.insert();
 
 Because `email` was not set on `Query.values`, validations will not be run on that property.
 
-There are two special validators that can require a property to be set, or require that a property *not* be set. `Validate.present()` requires that the associated property must have a value. A property with this validator must be provided each time the object is inserted or updated. Like all validators, `Validate.present()` can be adjusted to be invoked on only inserts or only updates. For example, the following declaration requires that `email` is set on insertion, but doesn't have to be for updates:
+There are two special validators that can require a property to be set, or require that a property *not* be set. `Validate.present()` requires that the associated property must have a value. A property with this validator must be provided each time the object is inserted or updated. For example, the following declaration requires that `email` is set on insertion, but doesn't have to be for updates:
 
 ```dart
 @Validate.present(onUpdate: false, onInsert: true)
@@ -152,9 +152,9 @@ Here, the property `name` must not be null and must be greater than 10 character
 | Update value not specified | No | Successful database update |
 | Update value is explicit null | No | Successful database update |
 
-This behavior allows `ManagedObject<T>` instances to be partially updated, which also allows for partial PUTs. Partial PUTs can be prevented by adding `Validate.present()` metadata to all properties. While partial PUTs are not idiomatic REST, they are pragmatic software development.
+This behavior allows `ManagedObject<T>` instances to be partially updated, which also allows for partial PUTs. Partial PUTs can be prevented by adding `Validate.present()` metadata to all properties.
 
-This also means that any custom validator can safely assume that a value passed to `Validate.validate()` is non-null.
+This also means that any custom validator can assert that a value passed to `Validate.validate()` is non-null.
 
 ### Other Validator Behavior
 
@@ -179,7 +179,7 @@ When overriding this method, the `super` implementation must be invoked to run v
 
 ### Skipping Validations
 
-Validations are only run when values are set via `Query<T>.values`. Values set via `Query<T>.valueMap` are not validated. Therefore, objects should typically be inserted and updated using `Query<T>.values` unless validation must be ignored. Here's an example of skipping validation:
+Validations are only run when values are set via `Query<T>.values`. Values set via `Query<T>.valueMap` are not validated and is useful for inserting data without validation. Here's an example of skipping validation:
 
 ```dart
 var query = new Query<Person>(context)
@@ -189,12 +189,9 @@ var query = new Query<Person>(context)
   };
 ```
 
-Skipping validation should be rare.
-
-
 ### Update and Insert Callbacks
 
-`ManagedObject<T>` subclasses may override `willUpdate` and `willInsert` to modify its properties prior to being updated or inserted by a `Query<T>`. For example, a managed object may have updated and created dates that can be guaranteed to be set when inserted or updated:
+`ManagedObject<T>` subclasses may override `willUpdate` and `willInsert` to make changes prior to being updated or inserted. For example, a managed object may have updated and created dates that can be guaranteed to be set when inserted or updated:
 
 ```dart
 class Person extends ManagedObject<_Person> implements _Person {
@@ -218,8 +215,4 @@ class _Person {
 }
 ```
 
-Note that all operations must be synchronous in these methods.
-
-Both `willUpdate` and `willInsert` are invoked prior the validation phase. Thus, any values set in these methods will be subject to the declared validations of the instance.
-
-Like validations, `willUpdate` and `willInsert`  are skipped when using `Query.valueMap`.
+Both `willUpdate` and `willInsert` are run before any validation occurs. Like validations, `willUpdate` and `willInsert` are skipped when using `Query.valueMap`.
