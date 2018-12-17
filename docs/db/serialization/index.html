@@ -18,7 +18,7 @@
     
     
       
-        <title>Storage, Serialization and Deserialization - Aqueduct</title>
+        <title>Serialization and Deserialization - Aqueduct</title>
       
     
     
@@ -87,7 +87,7 @@
                 </span>
               
             
-            Storage, Serialization and Deserialization
+            Serialization and Deserialization
           
         </span>
       </div>
@@ -582,8 +582,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
-      Request and Response Objects; Serialization
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
     </a>
   </li>
 
@@ -704,8 +704,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../modeling_data/" title="Modeling Data" class="md-nav__link">
-      Modeling Data
+    <a href="../modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
+      Modeling Data and Relationships
     </a>
   </li>
 
@@ -725,11 +725,11 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="toc">
-        Storage, Serialization and Deserialization
+        Serialization and Deserialization
       </label>
     
-    <a href="./" title="Storage, Serialization and Deserialization" class="md-nav__link md-nav__link--active">
-      Storage, Serialization and Deserialization
+    <a href="./" title="Serialization and Deserialization" class="md-nav__link md-nav__link--active">
+      Serialization and Deserialization
     </a>
     
       
@@ -743,29 +743,30 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#null-behavior" title="Null Behavior" class="md-nav__link">
-    Null Behavior
-  </a>
-  
-    <nav class="md-nav">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#transient-properties-and-serializationdeserialization" title="Transient Properties and Serialization/Deserialization" class="md-nav__link">
-    Transient Properties and Serialization/Deserialization
+  <a href="#basic-behavior" title="Basic Behavior" class="md-nav__link">
+    Basic Behavior
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#serialization-and-deserialization-of-relationship-properties" title="Serialization and Deserialization of Relationship Properties" class="md-nav__link">
-    Serialization and Deserialization of Relationship Properties
+      
+        <li class="md-nav__item">
+  <a href="#behavior-of-null-values" title="Behavior of Null Values" class="md-nav__link">
+    Behavior of Null Values
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#behavior-of-transient-properties" title="Behavior of Transient Properties" class="md-nav__link">
+    Behavior of Transient Properties
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#behavior-of-relationship-properties" title="Behavior of Relationship Properties" class="md-nav__link">
+    Behavior of Relationship Properties
+  </a>
   
 </li>
       
@@ -784,8 +785,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../executing_queries/" title="Executing Queries" class="md-nav__link">
-      Executing Queries
+    <a href="../executing_queries/" title="Basic Queries" class="md-nav__link">
+      Basic Queries
     </a>
   </li>
 
@@ -846,18 +847,6 @@
   <li class="md-nav__item">
     <a href="../json_columns/" title="JSON Document Storage" class="md-nav__link">
       JSON Document Storage
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../transactions/" title="Transactions" class="md-nav__link">
-      Transactions
     </a>
   </li>
 
@@ -1349,29 +1338,30 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#null-behavior" title="Null Behavior" class="md-nav__link">
-    Null Behavior
-  </a>
-  
-    <nav class="md-nav">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#transient-properties-and-serializationdeserialization" title="Transient Properties and Serialization/Deserialization" class="md-nav__link">
-    Transient Properties and Serialization/Deserialization
+  <a href="#basic-behavior" title="Basic Behavior" class="md-nav__link">
+    Basic Behavior
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#serialization-and-deserialization-of-relationship-properties" title="Serialization and Deserialization of Relationship Properties" class="md-nav__link">
-    Serialization and Deserialization of Relationship Properties
+      
+        <li class="md-nav__item">
+  <a href="#behavior-of-null-values" title="Behavior of Null Values" class="md-nav__link">
+    Behavior of Null Values
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#behavior-of-transient-properties" title="Behavior of Transient Properties" class="md-nav__link">
+    Behavior of Transient Properties
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#behavior-of-relationship-properties" title="Behavior of Relationship Properties" class="md-nav__link">
+    Behavior of Relationship Properties
+  </a>
   
 </li>
       
@@ -1392,167 +1382,141 @@
                   <a href="https://github.com/stablekernel/aqueduct/edit/docs/source/source/docs/db/serialization.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="storage-serialization-and-deserialization">Storage, Serialization and Deserialization</h1>
-<p>In the previous chapter, you have seen that <code>ManagedObject&lt;T&gt;</code>s subclasses are responsible for representing database rows and can be encoded to or decoded from formats like JSON or XML. This chapter explains the behavior of those transformations.</p>
-<p><code>ManagedObject&lt;T&gt;</code> implements <code>Serializable</code> so that they can read from a <code>Map</code> or converted to a <code>Map</code>. A <code>ManagedObject&lt;T&gt;</code> can be passed as the body object of a <code>Response</code> and bound to <code>Bind.body</code> variables in <code>ResourceController</code>:</p>
+                <h1 id="managedobject-serialization-and-deserialization">ManagedObject Serialization and Deserialization</h1>
+<p>In this guide, you will learn how <code>ManagedObject&lt;T&gt;</code>s are read from HTTP request bodies and written to HTTP response bodies.</p>
+<h2 id="basic-behavior">Basic Behavior</h2>
+<p>A <code>ManagedObject&lt;T&gt;</code> can be converted to and from <code>Map&lt;String, dynamic&gt;</code> objects (which can be encoded and decoded into request or response body using JSON or some other data format). To decode a <code>ManagedObject</code> into a <code>Map</code>, use the instance method <code>readFromMap</code>:</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">object</span> <span class="o">=</span> <span class="n">MyManagedObject</span><span class="p">();</span>
+<span class="n">object</span><span class="p">.</span><span class="n">readFromMap</span><span class="p">({</span>
+  <span class="s2">&quot;key&quot;</span><span class="o">:</span> <span class="s2">&quot;value&quot;</span>
+<span class="p">});</span>
+
+<span class="c1">// object.key == &quot;value&quot;</span>
+</pre></div>
+
+
+<p>When decoding, the value for each key in the map is assigned to the managed object property of the same name. If a key exists in the map and the managed object does not have a property of the same name, a <code>ValidationException</code> will be thrown (this sends a 400 Bad Request response if uncaught). If a value is not the correct type for the property it is being assigned to, the same exception (with a different error message) is thrown.</p>
+<p>To encode a map into a managed object is converted, use the instance method <code>asMap</code>:</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">object</span> <span class="o">=</span> <span class="n">MyManagedObject</span><span class="p">();</span>
+<span class="kd">final</span> <span class="n">map</span> <span class="o">=</span> <span class="n">object</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
+</pre></div>
+
+
+<p>The resulting map will contain the values set on the managed object for keys that match the name of the property.</p>
+<p>The values of a <code>Map</code> equivalent of a managed object are always primitive values that can be encoded as JSON, sent across an isolate, etc. The following shows a table of the</p>
+<table>
+<thead>
+<tr>
+<th>Dart Type</th>
+<th>Serialized Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>int</code></td>
+<td>number (<code>int</code>)</td>
+</tr>
+<tr>
+<td><code>double</code></td>
+<td>number (<code>double</code>)</td>
+</tr>
+<tr>
+<td><code>String</code></td>
+<td>string (<code>String</code>)</td>
+</tr>
+<tr>
+<td><code>DateTime</code></td>
+<td>ISO 8601 Timestamp (<code>String</code>)</td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td>boolean (<code>bool</code>)</td>
+</tr>
+<tr>
+<td><code>Document</code></td>
+<td>map or list (<code>Map&lt;String, dynamic&gt;</code> or <code>List&lt;dynamic&gt;</code>)</td>
+</tr>
+<tr>
+<td>Any <code>enum</code></td>
+<td>string (<code>String</code>)</td>
+</tr>
+<tr>
+<td>Belongs-To or Has-One Relationship</td>
+<td>map (<code>Map&lt;String, dynamic&gt;</code>)</td>
+</tr>
+<tr>
+<td>Has-Many Relationship</td>
+<td>list of maps (<code>List&lt;Map&lt;String, dynamic&gt;&gt;</code>)</td>
+</tr>
+</tbody>
+</table>
+<p>Both <code>asMap</code> and <code>readFromMap</code> are inherited methods from <code>Serializable</code>. As a <code>Serializable</code>, a managed object can be <a href="../../http/resource_controller/">bound to a request body in an <code>ResourceController</code> operation method</a> and <a href="../../http/request_and_response/">encoded as a response body object</a>. For example:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">UserController</span> <span class="kd">extends</span> <span class="n">ResourceController</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">Operation</span><span class="p">.</span><span class="n">post</span><span class="p">()</span>
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">createUser</span><span class="p">(</span><span class="err">@</span><span class="n">Bind</span><span class="p">.</span><span class="n">body</span><span class="p">()</span> <span class="n">User</span> <span class="n">user</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
     <span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
       <span class="p">..</span><span class="n">values</span> <span class="o">=</span> <span class="n">user</span><span class="p">;</span>
 
-    <span class="k">return</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">());</span>
+    <span class="kd">final</span> <span class="n">newUser</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
+
+    <span class="k">return</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">newUser</span><span class="p">);</span>
   <span class="p">}</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>Note that <code>ManagedObject&lt;T&gt;</code>s don't have anything to do with JSON, XML or some other format here. Other parts of Aqueduct manage moving data back and forth between JSON and <code>Map</code>s - <code>ManagedObject&lt;T&gt;</code> doesn't care about the transmission format as long as its a <code>Map</code> or <code>List&lt;Map&gt;</code>.</p>
-<h2 id="null-behavior">Null Behavior</h2>
-<p>It's important to understand how <code>null</code> works when reading from or writing to a <code>Map</code> with a <code>ManagedObject&lt;T&gt;</code>. Consider the following managed object:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{}</span>
-<span class="kd">class</span> <span class="nc">_User</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">primaryKey</span>
-  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
+<p>Also, recall that <code>List&lt;Serializable&gt;</code> can also be bound to a request body or encoded as a response body, and therefore so can <code>List&lt;ManagedObject&gt;</code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Autoincrementing Properties</p>
+<p>Properties that are autoincrementing will never be read from a map from <code>readFromMap</code>.</p>
+</div>
+<h2 id="behavior-of-null-values">Behavior of Null Values</h2>
+<p>A property of a managed object can be null for two reasons: the value is actually null, or the value is not available. For example, when you create a new instance of a managed object, none of its values are available (the object is empty). When encoding an object into a map, only the available values are included and the keys for any unavailable properties are omitted:</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">myObject</span> <span class="o">=</span> <span class="n">MyManagedObject</span><span class="p">();</span> <span class="c1">// empty object</span>
+<span class="n">myObject</span><span class="p">.</span><span class="n">asMap</span><span class="p">()</span> <span class="o">==</span> <span class="p">{};</span> <span class="c1">// true</span>
 
-  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
-<span class="p">}</span>
+<span class="n">myObject</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span><span class="p">;</span>
+<span class="n">myObject</span><span class="p">.</span><span class="n">asMap</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span>
+  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span>
+<span class="p">};</span> <span class="c1">// true</span>
 </pre></div>
 
 
-<p><code>User</code> has two properties, <code>id</code> and <code>name</code>. If we read a <code>User</code> from a <code>Map</code> that does not contain an <code>id</code> key, its <code>id</code> will be null. If we convert <code>User</code> to a <code>Map</code>, the key <code>id</code> will not be present:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
-<span class="p">};</span>
-
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">()..</span><span class="n">readFromMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
-
-<span class="n">user</span><span class="p">.</span><span class="n">id</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
-<span class="n">user</span><span class="p">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Bob&quot;</span><span class="p">;</span> <span class="c1">// yup</span>
-
-<span class="kd">var</span> <span class="n">outUserMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
-<span class="n">outUserMap</span> <span class="o">==</span> <span class="p">{</span>
-  <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
-<span class="p">};</span>
+<p>A value in managed object's <code>asMap</code> will only be null if the property value truly is null:</p>
+<div class="codehilite"><pre><span></span><span class="n">myObject</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+<span class="n">myObject</span><span class="p">.</span><span class="n">asMap</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span>
+  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="kc">null</span>
+<span class="p">};</span> <span class="c1">// true</span>
 </pre></div>
 
 
-<p>However, if we read <code>User</code> from a <code>Map</code> where the <code>id</code> key is the <em>value</em> null, when we transform it back to a <code>Map</code> the <code>id</code> is present and its value is null:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s2">&quot;id&quot;</span> <span class="o">:</span> <span class="kc">null</span>
-  <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
-<span class="p">};</span>
+<p>A property value becomes available when it is set through an accessor of the object, when invoking <code>readFromMap</code> with a map that contains the associated key, or when using a fetch <code>Query</code> that fetches the associated column.</p>
+<h2 id="behavior-of-transient-properties">Behavior of Transient Properties</h2>
+<p>By default, transient properties - those declared in the managed object subclass, not the table definition - are <em>not</em> included in an object's <code>asMap()</code>. The <code>Serialize</code> annotation allows a transient property to be included in this map.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Employee</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Employee</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Employee</span> <span class="p">{</span>
+  <span class="kt">int</span> <span class="n">a</span><span class="p">;</span> <span class="c1">// NOT included in asMap, NOT read in readFromMap</span>
 
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">()..</span><span class="n">readFromMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
-
-<span class="n">user</span><span class="p">.</span><span class="n">id</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
-<span class="n">user</span><span class="p">.</span><span class="n">name</span> <span class="o">==</span> <span class="s2">&quot;Bob&quot;</span><span class="p">;</span> <span class="c1">// yup</span>
-
-<span class="kd">var</span> <span class="n">outUserMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
-<span class="n">outUserMap</span> <span class="o">==</span> <span class="p">{</span>
-  <span class="s2">&quot;id&quot;</span> <span class="o">:</span> <span class="kc">null</span>
-  <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;Bob&quot;</span>
-<span class="p">};</span>
-</pre></div>
-
-
-<p>A <code>ManagedObject&lt;T&gt;</code> like <code>User</code> makes the distinction between a value that is <code>null</code> and a value that it <em>doesn't have enough information for</em>. A property of a <code>ManagedObject&lt;T&gt;</code> can get set in three ways: it is read from a map, its setter is invoked or it is read from the database. In all three of these situations, not every property is available. This is no more obvious than when  creating a brand new instance:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">();</span>
-<span class="n">user</span><span class="p">.</span><span class="n">id</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
-<span class="n">user</span><span class="p">.</span><span class="n">name</span> <span class="o">==</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// yup</span>
-
-<span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">()</span> <span class="o">==</span> <span class="p">{};</span> <span class="c1">// yup</span>
-</pre></div>
-
-
-<p>A <code>ManagedObject&lt;T&gt;</code> will not include keys in its <code>asMap()</code> if it doesn't have a value for them. The value may exist somewhere else - like in the database - but if it doesn't have it, it won't include it. This distinction is useful information for clients of Aqueduct applications.</p>
-<p>So what about values that are actually <code>null</code>? A property with the value <code>null</code> will be included in <code>asMap()</code> if its been read from the database, read using <code>readFromMap()</code> or explicitly assigned with a setter. The following three user objects will all have <code>{"name": null}</code>:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">user1</span> <span class="o">=</span> <span class="n">User</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span>
-  <span class="p">..</span><span class="n">name</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
-
-<span class="kd">var</span> <span class="n">user2</span> <span class="o">=</span> <span class="n">User</span><span class="p">()..</span><span class="n">readFromMap</span><span class="p">({</span>
-  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">2</span>
-  <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="kc">null</span>
-<span class="p">});</span>
-
-<span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">where</span><span class="p">((</span><span class="n">u</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">u</span><span class="p">.</span><span class="n">id</span><span class="p">).</span><span class="n">equalTo</span><span class="p">(</span><span class="m">3</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">where</span><span class="p">((</span><span class="n">u</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">u</span><span class="p">.</span><span class="n">name</span><span class="p">).</span><span class="n">isNull</span><span class="p">();</span>
-<span class="kd">var</span> <span class="n">user3</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
-</pre></div>
-
-
-<p>Note that an unset value that is returned from a getter will be <code>null</code>. If using an object's values to perform some calculation, it's your job to know if the value has been fetched or not. (While <code>ManagedObject&lt;T&gt;.hasValueForProperty()</code> checks this at runtime, that isn't a good practice.)</p>
-<p>One last thing to note: if you wish to remove a value from a <code>ManagedObject&lt;T&gt;</code>s storage (and likewise, its <code>asMap()</code>), you must use <code>ManagedObject&lt;T&gt;.removePropertyFromBackingMap()</code>.</p>
-<p>It is helpful to think of a <code>ManagedObject&lt;T&gt;</code> as a proxy to a database row that may or may not exist yet, and may have less data than actually exists in the database row.</p>
-<h3 id="transient-properties-and-serializationdeserialization">Transient Properties and Serialization/Deserialization</h3>
-<p>By default, transient properties and getters - those declared in the subclass of <code>ManagedObject&lt;T&gt;</code> - are <em>not</em> included in the <code>asMap()</code>. (Setters are obviously not included, as you can't get a value from them.) To include a transient property or getter in <code>asMap()</code>, you may mark it with <code>@Serialize()</code> metadata. Properties marked with this metadata will be included in <code>asMap()</code> if and only if they are not null. A good reason to use this feature is when you want to provide a value to the consumer of the API that is derived from persistent properties:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">Serialize</span><span class="p">()</span>
-  <span class="kt">String</span> <span class="kd">get</span> <span class="n">fullName</span> <span class="o">=&gt;</span> <span class="s2">&quot;</span><span class="si">$</span><span class="n">firstName</span><span class="s2"> </span><span class="si">$</span><span class="n">lastName</span><span class="s2">&quot;</span><span class="p">;</span>
-<span class="p">}</span>
+  <span class="kt">int</span> <span class="n">b</span><span class="p">;</span> <span class="c1">// included in asMap, read in readFromMap</span>
 
-<span class="kd">class</span> <span class="nc">_User</span> <span class="p">{</span>
-  <span class="kt">String</span> <span class="n">firstName</span><span class="p">;</span>
-  <span class="kt">String</span> <span class="n">lastName</span><span class="p">;</span>
-
-  <span class="p">...</span>
-<span class="p">}</span>
-
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">firstName</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span>
-  <span class="p">..</span><span class="n">lastName</span> <span class="o">=</span> <span class="s2">&quot;Boberson&quot;</span><span class="p">;</span>
-
-<span class="kd">var</span> <span class="n">map</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
-<span class="n">map</span> <span class="o">==</span> <span class="p">{</span>
-  <span class="s1">&#39;firstName&#39;</span> <span class="o">:</span> <span class="s1">&#39;Bob&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;lastName&#39;</span> <span class="o">:</span> <span class="s1">&#39;Boberson&#39;</span><span class="p">,</span>
-  <span class="s1">&#39;fullName&#39;</span> <span class="o">:</span> <span class="s1">&#39;Bob Boberson&#39;</span>
-<span class="p">};</span>
-</pre></div>
-
-
-<p>Transient properties with this annotation may also be used as inputs when reading with <code>readFromMap()</code>. For example, consider how to handle user passwords. A password is not stored in plain-text in a database, but they are sent in requests. Thus, a password could read from a request body, but it needs to be salted, hashed and stored in two columns in the database. An instance type could then define a password property, which automatically set the salt and hash of the password in the table definition:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">Serialize</span><span class="p">()</span>
-  <span class="kt">void</span> <span class="kd">set</span> <span class="n">password</span><span class="p">(</span><span class="kt">String</span> <span class="n">pw</span><span class="p">)</span> <span class="p">{</span>
-    <span class="n">salt</span> <span class="o">=</span> <span class="n">generateSalt</span><span class="p">();</span>
-    <span class="n">hashedPassword</span> <span class="o">=</span> <span class="n">hash</span><span class="p">(</span><span class="n">pw</span><span class="p">,</span> <span class="n">salt</span><span class="p">);</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-<span class="kd">class</span> <span class="nc">_User</span> <span class="p">{</span>
-  <span class="kt">String</span> <span class="n">salt</span><span class="p">;</span>
-  <span class="kt">String</span> <span class="n">hashedPassword</span><span class="p">;</span>
-  <span class="p">...</span>
-<span class="p">}</span>
-
-<span class="kd">var</span> <span class="n">map</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s1">&#39;password&#39;</span> <span class="o">:</span> <span class="s1">&#39;mypassword&#39;</span>
-<span class="p">};</span>
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">()..</span><span class="n">readFromMap</span><span class="p">(</span><span class="n">map</span><span class="p">);</span>
-<span class="kd">var</span> <span class="n">salt</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">salt</span><span class="p">;</span> <span class="c1">// &#39;somerandomstring&#39;</span>
-<span class="kd">var</span> <span class="n">hashedPassword</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">hashedPassword</span><span class="p">;</span> <span class="c1">// &#39;somehashedstring&#39;</span>
-
-<span class="kd">var</span> <span class="n">password</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">password</span><span class="p">;</span> <span class="c1">// Analyzer error - user.password doesn&#39;t exist!</span>
-</pre></div>
-
-
-<p>A transient property can also be used only when reading or only when writing.</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">Serialize</span><span class="p">(</span><span class="nl">input:</span> <span class="kc">true</span><span class="p">,</span> <span class="nl">output:</span> <span class="kc">false</span><span class="p">)</span>
-  <span class="kt">String</span> <span class="n">readable</span><span class="p">;</span> <span class="c1">// Can be readFromMap, but not emitted in asMap</span>
+  <span class="kt">int</span> <span class="n">c</span><span class="p">;</span> <span class="c1">// NOT included in asMap, read in readFromMap</span>
 
   <span class="err">@</span><span class="n">Serialize</span><span class="p">(</span><span class="nl">input:</span> <span class="kc">false</span><span class="p">,</span> <span class="nl">output:</span> <span class="kc">true</span><span class="p">)</span>
-  <span class="kt">String</span> <span class="n">writable</span><span class="p">;</span> <span class="c1">// Is emitted in asMap, but cannot be readFromMap.</span>
+  <span class="kt">int</span> <span class="n">d</span><span class="p">;</span> <span class="c1">// included in asMap, NOT read in readFromMap</span>
+<span class="p">}</span>
+
+<span class="kd">class</span> <span class="nc">_Employee</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">primaryKey</span>
+  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<p>Also, a separate getter and setter may exist for the same name to allow both input and output:</p>
+<p>A separate getter and setter may exist instead of a property. Getters with the <code>Serialize</code> annotation will be written in <code>asMap</code> and setters with the annotation will be read in <code>readFromMap</code>.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">Serialize</span><span class="p">()</span>
-  <span class="kt">void</span> <span class="kd">set</span> <span class="n">transientValue</span><span class="p">(</span><span class="kt">String</span> <span class="n">s</span><span class="p">)</span> <span class="p">{</span>
+  <span class="kd">set</span> <span class="n">transientValue</span><span class="p">(</span><span class="kt">String</span> <span class="n">s</span><span class="p">)</span> <span class="p">{</span>
     <span class="p">...</span>
   <span class="p">}</span>
 
@@ -1562,130 +1526,41 @@
 </pre></div>
 
 
-<p>On a related note, persistent properties are always included in <code>asMap()</code> by default, but can be omitted by adding <code>Column</code> metadata with the <code>omitByDefault</code> option:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_User</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">Column</span><span class="p">(</span><span class="nl">omitByDefault:</span> <span class="kc">true</span><span class="p">)</span>
-  <span class="kt">String</span> <span class="n">salt</span><span class="p">;</span>
-
-  <span class="err">@</span><span class="n">Column</span><span class="p">(</span><span class="nl">omitByDefault:</span> <span class="kc">true</span><span class="p">)</span>
-  <span class="kt">String</span> <span class="n">hashedPassword</span><span class="p">;</span>
-  <span class="p">...</span>
+<p>A transient property's key will not be present in <code>asMap()</code> if its value is null.</p>
+<h2 id="behavior-of-relationship-properties">Behavior of Relationship Properties</h2>
+<p>When a managed object is encoded, relationship properties are represented as maps (for belongs-to or has-one relationships) or a list of maps (for has-many relationships). The same rules for property availability apply to relationship properties. The following shows an example map that mirrors a managed object with aptly named relationship properties:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
+  <span class="s2">&quot;belongsTo&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;hasOne&quot;</span><span class="o">:</span> <span class="p">{</span>
+    <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">2</span><span class="p">,</span>
+    <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Fred&quot;</span>
+  <span class="p">},</span>
+  <span class="s2">&quot;hasMany&quot;</span><span class="o">:</span> <span class="p">[</span>
+    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">3</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">},</span>
+    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">4</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Joe&quot;</span><span class="p">},</span>
+  <span class="p">]</span>
 <span class="p">}</span>
 </pre></div>
 
 
-<h3 id="serialization-and-deserialization-of-relationship-properties">Serialization and Deserialization of Relationship Properties</h3>
-<p>Relationship properties - references to other <code>ManagedObject&lt;T&gt;</code> subclasses - can also be included in <code>asMap()</code> and read from <code>readFromMap()</code>. Relationship properties are populated when using <code>Query.join</code> - aka, a SQL JOIN.</p>
-<p>If a relationship property has been set or read from the database, its <code>asMap()</code> will contain the nested <code>Map</code> produced by the related objects <code>asMap()</code>. For example, recall the <code>User</code> with a <code>job</code>:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">job</span> <span class="o">=</span> <span class="n">Job</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">title</span> <span class="o">=</span> <span class="s2">&quot;Programmer&quot;</span><span class="p">;</span>
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span>
-  <span class="p">..</span><span class="n">job</span> <span class="o">=</span> <span class="n">job</span><span class="p">;</span>
-
-<span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
-<span class="n">userMap</span> <span class="o">==</span> <span class="p">{</span>
-  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
-  <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;job&quot;</span><span class="o">:</span> <span class="p">{</span>
-    <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span>
-    <span class="s2">&quot;title&quot;</span><span class="o">:</span> <span class="s2">&quot;Programmer&quot;</span>
-  <span class="p">}</span>
-<span class="p">};</span> <span class="c1">// yup</span>
-</pre></div>
-
-
-<p>Notice that the names of the keys - including relationship properties and properties of the related object - all match the names of their declared properties.</p>
-<p>It's important to note that "belongs to" relationships - those with <code>Relate</code> metadata - are always returned in <code>asMap()</code> when fetching an object from the database. However, the full object is not returned - only its primary key. Therefore, you will get the following result:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">jobQuery</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Job</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
-<span class="kd">var</span> <span class="n">job</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">jobQuery</span><span class="p">.</span><span class="n">fetchOne</span><span class="p">();</span>
-
-<span class="n">job</span><span class="p">.</span><span class="n">asMap</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span>
-  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
-  <span class="s2">&quot;title&quot;</span><span class="o">:</span> <span class="s2">&quot;Programmer&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;user&quot;</span><span class="o">:</span> <span class="p">{</span>
+<p>A belongs-to relationship is <em>always</em> a map. This is important for client applications that will often create or update an object's belongs-to relationships. For example, a client wishing to create a child named Timmy with the parent that has <code>id == 1</code> would send the following JSON:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Timmy&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;parent&quot;</span><span class="o">:</span> <span class="p">{</span>
     <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span>
   <span class="p">}</span>
-<span class="p">};</span> <span class="c1">// yup</span>
+<span class="p">}</span>
 </pre></div>
 
 
-<p>This behavior might be different than some ORMs, which may collapse the <code>user</code> into a scalar <code>user_id</code>:</p>
-<div class="codehilite"><pre><span></span><span class="n">job</span><span class="p">.</span><span class="n">asMap</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span>
-  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
-  <span class="s2">&quot;title&quot;</span><span class="o">:</span> <span class="s2">&quot;Programmer&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;user_id&quot;</span><span class="o">:</span> <span class="m">1</span>
-<span class="p">};</span> <span class="c1">// nope</span>
-</pre></div>
-
-
-<p>Aqueduct treats relationships consistently and chooses not to expose any of the underlying database details to the API consumer. An iOS app, for example, shouldn't care - a relationship could be maintained by foreign key references or by witchcraft. The interesting piece to the API consumer is that job's have a user, and user's have a job.</p>
-<p>"Has-many" relationships, which are represented as <code>ManagedSet&lt;T&gt;</code>s, are written as <code>List&lt;Map&gt;</code>s in <code>asMap()</code>.</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span><span class="p">;</span>
-  <span class="p">..</span><span class="n">posts</span> <span class="o">=</span> <span class="n">ManagedSet</span><span class="p">.</span><span class="n">from</span><span class="p">([</span>
-      <span class="n">Post</span><span class="p">()..</span><span class="n">id</span> <span class="o">=</span> <span class="m">2</span><span class="p">,</span>
-      <span class="n">Post</span><span class="p">()..</span><span class="n">id</span> <span class="o">=</span> <span class="m">3</span>
-  <span class="p">]);</span>
-
-<span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">();</span>
-<span class="n">userMap</span> <span class="o">==</span> <span class="p">{</span>
-  <span class="s1">&#39;id&#39;</span> <span class="o">:</span> <span class="m">1</span><span class="p">,</span>
-  <span class="s1">&#39;posts&#39;</span> <span class="o">:</span> <span class="p">[</span>
-    <span class="p">{</span>
-      <span class="s1">&#39;id&#39;</span> <span class="o">:</span> <span class="m">2</span>
-    <span class="p">},</span>
-    <span class="p">{</span>
-      <span class="s1">&#39;id&#39;</span> <span class="o">:</span> <span class="m">3</span>
-    <span class="p">}</span>
-  <span class="p">]</span>
-<span class="p">};</span>
-</pre></div>
-
-
-<p>It is important to note the potential for cyclic object graphs. Since all relationship properties are two-sided, the two properties in that relationship are references to one another. That is, you could do something like this:</p>
-<div class="codehilite"><pre><span></span><span class="n">identical</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">profile</span><span class="p">.</span><span class="n">user</span><span class="p">,</span> <span class="n">user</span><span class="p">);</span>
-<span class="n">identical</span><span class="p">(</span><span class="n">user</span><span class="p">.</span><span class="n">posts</span><span class="p">.</span><span class="n">first</span><span class="p">.</span><span class="n">user</span><span class="p">,</span> <span class="n">user</span><span class="p">);</span>
-</pre></div>
-
-
-<p>When fetching objects from a database, this won't happen - Aqueduct will create multiple instances of the same row when necessary to avoid this. Therefore, the previous code snippet would not be true, but the following two statements that check the values inside those objects would be:</p>
-<div class="codehilite"><pre><span></span>user.profile.user.id == user.id;
-
-user.posts.first.user.id == user.id
-</pre></div>
-
-
-<p>While managed objects from a database will not have cyclic references, managed objects you instantiate yourself can if you mistakenly do so. When you invoke <code>asMap()</code> on a cyclic graph, you'll get a stack overflow error. It's best to avoid creating cyclic graphs altogether. For example:</p>
-<div class="codehilite"><pre><span></span><span class="c1">// do:</span>
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">();</span>
-<span class="n">posts</span><span class="p">.</span><span class="n">forEach</span><span class="p">((</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">p</span><span class="p">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">()..</span><span class="n">id</span> <span class="o">=</span> <span class="n">user</span><span class="p">.</span><span class="n">id</span><span class="p">;</span>
-<span class="p">});</span>
-
-<span class="c1">// do not:</span>
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">();</span>
-<span class="n">posts</span><span class="p">.</span><span class="n">forEach</span><span class="p">((</span><span class="n">p</span><span class="p">)</span> <span class="p">{</span>
-  <span class="n">p</span><span class="p">.</span><span class="n">user</span> <span class="o">=</span> <span class="n">user</span><span class="p">;</span>
-<span class="p">});</span>
-</pre></div>
-
-
-<p>When reading the values of a <code>ManagedObject&lt;T&gt;</code> with <code>readFromMap()</code>, relationship properties must also be represented as nested <code>Map</code>s or <code>List&lt;Map&gt;</code>. Thus:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">userMap</span> <span class="o">=</span> <span class="p">{</span>
-  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
-  <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;posts&quot;</span><span class="o">:</span> <span class="p">[</span>
-    <span class="p">{</span><span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span> <span class="s2">&quot;text&quot;</span><span class="o">:</span> <span class="s2">&quot;hello&quot;</span><span class="p">}</span>
-  <span class="p">]</span>
-<span class="p">};</span>
-
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">()..</span><span class="n">readFromMap</span><span class="p">(</span><span class="n">userMap</span><span class="p">);</span>
-<span class="n">user</span><span class="p">.</span><span class="n">posts</span> <span class="o">==</span> <span class="n">ManagedSet</span><span class="o">&lt;</span><span class="n">Post</span><span class="o">&gt;</span><span class="p">[</span>
-  <span class="n">Post</span><span class="p">()</span>
-    <span class="p">..</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span>
-    <span class="p">..</span><span class="n">text</span> <span class="o">=</span> <span class="s2">&quot;hello&quot;</span>
-<span class="p">];</span> <span class="c1">// yup, other Post doesn&#39;t implement == to check property equality</span>
+<p>This is different from some frameworks that would flatten this structure, e.g.:</p>
+<div class="codehilite"><pre><span></span><span class="p">{</span>
+  <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Timmy&quot;</span><span class="p">,</span>
+  <span class="s2">&quot;parent_id&quot;</span><span class="o">:</span> <span class="m">1</span>
+<span class="p">}</span>
 </pre></div>
                 
                   
@@ -1705,7 +1580,7 @@ user.posts.first.user.id == user.id
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../modeling_data/" title="Modeling Data" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../modeling_data/" title="Modeling Data and Relationships" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -1714,19 +1589,19 @@ user.posts.first.user.id == user.id
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Modeling Data
+                Modeling Data and Relationships
               </span>
             </div>
           </a>
         
         
-          <a href="../executing_queries/" title="Executing Queries" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../executing_queries/" title="Basic Queries" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Executing Queries
+                Basic Queries
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">

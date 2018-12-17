@@ -582,8 +582,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
-      Request and Response Objects; Serialization
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
     </a>
   </li>
 
@@ -704,8 +704,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../modeling_data/" title="Modeling Data" class="md-nav__link">
-      Modeling Data
+    <a href="../modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
+      Modeling Data and Relationships
     </a>
   </li>
 
@@ -716,8 +716,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
-      Storage, Serialization and Deserialization
+    <a href="../serialization/" title="Serialization and Deserialization" class="md-nav__link">
+      Serialization and Deserialization
     </a>
   </li>
 
@@ -728,8 +728,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../executing_queries/" title="Executing Queries" class="md-nav__link">
-      Executing Queries
+    <a href="../executing_queries/" title="Basic Queries" class="md-nav__link">
+      Basic Queries
     </a>
   </li>
 
@@ -831,13 +831,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#executing-migration-files" title="Executing Migration Files" class="md-nav__link">
-    Executing Migration Files
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#getting-a-databases-version" title="Getting a Database's Version" class="md-nav__link">
     Getting a Database's Version
   </a>
@@ -845,9 +838,36 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#upgrading-a-database-schema-by-executing-migration-files" title="Upgrading a Database Schema by Executing Migration Files" class="md-nav__link">
+    Upgrading a Database Schema by Executing Migration Files
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#when-to-execute-migration-files" title="When to Execute Migration Files" class="md-nav__link">
     When to Execute Migration Files
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seeding-data" title="Seeding Data" class="md-nav__link">
+    Seeding Data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handling-non-nullable-additions" title="Handling Non-nullable Additions" class="md-nav__link">
+    Handling Non-nullable Additions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -868,18 +888,6 @@
   <li class="md-nav__item">
     <a href="../json_columns/" title="JSON Document Storage" class="md-nav__link">
       JSON Document Storage
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../transactions/" title="Transactions" class="md-nav__link">
-      Transactions
     </a>
   </li>
 
@@ -1399,13 +1407,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#executing-migration-files" title="Executing Migration Files" class="md-nav__link">
-    Executing Migration Files
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#getting-a-databases-version" title="Getting a Database's Version" class="md-nav__link">
     Getting a Database's Version
   </a>
@@ -1413,9 +1414,36 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#upgrading-a-database-schema-by-executing-migration-files" title="Upgrading a Database Schema by Executing Migration Files" class="md-nav__link">
+    Upgrading a Database Schema by Executing Migration Files
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
   <a href="#when-to-execute-migration-files" title="When to Execute Migration Files" class="md-nav__link">
     When to Execute Migration Files
   </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#seeding-data" title="Seeding Data" class="md-nav__link">
+    Seeding Data
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#handling-non-nullable-additions" title="Handling Non-nullable Additions" class="md-nav__link">
+    Handling Non-nullable Additions
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1437,39 +1465,42 @@
                 
                 
                 <h1 id="database-migration-and-tooling">Database Migration and Tooling</h1>
-<p>The <code>aqueduct db</code> command line tool creates and executes <em>migration files</em>. A migration file contains SQL commands that create and modify database tables to match your application's data model.</p>
+<p>The <code>aqueduct db</code> command line tool creates and executes <em>migration files</em>. A migration file contains Dart code that executes SQL commands to create and modify database tables. </p>
 <div class="admonition warning">
 <p class="admonition-title">PostgreSQL 9.6 and Greater</p>
 <p>The minimum version of PostgreSQL needed to work with Aqueduct is 9.6.</p>
 </div>
 <h2 id="migration-files">Migration Files</h2>
-<p>Database tables are described by <code>ManagedObject&lt;T&gt;</code> subclasses and their table definition. Migration files describe a series of database commands that will create or modify a database schema to match an application's <code>ManagedObject&lt;T&gt;</code> declarations. Migration files are executed on a database when an application is first deployed and when changes to the data model occur - like adding new <code>ManagedObject&lt;T&gt;</code> subclasses or changing the name of a <code>ManagedObject&lt;T&gt;</code> property.</p>
-<p>Each migration file contains only the changes made since the last migration file was generated. For example, let's say that version 1 of your application has two <code>ManagedObject&lt;T&gt;</code> subclasses, <code>User</code> and <code>Post</code>. Before you launch, you create a migration file that creates two tables, one for <code>User</code> and one for <code>Post</code>. A month later, you have developed version 1.1 of your application and now you have a third <code>ManagedObject&lt;T&gt;</code> named <code>Location</code>. Prior to deploying version 1.1, you generate a new migration file and execute it. This migration file only contains instructions to create a table for <code>Location</code>. The 'final product' of your database is the sum of both migration files.</p>
-<p>For this reason, migrations files should be stored in source control.</p>
+<p>An application's data model is described by its <code>ManagedObject&lt;T&gt;</code> subclasses and their <a href="../modeling_data/">table definition</a>. Migration files describe a series of database commands that will create or modify a database schema to match an application's data model. Migration files are executed on a database when an application is first deployed and when changes to the data model occur - like adding new <code>ManagedObject&lt;T&gt;</code> subclasses or adding an database index to a property.</p>
+<p>A migration file is automatically generated from your code. Each migration file contains only the changes made since the last migration file was generated. For example, if you began your application with a <code>Author</code> type and generated a migration file, the migration file would create the author table. If you then added a <code>Book</code> type generated a new migration file, the new file would only create the book table. When a migration is used to upgrade a database schema, every migration file that has not yet been run will be run.</p>
+<p>Migration files must be stored in version control so that you can manage multiple databases for different environments.</p>
 <h2 id="generating-migration-files">Generating Migration Files</h2>
-<p>Migration files are automatically generated by running <code>aqueduct db generate</code> in an Aqueduct project directory. This tool finds every <code>ManagedObject&lt;T&gt;</code> subclass and adds commands to the migration file to create a database table that matches its declaration. When subsequent migration files are generated, the difference between the schema created by existing migration files is compared to the current schema declared in an application's code. The commands to rectify those differences are added to the new migration file.</p>
-<p>This tool will find <code>ManagedObject&lt;T&gt;</code> subclasses in an application. As a convention, every <code>ManagedObject&lt;T&gt;</code> subclass is declared in its own file in <code>lib/model/</code>. For example, a <code>User</code> class is defined in <code>lib/model/user.dart</code>.</p>
-<p>Migration files are stored in an application's <code>migrations</code> directory. Migration files are prefixed with a version number, a "0" padded eight digit number, ad suffixed with <code>.migration.dart</code>. For example, <code>00000001_initial.migration.dart</code> is a migration filename. The version number portion of the filename is required, as is the <code>.migration.dart</code> suffix. The underscore and remainder of the filename are optional and have no effect, they are just a way to name the file. Here is an example of two migration file names:</p>
+<p>The <code>aqueduct db generate</code> command generates a new migration file. This tool finds all <code>ManagedObject&lt;T&gt;</code> subclasses - your data model - in your application and compares them to the data model the last time the tool was run. Any differences between the data models are represented as a command in the generated migration file. If the new migration file were to be used to upgrade a database, the database would match the current data model in your application.</p>
+<div class="admonition note">
+<p class="admonition-title">Finding ManagedObjects<p>A managed object subclass must be directly or transitively imported into your application channel file. A file in your project directory that is not imported will not be found. There is typically no need to import a managed object subclass file directly: your application is initialized in your channel, where imports all of your controllers and services, which in turn import the managed object subclasses they use. As long as you are using your managed object declarations in your application, they'll be found.</p>
+</p>
+</div>
+<p>Migration files are stored in an project's <code>migrations/</code> directory. Migration files are prefixed with a version number, a "0" padded eight digit number, ad suffixed with <code>.migration.dart</code>. For example, <code>00000001_initial.migration.dart</code> is a migration filename. The version number portion of the filename is required, as is the <code>.migration.dart</code> suffix. The underscore and remainder of the filename are optional and have no effect, they are just a way to name the file. Here is an example of two migration file names:</p>
 <div class="codehilite"><pre><span></span>00000001_initial.migration.dart
 00000002_add_user_nickname.migration.dart
 </pre></div>
 
 
-<p>The version number of migration files indicate the order in which they are applied. Leading zeros are stripped from the filenames before their version numbers are compared. Version numbers do not necessarily have to be continuous, but doing otherwise is not recommended.</p>
-<p>Migration files may be created manually or altered after they are generated by <code>aqueduct db generate</code>. A migration file's <code>Migration.upgrade</code> method makes calls to <code>Migration.database</code> (an instance of <code>SchemaBuilder</code>) property to add, remove, and modify tables and columns. Each method invocation creates one or more SQL commands. When a migration file is executed, its <code>upgrade</code> method is invoked and each command is collected and run within a transaction. The commands are executed in order, and it's important to note that the order often matters.</p>
-<p>There are scenarios where there are more than one operation can rectify a change in the data model. It is important to review migration files after they have been generated to ensure the expected behavior.</p>
+<p>The version number of migration files indicate the order in which they are applied. Leading zeros are stripped from the filenames before their version numbers are compared. Version numbers do not necessarily have to be continuous, but doing otherwise is not recommended. Migration files may be created altered after they are generated (see <a href="#seeding-data">seeding data</a>).</p>
 <h2 id="validating-migration-files">Validating Migration Files</h2>
-<p>Migration files may be altered after they have been generated. This is often the case if <code>aqueduct db generate</code> can't say for certain how a database should change. For example, is renaming a property just renaming a column, or is it deleting a column and creating a new column? The <code>aqueduct db validate</code> tool ensures that the database schema after running all migration files matches the database schema declared by an application's <code>ManagedObject&lt;T&gt;</code>s. Any generated migration file will pass <code>aqueduct db validate</code>. The validate tool will display differences found between the schema in code and the schema created by migration files.</p>
+<p>The <code>aqueduct db validate</code> tool validates that the database schema after running all migration files matches the application's data model. The validate tool will display differences found between the schema in code and the schema created by migration files.</p>
 <h2 id="listing-migration-files">Listing Migration Files</h2>
 <p>Use <code>aqueduct db list</code> to list all database migration files and their resolved version number.</p>
-<h2 id="executing-migration-files">Executing Migration Files</h2>
-<p>The tool <code>aqueduct db upgrade</code> will apply migration files to a running database. This tool is run in an application's directory and finds migration files in the <code>migrations</code> directory. The connection info for a the running database is provided with the <code>--connect</code> option. For example, the following would execute migration files on a PostgreSQL database:</p>
+<h2 id="getting-a-databases-version">Getting a Database's Version</h2>
+<p>You can fetch a database's current version number with <code>aqueduct db get-version</code>. This command takes <code>--connect</code> or a <code>database.yaml</code> file as described in the next section to get connection info for the database.</p>
+<h2 id="upgrading-a-database-schema-by-executing-migration-files">Upgrading a Database Schema by Executing Migration Files</h2>
+<p>The tool <code>aqueduct db upgrade</code> will apply the commands of migration files to a running database. This tool is run in an application's directory and database connection info is provided with the <code>--connect</code> option. For example, the following would execute the current project directory's migration files on a PostgreSQL database:</p>
 <div class="codehilite"><pre><span></span>aqueduct db upgrade --connect postgres://username:password@localhost:5432/my_application
 </pre></div>
 
 
-<p>The first time <code>aqueduct db upgrade</code> is executed, it creates a version table that keeps the version number and dates of upgrades. When <code>aqueduct db upgrade</code> is ran after the initial migration, the version number is fetched from the database. The tool only runs migration files after the version number stored in the database.</p>
-<p>Connection information can also be stored in a database configuration file named <code>database.yaml</code> in the application directory. If this file exists with the following format, <code>--connect</code> can be omitted and connection information will be read from this file:</p>
+<p>Every migration file that has not yet been run on the targeted database will be run. This tool manages a version table in each database it upgrades that allows it to determine which migration files need to be run.</p>
+<p>Connection information can alternatively be stored in a database configuration file named <code>database.yaml</code> in the application directory. If this file exists with the following format, <code>--connect</code> can be omitted and connection information will be read from this file:</p>
 <div class="codehilite"><pre><span></span>username: &quot;user&quot;
 password: &quot;password&quot;
 host: &quot;host&quot;
@@ -1478,11 +1509,73 @@ databaseName: &quot;database&quot;
 </pre></div>
 
 
-<h2 id="getting-a-databases-version">Getting a Database's Version</h2>
-<p>You can fetch a database's current version number with <code>aqueduct db get-version</code>. This command takes <code>--connect</code> or a <code>database.yaml</code> file as described in the previous section to get connection info for the database.</p>
-<h2 id="when-to-execute-migration-files">When to Execute Migration Files</h2>
+<h3 id="when-to-execute-migration-files">When to Execute Migration Files</h3>
 <p>During development, there is no need to create a migration file for each change. Execute migration files prior to deployment of a new version of an application.</p>
-<p>You may delete migration files. When <code>aqueduct db generate</code> is run again, will replay only the existing migration files before determining which commands to add to the new migration file. For example, if you have 10 migration files over time and delete them all - the next generated migration file will contain commands to recreate the entire database schema.</p>
+<p>You may delete migration files (as long as you haven't ran them on a production database!). When <code>aqueduct db generate</code> is run again, will replay only the existing migration files before determining which commands to add to the new migration file. For example, if you have 10 migration files over time and delete them all - the next generated migration file will contain commands to recreate the entire database schema.</p>
+<h3 id="seeding-data">Seeding Data</h3>
+<p>You may insert, delete, or edit rows during a database migration by overriding its <code>seed</code> method. You must run SQL queries instead of using <code>Query&lt;T&gt;</code> when seeding data. The <code>Migration</code> base class that all of your migrations extends have a property for a <code>PersistentStore</code> connected to the database the migration is being run on.</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Migration2</span> <span class="kd">extends</span> <span class="n">Migration</span> <span class="p">{</span>
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span> <span class="n">upgrade</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span> <span class="n">downgrade</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="p">...</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span> <span class="n">seed</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="kd">await</span> <span class="n">store</span><span class="p">.</span><span class="n">executeQuery</span><span class="p">(</span><span class="s2">&quot;INSERT IN _mytable (a) VALUES (1)&quot;</span><span class="p">);</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>Seeding is ran after a migration's <code>ugprade</code> method has completed. Seeding data also occurs in the same transaction as <code>upgrade</code>.</p>
+<h3 id="handling-non-nullable-additions">Handling Non-nullable Additions</h3>
+<p>Some database upgrades can fail depending on the data currently in the database. A common scenario is adding a property to an existing managed object that is not-nullable. If the database table already has rows, those rows would not have a value for the new column and the migration would fail. If the database does not have any rows, the migration will succeed correctly. If the property has a default value attribute or is auto-incrementing, the migration will always succeed and the existing rows will have the default value for the new column.</p>
+<p>You may also provide a value just for the existing rows to make the migration succeed. This is added as an argument to the schema-altering command that would violate non-nullability:</p>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">override</span>
+<span class="n">Future</span> <span class="n">upgrade</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="n">database</span><span class="p">.</span><span class="n">addColumn</span><span class="p">(</span><span class="s2">&quot;_mytable&quot;</span><span class="p">,</span> <span class="n">SchemaColumn</span><span class="p">(...),</span> <span class="nl">unencodedInitialValue:</span> <span class="s2">&quot;&#39;text&#39;&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+</pre></div>
+
+
+<p>The unencoded initial value is inserted directly into a SQL command. This requires that the value be a SQL value literal as shown in the table:</p>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Unencoded Initial Value</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>int</td>
+<td>"1"</td>
+<td>1</td>
+</tr>
+<tr>
+<td>String</td>
+<td>"'string'"</td>
+<td>'string'</td>
+</tr>
+<tr>
+<td>double</td>
+<td>"2.0"</td>
+<td>2.0</td>
+</tr>
+<tr>
+<td>DateTime</td>
+<td>"'1900-01-02T00:00:00.000Z'"</td>
+<td>1/2/1900</td>
+</tr>
+</tbody>
+</table>
                 
                   
                 

@@ -582,8 +582,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
-      Request and Response Objects; Serialization
+    <a href="../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
     </a>
   </li>
 
@@ -743,8 +743,8 @@
 
 
   <li class="md-nav__item">
-    <a href="modeling_data/" title="Modeling Data" class="md-nav__link">
-      Modeling Data
+    <a href="modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
+      Modeling Data and Relationships
     </a>
   </li>
 
@@ -755,8 +755,8 @@
 
 
   <li class="md-nav__item">
-    <a href="serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
-      Storage, Serialization and Deserialization
+    <a href="serialization/" title="Serialization and Deserialization" class="md-nav__link">
+      Serialization and Deserialization
     </a>
   </li>
 
@@ -767,8 +767,8 @@
 
 
   <li class="md-nav__item">
-    <a href="executing_queries/" title="Executing Queries" class="md-nav__link">
-      Executing Queries
+    <a href="executing_queries/" title="Basic Queries" class="md-nav__link">
+      Basic Queries
     </a>
   </li>
 
@@ -829,18 +829,6 @@
   <li class="md-nav__item">
     <a href="json_columns/" title="JSON Document Storage" class="md-nav__link">
       JSON Document Storage
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="transactions/" title="Transactions" class="md-nav__link">
-      Transactions
     </a>
   </li>
 
@@ -1363,8 +1351,8 @@
                   <h1>Overview</h1>
                 
                 <h2 id="tasks">Tasks</h2>
-<p>Aqueduct's ORM stores data in a database and maps database data to Dart objects.</p>
-<p>You create subclasses of <code>ManagedObject&lt;T&gt;</code> in your application code to define the database tables your application uses. The properties of these types have annotations like <code>Column</code> and <code>Validate</code> to customize the behavior of tables in your database.</p>
+<p>Aqueduct's ORM stores data in database tables and maps table rows to Dart objects.</p>
+<p>You declare subclasses of <code>ManagedObject&lt;T&gt;</code> in your application code to define the database tables your application uses. The properties of these types have annotations like <code>Column</code> and <code>Validate</code> to customize the behavior of tables in your database.</p>
 <p>Your application creates a <code>ManagedContext</code> service object during initialization that manages database access for your application. This service is injected into controllers that make database queries.</p>
 <p>Instances of <code>Query&lt;T&gt;</code> are created to insert, update, read and delete data from a database. A <code>Query&lt;T&gt;</code> has many configurable options for filtering, joining, paging, sorting and performing aggregate functions on database rows.</p>
 <p>The <code>aqueduct db</code> command-line tool manages databases that your application connects. This tool creates and executes migration scripts that update the schema of a database to match the requirements of your application.</p>

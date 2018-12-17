@@ -582,8 +582,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
-      Request and Response Objects; Serialization
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
     </a>
   </li>
 
@@ -702,8 +702,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../db/modeling_data/" title="Modeling Data" class="md-nav__link">
-      Modeling Data
+    <a href="../../db/modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
+      Modeling Data and Relationships
     </a>
   </li>
 
@@ -714,8 +714,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../db/serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
-      Storage, Serialization and Deserialization
+    <a href="../../db/serialization/" title="Serialization and Deserialization" class="md-nav__link">
+      Serialization and Deserialization
     </a>
   </li>
 
@@ -726,8 +726,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../db/executing_queries/" title="Executing Queries" class="md-nav__link">
-      Executing Queries
+    <a href="../../db/executing_queries/" title="Basic Queries" class="md-nav__link">
+      Basic Queries
     </a>
   </li>
 
@@ -788,18 +788,6 @@
   <li class="md-nav__item">
     <a href="../../db/json_columns/" title="JSON Document Storage" class="md-nav__link">
       JSON Document Storage
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../db/transactions/" title="Transactions" class="md-nav__link">
-      Transactions
     </a>
   </li>
 
@@ -1252,9 +1240,36 @@
       
     
     
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        Running Applications
+      </label>
+    
     <a href="./" title="Running Applications" class="md-nav__link md-nav__link--active">
       Running Applications
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hot-reload" title="Hot Reload" class="md-nav__link">
+    Hot Reload
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
     
   </li>
 
@@ -1298,6 +1313,20 @@
     
   
   
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#hot-reload" title="Hot Reload" class="md-nav__link">
+    Hot Reload
+  </a>
+  
+</li>
+      
+      
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1315,6 +1344,10 @@
 <p>The <code>aqueduct serve</code> command-line tool runs applications. This tool is run in a project directory and it generates a Dart script that bootstraps your application.</p>
 <p>The structure of the project does matter - if you are creating a project from the template, the appropriate structure already exists. Otherwise, you must ensure you have a library file with the same name as your application (as defined in <code>pubspec.yaml</code>). For example, an application named <code>todo</code> must have a <code>lib/todo.dart</code> file. This file must import the file that declares your application's <code>ApplicationChannel</code>.</p>
 <p>You may specify options like the number of isolates to run the application on and which port to listen for requests on. See more details with <code>aqueduct serve --help</code>.</p>
+<h2 id="hot-reload">Hot Reload</h2>
+<p>In Flutter, a <em>hot reload</em> restarts an application after a code change, but keeps the state of the application intact - such as which screen the user is on and what data is available in memory. This is an incredible feature for faster development cycles in an environment that can often be difficult to test efficiently.</p>
+<p>Hot reload is often requested as a feature of Aqueduct, but it doesn't quite make sense in an HTTP API which is not supposed to retain state. Truth be told, our team rarely uses a development cycle that involves making frequent code changes to a locally running instance. Instead, we use <code>package:aqueduct_test</code> to ensure all of our testing efforts are captured in automated tests that continually run over the course of the project.</p>
+<p>A shortcut to restart the locally running application after a change is admittedly useful in some scenarios. However, this is already an existing feature of most IDEs and should not be implemented by <code>aqueduct</code>. In IntelliJ, this feature is called 'Rerun' and the default keyboard shortcut is <code>^F5</code> in macOS. To use this shortcut, instead of running with <code>aqueduct serve</code>, right-click on the <code>bin/main.dart</code> script that is generated when you create a new project and select <code>Run</code>. Once this process is running, you can rerun it with <code>^F5</code> or with the Rerun button on the Run panel.</p>
                 
                   
                 

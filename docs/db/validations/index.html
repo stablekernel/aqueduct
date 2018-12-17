@@ -582,8 +582,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
-      Request and Response Objects; Serialization
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
     </a>
   </li>
 
@@ -704,8 +704,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../modeling_data/" title="Modeling Data" class="md-nav__link">
-      Modeling Data
+    <a href="../modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
+      Modeling Data and Relationships
     </a>
   </li>
 
@@ -716,8 +716,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
-      Storage, Serialization and Deserialization
+    <a href="../serialization/" title="Serialization and Deserialization" class="md-nav__link">
+      Serialization and Deserialization
     </a>
   </li>
 
@@ -728,8 +728,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../executing_queries/" title="Executing Queries" class="md-nav__link">
-      Executing Queries
+    <a href="../executing_queries/" title="Basic Queries" class="md-nav__link">
+      Basic Queries
     </a>
   </li>
 
@@ -861,18 +861,6 @@
   <li class="md-nav__item">
     <a href="../json_columns/" title="JSON Document Storage" class="md-nav__link">
       JSON Document Storage
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../transactions/" title="Transactions" class="md-nav__link">
-      Transactions
     </a>
   </li>
 
@@ -1423,7 +1411,7 @@
                 
                 
                 <h1 id="validating-data">Validating Data</h1>
-<p>Data is added to a database through <code>update</code> and <code>insert</code> queries. As part of these two operations, a <code>ManagedObject&lt;T&gt;</code> will ensure that its properties have valid values. For example, a <code>Person</code> object might ensure that its name starts with a capital letter and that its phone number has only numeric values.  If one or more validation fails, the update or insert operation will fail and the data is not sent to the database. A validation failure will throw a <code>QueryException</code>, which automatically sends an HTTP response with error messaging to help the client correct their request.</p>
+<p>Data is added to a database through <code>update</code> and <code>insert</code> queries. As part of these two operations, a <code>ManagedObject&lt;T&gt;</code> will ensure that its properties have valid values. For example, a <code>Person</code> object might ensure that its name starts with a capital letter and that its phone number has only numeric values.  If one or more validation fails, the update or insert operation will fail and the data is not sent to the database. A validation failure will throw a <code>QueryException</code> that returns an HTTP response with error messaging to help the client correct their request.</p>
 <p>The preferred way of setting a validation is to add <code>Validate</code> metadata to properties of a table definition. Here's an example of a validation that ensures a tweet is less than 140 characters:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Tweet</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Tweet</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Tweet</span> <span class="p">{}</span>
 <span class="kd">class</span> <span class="nc">_Tweet</span> <span class="p">{</span>
@@ -1437,7 +1425,7 @@
 
 
 <h3 id="built-in-validators">Built-in Validators</h3>
-<p>There are a handful of built-in validations for common operations. For example, it is common to apply a regular expression to a value to ensure it formatted correctly or restrict the possible values to a list of available options. Common validators are available as named constructors on the <code>Validate</code> class. Here is an example:</p>
+<p>There are a handful of built-in validations for common operations. For example, it is common to apply a regular expression to a value to ensure it formatted correctly or restrict the possible values to a list of available options. Common validators are available as named constructors f the <code>Validate</code> class. Here is an example:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Story</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">primaryKey</span>
   <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
@@ -1454,9 +1442,9 @@
 
 
 <p>See the API reference for <code>Validate</code> and its named constructors for possible options.</p>
-<p><code>Validate</code> metadata on transient properties have no effect. This metadata is only valid for database-backed properties declared in a table definition.</p>
+<p><code>Validate</code> annotations on transient properties have no effect. This annotation is only valid for properties declared in a table definition.</p>
 <h3 id="custom-validators">Custom Validators</h3>
-<p>There will be times where the built-in validators are not sufficient for your application's use case. You may create subclasses of <code>Validate</code> to provide custom validation behavior.For example, a <code>Validate</code> subclass you have declared named <code>ValidatePhoneNumber</code> would be used like so:</p>
+<p>There will be times where the built-in validators are not sufficient for your application's use case. You may create subclasses of <code>Validate</code> to provide custom validation behavior. For example, if there were a <code>ValidatePhoneNumber</code> class:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Person</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">primaryKey</span>
   <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
@@ -1511,7 +1499,7 @@
 
 
 <p>Because <code>email</code> was not set on <code>Query.values</code>, validations will not be run on that property.</p>
-<p>There are two special validators that can require a property to be set, or require that a property <em>not</em> be set. <code>Validate.present()</code> requires that the associated property must have a value. A property with this validator must be provided each time the object is inserted or updated. Like all validators, <code>Validate.present()</code> can be adjusted to be invoked on only inserts or only updates. For example, the following declaration requires that <code>email</code> is set on insertion, but doesn't have to be for updates:</p>
+<p>There are two special validators that can require a property to be set, or require that a property <em>not</em> be set. <code>Validate.present()</code> requires that the associated property must have a value. A property with this validator must be provided each time the object is inserted or updated. For example, the following declaration requires that <code>email</code> is set on insertion, but doesn't have to be for updates:</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">Validate</span><span class="p">.</span><span class="n">present</span><span class="p">(</span><span class="nl">onUpdate:</span> <span class="kc">false</span><span class="p">,</span> <span class="nl">onInsert:</span> <span class="kc">true</span><span class="p">)</span>
 <span class="kt">String</span> <span class="n">email</span><span class="p">;</span>
 </pre></div>
@@ -1592,8 +1580,8 @@
 </tr>
 </tbody>
 </table>
-<p>This behavior allows <code>ManagedObject&lt;T&gt;</code> instances to be partially updated, which also allows for partial PUTs. Partial PUTs can be prevented by adding <code>Validate.present()</code> metadata to all properties. While partial PUTs are not idiomatic REST, they are pragmatic software development.</p>
-<p>This also means that any custom validator can safely assume that a value passed to <code>Validate.validate()</code> is non-null.</p>
+<p>This behavior allows <code>ManagedObject&lt;T&gt;</code> instances to be partially updated, which also allows for partial PUTs. Partial PUTs can be prevented by adding <code>Validate.present()</code> metadata to all properties.</p>
+<p>This also means that any custom validator can assert that a value passed to <code>Validate.validate()</code> is non-null.</p>
 <h3 id="other-validator-behavior">Other Validator Behavior</h3>
 <p>For validators that can't be built by subclassing <code>Validate</code>, you may override <code>ManagedObject&lt;T&gt;.validate()</code>. This method is useful when a validation involves more than one property. Here's an example:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Person</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Person</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Person</span> <span class="p">{</span>
@@ -1613,7 +1601,7 @@
 
 <p>When overriding this method, the <code>super</code> implementation must be invoked to run validations managed by annotations. You must return the <code>ValidationContext</code> created by the superclass' implementation.</p>
 <h3 id="skipping-validations">Skipping Validations</h3>
-<p>Validations are only run when values are set via <code>Query&lt;T&gt;.values</code>. Values set via <code>Query&lt;T&gt;.valueMap</code> are not validated. Therefore, objects should typically be inserted and updated using <code>Query&lt;T&gt;.values</code> unless validation must be ignored. Here's an example of skipping validation:</p>
+<p>Validations are only run when values are set via <code>Query&lt;T&gt;.values</code>. Values set via <code>Query&lt;T&gt;.valueMap</code> are not validated and is useful for inserting data without validation. Here's an example of skipping validation:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Person</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
   <span class="p">..</span><span class="n">valueMap</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;xyz&quot;</span><span class="p">,</span>
@@ -1622,9 +1610,8 @@
 </pre></div>
 
 
-<p>Skipping validation should be rare.</p>
 <h3 id="update-and-insert-callbacks">Update and Insert Callbacks</h3>
-<p><code>ManagedObject&lt;T&gt;</code> subclasses may override <code>willUpdate</code> and <code>willInsert</code> to modify its properties prior to being updated or inserted by a <code>Query&lt;T&gt;</code>. For example, a managed object may have updated and created dates that can be guaranteed to be set when inserted or updated:</p>
+<p><code>ManagedObject&lt;T&gt;</code> subclasses may override <code>willUpdate</code> and <code>willInsert</code> to make changes prior to being updated or inserted. For example, a managed object may have updated and created dates that can be guaranteed to be set when inserted or updated:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Person</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Person</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Person</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">override</span>
   <span class="kt">void</span> <span class="n">willUpdate</span><span class="p">()</span> <span class="p">{</span>
@@ -1647,9 +1634,7 @@
 </pre></div>
 
 
-<p>Note that all operations must be synchronous in these methods.</p>
-<p>Both <code>willUpdate</code> and <code>willInsert</code> are invoked prior the validation phase. Thus, any values set in these methods will be subject to the declared validations of the instance.</p>
-<p>Like validations, <code>willUpdate</code> and <code>willInsert</code>  are skipped when using <code>Query.valueMap</code>.</p>
+<p>Both <code>willUpdate</code> and <code>willInsert</code> are run before any validation occurs. Like validations, <code>willUpdate</code> and <code>willInsert</code> are skipped when using <code>Query.valueMap</code>.</p>
                 
                   
                 

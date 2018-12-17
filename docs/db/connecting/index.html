@@ -582,8 +582,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
-      Request and Response Objects; Serialization
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
     </a>
   </li>
 
@@ -737,6 +737,19 @@
     Using a Configuration File
   </a>
   
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#connection-behavior" title="Connection Behavior" class="md-nav__link">
+    Connection Behavior
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
       
@@ -754,8 +767,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../modeling_data/" title="Modeling Data" class="md-nav__link">
-      Modeling Data
+    <a href="../modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
+      Modeling Data and Relationships
     </a>
   </li>
 
@@ -766,8 +779,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
-      Storage, Serialization and Deserialization
+    <a href="../serialization/" title="Serialization and Deserialization" class="md-nav__link">
+      Serialization and Deserialization
     </a>
   </li>
 
@@ -778,8 +791,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../executing_queries/" title="Executing Queries" class="md-nav__link">
-      Executing Queries
+    <a href="../executing_queries/" title="Basic Queries" class="md-nav__link">
+      Basic Queries
     </a>
   </li>
 
@@ -840,18 +853,6 @@
   <li class="md-nav__item">
     <a href="../json_columns/" title="JSON Document Storage" class="md-nav__link">
       JSON Document Storage
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../transactions/" title="Transactions" class="md-nav__link">
-      Transactions
     </a>
   </li>
 
@@ -1361,6 +1362,19 @@
     Using a Configuration File
   </a>
   
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#connection-behavior" title="Connection Behavior" class="md-nav__link">
+    Connection Behavior
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
       
@@ -1392,12 +1406,13 @@
 
 
 <h2 id="using-managedcontext-to-connect-to-a-database">Using ManagedContext to Connect to a Database</h2>
-<p>The interface to a database from Aqueduct is an instance of <code>ManagedContext</code>, which contains the following two objects:</p>
+<p>The interface to a database from Aqueduct is an instance of <code>ManagedContext</code> that contains the following two objects:</p>
 <ul>
 <li>a <code>ManagedDataModel</code> that describes your application's data model</li>
-<li>a <code>PersistentStore</code> that creates database connections and transmits data across that connection.</li>
+<li>a <code>PersistentStore</code> that manages a connection to a single database</li>
 </ul>
-<p>A <code>ManagedContext</code> uses these two objects to coordinate moving data to and from your application and a database when executing <code>Query&lt;T&gt;</code>s. A <code>ManagedContext</code> - and its store and data model - are created in a <code>ApplicationChannel</code> constructor.</p>
+<p>A <code>ManagedContext</code> uses these two objects to coordinate moving data to and from your application and a database. A<code>Query&lt;T&gt;</code> object uses a context's persistent store to determine which database to send commands to, and a data model to map database rows to objects and vice versa.</p>
+<p>A context, like all service objects, is created in <code>ApplicationChannel.prepare</code>.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyApplicationChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
   <span class="n">ManagedContext</span> <span class="n">context</span><span class="p">;</span>
 
@@ -1413,18 +1428,39 @@
 </pre></div>
 
 
-<p>A <code>ManagedDataModel</code> should be instantiated with its <code>fromCurrentMirrorSystem</code> convenience constructor. You may optionally pass a list of <code>ManagedObject&lt;T&gt;</code> subclasses to its default constructor.</p>
+<p>The <code>ManagedDataModel.fromCurrentMirrorSystem</code> finds every <code>ManagedObject&lt;T&gt;</code> subclass in your application's code. Optionally, you may specify an exact list:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">dataModel</span> <span class="o">=</span> <span class="n">ManagedDataModel</span><span class="p">([</span><span class="n">User</span><span class="p">,</span> <span class="n">Post</span><span class="p">,</span> <span class="n">Friendship</span><span class="p">]);</span>
 </pre></div>
 
 
-<p>A <code>ManagedContext</code> is required to create and execute a <code>Query&lt;T&gt;</code>. The context determines which database the query is executed in. A context must exist before creating instances of any <code>ManagedObject</code> subclass in your application. Controllers that need to execute database queries must have a reference to a context; this is typically accomplished by passing the context to a controller's constructor.</p>
+<div class="admonition note">
+<p class="admonition-title">Finding ManagedObjects<p>A managed object subclass must be directly or transitively imported into your application channel file. A file in your project directory that is not imported will not be found. There is typically no need to import a managed object subclass file directly: your application is initialized in your channel, where imports all of your controllers and services, which in turn import the managed object subclasses they use. As long as you are using your managed object declarations in your application, they'll be found.</p>
+</p>
+</div>
+<p>Controllers that need to execute database queries must have a reference to a context; this is typically accomplished by passing the context to a controller's constructor:</p>
+<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyApplicationChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
+  <span class="n">ManagedContext</span> <span class="n">context</span><span class="p">;</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Future</span> <span class="n">prepare</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+    <span class="n">context</span> <span class="o">=</span> <span class="n">ManagedContext</span><span class="p">(...);</span>
+  <span class="p">}</span>
+
+  <span class="err">@</span><span class="n">override</span>
+  <span class="n">Controller</span> <span class="kd">get</span> <span class="n">entryPoint</span> <span class="p">{</span>
+    <span class="k">return</span> <span class="n">Router</span><span class="p">()</span>
+      <span class="p">..</span><span class="n">route</span><span class="p">(</span><span class="s2">&quot;/users/[:id]&quot;</span><span class="p">).</span><span class="n">link</span><span class="p">(()</span> <span class="o">=&gt;</span> <span class="n">UserController</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
+  <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+
+
 <h2 id="using-a-configuration-file">Using a Configuration File</h2>
-<p>Connection information for a database is most often configured through a configuration file. This allows you to build configurations for different environments (production, testing, etc.), without having to modify code.</p>
+<p>Connection information for a database is most often read from a configuration file. This allows you to create configurations for different environments (production, development, etc.), without having to modify code. This is very important for testing, because you will want to run your automated tests against an empty database. (<a href="../../application/configure/">See more on configuration files.</a>.)</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">MyConfiguration</span> <span class="kd">extends</span> <span class="n">Configuration</span> <span class="p">{</span>
   <span class="n">MyConfiguration</span><span class="p">(</span><span class="kt">String</span> <span class="n">configPath</span><span class="p">)</span> <span class="o">:</span> <span class="k">super</span><span class="p">.</span><span class="n">fromFile</span><span class="p">(</span><span class="n">configPath</span><span class="p">);</span>
 
-  <span class="n">DatabaseConnectionConfiguration</span> <span class="n">database</span><span class="p">;</span>
+  <span class="n">DatabaseConfiguration</span> <span class="n">database</span><span class="p">;</span>
 <span class="p">}</span>
 
 <span class="kd">class</span> <span class="nc">MyApplicationChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
@@ -1448,7 +1484,7 @@
 </pre></div>
 
 
-<p>A YAML configuration file loaded by this application must look like this:</p>
+<p>The declaration of <code>MyConfiguration</code> requires that a YAML file must have the following structure:</p>
 <div class="codehilite"><pre><span></span><span class="n">database</span><span class="o">:</span>
   <span class="n">username</span><span class="o">:</span> <span class="n">bob</span>
   <span class="n">password</span><span class="o">:</span> <span class="n">bobspassword</span>
@@ -1458,7 +1494,8 @@
 </pre></div>
 
 
-<p>A <code>PersistentStore</code> is an interface. Concrete implementations - like <code>PostgreSQLPersistentStore</code> - implement that interface to transmit data to a database in the format it expects. A <code>PostgreSQLPersistentStore</code> will automatically connect and maintain a persistent connection to a database. If the connection is lost for some reason, it will automatically reconnect the next time a query is executed. If a connection cannot be established, an exception is thrown that sends a 503 status code response by default.</p>
+<h3 id="connection-behavior">Connection Behavior</h3>
+<p>A persistent store manages one database connection. This connection is automatically maintained - the first time a query is executed, the connection is opened. If the connection is lost, the next query will reopen the connection. If a connection fails to open, an exception is thrown when trying to execute a query. This connection will return a 503 response if left uncaught.</p>
                 
                   
                 
@@ -1492,13 +1529,13 @@
           </a>
         
         
-          <a href="../modeling_data/" title="Modeling Data" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../modeling_data/" title="Modeling Data and Relationships" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Modeling Data
+                Modeling Data and Relationships
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">

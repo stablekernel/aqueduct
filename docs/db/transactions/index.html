@@ -582,8 +582,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
-      Request and Response Objects; Serialization
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
     </a>
   </li>
 
@@ -704,8 +704,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../modeling_data/" title="Modeling Data" class="md-nav__link">
-      Modeling Data
+    <a href="../modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
+      Modeling Data and Relationships
     </a>
   </li>
 
@@ -716,8 +716,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
-      Storage, Serialization and Deserialization
+    <a href="../serialization/" title="Serialization and Deserialization" class="md-nav__link">
+      Serialization and Deserialization
     </a>
   </li>
 
@@ -728,8 +728,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../executing_queries/" title="Executing Queries" class="md-nav__link">
-      Executing Queries
+    <a href="../executing_queries/" title="Basic Queries" class="md-nav__link">
+      Basic Queries
     </a>
   </li>
 
@@ -742,54 +742,6 @@
   <li class="md-nav__item">
     <a href="../advanced_queries/" title="Advanced Queries" class="md-nav__link">
       Advanced Queries
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="./" title="Transactions" class="md-nav__link">
-      Transactions
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../validations/" title="Validations" class="md-nav__link">
-      Validations
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../db_tools/" title="Migration and Tooling" class="md-nav__link">
-      Migration and Tooling
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../json_columns/" title="JSON Document Storage" class="md-nav__link">
-      JSON Document Storage
     </a>
   </li>
 
@@ -859,6 +811,42 @@
   
 </nav>
     
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../validations/" title="Validations" class="md-nav__link">
+      Validations
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../db_tools/" title="Migration and Tooling" class="md-nav__link">
+      Migration and Tooling
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../json_columns/" title="JSON Document Storage" class="md-nav__link">
+      JSON Document Storage
+    </a>
   </li>
 
         
@@ -1395,9 +1383,10 @@
                 <h1 id="database-transactions">Database Transactions</h1>
 <p>Learn how to execute multiple <code>Query&lt;T&gt;</code>s in a database transaction.</p>
 <h2 id="transactions">Transactions</h2>
-<p>Consider an application that keeps employee records. Each employee belongs to a department. Management decides to combine two departments into a totally new department. To do this, the application must insert a new department, set each employee's foreign key reference to that department, and then delete the old departments. It'd look like this:</p>
+<p>A transaction is a series of queries that are executed together. If one of the queries in that set fails, then all of the queries fail and their changes are reversed if they had already been executed.</p>
+<p>Consider an application that stores employee records. Each employee belongs to a department. Management decides to combine two departments into a totally new department. To do this, the application must insert a new department, set each employee's foreign key reference to that department, and then delete the old departments. An straightforward (but problematic) implementation would look like this:</p>
 <div class="codehilite"><pre><span></span><span class="c1">// Create the new department</span>
-<span class="kd">final</span> <span class="n">newDepartment</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">Query</span><span class="p">.</span><span class="n">insertObject</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="n">Department</span><span class="p">()..</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;New Department&quot;</span><span class="p">);</span>
+<span class="kd">final</span> <span class="n">newDepartment</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">ctx</span><span class="p">.</span><span class="n">insertObject</span><span class="p">(</span><span class="n">Department</span><span class="p">()..</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;New Department&quot;</span><span class="p">);</span>
 
 <span class="c1">// Set employee&#39;s departments to the new one</span>
 <span class="kd">final</span> <span class="n">changeDepartmentQuery</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Employee</span><span class="o">&gt;</span><span class="p">(</span><span class="n">ctx</span><span class="p">)</span>
@@ -1416,7 +1405,7 @@
 <p>A database transaction combines queries together as a single unit. If a query in a transaction fails, the previous queries in that transaction are reverted and the remaining queries are aborted. You create transactions by invoking <code>ManagedContext.transaction</code> and writing your queries in its closure argument.</p>
 <div class="codehilite"><pre><span></span><span class="kd">await</span> <span class="n">context</span><span class="p">.</span><span class="n">transaction</span><span class="p">((</span><span class="n">transaction</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="c1">// note that &#39;transaction&#39; is the context for each of these queries.</span>
-  <span class="kd">final</span> <span class="n">newDepartment</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">Query</span><span class="p">.</span><span class="n">insertObject</span><span class="p">(</span><span class="n">transaction</span><span class="p">,</span> <span class="n">Department</span><span class="p">()..</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;New Department&quot;</span><span class="p">);</span>
+  <span class="kd">final</span> <span class="n">newDepartment</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">transaction</span><span class="p">.</span><span class="n">insertObject</span><span class="p">(</span><span class="n">Department</span><span class="p">()..</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;New Department&quot;</span><span class="p">);</span>
 
   <span class="kd">final</span> <span class="n">changeDepartmentQuery</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Employee</span><span class="o">&gt;</span><span class="p">(</span><span class="n">transaction</span><span class="p">)</span>
     <span class="p">..</span><span class="n">where</span><span class="p">((</span><span class="n">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">e</span><span class="p">.</span><span class="n">department</span><span class="p">.</span><span class="n">id</span><span class="p">).</span><span class="n">oneOf</span><span class="p">([</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">])</span>      
@@ -1425,22 +1414,21 @@
 
   <span class="kd">final</span> <span class="n">deleteDepartmentQuery</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Department</span><span class="o">&gt;</span><span class="p">(</span><span class="n">transaction</span><span class="p">)</span>
     <span class="p">..</span><span class="n">where</span><span class="p">((</span><span class="n">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">e</span><span class="p">.</span><span class="n">department</span><span class="p">.</span><span class="n">id</span><span class="p">).</span><span class="n">oneOf</span><span class="p">([</span><span class="m">1</span><span class="p">,</span> <span class="m">2</span><span class="p">]);</span>
-  <span class="kd">await</span> <span class="n">deleteDepartmentQuery</span><span class="p">();</span>      
+  <span class="kd">await</span> <span class="n">deleteDepartmentQuery</span><span class="p">.</span><span class="n">delete</span><span class="p">();</span>      
 <span class="p">});</span>
 </pre></div>
 
 
-<p>All of the queries in the transaction closure will run in the same transaction. Once they have all succeeded, the <code>transaction</code> method's future completes. If an exception is thrown in the closure, the transaction is rolled back and the <code>transaction</code> method re-throws that exception.</p>
-<p>Notice that the context for each query is the <code>transaction</code> object passed to the transaction closure. You must use this object when using <code>Query</code> in a transaction closure.</p>
+<p>The closure has a <code>transaction</code> object that all queries in the transaction must use as their context. Queries that use this transaction context will be grouped in the same transaction. Once they have all succeeded, the <code>transaction</code> method's future completes. If an exception is thrown in the closure, the transaction is rolled back and the <code>transaction</code> method re-throws that exception.</p>
 <div class="admonition warning">
 <p class="admonition-title">Failing to Use the Transaction Context will Deadlock your Application</p>
+<p>If you use the transaction's parent context in a query inside a transaction closure, the database connection will deadlock and will stop working.</p>
 </div>
-<p>A <code>ManagedContext</code> has a single database connection. While a transaction is in progress, any query sent by the same connection becomes part of that transaction. Because Dart is asynchronous, a its likely that another request will trigger a database request while a transaction is in progress. For this reason, a context must queue queries from outside of a transaction while the transaction is running. A new context is created for each transaction and the database connection is shared with the original context. If you await on a query on the original context from inside a transaction closure, it won't complete until the transaction completes - but the transaction can't complete because it is awaiting for the query to complete. This will prevent the connection from being used until the transaction or query times out.</p>
 <h3 id="returning-values">Returning Values</h3>
 <p>The value returned from a transaction closure is returned to the caller, so values created within the transaction closure can escape its scope.</p>
 <div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">employees</span> <span class="o">=</span> <span class="p">[...];</span>
-<span class="kd">final</span> <span class="n">insertedEmployees</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">context</span><span class="p">.</span><span class="n">transaction</span><span class="p">((</span><span class="n">t</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
-  <span class="k">return</span> <span class="n">Future</span><span class="p">.</span><span class="n">wait</span><span class="p">(</span><span class="n">employees</span><span class="p">.</span><span class="n">map</span><span class="p">((</span><span class="n">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">Query</span><span class="p">.</span><span class="n">insertObject</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">e</span><span class="p">)));</span>
+<span class="kd">final</span> <span class="n">insertedEmployees</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">context</span><span class="p">.</span><span class="n">transaction</span><span class="p">((</span><span class="n">transaction</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="k">return</span> <span class="n">Future</span><span class="p">.</span><span class="n">wait</span><span class="p">(</span><span class="n">employees</span><span class="p">.</span><span class="n">map</span><span class="p">((</span><span class="n">e</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">transaction</span><span class="p">.</span><span class="n">insertObject</span><span class="p">(</span><span class="n">e</span><span class="p">)));</span>
 <span class="p">});</span>
 </pre></div>
 
@@ -1482,7 +1470,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../json_columns/" title="JSON Document Storage" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../advanced_queries/" title="Advanced Queries" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -1491,19 +1479,19 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                JSON Document Storage
+                Advanced Queries
               </span>
             </div>
           </a>
         
         
-          <a href="../../auth/" title="Overview" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../validations/" title="Validations" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Overview
+                Validations
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">

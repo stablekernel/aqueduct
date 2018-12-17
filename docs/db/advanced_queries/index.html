@@ -582,8 +582,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
-      Request and Response Objects; Serialization
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
     </a>
   </li>
 
@@ -704,8 +704,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../modeling_data/" title="Modeling Data" class="md-nav__link">
-      Modeling Data
+    <a href="../modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
+      Modeling Data and Relationships
     </a>
   </li>
 
@@ -716,8 +716,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
-      Storage, Serialization and Deserialization
+    <a href="../serialization/" title="Serialization and Deserialization" class="md-nav__link">
+      Serialization and Deserialization
     </a>
   </li>
 
@@ -728,8 +728,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../executing_queries/" title="Executing Queries" class="md-nav__link">
-      Executing Queries
+    <a href="../executing_queries/" title="Basic Queries" class="md-nav__link">
+      Basic Queries
     </a>
   </li>
 
@@ -881,18 +881,6 @@
   <li class="md-nav__item">
     <a href="../json_columns/" title="JSON Document Storage" class="md-nav__link">
       JSON Document Storage
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../transactions/" title="Transactions" class="md-nav__link">
-      Transactions
     </a>
   </li>
 
@@ -1464,7 +1452,7 @@
                 
                 <h1 id="advanced-queries-filtering-joins-paging-and-reduce">Advanced Queries: Filtering, Joins, Paging and Reduce</h1>
 <h2 id="paging-fetched-result-sets">Paging Fetched Result Sets</h2>
-<p>In larger data sets, it may make sense to only return a portion of rows from a database. For example, in a social media application, a user could have thousands of pieces of content they had created over many years. The likely use case for fetching their content would be to grab only the most recent content, and only grab earlier content as necessary. Aqueduct has two mechanisms in <code>Query&lt;T&gt;</code> for building queries that can fetch a subset of rows within a certain range.</p>
+<p>The rows from a table can be sorted and fetched in contiguous chunks. This sorting can occur on most properties. For example, in a social media application, a user could have thousands of pieces of content they had created over many years. The likely use case for fetching their content would be to grab only the most recent content, and only grab earlier content as necessary. Aqueduct has two mechanisms in <code>Query&lt;T&gt;</code> for building queries that can fetch a subset of rows within a certain range.</p>
 <p>Naive paging can be accomplished using the <code>fetchLimit</code> and <code>offset</code> properties of a <code>Query&lt;T&gt;</code>. For example, if a table contains 100 rows, and you would like to grab 10 at a time, each query would have a value of 10 for its <code>fetchLimit</code>. The first query would have an <code>offset</code> of 0, then 10, then 20, and so on. Especially when using <code>sortBy</code>, this type of paging can be effective. One of the drawbacks to this type of paging is that it can skip or duplicate rows if rows are being added or deleted between fetches.</p>
 <p><img alt="Paging Error" src="../../img/paging.png" /></p>
 <p>For example, consider the seven objects above that are ordered by time. If we page by two objects at a time (<code>fetchLimit=2</code>) starting at the first item (<code>offset=0</code>), our first result set is the first two objects. The next page is the original offset plus the same limit - we grab the next two rows. But before the next page is fetched, a new object is inserted and its at an index that we already fetched. The next page would return <code>3:00pm</code> again. A similar problem occurs if a row is deleted when paging in this way.</p>
@@ -1696,7 +1684,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../executing_queries/" title="Executing Queries" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../executing_queries/" title="Basic Queries" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -1705,7 +1693,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Executing Queries
+                Basic Queries
               </span>
             </div>
           </a>

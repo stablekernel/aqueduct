@@ -18,7 +18,7 @@
     
     
       
-        <title>Executing Queries - Aqueduct</title>
+        <title>Basic Queries - Aqueduct</title>
       
     
     
@@ -87,7 +87,7 @@
                 </span>
               
             
-            Executing Queries
+            Basic Queries
           
         </span>
       </div>
@@ -582,8 +582,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
-      Request and Response Objects; Serialization
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
     </a>
   </li>
 
@@ -704,8 +704,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../modeling_data/" title="Modeling Data" class="md-nav__link">
-      Modeling Data
+    <a href="../modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
+      Modeling Data and Relationships
     </a>
   </li>
 
@@ -716,8 +716,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
-      Storage, Serialization and Deserialization
+    <a href="../serialization/" title="Serialization and Deserialization" class="md-nav__link">
+      Serialization and Deserialization
     </a>
   </li>
 
@@ -737,11 +737,11 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="toc">
-        Executing Queries
+        Basic Queries
       </label>
     
-    <a href="./" title="Executing Queries" class="md-nav__link md-nav__link--active">
-      Executing Queries
+    <a href="./" title="Basic Queries" class="md-nav__link md-nav__link--active">
+      Basic Queries
     </a>
     
       
@@ -888,18 +888,6 @@
   <li class="md-nav__item">
     <a href="../json_columns/" title="JSON Document Storage" class="md-nav__link">
       JSON Document Storage
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../transactions/" title="Transactions" class="md-nav__link">
-      Transactions
     </a>
   </li>
 
@@ -1477,10 +1465,10 @@
                 
                 
                 <h1 id="inserting-updating-deleting-and-fetching-objects">Inserting, Updating, Deleting and Fetching Objects</h1>
-<p>To send commands to a database - whether to fetch, insert, delete or update objects - you will create, configure and execute instances of <code>Query&lt;T&gt;</code>. The type of object the query is performed on is determined by the type argument. The argument must be a subclass of <code>ManagedObject</code>.</p>
-<p>A query compiles and executes a SQL query on a given <a href="../connecting.db">ManagedContext</a>. Here's an example of a <code>Query&lt;T&gt;</code> that fetches all instances of <code>User</code>:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
-<span class="kd">var</span> <span class="n">allUsers</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
+<p>To send commands to a database - whether to fetch, insert, delete or update objects - you will create, configure and execute instances of <code>Query&lt;T&gt;</code>. The type argument must be a subclass of <code>ManagedObject</code>, which determines the table the query will operate on.</p>
+<p>A query compiles and executes a SQL query and requires a <a href="../connecting.db">ManagedContext</a> to determine the database to connect to. Here's an example of a <code>Query&lt;T&gt;</code> that fetches all instances of <code>User</code>:</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+<span class="kd">final</span> <span class="n">allUsers</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">fetch</span><span class="p">();</span>
 </pre></div>
 
 
@@ -1492,8 +1480,7 @@
 <li><code>delete</code> will remove data from a database (it is equivalent to the SQL operation <code>DELETE</code>).</li>
 </ul>
 <p>A <code>Query&lt;T&gt;</code> has many configurable properties. These properties will impact which objects get fetched, the data that gets sent to the database, the order that data is returned in, and so on.</p>
-<h3 id="inserting-data-with-a-query">Inserting Data with a Query</h3>
-<p>Let's assume this <code>User</code> type exists:</p>
+<p>In the following sections, assume that a <code>User</code> managed object subclass exists that is declared like so:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">User</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_User</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_User</span> <span class="p">{}</span>
 <span class="kd">class</span> <span class="nc">_User</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">primaryKey</span>
@@ -1507,60 +1494,63 @@
 </pre></div>
 
 
-<p>To insert a new row into the <code>_User</code> table, a <code>Query&lt;T&gt;</code> is constructed and executed:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+<h3 id="inserting-data-with-a-query">Inserting Data with a Query</h3>
+<p>To insert data with a query, you create a new <code>Query&lt;T&gt;</code> object, configure its <code>values</code> property and then call its <code>insert()</code> method.</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
   <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span>
   <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">email</span> <span class="o">=</span> <span class="s2">&quot;bob@stablekernel.com&quot;</span><span class="p">;</span>  
 
-<span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>  
-<span class="n">user</span><span class="p">.</span><span class="n">asMap</span><span class="p">()</span> <span class="o">==</span> <span class="p">{</span>
-  <span class="s2">&quot;id&quot;</span><span class="o">:</span> <span class="m">1</span><span class="p">,</span>
-  <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Bob&quot;</span><span class="p">,</span>
-  <span class="s2">&quot;email&quot;</span><span class="o">:</span> <span class="s2">&quot;bob@stablekernel.com&quot;</span>
-<span class="p">};</span>
+<span class="kd">final</span> <span class="n">user</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>  
 </pre></div>
 
 
-<p>Every <code>Query&lt;T&gt;</code> has a <code>values</code> property that is the type of managed object being inserted. Here, <code>values</code> is an instance of <code>User</code>. When a <code>Query&lt;T&gt;</code> is executed with <code>insert()</code>, a new row is created in the database with every property that has been set in <code>values</code>. In this case, both <code>name</code> and <code>email</code> have been set. The generated SQL looks like this:</p>
-<div class="codehilite"><pre><span></span><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">_user</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">&#39;Bob&#39;</span><span class="p">,</span> <span class="s1">&#39;bob@stablekernel.com&#39;</span><span class="p">)</span>
+<p>The <code>values</code> of a <code>Query&lt;T&gt;</code> is an instance of <code>T</code> (the managed object type you are inserting). You can configure individual properties of <code>values</code>, or you can assign <code>values</code> to an instance you have created elsewhere:</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">userValues</span> <span class="o">=</span> <span class="n">User</span><span class="p">()</span>
+  <span class="p">..</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span>
+  <span class="p">..</span><span class="n">email</span> <span class="o">=</span> <span class="s2">&quot;bob@stablekernel.com&quot;</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)..</span><span class="n">values</span> <span class="o">=</span> <span class="n">userValues</span><span class="p">;</span>
+<span class="kd">final</span> <span class="n">user</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>  
 </pre></div>
 
 
-<p>Note there is no value provided for the <code>id</code> property in this query. Recall that <code>primaryKey</code> is a convenience for <code>Column</code> with auto-incrementing behavior. Therefore, the database will assign a value for <code>id</code> during insertion. The object returned from <code>insert()</code> will be an instance of <code>User</code> that represents the inserted row and will include the auto-generated <code>id</code>.</p>
-<p>Properties that are not set in the <code>values</code> property will not be sent to the database.</p>
-<p>Values that are explicitly set to <code>null</code> will be sent as <code>NULL</code>. For example, consider the following <code>Query&lt;T&gt;</code>:</p>
+<p>Either way, this query is translated into the following SQL:</p>
+<div class="codehilite"><pre><span></span><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">_user</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">email</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span><span class="s1">&#39;Bob&#39;</span><span class="p">,</span> <span class="s1">&#39;bob@stablekernel.com&#39;</span><span class="p">)</span> <span class="n">RETURNING</span> <span class="n">id</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">email</span><span class="p">;</span>
+</pre></div>
+
+
+<p>Notice that only the values set on the <code>values</code> object are included in the SQL INSERT query. In this example, both <code>name</code> and <code>email</code> were set, but not <code>id</code> and therefore only <code>name</code> and <code>email</code> were included in the query. (In this case, the primary key is auto-incrementing and the database will generate it.)</p>
+<p>Values that are explicitly set to <code>null</code> will be sent as <code>NULL</code>. For example, consider the following <code>Query&lt;T&gt;</code> and its SQL:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span>
+  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="kc">null</span>
+  <span class="p">..</span><span class="n">email</span> <span class="o">=</span> <span class="s2">&quot;bob@stablekernel.com&quot;</span><span class="p">;</span>
+
+<span class="c1">// INSERT INTO _user (name, email) VALUES (NULL, &#39;bob@stablekernel.com&#39;) RETURNING id, name, email;</span>
 <span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
 </pre></div>
 
 
-<p>The generated SQL for this query does not send <code>email</code> - because it isn't included - and sends <code>NULL</code> for <code>name</code>:</p>
-<div class="codehilite"><pre><span></span><span class="k">INSERT</span> <span class="k">INTO</span> <span class="n">_user</span> <span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">VALUES</span> <span class="p">(</span><span class="k">NULL</span><span class="p">);</span>
-</pre></div>
-
-
-<p>If a property is not nullable (its <code>Column</code> has <code>nullable: false</code>) and its value is not set in a query prior to inserting it, the query will fail and throw an exception.</p>
-<p>You may also set <code>Query.values</code> with an instance of a managed object. This is valuable when reading an object from a HTTP request body:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">user</span> <span class="o">=</span> <span class="n">User</span><span class="p">()</span>
-  <span class="p">..</span><span class="n">readFromMap</span><span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">body</span><span class="p">.</span><span class="n">asMap</span><span class="p">());</span>
-
-<span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">values</span> <span class="o">=</span> <span class="n">user</span><span class="p">;</span>
-</pre></div>
-
-
-<p>If an insert query fails because of a unique constraint is violated, a <code>QueryException</code> will be thrown.  See a later section on how <code>QueryException</code>s are gracefully handled by <code>Controller</code>s. In short, it is unlikely that you have to handle <code>QueryException</code> directly - <code>Controller</code>s know how to turn them into the appropriate HTTP response.</p>
+<p>An insert query will return a managed object that represents the row that is inserted.</p>
 <div class="admonition warning">
-<p class="admonition-title">Setting Query.values</p>
-<p>By default, <code>Query.values</code> is an empty instance of the object being inserted. If you replace it with an object - that you got from a request body or instantiated yourself - the properties are <em>copied</em> into <code>Query.values</code>. Further modifications of the replacement object have no effect on <code>Query.values</code>.</p>
+<p class="admonition-title">Prefer the Inserted Object</p>
+<p>After you insert an object, you should prefer to use the object returned by an insert query rather than the values you used to populate the query. The object returned from the query will be an accurate representation of the database row, while the object used to build the query may be incomplete or different. For example, an auto-incrementing primary key won't be available in your query-building instance, but will in the object returned from the successful query.</p>
 </div>
-<p>There are convenience static methods on <code>Query</code> for inserting object(s) without having to create a <code>Query</code> object.</p>
-<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">bob</span> <span class="o">=</span> <span class="n">User</span><span class="p">()..</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span><span class="p">;</span>
+<p>There is one difference to note when choosing between assigning an instance to <code>values</code>, or configuring the properties of <code>values</code>. In an instance you create, a relationship property must be instantiated before accessing its properties. When accessing the relationship properties of <code>values</code>, an empty instance of the related object is created immediately upon access.</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">employee</span> <span class="o">=</span> <span class="n">Employee</span><span class="p">()</span>
+  <span class="p">..</span><span class="n">manager</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span><span class="p">;</span> <span class="c1">// this is a null pointer exception because manager is null</span>
+
+<span class="kd">final</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Employee</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">manager</span><span class="p">.</span><span class="n">id</span> <span class="o">=</span> <span class="m">1</span><span class="p">;</span> <span class="c1">// this is OK because of special behavior of Query</span>
+</pre></div>
+
+
+<p>Once you assign an object to <code>values</code>, it will adopt the behavior of <code>values</code> and instantiate relationships when accessed. Also note that after assigning an object to <code>values</code>, changes to the original object are not reflected in <code>values</code>. In other words, the object is copied instead of referenced.</p>
+<p>For simple insertions and for inserting more than one object, you can use the methods on the context:</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">context</span> <span class="o">=</span> <span class="n">ManagedContext</span><span class="p">(...);</span>
+<span class="kd">final</span> <span class="n">bob</span> <span class="o">=</span> <span class="n">User</span><span class="p">()..</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span><span class="p">;</span>
 <span class="kd">final</span> <span class="n">jay</span> <span class="o">=</span> <span class="n">User</span><span class="p">()..</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Jay&quot;</span><span class="p">;</span>
 
-<span class="kd">final</span> <span class="n">insertedObject</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">Query</span><span class="p">.</span><span class="n">insertObject</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">bob</span><span class="p">);</span>
-<span class="kd">final</span> <span class="n">insertedObjects</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">Query</span><span class="p">.</span><span class="n">insertObjects</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="p">[</span><span class="n">bob</span><span class="p">,</span> <span class="n">jay</span><span class="p">]);</span>
+<span class="kd">final</span> <span class="n">insertedObject</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">context</span><span class="p">.</span><span class="n">insertObject</span><span class="p">(</span><span class="n">bob</span><span class="p">);</span>
+<span class="kd">final</span> <span class="n">insertedObjects</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">context</span><span class="p">.</span><span class="n">insertObjects</span><span class="p">([</span><span class="n">bob</span><span class="p">,</span> <span class="n">jay</span><span class="p">]);</span>
 </pre></div>
 
 
@@ -1622,7 +1612,8 @@
 </pre></div>
 
 
-<p>A fetch <code>Query&lt;T&gt;</code> uses its <code>where</code> property to filter the result set, just like delete and update queries. Any properties set in the query's <code>values</code> are ignored when executing a fetch, since there is no need for them. In addition to fetching a list of instances from a database, you may also fetch a single instance with <code>fetchOne</code>. If no instance is found, <code>null</code> is returned.</p>
+<p>Fetch queries can be limited to a number of instances with the <code>fetchLimit</code> property. You may also set the <code>offset</code> of a <code>Query&lt;T&gt;</code> to skip the first <code>offset</code> number of rows. Between <code>fetchLimit</code> and <code>offset</code>, you can implement naive paging. However, this type of paging suffers from a number of problems and so there is another paging mechanism covered in later sections.</p>
+<p>A fetch <code>Query&lt;T&gt;</code> uses its <code>where</code> property to filter the result set, just like delete and update queries. The <code>values</code> of a query are ignored when fetching objects. You may also fetch a single instance with <code>fetchOne</code>. If no instance is found, <code>null</code> is returned. Only use this method when the search criteria is guaranteed to be unique.</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
   <span class="p">..</span><span class="n">where</span><span class="p">((</span><span class="n">u</span><span class="p">)</span> <span class="o">=&gt;</span> <span class="n">u</span><span class="p">.</span><span class="n">id</span><span class="p">).</span><span class="n">equalTo</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
 
@@ -1630,7 +1621,11 @@
 </pre></div>
 
 
-<p>Fetch queries can be limited to a number of instances with the <code>fetchLimit</code> property. You may also set the <code>offset</code> of a <code>Query&lt;T&gt;</code> to skip the first <code>offset</code> number of rows. Between <code>fetchLimit</code> and <code>offset</code>, you can implement naive paging. However, this type of paging suffers from a number of problems and so there is another paging mechanism covered in later sections.</p>
+<p>When you are fetching an object by its primary key, you can use a shorthand method <code>ManagedContext.fetchObjectWithID</code>. The method must be able to infer the type of the object, or you must provide it:</p>
+<div class="codehilite"><pre><span></span><span class="kd">final</span> <span class="n">object</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">context</span><span class="p">.</span><span class="n">fetchObjectWithID</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="m">1</span><span class="p">);</span>
+</pre></div>
+
+
 <h3 id="sorting">Sorting</h3>
 <p>Results of a fetch can be sorted using the <code>sortBy</code> method of a <code>Query&lt;T&gt;</code>. Here's an example:</p>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">q</span> <span class="o">=</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
@@ -1697,7 +1692,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../serialization/" title="Storage, Serialization and Deserialization" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../serialization/" title="Serialization and Deserialization" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -1706,7 +1701,7 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Storage, Serialization and Deserialization
+                Serialization and Deserialization
               </span>
             </div>
           </a>

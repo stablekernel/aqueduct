@@ -584,8 +584,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
-      Request and Response Objects; Serialization
+    <a href="../request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
     </a>
   </li>
 
@@ -836,8 +836,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../db/modeling_data/" title="Modeling Data" class="md-nav__link">
-      Modeling Data
+    <a href="../../db/modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
+      Modeling Data and Relationships
     </a>
   </li>
 
@@ -848,8 +848,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../db/serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
-      Storage, Serialization and Deserialization
+    <a href="../../db/serialization/" title="Serialization and Deserialization" class="md-nav__link">
+      Serialization and Deserialization
     </a>
   </li>
 
@@ -860,8 +860,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../db/executing_queries/" title="Executing Queries" class="md-nav__link">
-      Executing Queries
+    <a href="../../db/executing_queries/" title="Basic Queries" class="md-nav__link">
+      Basic Queries
     </a>
   </li>
 
@@ -922,18 +922,6 @@
   <li class="md-nav__item">
     <a href="../../db/json_columns/" title="JSON Document Storage" class="md-nav__link">
       JSON Document Storage
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../db/transactions/" title="Transactions" class="md-nav__link">
-      Transactions
     </a>
   </li>
 
@@ -1760,7 +1748,7 @@
 
   <span class="err">@</span><span class="n">Operation</span><span class="p">.</span><span class="n">post</span><span class="p">()</span>
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">addCity</span><span class="p">(</span><span class="err">@</span><span class="n">Bind</span><span class="p">.</span><span class="n">body</span><span class="p">()</span> <span class="n">City</span> <span class="n">city</span><span class="p">)</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="kd">final</span> <span class="n">insertedCity</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">Query</span><span class="p">.</span><span class="n">insertObject</span><span class="p">(</span><span class="n">context</span><span class="p">,</span> <span class="n">city</span><span class="p">);</span>
+    <span class="kd">final</span> <span class="n">insertedCity</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">context</span><span class="p">.</span><span class="n">insertObject</span><span class="p">(</span><span class="n">city</span><span class="p">);</span>
 
     <span class="k">return</span> <span class="k">new</span> <span class="n">Response</span><span class="p">.</span><span class="n">ok</span><span class="p">(</span><span class="n">insertedCity</span><span class="p">);</span>
   <span class="p">}</span>

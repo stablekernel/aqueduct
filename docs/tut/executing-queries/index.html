@@ -656,8 +656,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/request_and_response/" title="Request and Response Objects; Serialization" class="md-nav__link">
-      Request and Response Objects; Serialization
+    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
+      Request and Response Objects
     </a>
   </li>
 
@@ -776,8 +776,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../db/modeling_data/" title="Modeling Data" class="md-nav__link">
-      Modeling Data
+    <a href="../../db/modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
+      Modeling Data and Relationships
     </a>
   </li>
 
@@ -788,8 +788,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../db/serialization/" title="Storage, Serialization and Deserialization" class="md-nav__link">
-      Storage, Serialization and Deserialization
+    <a href="../../db/serialization/" title="Serialization and Deserialization" class="md-nav__link">
+      Serialization and Deserialization
     </a>
   </li>
 
@@ -800,8 +800,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../db/executing_queries/" title="Executing Queries" class="md-nav__link">
-      Executing Queries
+    <a href="../../db/executing_queries/" title="Basic Queries" class="md-nav__link">
+      Basic Queries
     </a>
   </li>
 
@@ -862,18 +862,6 @@
   <li class="md-nav__item">
     <a href="../../db/json_columns/" title="JSON Document Storage" class="md-nav__link">
       JSON Document Storage
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../db/transactions/" title="Transactions" class="md-nav__link">
-      Transactions
     </a>
   </li>
 
@@ -1612,8 +1600,8 @@ this is called <em>dependency injection</em>. Unlike many frameworks, Aqueduct d
 <p>The <code>fetchOne()</code> execution method will fetch a single object that fulfills all of the expressions applied to the query. If no database row meets the criteria, <code>null</code> is returned. Our controller returns a 404 Not Found response in that scenario.</p>
 <p>We have now written code that fetches heroes from a database instead of from in memory, but we don't have a database - yet.</p>
 <div class="admonition tip">
-<p class="admonition-title">Use fetchOne() on Unique Properties</p>
-<p>If more than one database row meets the criteria of a <code>fetchOne()</code>, an exception is thrown. It's only safe to use <code>fetchOne()</code> when applying an expression to a unique property, like a primary key.</p>
+<p class="admonition-title">fetchObjectWithID, fetchOne() and Unique Properties</p>
+<p>You can also fetch an object by its primary key with the method <code>ManagedContext.fetchObjectWithID</code>. When fetching with <code>fetchOne</code>, make sure the search criteria is guaranteed to be unique.</p>
 </div>
 <h2 id="setting-up-a-database">Setting Up a Database</h2>
 <p>For development, you'll need to install a PostgreSQL server on your local machine. If you are on macOS, use <a href="http://postgresapp.com">Postgres.app</a>. This native macOS application manages starting and stopping PostgreSQL servers on your machine. For other platforms, see <a href="https://www.postgresql.org/download/">this page</a>.</p>
