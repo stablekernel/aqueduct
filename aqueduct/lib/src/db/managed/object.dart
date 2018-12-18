@@ -249,9 +249,6 @@ abstract class ManagedObject<T> implements Serializable {
       if (property == null) {
         throw ValidationException(["invalid input key '$k'"]);
       }
-      if (property.autoincrement) {
-        return;
-      }
 
       if (property is ManagedAttributeDescription) {
         if (!property.isTransient) {

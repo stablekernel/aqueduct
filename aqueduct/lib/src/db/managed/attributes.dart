@@ -196,9 +196,6 @@ class Column {
   /// A sequence generator will be used to generate the next value for this column when a row is inserted.
   ///
   /// When this flag is true, the database will generate a value for this column on insert.
-  ///
-  /// Additionally, when [ManagedObject.readFromMap] is invoked, values in the map corresponding to columns with this flag set to true
-  /// will not be read.
   final bool autoincrement;
 }
 
