@@ -46,16 +46,11 @@ void main() {
       expect(entity.properties["id"].type, APIType.integer);
       expect(entity.properties["boolean"].type, APIType.boolean);
 
-      expect(entity.properties["id"].isReadOnly, true);
+      expect(entity.properties["id"].isReadOnly, false);
       expect(entity.properties["id"].description, contains("This is the primary identifier"));
       expect(entity.properties["string"].description, contains("No two objects may have the same value for this field"));
     });
 
-    test("Autoincrementing fields are read-only", () {
-      final entity = doc.components.schemas["Model1"];
-      expect(entity.properties["id"].isReadOnly, true);
-      expect(entity.properties["dateTime"].isReadOnly, false);
-    });
 
     test("Schema object contains all transient attributes", () {
       final entity = doc.components.schemas["Model1"];
