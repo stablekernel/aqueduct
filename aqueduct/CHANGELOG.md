@@ -5,7 +5,6 @@
 - Improves speed of many database CLI commands
 - Improves error messaging of the CLI; no longer includes stack trace for expected errors.
 - Allows self-referencing and cyclical relationships between managed objects
-- Autoincrementing managed object properties are no longer consumed in `ManagedObject.readFromMap`.
 - Fixes bug where ManagedObjects cannot have mixins
 - Adds `ManagedContext.insertObject`, `ManagedContext.insertObjects` and `ManagedContext.fetchObjectWithID`.
 

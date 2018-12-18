@@ -230,8 +230,6 @@ abstract class ManagedObject<T> implements Serializable {
   /// This method will thrown an exception if a key in the map does not
   /// match a property of the receiver.
   ///
-  /// Properties that are auto-incrementing will not be read from the map.
-  ///
   /// Usage:
   ///     var values = json.decode(requestBody);
   ///     var user = new User()
