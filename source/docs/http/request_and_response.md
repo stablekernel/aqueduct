@@ -297,6 +297,10 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:mime/mime.dart';
 
 class MyController extends ResourceController {
+  MyController() {
+    acceptedContentTypes = [ContentType("multipart", "form-data")];
+  }
+
   @Operation.post()
   Future<Response> postForm() async {}
     final transformer = MimeMultipartTransformer(request.raw.headers.contentType.parameters["boundary"]);
