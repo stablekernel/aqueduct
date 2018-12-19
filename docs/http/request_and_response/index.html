@@ -1752,6 +1752,10 @@
 <span class="k">import</span> <span class="s1">&#39;package:mime/mime.dart&#39;</span><span class="p">;</span>
 
 <span class="kd">class</span> <span class="nc">MyController</span> <span class="kd">extends</span> <span class="n">ResourceController</span> <span class="p">{</span>
+  <span class="n">MyController</span><span class="p">()</span> <span class="p">{</span>
+    <span class="n">acceptedContentTypes</span> <span class="o">=</span> <span class="p">[</span><span class="n">ContentType</span><span class="p">(</span><span class="s2">&quot;multipart&quot;</span><span class="p">,</span> <span class="s2">&quot;form-data&quot;</span><span class="p">)];</span>
+  <span class="p">}</span>
+
   <span class="err">@</span><span class="n">Operation</span><span class="p">.</span><span class="n">post</span><span class="p">()</span>
   <span class="n">Future</span><span class="o">&lt;</span><span class="n">Response</span><span class="o">&gt;</span> <span class="n">postForm</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{}</span>
     <span class="kd">final</span> <span class="n">transformer</span> <span class="o">=</span> <span class="n">MimeMultipartTransformer</span><span class="p">(</span><span class="n">request</span><span class="p">.</span><span class="n">raw</span><span class="p">.</span><span class="n">headers</span><span class="p">.</span><span class="n">contentType</span><span class="p">.</span><span class="n">parameters</span><span class="p">[</span><span class="s2">&quot;boundary&quot;</span><span class="p">]);</span>
