@@ -31,8 +31,7 @@ void main() {
       expect(json.decode(response.body), m);
     });
 
-    test("Can read List<Map> body object into List<Serializable>",
-        () async {
+    test("Can read List<Map> body object into List<Serializable>", () async {
       server = await enableController("/", ListTestController);
       var m = [
         {"name": "Bob"},
@@ -70,6 +69,21 @@ void main() {
       var response = await postJSON(m);
       expect(response.statusCode, 200);
       expect(json.decode(response.body), m);
+    });
+
+    test("Can use ignore filters", () async {
+      server = await enableController("/", FilterController);
+      expect(json.decode((await postJSON({"required": "", "ignore": ""})).body), {"required": ""});
+    });
+
+    test("Can use error filters", () async {
+      server = await enableController("/", FilterController);
+      expect((await postJSON({"required": "", "error" : ""})).statusCode, 400);
+    });
+
+    test("Can use required filters", () async {
+      server = await enableController("/", FilterController);
+      expect((await postJSON({"key" : ""})).statusCode, 400);
     });
   });
 
@@ -161,6 +175,20 @@ class _TestModel {
   String name;
 }
 
+class TestSerializable extends Serializable {
+  Map<String, dynamic> contents;
+
+  @override
+  void readFromMap(Map<String, dynamic> object) {
+    contents = object;
+  }
+
+  @override
+  Map<String, dynamic> asMap() {
+    return null;
+  }
+}
+
 class CrashModel extends Serializable {
   @override
   void readFromMap(dynamic requestBody) {
@@ -222,6 +250,15 @@ class CrashController extends ResourceController {
   @Operation.post()
   Future<Response> create(@Bind.body() CrashModel tm) async {
     return Response.ok(null);
+  }
+}
+
+class FilterController extends ResourceController {
+  @Operation.post()
+  Future<Response> create(
+      @Bind.body(ignore: ["ignore"], required: ["required"], error: ["error"])
+          TestSerializable tm) async {
+    return Response.ok(tm.contents);
   }
 }
 

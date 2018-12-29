@@ -32,11 +32,56 @@ abstract class Serializable {
     return obj;
   }
 
-  /// Reads values from [requestBody] into an object.
+  /// Reads values from [object].
   ///
-  /// This method is invoked when an [ResourceController] property or operation method argument is bound with [Bind.body]. [requestBody] is the
-  /// request body of the incoming HTTP request, decoded according to its content-type.
-  void readFromMap(Map<String, dynamic> requestBody);
+  /// Use [read] instead of this method. [read] applies filters
+  /// to [object] before calling this method.
+  ///
+  /// This method is used by implementors to assign and use values from [object] for its own
+  /// purposes. [SerializableException]s should be thrown when [object] violates a constraint
+  /// of the receiver.
+  void readFromMap(Map<String, dynamic> object);
+
+  /// Reads values from [object], after applying filters.
+  ///
+  /// The key name must exactly match the name of the property as defined in the receiver's type.
+  /// If [object] contains a key that is unknown to the receiver, an exception is thrown (status code: 400).
+  ///
+  /// [ignore], [error] and [required] are filters on [object]'s keys with the following behaviors:
+  ///
+  /// If [ignore] is set, each value for that key is ignored and their value is discarded.
+  /// If [error] is set, if [object] contains any of these keys, a status code 400 exception is thrown.
+  /// If [required] is set, all keys must be present in [object].
+  ///
+  /// Usage:
+  ///     var values = json.decode(await request.body.decode());
+  ///     var user = User()
+  ///       ..read(values, ignore: ["id"]);
+  void read(Map<String, dynamic> object, {Iterable<String> ignore, Iterable<String> error, Iterable<String> required}) {
+    if (ignore == null && error == null && required == null) {
+      readFromMap(object);
+      return;
+    }
+
+    final copy = Map<String, dynamic>.from(object);
+    final stillRequired = required?.toList();
+    object.keys.forEach((key) {
+      if (error?.contains(key) ?? false) {
+        throw SerializableException(["invalid input key '$key'"]);
+      }
+      if (ignore?.contains(key) ?? false) {
+        copy.remove(key);
+      }
+
+      stillRequired?.remove(key);
+    });
+
+    if (stillRequired?.isNotEmpty ?? false) {
+      throw SerializableException(["missing required input key(s): '${stillRequired.join(", ")}'"]);
+    }
+
+    readFromMap(copy);
+  }
 
   /// Returns a serializable version of an object.
   ///
@@ -54,4 +99,23 @@ abstract class Serializable {
   ///
   /// Overriding static methods is not enforced by the Dart compiler - check for typos.
   static bool get shouldAutomaticallyDocument => true;
+}
+
+class SerializableException implements HandlerException {
+  SerializableException(this.reasons);
+
+  final List<String> reasons;
+
+  @override
+  Response get response {
+    return Response.badRequest(
+      body: {"error": "entity validation failed", "reasons": reasons ?? "undefined"});
+  }
+
+  @override
+  String toString() {
+    final errorString = response.body["error"] as String;
+    final reasons = (response.body["reasons"] as List).join(", ");
+    return "$errorString $reasons";
+  }
 }

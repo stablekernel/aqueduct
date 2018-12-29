@@ -68,6 +68,16 @@ abstract class ManagedPropertyDescription {
   /// by the database.
   final bool autoincrement;
 
+  /// Whether or not this attribute is private or not.
+  ///
+  /// Private variables are prefixed with `_` (underscores). This properties are not read
+  /// or written to maps and cannot be accessed from outside the class.
+  ///
+  /// This flag is not included in schemas documents used by database migrations and other tools.
+  bool get isPrivate {
+    return name.startsWith("_");
+  }
+
   /// Whether or not a the argument can be assigned to this property.
   bool isAssignableWith(dynamic dartValue) => type.isAssignableWith(dartValue);
 
