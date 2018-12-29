@@ -1,66 +1,32 @@
-# Request and Response Objects; Serialization
+# Serializing Request and Response Bodies
 
-In Aqueduct, HTTP requests and responses are instances of `Request` and `Response`, respectively. For every HTTP request an application receives, an instance of `Request` is created. A `Response` must be created for each `Request`. Requests pass through a channel of [Controllers](controller.md) to be validated, modified and finally responded to.
+In Aqueduct, HTTP requests and responses are instances of `Request`s and `Response`s. For each HTTP request an application receives, an instance of `Request` is created. A `Response` must be created for each request. Responses are created by [controller objects](controller.md). This guide discusses the behavior of request and response objects.
 
 ## The Request Object
 
-An instance of `Request` represents an HTTP request and are automatically created when the application receives a request. A `Request` is a wrapper around the Dart standard library `HttpRequest` and its values - such as its URI or headers - can be accessed through its `raw` property.
+A `Request` is created for each HTTP request to your application. A `Request` stores everything about the HTTP request and has some additional behavior that makes reading from them easier. You handle requests by writing code in a [controller object](controller.md) or closures.
 
-A `Request` has a `body` property. This property decodes the body contents into Dart objects based on the request's content type. The mechanism to decode the body is determined by `CodecRegistry`, which is covered in more detail in a later section. By default, decoders exist for text, JSON and form data. The size of a request body is limited to 10MB by default and can be changed by setting the value of `RequestBody.maxSize` during application initialization.
-
-A `Request` is handled by one or more `Controller`s before to be responded to. `Controller`s may validate or add more information to the request, so that later controllers can use this information. For example, an `Authorizer` controller will validate the Authorization header of a request. Once validated, it will add authorization info to the request - like the authorized user ID - and pass it to the next controller. The next controller in the channel has access to the authorization info without having to perform another fetch.
-
-These additional values are added to a `Request.attachments` property. Subsequent controllers can access these values.
+All properties of a request are available in its `raw` property (a Dart standard library `HttpRequest`). A `Request` has `attachments` that data can be attached to in a controller for use by a linked controller:
 
 ```dart
-class APIKeyController extends Controller {
-  APIKeyController(this.apiService);
-
-  final APIService apiService;
-
-  @override
-  Future<RequestOrResponse> handle(Request request) async {
-    final apiKey = request.raw.headers.value("x-api-key");
-    if (apiKey == null) {
-      return Response.badRequest(body: {"error": "missing required header x-api-key"});
-    }
-
-    request.attachments["clientId"] = await apiService.getClientId(apiKey);
-
-    return request;
-  }
-}
+router.route("/path").linkFunction((req) {
+  req.attachments["key"] = "value";
+}).linkFunction((req) {
+  return Response.ok({"key": req.attachments["value"]});
+});
 ```
 
 A `Request` also has two built-in attachments, `authorization` and `path`. `authorization` contains authorization information from an `Authorizer` and `path` has request path information from a `Router`.
 
-`Request`s are responded to when a controller creates a `Response`.
-
 ## The Response Object
 
-An instance of `Response` represents the status code, headers and body of an HTTP response. `Response` objects are returned from controller methods like [handle](controller.md) or a [ResourceController operation method](resource_controller.md). Aqueduct sends the contents of a response returned from a controller to the requesting HTTP client. The default constructor takes a status code, header map and body object. There are many named constructors for common response types:
+An `Response` has a status code, headers and body. The default constructor takes a status code, header map and body object. There are many named constructors for common response types:
 
 ```dart
 Response(200, {"x-header": "value"}, body: [1, 2, 3]);
 Response.ok({"key": "value"});
 Response.created();
 Response.badRequest(body: {"error": "reason"});
-```
-
-A response can be modified after it is created by middleware controllers. Middleware controllers add *response modifiers* to a `Request`; when the response is created for that request, the modifiers are ran in the order they were added.
-
-```dart
-class RequestIdentifyingController extends Controller {
-  @override
-  Future<RequestOrResponse> handle(Request request) async {
-    // Invoked after another controller in the channel creates a response
-    request.addResponseModifier((resp) {      
-      resp.headers["x-request-id"] = generateRequestId();
-    });
-
-    return request;
-  }
-}
 ```
 
 Headers are encoded according to [dart:io.HttpHeaders.add](https://api.dartlang.org/stable/2.0.0/dart-io/HttpHeaders/add.html). For body encoding behavior, see the following sections.
@@ -71,7 +37,7 @@ Headers are encoded according to [dart:io.HttpHeaders.add](https://api.dartlang.
 
 ### Decoding Request Bodies
 
-Every `Request` has a `Request.body` property. This object decodes the bytestream from the request body into Dart objects, and caches that decoded object for subsequent access. The behavior for decoding is determined by the content-type header of the request (see the section on `CodecRegistry` later in this guide). When you decode a body, you can specify the Dart object type you expect it to be. If the decoded body object is not the expected type, an exception that sends a 400 Bad Request error is thrown.
+Every `Request` has a `body` property. This object decodes the bytes from the request body into Dart objects. The behavior for decoding is determined by the content-type header of the request (see the section on `CodecRegistry` later in this guide). When you decode a body, you can specify the Dart object type you expect it to be. If the decoded body object is not the expected type, an exception that sends a 400 Bad Request error is thrown.
 
 ```dart
 // Ensures that the decoded body is a Map<String, dynamic>
@@ -88,11 +54,14 @@ final map = request.body.as<Map<String, dynamic>>();
 ```
 
 !!! tip "Inferred Types"
-    You don't need to provide a type argument to `as` or `decode` if the type can be inferred. For example, `ManagedObject.readFromMap(await request.body.decode())` will infer the type of the decoded body as a `Map<String, dynamic>` without having to provide type parameters.
+    You don't need to provide a type argument to `as` or `decode` if the type can be inferred. For example, `object.read(await request.body.decode())` will infer the type of the decoded body as a `Map<String, dynamic>` without having to provide type parameters.
 
-If a body cannot be decoded according to its content-type (the data is malformed), an error is thrown that sends the appropriate error response to the client. By default, the maximum size of a request body is 10MB (see `RequestBody.maxSize`).
+If a body cannot be decoded according to its content-type (the data is malformed), an error is thrown that sends the appropriate error response to the client.
 
 For more request body behavior, see the API reference for `RequestBody`, the [section on body binding for ResourceControllers](resource_controller.md) and a later section in this guide on `Serializable`.
+
+!!! note "Max Body Size"
+      The size of a request body is limited to 10MB by default and can be changed by setting the value of `RequestBody.maxSize` during application initialization.
 
 ### Encoding Response Body Objects
 
@@ -119,7 +88,7 @@ A `ContentType` is made up of three components: a primary type, a subtype and an
 
 The primary and subtype determine the first conversion step and the charset determines the next. Each step is performed by an instance of `Codec` (from `dart:convert`). For example, the content type `application/json` selects `JsonCodec`, while charset `utf-8` selects `Utf8Codec`. These two codecs are run in succession to convert the `Map` to a list of bytes. The codec is selected by your application's `CodecRegistry`; this is covered in later section.
 
-The body object must be a valid input for the selected codec. In the above example, a `Map<String, dynamic>` can be encoded by a `JsonCodec`. But if the body object was something silly - like an `Controller` - encoding would fail at runtime and the client would be sent a 500 Server Error response. A valid input for one `Codec` may not be valid for another; it is up to you to ensure that the body object is valid for the `contentType` of the response.
+The body object must be valid for the selected codec. In the above example, a `Map<String, dynamic>` can be encoded by a `JsonCodec`. But if the body object cannot be encoded, a 500 Server Error response is sent. A valid input for one `Codec` may not be valid for another; it is up to you to ensure that the body object is valid for the `contentType` of the response.
 
 Not all content types require two conversion steps. For example, when serving an HTML file, the body object is already an HTML `String`. It will only be converted by a charset encoder:
 
@@ -215,7 +184,75 @@ CodecRegistry.setAllowsCompression(new ContentType("application", "x-special"), 
 
 ## Serializable Objects
 
-Encoding and decoding primarily takes or yields simple Dart objects like `Map`, `List` and `String`. It is often beneficial to add structure to body objects for use in your code. Classes that implement `Serializable` provide this structure. A `Serializable` object must implement a `readFromMap()` and `asMap()` method to convert their structure into or from a Dart `Map`.
+Most request and response bodies are JSON objects and lists of objects. In Dart, JSON objects are maps. A `Serializable` object can be read from a map and converted back into a map. You subclass `Serializable` to assign keys from a map to properties of a your subclass, and to write its properties back to a map. This allows static types you declare in your application to represent expected request and response bodies. Aqueduct's ORM type `ManagedObject` is a `Serializable`, for example.
+
+### Sending Serializable Objects as Response Bodies
+
+The body object of a response can be a `Serializable`. Before the response is sent, `asMap()` is called before the body object is encoded into JSON (or some other transmission format).
+
+For example, a single serializable object returned in a 200 OK response:
+
+```dart
+final query = Query<Person>(context)..where((p) => p.id).equalTo(1);
+final person = await query.fetchOne();
+final response = Response.ok(person);
+```
+
+A response body object can also be a list of `Serializable` objects.
+
+```dart
+final query = Query<Person>(context);
+final people = await query.fetch();
+final response = Response.ok(people);
+```
+
+The flow of a body object is shown in the following diagram. Each orange item is an allowed body object type and shows the steps it will go through when being encoded to the HTTP response body. For example, a `Serializable` goes through three steps, whereas a `List<int>` goes through zero steps and is added as-is to the HTTP response.
+
+![Response Body Object Flow](../img/response_flow.png)
+
+### Reading Serializable Objects from Request Bodies
+
+A serializable object can be read from a request body:
+
+```dart
+final person = Person()..read(await request.body.decode());
+```
+
+A list of serializable objects as well:
+
+```dart
+List<Map<String, dynamic>> objects = await request.body.decode();
+final people = objects.map((o) => Person()..read(o)).toList();
+```
+
+
+Both serializable and a list of serializable can be [bound to a operation method parameter in a ResourceController](resource_controller.md).
+
+```dart
+@Operation.post()
+Future<Response> addPerson(@Bind.body() Person person) async {
+  final insertedPerson = await context.insertObject(person);
+  return Response.ok(insertedPerson);
+}
+```
+
+#### Key Filtering
+
+Both `read` and `Bind.body` support key filtering. A key filter is a list of keys that either discard keys from the body, requires keys in the body, or throws an error if a key exists in the body. Example:
+
+```dart
+final person = Person()
+  ..read(await request.body.decode(),
+         ignore: ["id"],
+         reject: ["password"],
+         require: ["name", "height", "weight"]);
+```
+
+In the above: if the body contains 'id', the value is discarded immediately; if the body contains 'password', a 400 status code exception is thrown; and if the body doesn't contain all of name, height and weight, a 400 status code exception is thrown.
+
+### Subclassing Serializable
+
+A `Serializable` object must implement a `readFromMap()` and `asMap()`.
 
 An object that extends `Serializable` may be used as a response body object directly:
 
@@ -241,41 +278,7 @@ final person = Person();
 final response = Response.ok(person);
 ```
 
-When responding with a `Serializable`, its `asMap()` is called prior to any encoding by the codec registry. `ManagedObject<T>`, part of the Aqueduct ORM, implements `Serializable` so results from `Query<T>` may be body objects:
-
-```dart
-final query = Query<Person>(context)..where((p) => p.id).equalTo(1);
-final person = await query.fetchOne();
-final response = Response.ok(person);
-```
-
-A response body object can also be a list of `Serializable` objects.
-
-```dart
-final query = Query<Person>(context);
-final people = await query.fetch();
-final response = Response.ok(people);
-```
-
-The entire flow of a body object is shown in the following diagram. Each orange item is an allowed body object type and shows the steps it will go through when being encoded to the HTTP response body. For example, a `Serializable` goes through three steps, whereas a `List<int>` goes through zero steps and is added as-is to the HTTP response.
-
-![Response Body Object Flow](../img/response_flow.png)
-
-A serializable object can be read from a request body:
-
-```dart
-final person = Person()..readFromMap(await request.body.decode());
-```
-
-Serializable objects are the only types of objects that can be [bound to a ResourceController argument](resource_controller.md).
-
-```dart
-@Operation.post()
-Future<Response> addPerson(@Bind.body() Person person) async {
-  final insertedPerson = await context.insertObject(person);
-  return Response.ok(insertedPerson);
-}
-```
+`readFromMap` is invoked by `read`, after all filters have been applied.
 
 ### Serializable and OpenAPI Generation
 

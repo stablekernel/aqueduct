@@ -1,21 +1,18 @@
-# Understanding Application Initialization and the ApplicationChannel
+# Starting and Stopping an Application
 
 Learn how an application is initialized so it can serve requests.
 
 ## Overview
 
-Applications fulfill HTTP requests using [controllers](../http/controller.md). A controller is an object that can handle a request in some way. In general, there are two types of controllers:
+Applications are started by running `aqueduct serve` or `dart bin/main.script` in an Aqueduct project directory. Either way, a number of threads are created and your `ApplicationChannel` subclass is instantiated on each thread. The channel subclass initializes application behavior which is often the following:
 
-- Endpoint controllers fulfill a request (e.g., insert a row into a database and send a 200 OK response).
-- Middleware controllers verify something about a request (e.g., verifying the Authorization header has valid credentials) or modify the response created by an endpoint controller (e.g., add a response header).
+- reads configuration data for environment specific setup
+- initializes service objects like [database connections](../db/index.md)
+- sets up [controller](../http/controller.md) objects to handle requests
 
-Controllers are linked together - starting with zero or more middleware and ending with an endpoint controller - to form a series of steps a request will go through. Every controller can either pass the request on to its linked controller, or respond to the request itself (in which case, the linked controller never sees the request). For example, an authorizer middleware will let a request pass if it has valid credentials, but will respond with a 401 Unauthorized response if the credentials are invalid. Some controllers, like `Router`, can have multiple controllers linked to it.
+### Initializing ApplicationChannel Controllers
 
-These linked controllers are called *channels*. You create and link channels in a subclass of `ApplicationChannel`. There is one `ApplicationChannel` subclass per application.
-
-### Building the ApplicationChannel
-
-You must override `ApplicationChannel.entryPoint` to return the first controller of your application's channel. In the implementation of this method, every controller that will be used in the application is linked to either the entry point in some way. Here's an example:
+Each application channel has an *entry point* - a controller that handles all incoming requests. This controller is often a router that routes requests to an appropriate handler. Every controller that will be used in the application is linked to either the entry point in some way. Here's an example:
 
 ```dart
 class AppChannel extends ApplicationChannel {
@@ -33,18 +30,18 @@ class AppChannel extends ApplicationChannel {
 }
 ```
 
-This method links together a `Router`, `Authorizer` and `UserController` in that order. A request is first handled by the `Router`, and if its path matches '/users', it will be sent to an `Authorizer`. If the `Authorizer` verifies the request, the request is passed to a `UserController` for fulfillment.
+This method links together a `Router` -> `Authorizer` -> `UserController`. Because the router is returned from this method, it handles all incoming requests. It will pass a request to an `Authorizer` when the request path is `/users`, which will then pass that request to a `UserController` if it is authorized.
 
-By contrast, if the request's path doesn't match '/users', the `Router` sends a 404 Not Found response and doesn't pass it to the `Authorizer`. Likewise, if the request isn't authorized, the `Authorizer` will send a 401 Unauthorized response and prevent it from being passed to the `UserController`. In other words, a request 'falls out' of the channel once a controller responds to it, so that no further controllers will receive it.
+All controllers in your application will be linked to the entry point, either directly or indirectly.
 
 !!! note "Linking Controllers"
     The `link()` method takes a closure that creates a new controller. Some controllers get instantiated for each request, and others get reused for every request. See [the chapter on controllers](../http/controller.md) for more information.
 
-## Providing Services for Controllers
+## Initializing Service Objects
 
 Controllers often need to get (or create) information from outside the application. The most common example is database access, but it could be anything: another REST API, a connected device, etc. A *service object* encapsulates the information and behavior needed to work with an external system. This separation of concerns between controllers and service objects allows for better structured and more testable code.
 
-Service objects are passed to controllers through their constructor. A controller that needs a database connection, for example, would take a database connection object in its constructor and store it in a property. Services are created by overriding `prepare()` in an `ApplicationChannel`. Here's an example:
+Service objects are instantiated by overriding `ApplicationChannel.prepare`.
 
 ```dart
 class AppChannel extends ApplicationChannel {
@@ -52,7 +49,7 @@ class AppChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    database = new PostgreSQLConnection();
+    database = PostgreSQLConnection();
   }
 
   @override
@@ -69,21 +66,19 @@ class AppChannel extends ApplicationChannel {
 }
 ```
 
-Notice that `database` is created in `prepare()`, stored in a property and passed to each new instance of `UserController`. The `prepare()` method is always executed before `entryPoint` is called.
+This methods gets invoked before `entryPoint`. You store created services in instance variables so that you can inject them into controllers in `entryPoint`. Services are injected through a controller's constructor arguments. For example, the above shows a `database` service that is injected into `UserController`.
 
 ## Application Channel Configuration
 
-A benefit to using service objects is that they can be altered depending on the environment the application is running in without requiring changes to our controller code. For example, the database an application will connect to will be different when running in production than when running tests.
+A benefit to using service objects is that they can be altered depending on the environment the application is running in without requiring changes to code. For example, the database an application will connect to will be different when running in production than when running tests.
 
-Besides service configuration, there may be other types of initialization an application wants to take. Common tasks include adding codecs to `CodecRegistry` or setting the default `CORSPolicy`.
+Besides service configuration, there may be other types of initialization an application wants to take. Common tasks include adding codecs to `CodecRegistry` or setting the default `CORSPolicy`. All of this initialization is done in `prepare()`.
 
-All of this initialization is done in `prepare()`.
-
-Some of the information needed to configure an application will come from a configuration file or environment variables. This information is available through the `options` property of an application channel. For more information on using a configuration file and environment variables to guide initialization, see [this guide](configure.md).
+Some of the information needed to configure an application will come from a configuration file or environment variables. For more information on using a configuration file and environment variables to guide initialization, see [this guide](configure.md).
 
 ## Multi-threaded Aqueduct Applications
 
-Aqueduct applications can - and should - be spread across a number of threads. This allows an application to take advantage of multiple CPUs and serve requests faster. In Dart, threads are called *isolates*. An instance of your `ApplicationChannel` is created for each isolate. When your application receives an HTTP request, one of these instances receives the request and processes it. These instances are replicas of one another and it doesn't matter which instance processes the request. This isolate-channel architecture is very similar to running multiple servers that run the same application.
+Aqueduct applications can - and should - be spread across a number of threads. This allows an application to take advantage of multiple CPUs and serve requests faster. In Dart, threads are called *isolates*. An instance of your `ApplicationChannel` is created for each isolate. When your application receives an HTTP request, the request is passed to one of these instances' entry points. These instances are replicas of one another and it doesn't matter which instance processes the request. This isolate-channel architecture is very similar to running multiple servers that run the same application.
 
 The number of isolates an application will use is configurable at startup when using the [aqueduct serve](../cli/running.md) command.
 
@@ -125,7 +120,7 @@ class AppChannel extends ApplicationChannel {
 }
 ```
 
-It is important to note the behavior of isolates as it relates to Aqueduct and the initialization process. Each isolate has its own heap. `initializeApplication` is executed in the main isolate, whereas each `ApplicationChannel` is instantiated in its own isolate. This means that any values stored in `ApplicationOptions` must be safe to pass across isolates - i.e., they can't contain references to closures.
+Each isolate has its own heap. `initializeApplication` is executed in the main isolate, whereas each `ApplicationChannel` is instantiated in its own isolate. This means that any values stored in `ApplicationOptions` must be safe to pass across isolates - i.e., they can't contain references to closures.
 
 Additionally, any global variables or static properties that are set in the main isolate *will not be set* in other isolates. Configuration types like `CodecRegistry` do not share values across isolates, because they use a static property to hold a reference to the repository of codecs. Therefore, they must be set up in `ApplicationChannel.prepare()`.
 

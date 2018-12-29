@@ -1,4 +1,4 @@
-# Aqueduct Application Architecture
+# Application and Project Structure
 
 The purpose of this document is to understand the objects that comprise an Aqueduct application, and how they work with one another to serve HTTP requests. It also discusses the project structure on the filesystem.
 

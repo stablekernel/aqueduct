@@ -237,7 +237,7 @@ In the database, the `role` column is stored as a string. Its value is either "a
 
 ### Private Variables
 
-A private variable in a table definition removes it from the serialized representation of an object. A private variable is always fetched when making a database query, but it is not read when invoking `readFromMap` and is not written when invoking `asMap`. Both of these methods are invoked when reading a managed object from a request body, or writing it to a response body.
+A private variable in a table definition removes it from the serialized representation of an object. A private variable is always fetched when making a database query, but it is not read when invoking `read` and is not written when invoking `asMap`. Both of these methods are invoked when reading a managed object from a request body, or writing it to a response body.
 
 ### Transient Properties
 

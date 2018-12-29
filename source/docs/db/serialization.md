@@ -2,31 +2,48 @@
 
 In this guide, you will learn how `ManagedObject<T>`s are read from HTTP request bodies and written to HTTP response bodies.
 
-## Basic Behavior
+## Basic Conversion
 
-A `ManagedObject<T>` can be converted to and from `Map<String, dynamic>` objects (which can be encoded and decoded into request or response body using JSON or some other data format). To decode a `ManagedObject` into a `Map`, use the instance method `readFromMap`:
+A `ManagedObject<T>` can be converted to and from `Map<String, dynamic>` objects. Each key is the name of a property in the object. To decode a `ManagedObject` into a `Map`, call its `read` method:
 
 ```dart
 final object = MyManagedObject();
-object.readFromMap({
+object.read({
   "key": "value"
 });
 
 // object.key == "value"
 ```
 
-When decoding, the value for each key in the map is assigned to the managed object property of the same name. If a key exists in the map and the managed object does not have a property of the same name, a `ValidationException` will be thrown (this sends a 400 Bad Request response if uncaught). If a value is not the correct type for the property it is being assigned to, the same exception (with a different error message) is thrown.
+Validation exceptions (status code: 400) are thrown is the input data is invalid: if a key doesn't have a corresponding property, the type of a value does not match the expected type or some constraint of the managed object is violated.
 
-To encode a map into a managed object is converted, use the instance method `asMap`:
+Filters can be applied to keys of the object being read. Filters can ignore keys, require keys or throw an exception if a key is present. Here is an example, where the read will throw an exception because 'id' is required but not provided:
+
+```dart
+object.read({
+  "key": "value"
+}, require: ["id"]);
+```
+
+!!! tip "ManagedObjects inherit Serializable"
+    The `read` method and its filters are inherited from `Serializable` and are discussed in more detail [here](../http/request_and_response.md). Managed objects, like serializables, can be bound to operation method parameters.
+
+Managed objects have a list of default keys that can be used as a base filter set:
+
+```dart
+object.read({}, require: object.entity.defaultProperties);
+```
+
+To serialize a managed object into a map, use the instance method `asMap`:
 
 ```dart
 final object = MyManagedObject();
-final map = object.asMap();
+Map<String, dynamic> map = object.asMap();
 ```
 
-The resulting map will contain the values set on the managed object for keys that match the name of the property.
+If a property has not been set on the object, it will not be written to the map.
 
-The values of a `Map` equivalent of a managed object are always primitive values that can be encoded as JSON, sent across an isolate, etc. The following shows a table of the
+The values of a `Map` equivalent of a managed object are always primitive values that can be encoded as JSON, sent across an isolate, etc. The following shows a table of the serialization format:
 
 | Dart Type | Serialized Type |
 |-----------|---------------|
@@ -39,27 +56,6 @@ The values of a `Map` equivalent of a managed object are always primitive values
 | Any `enum` | string (`String`) |
 | Belongs-To or Has-One Relationship | map (`Map<String, dynamic>`) |
 | Has-Many Relationship | list of maps (`List<Map<String, dynamic>>`) |
-
-Both `asMap` and `readFromMap` are inherited methods from `Serializable`. As a `Serializable`, a managed object can be [bound to a request body in an `ResourceController` operation method](../http/resource_controller.md) and [encoded as a response body object](../http/request_and_response.md). For example:
-
-```dart
-class UserController extends ResourceController {
-  @Operation.post()
-  Future<Response> createUser(@Bind.body() User user) async {
-    var query = Query<User>(context)
-      ..values = user;
-
-    final newUser = await query.insert();
-
-    return Response.ok(newUser);
-  }
-}
-```
-
-Also, recall that `List<Serializable>` can also be bound to a request body or encoded as a response body, and therefore so can `List<ManagedObject>`.
-
-!!! note "Autoincrementing Properties"
-      Properties that are autoincrementing will never be read from a map from `readFromMap`.
 
 ## Behavior of Null Values
 
@@ -84,7 +80,7 @@ myObject.asMap() == {
 }; // true
 ```
 
-A property value becomes available when it is set through an accessor of the object, when invoking `readFromMap` with a map that contains the associated key, or when using a fetch `Query` that fetches the associated column.
+A property value becomes available when it is set through an accessor, when using `read`, or when returning objects from a query.
 
 ## Behavior of Transient Properties
 
@@ -92,16 +88,16 @@ By default, transient properties - those declared in the managed object subclass
 
 ```dart
 class Employee extends ManagedObject<_Employee> implements _Employee {
-  int a; // NOT included in asMap, NOT read in readFromMap
+  int a; // NOT included in asMap, NOT read in read
 
   @Serialize()
-  int b; // included in asMap, read in readFromMap
+  int b; // included in asMap, read in read
 
   @Serialize(input: true, output: false)
-  int c; // NOT included in asMap, read in readFromMap
+  int c; // NOT included in asMap, read in read
 
   @Serialize(input: false, output: true)
-  int d; // included in asMap, NOT read in readFromMap
+  int d; // included in asMap, NOT read in read
 }
 
 class _Employee {
@@ -110,7 +106,7 @@ class _Employee {
 }
 ```
 
-A separate getter and setter may exist instead of a property. Getters with the `Serialize` annotation will be written in `asMap` and setters with the annotation will be read in `readFromMap`.
+A separate getter and setter may exist instead of a property. With this annotation, getters are added to `asMap` and setters will be input for `read`.
 
 ```dart
 class User extends ManagedObject<_User> implements _User {

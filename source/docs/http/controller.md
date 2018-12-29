@@ -1,33 +1,33 @@
 # Handling Requests: Fundamentals
 
-Learn how `Controller` objects are linked together to handle HTTP requests.
+In Aqueduct, HTTP requests and responses are instances of `Request`s and `Response`s. For each HTTP request an application receives, an instance of `Request` is created. A `Response` must be created for each request. Responses are created by [controller objects](controller.md). This guide discusses the behavior and initialization of controllers. You can read more about request and response objects [here](request_and_response.md).
 
 ## Overview
 
 A controller is the basic building block of an Aqueduct application. A controller handles an HTTP request in some way. For example, a controller could return a 200 OK response with a JSON-encoded list of city names. A controller could also check a request to make sure it had the right credentials in its authorization header.
 
-Controllers are linked together to compose their behaviors into a *channel*. A channel handles a request by performing each of its controllers' behavior in order. For example, a channel with the aforementioned controllers would verify the credentials of a request and then returning a list of city names.
+Controllers are linked together to compose their behaviors into a *channel*. A channel handles a request by performing each of its controllers' behavior in order. For example, a channel might verify the credentials of a request and then return a list of city names by composing two controllers that take each of these actions.
 
 ![Aqueduct Channel](../img/simple_controller_diagram.png)
 
-The `Controller` class provides the behavior for linking controllers together, and you subclass it to provide the logic for a particular controller behavior.
+You subclass controllers to provide their request handling logic, and there are common controller subclasses in Aqueduct for your use.
 
 ## Linking Controllers
 
 Controllers are linked with their `link` method. This method takes a closure that returns the next controller in the channel. The following shows a channel composed of two controllers:
 
 ```dart
-final controllerA = Controller();
-controller.link(() => Controller());
+final controller = VerifyController();
+controller.link(() => ResponseController());
 ```
 
-When `controllerA` handles a request, it can choose to respond to the request or let the request continue in the channel. When the request continues in this channel, the controller created by the closure passed to `link` handles the request. Any number of controllers can be linked together in a channel, but the last controller must respond to the request. Controllers that always responder to request are called *endpoint controllers*, as opposed to *middleware controllers* that verify or modify the request and let the next controller in the channel handle it.
+In the above, `VerifyController` links `ResponseController`. A request handled by the verifying controller can either respond to the request or let the response controller handle it. If the verifying controller sends a respond, the response controller will never receive the request. Any number of controllers can be linked, but the last controller linked must respond to a request. Controllers that always respond to request are called *endpoint controllers*. *Middleware controllers* verify or or modify the request, and typically only respond when an error is encountered.
 
-Linking occurs in an [application channel](../application/channel.md), and is finalized during startup of your application (i.e., once you have set up your controllers, the cannot be changed once the application starts receiving requests). In a typical application, a `Router` controller splits an application channel into multiple sub-channels.
+Linking occurs in an [application channel](../application/channel.md), and is finalized during startup of your application (i.e., once you have set up your controllers, the cannot be changed once the application starts receiving requests).
 
-## Creating Request Handling Behavior by Subclassing Controller
+## Subclassing Controller to Handle Requests
 
-Every `Controller` implements its `handle` method to handle a request. You override this method in your controllers to provide the logic for your application's controllers. The following is an example of an endpoint controller, because it always sends a response:
+Every `Controller` implements its `handle` method to handle a request. You override this method in your controllers to provide the logic for your controllers. The following is an example of an endpoint controller, because it always sends a response:
 
 
 ```dart
@@ -36,14 +36,14 @@ class NoteController extends Controller {
   Future<RequestOrResponse> handle(Request request) async {
     final notes = await fetchNotesFromDatabase();
 
-    return new Response.ok(notes);
+    return Response.ok(notes);
   }
 }
 ```
 
-This `handle` method creates and returns a `Response` object. When a `handle` method returns a response, that response is sent to the client. Any linked controllers do not have their `handle` method invoked; the request is removed from the channel.
+This `handle` method returns a `Response` object. Any time a controller returns a response, Aqueduct sends a response to the client and terminates the request so that no other controllers can handle it.
 
-A middleware controller returns a response when the request is invalid. For example, an `Authorizer` controller returns a `401 Unauthorized` response if the request's credentials are invalid (this removes the request from the channel). If a middleware controller deems the request acceptable, it returns the request from its `handle` method. This signals to Aqueduct that the next controller in the channel should handle the request.
+A middleware controller returns a response when it can provide the response or for error conditions. For example, an `Authorizer` controller returns a `401 Unauthorized` response if the request's credentials are invalid. To let the request pass to the next controller, you must return the request object.
 
 As an example, the pseudo-code for an `Authorizer` looks like this:
 
@@ -55,7 +55,7 @@ class Authorizer extends Controller {
       return request;
     }
 
-    return new Response.unauthorized();
+    return Response.unauthorized();
   }
 }
 ```
@@ -89,7 +89,7 @@ For simple behavior, functions with the same signature as `handle` can be linked
   router
     .route("/path")
     .linkFunction((req) async => req);
-    .linkFunction((req) async => new Response.ok(null));
+    .linkFunction((req) async => Response.ok(null));
 ```
 
 Linking a function has all of the same behavior as `Controller.handle`: it can return a request or response, automatically handles exceptions, and can have controllers (and functions) linked to it.
@@ -148,12 +148,10 @@ class Thrower extends Controller {
       throw new Response.forbidden();
     }
 
-    return new Response.ok(null);
+    return Response.ok(null);
   }
 }
 ```
-
-However, it can be valuable to send error responses from elsewhere in code as an application's codebase becomes more layered.
 
 ### Throwing HandlerExceptions
 
@@ -190,8 +188,6 @@ class WithdrawalException implements HandlerException {
   }
 }
 ```
-
-The Aqueduct ORM exceptions (`QueryException`) implement `HandlerException` to return a response that best represents the ORM exception. For example, if a unique constraint is violated by a query, the thrown exception implements `response` to return a 409 Conflict response.
 
 ## CORS Headers and Preflight Requests
 

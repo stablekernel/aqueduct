@@ -18,12 +18,6 @@ pages:
 - 3.0 Migration Guide: 'migration.md'
 - Best Practices: 'best_practices.md'
 - IntelliJ IDEA Templates: 'intellij.md'
-- Snippets:
-  - 'Overview': 'snippets/index.md'
-  - 'HTTP': 'snippets/http.md'
-  - 'ORM': 'snippets/orm.md'
-  - 'Authentication and Authorization': 'snippets/auth.md'
-  - 'Testing': 'snippets/test.md'
 - Tutorial:
   - '1. Getting Started': 'tut/getting-started.md'
   - '2. Reading from a Database': 'tut/executing-queries.md'
@@ -31,16 +25,16 @@ pages:
   - '4. Configuration and Testing': 'tut/writing-tests.md'
   - '5. Authentication and Authorization': 'tut/oauth2.md'
 - Guides:
-  - Application Structure and Behavior:
+  - Application Configuration and Behavior:
     - 'Overview': 'application/index.md'
-    - 'Startup & Initialization': 'application/channel.md'
-    - 'Environment Configuration': 'application/configure.md'
-    - 'Application Structure': 'application/structure.md'
+    - 'Starting and Stopping Applications': 'application/channel.md'
+    - 'Configuring an Application and its Environment': 'application/configure.md'
+    - 'Application and Project Structure': 'application/structure.md'
     - 'Multi-threading': 'application/threading.md'
   - Handling HTTP Requests:
     - 'Overview': 'http/index.md'
-    - 'Request and Response Objects': 'http/request_and_response.md'
-    - 'Handling Requests: Fundamentals': 'http/controller.md'
+    - 'Handling Requests and Sending Response': 'http/controller.md'
+    - 'Serializing Request and Response Bodies': 'http/request_and_response.md'
     - 'Routing': 'http/routing.md'
     - 'Request Binding with Resource Controllers': 'http/resource_controller.md'
     - 'Serving Files and Caching': 'http/serving_files.md'
@@ -89,3 +83,9 @@ pages:
     - 'Creating Applications': 'cli/create.md'
     - 'Running Applications': 'cli/running.md'
     - 'Generating an OpenAPI/Swagger Specification': 'cli/document.md'
+- Snippets:
+  - 'Overview': 'snippets/index.md'
+  - 'HTTP': 'snippets/http.md'
+  - 'ORM': 'snippets/orm.md'
+  - 'Authentication and Authorization': 'snippets/auth.md'
+  - 'Testing': 'snippets/test.md'

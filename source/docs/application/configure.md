@@ -1,4 +1,4 @@
-# Configuring an Aqueduct Application
+# Configuring an Application and its Environment
 
 This guide covers configuring an Aqueduct application.
 
@@ -12,7 +12,7 @@ The path of a configuration file is available to an `ApplicationChannel` through
 class TodoAppChannel extends ApplicationChannel {
   @override
   Future prepare() async {
-    var config = new TodoConfiguration(options.configurationFilePath);
+    var config = TodoConfiguration(options.configurationFilePath);
     ...
   }
 }
@@ -49,14 +49,16 @@ identifier: 2
 
 If required properties are omitted from the YAML file being read, application startup will fail and throw an informative error.
 
-You may use `Configuration`s to read values from environment variables. In `config.yaml`, use a `$`-prefixed environment variable name instead of a value:
+### Environment Variables
+
+A configuration file can use an environment variable instead of a literal value. In `config.yaml`, use a `$`-prefixed environment variable name instead of a value:
 
 ```
 database: $DATABASE_CONNECTION_URL
 apiBaseURL: /api
 ```
 
-If the environment variable `DATABASE_CONNECTION_URL`'s value were `"postgres://user:password@localhost:5432/test"`, the value of `TodoConfiguration.database` will be that string at runtime. (Note that `DatabaseConnectionConfiguration` may either have a YAML object for each connection attribute, or a database connection string.)
+If the environment variable `DATABASE_CONNECTION_URL`'s value were `"postgres://user:password@localhost:5432/test"`, the value of `TodoConfiguration.database` will be that string at runtime.
 
 The [safe_config package](https://pub.dartlang.org/packages/safe_config) has instructions for more additional usages.
 
