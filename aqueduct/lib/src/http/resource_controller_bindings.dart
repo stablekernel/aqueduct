@@ -117,9 +117,9 @@ class Bind {
   /// If the bound parameter is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   const Bind.query(this.name)
       : _type = _BindType.query,
-        required = null,
+        require = null,
         ignore = null,
-        error = null;
+        reject = null;
 
   /// Binds an HTTP request header to an [ResourceController] property or operation method argument.
   ///
@@ -144,9 +144,9 @@ class Bind {
   /// If the bound parameter is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   const Bind.header(this.name)
       : _type = _BindType.header,
-        required = null,
+        require = null,
         ignore = null,
-        error = null;
+        reject = null;
 
   /// Binds an HTTP request body to an [ResourceController] property or operation method argument.
   ///
@@ -176,7 +176,7 @@ class Bind {
   /// No operation method will be called in this case.
   ///
   /// If not required and not present in a request, the bound arguments and properties will be null when the operation method is invoked.
-  const Bind.body({this.ignore, this.error, this.required})
+  const Bind.body({this.ignore, this.reject, this.require})
       : name = null,
         _type = _BindType.body;
 
@@ -201,16 +201,16 @@ class Bind {
   /// the [Bind.path] argument. If no path variables are present, `getUsers` is invoked.
   const Bind.path(this.name)
       : _type = _BindType.path,
-        required = null,
+        require = null,
         ignore = null,
-        error = null;
+        reject = null;
 
   final String name;
   final _BindType _type;
 
   final List<String> ignore;
-  final List<String> error;
-  final List<String> required;
+  final List<String> reject;
+  final List<String> require;
 
   /// Used internally
   BoundInput get binding {
@@ -220,7 +220,7 @@ class Bind {
       case _BindType.header:
         return BoundHeader(name);
       case _BindType.body:
-        return BoundBody(ignore: ignore, error: error, required: required);
+        return BoundBody(ignore: ignore, error: reject, required: require);
       case _BindType.path:
         return BoundPath(name);
     }

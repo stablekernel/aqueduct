@@ -256,7 +256,7 @@ class CrashController extends ResourceController {
 class FilterController extends ResourceController {
   @Operation.post()
   Future<Response> create(
-      @Bind.body(ignore: ["ignore"], required: ["required"], error: ["error"])
+      @Bind.body(ignore: ["ignore"], require: ["required"], reject: ["error"])
           TestSerializable tm) async {
     return Response.ok(tm.contents);
   }
