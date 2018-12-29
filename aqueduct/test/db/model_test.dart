@@ -662,7 +662,12 @@ void main() {
 
     test("Private fields cannot be set in readFromMap()", () {
       var p = PrivateField();
-      p.readFromMap(wash({"_private": "x"}));
+      try {
+        p.readFromMap(wash({"_private": "x"}));
+        fail('unreachable');
+      } on ValidationException catch (e) {
+        expect(e.toString(), contains("invalid input"));
+      }
       expect(p.public, isNull);
       expect(p._private, isNull);
     });
