@@ -107,14 +107,14 @@ class Bind {
   /// Parameters with this metadata may be [String], [bool], or any type that implements `parse` (e.g., [int.parse] or [DateTime.parse]). It may also
   /// be a [List] of any of the allowed types, for which each query key-value pair in the request [Uri] be available in the list.
   ///
-  /// If a declaration with this metadata is a positional argument in a operation method, it is required for that method. A 400 Bad Request
+  /// If the bound parameter is a positional argument in a operation method, it is required for that method. A 400 Bad Request
   /// will be sent and the operation method will not be invoked if the request does not contain the query key.
   ///
-  /// If a declaration with this metadata is an optional argument in a operation method, it is optional for that method. The value of
+  /// If the bound parameter is an optional argument in a operation method, it is optional for that method. The value of
   /// the bound property will be null if it was not present in the request.
   ///
-  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [ResourceController].
-  /// If a declaration with this metadata is a property with [requiredBinding], it is required for all methods in an [ResourceController].
+  /// If the bound parameter is a property without any additional metadata, it is optional for all methods in an [ResourceController].
+  /// If the bound parameter is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   const Bind.query(this.name)
       : _type = _BindType.query,
         required = null,
@@ -134,14 +134,14 @@ class Bind {
   ///
   /// Parameters with this metadata may be [String], [bool], or any type that implements `parse` (e.g., [int.parse] or [DateTime.parse]).
   ///
-  /// If a declaration with this metadata is a positional argument in a operation method, it is required for that method. A 400 Bad Request
+  /// If the bound parameter is a positional argument in a operation method, it is required for that method. A 400 Bad Request
   /// will be sent and the operation method will not be invoked if the request does not contain the header.
   ///
-  /// If a declaration with this metadata is an optional argument in a operation method, it is optional for that method. The value of
+  /// If the bound parameter is an optional argument in a operation method, it is optional for that method. The value of
   /// the bound property will be null if it was not present in the request.
   ///
-  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [ResourceController].
-  /// If a declaration with this metadata is a property with [requiredBinding], it is required for all methods in an [ResourceController].
+  /// If the bound parameter is a property without any additional metadata, it is optional for all methods in an [ResourceController].
+  /// If the bound parameter is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   const Bind.header(this.name)
       : _type = _BindType.header,
         required = null,
@@ -153,29 +153,26 @@ class Bind {
   /// The body of an incoming
   /// request is decoded into the bound argument or property. The argument or property *must* implement [Serializable] or be
   /// a [List<Serializable>]. If the property or argument is a [List<Serializable>], the request body must be able to be decoded into
-  /// a [List] of objects (i.e., a JSON array) and [Serializable.readFromMap] is invoked for each object.
+  /// a [List] of objects (i.e., a JSON array) and [Serializable.read] is invoked for each object (see this method for parameter details).
   ///
-  /// Note that [ManagedObject] implements [Serializable].
-  ///
-  /// For example, the following controller will read a JSON object from the request body and assign its key-value pairs
-  /// to the properties of `User`:
+  /// Example:
   ///
   ///
   ///       class UserController extends ResourceController {
   ///         @Operation.post()
   ///         Future<Response> createUser(@Bind.body() User user) async {
-  ///           var query = Query<User>()..values = user;
-  ///
+  ///           final username = user.name;
   ///           ...
   ///         }
   ///       }
   ///
-  /// If a declaration with this metadata is a positional argument in a operation method, it is required for that method.
-  /// If a declaration with this metadata is an optional argument in a operation method, it is optional for that method.
-  /// If a declaration with this metadata is a property without any additional metadata, it is optional for all methods in an [ResourceController].
-  /// If a declaration with this metadata is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   ///
-  /// Requirements that are not met will be evoke a 400 Bad Request response with the name of the missing header in the JSON error body.
+  /// If the bound parameter is a positional argument in a operation method, it is required for that method.
+  /// If the bound parameter is an optional argument in a operation method, it is optional for that method.
+  /// If the bound parameter is a property without any additional metadata, it is optional for all methods in an [ResourceController].
+  /// If the bound parameter is a property with [requiredBinding], it is required for all methods in an [ResourceController].
+  ///
+  /// Requirements that are not met will be throw a 400 Bad Request response with the name of the missing header in the JSON error body.
   /// No operation method will be called in this case.
   ///
   /// If not required and not present in a request, the bound arguments and properties will be null when the operation method is invoked.

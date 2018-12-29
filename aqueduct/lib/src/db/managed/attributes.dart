@@ -205,14 +205,14 @@ class Column {
 class Serialize {
   /// Annotates a [ManagedObject] property so it can be serialized.
   ///
-  /// Properties declared in a [ManagedObject] subclass are not included in the result of [ManagedObject.asMap]
-  /// and are not read from a [Map] in [ManagedObject.readFromMap]. Adding an instance of this type as an annotation
+  /// Properties declared in a [ManagedObject] subclass are not included in [ManagedObject.asMap]
+  /// and are not read in [ManagedObject.read]. Adding an instance of this type as an annotation
   /// allows those properties to be read from a map and written to a map.
   ///
-  /// If [input] is true, this property can be assigned from a key in a [Map] passed to [ManagedObject.readFromMap].
+  /// If [input] is true, this property is assignable with [ManagedObject.read].
   ///
-  /// If [output] is true, this property will be written to the [Map] returned from [ManagedObject.asMap].
-  /// If the value of the property is null, the key is not included in the result of [ManagedObject.asMap].
+  /// If [output] is true, this property will be added to [ManagedObject.asMap].
+  /// This key is only included if the value is non-null.
   ///
   /// Both [input] and [output] default to true.
   const Serialize({bool input = true, bool output = true})
