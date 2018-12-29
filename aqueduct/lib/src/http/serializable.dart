@@ -47,26 +47,26 @@ abstract class Serializable {
   /// The key name must exactly match the name of the property as defined in the receiver's type.
   /// If [object] contains a key that is unknown to the receiver, an exception is thrown (status code: 400).
   ///
-  /// [ignore], [error] and [required] are filters on [object]'s keys with the following behaviors:
+  /// [ignore], [reject] and [require] are filters on [object]'s keys with the following behaviors:
   ///
   /// If [ignore] is set, each value for that key is ignored and their value is discarded.
-  /// If [error] is set, if [object] contains any of these keys, a status code 400 exception is thrown.
-  /// If [required] is set, all keys must be present in [object].
+  /// If [reject] is set, if [object] contains any of these keys, a status code 400 exception is thrown.
+  /// If [require] is set, all keys must be present in [object].
   ///
   /// Usage:
   ///     var values = json.decode(await request.body.decode());
   ///     var user = User()
   ///       ..read(values, ignore: ["id"]);
-  void read(Map<String, dynamic> object, {Iterable<String> ignore, Iterable<String> error, Iterable<String> required}) {
-    if (ignore == null && error == null && required == null) {
+  void read(Map<String, dynamic> object, {Iterable<String> ignore, Iterable<String> reject, Iterable<String> require}) {
+    if (ignore == null && reject == null && require == null) {
       readFromMap(object);
       return;
     }
 
     final copy = Map<String, dynamic>.from(object);
-    final stillRequired = required?.toList();
+    final stillRequired = require?.toList();
     object.keys.forEach((key) {
-      if (error?.contains(key) ?? false) {
+      if (reject?.contains(key) ?? false) {
         throw SerializableException(["invalid input key '$key'"]);
       }
       if (ignore?.contains(key) ?? false) {

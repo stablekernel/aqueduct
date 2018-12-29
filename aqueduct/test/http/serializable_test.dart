@@ -11,20 +11,20 @@ void main() {
 
   group("required", () {
     test("empty", () {
-      object.read({}, required: []);
+      object.read({}, require: []);
       expect(object.contents, {});
     });
 
     test("input violation", () {
       try {
-        object.read({}, required: ["key"]);
+        object.read({}, require: ["key"]);
         fail('unreachable');
       } on SerializableException catch (e) {
         expect(e.response.statusCode, 400);
       }
 
       try {
-        object.read({"key": ""}, required: ["key", "missing"]);
+        object.read({"key": ""}, require: ["key", "missing"]);
         fail('unreachable');
       } on SerializableException catch (e) {
         expect(e.response.statusCode, 400);
@@ -32,10 +32,10 @@ void main() {
     });
 
     test("valid input", () {
-      object.read({"key": ""}, required: ["key"]);
+      object.read({"key": ""}, require: ["key"]);
       expect(object.contents, {"key": ""});
 
-      object.read({"key": "", "next": ""}, required: ["key", "next"]);
+      object.read({"key": "", "next": ""}, require: ["key", "next"]);
       expect(object.contents, {"key": "", "next": ""});
     });
   });
@@ -62,20 +62,20 @@ void main() {
 
   group("error", () {
     test("empty", () {
-      object.read({"1": ""}, error: []);
+      object.read({"1": ""}, reject: []);
       expect(object.contents, {"1": ""});
     });
 
     test("input violation", () {
       try {
-        object.read({"key": ""}, error: ["key"]);
+        object.read({"key": ""}, reject: ["key"]);
         fail('unreachable');
       } on SerializableException catch (e) {
         expect(e.response.statusCode, 400);
       }
 
       try {
-        object.read({"key": ""}, error: ["key", "missing"]);
+        object.read({"key": ""}, reject: ["key", "missing"]);
         fail('unreachable');
       } on SerializableException catch (e) {
         expect(e.response.statusCode, 400);
@@ -83,17 +83,17 @@ void main() {
     });
 
     test("valid input", () {
-      object.read({"key": ""}, error: ["not-key"]);
+      object.read({"key": ""}, reject: ["not-key"]);
       expect(object.contents, {"key": ""});
 
-      object.read({"key": "", "next": ""}, error: ["not-key", "not-next"]);
+      object.read({"key": "", "next": ""}, reject: ["not-key", "not-next"]);
       expect(object.contents, {"key": "", "next": ""});
     });
   });
   
   test("ignore + error conflict is resolved to error", () {
     try {
-      object.read({"key": ""}, ignore: ["key"], error: ["key"]);
+      object.read({"key": ""}, ignore: ["key"], reject: ["key"]);
       fail('unreachable');
     } on SerializableException catch (e) {
       expect(e.response.statusCode, 400);

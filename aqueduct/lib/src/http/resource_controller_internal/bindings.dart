@@ -205,7 +205,7 @@ class BoundBody extends BoundInput {
     if (intoType.isSubtypeOf(reflectType(Serializable))) {
       final value =
           intoType.newInstance(const Symbol(""), []).reflectee as Serializable;
-      value.read(request.body.as(), ignore: ignoreFilter, error: errorFilter, required: requiredFilter);
+      value.read(request.body.as(), ignore: ignoreFilter, reject: errorFilter, require: requiredFilter);
 
       return value;
     } else if (intoType.isSubtypeOf(reflectType(List))) {
@@ -218,7 +218,7 @@ class BoundBody extends BoundInput {
       return bodyList.map((object) {
         final value =
             typeArg.newInstance(const Symbol(""), []).reflectee as Serializable;
-        value.read(object, ignore: ignoreFilter, error: errorFilter, required: requiredFilter);
+        value.read(object, ignore: ignoreFilter, reject: errorFilter, require: requiredFilter);
 
         return value;
       }).toList();
