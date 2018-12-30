@@ -98,26 +98,28 @@ class ManagedEntity implements APIComponentDocumenter {
   /// All validators for all [attributes] in one, flat list. Order is undefined.
   List<ManagedValidator> validators;
 
-  /// The list of default properties returned when querying an instance of this type.
+  /// The list of default property names of this object.
   ///
-  /// By default, a [Query] will return all the properties named in this list. You may specify
+  /// By default, a [Query] will fetch the properties in this list. You may specify
   /// a different set of properties by setting the [Query.returningProperties] value. The default
   /// set of properties is a list of all attributes that do not have the [Column.shouldOmitByDefault] flag
   /// set in their [Column] and all [ManagedRelationshipType.belongsTo] relationships.
+  ///
+  /// This list cannot be modified.
   List<String> get defaultProperties {
     if (_defaultProperties == null) {
-      _defaultProperties = attributes.values
+      final elements = <String>[];
+      elements.addAll(attributes.values
           .where((prop) => prop.isIncludedInDefaultResultSet)
           .where((prop) => !prop.isTransient)
-          .map((prop) => prop.name)
-          .toList();
+          .map((prop) => prop.name));
 
-      _defaultProperties.addAll(relationships.values
+      elements.addAll(relationships.values
           .where((prop) =>
               prop.isIncludedInDefaultResultSet &&
               prop.relationshipType == ManagedRelationshipType.belongsTo)
-          .map((prop) => prop.name)
-          .toList());
+          .map((prop) => prop.name));
+      _defaultProperties = List.unmodifiable(elements);
     }
     return _defaultProperties;
   }

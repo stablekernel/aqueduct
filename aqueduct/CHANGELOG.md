@@ -1,3 +1,7 @@
+## 3.2.0
+
+- Adds `read` method to `Serializable`.
+
 ## 3.1.0
 
 - Adds the implicit authorization grant flow via the `AuthRedirectController` type.

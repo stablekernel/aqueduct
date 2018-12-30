@@ -67,7 +67,7 @@ abstract class ManagedBacking {
 /// declared in the subclass (also called the 'instance type') are not stored in the database.
 ///
 /// See more documentation on defining a data model at http://aqueduct.io/docs/db/modeling_data/
-abstract class ManagedObject<T> implements Serializable {
+abstract class ManagedObject<T> extends Serializable {
   /// Creates a new instance of [entity] with [backing].
   static ManagedObject instantiateDynamic(ManagedEntity entity,
       {ManagedBacking backing}) {
@@ -225,27 +225,16 @@ abstract class ManagedObject<T> implements Serializable {
     return name;
   }
 
-  /// Reads values from [keyValues] and assigns them to properties of this object.
-  ///
-  /// This method will thrown an exception if a key in the map does not
-  /// match a property of the receiver.
-  ///
-  /// Usage:
-  ///     var values = json.decode(requestBody);
-  ///     var user = new User()
-  ///       ..readFromMap(values);
   @override
-  void readFromMap(Map<String, dynamic> keyValues) {
-    var mirror = reflect(this);
-
-    keyValues.forEach((k, v) {
-      if (_isPropertyPrivate(k)) {
-        return;
-      }
-
-      final property = entity.properties[k];
+  void readFromMap(Map<String, dynamic> object) {
+    final mirror = reflect(this);
+    object.forEach((key, v) {
+      final property = entity.properties[key];
       if (property == null) {
-        throw ValidationException(["invalid input key '$k'"]);
+        throw ValidationException(["invalid input key '$key'"]);
+      }
+      if (property.isPrivate) {
+        throw ValidationException(["invalid input key '$key'"]);
       }
 
       if (property is ManagedAttributeDescription) {
@@ -254,16 +243,16 @@ abstract class ManagedObject<T> implements Serializable {
               property, property.convertFromPrimitiveValue(v));
         } else {
           if (!property.transientStatus.isAvailableAsInput) {
-            throw ValidationException(["invalid input key '$k'"]);
+            throw ValidationException(["invalid input key '$key'"]);
           }
 
           var decodedValue = property.convertFromPrimitiveValue(v);
 
           if (!property.isAssignableWith(decodedValue)) {
-            throw ValidationException(["invalid input type for key '$k'"]);
+            throw ValidationException(["invalid input type for key '$key'"]);
           }
 
-          mirror.setField(Symbol(k), decodedValue);
+          mirror.setField(Symbol(key), decodedValue);
         }
       } else {
         backing.setValueForProperty(

@@ -174,7 +174,12 @@ class BoundQueryParameter extends BoundInput {
 }
 
 class BoundBody extends BoundInput {
-  BoundBody() : super(null);
+  BoundBody({List<String> ignore, List<String> error, List<String> required}) :
+      ignoreFilter = ignore, errorFilter = error, requiredFilter = required, super(null);
+
+  final List<String> ignoreFilter;
+  final List<String> errorFilter;
+  final List<String> requiredFilter;
 
   @override
   String get type => "Body";
@@ -200,7 +205,7 @@ class BoundBody extends BoundInput {
     if (intoType.isSubtypeOf(reflectType(Serializable))) {
       final value =
           intoType.newInstance(const Symbol(""), []).reflectee as Serializable;
-      value.readFromMap(request.body.as());
+      value.read(request.body.as(), ignore: ignoreFilter, reject: errorFilter, require: requiredFilter);
 
       return value;
     } else if (intoType.isSubtypeOf(reflectType(List))) {
@@ -213,7 +218,7 @@ class BoundBody extends BoundInput {
       return bodyList.map((object) {
         final value =
             typeArg.newInstance(const Symbol(""), []).reflectee as Serializable;
-        value.readFromMap(object);
+        value.read(object, ignore: ignoreFilter, reject: errorFilter, require: requiredFilter);
 
         return value;
       }).toList();
