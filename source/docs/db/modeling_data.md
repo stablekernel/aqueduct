@@ -404,7 +404,7 @@ class _Team {
 }
 
 // This type is a join table
-class _TeamPlayer extends ManagedObject<_TeamPlayer> implements _TeamPlayer {}
+class TeamPlayer extends ManagedObject<_TeamPlayer> implements _TeamPlayer {}
 class _TeamPlayer {
   @primaryKey
   int id;  
