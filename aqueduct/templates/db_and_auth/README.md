@@ -43,22 +43,28 @@ The following CURL commands will be hitting the end points that are defined in `
 
 ### Getting the Base64Encoding string
 
-Notice above that we have an `id` of `com.local.test` and a `secret` of `mysecret`. We will need the Base64Encoding of these values for use within the CURL scripts. For now, you can use (https://www.base64encode.org/)[https://www.base64encode.org/] to generate the encoding. Use this as the pattern `id:secret`. So it will be `com.local.test:mysecret`. If you copy that to the Base64Encoding page, it will produce the UTF-8 result of `Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=`
+Notice above that we have an `id` of `com.local.test` and a `secret` of `mysecret`. We will need the Base64Encoding of these values for use within the CURL scripts. For now, you can use [https://www.base64encode.org/](https://www.base64encode.org/) to generate the encoding.
+
+The pattern for the input string is `id:secret`. Using the `id` and `secret` from above, our input string is `com.local.test:mysecret`.
+
+Copy that string, `com.local.test:mysecret`, to the Base64Encoding page. Set the Destination charset to `UTF-8` and clidk the Encode> button. You should see the result of `Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=`
 
 ### Register a user (POST /register)
 
-To register the user, we will hit the `/register` end point as defined in `channel.dart`. Use this CURL command and replace the <username> and <password> with your own. Notice how the Base64Encoding from above is referenced. If you change the `id` or `secret`, you will need to update this Base4Encoding with your particular values.
+To register a new user, we will hit the `/register` end point as defined in `channel.dart`. Use the following CURL command and replace the <username> and <password> with your own.
 
-`curl -X POST http://localhost:8888/register -H 'Authorization: Basic Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=' -H 'Content-Type: application/json' -d '{"username":"username", "password": "password"}' -v`
+Notice how the Base64Encoding from above is referenced. If you changed the `id` or `secret` above then you will need to update this Base4Encoding with your particular value.
+
+`curl -X POST http://localhost:8888/register -H 'Authorization: Basic Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=' -H 'Content-Type: application/json' -d '{"username":"<username>", "password": "<password>"}' -v`
 
 You should see a response similar to this:
 
-```
+```JSON
 {"id":3,"username":"marilyn","authorization":{"access_token":"cUXqbTn0DIogyzq80jl2FHmCBa8BvIAyww","token_type":"bearer","expires_in":86399,"refresh_token":"26o8xEOVKBfFvB3jg0rH8qnF2wWV9QBp"}}
 
 ```
 
-For the next step, we will need the `access_token` from above. Note that when you run this, you will have a different `access_token`.
+For the next step, we will need the `access_token`, namely `cUXqbTn0DIogyzq80jl2FHmCBa8BvIAyww` from above. Note that when you run this, you will have a different `access_token`.
 
 ### Read me (GET /me)
 
@@ -70,7 +76,7 @@ curl -X GET http://localhost:8888/me -H 'Authorization: Bearer cUXqbTn0DIogyzq80
 
 You should see a response similar to this:
 
-```
+```JSON
 {"id":1,"username":"marilyn"}
 ```
 
@@ -84,7 +90,7 @@ curl -X GET http://localhost:8888/users/1 -H 'Authorization: Bearer cUXqbTn0DIog
 
 You should see a response similar to this:
 
-```
+```JSON
 {"id":1,"username":"marilyn"}
 ```
 
@@ -98,7 +104,7 @@ curl -X GET http://localhost:8888/users -H 'Authorization: Bearer cUXqbTn0DIogyz
 
 You should have a response similar to this (assuming you Registered 2 other users, `barton` and `bob`). Note that the JSON objects are contained in a Array.
 
-```
+```JSON
 [{"id":1,"username":"marilyn"},{"id":2,"username":"barton"},{"id":3,"username":"bob"}]
 ```
 
@@ -113,7 +119,7 @@ curl -X POST http://localhost:8888/auth/token -H 'Authorization: Basic Y29tLmxvY
 
 You should see a response similar to the following:
 
-```
+```JSON
 {"access_token":"kliJ8X6Rf9OCw31qbkTFzZhwBQ5n5MgA","token_type":"bearer","expires_in":86399,"refresh_token":"73Awjp9zzTWnmEGnuz7hIBFBaXahFPLt"}
 ```
 
@@ -127,7 +133,7 @@ curl -X GET  http://localhost:8888/auth/form?response_type=token
 
 You should see a response similar to the following:
 
-```
+```HTML
 <!DOCTYPE html>
 <html lang="en">
 
