@@ -51,7 +51,7 @@ Copy that string, `com.local.test:mysecret`, to the Base64Encoding page. Set the
 
 ### Register a user (POST /register)
 
-To register a new user, we will hit the `/register` end point as defined in `channel.dart`. Use the following CURL command and replace the <username> and <password> with your own.
+To register a new user, we will hit the `/register` end point as defined in `channel.dart`. Use the following CURL command and replace the `<username>` and `<password>` with your own.
 
 Notice how the Base64Encoding from above is referenced. If you changed the `id` or `secret` above then you will need to update this Base4Encoding with your particular value.
 
@@ -102,11 +102,37 @@ For this example, we will be hitting the same end point as above, namely `/users
 curl -X GET http://localhost:8888/users -H 'Authorization: Bearer cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy'
 ```
 
-You should have a response similar to this (assuming you Registered 2 other users, `barton` and `bob`). Note that the JSON objects are contained in a Array.
+You should have a response similar to the following. Note that the JSON object is contained in a Array.
 
 ```JSON
-[{"id":1,"username":"marilyn"},{"id":2,"username":"barton"},{"id":3,"username":"bob"}]
+[{"id":1,"username":"marilyn"}]
 ```
+
+### Update a User (PUT /users/[:id])
+
+For this example, we will update our User. We can only update our own user. So we will need 2 things to be in sync, namely the `id` of the user and the `access_token` for that user. In our case, user `marilyn` has `access_token` of `cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy` and she is `id` of `1`.
+
+Here is the CURL command:
+
+```
+curl -X PUT http://localhost:8888/users/1 -H 'Authorization: Bearer cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy'  -H "Content-Type: application/json" -d '{"username": "bob roy"}'
+```
+
+You should see a response similar to the following:
+
+```JSON
+{"id":1,"username":"bob roy"}
+```
+
+### Delete a User (DELETE /users/[id])
+
+For this example, we will delete our User. We can only delete our own user. So we will need 2 things to be in sync, namely the `id` of the user and the `access_token` for that user. In our case, user `bob roy` has `access_token` of `cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy`. So here is the CURL command:
+
+```
+curl -X GET http://localhost:8888/users/1 -H 'Authorization: Bearer cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy'
+```
+
+For this command, there is no CURL output. To validate the record is deleted, use the PgAdmin tool.
 
 ### Get a Auth Toke for a User (POST /auth/token)
 
