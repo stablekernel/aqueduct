@@ -49,7 +49,7 @@ The following CURL commands will be hitting the end points that are defined in `
 
 Notice above that we have an `id` of `com.local.test` and a `secret` of `mysecret`. We will need the Base64Encoding of these values for use within the CURL scripts. For now, you can use [https://www.base64encode.org/](https://www.base64encode.org/) to generate the encoding.
 
-The pattern for the input string is `id:secret`. Using the `id` and `secret` from above, our input string is `com.local.test:mysecret`.
+The pattern for the input string is `id:secret`. Using the client identifier and secret from above, our input string is `com.local.test:mysecret`.
 
 Copy that string, `com.local.test:mysecret`, to the Base64Encoding page. Set the Destination charset to `UTF-8` and clidk the Encode> button. You should see the result of `Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=`
 
