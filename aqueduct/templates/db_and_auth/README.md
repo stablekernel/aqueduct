@@ -2,8 +2,7 @@
 
 ## Project creation
 
-To use this template, from the command line, enter `aqueduct create -t db_and_auth <project name>`. This document will assume that project was created w/ the name `wildfire`.
-
+To use this template, from the command line, enter `aqueduct create -t db_and_auth <project name>`. 
 ## Database
 
 For ease, use the same db name as the tests. The tests are run with a local PostgreSQL database named `dart_test`. If this database does not exist, create it from your SQL prompt.
