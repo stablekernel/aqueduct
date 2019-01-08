@@ -57,7 +57,6 @@ After being encoded, these credentials are `Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=`. I
 
 To register a new user, we will hit the `/register` end point as defined in `channel.dart`. Use the following CURL command and replace the `<username>` and `<password>` with your own.
 
-Notice how the Base64Encoding from above is referenced. If you changed the `id` or `secret` above then you will need to update this Base4Encoding with your particular value.
 
 `curl -X POST http://localhost:8888/register -H 'Authorization: Basic Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=' -H 'Content-Type: application/json' -d '{"username":"<username>", "password": "<password>"}' -v`
 
