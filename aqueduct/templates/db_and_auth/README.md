@@ -45,7 +45,7 @@ Run `aqueduct serve` from this directory to run the application. For running wit
 
 The following CURL commands will be hitting the end points that are defined in `channel.dart`.
 
-### Getting the Base64Encoding string
+### Client Authentication
 
 Notice above that we have an `id` of `com.local.test` and a `secret` of `mysecret`. We will need the Base64Encoding of these values for use within the CURL scripts. For now, you can use [https://www.base64encode.org/](https://www.base64encode.org/) to generate the encoding.
 
