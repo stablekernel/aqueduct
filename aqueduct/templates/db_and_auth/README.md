@@ -47,7 +47,7 @@ The following CURL commands will be hitting the end points that are defined in `
 
 ### Client Authentication
 
-Notice above that we have an `id` of `com.local.test` and a `secret` of `mysecret`. We will need the Base64Encoding of these values for use within the CURL scripts. For now, you can use [https://www.base64encode.org/](https://www.base64encode.org/) to generate the encoding.
+Notice above that we have an client identifier of `com.local.test` with the secret `mysecret`. We will need to encode these values as a base64 string in the Authorization header of some requests. As a convenience, you can use [https://www.base64encode.org/](https://www.base64encode.org/) to generate the encoded string.
 
 The pattern for the input string is `id:secret`. Using the client identifier and secret from above, our input string is `com.local.test:mysecret`.
 
