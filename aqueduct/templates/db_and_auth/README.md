@@ -5,8 +5,14 @@
 To use this template, from the command line, enter `aqueduct create -t db_and_auth <project name>`. 
 ## Database
 
-For ease, use the same db name as the tests. The tests are run with a local PostgreSQL database named `dart_test`. If this database does not exist, create it from your SQL prompt.
+You will need a new database specific for your app. 
 
+The tests are run with a local PostgreSQL database named `dart_test`. If this test database does not exist, create it from your SQL prompt.
+
+If your app uses the same database as the test database, you'll get conflicts. The test database is cleared of all tables after your tests run. See [http://aqueduct.io/docs/testing/mixins/](http://aqueduct.io/docs/testing/mixins/).
+
+So create a database named after their project.
+ 
 ```
 CREATE DATABASE dart_test;
 CREATE USER dart WITH createdb;
