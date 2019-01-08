@@ -51,7 +51,7 @@ Notice above that we have an `id` of `com.local.test` and a `secret` of `mysecre
 
 The pattern for the input string is `id:secret`. Using the client identifier and secret from above, our input string is `com.local.test:mysecret`.
 
-Copy that string, `com.local.test:mysecret`, to the Base64Encoding page. Set the Destination charset to `UTF-8` and clidk the Encode> button. You should see the result of `Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=`
+After being encoded, these credentials are `Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=`. If your client identifier and secret are different, this value will be different.
 
 ### Register a user (POST /register)
 
