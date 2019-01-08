@@ -26,6 +26,7 @@ GRANT all ON DATABASE dart_test TO dart;
 
 You must have a `config.yaml` file that has correct database connection info, which should point to a local database. To configure a database to match your application's schema, run the following commands:
 
+Remember, you have to create a new database for the app. 
 ```
 # Note: if this is a new project, run db generate first, assuming you setup the `dart_test` db with `userid:password` of `dart:dart`.
 aqueduct db generate
