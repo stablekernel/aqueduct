@@ -137,7 +137,7 @@ curl -X GET http://localhost:8888/users/1 -H 'Authorization: Bearer cUXqbTn0DIog
 
 For this command, there is no CURL output. To validate the record is deleted, try fetching it again with `GET /users/1`.
 
-### Get a Auth Toke for a User (POST /auth/token)
+### Get a Auth Token for a User (POST /auth/token)
 
 For this example, we will hit the `/auth/token` end point. Now we won't be using the `access_token` but rather the Base64Encoding that we generated earlier, namely the value of `Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=`. This request requires that the "username" and "password" are passed in for an **existing** user. In our example, we currently have the user `marilyn`. Here is the CURL:
 
