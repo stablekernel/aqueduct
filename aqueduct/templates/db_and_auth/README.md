@@ -69,7 +69,7 @@ You should see a response similar to this:
 
 For the next step, we will need the `access_token`, namely `cUXqbTn0DIogyzq80jl2FHmCBa8BvIAyww` from above. Note that when you run this, you will have a different `access_token`.
 
-### Read me (GET /me)
+### Get User Profile (GET /me)
 
 To read information about yourself, once you have the `access_token` from the previous step above, you can run this CURL:
 
