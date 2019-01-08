@@ -77,7 +77,7 @@ To read information about yourself, once you have the `access_token` from the pr
 curl -X GET http://localhost:8888/me -H 'Authorization: Bearer cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy'
 ```
 
-You should see a response similar to this:
+Notice the bearer token is the access token from a previous request, and not the base64 encoded client credentials. You should see a response similar to this:
 
 ```JSON
 {"id":1,"username":"marilyn"}
