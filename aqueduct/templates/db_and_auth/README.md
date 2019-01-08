@@ -139,7 +139,7 @@ For this command, there is no CURL output. To validate the record is deleted, tr
 
 ### Get a Auth Token for a User (POST /auth/token)
 
-For this example, we will hit the `/auth/token` end point. Now we won't be using the `access_token` but rather the Base64Encoding that we generated earlier, namely the value of `Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=`. This request requires that the "username" and "password" are passed in for an **existing** user. In our example, we currently have the user `marilyn`. Here is the CURL:
+This is a 'login' request that requires a user to already be registered. Client credentials are provided in the Authorization header, and user credentials in the body (in the query string format, not JSON).
 
 ```
 curl -X POST http://localhost:8888/auth/token -H 'Authorization: Basic Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=' -H 'Content-Type: application/x-www-form-urlencoded' -d 'username=marilyn&password=password&grant_type=password'
