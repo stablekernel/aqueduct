@@ -8,7 +8,7 @@ class UserController extends ResourceController {
   final AuthServer authServer;
 
   @Operation.get()
-  Future<Response> getall() async {
+  Future<Response> getAll() async {
     final query = Query<User>(context);
     final users = await query.fetch();
     return Response.ok(users);
