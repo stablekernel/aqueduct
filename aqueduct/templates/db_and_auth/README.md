@@ -135,7 +135,7 @@ For this example, we will delete our User. We can only delete our own user. So w
 curl -X GET http://localhost:8888/users/1 -H 'Authorization: Bearer cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy'
 ```
 
-For this command, there is no CURL output. To validate the record is deleted, use the PgAdmin tool.
+For this command, there is no CURL output. To validate the record is deleted, try fetching it again with `GET /users/1`.
 
 ### Get a Auth Toke for a User (POST /auth/token)
 
