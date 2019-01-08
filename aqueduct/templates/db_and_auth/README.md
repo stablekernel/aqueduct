@@ -55,7 +55,7 @@ After being encoded, these credentials are `Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=`. I
 
 ### Register a user (POST /register)
 
-To register a new user, we will hit the `/register` end point as defined in `channel.dart`. Use the following CURL command and replace the `<username>` and `<password>` with your own.
+To register a new user, send a `POST /register` request. Use the following CURL command and replace the `<username>` and `<password>` with your own.
 
 
 `curl -X POST http://localhost:8888/register -H 'Authorization: Basic Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=' -H 'Content-Type: application/json' -d '{"username":"<username>", "password": "<password>"}' -v`
