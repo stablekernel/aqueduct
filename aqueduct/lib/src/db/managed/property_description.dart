@@ -23,12 +23,14 @@ abstract class ManagedPropertyDescription {
       bool indexed = false,
       bool nullable = false,
       bool includedInDefaultResultSet = true,
-      bool autoincrement = false})
+      bool autoincrement = false,
+      List<Validate> validators = const []})
       : isUnique = unique,
         isIndexed = indexed,
         isNullable = nullable,
         isIncludedInDefaultResultSet = includedInDefaultResultSet,
-        autoincrement = autoincrement;
+        autoincrement = autoincrement,
+        _validators = validators;
 
   /// A reference to the [ManagedEntity] that contains this property.
   final ManagedEntity entity;
@@ -77,6 +79,11 @@ abstract class ManagedPropertyDescription {
   bool get isPrivate {
     return name.startsWith("_");
   }
+
+  /// [ManagedValidator]s for this instance.
+  List<Validate> get validators => _validators;
+
+  final List<Validate> _validators;
 
   /// Whether or not a the argument can be assigned to this property.
   bool isAssignableWith(dynamic dartValue) => type.isAssignableWith(dartValue);
@@ -155,25 +162,25 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       : isPrimaryKey = primaryKey,
         defaultValue = defaultValue,
         transientStatus = transientStatus,
-        _validators = validators,
         super(entity, name, type, declaredType,
             unique: unique,
             indexed: indexed,
             nullable: nullable,
             includedInDefaultResultSet: includedInDefaultResultSet,
-            autoincrement: autoincrement);
+            autoincrement: autoincrement,
+            validators: validators);
 
   ManagedAttributeDescription.transient(ManagedEntity entity, String name,
       ManagedType type, ClassMirror declaredType, this.transientStatus)
       : isPrimaryKey = false,
         defaultValue = null,
-        _validators = [],
         super(entity, name, type, declaredType,
             unique: false,
             indexed: false,
             nullable: false,
             includedInDefaultResultSet: false,
-            autoincrement: false);
+            autoincrement: false,
+            validators: []);
 
   /// Whether or not this attribute is the primary key for its [ManagedEntity].
   ///
@@ -209,7 +216,11 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   /// If this property is non-null, the attribute is transient (not backed by a database field/column).
   final Serialize transientStatus;
 
+  /// Whether or not this attribute is represented by a Dart enum.
+  bool get isEnumeratedValue => enumerationValueMap != null;
+
   /// [ManagedValidator]s for this instance.
+  @override
   List<Validate> get validators {
     if (isEnumeratedValue) {
       var total = List<Validate>.from(_validators);
@@ -220,14 +231,10 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
     return _validators;
   }
 
-  final List<Validate> _validators;
-
-  /// Whether or not this attribute is represented by a Dart enum.
-  bool get isEnumeratedValue => enumerationValueMap != null;
-
   @override
   APISchemaObject documentSchemaObject(APIDocumentContext context) {
-    final prop = ManagedPropertyDescription._typedSchemaObject(type)..title = name;
+    final prop = ManagedPropertyDescription._typedSchemaObject(type)
+      ..title = name;
     final buf = StringBuffer();
 
     // Add'l schema info
@@ -370,12 +377,14 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       {bool unique = false,
       bool indexed = false,
       bool nullable = false,
-      bool includedInDefaultResultSet = true})
+      bool includedInDefaultResultSet = true,
+      List<Validate> validators = const []})
       : super(entity, name, type, declaredType,
             unique: unique,
             indexed: indexed,
             nullable: nullable,
-            includedInDefaultResultSet: includedInDefaultResultSet);
+            includedInDefaultResultSet: includedInDefaultResultSet,
+            validators: validators);
 
   /// The entity that this relationship's instances are represented by.
   final ManagedEntity destinationEntity;
@@ -480,15 +489,20 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
         .getObjectWithType(inverse.entity.instanceType.reflectedType);
 
     if (relationshipType == ManagedRelationshipType.hasMany) {
-      return APISchemaObject.array(ofSchema: relatedType)..isReadOnly = true..isNullable = true;
+      return APISchemaObject.array(ofSchema: relatedType)
+        ..isReadOnly = true
+        ..isNullable = true;
     } else if (relationshipType == ManagedRelationshipType.hasOne) {
-      return relatedType..isReadOnly = true..isNullable = true;
+      return relatedType
+        ..isReadOnly = true
+        ..isNullable = true;
     }
 
     final destPk = destinationEntity.primaryKeyAttribute;
     return APISchemaObject.object({
       destPk.name: ManagedPropertyDescription._typedSchemaObject(destPk.type)
-    })..title = name;
+    })
+      ..title = name;
   }
 
   @override

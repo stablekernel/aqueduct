@@ -2,10 +2,11 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/utilities/reference_counting_list.dart';
+import 'package:aqueduct/src/db/managed/builders/data_model_builder.dart';
 
-import '../query/query.dart';
-import 'data_model_builder.dart';
-import 'managed.dart';
+import 'package:aqueduct/src/db/query/query.dart';
+
+import 'package:aqueduct/src/db/managed/managed.dart';
 
 /// Instances of this class contain descriptions and metadata for mapping [ManagedObject]s to database rows.
 ///

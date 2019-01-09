@@ -1,4 +1,3 @@
-import '../db/managed/managed.dart';
 import 'request_path.dart';
 import 'resource_controller.dart';
 import 'resource_controller_internal/internal.dart';

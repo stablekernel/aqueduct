@@ -5,10 +5,22 @@ import '../helpers.dart';
 
 void main() {
   final ctx = ManagedContext(
-      ManagedDataModel([T, U, V, EnumObject]), DefaultPersistentStore());
+      ManagedDataModel([/*T, U, V, EnumObject, Constant, ConstantRef,*/ FK, Parent]), DefaultPersistentStore());
 
   tearDownAll(() async {
     await ctx.close();
+  });
+
+
+  group("Foreign keys", () {
+    test("Validator applies to foreign key value", () {
+      final fk = FK();
+      fk.parent = Parent()..id = 1;
+      expect(fk.validate().isValid, false);
+
+      fk.parent.id = 2;
+      expect(fk.validate().isValid, true);
+    });
   });
 
   group("Validate.matches", () {
@@ -192,6 +204,21 @@ void main() {
       expect(e.validate().isValid, false);
       e.enumValues = EnumValues.abcd;
       expect(e.validate().isValid, true);
+    });
+  });
+
+  group("Validate.constant", () {
+    test("Allows attributes during insert, not update", () {
+      var t = Constant()..constantString = "A";
+      expect(t.validate(forEvent: Validating.insert).isValid, true);
+
+      expect(t.validate(forEvent: Validating.update).isValid, false);
+    });
+
+    test("Allows relationships during insert, not update", () {
+      var t = Constant()..constantRef = ConstantRef()..id = 1;
+      expect(t.validate(forEvent: Validating.insert).isValid, true);
+      expect(t.validate(forEvent: Validating.update).isValid, false);
     });
   });
 
@@ -547,6 +574,27 @@ class V extends ManagedObject<_V> implements _V {
   }
 }
 
+class Constant extends ManagedObject<_Constant> implements _Constant {}
+class _Constant {
+  @primaryKey
+  int id;
+
+  @Validate.constant()
+  String constantString;
+
+  @Validate.constant()
+  @Relate(#constant)
+  ConstantRef constantRef;
+}
+
+class ConstantRef extends ManagedObject<_ConstantRef> implements _ConstantRef {}
+class _ConstantRef {
+  @primaryKey
+  int id;
+
+  Constant constant;
+}
+
 class _V {
   @primaryKey
   int id;
@@ -565,3 +613,21 @@ class _EnumObject {
 }
 
 enum EnumValues { abcd, efgh, other18 }
+
+class FK extends ManagedObject<_FK> implements _FK {}
+class _FK {
+  @primaryKey
+  int id;
+
+  @Validate.compare(greaterThan: 1)
+  @Relate(#fk)
+  Parent parent;
+}
+
+class Parent extends ManagedObject<_Parent> implements _Parent {}
+class _Parent {
+  @primaryKey
+  int id;
+
+  FK fk;
+}

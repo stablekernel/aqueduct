@@ -10,8 +10,8 @@ class ValidationContext {
   /// Whether this validation is occurring during update or insert.
   Validating event;
 
-  /// The entity attribute being validated.
-  ManagedAttributeDescription attribute;
+  /// The property being validated.
+  ManagedPropertyDescription property;
 
   /// Errors that have occurred in this context.
   List<String> errors = [];
@@ -20,7 +20,7 @@ class ValidationContext {
   ///
   /// A validation will fail if this method is invoked.
   void addError(String reason) {
-    errors.add("${attribute.entity.name}.${attribute.name}: $reason");
+    errors.add("${property.entity.name}.${property.name}: $reason");
   }
 
   /// Whether this validation context passed all validations.
@@ -252,6 +252,11 @@ class Validate {
             onInsert: onInsert,
             validator: ValidateType.oneOf);
 
+  /// A validator that ensures a value cannot be modified after insertion.
+  ///
+  /// This is equivalent to `Validate.absent(onUpdate: true, onInsert: false).
+  const Validate.constant() : this.absent(onUpdate: true, onInsert: false);
+
   /// Whether or not this validation is checked on update queries.
   final bool runOnUpdate;
 
@@ -259,23 +264,28 @@ class Validate {
   final bool runOnInsert;
 
   /// Returns a [ManagedValidator] for the validation described by this object.
-  ManagedValidator getValidator(ManagedAttributeDescription forAttribute) {
-    switch (_type) {
-      case ValidateType.absent:
-        return AbsentValidator(forAttribute, this);
-      case ValidateType.present:
-        return PresentValidator(forAttribute, this);
-      case ValidateType.oneOf:
-        return OneOfValidator(forAttribute, this, _value);
-      case ValidateType.comparison:
-        return ComparisonValidator(forAttribute, this, _expressions);
-      case ValidateType.regex:
-        return RegexValidator(forAttribute, this, _value);
-      case ValidateType.length:
-        return LengthValidator(forAttribute, this, _expressions);
-      default:
-        return DefaultValidator(forAttribute, this);
-    }
+  ManagedValidator getValidator(ManagedPropertyDescription p) {
+    var x = (ManagedPropertyDescription property)
+    {
+      switch (_type) {
+        case ValidateType.absent:
+          return AbsentValidator(property, this);
+        case ValidateType.present:
+          return PresentValidator(property, this);
+        case ValidateType.oneOf:
+          return OneOfValidator(property, this, _value);
+        case ValidateType.comparison:
+          return ComparisonValidator(property, this, _expressions);
+        case ValidateType.regex:
+          return RegexValidator(property, this, _value);
+        case ValidateType.length:
+          return LengthValidator(property, this, _expressions);
+        default:
+          return DefaultValidator(property, this);
+      }
+    };
+    final y =  x(p);
+    return y;
   }
 
   final dynamic _value;

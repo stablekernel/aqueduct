@@ -1,7 +1,7 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/attributes.dart';
-import 'package:aqueduct/src/db/managed/entity_builder.dart';
+import 'package:aqueduct/src/db/managed/builders/entity_builder.dart';
 import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
@@ -31,12 +31,12 @@ class PropertyBuilder {
 
   ManagedAttributeDescription attribute;
   ManagedRelationshipDescription relationship;
+  List<ManagedValidator> managedValidators = [];
 
   String name;
   ManagedType type;
 
   bool get isRelationship => relatedProperty != null;
-  ManagedEntity destinationEntity;
   PropertyBuilder relatedProperty;
   ManagedRelationshipType relationshipType;
   bool primaryKey = false;
@@ -137,6 +137,10 @@ class PropertyBuilder {
           indexed: true,
           nullable: nullable,
           includedInDefaultResultSet: includeInDefaultResultSet);
+
+      if (relationship.isBelongsTo) {
+        managedValidators.addAll(validators.map((v) => v.getValidator(relationship)));
+      }
     } else {
       attribute = ManagedAttributeDescription(
           parent.entity, name, type, getDeclarationType(),
@@ -149,6 +153,8 @@ class PropertyBuilder {
           includedInDefaultResultSet: includeInDefaultResultSet,
           autoincrement: autoincrement,
           validators: validators);
+
+      managedValidators.addAll(validators.map((v) => v.getValidator(attribute)));
     }
   }
 

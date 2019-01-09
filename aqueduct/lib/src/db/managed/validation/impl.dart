@@ -95,14 +95,14 @@ class ValidationExpression {
 }
 
 class DefaultValidator extends ManagedValidator {
-  DefaultValidator(ManagedAttributeDescription attribute, Validate validate)
-      : super(attribute, validate);
+  DefaultValidator(ManagedPropertyDescription property, Validate validate)
+      : super(property, validate);
 }
 
 class LengthValidator extends ManagedValidator {
-  LengthValidator(ManagedAttributeDescription attribute, Validate validate,
+  LengthValidator(ManagedPropertyDescription property, Validate validate,
       this.expressions)
-      : super(attribute, validate) {
+      : super(property, validate) {
     expressions.forEach((expr) {
       expr.value = parse(expr.value);
     });
@@ -122,14 +122,14 @@ class LengthValidator extends ManagedValidator {
   }
 
   int parse(dynamic referenceValue) {
-    if (attribute.type.kind != ManagedPropertyType.string) {
-      throw ManagedDataModelError.invalidValidator(attribute.entity,
-          attribute.name, "Validate.length must annotate 'String' property.");
+    if (property.type?.kind != ManagedPropertyType.string) {
+      throw ManagedDataModelError.invalidValidator(property.entity,
+        property.name, "Validate.length must annotate 'String' property.");
     }
 
     if (referenceValue is! int) {
-      throw ManagedDataModelError.invalidValidator(attribute.entity,
-          attribute.name, "Validate.length reference values must be integers");
+      throw ManagedDataModelError.invalidValidator(property.entity,
+        property.name, "Validate.length must compare an integer");
     }
 
     return referenceValue as int;
@@ -138,16 +138,16 @@ class LengthValidator extends ManagedValidator {
 
 class RegexValidator extends ManagedValidator {
   RegexValidator(
-      ManagedAttributeDescription attribute, Validate validate, dynamic value)
-      : super(attribute, validate) {
-    if (attribute.type.kind != ManagedPropertyType.string) {
-      throw ManagedDataModelError.invalidValidator(attribute.entity,
-          attribute.name, "Property type for Validate.matches must be String");
+    ManagedPropertyDescription property, Validate validate, dynamic value)
+      : super(property, validate) {
+    if (property.type?.kind != ManagedPropertyType.string) {
+      throw ManagedDataModelError.invalidValidator(property.entity,
+          property.name, "Property type for Validate.matches must be String");
     }
 
     if (value is! String) {
-      throw ManagedDataModelError.invalidValidator(attribute.entity,
-          attribute.name, "Expression in annotation is not a String.");
+      throw ManagedDataModelError.invalidValidator(property.entity,
+          property.name, "Expression in annotation is not a String.");
     }
 
     expression = RegExp(value as String);
@@ -164,9 +164,9 @@ class RegexValidator extends ManagedValidator {
 }
 
 class ComparisonValidator extends ManagedValidator {
-  ComparisonValidator(ManagedAttributeDescription attribute, Validate validate,
+  ComparisonValidator(ManagedPropertyDescription property, Validate validate,
       this.expressions)
-      : super(attribute, validate) {
+      : super(property, validate) {
     expressions.forEach((expr) {
       expr.value = parse(expr.value);
     });
@@ -185,29 +185,37 @@ class ComparisonValidator extends ManagedValidator {
   }
 
   Comparable parse(dynamic referenceValue) {
-    if (attribute.type.kind == ManagedPropertyType.datetime) {
+    if (property == null) {
+      return null;
+    }
+    if (property.type?.kind == ManagedPropertyType.datetime) {
       if (referenceValue is String) {
         try {
           return DateTime.parse(referenceValue);
         } on FormatException {
           throw ManagedDataModelError.invalidValidator(
-              attribute.entity,
-              attribute.name,
+            property.entity,
+            property.name,
               "'$referenceValue' cannot be parsed as DateTime, or is not a String.");
         }
       }
 
       throw ManagedDataModelError.invalidValidator(
-          attribute.entity,
-          attribute.name,
+        property.entity,
+        property.name,
           "'$referenceValue' cannot be parsed as DateTime, or is not a String.");
     }
 
-    if (!attribute.isAssignableWith(referenceValue)) {
-      throw ManagedDataModelError.invalidValidator(
-          attribute.entity,
-          attribute.name,
+    if (property is ManagedAttributeDescription) {
+      if (!property.isAssignableWith(referenceValue)) {
+        throw ManagedDataModelError.invalidValidator(
+          property.entity,
+          property.name,
           "'$referenceValue' is not assignable to property type.");
+      }
+    } else if (property is ManagedRelationshipDescription) {
+      final pk = (property as ManagedRelationshipDescription).destinationEntity.primaryKey;
+        print(pk);
     }
 
     return referenceValue as Comparable;
@@ -216,20 +224,20 @@ class ComparisonValidator extends ManagedValidator {
 
 class OneOfValidator extends ManagedValidator {
   OneOfValidator(
-      ManagedAttributeDescription attribute, Validate validate, dynamic value)
-      : super(attribute, validate) {
+      ManagedPropertyDescription property, Validate validate, dynamic value)
+      : super(property, validate) {
     if (value is! List) {
       throw ManagedDataModelError.invalidValidator(
-          attribute.entity,
-          attribute.name,
+          property.entity,
+          property.name,
           "Validate.oneOf value must be a List, where each element matches the type of the decorated attribute.");
     }
 
     options = value as List;
-    if (options.any((v) => !attribute.isAssignableWith(v))) {
+    if (options.any((v) => !property.isAssignableWith(v))) {
       throw ManagedDataModelError.invalidValidator(
-          attribute.entity,
-          attribute.name,
+          property.entity,
+          property.name,
           "Validate.oneOf value must be a List, where each element matches the type of the decorated attribute.");
     }
 
@@ -238,15 +246,15 @@ class OneOfValidator extends ManagedValidator {
       ManagedPropertyType.integer,
       ManagedPropertyType.bigInteger
     ];
-    if (!supportedOneOfTypes.contains(attribute.type.kind)) {
+    if (!supportedOneOfTypes.contains(property.type.kind)) {
       throw ManagedDataModelError.invalidValidator(
-          attribute.entity,
-          attribute.name,
+          property.entity,
+          property.name,
           "Validate.oneOf is only valid for String or int types.");
     }
     if (options.isEmpty) {
-      throw ManagedDataModelError.invalidValidator(attribute.entity,
-          attribute.name, "Validate.oneOf must have at least one element");
+      throw ManagedDataModelError.invalidValidator(property.entity,
+          property.name, "Validate.oneOf must have at least one element");
     }
   }
 
@@ -262,8 +270,8 @@ class OneOfValidator extends ManagedValidator {
 }
 
 class PresentValidator extends ManagedValidator {
-  PresentValidator(ManagedAttributeDescription attribute, Validate validate)
-      : super(attribute, validate);
+  PresentValidator(ManagedPropertyDescription property, Validate validate)
+      : super(property, validate);
 
   @override
   void validate(ValidationContext context, dynamic value) {
@@ -272,8 +280,8 @@ class PresentValidator extends ManagedValidator {
 }
 
 class AbsentValidator extends ManagedValidator {
-  AbsentValidator(ManagedAttributeDescription attribute, Validate validate)
-      : super(attribute, validate);
+  AbsentValidator(ManagedPropertyDescription property, Validate validate)
+      : super(property, validate);
 
   @override
   void validate(ValidationContext context, dynamic value) {

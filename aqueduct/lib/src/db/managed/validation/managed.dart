@@ -6,7 +6,7 @@ import 'package:aqueduct/src/db/query/query.dart';
 ///
 /// Instances of this type are created during [ManagedDataModel] compilation.
 abstract class ManagedValidator {
-  ManagedValidator(this.attribute, this.definition);
+  ManagedValidator(this.property, this.definition);
 
   /// Executes all [Validate]s for [object].
   ///
@@ -20,7 +20,7 @@ abstract class ManagedValidator {
     final context = ValidationContext();
 
     object.entity.validators.forEach((validator) {
-      context.attribute = validator.attribute;
+      context.property = validator.property;
       context.event = event;
       if (!validator.definition.runOnInsert && event == Validating.insert) {
         return;
@@ -30,20 +30,32 @@ abstract class ManagedValidator {
         return;
       }
 
+      // Switch object.backing with map that is either object.bacing or
+      // the internal map of a nested object if attribute is from another entity
+      var contents = object.backing.contents;
+      var key = validator.property.name;
+      if (validator.property is ManagedRelationshipDescription) {
+        final inner = object[validator.property.name];
+        if (inner is ManagedObject) {
+          contents = inner.backing.contents;
+          key = inner.entity.primaryKey;
+        }
+      }
+
       if (validator is PresentValidator) {
-        if (!object.backing.contents.containsKey(validator.attribute.name)) {
+        if (!contents.containsKey(key)) {
           context.addError(
-              "Value for '${validator.attribute.name}' must be included "
+              "key '${validator.property.name}' is required"
               "for ${_getEventName(event)}s.");
         }
       } else if (validator is AbsentValidator) {
-        if (object.backing.contents.containsKey(validator.attribute.name)) {
+        if (contents.containsKey(key)) {
           context.addError(
-              "Value for '${validator.attribute.name}' may not be included "
+              "key '${validator.property.name}' is not allowed "
               "for ${_getEventName(event)}s.");
         }
       } else {
-        var value = object.backing.contents[validator.attribute.name];
+        final value = contents[key];
         if (value != null) {
           validator.validate(context, value);
         }
@@ -53,8 +65,8 @@ abstract class ManagedValidator {
     return context;
   }
 
-  /// The attribute this instance runs on.
-  final ManagedAttributeDescription attribute;
+  /// The property being validated.
+  final ManagedPropertyDescription property;
 
   /// The metadata associated with this instance.
   final Validate definition;

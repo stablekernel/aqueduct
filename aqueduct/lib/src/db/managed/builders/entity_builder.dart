@@ -5,7 +5,7 @@ import 'package:aqueduct/src/db/managed/data_model.dart';
 import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/object.dart';
-import 'package:aqueduct/src/db/managed/property_builder.dart';
+import 'package:aqueduct/src/db/managed/builders/property_builder.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:logging/logging.dart';
@@ -30,7 +30,6 @@ class EntityBuilder {
   Map<String, ManagedAttributeDescription> attributes = {};
   Map<String, ManagedRelationshipDescription> relationships = {};
   ManagedEntity entity;
-  List<Validate> validators;
   List<PropertyBuilder> properties = [];
   List<String> uniquePropertySet;
   String name;
@@ -43,11 +42,6 @@ class EntityBuilder {
       MirrorSystem.getName(tableDefinitionType.simpleName);
 
   void compile(List<EntityBuilder> entityBuilders) {
-    validators = properties
-        .map((builder) => builder.validators)
-        .expand((e) => e)
-        .toList();
-
     properties.forEach((p) {
       p.compile(entityBuilders);
     });
@@ -122,12 +116,11 @@ class EntityBuilder {
         relationships[p.name] = p.relationship;
       } else {
         attributes[p.name] = p.attribute;
-        entity.validators.addAll(
-            p.attribute.validators.map((v) => v.getValidator(p.attribute)));
         if (p.primaryKey) {
           entity.primaryKey = p.name;
         }
       }
+      entity.validators.addAll(p.managedValidators);
     });
 
     entity.attributes = attributes;
