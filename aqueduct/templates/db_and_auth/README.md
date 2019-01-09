@@ -158,48 +158,6 @@ You should see a response similar to the following:
 {"access_token":"kliJ8X6Rf9OCw31qbkTFzZhwBQ5n5MgA","token_type":"bearer","expires_in":86399,"refresh_token":"73Awjp9zzTWnmEGnuz7hIBFBaXahFPLt"}
 ```
 
-### Get an HTML Form (GET /auth/form)
-
-For this example, we will hit the `/auth/form` end point. The response from this call is an HTML Form that could be presented to a user to log in. Here is the CURL:
-
-```
-curl -X GET  http://localhost:8888/auth/form?response_type=token
-```
-
-You should see a response similar to the following:
-
-```HTML
-<!DOCTYPE html>
-<html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
-</head>
-
-<body>
-<div class="container">
-    <h1>Login</h1>
-    <form action="/auth/form" method="POST">
-        <input type="hidden" name="state" value="null">
-        <input type="hidden" name="client_id" value="null">
-        <input type="hidden" name="response_type" value="token">
-        <div class="form-group">
-            <label for="username">User Name</label>
-            <input type="text" class="form-control" name="username" placeholder="Please enter your user name">
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" class="form-control" name="password" placeholder="Please enter your password">
-        </div>
-        <button type="submit" class="btn btn-success">Login</button>
-    </form>
-</div>
-</body>
-
-</html>
-```
-
 ## Swqgger UI Client
 
 To generate a SwaggerUI client, run `aqueduct document client`.
