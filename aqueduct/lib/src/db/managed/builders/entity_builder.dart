@@ -27,14 +27,13 @@ class EntityBuilder {
   final ClassMirror tableDefinitionType;
   final Table metadata;
 
+  String name;
+  ManagedEntity entity;
+  List<String> uniquePropertySet;
+  PropertyBuilder primaryKeyProperty;
+  List<PropertyBuilder> properties = [];
   Map<String, ManagedAttributeDescription> attributes = {};
   Map<String, ManagedRelationshipDescription> relationships = {};
-  ManagedEntity entity;
-  List<PropertyBuilder> properties = [];
-  List<String> uniquePropertySet;
-  String name;
-
-  PropertyBuilder primaryKeyProperty;
 
   String get instanceTypeName => MirrorSystem.getName(instanceType.simpleName);
 
@@ -120,7 +119,6 @@ class EntityBuilder {
           entity.primaryKey = p.name;
         }
       }
-      entity.validators.addAll(p.managedValidators);
     });
 
     entity.attributes = attributes;

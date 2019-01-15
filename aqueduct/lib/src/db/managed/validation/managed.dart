@@ -22,7 +22,7 @@ class ManagedValidator {
     object.entity.validators.forEach((validator) {
       context.property = validator.property;
       context.event = event;
-      context.compiledValue = validator.state;
+      context.state = validator.state;
       if (!validator.definition.runOnInsert && event == Validating.insert) {
         return;
       }
@@ -31,8 +31,6 @@ class ManagedValidator {
         return;
       }
 
-      // Switch object.backing with map that is either object.bacing or
-      // the internal map of a nested object if attribute is from another entity
       var contents = object.backing.contents;
       var key = validator.property.name;
 

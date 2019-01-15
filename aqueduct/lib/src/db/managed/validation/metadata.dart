@@ -13,7 +13,15 @@ class ValidationContext {
   /// The property being validated.
   ManagedPropertyDescription property;
 
-  dynamic compiledValue;
+  /// State associated with the validator being run.
+  ///
+  /// Use this property in a custom validator to access compiled state. Compiled state
+  /// is a value that has been computed from the arguments to the validator. For example,
+  /// a 'greater than 1' validator, the state is an expression object that evaluates
+  /// a value is greater than 1.
+  ///
+  /// Set this property by returning the desired value from [Validate.compare].
+  dynamic state;
 
   /// Errors that have occurred in this context.
   List<String> errors = [];
@@ -34,6 +42,10 @@ class ValidationContext {
   bool get isValid => errors.isEmpty;
 }
 
+/// An error thrown during validator compilation.
+///
+/// If you override [Validate.compile], throw errors of this type if a validator
+/// is applied to an invalid property.
 class ValidateCompilationError extends Error {
   ValidateCompilationError(this.reason);
 
@@ -291,7 +303,7 @@ class Validate {
   /// builds a list of expressions and ensures each expression's values are the same type as the property
   /// being validated.
   ///
-  /// The value returned from this method is available in [ValidationContext.compiledValue] when this
+  /// The value returned from this method is available in [ValidationContext.state] when this
   /// instance's [validate] method is called.
   ///
   /// [typeBeingValidated] is the type of the property being validated. If [relationshipInverseType] is not-null,
@@ -347,13 +359,13 @@ class Validate {
         break;
       case ValidateType.comparison:
         {
-          final List<ValidationExpression> expressions = context.compiledValue;
+          final List<ValidationExpression> expressions = context.state;
           expressions.forEach((expr) => expr.compare(context, input));
         }
         break;
       case ValidateType.regex:
         {
-          final regex = context.compiledValue as RegExp;
+          final regex = context.state as RegExp;
           if (!regex.hasMatch(input as String)) {
             context.addError("does not match pattern ${regex.pattern}");
           }
@@ -361,7 +373,7 @@ class Validate {
         break;
       case ValidateType.oneOf:
         {
-          final List<dynamic> options = context.compiledValue;
+          final List<dynamic> options = context.state;
           if (options.every((v) => input != v)) {
             context.addError(
                 "must be one of: ${options.map((v) => "'$v'").join(",")}.");
@@ -370,7 +382,7 @@ class Validate {
         break;
       case ValidateType.length:
         {
-          final List<ValidationExpression> expressions = context.compiledValue;
+          final List<ValidationExpression> expressions = context.state;
           expressions.forEach(
               (expr) => expr.compare(context, (input as String).length));
         }

@@ -2,9 +2,7 @@ import 'package:aqueduct/src/db/managed/builders/entity_builder.dart';
 import 'package:aqueduct/src/db/managed/builders/property_builder.dart';
 import 'package:aqueduct/src/db/managed/data_model.dart';
 import 'package:aqueduct/src/db/managed/entity.dart';
-import 'package:aqueduct/src/db/managed/property_description.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
-import 'package:aqueduct/src/db/managed/validation/impl.dart';
 import 'package:aqueduct/src/db/managed/validation/managed.dart';
 
 import 'package:aqueduct/src/db/managed/validation/metadata.dart';
