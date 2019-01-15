@@ -1,7 +1,8 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/attributes.dart';
-import 'package:aqueduct/src/db/managed/entity_builder.dart';
+import 'package:aqueduct/src/db/managed/builders/entity_builder.dart';
+import 'package:aqueduct/src/db/managed/builders/validator_builder.dart';
 import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
@@ -16,27 +17,30 @@ class PropertyBuilder {
   PropertyBuilder(this.parent, this.declaration)
       : relate = firstMetadataOfType(declaration),
         column = firstMetadataOfType(declaration),
-        validators = validatorsFromDeclaration(declaration),
         serialize = _getTransienceForProperty(declaration) {
     name = _getName();
     type = _getType();
+    _validators = validatorsFromDeclaration(declaration).map((v) => ValidatorBuilder(this, v)).toList();
+    if (type?.isEnumerated ?? false) {
+      _validators.add(ValidatorBuilder(this, Validate.oneOf(type.enumerationMap.values.toList())));
+    }
   }
 
   final EntityBuilder parent;
   final DeclarationMirror declaration;
   final Relate relate;
   final Column column;
-  final List<Validate> validators;
+  List<ValidatorBuilder> get validators => _validators;
   Serialize serialize;
 
   ManagedAttributeDescription attribute;
   ManagedRelationshipDescription relationship;
+  List<ManagedValidator> managedValidators = [];
 
   String name;
   ManagedType type;
 
   bool get isRelationship => relatedProperty != null;
-  ManagedEntity destinationEntity;
   PropertyBuilder relatedProperty;
   ManagedRelationshipType relationshipType;
   bool primaryKey = false;
@@ -47,6 +51,7 @@ class PropertyBuilder {
   bool indexed = false;
   bool autoincrement = false;
   DeleteRule deleteRule;
+  List<ValidatorBuilder> _validators;
 
   void compile(List<EntityBuilder> entityBuilders) {
     if (type == null) {
@@ -71,20 +76,11 @@ class PropertyBuilder {
       includeInDefaultResultSet = !(column?.shouldOmitByDefault ?? false);
       autoincrement = column?.autoincrement ?? false;
     }
+
+    validators.forEach((vb) => vb.compile(entityBuilders));
   }
 
-  void setInverse(PropertyBuilder foreignKey) {
-    relatedProperty = foreignKey;
-    includeInDefaultResultSet = false;
-
-    if (getDeclarationType().isSubtypeOf(reflectType(ManagedSet))) {
-      relationshipType = ManagedRelationshipType.hasMany;
-    } else {
-      relationshipType = ManagedRelationshipType.hasOne;
-    }
-  }
-
-  void validate() {
+  void validate(List<EntityBuilder> entityBuilders) {
     if (type == null) {
       if (!isRelationship ||
           relationshipType == ManagedRelationshipType.belongsTo) {
@@ -117,9 +113,12 @@ class PropertyBuilder {
       throw ManagedDataModelError.incompatibleDeleteRule(
           parent.tableDefinitionTypeName, declaration.simpleName);
     }
+
+    validators.forEach((vb) => vb.validate(entityBuilders));
   }
 
   void link(List<ManagedEntity> others) {
+    validators.forEach((v) => v.link(others));
     if (isRelationship) {
       var destinationEntity =
           others.firstWhere((e) => e == relatedProperty.parent.entity);
@@ -136,7 +135,8 @@ class PropertyBuilder {
           unique: unique,
           indexed: true,
           nullable: nullable,
-          includedInDefaultResultSet: includeInDefaultResultSet);
+          includedInDefaultResultSet: includeInDefaultResultSet,
+          validators: validators.map((v) => v.managedValidator).toList());
     } else {
       attribute = ManagedAttributeDescription(
           parent.entity, name, type, getDeclarationType(),
@@ -148,9 +148,21 @@ class PropertyBuilder {
           nullable: nullable,
           includedInDefaultResultSet: includeInDefaultResultSet,
           autoincrement: autoincrement,
-          validators: validators);
+          validators: validators.map((v) => v.managedValidator).toList());
     }
   }
+
+  void setInverse(PropertyBuilder foreignKey) {
+    relatedProperty = foreignKey;
+    includeInDefaultResultSet = false;
+
+    if (getDeclarationType().isSubtypeOf(reflectType(ManagedSet))) {
+      relationshipType = ManagedRelationshipType.hasMany;
+    } else {
+      relationshipType = ManagedRelationshipType.hasOne;
+    }
+  }
+
 
   ClassMirror getDeclarationType() {
     final decl = declaration;

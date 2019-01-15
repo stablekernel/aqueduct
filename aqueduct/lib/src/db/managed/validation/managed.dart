@@ -5,8 +5,8 @@ import 'package:aqueduct/src/db/query/query.dart';
 /// Validates properties of [ManagedObject] before an insert or update [Query].
 ///
 /// Instances of this type are created during [ManagedDataModel] compilation.
-abstract class ManagedValidator {
-  ManagedValidator(this.attribute, this.definition);
+class ManagedValidator {
+  ManagedValidator(this.definition, this.state);
 
   /// Executes all [Validate]s for [object].
   ///
@@ -20,8 +20,9 @@ abstract class ManagedValidator {
     final context = ValidationContext();
 
     object.entity.validators.forEach((validator) {
-      context.attribute = validator.attribute;
+      context.property = validator.property;
       context.event = event;
+      context.state = validator.state;
       if (!validator.definition.runOnInsert && event == Validating.insert) {
         return;
       }
@@ -30,20 +31,46 @@ abstract class ManagedValidator {
         return;
       }
 
-      if (validator is PresentValidator) {
-        if (!object.backing.contents.containsKey(validator.attribute.name)) {
+      var contents = object.backing.contents;
+      var key = validator.property.name;
+
+      if (validator.definition.type == ValidateType.present) {
+        if (validator.property is ManagedRelationshipDescription) {
+          final ManagedObject inner = object[validator.property.name];
+          if (inner == null || !inner.backing.contents.containsKey(inner.entity.primaryKey)) {
+            context.addError(
+              "key '${validator.property.name}' is required"
+                "for ${_getEventName(event)}s.");
+          }
+        } else if (!contents.containsKey(key)) {
           context.addError(
-              "Value for '${validator.attribute.name}' must be included "
+              "key '${validator.property.name}' is required"
               "for ${_getEventName(event)}s.");
         }
-      } else if (validator is AbsentValidator) {
-        if (object.backing.contents.containsKey(validator.attribute.name)) {
+      } else if (validator.definition.type == ValidateType.absent) {
+        if (validator.property is ManagedRelationshipDescription) {
+          final ManagedObject inner = object[validator.property.name];
+          if (inner != null) {
+            context.addError(
+              "key '${validator.property.name}' is not allowed "
+                "for ${_getEventName(event)}s.");
+          }
+        } else if (contents.containsKey(key)) {
           context.addError(
-              "Value for '${validator.attribute.name}' may not be included "
+            "key '${validator.property.name}' is not allowed "
               "for ${_getEventName(event)}s.");
         }
       } else {
-        var value = object.backing.contents[validator.attribute.name];
+        if (validator.property is ManagedRelationshipDescription) {
+          final ManagedObject inner = object[validator.property.name];
+          if (inner == null || inner.backing.contents[inner.entity.primaryKey] == null) {
+            return;
+          }
+          contents = inner.backing.contents;
+          key = inner.entity.primaryKey;
+        }
+
+        final value = contents[key];
         if (value != null) {
           validator.validate(context, value);
         }
@@ -53,11 +80,13 @@ abstract class ManagedValidator {
     return context;
   }
 
-  /// The attribute this instance runs on.
-  final ManagedAttributeDescription attribute;
+  /// The property being validated.
+  ManagedPropertyDescription property;
 
   /// The metadata associated with this instance.
   final Validate definition;
+
+  final dynamic state;
 
   void validate(ValidationContext context, dynamic value) {
     definition.validate(context, value);

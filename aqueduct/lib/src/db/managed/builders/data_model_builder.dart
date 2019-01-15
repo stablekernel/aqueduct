@@ -1,6 +1,6 @@
-import 'package:aqueduct/src/db/managed/entity_builder.dart';
+import 'package:aqueduct/src/db/managed/builders/entity_builder.dart';
 
-import 'managed.dart';
+import 'package:aqueduct/src/db/managed/managed.dart';
 
 class DataModelBuilder {
   DataModelBuilder(ManagedDataModel dataModel, List<Type> instanceTypes) {
@@ -35,6 +35,6 @@ class DataModelBuilder {
       }
     });
 
-    _builders.forEach((b) => b.validate());
+    _builders.forEach((b) => b.validate(_builders));
   }
 }

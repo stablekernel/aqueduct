@@ -10,8 +10,18 @@ class ValidationContext {
   /// Whether this validation is occurring during update or insert.
   Validating event;
 
-  /// The entity attribute being validated.
-  ManagedAttributeDescription attribute;
+  /// The property being validated.
+  ManagedPropertyDescription property;
+
+  /// State associated with the validator being run.
+  ///
+  /// Use this property in a custom validator to access compiled state. Compiled state
+  /// is a value that has been computed from the arguments to the validator. For example,
+  /// a 'greater than 1' validator, the state is an expression object that evaluates
+  /// a value is greater than 1.
+  ///
+  /// Set this property by returning the desired value from [Validate.compare].
+  dynamic state;
 
   /// Errors that have occurred in this context.
   List<String> errors = [];
@@ -20,11 +30,26 @@ class ValidationContext {
   ///
   /// A validation will fail if this method is invoked.
   void addError(String reason) {
-    errors.add("${attribute.entity.name}.${attribute.name}: $reason");
+    final p = property;
+    if (p is ManagedRelationshipDescription) {
+      errors.add("${p.entity.name}.${p.name}.${p.destinationEntity.primaryKey}");
+    } else {
+      errors.add("${p.entity.name}.${p.name}: $reason");
+    }
   }
 
   /// Whether this validation context passed all validations.
   bool get isValid => errors.isEmpty;
+}
+
+/// An error thrown during validator compilation.
+///
+/// If you override [Validate.compile], throw errors of this type if a validator
+/// is applied to an invalid property.
+class ValidateCompilationError extends Error {
+  ValidateCompilationError(this.reason);
+
+  final String reason;
 }
 
 /// Add as metadata to persistent properties to validate their values before insertion or updating.
@@ -74,7 +99,7 @@ class Validate {
         _greaterThan = null,
         _greaterThanEqualTo = null,
         _equalTo = null,
-        _type = null;
+        type = null;
 
   const Validate._(
       {bool onUpdate = true,
@@ -88,7 +113,7 @@ class Validate {
       Comparable lessThanEqualTo})
       : runOnUpdate = onUpdate,
         runOnInsert = onInsert,
-        _type = validator,
+        type = validator,
         _value = value,
         _greaterThan = greaterThan,
         _greaterThanEqualTo = greaterThanEqualTo,
@@ -252,31 +277,16 @@ class Validate {
             onInsert: onInsert,
             validator: ValidateType.oneOf);
 
+  /// A validator that ensures a value cannot be modified after insertion.
+  ///
+  /// This is equivalent to `Validate.absent(onUpdate: true, onInsert: false).
+  const Validate.constant() : this.absent(onUpdate: true, onInsert: false);
+
   /// Whether or not this validation is checked on update queries.
   final bool runOnUpdate;
 
   /// Whether or not this validation is checked on insert queries.
   final bool runOnInsert;
-
-  /// Returns a [ManagedValidator] for the validation described by this object.
-  ManagedValidator getValidator(ManagedAttributeDescription forAttribute) {
-    switch (_type) {
-      case ValidateType.absent:
-        return AbsentValidator(forAttribute, this);
-      case ValidateType.present:
-        return PresentValidator(forAttribute, this);
-      case ValidateType.oneOf:
-        return OneOfValidator(forAttribute, this, _value);
-      case ValidateType.comparison:
-        return ComparisonValidator(forAttribute, this, _expressions);
-      case ValidateType.regex:
-        return RegexValidator(forAttribute, this, _value);
-      case ValidateType.length:
-        return LengthValidator(forAttribute, this, _expressions);
-      default:
-        return DefaultValidator(forAttribute, this);
-    }
-  }
 
   final dynamic _value;
   final Comparable _greaterThan;
@@ -284,11 +294,47 @@ class Validate {
   final Comparable _equalTo;
   final Comparable _lessThan;
   final Comparable _lessThanEqualTo;
-  final ValidateType _type;
+  final ValidateType type;
 
-  List<ValidationExpression> get _expressions {
-    return ValidationExpression.comparisons(_equalTo, _lessThan,
-        _lessThanEqualTo, _greaterThan, _greaterThanEqualTo);
+  /// Custom validations override this method to validate and pre-process this validation.
+  ///
+  /// Use this method to ensure a validator is being applied to a property of the expected type or
+  /// transforming validation arguments into a more readily usable format. For example, a [Validate.compare]
+  /// builds a list of expressions and ensures each expression's values are the same type as the property
+  /// being validated.
+  ///
+  /// The value returned from this method is available in [ValidationContext.state] when this
+  /// instance's [validate] method is called.
+  ///
+  /// [typeBeingValidated] is the type of the property being validated. If [relationshipInverseType] is not-null,
+  /// it is a [ManagedObject] subclass and [typeBeingValidated] is the type of its primary key.
+  ///
+  /// If compilation fails, throw a [ValidateCompilationError] with a message describing the issue. The entity
+  /// and property will automatically be added to the error.
+  dynamic compile(ManagedType typeBeingValidated,
+      {Type relationshipInverseType}) {
+    switch (type) {
+      case ValidateType.absent:
+        return null;
+      case ValidateType.present:
+        return null;
+      case ValidateType.oneOf:
+        {
+          return _oneOfCompiler(typeBeingValidated,
+              relationshipInverseType: relationshipInverseType);
+        }
+      case ValidateType.comparison:
+        return _comparionCompiler(typeBeingValidated,
+            relationshipInverseType: relationshipInverseType);
+      case ValidateType.regex:
+        return _regexCompiler(typeBeingValidated,
+            relationshipInverseType: relationshipInverseType);
+      case ValidateType.length:
+        return _lengthCompiler(typeBeingValidated,
+            relationshipInverseType: relationshipInverseType);
+      default:
+        return null;
+    }
   }
 
   /// Custom validations override this method to provide validation behavior.
@@ -303,7 +349,46 @@ class Validate {
   /// This method is not run when [input] is null.
   ///
   /// The type of [input] will have already been type-checked prior to executing this method.
-  void validate(ValidationContext context, dynamic input) {}
+  void validate(ValidationContext context, dynamic input) {
+    switch (type) {
+      case ValidateType.absent:
+        {}
+        break;
+      case ValidateType.present:
+        {}
+        break;
+      case ValidateType.comparison:
+        {
+          final List<ValidationExpression> expressions = context.state;
+          expressions.forEach((expr) => expr.compare(context, input));
+        }
+        break;
+      case ValidateType.regex:
+        {
+          final regex = context.state as RegExp;
+          if (!regex.hasMatch(input as String)) {
+            context.addError("does not match pattern ${regex.pattern}");
+          }
+        }
+        break;
+      case ValidateType.oneOf:
+        {
+          final List<dynamic> options = context.state;
+          if (options.every((v) => input != v)) {
+            context.addError(
+                "must be one of: ${options.map((v) => "'$v'").join(",")}.");
+          }
+        }
+        break;
+      case ValidateType.length:
+        {
+          final List<ValidationExpression> expressions = context.state;
+          expressions.forEach(
+              (expr) => expr.compare(context, (input as String).length));
+        }
+        break;
+    }
+  }
 
   /// Adds constraints to an [APISchemaObject] imposed by this validator.
   ///
@@ -311,7 +396,7 @@ class Validate {
   /// to modify [object] for any constraints the validator imposes.
   void constrainSchemaObject(
       APIDocumentContext context, APISchemaObject object) {
-    switch (_type) {
+    switch (type) {
       case ValidateType.regex:
         {
           object.pattern = _value as String;
@@ -368,5 +453,134 @@ class Validate {
         }
         break;
     }
+  }
+
+  dynamic _oneOfCompiler(ManagedType typeBeingValidated,
+      {Type relationshipInverseType}) {
+    if (_value is! List) {
+      throw ValidateCompilationError(
+          "Validate.oneOf value must be a List<T>, where T is the type of the property being validated.");
+    }
+
+    final options = _value as List;
+    final supportedOneOfTypes = [
+      ManagedPropertyType.string,
+      ManagedPropertyType.integer,
+      ManagedPropertyType.bigInteger
+    ];
+    if (!supportedOneOfTypes.contains(typeBeingValidated.kind) ||
+        relationshipInverseType != null) {
+      throw ValidateCompilationError(
+          "Validate.oneOf is only valid for String or int types.");
+    }
+
+    if (options.any((v) => !typeBeingValidated.isAssignableWith(v))) {
+      throw ValidateCompilationError(
+          "Validate.oneOf value must be a List<T>, where T is the type of the property being validated.");
+    }
+
+    if (options.isEmpty) {
+      throw ValidateCompilationError(
+          "Validate.oneOf must have at least one element.");
+    }
+
+    return options;
+  }
+
+  List<ValidationExpression> get _expressions {
+    final comparisons = <ValidationExpression>[];
+    if (_equalTo != null) {
+      comparisons
+          .add(ValidationExpression(ValidationOperator.equalTo, _equalTo));
+    }
+    if (_lessThan != null) {
+      comparisons
+          .add(ValidationExpression(ValidationOperator.lessThan, _lessThan));
+    }
+    if (_lessThanEqualTo != null) {
+      comparisons.add(ValidationExpression(
+          ValidationOperator.lessThanEqualTo, _lessThanEqualTo));
+    }
+    if (_greaterThan != null) {
+      comparisons.add(
+          ValidationExpression(ValidationOperator.greaterThan, _greaterThan));
+    }
+    if (_greaterThanEqualTo != null) {
+      comparisons.add(ValidationExpression(
+          ValidationOperator.greaterThanEqualTo, _greaterThanEqualTo));
+    }
+
+    return comparisons;
+  }
+
+  dynamic _comparionCompiler(ManagedType typeBeingValidated,
+      {Type relationshipInverseType}) {
+    final exprs = _expressions;
+    exprs.forEach((expr) {
+      expr.value = _parseComparisonValue(expr.value, typeBeingValidated,
+          relationshipInverseType: relationshipInverseType);
+    });
+    return exprs;
+  }
+
+  Comparable _parseComparisonValue(
+      dynamic referenceValue, ManagedType typeBeingValidated,
+      {Type relationshipInverseType}) {
+    if (typeBeingValidated?.kind == ManagedPropertyType.datetime) {
+      if (referenceValue is String) {
+        try {
+          return DateTime.parse(referenceValue);
+        } on FormatException {
+          throw ValidateCompilationError(
+              "Validate.compare value '$referenceValue' cannot be parsed as expected DateTime type.");
+        }
+      }
+
+      throw ValidateCompilationError(
+          "Validate.compare value '$referenceValue' is not expected DateTime type.");
+    }
+
+    if (relationshipInverseType == null) {
+      if (!typeBeingValidated.isAssignableWith(referenceValue)) {
+        throw ValidateCompilationError(
+            "Validate.compare value '$referenceValue' is not assignable to type of attribute being validated.");
+      }
+    } else {
+      if (!typeBeingValidated.isAssignableWith(referenceValue)) {
+        throw ValidateCompilationError(
+            "Validate.compare value '$referenceValue' is not assignable to primary key type of relationship being validated.");
+      }
+    }
+
+    return referenceValue as Comparable;
+  }
+
+  dynamic _regexCompiler(ManagedType typeBeingValidated,
+      {Type relationshipInverseType}) {
+    if (typeBeingValidated?.kind != ManagedPropertyType.string) {
+      throw ValidateCompilationError(
+          "Validate.matches is only valid for 'String' properties.");
+    }
+
+    if (_value is! String) {
+      throw ValidateCompilationError(
+          "Validate.matches argument must be 'String'.");
+    }
+
+    return RegExp(_value as String);
+  }
+
+  dynamic _lengthCompiler(ManagedType typeBeingValidated,
+      {Type relationshipInverseType}) {
+    if (typeBeingValidated?.kind != ManagedPropertyType.string) {
+      throw ValidateCompilationError(
+          "Validate.length is only valid for 'String' properties.");
+    }
+    final expressions = _expressions;
+    if (expressions.any((v) => v.value is! int)) {
+      throw ValidateCompilationError(
+          "Validate.length arguments must be 'int's.");
+    }
+    return expressions;
   }
 }
