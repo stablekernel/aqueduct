@@ -50,7 +50,7 @@ class EntityBuilder {
         metadata?.uniquePropertySet?.map(MirrorSystem.getName)?.toList();
   }
 
-  void validate() {
+  void validate(List<EntityBuilder> entityBuilders) {
     // Check that we have a default constructor
     if (!classHasDefaultConstructor(instanceType)) {
       throw ManagedDataModelError.noConstructor(instanceType);
@@ -101,7 +101,7 @@ class EntityBuilder {
     });
 
     // Check each property
-    properties.forEach((p) => p.validate());
+    properties.forEach((p) => p.validate(entityBuilders));
   }
 
   void link(List<ManagedEntity> entities) {
@@ -125,6 +125,9 @@ class EntityBuilder {
 
     entity.attributes = attributes;
     entity.relationships = relationships;
+    entity.validators = [];
+    entity.validators.addAll(attributes.values.expand((a) => a.validators));
+    entity.validators.addAll(relationships.values.expand((a) => a.validators));
     entity.uniquePropertySet =
         uniquePropertySet?.map((key) => entity.properties[key])?.toList();
   }

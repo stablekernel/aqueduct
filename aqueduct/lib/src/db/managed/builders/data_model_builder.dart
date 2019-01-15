@@ -35,6 +35,6 @@ class DataModelBuilder {
       }
     });
 
-    _builders.forEach((b) => b.validate());
+    _builders.forEach((b) => b.validate(_builders));
   }
 }

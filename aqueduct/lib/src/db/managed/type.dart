@@ -136,6 +136,8 @@ class ManagedType {
   /// Dart representation of this type.
   TypeMirror mirror;
 
+  bool get isEnumerated => enumerationMap != null;
+
   /// For enumerated types, this is a map of the name of the option to its Dart enum type.
   Map<String, dynamic> enumerationMap;
 

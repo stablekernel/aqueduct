@@ -5,20 +5,45 @@ import '../helpers.dart';
 
 void main() {
   final ctx = ManagedContext(
-      ManagedDataModel([/*T, U, V, EnumObject, Constant, ConstantRef,*/ FK, Parent]), DefaultPersistentStore());
+      ManagedDataModel([
+        T,
+        U,
+        V,
+        EnumObject,
+        Constant,
+        ConstantRef,
+        FK,
+        Parent,
+        PresenceHas,
+        PresenceBelongsTo,
+        AbsenceBelongsTo,
+        AbsenceHas
+      ]),
+      DefaultPersistentStore());
 
   tearDownAll(() async {
     await ctx.close();
   });
-
 
   group("Foreign keys", () {
     test("Validator applies to foreign key value", () {
       final fk = FK();
       fk.parent = Parent()..id = 1;
       expect(fk.validate().isValid, false);
+      expect(fk.validate().errors.first, contains("FK.parent.id"));
 
       fk.parent.id = 2;
+      expect(fk.validate().isValid, true);
+    });
+
+    test("If foreign key object is null, validator is not run", () {
+      final fk = FK();
+      expect(fk.validate().isValid, true);
+    });
+
+    test("If foreign key object doesn't contain primary key, validator is not run", () {
+      final fk = FK();
+      fk.parent = Parent();
       expect(fk.validate().isValid, true);
     });
   });
@@ -166,6 +191,31 @@ void main() {
       var u = U()..present = null;
       expect(u.validate().isValid, true);
     });
+
+    test("Relationship primary key must be present", () {
+      final o = PresenceBelongsTo();
+      expect(o.validate().isValid, false);
+      o.present = PresenceHas();
+      expect(o.validate().isValid, false);
+      o.present = PresenceHas()..id = 1;
+      expect(o.validate().isValid, true);
+    });
+
+    test("Ensure foreign object key exists", () {
+      final fk = PresenceBelongsTo();
+      expect(fk.validate().isValid, false);
+    });
+
+    test("If foreign key object is null, validator fails", () {
+      final fk = PresenceBelongsTo()..present = null;
+      expect(fk.validate().isValid, false);
+    });
+
+    test("If foreign key object doesn't contain primary key, validator fails", () {
+      final fk = PresenceBelongsTo()..present = PresenceHas();
+      expect(fk.validate().isValid, false);
+      expect(fk.validate().errors.first, contains("PresenceBelongsTo.present.id"));
+    });
   });
 
   group("Validate.absent", () {
@@ -181,6 +231,19 @@ void main() {
         ..present = 1
         ..absent = null;
       expect(u.validate().isValid, false);
+    });
+
+    test("Relationship key must be absent", () {
+      final o = AbsenceBelongsTo();
+      expect(o.validate().isValid, true);
+      
+      o.absent = AbsenceHas();
+      expect(o.validate().isValid, false);
+      expect(o.validate().errors.first, contains("AbsenceBelongsTo.absent.id"));
+
+      o.absent = AbsenceHas()..id = 1;
+      expect(o.validate().isValid, false);
+      expect(o.validate().errors.first, contains("AbsenceBelongsTo.absent.id"));
     });
   });
 
@@ -216,7 +279,9 @@ void main() {
     });
 
     test("Allows relationships during insert, not update", () {
-      var t = Constant()..constantRef = ConstantRef()..id = 1;
+      var t = Constant()
+        ..constantRef = ConstantRef()
+        ..id = 1;
       expect(t.validate(forEvent: Validating.insert).isValid, true);
       expect(t.validate(forEvent: Validating.update).isValid, false);
     });
@@ -281,9 +346,8 @@ void main() {
         expect(true, false);
       } on ManagedDataModelError catch (e) {
         expect(e.toString(), contains("19x34"));
-        expect(e.toString(), contains("cannot be parsed as DateTime"));
-        expect(e.toString(), contains("'d'"));
-        expect(e.toString(), contains("_FDT"));
+        expect(e.toString(), contains("cannot be parsed as expected"));
+        expect(e.toString(), contains("_FDT.d"));
       }
     });
 
@@ -292,9 +356,8 @@ void main() {
         ManagedDataModel([FailingRegex]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("must be String"));
-        expect(e.toString(), contains("'d'"));
-        expect(e.toString(), contains("_FRX"));
+        expect(e.toString(), contains("is only valid for 'String'"));
+        expect(e.toString(), contains("_FRX.d"));
       }
     });
 
@@ -303,9 +366,8 @@ void main() {
         ManagedDataModel([FailingLength]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("must annotate 'String'"));
-        expect(e.toString(), contains("'d'"));
-        expect(e.toString(), contains("_FLEN"));
+        expect(e.toString(), contains("is only valid for 'String'"));
+        expect(e.toString(), contains("_FLEN.d"));
       }
     });
 
@@ -314,11 +376,7 @@ void main() {
         ManagedDataModel([UnsupportedDateOneOf]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("has invalid validator for property"));
-        expect(
-            e.toString(),
-            contains(
-                "Validate.oneOf value must be a List, where each element matches the type of the decorated attribute"));
+        expect(e.toString(), contains("Validate.oneOf"));
         expect(e.toString(), contains("compareDateOneOf20162017"));
       }
     });
@@ -328,11 +386,7 @@ void main() {
         ManagedDataModel([UnsupportedDoubleOneOf]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("has invalid validator for property"));
-        expect(
-            e.toString(),
-            contains(
-                "Validate.oneOf value must be a List, where each element matches the type of the decorated attribute"));
+        expect(e.toString(), contains("Validate.oneOf"));
         expect(e.toString(), contains("someFloatingNumber"));
       }
     });
@@ -342,12 +396,8 @@ void main() {
         ManagedDataModel([FailingOneOf]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(
-            e.toString(),
-            contains(
-                "Validate.oneOf value must be a List, where each element matches the type of the decorated attribute"));
-        expect(e.toString(), contains("'d'"));
-        expect(e.toString(), contains("_FOO"));
+        expect(e.toString(), contains("Validate.oneOf"));
+        expect(e.toString(), contains("_FOO.d"));
       }
     });
 
@@ -356,9 +406,8 @@ void main() {
         ManagedDataModel([FailingEmptyOneOf]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("must have at least one element"));
-        expect(e.toString(), contains("'d'"));
-        expect(e.toString(), contains("_FEO"));
+        expect(e.toString(), contains("Validate.oneOf"));
+        expect(e.toString(), contains("_FEO.d"));
       }
     });
 
@@ -367,12 +416,8 @@ void main() {
         ManagedDataModel([FailingHeterogenous]);
         expect(true, false);
       } on ManagedDataModelError catch (e) {
-        expect(
-            e.toString(),
-            contains(
-                "Validate.oneOf value must be a List, where each element matches the type of the decorated attribute"));
-        expect(e.toString(), contains("'d'"));
-        expect(e.toString(), contains("_FH"));
+        expect(e.toString(), contains("Validate.oneOf"));
+        expect(e.toString(), contains("_FH.d"));
       }
     });
   });
@@ -575,6 +620,7 @@ class V extends ManagedObject<_V> implements _V {
 }
 
 class Constant extends ManagedObject<_Constant> implements _Constant {}
+
 class _Constant {
   @primaryKey
   int id;
@@ -588,6 +634,7 @@ class _Constant {
 }
 
 class ConstantRef extends ManagedObject<_ConstantRef> implements _ConstantRef {}
+
 class _ConstantRef {
   @primaryKey
   int id;
@@ -615,6 +662,7 @@ class _EnumObject {
 enum EnumValues { abcd, efgh, other18 }
 
 class FK extends ManagedObject<_FK> implements _FK {}
+
 class _FK {
   @primaryKey
   int id;
@@ -625,9 +673,52 @@ class _FK {
 }
 
 class Parent extends ManagedObject<_Parent> implements _Parent {}
+
 class _Parent {
   @primaryKey
   int id;
 
   FK fk;
+}
+
+class PresenceHas extends ManagedObject<_PresenceHas> implements _PresenceHas {}
+
+class _PresenceHas {
+  @primaryKey
+  int id;
+
+  ManagedSet<PresenceBelongsTo> present;
+}
+
+class PresenceBelongsTo extends ManagedObject<_PresenceBelongsTo>
+    implements _PresenceBelongsTo {}
+
+class _PresenceBelongsTo {
+  @primaryKey
+  int id;
+
+  @Validate.present(onInsert: true)
+  @Relate(#present)
+  PresenceHas present;
+}
+
+class AbsenceHas extends ManagedObject<_AbsenceHas> implements _AbsenceHas {}
+
+class _AbsenceHas {
+  @primaryKey
+  int id;
+
+  ManagedSet<AbsenceBelongsTo> absent;
+}
+
+class AbsenceBelongsTo extends ManagedObject<_AbsenceBelongsTo>
+  implements _AbsenceBelongsTo {}
+
+class _AbsenceBelongsTo {
+  @primaryKey
+  int id;
+
+  @Validate.absent(onInsert: true)
+  @Relate(#absent)
+  AbsenceHas absent;
 }

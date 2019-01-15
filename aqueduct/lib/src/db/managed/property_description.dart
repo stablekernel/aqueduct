@@ -24,13 +24,15 @@ abstract class ManagedPropertyDescription {
       bool nullable = false,
       bool includedInDefaultResultSet = true,
       bool autoincrement = false,
-      List<Validate> validators = const []})
+      List<ManagedValidator> validators = const []})
       : isUnique = unique,
         isIndexed = indexed,
         isNullable = nullable,
         isIncludedInDefaultResultSet = includedInDefaultResultSet,
         autoincrement = autoincrement,
-        _validators = validators;
+        _validators = validators {
+    _validators?.forEach((v) => v.property = this);
+  }
 
   /// A reference to the [ManagedEntity] that contains this property.
   final ManagedEntity entity;
@@ -81,9 +83,9 @@ abstract class ManagedPropertyDescription {
   }
 
   /// [ManagedValidator]s for this instance.
-  List<Validate> get validators => _validators;
+  List<ManagedValidator> get validators => _validators;
 
-  final List<Validate> _validators;
+  final List<ManagedValidator> _validators;
 
   /// Whether or not a the argument can be assigned to this property.
   bool isAssignableWith(dynamic dartValue) => type.isAssignableWith(dartValue);
@@ -158,7 +160,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       bool nullable = false,
       bool includedInDefaultResultSet = true,
       bool autoincrement = false,
-      List<Validate> validators = const []})
+      List<ManagedValidator> validators = const []})
       : isPrimaryKey = primaryKey,
         defaultValue = defaultValue,
         transientStatus = transientStatus,
@@ -219,18 +221,6 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   /// Whether or not this attribute is represented by a Dart enum.
   bool get isEnumeratedValue => enumerationValueMap != null;
 
-  /// [ManagedValidator]s for this instance.
-  @override
-  List<Validate> get validators {
-    if (isEnumeratedValue) {
-      var total = List<Validate>.from(_validators);
-      total.add(Validate.oneOf(enumerationValueMap.values.toList()));
-      return total;
-    }
-
-    return _validators;
-  }
-
   @override
   APISchemaObject documentSchemaObject(APIDocumentContext context) {
     final prop = ManagedPropertyDescription._typedSchemaObject(type)
@@ -239,7 +229,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
     // Add'l schema info
     prop.isNullable = isNullable;
-    validators.forEach((v) => v.constrainSchemaObject(context, prop));
+    validators.forEach((v) => v.definition.constrainSchemaObject(context, prop));
 
     if (isTransient) {
       if (transientStatus.isAvailableAsInput &&
@@ -378,7 +368,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       bool indexed = false,
       bool nullable = false,
       bool includedInDefaultResultSet = true,
-      List<Validate> validators = const []})
+      List<ManagedValidator> validators = const []})
       : super(entity, name, type, declaredType,
             unique: unique,
             indexed: indexed,
