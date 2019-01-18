@@ -124,6 +124,12 @@ abstract class ManagedObject<T> extends Serializable {
     backing.removeProperty(propertyName);
   }
 
+  /// Removes multiple properties from [backing].
+  void removePropertiesFromBackingMap(List<String> propertyNames) {
+    propertyNames
+        .forEach((propertyName) => backing.removeProperty(propertyName));
+  }
+
   /// Checks whether or not a property has been set in this instances' [backing].
   bool hasValueForProperty(String propertyName) {
     return backing.contents.containsKey(propertyName);
