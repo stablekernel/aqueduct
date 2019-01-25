@@ -414,6 +414,71 @@ void main() {
     expect(m["bothOverQualified"], "foo");
   });
 
+  test("Can remove single property from backing map", () {
+    var m = (User()
+      ..id = 1
+      ..name = "Bob"
+      ..dateCreated = DateTime(2018,1,30))
+      ..removePropertyFromBackingMap("name")
+      ..asMap();
+
+    expect(m["id"], 1);
+    expect(m["name"], isNull);
+    expect(m["dateCreated"], DateTime(2018,1,30));
+  });
+
+  test("Removing single non-existent property from backing map has no effect", () {
+    var m = (User()
+      ..id = 1
+      ..name = "Bob"
+      ..dateCreated = DateTime(2018,1,30))
+      ..removePropertyFromBackingMap("dummy")
+      ..asMap();
+
+    expect(m["id"], 1);
+    expect(m["name"], "Bob");
+    expect(m["dateCreated"], DateTime(2018,1,30));
+  });
+
+  test("Can remove multiple properties from backing map", () {
+    var m = (User()
+      ..id = 1
+      ..name = "Bob"
+      ..dateCreated = DateTime(2018,1,30))
+      ..removePropertiesFromBackingMap(["name", "dateCreated"])
+      ..asMap();
+
+    expect(m["id"], 1);
+    expect(m["name"], isNull);
+    expect(m["dateCreated"], isNull);
+  });
+
+  test("Can remove single property from backing map with multi-property method", () {
+    var m = (User()
+      ..id = 1
+      ..name = "Bob"
+      ..dateCreated = DateTime(2018,1,30))
+      ..removePropertiesFromBackingMap(["name"])
+      ..asMap();
+
+    expect(m["id"], 1);
+    expect(m["name"], isNull);
+    expect(m["dateCreated"], DateTime(2018,1,30));
+  });
+
+  test("Removing multiple non-existent properties from backing map has no effect", () {
+    var m = (User()
+      ..id = 1
+      ..name = "Bob"
+      ..dateCreated = DateTime(2018,1,30))
+      ..removePropertiesFromBackingMap(["dummy1", "dummy2"])
+      ..asMap();
+
+    expect(m["id"], 1);
+    expect(m["name"], "Bob");
+    expect(m["dateCreated"], DateTime(2018,1,30));
+  });
+
   test("Transient Properties of all types can be read and returned", () {
     var dateString = "2016-10-31T15:40:45+00:00";
     var m = (TransientTypeTest()
