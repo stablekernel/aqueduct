@@ -414,6 +414,76 @@ void main() {
     expect(m["bothOverQualified"], "foo");
   });
 
+  test("Can remove single property from backing map", () {
+    var u = (User()
+      ..id = 1
+      ..name = "Bob"
+      ..dateCreated = DateTime(2018,1,30))
+      ..removePropertyFromBackingMap("name");
+
+    var m = u.asMap();
+
+    expect(m.containsKey("id"), true);
+    expect(m.containsKey("name"), false);
+    expect(m.containsKey("dateCreated"), true);
+  });
+
+  test("Removing single non-existent property from backing map has no effect", () {
+    var u = (User()
+      ..id = 1
+      ..name = "Bob"
+      ..dateCreated = DateTime(2018,1,30))
+      ..removePropertyFromBackingMap("dummy");
+
+    var m = u.asMap();
+
+    expect(m.containsKey("id"), true);
+    expect(m.containsKey("name"), true);
+    expect(m.containsKey("dateCreated"), true);
+  });
+
+  test("Can remove multiple properties from backing map", () {
+    var u = (User()
+      ..id = 1
+      ..name = "Bob"
+      ..dateCreated = DateTime(2018,1,30))
+      ..removePropertiesFromBackingMap(["name", "dateCreated"]);
+
+    var m = u.asMap();
+
+    expect(m.containsKey("id"), true);
+    expect(m.containsKey("name"), false);
+    expect(m.containsKey("dateCreated"), false);
+  });
+
+  test("Can remove single property from backing map with multi-property method", () {
+    var u = (User()
+      ..id = 1
+      ..name = "Bob"
+      ..dateCreated = DateTime(2018,1,30))
+      ..removePropertiesFromBackingMap(["name"]);
+
+    var m = u.asMap();
+
+    expect(m.containsKey("id"), true);
+    expect(m.containsKey("name"), false);
+    expect(m.containsKey("dateCreated"), true);
+  });
+
+  test("Removing multiple non-existent properties from backing map has no effect", () {
+    var u = (User()
+      ..id = 1
+      ..name = "Bob"
+      ..dateCreated = DateTime(2018,1,30))
+      ..removePropertiesFromBackingMap(["dummy1", "dummy2"]);
+
+    var m = u.asMap();
+
+    expect(m.containsKey("id"), true);
+    expect(m.containsKey("name"), true);
+    expect(m.containsKey("dateCreated"), true);
+  });
+
   test("Transient Properties of all types can be read and returned", () {
     var dateString = "2016-10-31T15:40:45+00:00";
     var m = (TransientTypeTest()
