@@ -415,68 +415,73 @@ void main() {
   });
 
   test("Can remove single property from backing map", () {
-    var m = (User()
+    var u = (User()
       ..id = 1
       ..name = "Bob"
       ..dateCreated = DateTime(2018,1,30))
-      ..removePropertyFromBackingMap("name")
-      ..asMap();
+      ..removePropertyFromBackingMap("name");
 
-    expect(m["id"], 1);
-    expect(m["name"], isNull);
-    expect(m["dateCreated"], DateTime(2018,1,30));
+    var m = u.asMap();
+
+    expect(m.containsKey("id"), true);
+    expect(m.containsKey("name"), false);
+    expect(m.containsKey("dateCreated"), true);
   });
 
   test("Removing single non-existent property from backing map has no effect", () {
-    var m = (User()
+    var u = (User()
       ..id = 1
       ..name = "Bob"
       ..dateCreated = DateTime(2018,1,30))
-      ..removePropertyFromBackingMap("dummy")
-      ..asMap();
+      ..removePropertyFromBackingMap("dummy");
 
-    expect(m["id"], 1);
-    expect(m["name"], "Bob");
-    expect(m["dateCreated"], DateTime(2018,1,30));
+    var m = u.asMap();
+
+    expect(m.containsKey("id"), true);
+    expect(m.containsKey("name"), true);
+    expect(m.containsKey("dateCreated"), true);
   });
 
   test("Can remove multiple properties from backing map", () {
-    var m = (User()
+    var u = (User()
       ..id = 1
       ..name = "Bob"
       ..dateCreated = DateTime(2018,1,30))
-      ..removePropertiesFromBackingMap(["name", "dateCreated"])
-      ..asMap();
+      ..removePropertiesFromBackingMap(["name", "dateCreated"]);
 
-    expect(m["id"], 1);
-    expect(m["name"], isNull);
-    expect(m["dateCreated"], isNull);
+    var m = u.asMap();
+
+    expect(m.containsKey("id"), true);
+    expect(m.containsKey("name"), false);
+    expect(m.containsKey("dateCreated"), false);
   });
 
   test("Can remove single property from backing map with multi-property method", () {
-    var m = (User()
+    var u = (User()
       ..id = 1
       ..name = "Bob"
       ..dateCreated = DateTime(2018,1,30))
-      ..removePropertiesFromBackingMap(["name"])
-      ..asMap();
+      ..removePropertiesFromBackingMap(["name"]);
 
-    expect(m["id"], 1);
-    expect(m["name"], isNull);
-    expect(m["dateCreated"], DateTime(2018,1,30));
+    var m = u.asMap();
+
+    expect(m.containsKey("id"), true);
+    expect(m.containsKey("name"), false);
+    expect(m.containsKey("dateCreated"), true);
   });
 
   test("Removing multiple non-existent properties from backing map has no effect", () {
-    var m = (User()
+    var u = (User()
       ..id = 1
       ..name = "Bob"
       ..dateCreated = DateTime(2018,1,30))
-      ..removePropertiesFromBackingMap(["dummy1", "dummy2"])
-      ..asMap();
+      ..removePropertiesFromBackingMap(["dummy1", "dummy2"]);
 
-    expect(m["id"], 1);
-    expect(m["name"], "Bob");
-    expect(m["dateCreated"], DateTime(2018,1,30));
+    var m = u.asMap();
+
+    expect(m.containsKey("id"), true);
+    expect(m.containsKey("name"), true);
+    expect(m.containsKey("dateCreated"), true);
   });
 
   test("Transient Properties of all types can be read and returned", () {
