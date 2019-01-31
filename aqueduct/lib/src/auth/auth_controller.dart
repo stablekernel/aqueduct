@@ -64,12 +64,20 @@ class AuthController extends ResourceController {
       @Bind.query("refresh_token") String refreshToken,
       @Bind.query("code") String authCode,
       @Bind.query("grant_type") String grantType,
-      @Bind.query("scope") String scope}) async {
+      @Bind.query("scope") String scope,
+      @Bind.query("client_id") String clientId,
+      @Bind.query("client_secret") String clientSecret = ""}) async {
     AuthBasicCredentials basicRecord;
     try {
       basicRecord = _parser.parse(authHeader);
     } on AuthorizationParserException catch (_) {
-      return _responseForError(AuthRequestError.invalidClient);
+      if(clientId == null)
+        return _responseForError(AuthRequestError.invalidClient);
+      else {
+        basicRecord = AuthBasicCredentials()
+          ..username = clientId
+          ..password = clientSecret;
+      }
     }
 
     try {
