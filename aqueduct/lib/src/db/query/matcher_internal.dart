@@ -84,16 +84,17 @@ class SetMembershipExpression implements PredicateExpression {
 
 class StringExpression implements PredicateExpression {
   const StringExpression(this.value, this.operator,
-      {this.caseSensitive = true, this.invertOperator = false});
+    {this.caseSensitive = true, this.invertOperator = false, this.allowSpecialCharacters = true});
 
   final PredicateStringOperator operator;
   final bool invertOperator;
   final bool caseSensitive;
+  final bool allowSpecialCharacters;
   final String value;
 
   @override
   PredicateExpression get inverse {
     return StringExpression(value, operator,
-        caseSensitive: caseSensitive, invertOperator: !invertOperator);
+      caseSensitive: caseSensitive, invertOperator: !invertOperator, allowSpecialCharacters: allowSpecialCharacters);
   }
 }

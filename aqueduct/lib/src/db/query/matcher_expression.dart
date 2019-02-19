@@ -79,7 +79,7 @@ class QueryExpression<T, InstanceType> {
       {bool caseSensitive = true}) {
     if (value is String) {
       expression = StringExpression(value, PredicateStringOperator.equals,
-          caseSensitive: caseSensitive);
+          caseSensitive: caseSensitive, allowSpecialCharacters: false);
     } else {
       expression = ComparisonExpression(value, PredicateOperator.equalTo);
     }
@@ -87,7 +87,7 @@ class QueryExpression<T, InstanceType> {
     return _createJunction();
   }
 
-  /// Adds an 'not equal' expression to a query.
+  /// Adds a 'not equal' expression to a query.
   ///
   /// A query will only return objects where the selected property is *not* equal to [value].
   ///
@@ -104,10 +104,52 @@ class QueryExpression<T, InstanceType> {
       {bool caseSensitive = true}) {
     if (value is String) {
       expression = StringExpression(value, PredicateStringOperator.equals,
-          caseSensitive: caseSensitive, invertOperator: true);
+          caseSensitive: caseSensitive, invertOperator: true, allowSpecialCharacters: false);
     } else {
       expression = ComparisonExpression(value, PredicateOperator.notEqual);
     }
+
+    return _createJunction();
+  }
+
+  /// Adds a like expression to a query.
+  ///
+  /// A query will only return objects where the selected property is like [value].
+  ///
+  /// This method can be used on [String] types.
+  ///
+  /// The flag [caseSensitive] controls whether strings are compared case-sensitively.
+  ///
+  /// Example:
+  ///
+  ///       final query = new Query<User>()
+  ///         ..where((u) => u.name ).like("bob");
+  ///
+  QueryExpressionJunction<T, InstanceType> like(String value,
+      {bool caseSensitive = true}) {
+    expression = StringExpression(value, PredicateStringOperator.equals,
+          caseSensitive: caseSensitive, allowSpecialCharacters: true);
+
+    return _createJunction();
+  }
+
+  /// Adds a 'not like' expression to a query.
+  ///
+  /// A query will only return objects where the selected property is *not* like [value].
+  ///
+  /// This method can be used on [String] types.
+  ///
+  /// The flag [caseSensitive] controls whether strings are compared case-sensitively.
+  ///
+  /// Example:
+  ///
+  ///       final query = new Query<Employee>()
+  ///         ..where((e) => e.id).notEqualTo(60000);
+  ///
+  QueryExpressionJunction<T, InstanceType> notLike(String value,
+      {bool caseSensitive = true}) {
+    expression = StringExpression(value, PredicateStringOperator.equals,
+          caseSensitive: caseSensitive, invertOperator: true, allowSpecialCharacters: true);
 
     return _createJunction();
   }
@@ -197,7 +239,7 @@ class QueryExpression<T, InstanceType> {
   QueryExpressionJunction<T, InstanceType> contains(String value,
       {bool caseSensitive = true}) {
     expression = StringExpression(value, PredicateStringOperator.contains,
-        caseSensitive: caseSensitive);
+        caseSensitive: caseSensitive, allowSpecialCharacters: false);
 
     return _createJunction();
   }
@@ -215,7 +257,7 @@ class QueryExpression<T, InstanceType> {
   QueryExpressionJunction<T, InstanceType> beginsWith(String value,
       {bool caseSensitive = true}) {
     expression = StringExpression(value, PredicateStringOperator.beginsWith,
-        caseSensitive: caseSensitive);
+        caseSensitive: caseSensitive, allowSpecialCharacters: false);
 
     return _createJunction();
   }
@@ -233,7 +275,7 @@ class QueryExpression<T, InstanceType> {
   QueryExpressionJunction<T, InstanceType> endsWith(String value,
       {bool caseSensitive = true}) {
     expression = StringExpression(value, PredicateStringOperator.endsWith,
-        caseSensitive: caseSensitive);
+        caseSensitive: caseSensitive, allowSpecialCharacters: false);
 
     return _createJunction();
   }

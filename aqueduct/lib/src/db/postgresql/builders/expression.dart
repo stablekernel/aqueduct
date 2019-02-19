@@ -16,7 +16,7 @@ class ColumnExpressionBuilder extends ColumnBuilder {
   String get defaultPrefix => "$prefix${table.sqlTableReference}_";
 
   QueryPredicate get predicate {
-    var expr = expression;
+    final expr = expression;
     if (expr is ComparisonExpression) {
       return comparisonPredicate(expr.operator, expr.value);
     } else if (expr is RangeExpression) {
@@ -28,7 +28,8 @@ class ColumnExpressionBuilder extends ColumnBuilder {
     } else if (expr is StringExpression) {
       return stringPredicate(expr.operator, expr.value,
           caseSensitive: expr.caseSensitive,
-          invertOperator: expr.invertOperator);
+          invertOperator: expr.invertOperator,
+          allowSpecialCharacters: expr.allowSpecialCharacters);
     }
 
     throw UnsupportedError(
@@ -37,8 +38,8 @@ class ColumnExpressionBuilder extends ColumnBuilder {
 
   QueryPredicate comparisonPredicate(
       PredicateOperator operator, dynamic value) {
-    var name = sqlColumnName(withTableNamespace: true);
-    var variableName = sqlColumnName(withPrefix: defaultPrefix);
+    final name = sqlColumnName(withTableNamespace: true);
+    final variableName = sqlColumnName(withPrefix: defaultPrefix);
 
     return QueryPredicate(
         "$name ${ColumnBuilder.symbolTable[operator]} @$variableName$sqlTypeSuffix",
@@ -52,31 +53,31 @@ class ColumnExpressionBuilder extends ColumnBuilder {
 
     var counter = 0;
     values.forEach((value) {
-      var prefix = "$defaultPrefix${counter}_";
+      final prefix = "$defaultPrefix${counter}_";
 
-      var variableName = sqlColumnName(withPrefix: prefix);
+      final variableName = sqlColumnName(withPrefix: prefix);
       tokenList.add("@$variableName$sqlTypeSuffix");
       pairedMap[variableName] = convertValueForStorage(value);
 
       counter++;
     });
 
-    var name = sqlColumnName(withTableNamespace: true);
-    var keyword = within ? "IN" : "NOT IN";
+    final name = sqlColumnName(withTableNamespace: true);
+    final keyword = within ? "IN" : "NOT IN";
     return QueryPredicate("$name $keyword (${tokenList.join(",")})", pairedMap);
   }
 
   QueryPredicate nullPredicate({bool isNull = true}) {
-    var name = sqlColumnName(withTableNamespace: true);
+    final name = sqlColumnName(withTableNamespace: true);
     return QueryPredicate("$name ${isNull ? "ISNULL" : "NOTNULL"}", {});
   }
 
   QueryPredicate rangePredicate(dynamic lhsValue, dynamic rhsValue,
       {bool insideRange = true}) {
-    var name = sqlColumnName(withTableNamespace: true);
-    var lhsName = sqlColumnName(withPrefix: "${defaultPrefix}lhs_");
-    var rhsName = sqlColumnName(withPrefix: "${defaultPrefix}rhs_");
-    var operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
+    final name = sqlColumnName(withTableNamespace: true);
+    final lhsName = sqlColumnName(withPrefix: "${defaultPrefix}lhs_");
+    final rhsName = sqlColumnName(withPrefix: "${defaultPrefix}rhs_");
+    final operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
 
     return QueryPredicate(
         "$name $operation @$lhsName$sqlTypeSuffix AND @$rhsName$sqlTypeSuffix",
@@ -86,26 +87,28 @@ class ColumnExpressionBuilder extends ColumnBuilder {
         });
   }
 
-  QueryPredicate stringPredicate(
-      PredicateStringOperator operator, dynamic value,
-      {bool caseSensitive = true, bool invertOperator = false}) {
-    var n = sqlColumnName(withTableNamespace: true);
-    var variableName = sqlColumnName(withPrefix: defaultPrefix);
+  QueryPredicate stringPredicate(PredicateStringOperator operator, String value,
+      {bool caseSensitive = true,
+      bool invertOperator = false,
+      bool allowSpecialCharacters = true}) {
+    final n = sqlColumnName(withTableNamespace: true);
+    final variableName = sqlColumnName(withPrefix: defaultPrefix);
 
-    var matchValue = value;
+    var matchValue = allowSpecialCharacters ? value : escapeLikeString(value);
+
     var operation = caseSensitive ? "LIKE" : "ILIKE";
     if (invertOperator) {
       operation = "NOT $operation";
     }
     switch (operator) {
       case PredicateStringOperator.beginsWith:
-        matchValue = "$value%";
+        matchValue = "$matchValue%";
         break;
       case PredicateStringOperator.endsWith:
-        matchValue = "%$value";
+        matchValue = "%$matchValue";
         break;
       case PredicateStringOperator.contains:
-        matchValue = "%$value%";
+        matchValue = "%$matchValue%";
         break;
       default:
         break;
@@ -113,5 +116,9 @@ class ColumnExpressionBuilder extends ColumnBuilder {
 
     return QueryPredicate("$n $operation @$variableName$sqlTypeSuffix",
         {variableName: matchValue});
+  }
+
+  String escapeLikeString(String input) {
+    return input.replaceAllMapped(RegExp("(\\\\|%|_)"), (Match m) => "\\${m[0]}");
   }
 }
