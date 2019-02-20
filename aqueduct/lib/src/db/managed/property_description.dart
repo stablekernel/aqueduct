@@ -470,7 +470,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       instance.readFromMap(m as Map<String, dynamic>);
       return instance;
     };
-    return declaredType.newInstance(#from, [value.map(instantiator)]).reflectee;
+    return declaredType.newInstance(#fromDynamic, [value.map(instantiator)]).reflectee;
   }
 
   @override
