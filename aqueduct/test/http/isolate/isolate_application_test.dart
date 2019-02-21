@@ -120,7 +120,7 @@ void main() {
 
 class TestChannel extends ApplicationChannel {
   static Future initializeApplication(ApplicationOptions config) async {
-    List<int> v = config.context["startup"] ?? [];
+    final v = config.context["startup"] as List<int> ?? [];
     v.add(1);
     config.context["startup"] = v;
   }

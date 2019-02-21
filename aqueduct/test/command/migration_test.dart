@@ -9,8 +9,6 @@ import 'package:aqueduct/src/cli/mixins/database_managing.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:test/test.dart';
 
-import '../helpers.dart';
-
 void main() {
   group("Cooperation", () {
     PersistentStore store;
@@ -90,7 +88,7 @@ void main() {
       filenames.forEach((name) {
         File.fromUri(migrationsDirectory.uri.resolve(name))
             .writeAsStringSync("""
-class Migration1 extends Migration { @override Future upgrade() async {} @override Future downgrade() async {} @override Future seed() async {} }        
+class Migration1 extends Migration { @override Future upgrade() async {} @override Future downgrade() async {} @override Future seed() async {} }
         """);
       });
     };

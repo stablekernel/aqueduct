@@ -96,10 +96,10 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    ComparisonExpression comparisonMatcher = (query as QueryMixin)
+    final comparisonMatcher = (query as QueryMixin)
         .expressions
         .firstWhere((expr) => expr.keyPath.path.first.name == "id")
-        .expression;
+        .expression as ComparisonExpression;
     if (comparisonMatcher.operator != PredicateOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
@@ -126,10 +126,10 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    ComparisonExpression comparisonMatcher = (query as QueryMixin)
+    final comparisonMatcher = (query as QueryMixin)
         .expressions
         .firstWhere((expr) => expr.keyPath.path.first.name == "id")
-        .expression;
+        .expression as ComparisonExpression;
     if (comparisonMatcher.operator != PredicateOperator.equalTo ||
         comparisonMatcher.value != id) {
       statusCode = 400;
@@ -183,10 +183,10 @@ class StringController extends QueryController<StringModel> {
 
   @Operation.get("id")
   Future<Response> get(@Bind.path("id") String id) async {
-    StringExpression comparisonMatcher = (query as QueryMixin)
+    final comparisonMatcher = (query as QueryMixin)
         .expressions
         .firstWhere((expr) => expr.keyPath.path.first.name == "foo")
-        .expression;
+        .expression as StringExpression;
     return Response.ok(comparisonMatcher.value);
   }
 }

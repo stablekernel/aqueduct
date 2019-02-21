@@ -7,6 +7,7 @@ import '../http/http.dart';
 import 'auth.dart';
 
 /// Provides [AuthCodeController] with application-specific behavior.
+@deprecated
 abstract class AuthCodeControllerDelegate {
   /// Returns an HTML representation of a login form.
   ///

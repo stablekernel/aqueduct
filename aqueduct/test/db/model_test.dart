@@ -943,11 +943,11 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
   }
 
   @Serialize(input: false, output: true)
-  DateTime get transientDate => backingDateTime.add(Duration(days: 1));
+  DateTime get transientDate => backingDateTime.add(const Duration(days: 1));
 
   @Serialize(input: true, output: false)
   set transientDate(DateTime d) {
-    backingDateTime = d.subtract(Duration(days: 1));
+    backingDateTime = d.subtract(const Duration(days: 1));
   }
 
   @Serialize(input: false, output: true)

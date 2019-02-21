@@ -48,10 +48,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 
-    List<List<dynamic>> results = await context.persistentStore
+    final results = await context.persistentStore
         .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
-    return builder.instancesForRows<InstanceType>(results).first;
+    return builder.instancesForRows<InstanceType>(results as List<List<dynamic>>).first;
   }
 
   @override
@@ -74,10 +74,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 
-    List<List<dynamic>> results = await context.persistentStore
+    final results = await context.persistentStore
         .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
-    return builder.instancesForRows(results);
+    return builder.instancesForRows(results as List<List<dynamic>>);
   }
 
   @override
@@ -180,10 +180,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("OFFSET $offset ");
     }
 
-    List<List<dynamic>> results = await context.persistentStore
+    final results = await context.persistentStore
         .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
-    return builder.instancesForRows(results);
+    return builder.instancesForRows(results as List<List<dynamic>>);
   }
 
   void validatePageDescriptor() {

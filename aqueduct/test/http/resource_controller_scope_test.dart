@@ -249,7 +249,7 @@ class Channel extends ApplicationChannel {
     storage.tokens = [
       TestToken()
         ..issueDate = DateTime.now()
-        ..expirationDate = DateTime.now().add(Duration(days: 1))
+        ..expirationDate = DateTime.now().add(const Duration(days: 1))
         ..resourceOwnerIdentifier = 1
         ..clientID = "whocares"
         ..type = "bearer"
@@ -257,7 +257,7 @@ class Channel extends ApplicationChannel {
         ..scopes = [],
       TestToken()
         ..issueDate = DateTime.now()
-        ..expirationDate = DateTime.now().add(Duration(days: 1))
+        ..expirationDate = DateTime.now().add(const Duration(days: 1))
         ..resourceOwnerIdentifier = 1
         ..clientID = "whocares"
         ..type = "bearer"
@@ -265,7 +265,7 @@ class Channel extends ApplicationChannel {
         ..scopes = [AuthScope("level1")],
       TestToken()
         ..issueDate = DateTime.now()
-        ..expirationDate = DateTime.now().add(Duration(days: 1))
+        ..expirationDate = DateTime.now().add(const Duration(days: 1))
         ..resourceOwnerIdentifier = 1
         ..clientID = "whocares"
         ..type = "bearer"

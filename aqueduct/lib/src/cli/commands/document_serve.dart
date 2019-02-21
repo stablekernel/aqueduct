@@ -48,7 +48,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
       ..addCachePolicy(const CachePolicy(requireConditionalRequest: true),
           (p) => p.endsWith(".json"))
       ..addCachePolicy(
-          CachePolicy(expirationFromNow: Duration(days: 300)), (p) => true)
+          const CachePolicy(expirationFromNow: Duration(days: 300)), (p) => true)
       ..logger.onRecord.listen((rec) {
         outputSink.writeln("${rec.message} ${rec.stackTrace ?? ""}");
       });
@@ -109,7 +109,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
     <redoc spec-url='openapi.json'></redoc>
     <script src="https://cdn.jsdelivr.net/npm/redoc@next/bundles/redoc.standalone.js"> </script>
   </body>
-</html>  
+</html>
     """;
   }
 

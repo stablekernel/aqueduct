@@ -7,9 +7,9 @@ import 'internal.dart';
 class BoundParameter {
   BoundParameter(VariableMirror mirror, {this.isRequired = false})
       : symbol = mirror.simpleName {
-    Bind b = mirror.metadata
+    final b = mirror.metadata
         .firstWhere((im) => im.reflectee is Bind, orElse: () => null)
-        ?.reflectee;
+        ?.reflectee as Bind;
     if (b == null) {
       throw StateError(
           "Invalid operation method parameter '${MirrorSystem.getName(symbol)}' on '${_methodErrorName(mirror)}': Must have @Bind annotation.");

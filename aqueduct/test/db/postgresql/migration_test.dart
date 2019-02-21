@@ -1124,22 +1124,22 @@ class TableDefinition {
   List<String> uniqueSet;
 
   Future<void> resolve(PostgreSQLPersistentStore store) async {
-    final List<List<dynamic>> exists = await store.execute(
-        "SELECT table_name FROM information_schema.tables WHERE table_name = '$name'");
+    final exists = await store.execute(
+        "SELECT table_name FROM information_schema.tables WHERE table_name = '$name'") as List<List<dynamic>> ;
     isValid = exists.length == 1;
 
     if (!isValid) {
       return;
     }
 
-    final List<List<dynamic>> results = await store.execute(
-        "SELECT column_name, column_default, data_type, is_nullable FROM information_schema.columns WHERE table_name = '$name'");
+    final results = await store.execute(
+        "SELECT column_name, column_default, data_type, is_nullable FROM information_schema.columns WHERE table_name = '$name'") as List<List<dynamic>>;
 
     columns = results.map((row) => ColumnDefinition(row)).toList();
 
-    final List<List<dynamic>> constraints = await store.execute(
+    final constraints = await store.execute(
         "SELECT c.column_name, t.constraint_type FROM information_schema.key_column_usage AS c "
-        "LEFT JOIN information_schema.table_constraints AS t ON t.constraint_name = c.constraint_name WHERE t.table_name = '$name'");
+        "LEFT JOIN information_schema.table_constraints AS t ON t.constraint_name = c.constraint_name WHERE t.table_name = '$name'") as List<List<dynamic>>;
     constraints.forEach((constraint) {
       final col = columns.firstWhere((c) => c.name == constraint.first);
 
@@ -1150,8 +1150,8 @@ class TableDefinition {
       }
     });
 
-    final List<List<dynamic>> indices = await store
-        .execute("SELECT indexdef FROM pg_indexes WHERE tablename = '$name'");
+    final indices = await store
+        .execute("SELECT indexdef FROM pg_indexes WHERE tablename = '$name'") as List<List<dynamic>>;
     final lookupIndex = RegExp(
         "CREATE INDEX ([A-Za-z_]*) ON [A-Za-z_0-9\\.]* USING [A-Za-z_]* \\(([a-zA-Z0-9_]*)\\)");
     final uniqueIndex = RegExp(
@@ -1176,12 +1176,12 @@ class TableDefinition {
       }
     });
 
-    final List<List<dynamic>> foreignKeys = await store.execute(
+    final foreignKeys = await store.execute(
         "SELECT ccu.table_name, ccu.column_name, kcu.column_name, rc.delete_rule FROM information_schema.table_constraints tc "
         "INNER JOIN information_schema.referential_constraints rc ON (tc.constraint_name=rc.constraint_name) "
         "INNER JOIN information_schema.key_column_usage kcu ON (tc.constraint_name=kcu.constraint_name) "
         "INNER JOIN information_schema.constraint_column_usage ccu ON (tc.constraint_name=ccu.constraint_name) "
-        "WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_name ='$name';");
+        "WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_name ='$name';") as List<List<dynamic>>;
     foreignKeys.forEach((foreignKey) {
       final col = columns.firstWhere((c) => c.name == foreignKey[2]);
 

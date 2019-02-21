@@ -651,7 +651,7 @@ class IntController extends ResourceController {
 class DateTimeController extends ResourceController {
   @Operation.get("time")
   Future<Response> getOne(@Bind.path("time") DateTime time) async {
-    return Response.ok("${time.add(Duration(seconds: 5))}");
+    return Response.ok("${time.add(const Duration(seconds: 5))}");
   }
 
   @Operation.get()

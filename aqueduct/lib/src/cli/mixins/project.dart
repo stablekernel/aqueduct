@@ -29,7 +29,7 @@ abstract class CLIProject implements CLICommand {
             "Failed to locate pubspec.yaml in project directory '${projectDirectory.path}'");
       }
       var yamlContents = file.readAsStringSync();
-      final Map<dynamic, dynamic> yaml = loadYaml(yamlContents);
+      final yaml = loadYaml(yamlContents) as Map<dynamic, dynamic> ;
       _pubspec = yaml.cast<String, dynamic>();
     }
 
@@ -52,9 +52,9 @@ abstract class CLIProject implements CLICommand {
         throw CLIException("No pubspec.lock file. Run `pub get`.");
       }
 
-      Map lockFileContents = loadYaml(lockFile.readAsStringSync());
-      String projectVersion =
-          lockFileContents["packages"]["aqueduct"]["version"];
+      final lockFileContents = loadYaml(lockFile.readAsStringSync()) as Map;
+      final projectVersion =
+          lockFileContents["packages"]["aqueduct"]["version"] as String;
       _projectVersion = Version.parse(projectVersion);
     }
 

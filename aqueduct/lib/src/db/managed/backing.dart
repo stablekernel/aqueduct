@@ -119,7 +119,7 @@ class ManagedBuilderBacking extends ManagedBacking {
       if (value == null) {
         contents[property.name] = null;
       } else {
-        final ManagedObject original = value;
+        final original = value as ManagedObject;
         final replacementBacking = ManagedForeignKeyBuilderBacking.from(
             original.entity, original.backing);
         final replacement =

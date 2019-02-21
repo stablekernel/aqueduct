@@ -199,7 +199,7 @@ class TableBuilder implements Returnable {
         keyPath[0] is! ManagedRelationshipDescription) {
       return this;
     } else {
-      final ManagedRelationshipDescription head = keyPath[0];
+      final head = keyPath[0] as ManagedRelationshipDescription;
       TableBuilder join = returning
           .whereType<TableBuilder>()
           .firstWhere((m) => m.isJoinOnProperty(head), orElse: () => null);

@@ -187,8 +187,8 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
     type.declarations.values.forEach((member) {
       if (member is VariableMirror && !member.isStatic) {
         if (member.type.isAssignableTo(documenter)) {
-          final APIComponentDocumenter object =
-              reflect(this).getField(member.simpleName).reflectee;
+          final object =
+              reflect(this).getField(member.simpleName).reflectee as APIComponentDocumenter;
           object?.documentComponents(registry);
         }
       }

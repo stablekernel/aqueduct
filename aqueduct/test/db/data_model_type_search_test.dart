@@ -1,8 +1,6 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
-import '../helpers.dart';
-
 void main() {
   test("Mixed in properties with @Serialize() are transient properties fromCurrentMirrorSystem", () {
     final dm = ManagedDataModel.fromCurrentMirrorSystem();

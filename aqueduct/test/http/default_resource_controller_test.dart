@@ -25,7 +25,7 @@ void main() {
           ..values.name = "$i";
         allObjects.add(await q.insert());
 
-        now = now.add(Duration(seconds: 1));
+        now = now.add(const Duration(seconds: 1));
       }
     });
 
@@ -169,7 +169,7 @@ void main() {
           ..values.name = "${9 - i}";
         allObjects.add(await q.insert());
 
-        now = now.add(Duration(seconds: 1));
+        now = now.add(const Duration(seconds: 1));
       }
     });
 
@@ -285,7 +285,7 @@ void main() {
           ..values.name = "${9 - i}";
         allObjects.add(await q.insert());
 
-        now = now.add(Duration(seconds: 1));
+        now = now.add(const Duration(seconds: 1));
       }
     });
 

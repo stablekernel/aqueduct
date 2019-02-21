@@ -132,7 +132,7 @@ class Authorizer extends Controller {
     if (scopes != null) {
       request.addResponseModifier((resp) {
         if (resp.statusCode == 403 && resp.body is Map) {
-          final Map<String, dynamic> body = resp.body;
+          final body = resp.body as Map<String, dynamic>;
           if (body.containsKey("scope")) {
             final declaredScopes = (body["scope"] as String).split(" ");
             final scopesToAdd = scopes

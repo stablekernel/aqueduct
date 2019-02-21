@@ -75,8 +75,8 @@ void main() {
       () async {
     expect(await runMigrationCases(["Case2"]), 0);
 
-    List<List<dynamic>> versionRow = await store.execute(
-        "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql");
+    var versionRow = await store.execute(
+        "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql") as List<List<dynamic>>;
     expect(versionRow.first.first, 1);
     var updateDate = versionRow.first.last;
 
@@ -186,7 +186,7 @@ void main() {
     expect(await tableExists(store, store.versionTable.name), false);
     expect(await tableExists(store, "_testobject"), false);
   });
-  
+
   test("If migration fails because adding a new non-nullable column to an table, a friendly error is emitted", () async {
     StringBuffer buf = StringBuffer();
     expect(await runMigrationCases(["Case81", "Case82"], log: buf), isNot(0));
@@ -199,16 +199,16 @@ void main() {
 
 Future<List<String>> columnsOfTable(
     PersistentStore persistentStore, String tableName) async {
-  List<List<dynamic>> results = await persistentStore
+  final results = await persistentStore
       .execute("select column_name from information_schema.columns where "
-          "table_name='$tableName'");
+          "table_name='$tableName'") as List<List<dynamic>>;
   return results.map((rows) => rows.first as String).toList();
 }
 
 Future<bool> tableExists(PersistentStore store, String tableName) async {
-  List<List<dynamic>> exists = await store.execute(
+  final exists = await store.execute(
       "SELECT to_regclass(@tableName:text)",
-      substitutionValues: {"tableName": tableName});
+      substitutionValues: {"tableName": tableName}) as List<List<dynamic>>;
 
   return exists.first.first != null;
 }

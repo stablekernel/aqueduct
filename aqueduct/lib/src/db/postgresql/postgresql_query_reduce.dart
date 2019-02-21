@@ -42,8 +42,8 @@ class PostgresQueryReduce<T extends ManagedObject>
   }
 
   Future<U> _execute<U>(String function) async {
-    var builder = PostgresQueryBuilder(query);
-    var buffer = StringBuffer();
+    final builder = PostgresQueryBuilder(query);
+    final buffer = StringBuffer();
     buffer.write("SELECT $function ");
     buffer.write("FROM ${builder.sqlTableName} ");
 
@@ -51,8 +51,8 @@ class PostgresQueryReduce<T extends ManagedObject>
       buffer.write("WHERE ${builder.sqlWhereClause} ");
     }
 
-    PostgreSQLPersistentStore store = query.context.persistentStore;
-    var connection = await store.getDatabaseConnection();
+    final store = query.context.persistentStore as PostgreSQLPersistentStore;
+    final connection = await store.getDatabaseConnection();
     try {
       final result = await connection
           .query(buffer.toString(), substitutionValues: builder.variables)

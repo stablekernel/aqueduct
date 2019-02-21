@@ -36,7 +36,7 @@ class ManagedValidator {
 
       if (validator.definition.type == ValidateType.present) {
         if (validator.property is ManagedRelationshipDescription) {
-          final ManagedObject inner = object[validator.property.name];
+          final inner = object[validator.property.name] as ManagedObject;
           if (inner == null || !inner.backing.contents.containsKey(inner.entity.primaryKey)) {
             context.addError(
               "key '${validator.property.name}' is required"
@@ -49,7 +49,7 @@ class ManagedValidator {
         }
       } else if (validator.definition.type == ValidateType.absent) {
         if (validator.property is ManagedRelationshipDescription) {
-          final ManagedObject inner = object[validator.property.name];
+          final inner = object[validator.property.name] as ManagedObject;
           if (inner != null) {
             context.addError(
               "key '${validator.property.name}' is not allowed "
@@ -62,7 +62,7 @@ class ManagedValidator {
         }
       } else {
         if (validator.property is ManagedRelationshipDescription) {
-          final ManagedObject inner = object[validator.property.name];
+          final inner = object[validator.property.name] as ManagedObject;
           if (inner == null || inner.backing.contents[inner.entity.primaryKey] == null) {
             return;
           }

@@ -97,9 +97,9 @@ class RowInstantiator {
 
     if (table.joinedBy.relationshipType == ManagedRelationshipType.hasMany) {
       // If to many, put in a managed set.
-      ManagedSet list = instance[table.joinedBy.name] ??
+      final list = (instance[table.joinedBy.name] ??
           table.joinedBy.declaredType
-              .newInstance(const Symbol(""), []).reflectee;
+              .newInstance(const Symbol(""), []).reflectee) as ManagedSet;
 
       if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
         list.add(innerInstanceWrapper.instance);
