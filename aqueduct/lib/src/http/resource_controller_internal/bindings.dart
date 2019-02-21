@@ -51,10 +51,11 @@ abstract class BoundInput {
     }
 
     if (typeMirror.isSubtypeOf(reflectType(List))) {
-      return parameterValues
-          .map((str) =>
-              convertParameterWithMirror(str, typeMirror.typeArguments.first))
-          .toList();
+      final iterable = parameterValues
+        .map((str) =>
+          convertParameterWithMirror(str, typeMirror.typeArguments.first));
+
+      return (typeMirror as ClassMirror).newInstance(#from, [iterable]).reflectee;
     } else {
       if (parameterValues.length > 1) {
         throw Response.badRequest(body: {
@@ -211,17 +212,19 @@ class BoundBody extends BoundInput {
     } else if (intoType.isSubtypeOf(reflectType(List))) {
       final bodyList = request.body.as<List<Map<String, dynamic>>>();
       if (bodyList.isEmpty) {
-        return [];
+        return intoType.newInstance(#from, [[]]).reflectee;
       }
 
       final typeArg = intoType.typeArguments.first as ClassMirror;
-      return bodyList.map((object) {
+      final iterable = bodyList.map((object) {
         final value =
             typeArg.newInstance(const Symbol(""), []).reflectee as Serializable;
         value.read(object, ignore: ignoreFilter, reject: errorFilter, require: requiredFilter);
 
         return value;
-      }).toList();
+      });
+
+      return intoType.newInstance(#from, [iterable]).reflectee;
     }
 
     return runtimeCast(request.body.as(), intoType);

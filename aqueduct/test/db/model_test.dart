@@ -64,14 +64,14 @@ void main() {
       reflect(user).setField(#name, 1);
 
       expect(true, false);
-    } on ValidationException catch (e) {
-      expectError(e, contains("invalid input value for 'name'"));
+    } on TypeError catch (e) {
+      expect(e.toString(), contains("type 'int' is not a subtype of type 'String'"));
     }
 
     try {
       reflect(user).setField(#id, "foo");
-    } on ValidationException catch (e) {
-      expectError(e, contains("invalid input value for 'id'"));
+    } on TypeError catch (e) {
+      expect(e.toString(), contains("type 'String' is not a subtype of type 'int'"));
     }
   });
 

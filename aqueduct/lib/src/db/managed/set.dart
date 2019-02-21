@@ -33,10 +33,7 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
 
   /// Creates a [ManagedSet] from an [Iterable] of [dynamic]s.
   ManagedSet.fromDynamic(Iterable<dynamic> items) {
-    _innerValues = items.fold([], (all, item) {
-      all.add(item as InstanceType);
-      return all;
-    });
+    _innerValues = List<InstanceType>.from(items);
   }
 
   List<InstanceType> _innerValues;
