@@ -61,17 +61,17 @@ void main() {
   test("Mismatched type throws exception", () {
     var user = User();
     try {
-      reflect(user).setField(#name, 1);
+      user["name"] = 1;
 
       expect(true, false);
-    } on TypeError catch (e) {
-      expect(e.toString(), contains("type 'int' is not a subtype of type 'String'"));
+    } on ValidationException catch (e) {
+      expectError(e, contains("invalid input value for 'name'"));
     }
 
     try {
-      reflect(user).setField(#id, "foo");
-    } on TypeError catch (e) {
-      expect(e.toString(), contains("type 'String' is not a subtype of type 'int'"));
+      user["id"] = "foo";
+    } on ValidationException catch (e) {
+      expectError(e, contains("invalid input value for 'id'"));
     }
   });
 

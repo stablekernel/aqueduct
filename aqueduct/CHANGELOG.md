@@ -1,7 +1,7 @@
 ## 3.2.0
 
 - Adds `read` method to `Serializable`.
-- Fixes an issue with Dart 2.1.1 iterables when instantiating a ManagedSet
+- Fixes issues with Dart 2.1.1 mirror type checking changes
 
 ## 3.1.0
 
