@@ -295,7 +295,7 @@ class APIComponentCollection<T extends APIObject> {
   /// If after [APIDocumentContext.finalize] is called and no object
   /// has been registered for [name], an error is thrown.
   T getObject(String name) {
-    T obj = reflectClass(T).newInstance(#empty, []).reflectee;
+    final obj = reflectClass(T).newInstance(#empty, []).reflectee as T;
     obj.referenceURI = Uri(path: "/components/$_typeName/$name");
     return obj;
   }
@@ -309,7 +309,7 @@ class APIComponentCollection<T extends APIObject> {
   /// for [type]. If after [APIDocumentContext.finalize] is called and no object
   /// has been registered for [type], an error is thrown.
   T getObjectWithType(Type type) {
-    T obj = reflectClass(T).newInstance(#empty, []).reflectee;
+    final obj = reflectClass(T).newInstance(#empty, []).reflectee as T;
     obj.referenceURI = Uri(
         path:
             "/components/$_typeName/aqueduct-typeref:${MirrorSystem.getName(reflectType(type).simpleName)}");

@@ -59,7 +59,7 @@ void main() {
     test("Isolate timeout kills application when first isolate fails",
         () async {
       var timeoutApp = Application<TimeoutChannel>()
-        ..isolateStartupTimeout = Duration(seconds: 4)
+        ..isolateStartupTimeout = const Duration(seconds: 4)
         ..options.context = {"timeout1": 10};
 
       try {
@@ -77,7 +77,7 @@ void main() {
         "Isolate timeout kills application when first isolate succeeds, but next fails",
         () async {
       var timeoutApp = Application<TimeoutChannel>()
-        ..isolateStartupTimeout = Duration(seconds: 4)
+        ..isolateStartupTimeout = const Duration(seconds: 4)
         ..options.context = {"timeout2": 10};
 
       try {
@@ -103,14 +103,14 @@ class TimeoutChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    int timeoutLength = options.context["timeout${server.identifier}"];
+    final timeoutLength = options.context["timeout${server.identifier}"] as int;
     if (timeoutLength == null) {
       return;
     }
 
     var completer = Completer();
     var elapsed = 0;
-    timer = Timer.periodic(Duration(milliseconds: 500), (t) {
+    timer = Timer.periodic(const Duration(milliseconds: 500), (t) {
       elapsed += 500;
       print("waiting...");
       if (elapsed > timeoutLength * 1000) {
@@ -160,7 +160,7 @@ class CrashChannel extends ApplicationChannel {
 
 class TestChannel extends ApplicationChannel {
   static Future initializeApplication(ApplicationOptions config) async {
-    List<int> v = config.context["startup"] ?? [];
+    final v = config.context["startup"] as List<int> ?? [];
     v.add(1);
     config.context["startup"] = v;
   }

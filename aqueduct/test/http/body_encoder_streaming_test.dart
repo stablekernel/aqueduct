@@ -322,7 +322,7 @@ void main() {
     setUp(() async {
       client = HttpClient();
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
-      server.idleTimeout = Duration(seconds: 1);
+      server.idleTimeout = const Duration(seconds: 1);
     });
 
     tearDown(() async {
@@ -443,7 +443,7 @@ Future serverHasNoMoreConnections(HttpServer server) async {
     return null;
   }
 
-  await Future.delayed(Duration(milliseconds: 100));
+  await Future.delayed(const Duration(milliseconds: 100));
 
   return serverHasNoMoreConnections(server);
 }

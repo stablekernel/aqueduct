@@ -448,8 +448,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
         throw ValidationException(["invalid input type for '$name'"]);
       }
 
-      ManagedObject instance = destinationEntity.instanceType
-          .newInstance(const Symbol(""), []).reflectee;
+      final instance = destinationEntity.instanceType
+          .newInstance(const Symbol(""), []).reflectee as ManagedObject;
       instance.readFromMap(value as Map<String, dynamic>);
 
       return instance;
@@ -465,12 +465,12 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       if (m is! Map<String, dynamic>) {
         throw ValidationException(["invalid input type for '$name'"]);
       }
-      ManagedObject instance = destinationEntity.instanceType
-          .newInstance(const Symbol(""), []).reflectee;
+      final instance = destinationEntity.instanceType
+          .newInstance(const Symbol(""), []).reflectee as ManagedObject;
       instance.readFromMap(m as Map<String, dynamic>);
       return instance;
     };
-    return declaredType.newInstance(#from, [value.map(instantiator)]).reflectee;
+    return declaredType.newInstance(#fromDynamic, [value.map(instantiator)]).reflectee;
   }
 
   @override

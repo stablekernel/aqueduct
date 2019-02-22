@@ -32,7 +32,7 @@ void main() {
             InMemoryAuthStorage.defaultPassword,
             "com.stablekernel.app1",
             "kilimanjaro",
-            expiration: Duration(seconds: 0)))
+            expiration: const Duration(seconds: 0)))
         .accessToken;
   });
 

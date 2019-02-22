@@ -154,7 +154,7 @@ Future waitForMessages(Map<int, List<Map<String, dynamic>>> expectedMessages,
     {int butNeverReceiveIn}) async {
   final response = await http.get("http://localhost:8000/messages");
   final respondingIsolateID = isolateIdentifierFromResponse(response);
-  final List<dynamic> messages = json.decode(response.body);
+  final messages = json.decode(response.body) as List<dynamic>;
 
   if (expectedMessages.containsKey(respondingIsolateID)) {
     final remainingMessagesExpectedForIsolateID =

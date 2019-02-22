@@ -325,9 +325,9 @@ void main() {
     test("Expired token cannot be verified", () async {
       var token = await auth.authenticate(createdUser.username,
           User.defaultPassword, "com.stablekernel.app1", "kilimanjaro",
-          expiration: Duration(seconds: 1));
+          expiration: const Duration(seconds: 1));
 
-      sleep(Duration(seconds: 1));
+      sleep(const Duration(seconds: 1));
 
       try {
         await auth.verify(token.accessToken);
@@ -643,7 +643,7 @@ void main() {
           User.defaultPassword, "com.stablekernel.redirect",
           expirationInSeconds: 1);
 
-      sleep(Duration(seconds: 1));
+      sleep(const Duration(seconds: 1));
 
       try {
         await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");
@@ -978,7 +978,7 @@ void main() {
       var manualCode = ManagedAuthToken()
         ..code = "ASDFGHJ"
         ..issueDate = DateTime.now().toUtc()
-        ..expirationDate = DateTime.now().add(Duration(seconds: 60)).toUtc()
+        ..expirationDate = DateTime.now().add(const Duration(seconds: 60)).toUtc()
         ..client = (ManagedAuthClient()..id = "com.stablekernel.redirect")
         ..resourceOwner = (User()..id = createdUsers.first.id);
 
@@ -994,7 +994,7 @@ void main() {
         var c = await auth.authenticateForCode(createdUsers.first.username,
             User.defaultPassword, "com.stablekernel.redirect");
         codes.add(c);
-        await Future.delayed(Duration(milliseconds: 3));
+        await Future.delayed(const Duration(milliseconds: 3));
       }
 
       // Insert the 'race condition' code
@@ -1053,7 +1053,7 @@ void main() {
         ..accessToken = "ASDFGHJ"
         ..refreshToken = "ABCHASDS"
         ..issueDate = DateTime.now().toUtc()
-        ..expirationDate = DateTime.now().add(Duration(seconds: 60)).toUtc()
+        ..expirationDate = DateTime.now().add(const Duration(seconds: 60)).toUtc()
         ..client = (ManagedAuthClient()..id = "com.stablekernel.app1")
         ..resourceOwner = (User()..id = createdUsers.first.id);
 
@@ -1066,7 +1066,7 @@ void main() {
       for (var i = 0; i < 3; i++) {
         var c = await auth.authenticate(createdUsers.first.username,
             User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
-        await Future.delayed(Duration(milliseconds: 3));
+        await Future.delayed(const Duration(milliseconds: 3));
         tokens.add(c);
       }
 

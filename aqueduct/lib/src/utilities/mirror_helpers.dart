@@ -31,8 +31,8 @@ dynamic runtimeCast(dynamic object, TypeMirror intoType) {
       throw CastError();
     }
 
-    final Map<String, dynamic> output =
-        (intoType as ClassMirror).newInstance(const Symbol(""), []).reflectee;
+    final output =
+        (intoType as ClassMirror).newInstance(const Symbol(""), []).reflectee as Map<String, dynamic>;
     final valueType = intoType.typeArguments.last;
     (object as Map<String, dynamic>).forEach((key, val) {
       output[key] = runtimeCast(val, valueType);

@@ -184,8 +184,8 @@ abstract class CLICommand {
       var toolPubspecFile =
           File.fromUri(aqueductDirectory.absolute.uri.resolve("pubspec.yaml"));
 
-      Map toolPubspecContents = loadYaml(toolPubspecFile.readAsStringSync());
-      String toolVersion = toolPubspecContents["version"];
+      final toolPubspecContents = loadYaml(toolPubspecFile.readAsStringSync()) as Map;
+      final toolVersion = toolPubspecContents["version"] as String;
       _toolVersion = Version.parse(toolVersion);
     } catch (e) {
       print(e);

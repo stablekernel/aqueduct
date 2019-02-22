@@ -14,7 +14,7 @@ Future main(List<String> args) async {
     ..addOption("name")
     ..addOption("config", abbr: "c", defaultsTo: "release.yaml");
   var runner = Runner(parser.parse(args));
-  
+
   try {
     exitCode = await runner.run();
   } catch (e, st) {
@@ -193,7 +193,7 @@ class Runner {
       throw "latestVersion failed with status code ${response.statusCode}. Reason: ${response.body}";
     }
 
-    String tag = json.decode(response.body)["tag_name"];
+    final tag = json.decode(response.body)["tag_name"] as String;
     if (tag == null) {
       throw "latestVersion failed. Reason: no tag found";
     }
@@ -297,7 +297,7 @@ class Runner {
 
     print("Building symbol map...");
     var indexFile = File.fromUri(codeBranchDir.uri.resolve("doc/").resolve("api/").resolve("index.json"));
-    List<Map<String, dynamic>> indexJSON = json.decode(await indexFile.readAsString());
+    final indexJSON = json.decode(await indexFile.readAsString()) as List<Map<String, dynamic>>;
     var libraries = indexJSON
         .where((m) => m["type"] == "library")
         .map((lib) => lib["qualifiedName"])

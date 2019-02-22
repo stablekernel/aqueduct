@@ -190,7 +190,7 @@ class Terminal {
     final cmd = Platform.isWindows ? "pub.bat" : "pub";
     var result = await Process.run(cmd, args,
             workingDirectory: workingDirectory.absolute.path, runInShell: true)
-        .timeout(Duration(seconds: 45));
+        .timeout(const Duration(seconds: 45));
 
     if (result.exitCode != 0) {
       throw Exception("${result.stderr}");
@@ -235,7 +235,7 @@ class Terminal {
 
     final task = CLITask();
     var elapsed = 0.0;
-    final timer = Timer.periodic(Duration(milliseconds: 100), (t) {
+    final timer = Timer.periodic(const Duration(milliseconds: 100), (t) {
       if (cmd.runningProcess != null) {
         t.cancel();
         Directory.current = saved;
@@ -283,12 +283,12 @@ dependencies:
     path: ../..
 
 dev_dependencies:
-  test: ^1.0.0  
+  test: ^1.0.0
   """;
 
   static const _emptyProjectLibrary = """
 export 'package:aqueduct/aqueduct.dart';
-export 'channel.dart';  
+export 'channel.dart';
   """;
 
   static const _emptyProjectChannel = """
@@ -306,7 +306,7 @@ class TestChannel extends ApplicationChannel {
 
     return router;
   }
-}  
+}
   """;
 }
 

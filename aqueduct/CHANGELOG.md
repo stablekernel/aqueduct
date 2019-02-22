@@ -1,6 +1,7 @@
 ## 3.2.0
 
 - Adds `read` method to `Serializable`.
+- Fixes issues with Dart 2.1.1 mirror type checking changes
 
 ## 3.1.0
 
@@ -60,7 +61,7 @@
 - Replaces `AuthCodeController.renderFunction` with `AuthCodeControllerDelegate`.
 - Removes `AuthStrategy` in place of `AuthorizationParser<T>`.
     - Adds concrete implementations of `AuthorizationParser<T>`, `AuthorizationBearerParser` and `AuthorizationBasicParser`.
-- Removes `AuthValidator.fromBearerToken` and `AuthValidator.fromBasicCredentials` and replaces with `AuthValidator.validate<T>`.    
+- Removes `AuthValidator.fromBearerToken` and `AuthValidator.fromBasicCredentials` and replaces with `AuthValidator.validate<T>`.
 - Renames the following:
     - `Authorization.resourceOwnerIdentifier` -> `Authorization.ownerID`
     - `Request.innerRequest` -> `Request.raw`

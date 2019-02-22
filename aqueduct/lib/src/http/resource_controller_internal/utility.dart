@@ -33,10 +33,10 @@ List<AuthScope> getMethodScopes(DeclarationMirror m) {
     return null;
   }
 
-  MethodMirror method = m;
-  Scope metadata = method.metadata
+  final method = m as MethodMirror;
+  final metadata = method.metadata
       .firstWhere((im) => im.reflectee is Scope, orElse: () => null)
-      ?.reflectee;
+      ?.reflectee as Scope;
 
   return metadata?.scopes?.map((scope) => AuthScope(scope))?.toList();
 }
@@ -46,14 +46,14 @@ Operation getMethodOperationMetadata(DeclarationMirror m) {
     return null;
   }
 
-  MethodMirror method = m;
+  final method = m as MethodMirror;
   if (!method.isRegularMethod || method.isStatic) {
     return null;
   }
 
-  Operation metadata = method.metadata
+  final metadata = method.metadata
       .firstWhere((im) => im.reflectee is Operation, orElse: () => null)
-      ?.reflectee;
+      ?.reflectee as Operation;
 
   return metadata;
 }

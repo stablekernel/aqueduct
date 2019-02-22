@@ -86,7 +86,7 @@ class ColumnBuilder extends Returnable {
     }
 
     if (property is ManagedAttributeDescription) {
-      ManagedAttributeDescription p = property;
+      final p = property as ManagedAttributeDescription;
       if (p.isEnumeratedValue) {
         return value.toString().split(".").last;
       } else if (p.type.kind == ManagedPropertyType.document) {
@@ -110,7 +110,7 @@ class ColumnBuilder extends Returnable {
     }
 
     if (property is ManagedAttributeDescription) {
-      ManagedAttributeDescription p = property;
+      final p = property as ManagedAttributeDescription;
       if (p.isEnumeratedValue) {
         if (!p.enumerationValueMap.containsKey(value)) {
           throw ValidationException(["invalid option for key '${p.name}'"]);

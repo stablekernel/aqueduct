@@ -246,7 +246,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
       var process = await Process.start(cmd, args,
               workingDirectory: workingDirectory.absolute.path,
               runInShell: true)
-          .timeout(Duration(seconds: 60));
+          .timeout(const Duration(seconds: 60));
       process.stdout
           .transform(utf8.decoder)
           .listen((output) => outputSink?.write(output));

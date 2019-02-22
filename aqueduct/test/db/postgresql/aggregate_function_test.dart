@@ -220,7 +220,7 @@ Future<List<Test>> populate(ManagedContext ctx, {bool overflow = false}) async {
       ..values.i = i;
 
     s += "a";
-    dt = dt.add(Duration(seconds: 10));
+    dt = dt.add(const Duration(seconds: 10));
     d += 10.0;
     i += 10;
 

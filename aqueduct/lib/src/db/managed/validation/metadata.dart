@@ -359,7 +359,7 @@ class Validate {
         break;
       case ValidateType.comparison:
         {
-          final List<ValidationExpression> expressions = context.state;
+          final expressions = context.state as List<ValidationExpression>;
           expressions.forEach((expr) => expr.compare(context, input));
         }
         break;
@@ -373,7 +373,7 @@ class Validate {
         break;
       case ValidateType.oneOf:
         {
-          final List<dynamic> options = context.state;
+          final options = context.state as List<dynamic>;
           if (options.every((v) => input != v)) {
             context.addError(
                 "must be one of: ${options.map((v) => "'$v'").join(",")}.");
@@ -382,7 +382,7 @@ class Validate {
         break;
       case ValidateType.length:
         {
-          final List<ValidationExpression> expressions = context.state;
+          final expressions = context.state as List<ValidationExpression>;
           expressions.forEach(
               (expr) => expr.compare(context, (input as String).length));
         }

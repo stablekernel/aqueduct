@@ -61,7 +61,7 @@ void main() {
   test("Mismatched type throws exception", () {
     var user = User();
     try {
-      reflect(user).setField(#name, 1);
+      user["name"] = 1;
 
       expect(true, false);
     } on ValidationException catch (e) {
@@ -69,7 +69,7 @@ void main() {
     }
 
     try {
-      reflect(user).setField(#id, "foo");
+      user["id"] = "foo";
     } on ValidationException catch (e) {
       expectError(e, contains("invalid input value for 'id'"));
     }
@@ -943,11 +943,11 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
   }
 
   @Serialize(input: false, output: true)
-  DateTime get transientDate => backingDateTime.add(Duration(days: 1));
+  DateTime get transientDate => backingDateTime.add(const Duration(days: 1));
 
   @Serialize(input: true, output: false)
   set transientDate(DateTime d) {
-    backingDateTime = d.subtract(Duration(days: 1));
+    backingDateTime = d.subtract(const Duration(days: 1));
   }
 
   @Serialize(input: false, output: true)

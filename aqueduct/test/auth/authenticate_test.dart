@@ -14,9 +14,9 @@ void main() {
 
   test("isTokenExpired works correctly", () {
     var oldToken = AuthToken()
-      ..expirationDate = DateTime.now().toUtc().subtract(Duration(seconds: 1));
+      ..expirationDate = DateTime.now().toUtc().subtract(const Duration(seconds: 1));
     var futureToken = AuthToken()
-      ..expirationDate = DateTime.now().toUtc().add(Duration(seconds: 10));
+      ..expirationDate = DateTime.now().toUtc().add(const Duration(seconds: 10));
 
     expect(oldToken.isExpired, true);
     expect(futureToken.isExpired, false);
@@ -24,9 +24,9 @@ void main() {
 
   test("isAuthCodeExpired works correctly", () {
     var oldCode = AuthCode()
-      ..expirationDate = DateTime.now().toUtc().subtract(Duration(seconds: 1));
+      ..expirationDate = DateTime.now().toUtc().subtract(const Duration(seconds: 1));
     var futureCode = AuthCode()
-      ..expirationDate = DateTime.now().toUtc().add(Duration(seconds: 10));
+      ..expirationDate = DateTime.now().toUtc().add(const Duration(seconds: 10));
 
     expect(oldCode.isExpired, true);
     expect(futureCode.isExpired, false);
@@ -225,9 +225,9 @@ void main() {
           InMemoryAuthStorage.defaultPassword,
           "com.stablekernel.app1",
           "kilimanjaro",
-          expiration: Duration(seconds: 1));
+          expiration: const Duration(seconds: 1));
 
-      sleep(Duration(seconds: 1));
+      sleep(const Duration(seconds: 1));
 
       try {
         await auth.verify(token.accessToken);
@@ -503,7 +503,7 @@ void main() {
           InMemoryAuthStorage.defaultPassword, "com.stablekernel.redirect",
           expirationInSeconds: 1);
 
-      sleep(Duration(seconds: 1));
+      sleep(const Duration(seconds: 1));
 
       try {
         await auth.exchange(code.code, "com.stablekernel.redirect", "mckinley");

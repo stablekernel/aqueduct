@@ -90,7 +90,7 @@ class PostgreSQLPersistentStore extends PersistentStore
   /// Amount of time to wait before connection fails to open.
   ///
   /// Defaults to 30 seconds.
-  final Duration connectTimeout = Duration(seconds: 30);
+  final Duration connectTimeout = const Duration(seconds: 30);
 
   PostgreSQLConnection _databaseConnection;
   Completer<PostgreSQLConnection> _pendingConnectionCompleter;
@@ -140,7 +140,7 @@ class PostgreSQLPersistentStore extends PersistentStore
   @override
   Future<dynamic> execute(String sql,
       {Map<String, dynamic> substitutionValues, Duration timeout}) async {
-    timeout ??= Duration(seconds: 30);
+    timeout ??= const Duration(seconds: 30);
     var now = DateTime.now().toUtc();
     var dbConnection = await _executionContext;
     try {

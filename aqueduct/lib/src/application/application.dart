@@ -52,7 +52,7 @@ class Application<T extends ApplicationChannel> {
   /// A [TimeoutException] is thrown if an isolate fails to startup in this time period.
   ///
   /// Defaults to 30 seconds.
-  Duration isolateStartupTimeout = Duration(seconds: 30);
+  Duration isolateStartupTimeout = const Duration(seconds: 30);
 
   /// Whether or not this application is running.
   ///
@@ -100,7 +100,7 @@ class Application<T extends ApplicationChannel> {
       }
     } catch (e, st) {
       logger.severe("$e", this, st);
-      await stop().timeout(Duration(seconds: 5));
+      await stop().timeout(const Duration(seconds: 5));
       rethrow;
     }
     supervisors.forEach((sup) => sup.sendPendingMessages());
@@ -129,7 +129,7 @@ class Application<T extends ApplicationChannel> {
       _hasFinishedLaunching = true;
     } catch (e, st) {
       logger.severe("$e", this, st);
-      await stop().timeout(Duration(seconds: 5));
+      await stop().timeout(const Duration(seconds: 5));
       rethrow;
     }
   }

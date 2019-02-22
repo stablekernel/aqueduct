@@ -17,7 +17,7 @@ class ValidationExpression {
   dynamic value;
 
   void compare(ValidationContext context, dynamic input) {
-    Comparable comparisonValue = value;
+    final comparisonValue = value as Comparable;
 
     switch (operator) {
       case ValidationOperator.equalTo:

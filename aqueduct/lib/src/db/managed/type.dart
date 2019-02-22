@@ -63,7 +63,7 @@ class ManagedType {
       kind = ManagedPropertyType.document;
     } else if (mirror is ClassMirror && (mirror as ClassMirror).isEnum) {
       kind = ManagedPropertyType.string;
-      List<dynamic> enumeratedCases = (mirror as ClassMirror).getField(#values).reflectee;
+      final enumeratedCases = (mirror as ClassMirror).getField(#values).reflectee as List<dynamic>;
       enumerationMap =
         enumeratedCases.fold(<String, dynamic>{}, (m, v) {
           m[v.toString().split(".").last] = v;
