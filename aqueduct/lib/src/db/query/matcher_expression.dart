@@ -116,6 +116,9 @@ class QueryExpression<T, InstanceType> {
   ///
   /// A query will only return objects where the selected property is like [value].
   ///
+  /// For more documentation on postgres pattern matching, see
+  /// https://www.postgresql.org/docs/10/functions-matching.html.
+  ///
   /// This method can be used on [String] types.
   ///
   /// The flag [caseSensitive] controls whether strings are compared case-sensitively.
@@ -136,6 +139,9 @@ class QueryExpression<T, InstanceType> {
   /// Adds a 'not like' expression to a query.
   ///
   /// A query will only return objects where the selected property is *not* like [value].
+  ///
+  /// For more documentation on postgres pattern matching, see
+  /// https://www.postgresql.org/docs/10/functions-matching.html.
   ///
   /// This method can be used on [String] types.
   ///
