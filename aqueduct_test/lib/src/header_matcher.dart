@@ -35,7 +35,7 @@ class HTTPHeaderMatcher extends Matcher {
           "Invalid input to HTTPHeaderMatcher.matches. Value is not HttpHeaders.");
     }
 
-    final HttpHeaders input = item;
+    final HttpHeaders input = item as HttpHeaders;
     final mismatches = <String>[];
     matchState["HTTPHeaderMatcher.mismatches"] = mismatches;
 
@@ -99,8 +99,8 @@ class HTTPHeaderMatcher extends Matcher {
   @override
   Description describeMismatch(dynamic item, Description mismatchDescription,
       Map matchState, bool verbose) {
-    final List<String> extraKeys =
-        matchState["HTTPHeaderMatcher.extra"] ?? <String>[];
+    final extraKeys =
+        matchState["HTTPHeaderMatcher.extra"] as List<String> ?? <String>[];
     if (extraKeys.isNotEmpty) {
       mismatchDescription
           .add("actual has extra headers: ")
@@ -108,8 +108,9 @@ class HTTPHeaderMatcher extends Matcher {
           .add("\n");
     }
 
-    final List<String> mismatches =
-        matchState["HTTPHeaderMatcher.mismatches"] ?? <String>[];
+    final mismatches =
+        matchState["HTTPHeaderMatcher.mismatches"] as List<String> ??
+            <String>[];
     if (mismatches.isNotEmpty) {
       mismatchDescription.add("the following headers differ: "
           "${mismatches.map((s) => "'$s'").join(", ")}");

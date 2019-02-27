@@ -81,9 +81,12 @@ abstract class TestHarnessAuthMixin<T extends ApplicationChannel>
   /// the access token will have the included scope if valid.
   Future<Agent> loginUser(Agent fromAgent, String username, String password,
       {List<String> scopes}) async {
-    final String authorizationHeader = fromAgent.headers["authorization"];
+    final authorizationHeader = fromAgent.headers["authorization"];
+    if (authorizationHeader is! String) {
+      throw ArgumentError("expected header 'Authorization' to have String type");
+    }
     const parser = AuthorizationBasicParser();
-    final credentials = parser.parse(authorizationHeader);
+    final credentials = parser.parse(authorizationHeader as String);
 
     try {
       final token = await authServer.authenticate(
