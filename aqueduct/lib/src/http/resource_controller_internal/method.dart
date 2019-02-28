@@ -1,5 +1,7 @@
 import 'dart:mirrors';
 import 'package:aqueduct/src/auth/auth.dart';
+import 'package:aqueduct/src/http/resource_controller_bindings.dart';
+import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 import 'internal.dart';
 
@@ -9,6 +11,13 @@ class BoundMethod {
     httpMethod = operation.method.toUpperCase();
     pathVariables = operation.pathVariables;
     methodSymbol = mirror.simpleName;
+
+    final parametersWithoutMetadata = mirror.parameters.where((p) => firstMetadataOfType<Bind>(p) == null).toList();
+    if (parametersWithoutMetadata.isNotEmpty) {
+      final names = parametersWithoutMetadata.map((p) => "'${MirrorSystem.getName(p.simpleName)}'").join(", ");
+      throw StateError("Invalid operation method parameter(s) $names on "
+        "'${getMethodAndClassName(parametersWithoutMetadata.first)}': Must have @Bind annotation.");
+    }
 
     positionalParameters = mirror.parameters
         .where((pm) => !pm.isOptional)

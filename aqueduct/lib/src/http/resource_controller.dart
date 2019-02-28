@@ -210,7 +210,7 @@ abstract class ResourceController extends Controller
             .firstWhere((p) => p.binding is BoundBody, orElse: () => null);
 
     if (boundBody != null) {
-      final type = boundBody.boundValueType.reflectedType;
+      final type = boundBody.binding.boundType.reflectedType;
       return APIRequestBody.schema(context.schema.getObjectWithType(type),
           contentTypes: acceptedContentTypes
               .map((ct) => "${ct.primaryType}/${ct.subType}"),
@@ -301,7 +301,7 @@ abstract class ResourceController extends Controller
       [b.positionalParameters, b.optionalParameters]
           .expand((b) => b)
           .where((b) => b.binding is BoundBody)
-          .map((b) => b.boundValueType)
+          .map((b) => b.binding.boundType)
           .forEach((b) {
         final type = b.reflectedType;
         if (!context.schema.hasRegisteredType(type) &&
@@ -349,7 +349,7 @@ abstract class ResourceController extends Controller
   APIParameter _documentParameter(
       APIDocumentContext context, Operation operation, BoundParameter param) {
     final schema =
-        APIComponentDocumenter.documentType(context, param.boundValueType);
+        APIComponentDocumenter.documentType(context, param.binding.boundType);
     final documentedParameter = APIParameter(param.name, param.binding.location,
         schema: schema,
         required: param.isRequired,

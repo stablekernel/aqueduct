@@ -70,6 +70,15 @@ void main() {
       // Just expecting that we don't throw
       expect(true, true);
     });
+
+    test("Can bind Serializable to body with filters", () {
+      final controller = BodyListBindWithFilters();
+      controller.restore(controller.recycledState);
+      controller.didAddToChannel();
+      // Just expecting that we don't throw
+      expect(true, true);
+    });
+
   });
 
   group("Error cases", () {
@@ -78,9 +87,10 @@ void main() {
       try {
         controller.restore(controller.recycledState);
         controller.didAddToChannel();
+        fail('unreachable');
       } on StateError catch (e) {
         expect(e.toString(),
-            "Bad state: Invalid binding 'x' on 'ErrorDynamic.get1': 'dynamic' may not be bound to Header.");
+            contains("Bad state: Invalid binding 'x' on 'ErrorDynamic.get1': 'dynamic'"));
       }
     });
 
@@ -89,42 +99,34 @@ void main() {
       try {
         controller.restore(controller.recycledState);
         controller.didAddToChannel();
+        fail('unreachable');
       } on StateError catch (e) {
         expect(e.toString(),
-            "Bad state: Invalid binding 'x' on 'ErrorDefault.get1': 'HttpHeaders' may not be bound to Header.");
+            "Bad state: Invalid binding 'x' on 'ErrorDefault.get1': Parameter type does not implement static parse method.");
       }
     });
 
-    test("Cannot bind bool to default implementation", () {
+    test("Cannot bind bool to header", () {
       final controller = ErrorDefaultBool();
       try {
         controller.restore(controller.recycledState);
         controller.didAddToChannel();
+        fail('unreachable');
       } on StateError catch (e) {
         expect(e.toString(),
-            "Bad state: Invalid binding 'x' on 'ErrorDefaultBool.get1': 'bool' may not be bound to Header.");
+            "Bad state: Invalid binding 'x' on 'ErrorDefaultBool.get1': Parameter type does not implement static parse method.");
       }
     });
 
-    test("Cannot bind whacky type to body", () {
-      final controller = ErrorBody();
+    test("Cannot use filters if bound type is not serializable", () {
+      final controller = FilterNonSerializable();
       try {
         controller.restore(controller.recycledState);
         controller.didAddToChannel();
+        fail('unreachable');
       } on StateError catch (e) {
         expect(e.toString(),
-            "Bad state: Invalid binding 'x' on 'ErrorBody.get1': 'HttpHeaders' may not be bound to Body.");
-      }
-    });
-
-    test("Cannot bind default type to body", () {
-      final controller = ErrorDefaultBody();
-      try {
-        controller.restore(controller.recycledState);
-        controller.didAddToChannel();
-      } on StateError catch (e) {
-        expect(e.toString(),
-            "Bad state: Invalid binding 'x' on 'ErrorDefaultBody.get1': 'String' may not be bound to Body.");
+          "Bad state: Invalid binding 'a' on 'FilterNonSerializable.get1': Filters can only be used on Serializable or List<Serializable>.");
       }
     });
   });
@@ -187,6 +189,20 @@ class BoolListBind extends ResourceController {
 class BodyListBind extends ResourceController {
   @Operation.post()
   Future<Response> get1(@Bind.body() List<Serial> a) async {
+    return Response.ok(null);
+  }
+}
+
+class BodyListBindWithFilters extends ResourceController {
+  @Operation.post()
+  Future<Response> get1(@Bind.body(ignore: ["id"]) List<Serial> a) async {
+    return Response.ok(null);
+  }
+}
+
+class FilterNonSerializable extends ResourceController {
+  @Operation.post()
+  Future<Response> get1(@Bind.body(ignore: ["id"]) Map<String, dynamic> a) async {
     return Response.ok(null);
   }
 }

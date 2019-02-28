@@ -1,3 +1,5 @@
+import 'dart:mirrors';
+
 import 'request_path.dart';
 import 'resource_controller.dart';
 import 'resource_controller_internal/internal.dart';
@@ -212,16 +214,16 @@ class Bind {
   final List<String> require;
 
   /// Used internally
-  BoundInput get binding {
+  BoundInput bindToType(ClassMirror typeMirror) {
     switch (_type) {
       case _BindType.query:
-        return BoundQueryParameter(name);
+        return BoundQueryParameter(typeMirror, name);
       case _BindType.header:
-        return BoundHeader(name);
+        return BoundHeader(typeMirror, name);
       case _BindType.body:
-        return BoundBody(ignore: ignore, error: reject, required: require);
+        return BoundBody(typeMirror, ignore: ignore, error: reject, required: require);
       case _BindType.path:
-        return BoundPath(name);
+        return BoundPath(typeMirror, name);
     }
     throw StateError(
         "Invalid controller. Operation parameter binding '$_type' on '$name' is unknown.");
