@@ -21,6 +21,9 @@ class EntityBuilder {
     properties = _getProperties();
     primaryKeyProperty = properties
         .firstWhere((p) => p.column?.isPrimaryKey ?? false, orElse: () => null);
+    if (primaryKeyProperty == null) {
+      throw ManagedDataModelError.noPrimaryKey(entity);
+    }
   }
 
   final ClassMirror instanceType;
