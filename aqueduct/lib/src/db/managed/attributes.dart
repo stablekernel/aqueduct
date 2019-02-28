@@ -8,7 +8,7 @@ import 'managed.dart';
 ///
 ///         class User extends ManagedObject<_User> implements _User {}
 ///
-///         @Table(unique: const [#name, #email]);
+///         @Table(name: "_Account");
 ///         class _User {
 ///           @primaryKey
 ///           int id;
