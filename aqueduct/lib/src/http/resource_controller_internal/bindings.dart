@@ -10,39 +10,27 @@ import 'internal.dart';
 
 /// Parent class for annotations used for optional parameters in controller methods
 abstract class BoundInput {
-  BoundInput(this.externalName);
+  BoundInput(this.boundType, this.externalName);
 
   /// The name of the variable in the HTTP request.
   final String externalName;
+
+  /// The type of the bound variable.
+  final ClassMirror boundType;
 
   String get type;
 
   APIParameterLocation get location;
 
-  bool validateType(TypeMirror type) {
-    if (type.reflectedType == dynamic) {
-      return false;
+  void validate() {
+    if (boundType.isAssignableTo(reflectType(List))) {
+      _enforceTypeCanBeParsedFromString(boundType.typeArguments.first);
+    } else {
+      _enforceTypeCanBeParsedFromString(boundType);
     }
-
-    if (type.isAssignableTo(reflectType(String))) {
-      return true;
-    } else if (type is ClassMirror && type.staticMembers.containsKey(#parse)) {
-      final parseMethod = type.staticMembers[#parse];
-      final params =
-          parseMethod.parameters.where((p) => !p.isOptional).toList();
-      if (params.length == 1 &&
-          params.first.type.isAssignableTo(reflectType(String))) {
-        return true;
-      }
-      return false;
-    } else if (type.isAssignableTo(reflectType(List))) {
-      return validateType(type.typeArguments.first);
-    }
-
-    return false;
   }
 
-  dynamic parse(ClassMirror intoType, Request request);
+  dynamic decode(Request request);
 
   dynamic convertParameterListWithMirror(
       List<String> parameterValues, TypeMirror typeMirror) {
@@ -51,11 +39,11 @@ abstract class BoundInput {
     }
 
     if (typeMirror.isSubtypeOf(reflectType(List))) {
-      final iterable = parameterValues
-        .map((str) =>
+      final iterable = parameterValues.map((str) =>
           convertParameterWithMirror(str, typeMirror.typeArguments.first));
 
-      return (typeMirror as ClassMirror).newInstance(#from, [iterable]).reflectee;
+      return (typeMirror as ClassMirror)
+          .newInstance(#from, [iterable]).reflectee;
     } else {
       if (parameterValues.length > 1) {
         throw Response.badRequest(body: {
@@ -111,7 +99,8 @@ class BoundValue {
 }
 
 class BoundPath extends BoundInput {
-  BoundPath(String segment) : super(segment);
+  BoundPath(ClassMirror typeMirror, String segment)
+      : super(typeMirror, segment);
 
   @override
   String get type => "Path";
@@ -120,14 +109,15 @@ class BoundPath extends BoundInput {
   APIParameterLocation get location => APIParameterLocation.path;
 
   @override
-  dynamic parse(ClassMirror intoType, Request request) {
+  dynamic decode(Request request) {
     return convertParameterWithMirror(
-        request.path.variables[externalName], intoType);
+        request.path.variables[externalName], boundType);
   }
 }
 
 class BoundHeader extends BoundInput {
-  BoundHeader(String header) : super(header);
+  BoundHeader(ClassMirror typeMirror, String header)
+      : super(typeMirror, header);
 
   @override
   String get type => "Header";
@@ -136,14 +126,15 @@ class BoundHeader extends BoundInput {
   APIParameterLocation get location => APIParameterLocation.header;
 
   @override
-  dynamic parse(ClassMirror intoType, Request request) {
+  dynamic decode(Request request) {
     var value = request.raw.headers[externalName];
-    return convertParameterListWithMirror(value, intoType);
+    return convertParameterListWithMirror(value, boundType);
   }
 }
 
 class BoundQueryParameter extends BoundInput {
-  BoundQueryParameter(String key) : super(key);
+  BoundQueryParameter(ClassMirror typeMirror, String key)
+      : super(typeMirror, key);
 
   @override
   String get type => "Query Parameter";
@@ -152,16 +143,19 @@ class BoundQueryParameter extends BoundInput {
   APIParameterLocation get location => APIParameterLocation.query;
 
   @override
-  bool validateType(TypeMirror type) {
-    if (super.validateType(type)) {
-      return true;
+  void validate() {
+    final isListOfBools = boundType.isAssignableTo(reflectType(List)) &&
+      boundType.typeArguments.first.isAssignableTo(reflectType(bool));
+
+    if (boundType.isAssignableTo(reflectType(bool)) || isListOfBools) {
+      return;
     }
 
-    return type.isAssignableTo(reflectType(bool));
+    super.validate();
   }
 
   @override
-  dynamic parse(ClassMirror intoType, Request request) {
+  dynamic decode(Request request) {
     var queryParameters = request.raw.uri.queryParametersAll;
     var value = queryParameters[externalName];
     if (value == null) {
@@ -170,13 +164,17 @@ class BoundQueryParameter extends BoundInput {
       }
     }
 
-    return convertParameterListWithMirror(value, intoType);
+    return convertParameterListWithMirror(value, boundType);
   }
 }
 
 class BoundBody extends BoundInput {
-  BoundBody({List<String> ignore, List<String> error, List<String> required}) :
-      ignoreFilter = ignore, errorFilter = error, requiredFilter = required, super(null);
+  BoundBody(ClassMirror typeMirror,
+      {List<String> ignore, List<String> error, List<String> required})
+      : ignoreFilter = ignore,
+        errorFilter = error,
+        requiredFilter = required,
+        super(typeMirror, null);
 
   final List<String> ignoreFilter;
   final List<String> errorFilter;
@@ -189,53 +187,75 @@ class BoundBody extends BoundInput {
   APIParameterLocation get location => null;
 
   @override
-  bool validateType(TypeMirror type) {
-    if (type.isAssignableTo(reflectType(List))) {
-      return validateType(type.typeArguments.first);
+  void validate() {
+    if (ignoreFilter != null || errorFilter != null || requiredFilter != null) {
+      if (!(boundType.isSubtypeOf(reflectType(Serializable)) ||
+          (boundType.isSubtypeOf(reflectType(List)) &&
+              boundType.typeArguments.first
+                  .isSubtypeOf(reflectType(Serializable))))) {
+        throw 'Filters can only be used on Serializable or List<Serializable>.';
+      }
     }
-
-    return type.isAssignableTo(reflectType(Serializable));
   }
 
   @override
-  dynamic parse(ClassMirror intoType, Request request) {
+  dynamic decode(Request request) {
     if (request.body.isEmpty) {
       return null;
     }
 
-    if (intoType.isSubtypeOf(reflectType(Serializable))) {
+    if (boundType.isSubtypeOf(reflectType(Serializable))) {
       final value =
-          intoType.newInstance(const Symbol(""), []).reflectee as Serializable;
-      value.read(request.body.as(), ignore: ignoreFilter, reject: errorFilter, require: requiredFilter);
+          boundType.newInstance(const Symbol(""), []).reflectee as Serializable;
+      value.read(request.body.as(),
+          ignore: ignoreFilter, reject: errorFilter, require: requiredFilter);
 
       return value;
-    } else if (intoType.isSubtypeOf(reflectType(List))) {
+    } else if (boundType.isSubtypeOf(reflectType(List)) &&
+        boundType.typeArguments.first.isSubtypeOf(reflectType(Serializable))) {
       final bodyList = request.body.as<List<Map<String, dynamic>>>();
       if (bodyList.isEmpty) {
-        return intoType.newInstance(#from, [[]]).reflectee;
+        return boundType.newInstance(#from, [[]]).reflectee;
       }
 
-      final typeArg = intoType.typeArguments.first as ClassMirror;
+      final typeArg = boundType.typeArguments.first as ClassMirror;
       final iterable = bodyList.map((object) {
         final value =
             typeArg.newInstance(const Symbol(""), []).reflectee as Serializable;
-        value.read(object, ignore: ignoreFilter, reject: errorFilter, require: requiredFilter);
+        value.read(object,
+            ignore: ignoreFilter, reject: errorFilter, require: requiredFilter);
 
         return value;
-      });
+      }).toList();
 
-      return intoType.newInstance(#from, [iterable]).reflectee;
+      final v = boundType.newInstance(#from, [iterable]).reflectee;
+      return v;
     }
 
-    return runtimeCast(request.body.as(), intoType);
+    return runtimeCast(request.body.as(), boundType);
   }
 }
 
-class BoundBodyException implements Exception {
-  BoundBodyException(this.message);
+void _enforceTypeCanBeParsedFromString(TypeMirror typeMirror) {
+  if (typeMirror is! ClassMirror) {
+    throw 'Cannot bind dynamic type parameters.';
+  }
 
-  String message;
+  if (typeMirror.isAssignableTo(reflectType(String))) {
+    return;
+  }
 
-  @override
-  String toString() => message;
+  final classMirror = typeMirror as ClassMirror;
+  if (!classMirror.staticMembers.containsKey(#parse)) {
+    throw 'Parameter type does not implement static parse method.';
+  }
+
+  final parseMethod = classMirror.staticMembers[#parse];
+  final params = parseMethod.parameters.where((p) => !p.isOptional).toList();
+  if (params.length == 1 &&
+      params.first.type.isAssignableTo(reflectType(String))) {
+    return;
+  }
+
+  throw 'Invalid parameter type.';
 }

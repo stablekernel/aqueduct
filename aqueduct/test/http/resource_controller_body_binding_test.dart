@@ -73,17 +73,75 @@ void main() {
 
     test("Can use ignore filters", () async {
       server = await enableController("/", FilterController);
-      expect(json.decode((await postJSON({"required": "", "ignore": ""})).body), {"required": ""});
+      expect(json.decode((await postJSON({"required": "", "ignore": ""})).body),
+          {"required": ""});
     });
 
     test("Can use error filters", () async {
       server = await enableController("/", FilterController);
-      expect((await postJSON({"required": "", "error" : ""})).statusCode, 400);
+      expect((await postJSON({"required": "", "error": ""})).statusCode, 400);
     });
 
     test("Can use required filters", () async {
       server = await enableController("/", FilterController);
-      expect((await postJSON({"key" : ""})).statusCode, 400);
+      expect((await postJSON({"key": ""})).statusCode, 400);
+    });
+
+    test("Can use ignore filters on List<Serializable>", () async {
+      server = await enableController("/", FilterListController);
+      final response = await postJSON([
+        {"required": ""},
+        {"required": "", "ignore": ""}
+      ]);
+
+      expect(json.decode(response.body), [
+        {"required": ""},
+        {"required": ""}
+      ]);
+    });
+
+    test("Can use error filters on List<Serializable>", () async {
+      server = await enableController("/", FilterListController);
+      expect(
+          (await postJSON([
+            {"required": ""},
+            {"required": "", "error": ""}
+          ]))
+              .statusCode,
+          400);
+    });
+
+    test("Can use required filters on List<Serializable>", () async {
+      server = await enableController("/", FilterListController);
+      expect(
+          (await postJSON([
+            {"required": ""},
+            {"key": ""}
+          ]))
+              .statusCode,
+          400);
+    });
+
+    test("Can bind primitive map", () async {
+      server = await enableController("/", MapController);
+      var m = {"name": "Bob"};
+      var response = await postJSON(m);
+      expect(response.statusCode, 200);
+      expect(json.decode(response.body), m);
+    });
+
+
+    test("Can get a list of bytes from an octet-stream", () async {
+      server = await enableController("/", ByteListController);
+
+      final response = await http
+        .post("http://localhost:4040",
+        headers: {"Content-Type": "application/octet-stream"},
+        body: [1, 2, 3])
+        .catchError((err) => null);
+
+      expect(response.statusCode, 200);
+      expect(response.bodyBytes, [1, 2, 3]);
     });
   });
 
@@ -185,7 +243,7 @@ class TestSerializable extends Serializable {
 
   @override
   Map<String, dynamic> asMap() {
-    return null;
+    return contents;
   }
 }
 
@@ -258,7 +316,34 @@ class FilterController extends ResourceController {
   Future<Response> create(
       @Bind.body(ignore: ["ignore"], require: ["required"], reject: ["error"])
           TestSerializable tm) async {
-    return Response.ok(tm.contents);
+    return Response.ok(tm);
+  }
+}
+
+class FilterListController extends ResourceController {
+  @Operation.post()
+  Future<Response> create(
+      @Bind.body(ignore: ["ignore"], require: ["required"], reject: ["error"])
+          List<TestSerializable> tm) async {
+    return Response.ok(tm);
+  }
+}
+
+class MapController extends ResourceController {
+  @Operation.post()
+  Future<Response> create(@Bind.body() Map<String, dynamic> tm) async {
+    return Response.ok(tm);
+  }
+}
+
+class ByteListController extends ResourceController {
+  ByteListController() {
+    acceptedContentTypes = [ContentType("application", "octet-stream")];
+  }
+
+  @Operation.post()
+  Future<Response> create(@Bind.body() List<int> tm) async {
+    return Response.ok(tm)..contentType = ContentType("application", "octet-stream");
   }
 }
 

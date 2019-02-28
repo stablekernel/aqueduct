@@ -34,7 +34,7 @@ class BoundController {
         .whereType<VariableMirror>()
         .where((decl) => decl.metadata.any((im) => im.reflectee is Bind))
         .map((decl) {
-      var isRequired = allDeclarations[decl.simpleName]
+      final isRequired = allDeclarations[decl.simpleName]
           .metadata
           .any((im) => im.reflectee is RequiredBinding);
       return BoundParameter(decl, isRequired: isRequired);
@@ -161,7 +161,7 @@ class BoundController {
     }
 
     final parseWith = (BoundParameter binder) {
-      var value = binder.parse(request);
+      var value = binder.decode(request);
       if (value == null && binder.isRequired) {
         return BoundValue.error(
             "missing required ${binder.binding.type} '${binder.name ?? ""}'");
@@ -208,7 +208,7 @@ class BoundController {
 
     flattened.forEach((boundValue) {
       if (boundValue.deferredBinder != null) {
-        var output = parseWith(boundValue.deferredBinder);
+        final output = parseWith(boundValue.deferredBinder);
         boundValue.value = output.value;
         boundValue.errorMessage = output.errorMessage;
       }
