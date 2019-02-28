@@ -13,7 +13,7 @@ void main() {
   });
 
   test(
-      "If context does not contian data model with query type, throw exception",
+      "If context does not contain data model with query type, throw exception",
       () {
     try {
       Query<Missing>(ctx);

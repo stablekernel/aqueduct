@@ -261,6 +261,15 @@ void main() {
       } on AuthServerException {}
     });
 
+    test("Create token fails with wildcard password", () async {
+      try {
+        await auth.authenticate(createdUser.username, "%",
+            "com.stablekernel.app1", "kilimanjaro");
+        expect(true, false);
+        // ignore: empty_catches
+      } on AuthServerException {}
+    });
+
     test("Create token fails if client ID doesn't exist", () async {
       try {
         await auth.authenticate(createdUser.username, User.defaultPassword,
@@ -274,6 +283,15 @@ void main() {
       try {
         await auth.authenticate(createdUser.username, User.defaultPassword,
             "com.stablekernel.app1", "nonsense");
+        expect(true, false);
+        // ignore: empty_catches
+      } on AuthServerException {}
+    });
+
+    test("Create token fails with wildcard client secret", () async {
+      try {
+        await auth.authenticate(createdUser.username, User.defaultPassword,
+            "com.stablekernel.app1", "%");
         expect(true, false);
         // ignore: empty_catches
       } on AuthServerException {}
@@ -316,6 +334,18 @@ void main() {
     test("Cannot verify token that doesn't exist", () async {
       try {
         await auth.verify("nonsense");
+        fail("unreachable");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidGrant);
+      }
+    });
+
+    test("Cannot verify wildcard token", () async {
+      await auth.authenticate(createdUser.username,
+        User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
+
+      try {
+        await auth.verify("%");
         fail("unreachable");
       } on AuthServerException catch (e) {
         expect(e.reason, AuthRequestError.invalidGrant);
@@ -434,6 +464,14 @@ void main() {
       } on AuthServerException {}
     });
 
+    test("Cannot refresh wildcard token", () async {
+      try {
+        await auth.refresh("%", "com.stablekernel.app1", "kilimanjaro");
+        expect(true, false);
+        // ignore: empty_catches
+      } on AuthServerException {}
+    });
+
     test("Cannot refresh token if client id is missing", () async {
       try {
         await auth.refresh(initialToken.refreshToken, null, "kilimanjaro");
@@ -543,6 +581,17 @@ void main() {
       }
     });
 
+    test("Generate auth code with wildcard password fails", () async {
+      try {
+        await auth.authenticateForCode(
+            createdUser.username, "%", "com.stablekernel.redirect");
+        expect(true, false);
+      } on AuthServerException catch (e) {
+        expect(e.client.id, "com.stablekernel.redirect");
+        expect(e.reason, AuthRequestError.accessDenied);
+      }
+    });
+
     test("Generate auth code with unknown client id fails", () async {
       try {
         await auth.authenticateForCode(
@@ -623,6 +672,15 @@ void main() {
     test("Null code fails", () async {
       try {
         await auth.exchange(null, "com.stablekernel.redirect", "mckinley");
+
+        expect(true, false);
+        // ignore: empty_catches
+      } on AuthServerException {}
+    });
+
+    test("Wildcard code fails", () async {
+      try {
+        await auth.exchange("%", "com.stablekernel.redirect", "mckinley");
 
         expect(true, false);
         // ignore: empty_catches

@@ -2,6 +2,9 @@
 
 - Adds `read` method to `Serializable`.
 - Fixes issues with Dart 2.1.1 mirror type checking changes
+- Adds `like` matcher expression
+- Escapes postgres special characters in LIKE expressions for all other string matcher expressions
+- Fixes security vulnerability where a specific authorization header value would be associated with the wrong token (credit to Philipp Schiffmann)
 
 ## 3.1.0
 
