@@ -38,6 +38,10 @@ class Response implements RequestOrResponse {
   Response.accepted({Map<String, dynamic> headers})
       : this(HttpStatus.accepted, headers, null);
 
+  /// Represents a 204 response.
+  Response.noContent({Map<String, dynamic> headers})
+      : this(HttpStatus.noContent, headers, null);
+
   /// Represents a 304 response.
   ///
   /// Where [lastModified] is the last modified date of the resource
