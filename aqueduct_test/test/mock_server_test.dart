@@ -20,10 +20,17 @@ void main() {
       await server.close();
     });
 
+    test("Request body is captured", () async {
+      await testClient.put("/foo", body: {"a": "b"});
+
+      final serverRequest = await server.next();
+      expect(serverRequest.method, "PUT");
+      expect(serverRequest.body.as<Map>()["a"], "b");
+      // expectRequest(serverRequest, method: "PUT", body: {"a": "b"});
+    });
+
     test("Request is enqueued and immediately available", () async {
-      final responseFuture =
-          testClient.get("/hello", query: {"foo": "bar"}, headers: {"X": "Y"});
-      expect(responseFuture, completes);
+      await testClient.get("/hello", query: {"foo": "bar"}, headers: {"X": "Y"});
 
       final serverRequest = await server.next();
       expect(serverRequest.method, "GET");
@@ -32,15 +39,6 @@ void main() {
       expect(serverRequest.raw.headers.value("x"), "Y");
 
       // expectRequest(serverRequest, method: "GET", path: "/hello", query: {"foo" : "bar"}, headers: {"x": "Y"});
-    });
-
-    test("Request body is captured", () async {
-      await testClient.put("/foo", body: {"a": "b"});
-
-      final serverRequest = await server.next();
-      expect(serverRequest.method, "PUT");
-      expect(serverRequest.body.as<Map>()["a"], "b");
-      // expectRequest(serverRequest, method: "PUT", body: {"a": "b"});
     });
 
     test("Wait for request that will happen in future", () async {

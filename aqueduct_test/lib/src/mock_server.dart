@@ -155,7 +155,7 @@ class MockHTTPServer extends MockServer<Request> {
   /// Shuts down the server listening for HTTP requests.
   @override
   Future close() {
-    return server?.close();
+    return server?.close(force: true);
   }
 
   Future<Response> _dequeue(Request incoming) async {
