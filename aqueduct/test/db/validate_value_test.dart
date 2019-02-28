@@ -17,12 +17,27 @@ void main() {
         PresenceHas,
         PresenceBelongsTo,
         AbsenceBelongsTo,
-        AbsenceHas
+        AbsenceHas,
+        NonDefaultPK
       ]),
       DefaultPersistentStore());
 
   tearDownAll(() async {
     await ctx.close();
+  });
+
+  group("Primary key defaults", () {
+    test("@primaryKey defaults to using Validate.constant()", () {
+      final t = T()..id = 1;
+      expect(t.validate(forEvent: Validating.insert).isValid, true);
+      expect(t.validate(forEvent: Validating.update).isValid, false);
+    });
+
+    test("A primary key that isn't @primaryKey does not have Validate.constant()", () {
+      final t = NonDefaultPK()..id = 1;
+      expect(t.validate(forEvent: Validating.insert).isValid, true);
+      expect(t.validate(forEvent: Validating.update).isValid, true);
+    });
   });
 
   group("Foreign keys", () {
@@ -731,4 +746,13 @@ class _AbsenceBelongsTo {
   @Validate.absent(onInsert: true)
   @Relate(#absent)
   AbsenceHas absent;
+}
+
+
+class NonDefaultPK extends ManagedObject<_NonDefaultPK> implements _NonDefaultPK {}
+class _NonDefaultPK {
+  @Column(primaryKey: true)
+  int id;
+
+  String name;
 }

@@ -104,6 +104,8 @@ class Relate {
 ///
 /// This is a convenience for primary key, database type big integer, and autoincrementing. The corresponding property
 /// type must be [int]. The underlying database indexes and uniques the backing column.
+///
+/// The validator [Validate.constant] is automatically applied to this property.
 const Column primaryKey = Column(
     primaryKey: true,
     databaseType: ManagedPropertyType.bigInteger,

@@ -1,17 +1,12 @@
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/db/managed/attributes.dart';
+import 'package:aqueduct/src/db/managed/attributes.dart' as managed_attributes;
 import 'package:aqueduct/src/db/managed/builders/entity_builder.dart';
 import 'package:aqueduct/src/db/managed/builders/validator_builder.dart';
 import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
-
-/*
-Move all validation steps into validate.
-Fix issue when compiling relationships, esp. deferred.
- */
 
 class PropertyBuilder {
   PropertyBuilder(this.parent, this.declaration)
@@ -21,8 +16,13 @@ class PropertyBuilder {
     name = _getName();
     type = _getType();
     _validators = validatorsFromDeclaration(declaration).map((v) => ValidatorBuilder(this, v)).toList();
+
     if (type?.isEnumerated ?? false) {
       _validators.add(ValidatorBuilder(this, Validate.oneOf(type.enumerationMap.values.toList())));
+    }
+
+    if (identical(managed_attributes.primaryKey, column)) {
+      _validators.add(ValidatorBuilder(this, const Validate.constant()));
     }
   }
 
