@@ -1,11 +1,13 @@
 ## 3.2.0
 
-- Adds `read` method to `Serializable`.
+- Adds `read` method to `Serializable` for filtering, ignoring or rejecting keys.
 - Fixes issues with Dart 2.1.1 mirror type checking changes
 - Adds `like` matcher expression
 - Escapes postgres special characters in LIKE expressions for all other string matcher expressions
-- Fixes security vulnerability where a specific authorization header value would be associated with the wrong token when there is only one token stored in the database (credit to Philipp Schiffmann)
+- Fixes security vulnerability where a specific authorization header value would be associated with the wrong token in rare cases (credit to Philipp Schiffmann)
 - Adds `Validate.constant` to properties that use the `@primaryKey` annotation.
+- Allows `Validate` annotations to be added to belongs-to relationship properties; the validation is run on the foreign key.
+- Allows any type - e.g. `Map<String, dynamic>` - to be bound with `Bind.body`.
 
 ## 3.1.0
 

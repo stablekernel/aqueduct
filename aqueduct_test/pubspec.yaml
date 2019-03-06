@@ -1,6 +1,6 @@
 name: aqueduct_test
 description: Utilities for writing automated tests for Aqueduct applications
-version: 1.0.0+1
+version: 1.0.1
 homepage: https://github.com/stablekernel/aqueduct
 author: stable|kernel <jobs@stablekernel.com>
 documentation:
