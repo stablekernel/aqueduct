@@ -1,41 +1,22 @@
 # wildfire
 
-## Project creation
-
-To use this template, from the command line, enter `aqueduct create -t db_and_auth <project name>`. 
 ## Database
 
-You will need a new database specific for your app. 
+You will need a local database for testing, and another database for running the application locally. The behavior and configuration of these databases are documented here: http://aqueduct.io/docs/testing/mixins/.
 
-The tests are run with a local PostgreSQL database named `dart_test`. If this test database does not exist, create it from your SQL prompt.
+To run tests, you must have a configuration file named `config.src.yaml`. By default, it is configured to connect your application to a database named `dart_test` (documented in the link above) and should not need to be edited. Tables are automatically created and deleted during test execution.
 
-If your app uses the same database as the test database, you'll get conflicts. The test database is cleared of all tables after your tests run. See [http://aqueduct.io/docs/testing/mixins/](http://aqueduct.io/docs/testing/mixins/).
+To run your application locally, you must have a `config.yaml` file that has correct database connection info, which should point to a local database specific to your application (documented in link above).
+When running locally, you must apply database migrations to your database before using it. The following commands generate a migration file from your project and then apply it to a database. Replace your database's connection details with the details below.
 
-So create a database named after their project.
- 
 ```
-CREATE DATABASE dart_test;
-CREATE USER dart WITH createdb;
-ALTER USER dart WITH password 'dart';
-GRANT all ON DATABASE dart_test TO dart;
-```
-
-## Setup instructions
-
-### Database connection info
-
-You must have a `config.yaml` file that has correct database connection info, which should point to a local database. To configure a database to match your application's schema, run the following commands:
-
-Remember, you have to create a new database for the app. 
-```
-# Note: if this is a new project, run db generate first, assuming you setup the `dart_test` db with `userid:password` of `dart:dart`.
 aqueduct db generate
 aqueduct db upgrade --connect postgres://dart:dart@localhost:5432/wildfire
 ```
 
 ### Configure OAuth
 
-You must also configure OAuth 2.0 Client identifiers in this database.
+To run your application locally, you must also register OAuth 2.0 clients in the application database. Use the same database credentials after you have applied the migration.
 
 ```
 aqueduct auth add-client --id com.local.test \
@@ -43,28 +24,27 @@ aqueduct auth add-client --id com.local.test \
     --connect postgres://user:password@localhost:5432/wildfire
 ```
 
-## Running the server
+To run your tests with OAuth 2.0 client identifiers, see this documentation: http://aqueduct.io/docs/testing/mixins/#testing-applications-that-use-oauth-20.
+
+## Running the server locally
 
 Run `aqueduct serve` from this directory to run the application. For running within an IDE, run `bin/main.dart`.
 
 ## Running CURL commands to test the end points
 
-The following CURL commands will be hitting the end points that are defined in `channel.dart`.
+The following CURL commands are valid HTTP requests for the routes configured by generating this project. If you get a 503 error, your application is not connecting to the database.
 
-### Client Authentication
+### Endpoints Requiring Client Authentication
 
-Notice above that we have an client identifier of `com.local.test` with the secret `mysecret`. We will need to encode these values as a base64 string in the Authorization header of some requests. As a convenience, you can use [https://www.base64encode.org/](https://www.base64encode.org/) to generate the encoded string.
+Endpoints that are not associated with a user must have client authentication using the credentials added with `aqueduct auth`. These routes are `POST /register` and `POST /auth/token`.
 
-The pattern for the input string is `id:secret`. Using the client identifier and secret from above, our input string is `com.local.test:mysecret`.
-
-After being encoded, these credentials are `Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=`. If your client identifier and secret are different, this value will be different.
+The client id and client secret are combined into a colon (`:`) delimited string, then base64 encoded and added as a `Basic` authorization header. For example, the client id `com.local.test` and secret `mysecret` is combined into `com.local.test:mysecret` then base64 encoded. The header `Authorization: Basic $base64Credentials` must be added to each endpoint requiring this type of authentication.
 
 ### Register a user (POST /register)
 
-To register a new user, send a `POST /register` request. Use the following CURL command and replace the `<username>` and `<password>` with your own.
+To register a new user, send a `POST /register` request. Use the following CURL command and replace the `<username>` and `<password>` with your new user and `base64Client` with your base64 encoded client credentials.
 
-
-`curl -X POST http://localhost:8888/register -H 'Authorization: Basic Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=' -H 'Content-Type: application/json' -d '{"username":"<username>", "password": "<password>"}' -v`
+`curl -X POST http://localhost:8888/register -H 'Authorization: Basic <base64Client>=' -H 'Content-Type: application/json' -d '{"username":"<username>", "password": "<password>"}' -v`
 
 You should see a response similar to this:
 
@@ -73,17 +53,17 @@ You should see a response similar to this:
 
 ```
 
-For the next step, we will need the `access_token`, namely `cUXqbTn0DIogyzq80jl2FHmCBa8BvIAyww` from above. Note that when you run this, you will have a different `access_token`.
+For the next step, we will need the `access_token` from your response.
 
 ### Get User Profile (GET /me)
 
-To read information about yourself, once you have the `access_token` from the previous step above, you can run this CURL:
+To get information about the user who was issued an access token:
 
 ```
-curl -X GET http://localhost:8888/me -H 'Authorization: Bearer cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy'
+curl -X GET http://localhost:8888/me -H 'Authorization: Bearer <access_token>'
 ```
 
-Notice the bearer token is the access token from a previous request, and not the base64 encoded client credentials. You should see a response similar to this:
+Notice the Authorization header is `Bearer <token>` (not the base64 encoded client credentials). You should see a response similar to this:
 
 ```JSON
 {"id":1,"username":"marilyn"}
@@ -108,7 +88,7 @@ You should see a response similar to this:
 For this example, we will be hitting the same end point as above, namely `/users/[:id]` but we will not provide the `id`. By doing so, we will retrieve all the Users. Again, we will reference the `access_token` from above. We now have this CURL:
 
 ```
-curl -X GET http://localhost:8888/users -H 'Authorization: Bearer cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy'
+curl -X GET http://localhost:8888/users -H 'Authorization: Bearer <access_token>'
 ```
 
 You should have a response similar to the following. Note that the JSON object is contained in a Array.
@@ -119,12 +99,12 @@ You should have a response similar to the following. Note that the JSON object i
 
 ### Update a User (PUT /users/[:id])
 
-For this example, we will update our User. We can only update our own user. So we will need 2 things to be in sync, namely the `id` of the user and the `access_token` for that user. In our case, user `marilyn` has `access_token` of `cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy` and she is `id` of `1`.
+For this example, we will update our User. We can only update our own user. So we will need two things to be in sync, the `id` of the user and the `access_token` for that user.
 
 Here is the CURL command:
 
 ```
-curl -X PUT http://localhost:8888/users/1 -H 'Authorization: Bearer cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy'  -H "Content-Type: application/json" -d '{"username": "bob roy"}'
+curl -X PUT http://localhost:8888/users/1 -H 'Authorization: Bearer <access_token>'  -H "Content-Type: application/json" -d '{"username": "bob roy"}'
 ```
 
 You should see a response similar to the following:
@@ -133,12 +113,12 @@ You should see a response similar to the following:
 {"id":1,"username":"bob roy"}
 ```
 
-### Delete a User (DELETE /users/[id])
+### Delete a User (DELETE /users/[:id])
 
-For this example, we will delete our User. We can only delete our own user. So we will need 2 things to be in sync, namely the `id` of the user and the `access_token` for that user. In our case, user `bob roy` has `access_token` of `cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy`. So here is the CURL command:
+For this example, we will delete our User. We can only delete our own user. So we will need 2 things to be in sync, the `id` of the user and the `access_token` for that user.
 
 ```
-curl -X GET http://localhost:8888/users/1 -H 'Authorization: Bearer cUXqbTn0DIogyzq80jl2FHmCBa8BvIAy'
+curl -X GET http://localhost:8888/users/1 -H 'Authorization: Bearer <access_token>'
 ```
 
 For this command, there is no CURL output. To validate the record is deleted, try fetching it again with `GET /users/1`.
@@ -148,7 +128,7 @@ For this command, there is no CURL output. To validate the record is deleted, tr
 This is a 'login' request that requires a user to already be registered. Client credentials are provided in the Authorization header, and user credentials in the body (in the query string format, not JSON).
 
 ```
-curl -X POST http://localhost:8888/auth/token -H 'Authorization: Basic Y29tLmxvY2FsLnRlc3Q6bXlzZWNyZXQ=' -H 'Content-Type: application/x-www-form-urlencoded' -d 'username=marilyn&password=password&grant_type=password'
+curl -X POST http://localhost:8888/auth/token -H 'Authorization: Basic <access_token>' -H 'Content-Type: application/x-www-form-urlencoded' -d 'username=<username>>&password=<password>&grant_type=password'
 
 ```
 
