@@ -244,7 +244,7 @@ class CityController extends ResourceController {
 }
 ```
 
-Since there is only one request body, `Bind.body()` doesn't take any identifying arguments.
+Since there is only one request body, `Bind.body()` doesn't take any identifying arguments (however, it does take optional arguments for ignoring, requiring or rejecting keys; this matches the behavior of `Serializable.read` and only works when the bound type is a `Serializable` or list of).
 
 The bound parameter type (`City` in this example) must implement `Serializable`. Aqueduct will automatically decode the request body from it's content-type, create a new instance of the bound parameter type, and invoke its `read` method. In the above example, a valid request body would be the following JSON:
 

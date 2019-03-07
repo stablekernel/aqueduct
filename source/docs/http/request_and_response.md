@@ -238,7 +238,7 @@ Future<Response> addPerson(@Bind.body() Person person) async {
 
 #### Key Filtering
 
-Both `read` and `Bind.body` support key filtering. A key filter is a list of keys that either discard keys from the body, requires keys in the body, or throws an error if a key exists in the body. Example:
+Both `read` and `Bind.body` (when binding a `Serializable`) support key filtering. A key filter is a list of keys that either discard keys from the body, requires keys in the body, or throws an error if a key exists in the body. Example:
 
 ```dart
 final person = Person()
@@ -249,6 +249,16 @@ final person = Person()
 ```
 
 In the above: if the body contains 'id', the value is discarded immediately; if the body contains 'password', a 400 status code exception is thrown; and if the body doesn't contain all of name, height and weight, a 400 status code exception is thrown.
+
+When binding a list of serializables, filters are applied to each element of the list.
+
+```dart
+@Operation.post()
+Future<Response> addPerson(@Bind.body(reject: ["privateInfo"]) List<Person> people) async {
+  // if any Person in the body contains the privateInfo key, a 400 Bad Request is sent and this method
+  // is not called
+}
+```
 
 ### Subclassing Serializable
 

@@ -37,7 +37,14 @@ A built-in validator is useful because it automatically generates an error messa
 
 See the API reference for `Validate` and its named constructors for possible options.
 
-`Validate` annotations on transient properties have no effect. This annotation is only valid for properties declared in a table definition.
+`Validate` annotations on properties declared in a managed object subclass (transient properties) have no effect.
+
+### Validating Relationships
+
+Validations are only valid for properties declared in a table definition. Validators applied to relationship properties are applied to the primary key of the related object (i.e. the foreign key value). Validation logic is only ran on the properties of the managed object being validated - validations on properties of a related object are *not* ran. When validating a graph of managed objects, you must initiate validation on any related objects manually.
+
+!!! warning "Validating Related Objects"
+          The behavior of a validation is different when an object is being validated as a relationship. In other words, a validation applied to the primary key of an object likely requires different behavior when being applied to a foreign key reference to that object.
 
 ### Custom Validators
 
