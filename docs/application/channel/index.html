@@ -18,7 +18,7 @@
     
     
       
-        <title>Startup & Initialization - Aqueduct</title>
+        <title>Starting and Stopping Applications - Aqueduct</title>
       
     
     
@@ -83,11 +83,11 @@
                 </span>
               
                 <span class="md-header-nav__parent">
-                  Application Structure and Behavior
+                  Application Configuration and Behavior
                 </span>
               
             
-            Startup & Initialization
+            Starting and Stopping Applications
           
         </span>
       </div>
@@ -282,94 +282,10 @@
       <input class="md-toggle md-nav__toggle" data-md-toggle="nav-8" type="checkbox" id="nav-8">
     
     <label class="md-nav__link" for="nav-8">
-      Snippets
-    </label>
-    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-8">
-        Snippets
-      </label>
-      <ul class="md-nav__list" data-md-scrollfix>
-        
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../snippets/" title="Overview" class="md-nav__link">
-      Overview
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../snippets/http/" title="HTTP" class="md-nav__link">
-      HTTP
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../snippets/orm/" title="ORM" class="md-nav__link">
-      ORM
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../snippets/auth/" title="Authentication and Authorization" class="md-nav__link">
-      Authentication and Authorization
-    </a>
-  </li>
-
-        
-          
-          
-          
-
-
-  <li class="md-nav__item">
-    <a href="../../snippets/test/" title="Testing" class="md-nav__link">
-      Testing
-    </a>
-  </li>
-
-        
-      </ul>
-    </nav>
-  </li>
-
-    
-      
-      
-      
-
-
-  <li class="md-nav__item md-nav__item--nested">
-    
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9">
-    
-    <label class="md-nav__link" for="nav-9">
       Tutorial
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-9">
+      <label class="md-nav__title" for="nav-8">
         Tutorial
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -449,13 +365,13 @@
 
   <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9" type="checkbox" id="nav-9" checked>
     
-    <label class="md-nav__link" for="nav-10">
+    <label class="md-nav__link" for="nav-9">
       Guides
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
-      <label class="md-nav__title" for="nav-10">
+      <label class="md-nav__title" for="nav-9">
         Guides
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -470,14 +386,14 @@
 
   <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-1" type="checkbox" id="nav-10-1" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9-1" type="checkbox" id="nav-9-1" checked>
     
-    <label class="md-nav__link" for="nav-10-1">
-      Application Structure and Behavior
+    <label class="md-nav__link" for="nav-9-1">
+      Application Configuration and Behavior
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-1">
-        Application Structure and Behavior
+      <label class="md-nav__title" for="nav-9-1">
+        Application Configuration and Behavior
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
         
@@ -509,11 +425,11 @@
     
     
       <label class="md-nav__link md-nav__link--active" for="toc">
-        Startup & Initialization
+        Starting and Stopping Applications
       </label>
     
-    <a href="./" title="Startup & Initialization" class="md-nav__link md-nav__link--active">
-      Startup & Initialization
+    <a href="./" title="Starting and Stopping Applications" class="md-nav__link md-nav__link--active">
+      Starting and Stopping Applications
     </a>
     
       
@@ -535,8 +451,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#building-the-applicationchannel" title="Building the ApplicationChannel" class="md-nav__link">
-    Building the ApplicationChannel
+  <a href="#initializing-applicationchannel-controllers" title="Initializing ApplicationChannel Controllers" class="md-nav__link">
+    Initializing ApplicationChannel Controllers
   </a>
   
 </li>
@@ -547,8 +463,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#providing-services-for-controllers" title="Providing Services for Controllers" class="md-nav__link">
-    Providing Services for Controllers
+  <a href="#initializing-service-objects" title="Initializing Service Objects" class="md-nav__link">
+    Initializing Service Objects
   </a>
   
 </li>
@@ -610,8 +526,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../configure/" title="Environment Configuration" class="md-nav__link">
-      Environment Configuration
+    <a href="../configure/" title="Configuring an Application and its Environment" class="md-nav__link">
+      Configuring an Application and its Environment
     </a>
   </li>
 
@@ -622,8 +538,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../structure/" title="Application Structure" class="md-nav__link">
-      Application Structure
+    <a href="../structure/" title="Application and Project Structure" class="md-nav__link">
+      Application and Project Structure
     </a>
   </li>
 
@@ -652,13 +568,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-2" type="checkbox" id="nav-10-2">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9-2" type="checkbox" id="nav-9-2">
     
-    <label class="md-nav__link" for="nav-10-2">
+    <label class="md-nav__link" for="nav-9-2">
       Handling HTTP Requests
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-2">
+      <label class="md-nav__title" for="nav-9-2">
         Handling HTTP Requests
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -682,8 +598,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/request_and_response/" title="Request and Response Objects" class="md-nav__link">
-      Request and Response Objects
+    <a href="../../http/controller/" title="Handling Requests and Sending Response" class="md-nav__link">
+      Handling Requests and Sending Response
     </a>
   </li>
 
@@ -694,8 +610,8 @@
 
 
   <li class="md-nav__item">
-    <a href="../../http/controller/" title="Handling Requests: Fundamentals" class="md-nav__link">
-      Handling Requests: Fundamentals
+    <a href="../../http/request_and_response/" title="Serializing Request and Response Bodies" class="md-nav__link">
+      Serializing Request and Response Bodies
     </a>
   </li>
 
@@ -760,13 +676,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-3" type="checkbox" id="nav-10-3">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9-3" type="checkbox" id="nav-9-3">
     
-    <label class="md-nav__link" for="nav-10-3">
+    <label class="md-nav__link" for="nav-9-3">
       Databases and ORM
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-3">
+      <label class="md-nav__title" for="nav-9-3">
         Databases and ORM
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -904,13 +820,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-4" type="checkbox" id="nav-10-4">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9-4" type="checkbox" id="nav-9-4">
     
-    <label class="md-nav__link" for="nav-10-4">
+    <label class="md-nav__link" for="nav-9-4">
       Authorization and OAuth 2.0
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-4">
+      <label class="md-nav__title" for="nav-9-4">
         Authorization and OAuth 2.0
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1012,13 +928,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-5" type="checkbox" id="nav-10-5">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9-5" type="checkbox" id="nav-9-5">
     
-    <label class="md-nav__link" for="nav-10-5">
+    <label class="md-nav__link" for="nav-9-5">
       Development and Testing
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-5">
+      <label class="md-nav__title" for="nav-9-5">
         Development and Testing
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1108,13 +1024,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-6" type="checkbox" id="nav-10-6">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9-6" type="checkbox" id="nav-9-6">
     
-    <label class="md-nav__link" for="nav-10-6">
+    <label class="md-nav__link" for="nav-9-6">
       Deployment
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-6">
+      <label class="md-nav__title" for="nav-9-6">
         Deployment
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1204,13 +1120,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-7" type="checkbox" id="nav-10-7">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9-7" type="checkbox" id="nav-9-7">
     
-    <label class="md-nav__link" for="nav-10-7">
+    <label class="md-nav__link" for="nav-9-7">
       OpenAPI Documentation
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-7">
+      <label class="md-nav__title" for="nav-9-7">
         OpenAPI Documentation
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1288,13 +1204,13 @@
 
   <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10-8" type="checkbox" id="nav-10-8">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-9-8" type="checkbox" id="nav-9-8">
     
-    <label class="md-nav__link" for="nav-10-8">
+    <label class="md-nav__link" for="nav-9-8">
       Command-line Tooling
     </label>
     <nav class="md-nav" data-md-component="collapsible" data-md-level="2">
-      <label class="md-nav__title" for="nav-10-8">
+      <label class="md-nav__title" for="nav-9-8">
         Command-line Tooling
       </label>
       <ul class="md-nav__list" data-md-scrollfix>
@@ -1358,6 +1274,90 @@
   </li>
 
     
+      
+      
+      
+
+
+  <li class="md-nav__item md-nav__item--nested">
+    
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-10" type="checkbox" id="nav-10">
+    
+    <label class="md-nav__link" for="nav-10">
+      Snippets
+    </label>
+    <nav class="md-nav" data-md-component="collapsible" data-md-level="1">
+      <label class="md-nav__title" for="nav-10">
+        Snippets
+      </label>
+      <ul class="md-nav__list" data-md-scrollfix>
+        
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/" title="Overview" class="md-nav__link">
+      Overview
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/http/" title="HTTP" class="md-nav__link">
+      HTTP
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/orm/" title="ORM" class="md-nav__link">
+      ORM
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/auth/" title="Authentication and Authorization" class="md-nav__link">
+      Authentication and Authorization
+    </a>
+  </li>
+
+        
+          
+          
+          
+
+
+  <li class="md-nav__item">
+    <a href="../../snippets/test/" title="Testing" class="md-nav__link">
+      Testing
+    </a>
+  </li>
+
+        
+      </ul>
+    </nav>
+  </li>
+
+    
   </ul>
 </nav>
                   </div>
@@ -1387,8 +1387,8 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#building-the-applicationchannel" title="Building the ApplicationChannel" class="md-nav__link">
-    Building the ApplicationChannel
+  <a href="#initializing-applicationchannel-controllers" title="Initializing ApplicationChannel Controllers" class="md-nav__link">
+    Initializing ApplicationChannel Controllers
   </a>
   
 </li>
@@ -1399,8 +1399,8 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#providing-services-for-controllers" title="Providing Services for Controllers" class="md-nav__link">
-    Providing Services for Controllers
+  <a href="#initializing-service-objects" title="Initializing Service Objects" class="md-nav__link">
+    Initializing Service Objects
   </a>
   
 </li>
@@ -1464,18 +1464,17 @@
                   <a href="https://github.com/stablekernel/aqueduct/edit/docs/source/source/docs/application/channel.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="understanding-application-initialization-and-the-applicationchannel">Understanding Application Initialization and the ApplicationChannel</h1>
+                <h1 id="starting-and-stopping-an-application">Starting and Stopping an Application</h1>
 <p>Learn how an application is initialized so it can serve requests.</p>
 <h2 id="overview">Overview</h2>
-<p>Applications fulfill HTTP requests using <a href="../../http/controller/">controllers</a>. A controller is an object that can handle a request in some way. In general, there are two types of controllers:</p>
+<p>Applications are started by running <code>aqueduct serve</code> or <code>dart bin/main.script</code> in an Aqueduct project directory. Either way, a number of threads are created and your <code>ApplicationChannel</code> subclass is instantiated on each thread. The channel subclass initializes application behavior which is often the following:</p>
 <ul>
-<li>Endpoint controllers fulfill a request (e.g., insert a row into a database and send a 200 OK response).</li>
-<li>Middleware controllers verify something about a request (e.g., verifying the Authorization header has valid credentials) or modify the response created by an endpoint controller (e.g., add a response header).</li>
+<li>reads configuration data for environment specific setup</li>
+<li>initializes service objects like <a href="../../db/">database connections</a></li>
+<li>sets up <a href="../../http/controller/">controller</a> objects to handle requests</li>
 </ul>
-<p>Controllers are linked together - starting with zero or more middleware and ending with an endpoint controller - to form a series of steps a request will go through. Every controller can either pass the request on to its linked controller, or respond to the request itself (in which case, the linked controller never sees the request). For example, an authorizer middleware will let a request pass if it has valid credentials, but will respond with a 401 Unauthorized response if the credentials are invalid. Some controllers, like <code>Router</code>, can have multiple controllers linked to it.</p>
-<p>These linked controllers are called <em>channels</em>. You create and link channels in a subclass of <code>ApplicationChannel</code>. There is one <code>ApplicationChannel</code> subclass per application.</p>
-<h3 id="building-the-applicationchannel">Building the ApplicationChannel</h3>
-<p>You must override <code>ApplicationChannel.entryPoint</code> to return the first controller of your application's channel. In the implementation of this method, every controller that will be used in the application is linked to either the entry point in some way. Here's an example:</p>
+<h3 id="initializing-applicationchannel-controllers">Initializing ApplicationChannel Controllers</h3>
+<p>Each application channel has an <em>entry point</em> - a controller that handles all incoming requests. This controller is often a router that routes requests to an appropriate handler. Every controller that will be used in the application is linked to either the entry point in some way. Here's an example:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">AppChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
   <span class="err">@</span><span class="n">override</span>
   <span class="n">Controller</span> <span class="kd">get</span> <span class="n">entryPoint</span> <span class="p">{</span>
@@ -1492,21 +1491,21 @@
 </pre></div>
 
 
-<p>This method links together a <code>Router</code>, <code>Authorizer</code> and <code>UserController</code> in that order. A request is first handled by the <code>Router</code>, and if its path matches '/users', it will be sent to an <code>Authorizer</code>. If the <code>Authorizer</code> verifies the request, the request is passed to a <code>UserController</code> for fulfillment.</p>
-<p>By contrast, if the request's path doesn't match '/users', the <code>Router</code> sends a 404 Not Found response and doesn't pass it to the <code>Authorizer</code>. Likewise, if the request isn't authorized, the <code>Authorizer</code> will send a 401 Unauthorized response and prevent it from being passed to the <code>UserController</code>. In other words, a request 'falls out' of the channel once a controller responds to it, so that no further controllers will receive it.</p>
+<p>This method links together a <code>Router</code> -&gt; <code>Authorizer</code> -&gt; <code>UserController</code>. Because the router is returned from this method, it handles all incoming requests. It will pass a request to an <code>Authorizer</code> when the request path is <code>/users</code>, which will then pass that request to a <code>UserController</code> if it is authorized.</p>
+<p>All controllers in your application will be linked to the entry point, either directly or indirectly.</p>
 <div class="admonition note">
 <p class="admonition-title">Linking Controllers</p>
 <p>The <code>link()</code> method takes a closure that creates a new controller. Some controllers get instantiated for each request, and others get reused for every request. See <a href="../../http/controller/">the chapter on controllers</a> for more information.</p>
 </div>
-<h2 id="providing-services-for-controllers">Providing Services for Controllers</h2>
+<h2 id="initializing-service-objects">Initializing Service Objects</h2>
 <p>Controllers often need to get (or create) information from outside the application. The most common example is database access, but it could be anything: another REST API, a connected device, etc. A <em>service object</em> encapsulates the information and behavior needed to work with an external system. This separation of concerns between controllers and service objects allows for better structured and more testable code.</p>
-<p>Service objects are passed to controllers through their constructor. A controller that needs a database connection, for example, would take a database connection object in its constructor and store it in a property. Services are created by overriding <code>prepare()</code> in an <code>ApplicationChannel</code>. Here's an example:</p>
+<p>Service objects are instantiated by overriding <code>ApplicationChannel.prepare</code>.</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">AppChannel</span> <span class="kd">extends</span> <span class="n">ApplicationChannel</span> <span class="p">{</span>
   <span class="n">PostgreSQLConnection</span> <span class="n">database</span><span class="p">;</span>
 
   <span class="err">@</span><span class="n">override</span>
   <span class="n">Future</span> <span class="n">prepare</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
-    <span class="n">database</span> <span class="o">=</span> <span class="k">new</span> <span class="n">PostgreSQLConnection</span><span class="p">();</span>
+    <span class="n">database</span> <span class="o">=</span> <span class="n">PostgreSQLConnection</span><span class="p">();</span>
   <span class="p">}</span>
 
   <span class="err">@</span><span class="n">override</span>
@@ -1524,14 +1523,13 @@
 </pre></div>
 
 
-<p>Notice that <code>database</code> is created in <code>prepare()</code>, stored in a property and passed to each new instance of <code>UserController</code>. The <code>prepare()</code> method is always executed before <code>entryPoint</code> is called.</p>
+<p>This methods gets invoked before <code>entryPoint</code>. You store created services in instance variables so that you can inject them into controllers in <code>entryPoint</code>. Services are injected through a controller's constructor arguments. For example, the above shows a <code>database</code> service that is injected into <code>UserController</code>.</p>
 <h2 id="application-channel-configuration">Application Channel Configuration</h2>
-<p>A benefit to using service objects is that they can be altered depending on the environment the application is running in without requiring changes to our controller code. For example, the database an application will connect to will be different when running in production than when running tests.</p>
-<p>Besides service configuration, there may be other types of initialization an application wants to take. Common tasks include adding codecs to <code>CodecRegistry</code> or setting the default <code>CORSPolicy</code>.</p>
-<p>All of this initialization is done in <code>prepare()</code>.</p>
-<p>Some of the information needed to configure an application will come from a configuration file or environment variables. This information is available through the <code>options</code> property of an application channel. For more information on using a configuration file and environment variables to guide initialization, see <a href="../configure/">this guide</a>.</p>
+<p>A benefit to using service objects is that they can be altered depending on the environment the application is running in without requiring changes to code. For example, the database an application will connect to will be different when running in production than when running tests.</p>
+<p>Besides service configuration, there may be other types of initialization an application wants to take. Common tasks include adding codecs to <code>CodecRegistry</code> or setting the default <code>CORSPolicy</code>. All of this initialization is done in <code>prepare()</code>.</p>
+<p>Some of the information needed to configure an application will come from a configuration file or environment variables. For more information on using a configuration file and environment variables to guide initialization, see <a href="../configure/">this guide</a>.</p>
 <h2 id="multi-threaded-aqueduct-applications">Multi-threaded Aqueduct Applications</h2>
-<p>Aqueduct applications can - and should - be spread across a number of threads. This allows an application to take advantage of multiple CPUs and serve requests faster. In Dart, threads are called <em>isolates</em>. An instance of your <code>ApplicationChannel</code> is created for each isolate. When your application receives an HTTP request, one of these instances receives the request and processes it. These instances are replicas of one another and it doesn't matter which instance processes the request. This isolate-channel architecture is very similar to running multiple servers that run the same application.</p>
+<p>Aqueduct applications can - and should - be spread across a number of threads. This allows an application to take advantage of multiple CPUs and serve requests faster. In Dart, threads are called <em>isolates</em>. An instance of your <code>ApplicationChannel</code> is created for each isolate. When your application receives an HTTP request, the request is passed to one of these instances' entry points. These instances are replicas of one another and it doesn't matter which instance processes the request. This isolate-channel architecture is very similar to running multiple servers that run the same application.</p>
 <p>The number of isolates an application will use is configurable at startup when using the <a href="../../cli/running/">aqueduct serve</a> command.</p>
 <p>An isolate can't share memory with another isolate. If an object is created on one isolate, it <em>cannot</em> be referenced by another. Therefore, each <code>ApplicationChannel</code> instance has its own set of services that are configured in the same way. This behavior also makes design patterns like connection pooling implicit; instead of a pool of database connections, there is a pool of application channels that each have their own database connection.</p>
 <p>This architecture intentionally prevents you from keeping state in your application. When you scale to multiple servers, you can trust that your cluster works correctly because you are already effectively clustering on a single server node. For further reading on writing multi-threaded applications, see <a href="../threading/">this guide</a>.</p>
@@ -1564,7 +1562,7 @@
 </pre></div>
 
 
-<p>It is important to note the behavior of isolates as it relates to Aqueduct and the initialization process. Each isolate has its own heap. <code>initializeApplication</code> is executed in the main isolate, whereas each <code>ApplicationChannel</code> is instantiated in its own isolate. This means that any values stored in <code>ApplicationOptions</code> must be safe to pass across isolates - i.e., they can't contain references to closures.</p>
+<p>Each isolate has its own heap. <code>initializeApplication</code> is executed in the main isolate, whereas each <code>ApplicationChannel</code> is instantiated in its own isolate. This means that any values stored in <code>ApplicationOptions</code> must be safe to pass across isolates - i.e., they can't contain references to closures.</p>
 <p>Additionally, any global variables or static properties that are set in the main isolate <em>will not be set</em> in other isolates. Configuration types like <code>CodecRegistry</code> do not share values across isolates, because they use a static property to hold a reference to the repository of codecs. Therefore, they must be set up in <code>ApplicationChannel.prepare()</code>.</p>
 <p>Also, because static methods cannot be overridden in Dart, it is important that you ensure the name and signature of <code>initializeApplication</code> exactly matches what is shown in these code samples. The analyzer can't help you here, unfortunately.</p>
 <h2 id="application-channel-file">Application Channel File</h2>
@@ -1633,13 +1631,13 @@
           </a>
         
         
-          <a href="../configure/" title="Environment Configuration" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../configure/" title="Configuring an Application and its Environment" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Environment Configuration
+                Configuring an Application and its Environment
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">
