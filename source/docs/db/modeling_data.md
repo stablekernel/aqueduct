@@ -36,7 +36,7 @@ A property in a table definition can optionally have a `Column` annotation. This
 | unique | `bool` | toggles whether column is unique across all rows | false (not unique) |
 | defaultValue | `String` | provides default value for new rows when value is undefined | null |
 | indexed | `bool` | whether an index should be created for the column | false (no index) |
-| omitByDefault | `bool` | whether this column should be fetched by default | true (fetch column value) |
+| omitByDefault | `bool` | whether this column should be left out by default | false (fetch column value) |
 | autoincrement | `bool` | whether this column's value is automatically generated from a series | false (not generated) |
 
 You must use either zero or one `Column` annotation per property, and you must set all behaviors in one annotation, e.g.:
@@ -404,7 +404,7 @@ class _Team {
 }
 
 // This type is a join table
-class _TeamPlayer extends ManagedObject<_TeamPlayer> implements _TeamPlayer {}
+class TeamPlayer extends ManagedObject<_TeamPlayer> implements _TeamPlayer {}
 class _TeamPlayer {
   @primaryKey
   int id;  
