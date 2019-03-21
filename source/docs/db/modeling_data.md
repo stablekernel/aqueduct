@@ -61,7 +61,7 @@ The data type of a column is inferred from the Dart type of the property as show
 Some types can be represented by many database types; for example, an integer can be stored as 2, 4 or 8 bytes. Use the `databaseType` of a `Column` annotation to specify:
 
 ```dart
-@Column(databaseType: ManagedType.bigInteger)
+@Column(databaseType: ManagedPropertyType.bigInteger)
 int bigNumber;
 ```
 
@@ -76,7 +76,7 @@ A primary key can be any supported data type, and it is always unique and indexe
 
 ```dart
 class _Article {
-  @primaryKey // equivalent to @Column(primaryKey: true, databaseType: ManagedType.bigInteger, autoincrement: true)
+  @primaryKey // equivalent to @Column(primaryKey: true, databaseType: ManagedPropertyType.bigInteger, autoincrement: true)
   int id;
 
   ...
