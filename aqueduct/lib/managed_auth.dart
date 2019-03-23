@@ -332,7 +332,7 @@ class ManagedAuthDelegate<T extends ManagedAuthResourceOwner>
   }
 
   @override
-  Future<T> getResourceOwner(AuthServer server, String username) {
+  Future<T> getResourceOwner(AuthServer server, String username, [List<AuthScope> requestedScopes]) {
     final query = Query<T>(context)
       ..where((o) => o.username).equalTo(username)
       ..returningProperties(

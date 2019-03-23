@@ -41,7 +41,7 @@ abstract class AuthServerDelegate {
   /// Every property declared by [ResourceOwner] must be non-null in the return value.
   ///
   /// [server] is the [AuthServer] invoking this method.
-  FutureOr<ResourceOwner> getResourceOwner(AuthServer server, String username);
+  FutureOr<ResourceOwner> getResourceOwner(AuthServer server, String username, [List<AuthScope> requestedScopes]);
 
   /// Must store [client].
   ///

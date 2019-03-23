@@ -188,7 +188,7 @@ class AuthServer implements AuthValidator, APIComponentDocumenter {
       }
     }
 
-    final authenticatable = await delegate.getResourceOwner(this, username);
+    final authenticatable = await delegate.getResourceOwner(this, username, requestedScopes);
     if (authenticatable == null) {
       throw AuthServerException(AuthRequestError.invalidGrant, client);
     }
@@ -340,7 +340,7 @@ class AuthServer implements AuthValidator, APIComponentDocumenter {
       throw AuthServerException(AuthRequestError.unauthorizedClient, client);
     }
 
-    final authenticatable = await delegate.getResourceOwner(this, username);
+    final authenticatable = await delegate.getResourceOwner(this, username, requestedScopes);
     if (authenticatable == null) {
       throw AuthServerException(AuthRequestError.accessDenied, client);
     }
