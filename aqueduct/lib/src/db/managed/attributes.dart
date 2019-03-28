@@ -100,17 +100,6 @@ class Relate {
   static const Symbol _deferredSymbol = #mdrDeferred;
 }
 
-/// Metadata to mark a property as a primary key.
-///
-/// This is a convenience for primary key, database type big integer, and autoincrementing. The corresponding property
-/// type must be [int]. The underlying database indexes and uniques the backing column.
-///
-/// The validator [Validate.constant] is automatically applied to this property.
-const Column primaryKey = Column(
-    primaryKey: true,
-    databaseType: ManagedPropertyType.bigInteger,
-    autoincrement: true);
-
 /// Metadata to describe the behavior of the underlying database column of a persistent property in [ManagedObject] subclasses.
 ///
 /// By default, declaring a property in a table definition will make it a database column
@@ -226,4 +215,60 @@ class Serialize {
 
   /// See constructor.
   final bool isAvailableAsOutput;
+}
+
+/// Primary key annotation for a ManagedObject table definition property.
+///
+/// This annotation is a convenience for the following annotation:
+///
+///         @Column(primaryKey: true, databaseType: ManagedPropertyType.bigInteger, autoincrement: true)
+///         int id;
+///
+/// The annotated property type must be [int].
+///
+/// The validator [Validate.constant] is automatically applied to a property with this annotation.
+const Column primaryKey = _ConvenienceColumn(
+  primaryKey: true,
+  databaseType: ManagedPropertyType.bigInteger,
+  autoincrement: true);
+
+/// This class exists so that pre-fabricated Columns (e.g. @primaryKey)
+/// can be differentiated from a @Column annotation
+/// that has the same values. Otherwise, Dart views the two as
+/// identical.
+class _ConvenienceColumn implements Column {
+  const _ConvenienceColumn(
+    {bool primaryKey = false,
+      ManagedPropertyType databaseType,
+      bool nullable = false,
+      String defaultValue,
+      bool unique = false,
+      bool indexed = false,
+      bool omitByDefault = false,
+      bool autoincrement = false})
+    : isPrimaryKey = primaryKey,
+      databaseType = databaseType,
+      isNullable = nullable,
+      defaultValue = defaultValue,
+      isUnique = unique,
+      isIndexed = indexed,
+      shouldOmitByDefault = omitByDefault,
+      autoincrement = autoincrement;
+
+  @override
+  final bool isPrimaryKey;
+  @override
+  final ManagedPropertyType databaseType;
+  @override
+  final bool isNullable;
+  @override
+  final String defaultValue;
+  @override
+  final bool isUnique;
+  @override
+  final bool isIndexed;
+  @override
+  final bool shouldOmitByDefault;
+  @override
+  final bool autoincrement;
 }

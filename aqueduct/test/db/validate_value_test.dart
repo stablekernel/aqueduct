@@ -751,7 +751,7 @@ class _AbsenceBelongsTo {
 
 class NonDefaultPK extends ManagedObject<_NonDefaultPK> implements _NonDefaultPK {}
 class _NonDefaultPK {
-  @Column(primaryKey: true)
+  @Column(primaryKey: true, databaseType: ManagedPropertyType.bigInteger, autoincrement: true)
   int id;
 
   String name;
