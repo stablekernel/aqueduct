@@ -95,10 +95,19 @@ class PostgreSQLPersistentStore extends PersistentStore
   PostgreSQLConnection _databaseConnection;
   Completer<PostgreSQLConnection> _pendingConnectionCompleter;
 
+
+  /// Retrieves the query execution context of this store.
+  ///
+  /// Use this property to execute raw queries on the underlying database connection.
+  /// If running a transaction, this context is the transaction context.
+  Future<PostgreSQLExecutionContext> get executionContext => getDatabaseConnection();
+
   /// Retrieves a connection to the database this instance connects to.
   ///
   /// If no connection exists, one will be created. A store will have no more than one connection at a time.
-  /// You should rarely need to access this connection directly.
+  ///
+  /// When executing queries, prefer to use [executionContext] instead. Failure to do so might result
+  /// in issues when executing queries during a transaction.
   Future<PostgreSQLConnection> getDatabaseConnection() async {
     if (_databaseConnection == null || _databaseConnection.isClosed) {
       if (_pendingConnectionCompleter == null) {
@@ -123,9 +132,6 @@ class PostgreSQLPersistentStore extends PersistentStore
     return _databaseConnection;
   }
 
-  Future<PostgreSQLExecutionContext> get _executionContext async =>
-      getDatabaseConnection();
-
   @override
   Query<T> newQuery<T extends ManagedObject>(
       ManagedContext context, ManagedEntity entity,
@@ -142,7 +148,7 @@ class PostgreSQLPersistentStore extends PersistentStore
       {Map<String, dynamic> substitutionValues, Duration timeout}) async {
     timeout ??= const Duration(seconds: 30);
     var now = DateTime.now().toUtc();
-    var dbConnection = await _executionContext;
+    var dbConnection = await executionContext;
     try {
       var rows = await dbConnection.query(sql,
           substitutionValues: substitutionValues,
@@ -284,7 +290,7 @@ class PostgreSQLPersistentStore extends PersistentStore
           PersistentStoreQueryReturnType.rows}) async {
     var now = DateTime.now().toUtc();
     try {
-      var dbConnection = await _executionContext;
+      var dbConnection = await executionContext;
       dynamic results;
 
       if (returnType == PersistentStoreQueryReturnType.rows) {
@@ -391,5 +397,5 @@ class _TransactionProxy extends PostgreSQLPersistentStore {
   final PostgreSQLExecutionContext context;
 
   @override
-  Future<PostgreSQLExecutionContext> get _executionContext async => context;
+  Future<PostgreSQLExecutionContext> get executionContext async => context;
 }

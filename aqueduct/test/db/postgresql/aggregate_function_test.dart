@@ -14,6 +14,28 @@ void main() {
     await ctx.close();
   });
 
+  group("In transaction", () {
+    setUp(() async {
+      objects = await populate(ctx);
+
+      /* Note that objects are sorted by id, and therefore all values are in sorted order */
+      objects.sort((t1, t2) => t1.id.compareTo(t2.id));
+    });
+
+    test("Reduce functions work correctly in a tansaction", () async {
+      int result;
+      await ctx.transaction((t) async {
+        await t.insertObject(Test()..i = 1..d = 2.0..dt = DateTime.now()..s = "x");
+        var q = Query<Test>(t);
+        result = await q.reduce.count();
+      });
+
+      expect(result, objects.length + 1);
+      result = await Query<Test>(ctx).reduce.count();
+      expect(result, objects.length + 1);
+    });
+  });
+
   group("Average", () {
     setUp(() async {
       objects = await populate(ctx);

@@ -1,3 +1,7 @@
+## 3.2.1
+
+- Fixes issue when using `QueryReduce` inside a transaction.
+
 ## 3.2.0
 
 - Adds `read` method to `Serializable` for filtering, ignoring or rejecting keys.
