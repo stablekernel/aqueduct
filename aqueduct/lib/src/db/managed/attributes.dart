@@ -127,7 +127,8 @@ class Column {
       bool unique = false,
       bool indexed = false,
       bool omitByDefault = false,
-      bool autoincrement = false})
+      bool autoincrement = false,
+      List<Validate> validators: const []})
       : isPrimaryKey = primaryKey,
         databaseType = databaseType,
         isNullable = nullable,
@@ -135,7 +136,8 @@ class Column {
         isUnique = unique,
         isIndexed = indexed,
         shouldOmitByDefault = omitByDefault,
-        autoincrement = autoincrement;
+        autoincrement = autoincrement,
+        validators = validators;
 
 
   /// When true, indicates that this property is the primary key.
@@ -188,6 +190,14 @@ class Column {
   ///
   /// When this flag is true, the database will generate a value for this column on insert.
   final bool autoincrement;
+
+  /// A list of validators to apply to the annotated property.
+  ///
+  /// Validators in this list will be applied to the annotated property.
+  ///
+  /// When the data model is compiled, this list is combined with any `Validate` annotations on the annotated property.
+  ///
+  final List<Validate> validators;
 }
 
 /// Annotation for [ManagedObject] properties that allows them to participate in [ManagedObject.asMap] and/or [ManagedObject.readFromMap].
@@ -227,48 +237,8 @@ class Serialize {
 /// The annotated property type must be [int].
 ///
 /// The validator [Validate.constant] is automatically applied to a property with this annotation.
-const Column primaryKey = _ConvenienceColumn(
+const Column primaryKey = Column(
   primaryKey: true,
   databaseType: ManagedPropertyType.bigInteger,
-  autoincrement: true);
-
-/// This class exists so that pre-fabricated Columns (e.g. @primaryKey)
-/// can be differentiated from a @Column annotation
-/// that has the same values. Otherwise, Dart views the two as
-/// identical.
-class _ConvenienceColumn implements Column {
-  const _ConvenienceColumn(
-    {bool primaryKey = false,
-      ManagedPropertyType databaseType,
-      bool nullable = false,
-      String defaultValue,
-      bool unique = false,
-      bool indexed = false,
-      bool omitByDefault = false,
-      bool autoincrement = false})
-    : isPrimaryKey = primaryKey,
-      databaseType = databaseType,
-      isNullable = nullable,
-      defaultValue = defaultValue,
-      isUnique = unique,
-      isIndexed = indexed,
-      shouldOmitByDefault = omitByDefault,
-      autoincrement = autoincrement;
-
-  @override
-  final bool isPrimaryKey;
-  @override
-  final ManagedPropertyType databaseType;
-  @override
-  final bool isNullable;
-  @override
-  final String defaultValue;
-  @override
-  final bool isUnique;
-  @override
-  final bool isIndexed;
-  @override
-  final bool shouldOmitByDefault;
-  @override
-  final bool autoincrement;
-}
+  autoincrement: true,
+  validators: [Validate.constant()]);
