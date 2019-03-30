@@ -128,7 +128,7 @@ class Column {
       bool indexed = false,
       bool omitByDefault = false,
       bool autoincrement = false,
-      List<Validate> validators: const []})
+      List<Validate> validators = const []})
       : isPrimaryKey = primaryKey,
         databaseType = databaseType,
         isNullable = nullable,

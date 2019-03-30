@@ -1,6 +1,5 @@
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/db/managed/attributes.dart' as managed_attributes;
 import 'package:aqueduct/src/db/managed/builders/entity_builder.dart';
 import 'package:aqueduct/src/db/managed/builders/validator_builder.dart';
 import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
