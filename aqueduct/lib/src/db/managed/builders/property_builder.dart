@@ -1,6 +1,5 @@
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/db/managed/attributes.dart' as managed_attributes;
 import 'package:aqueduct/src/db/managed/builders/entity_builder.dart';
 import 'package:aqueduct/src/db/managed/builders/validator_builder.dart';
 import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
@@ -16,13 +15,12 @@ class PropertyBuilder {
     name = _getName();
     type = _getType();
     _validators = validatorsFromDeclaration(declaration).map((v) => ValidatorBuilder(this, v)).toList();
+    if (column?.validators?.isNotEmpty ?? false) {
+      _validators.addAll(column.validators.map((v) => ValidatorBuilder(this, v)));
+    }
 
     if (type?.isEnumerated ?? false) {
       _validators.add(ValidatorBuilder(this, Validate.oneOf(type.enumerationMap.values.toList())));
-    }
-
-    if (identical(managed_attributes.primaryKey, column)) {
-      _validators.add(ValidatorBuilder(this, const Validate.constant()));
     }
   }
 

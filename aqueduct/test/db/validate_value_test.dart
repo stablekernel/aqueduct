@@ -18,7 +18,8 @@ void main() {
         PresenceBelongsTo,
         AbsenceBelongsTo,
         AbsenceHas,
-        NonDefaultPK
+        NonDefaultPK,
+        MultiValidate
       ]),
       DefaultPersistentStore());
 
@@ -444,6 +445,15 @@ void main() {
         expect(e.toString(), contains("_FH.d"));
       }
     });
+
+    test("Can combine both metadata and arguments to Column", () {
+      final x = MultiValidate()..canOnlyBe4 = 3;
+      expect(x.validate().isValid, false);
+      x.canOnlyBe4 = 5;
+      expect(x.validate().isValid, false);
+      x.canOnlyBe4 = 4;
+      expect(x.validate().isValid, true);
+    });
   });
 }
 
@@ -751,8 +761,18 @@ class _AbsenceBelongsTo {
 
 class NonDefaultPK extends ManagedObject<_NonDefaultPK> implements _NonDefaultPK {}
 class _NonDefaultPK {
-  @Column(primaryKey: true)
+  @Column(primaryKey: true, databaseType: ManagedPropertyType.bigInteger, autoincrement: true)
   int id;
 
   String name;
+}
+
+class MultiValidate extends ManagedObject<_MultiValidate> implements _MultiValidate {}
+class _MultiValidate {
+  @primaryKey
+  int id;
+
+  @Validate.compare(lessThan: 5)
+  @Column(validators: [Validate.compare(greaterThan: 3)])
+  int canOnlyBe4;
 }

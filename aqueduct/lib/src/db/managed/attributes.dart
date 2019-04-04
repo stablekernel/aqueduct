@@ -100,17 +100,6 @@ class Relate {
   static const Symbol _deferredSymbol = #mdrDeferred;
 }
 
-/// Metadata to mark a property as a primary key.
-///
-/// This is a convenience for primary key, database type big integer, and autoincrementing. The corresponding property
-/// type must be [int]. The underlying database indexes and uniques the backing column.
-///
-/// The validator [Validate.constant] is automatically applied to this property.
-const Column primaryKey = Column(
-    primaryKey: true,
-    databaseType: ManagedPropertyType.bigInteger,
-    autoincrement: true);
-
 /// Metadata to describe the behavior of the underlying database column of a persistent property in [ManagedObject] subclasses.
 ///
 /// By default, declaring a property in a table definition will make it a database column
@@ -138,7 +127,8 @@ class Column {
       bool unique = false,
       bool indexed = false,
       bool omitByDefault = false,
-      bool autoincrement = false})
+      bool autoincrement = false,
+      List<Validate> validators = const []})
       : isPrimaryKey = primaryKey,
         databaseType = databaseType,
         isNullable = nullable,
@@ -146,7 +136,8 @@ class Column {
         isUnique = unique,
         isIndexed = indexed,
         shouldOmitByDefault = omitByDefault,
-        autoincrement = autoincrement;
+        autoincrement = autoincrement,
+        validators = validators;
 
 
   /// When true, indicates that this property is the primary key.
@@ -199,6 +190,14 @@ class Column {
   ///
   /// When this flag is true, the database will generate a value for this column on insert.
   final bool autoincrement;
+
+  /// A list of validators to apply to the annotated property.
+  ///
+  /// Validators in this list will be applied to the annotated property.
+  ///
+  /// When the data model is compiled, this list is combined with any `Validate` annotations on the annotated property.
+  ///
+  final List<Validate> validators;
 }
 
 /// Annotation for [ManagedObject] properties that allows them to participate in [ManagedObject.asMap] and/or [ManagedObject.readFromMap].
@@ -227,3 +226,19 @@ class Serialize {
   /// See constructor.
   final bool isAvailableAsOutput;
 }
+
+/// Primary key annotation for a ManagedObject table definition property.
+///
+/// This annotation is a convenience for the following annotation:
+///
+///         @Column(primaryKey: true, databaseType: ManagedPropertyType.bigInteger, autoincrement: true)
+///         int id;
+///
+/// The annotated property type must be [int].
+///
+/// The validator [Validate.constant] is automatically applied to a property with this annotation.
+const Column primaryKey = Column(
+  primaryKey: true,
+  databaseType: ManagedPropertyType.bigInteger,
+  autoincrement: true,
+  validators: [Validate.constant()]);
