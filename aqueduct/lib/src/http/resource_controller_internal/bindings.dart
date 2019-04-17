@@ -198,8 +198,7 @@ class BoundBody extends BoundInput implements APIComponentDocumenter {
   void validate() {
     if (ignoreFilter != null || errorFilter != null || requiredFilter != null) {
       if (!(_isBoundToSerializable || _isBoundToListOfSerializable)) {
-        throw StateError(
-            'Filters can only be used on Serializable or List<Serializable>.');
+        throw 'Filters can only be used on Serializable or List<Serializable>.';
       }
     }
   }
