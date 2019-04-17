@@ -52,7 +52,7 @@ class PostgresQueryReduce<T extends ManagedObject>
     }
 
     final store = query.context.persistentStore as PostgreSQLPersistentStore;
-    final connection = await store.getDatabaseConnection();
+    final connection = await store.executionContext;
     try {
       final result = await connection
           .query(buffer.toString(), substitutionValues: builder.variables)
