@@ -230,6 +230,10 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
     // Add'l schema info
     prop.isNullable = isNullable;
     validators.forEach((v) => v.definition.constrainSchemaObject(context, prop));
+    
+    if (isEnumeratedValue) {
+      prop.enumerated = prop.enumerated.map(convertToPrimitiveValue).toList();
+    }
 
     if (isTransient) {
       if (transientStatus.isAvailableAsInput &&

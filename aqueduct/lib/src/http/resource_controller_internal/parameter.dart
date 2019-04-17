@@ -9,13 +9,12 @@ import 'internal.dart';
 class BoundParameter {
   BoundParameter(VariableMirror mirror, {this.isRequired = false})
       : symbol = mirror.simpleName {
-    final b = mirror.metadata
-        .firstWhere((im) => im.reflectee is Bind)
-        .reflectee as Bind;
+    final b = mirror.metadata.firstWhere((im) => im.reflectee is Bind).reflectee
+        as Bind;
 
     if (mirror.type is! ClassMirror) {
       throw StateError(
-        "Invalid binding '${MirrorSystem.getName(symbol)}' on '${getMethodAndClassName(mirror)}': "
+          "Invalid binding '${MirrorSystem.getName(symbol)}' on '${getMethodAndClassName(mirror)}': "
           "'${MirrorSystem.getName(mirror.type.simpleName)}'. Cannot bind dynamic parameters.");
     }
 
@@ -25,7 +24,7 @@ class BoundParameter {
       binding.validate();
     } catch (e) {
       throw StateError(
-        "Invalid binding '${MirrorSystem.getName(symbol)}' on '${getMethodAndClassName(mirror)}': "
+          "Invalid binding '${MirrorSystem.getName(symbol)}' on '${getMethodAndClassName(mirror)}': "
           "$e");
     }
   }

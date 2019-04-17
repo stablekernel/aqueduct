@@ -1,5 +1,6 @@
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
 
@@ -145,7 +146,7 @@ class BoundQueryParameter extends BoundInput {
   @override
   void validate() {
     final isListOfBools = boundType.isAssignableTo(reflectType(List)) &&
-      boundType.typeArguments.first.isAssignableTo(reflectType(bool));
+        boundType.typeArguments.first.isAssignableTo(reflectType(bool));
 
     if (boundType.isAssignableTo(reflectType(bool)) || isListOfBools) {
       return;
@@ -168,7 +169,7 @@ class BoundQueryParameter extends BoundInput {
   }
 }
 
-class BoundBody extends BoundInput {
+class BoundBody extends BoundInput implements APIComponentDocumenter {
   BoundBody(ClassMirror typeMirror,
       {List<String> ignore, List<String> error, List<String> required})
       : ignoreFilter = ignore,
@@ -186,13 +187,17 @@ class BoundBody extends BoundInput {
   @override
   APIParameterLocation get location => null;
 
+  bool get _isBoundToSerializable =>
+      boundType.isSubtypeOf(reflectType(Serializable));
+
+  bool get _isBoundToListOfSerializable =>
+      boundType.isSubtypeOf(reflectType(List)) &&
+      boundType.typeArguments.first.isSubtypeOf(reflectType(Serializable));
+
   @override
   void validate() {
     if (ignoreFilter != null || errorFilter != null || requiredFilter != null) {
-      if (!(boundType.isSubtypeOf(reflectType(Serializable)) ||
-          (boundType.isSubtypeOf(reflectType(List)) &&
-              boundType.typeArguments.first
-                  .isSubtypeOf(reflectType(Serializable))))) {
+      if (!(_isBoundToSerializable || _isBoundToListOfSerializable)) {
         throw 'Filters can only be used on Serializable or List<Serializable>.';
       }
     }
@@ -204,15 +209,14 @@ class BoundBody extends BoundInput {
       return null;
     }
 
-    if (boundType.isSubtypeOf(reflectType(Serializable))) {
+    if (_isBoundToSerializable) {
       final value =
           boundType.newInstance(const Symbol(""), []).reflectee as Serializable;
       value.read(request.body.as(),
           ignore: ignoreFilter, reject: errorFilter, require: requiredFilter);
 
       return value;
-    } else if (boundType.isSubtypeOf(reflectType(List)) &&
-        boundType.typeArguments.first.isSubtypeOf(reflectType(Serializable))) {
+    } else if (_isBoundToListOfSerializable) {
       final bodyList = request.body.as<List<Map<String, dynamic>>>();
       if (bodyList.isEmpty) {
         return boundType.newInstance(#from, [[]]).reflectee;
@@ -233,6 +237,55 @@ class BoundBody extends BoundInput {
     }
 
     return runtimeCast(request.body.as(), boundType);
+  }
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    if (_isBoundToSerializable) {
+      _registerType(context, boundType);
+    } else if (_isBoundToListOfSerializable) {
+      _registerType(context, boundType.typeArguments.first);
+    }
+  }
+
+  APISchemaObject getSchemaObjectReference(APIDocumentContext context) {
+    if (_isBoundToListOfSerializable) {
+      return APISchemaObject.array(
+          ofSchema: context.schema
+              .getObjectWithType(boundType.typeArguments.first.reflectedType));
+    } else if (_isBoundToSerializable) {
+      return context.schema.getObjectWithType(boundType.reflectedType);
+    }
+
+    return null;
+  }
+
+  static void _registerType(APIDocumentContext context, TypeMirror typeMirror) {
+    if (typeMirror is! ClassMirror) {
+      return;
+    }
+
+    final classMirror = typeMirror as ClassMirror;
+    if (!context.schema.hasRegisteredType(classMirror.reflectedType) &&
+        _shouldDocumentSerializable(classMirror.reflectedType)) {
+      final instance = classMirror.newInstance(const Symbol(''), []).reflectee
+          as Serializable;
+      context.schema.register(MirrorSystem.getName(classMirror.simpleName),
+          instance.documentSchema(context),
+          representation: classMirror.reflectedType);
+    }
+  }
+
+  static bool _shouldDocumentSerializable(Type type) {
+    final hierarchy = classHierarchyForClass(reflectClass(type));
+    final definingType = hierarchy.firstWhere(
+        (cm) => cm.staticMembers.containsKey(#shouldAutomaticallyDocument),
+        orElse: () => null);
+    if (definingType == null) {
+      return Serializable.shouldAutomaticallyDocument;
+    }
+    return definingType.getField(#shouldAutomaticallyDocument).reflectee
+        as bool;
   }
 }
 

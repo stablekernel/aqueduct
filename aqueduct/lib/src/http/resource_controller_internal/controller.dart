@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/auth/auth.dart';
+import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:logging/logging.dart';
 
 import '../request.dart';
@@ -26,7 +27,7 @@ class BoundOperation {
   }
 }
 
-class BoundController {
+class BoundController implements APIComponentDocumenter {
   BoundController(this.controllerType) {
     final allDeclarations = reflectClass(controllerType).declarations;
 
@@ -230,5 +231,17 @@ class BoundController {
           boundPositionalArgs.map((v) => v.value).toList()
       ..optionalMethodArguments = toSymbolMap(boundOptonalArgs)
       ..properties = toSymbolMap(boundProperties);
+  }
+
+  @override
+  void documentComponents(APIDocumentContext context) {
+    methods.forEach((b) {
+      [b.positionalParameters, b.optionalParameters]
+          .expand((b) => b.map((b) => b.binding))
+          .whereType<BoundBody>()
+          .forEach((b) {
+        b.documentComponents(context);
+      });
+    });
   }
 }

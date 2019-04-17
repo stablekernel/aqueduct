@@ -210,11 +210,14 @@ abstract class ResourceController extends Controller
             .firstWhere((p) => p.binding is BoundBody, orElse: () => null);
 
     if (boundBody != null) {
-      final type = boundBody.binding.boundType.reflectedType;
-      return APIRequestBody.schema(context.schema.getObjectWithType(type),
-          contentTypes: acceptedContentTypes
-              .map((ct) => "${ct.primaryType}/${ct.subType}"),
-          required: boundBody.isRequired);
+      final binding = boundBody.binding as BoundBody;
+      final ref = binding.getSchemaObjectReference(context);
+      if (ref != null) {
+        return APIRequestBody.schema(ref,
+            contentTypes: acceptedContentTypes
+                .map((ct) => "${ct.primaryType}/${ct.subType}"),
+            required: boundBody.isRequired);
+      }
     } else if (usesFormEncodedData) {
       final boundController = BoundController(runtimeType);
       final Map<String, APISchemaObject> props = boundController
@@ -296,35 +299,7 @@ abstract class ResourceController extends Controller
 
   @override
   void documentComponents(APIDocumentContext context) {
-    final binders = BoundController(runtimeType).methods;
-    binders.forEach((b) {
-      [b.positionalParameters, b.optionalParameters]
-          .expand((b) => b)
-          .where((b) => b.binding is BoundBody)
-          .map((b) => b.binding.boundType)
-          .forEach((b) {
-        final type = b.reflectedType;
-        if (!context.schema.hasRegisteredType(type) &&
-            _shouldDocumentSerializable(type)) {
-          final instance = b.newInstance(const Symbol(''), []).reflectee as Serializable;
-          context.schema.register(MirrorSystem.getName(b.simpleName),
-              instance.documentSchema(context),
-              representation: type);
-        }
-      });
-    });
-  }
-
-  bool _shouldDocumentSerializable(Type type) {
-    final hierarchy = classHierarchyForClass(reflectClass(type));
-    final definingType = hierarchy.firstWhere(
-        (cm) => cm.staticMembers.containsKey(#shouldAutomaticallyDocument),
-        orElse: () => null);
-    if (definingType == null) {
-      return Serializable.shouldAutomaticallyDocument;
-    }
-    return definingType.getField(#shouldAutomaticallyDocument).reflectee
-        as bool;
+    BoundController(runtimeType).documentComponents(context);
   }
 
   /// Adds [methodScopes] to [operationScopes] if they do not exist.
