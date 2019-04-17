@@ -1,6 +1,9 @@
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/openapi/documentable.dart';
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+import 'package:open_api/src/v3/request_body.dart';
 
 import '../request.dart';
 import '../resource_controller_bindings.dart';
@@ -9,13 +12,12 @@ import 'internal.dart';
 class BoundParameter {
   BoundParameter(VariableMirror mirror, {this.isRequired = false})
       : symbol = mirror.simpleName {
-    final b = mirror.metadata
-        .firstWhere((im) => im.reflectee is Bind)
-        .reflectee as Bind;
+    final b = mirror.metadata.firstWhere((im) => im.reflectee is Bind).reflectee
+        as Bind;
 
     if (mirror.type is! ClassMirror) {
       throw StateError(
-        "Invalid binding '${MirrorSystem.getName(symbol)}' on '${getMethodAndClassName(mirror)}': "
+          "Invalid binding '${MirrorSystem.getName(symbol)}' on '${getMethodAndClassName(mirror)}': "
           "'${MirrorSystem.getName(mirror.type.simpleName)}'. Cannot bind dynamic parameters.");
     }
 
@@ -25,7 +27,7 @@ class BoundParameter {
       binding.validate();
     } catch (e) {
       throw StateError(
-        "Invalid binding '${MirrorSystem.getName(symbol)}' on '${getMethodAndClassName(mirror)}': "
+          "Invalid binding '${MirrorSystem.getName(symbol)}' on '${getMethodAndClassName(mirror)}': "
           "$e");
     }
   }

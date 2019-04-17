@@ -158,6 +158,8 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   /// of the channel will add paths and operations to the document during this process.
   ///
   /// This method should not be overridden.
+  ///
+  /// [projectSpec] should contain the keys `name`, `version` and `description`.
   Future<APIDocument> documentAPI(Map<String, dynamic> projectSpec) async {
     final doc = APIDocument()..components = APIComponents();
     final root = entryPoint;
