@@ -146,7 +146,7 @@ class BoundQueryParameter extends BoundInput {
   @override
   void validate() {
     final isListOfBools = boundType.isAssignableTo(reflectType(List)) &&
-      boundType.typeArguments.first.isAssignableTo(reflectType(bool));
+        boundType.typeArguments.first.isAssignableTo(reflectType(bool));
 
     if (boundType.isAssignableTo(reflectType(bool)) || isListOfBools) {
       return;
@@ -187,15 +187,19 @@ class BoundBody extends BoundInput implements APIComponentDocumenter {
   @override
   APIParameterLocation get location => null;
 
-  bool get _isBoundToSerializable => boundType.isSubtypeOf(reflectType(Serializable));
-  bool get _isBoundToListOfSerializable => boundType.isSubtypeOf(reflectType(List)) &&
-    boundType.typeArguments.first.isSubtypeOf(reflectType(Serializable));
+  bool get _isBoundToSerializable =>
+      boundType.isSubtypeOf(reflectType(Serializable));
+
+  bool get _isBoundToListOfSerializable =>
+      boundType.isSubtypeOf(reflectType(List)) &&
+      boundType.typeArguments.first.isSubtypeOf(reflectType(Serializable));
 
   @override
   void validate() {
     if (ignoreFilter != null || errorFilter != null || requiredFilter != null) {
       if (!(_isBoundToSerializable || _isBoundToListOfSerializable)) {
-        throw StateError('Filters can only be used on Serializable or List<Serializable>.');
+        throw StateError(
+            'Filters can only be used on Serializable or List<Serializable>.');
       }
     }
   }
@@ -247,7 +251,9 @@ class BoundBody extends BoundInput implements APIComponentDocumenter {
 
   APISchemaObject getSchemaObjectReference(APIDocumentContext context) {
     if (_isBoundToListOfSerializable) {
-      return APISchemaObject.array(ofSchema: context.schema.getObjectWithType(boundType.typeArguments.first.reflectedType));
+      return APISchemaObject.array(
+          ofSchema: context.schema
+              .getObjectWithType(boundType.typeArguments.first.reflectedType));
     } else if (_isBoundToSerializable) {
       return context.schema.getObjectWithType(boundType.reflectedType);
     }
@@ -262,13 +268,12 @@ class BoundBody extends BoundInput implements APIComponentDocumenter {
 
     final classMirror = typeMirror as ClassMirror;
     if (!context.schema.hasRegisteredType(classMirror.reflectedType) &&
-      _shouldDocumentSerializable(classMirror.reflectedType)) {
-      final instance = classMirror
-        .newInstance(const Symbol(''), [])
-        .reflectee as Serializable;
+        _shouldDocumentSerializable(classMirror.reflectedType)) {
+      final instance = classMirror.newInstance(const Symbol(''), []).reflectee
+          as Serializable;
       context.schema.register(MirrorSystem.getName(classMirror.simpleName),
-        instance.documentSchema(context),
-        representation: classMirror.reflectedType);
+          instance.documentSchema(context),
+          representation: classMirror.reflectedType);
     }
   }
 
@@ -276,12 +281,12 @@ class BoundBody extends BoundInput implements APIComponentDocumenter {
     final hierarchy = classHierarchyForClass(reflectClass(type));
     final definingType = hierarchy.firstWhere(
         (cm) => cm.staticMembers.containsKey(#shouldAutomaticallyDocument),
-      orElse: () => null);
+        orElse: () => null);
     if (definingType == null) {
       return Serializable.shouldAutomaticallyDocument;
     }
     return definingType.getField(#shouldAutomaticallyDocument).reflectee
-    as bool;
+        as bool;
   }
 }
 

@@ -17,16 +17,19 @@ abstract class Serializable {
   APISchemaObject documentSchema(APIDocumentContext context) {
     final mirror = reflect(this).type;
 
-    final obj = APISchemaObject.object({})..title = MirrorSystem.getName(mirror.simpleName);
+    final obj = APISchemaObject.object({})
+      ..title = MirrorSystem.getName(mirror.simpleName);
     try {
       for (final property
           in mirror.declarations.values.whereType<VariableMirror>()) {
         final propName = MirrorSystem.getName(property.simpleName);
-        obj.properties[propName] = APIComponentDocumenter.documentVariable(context, property);
+        obj.properties[propName] =
+            APIComponentDocumenter.documentVariable(context, property);
       }
     } catch (e) {
       obj.additionalPropertyPolicy = APISchemaAdditionalPropertyPolicy.freeForm;
-      obj.description = "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}': ${e.toString()}";
+      obj.description =
+          "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}': ${e.toString()}";
     }
 
     return obj;
@@ -57,7 +60,10 @@ abstract class Serializable {
   ///     var values = json.decode(await request.body.decode());
   ///     var user = User()
   ///       ..read(values, ignore: ["id"]);
-  void read(Map<String, dynamic> object, {Iterable<String> ignore, Iterable<String> reject, Iterable<String> require}) {
+  void read(Map<String, dynamic> object,
+      {Iterable<String> ignore,
+      Iterable<String> reject,
+      Iterable<String> require}) {
     if (ignore == null && reject == null && require == null) {
       readFromMap(object);
       return;
@@ -77,7 +83,8 @@ abstract class Serializable {
     });
 
     if (stillRequired?.isNotEmpty ?? false) {
-      throw SerializableException(["missing required input key(s): '${stillRequired.join(", ")}'"]);
+      throw SerializableException(
+          ["missing required input key(s): '${stillRequired.join(", ")}'"]);
     }
 
     readFromMap(copy);
@@ -108,8 +115,10 @@ class SerializableException implements HandlerException {
 
   @override
   Response get response {
-    return Response.badRequest(
-      body: {"error": "entity validation failed", "reasons": reasons ?? "undefined"});
+    return Response.badRequest(body: {
+      "error": "entity validation failed",
+      "reasons": reasons ?? "undefined"
+    });
   }
 
   @override

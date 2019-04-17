@@ -214,10 +214,9 @@ abstract class ResourceController extends Controller
       final ref = binding.getSchemaObjectReference(context);
       if (ref != null) {
         return APIRequestBody.schema(ref,
-          contentTypes: acceptedContentTypes
-            .map((ct)
-          => "${ct.primaryType}/${ct.subType}"),
-          required: boundBody.isRequired);
+            contentTypes: acceptedContentTypes
+                .map((ct) => "${ct.primaryType}/${ct.subType}"),
+            required: boundBody.isRequired);
       }
     } else if (usesFormEncodedData) {
       final boundController = BoundController(runtimeType);
