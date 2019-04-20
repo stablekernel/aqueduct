@@ -215,7 +215,7 @@ The following operation method binds the path variable 'id' to the parameter `ci
 ```dart
 class CityController extends ResourceController {
   @Operation.get('id')
-  Future<Response> getCityByID(@Bind.query('id') String cityID) async {
+  Future<Response> getCityByID(@Bind.path('id') String cityID) async {
     return new Response.ok(cities.where((c) => c.id == cityID).toList());
   }
 }
