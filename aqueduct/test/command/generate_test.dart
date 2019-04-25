@@ -104,6 +104,45 @@ class _TestObject {
     expect(res, 0);
   });
 
+  test("Can specify migration name other than default", () async {
+    await terminal.getDependencies(offline: true);
+
+    var res = await terminal
+        .runAqueductCommand("db", ["generate", "--name", "InitializeDatabase"]);
+    expect(res, 0);
+    terminal.clearOutput();
+
+    // Let's add an index
+    terminal.modifyFile("lib/application_test.dart", (prev) {
+      return prev.replaceFirst(
+          "String foo;", "@Column(indexed: true) String foo;");
+    });
+
+    res = await terminal
+        .runAqueductCommand("db", ["generate", "--name", "add_index"]);
+    expect(res, 0);
+    terminal.clearOutput();
+
+    expect(
+        terminal.defaultMigrationDirectory
+            .listSync()
+            .where((fse) => !fse.uri.pathSegments.last.startsWith(".")),
+        hasLength(2));
+    expect(
+        File.fromUri(terminal.defaultMigrationDirectory.uri
+                .resolve("00000001_initialize_database.migration.dart"))
+            .existsSync(),
+        true);
+    expect(
+        File.fromUri(terminal.defaultMigrationDirectory.uri
+                .resolve("00000002_add_index.migration.dart"))
+            .existsSync(),
+        true);
+
+    res = await terminal.runAqueductCommand("db", ["validate"]);
+    expect(res, 0);
+  });
+
   test("Can specify migration directory other than default, relative path",
       () async {
     await terminal.getDependencies(offline: true);
