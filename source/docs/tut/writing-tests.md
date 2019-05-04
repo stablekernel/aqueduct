@@ -6,7 +6,7 @@ We will continue to build on the last chapter's project, `heroes`, by writing au
 
 Right now, our application hardcodes its database connection information. This is bad because we want to use a different database when we're testing, running locally and running in production. It's also bad because we'd have to check our database password into version control.
 
-We can create an configuration file to store values like database connection information, and use a different configuration file for each environment. The `heroes` application needs to be able to configure the username, password, host port and name of the database it uses. Open the file `config.yaml`, which is empty, and enter the following key-value pairs:
+We can create a configuration file to store values like database connection information, and use a different configuration file for each environment. The `heroes` application needs to be able to configure the username, password, host port and name of the database it uses. Open the file `config.yaml`, which is empty, and enter the following key-value pairs:
 
 ```yaml
 database:
@@ -79,7 +79,7 @@ This file has the expected structure, but has different values for the database 
 
 ## Testing in Aqueduct
 
-So far, we've tested our application by using a web application. This isn't a good way to test an application. A better way is to write automated test cases. An automated test case not only tests the code you are working on, but makes sure the code you've worked on the past continues to work as you make changes. A good development practice is to configure [TravisCI](https://travis-ci.com) to run all of your tests for every code change.
+So far, we've tested our application by using a web application. This isn't a good way to test an application. A better way is to write automated test cases. An automated test case not only tests the code you are working on, but makes sure the code you've worked on in the past continues to work as you make changes. A good development practice is to configure [TravisCI](https://travis-ci.com) to run all of your tests for every code change.
 
 Because testing is so important, there is a package for writing Aqueduct application tests. In this chapter, we will use this package to make sure our hero endpoints are working correctly.
 
