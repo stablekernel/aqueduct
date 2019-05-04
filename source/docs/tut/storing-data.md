@@ -44,7 +44,7 @@ Future<Response> createHero() async {
 }
 ```
 
-There's three important things happening here: this method decodes the JSON object from the request's body, constructs a query that inserts a new hero with the name in the JSON object, and then returns the newly inserted hero in the response.
+There are three important things happening here: this method decodes the JSON object from the request's body, constructs a query that inserts a new hero with the name in the JSON object, and then returns the newly inserted hero in the response.
 
 If the decoded body doesn't match the type of the variable or parameter it is being assigned to, a status code 400 exception is thrown. This means that decoding the body in this way checks that the body is the expected format and returns an error to the client on your behalf if it is not. For example, if someone posts a list of JSON objects, they will get a 400 Bad Request response because we expect a single JSON object in our method.
 
