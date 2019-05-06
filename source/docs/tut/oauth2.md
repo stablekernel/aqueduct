@@ -176,7 +176,7 @@ import 'package:heroes/controller/register_controller.dart';
       .route('/heroes/[:id]')
       .link(() => HeroesController(context));
 
-      router
+    router
       .route('/register')
       .link(() => RegisterController(context, authServer));
 
@@ -296,13 +296,13 @@ router
 An `Authorizer` protects a channel from unauthorized requests by validating the `Authorization` header of a request. When created with `Authorizer.bearer`, it ensures that the authorization header contains a valid access token. Restart your application and try and access the `/heroes` endpoint without including any authorization:
 
 ```
-curl -X GET --verbose http://localhost:8080/heroes
+curl -X GET --verbose http://localhost:8888/heroes
 ```
 
 You'll get a 401 Unauthorized response. Now, include your access token in a bearer authorization header (note that your token will be different):
 
 ```
-curl -X GET http://localhost:8080/heroes -H 'Authorization: Bearer 687PWKFHRTQ9MveQ2dKvP95D4cWie1gh'
+curl -X GET http://localhost:8888/heroes -H 'Authorization: Bearer 687PWKFHRTQ9MveQ2dKvP95D4cWie1gh'
 ```
 
 You'll get back your list of heroes!
