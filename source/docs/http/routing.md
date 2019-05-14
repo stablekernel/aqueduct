@@ -81,7 +81,7 @@ route("/users/[:id]")...;
 // Matches /users/:userId/posts and /users/:userId/posts/:postId
 route("/users/:userId/posts/[:postId]")...;
 
-// Matches /users/:userId/posts and /users/:userId/notes/:noteId
+// Matches /users/:userId/notes and /users/:userId/notes/:noteId
 route("/users/:userId/notes/[:noteId]")...;
 ```
 
