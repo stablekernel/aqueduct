@@ -1,11 +1,12 @@
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/compilers/orm/data_model_builder.dart';
 import 'package:aqueduct/src/db/managed/attributes.dart';
 import 'package:aqueduct/src/db/managed/data_model.dart';
-import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
+import 'package:aqueduct/src/compilers/orm/entity_mirrors.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/object.dart';
-import 'package:aqueduct/src/db/managed/builders/property_builder.dart';
+import 'package:aqueduct/src/compilers/orm/property_builder.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:logging/logging.dart';
@@ -16,13 +17,13 @@ class EntityBuilder {
         tableDefinitionType = _getTableDefinitionForType(type),
         metadata = firstMetadataOfType(_getTableDefinitionForType(type)) {
     name = _getName();
-    entity = ManagedEntity(dataModel, name, instanceType, tableDefinitionType)
+    entity = ManagedEntity(dataModel, name, type, tableDefinitionType.reflectedType)
       ..validators = [];
     properties = _getProperties();
     primaryKeyProperty = properties
         .firstWhere((p) => p.column?.isPrimaryKey ?? false, orElse: () => null);
     if (primaryKeyProperty == null) {
-      throw ManagedDataModelError.noPrimaryKey(entity);
+      throw ManagedDataModelErrorImpl.noPrimaryKey(entity);
     }
   }
 
@@ -55,33 +56,33 @@ class EntityBuilder {
   void validate(List<EntityBuilder> entityBuilders) {
     // Check that we have a default constructor
     if (!classHasDefaultConstructor(instanceType)) {
-      throw ManagedDataModelError.noConstructor(instanceType);
+      throw ManagedDataModelErrorImpl.noConstructor(instanceType);
     }
 
     // Check that we only have one primary key
     if (properties.where((pb) => pb.primaryKey).length != 1) {
-      throw ManagedDataModelError.noPrimaryKey(entity);
+      throw ManagedDataModelErrorImpl.noPrimaryKey(entity);
     }
 
     // Check that our unique property set is valid
     if (uniquePropertySet != null) {
       if (uniquePropertySet.isEmpty) {
-        throw ManagedDataModelError.emptyEntityUniqueProperties(
+        throw ManagedDataModelErrorImpl.emptyEntityUniqueProperties(
             tableDefinitionTypeName);
       } else if (uniquePropertySet.length == 1) {
-        throw ManagedDataModelError.singleEntityUniqueProperty(
+        throw ManagedDataModelErrorImpl.singleEntityUniqueProperty(
             tableDefinitionTypeName, metadata.uniquePropertySet.first);
       }
 
       uniquePropertySet.forEach((key) {
         final prop = properties.firstWhere((p) => p.name == key, orElse: () {
-          throw ManagedDataModelError.invalidEntityUniqueProperty(
+          throw ManagedDataModelErrorImpl.invalidEntityUniqueProperty(
               tableDefinitionTypeName, Symbol(key));
         });
 
         if (prop.isRelationship &&
             prop.relationshipType != ManagedRelationshipType.belongsTo) {
-          throw ManagedDataModelError.relationshipEntityUniqueProperty(
+          throw ManagedDataModelErrorImpl.relationshipEntityUniqueProperty(
               tableDefinitionTypeName, Symbol(key));
         }
       });
@@ -95,7 +96,7 @@ class EntityBuilder {
               check.relatedProperty == p.relatedProperty)
           .toList();
       if (relationshipsWithThisInverse.length > 1) {
-        throw ManagedDataModelError.duplicateInverse(
+        throw ManagedDataModelErrorImpl.duplicateInverse(
             tableDefinitionTypeName,
             p.relatedProperty.name,
             relationshipsWithThisInverse.map((r) => r.name).toList());
@@ -152,7 +153,7 @@ class EntityBuilder {
     if (candidates.length == 1) {
       return candidates.first;
     } else if (candidates.isEmpty) {
-      throw ManagedDataModelError.missingInverse(
+      throw ManagedDataModelErrorImpl.missingInverse(
           foreignKey.parent.tableDefinitionTypeName,
           foreignKey.parent.instanceTypeName,
           foreignKey.declaration.simpleName,

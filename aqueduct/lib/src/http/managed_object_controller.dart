@@ -127,8 +127,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.post()
   Future<Response> createObject() async {
-    InstanceType instance = _query.entity.instanceType
-        .newInstance(const Symbol(""), []).reflectee as InstanceType;
+    final instance = _query.entity.instanceOf() as InstanceType;
     instance.readFromMap(request.body.as());
     _query.values = instance;
 
@@ -211,8 +210,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
         _getIdentifierFromPath(id, _query.entity.properties[primaryKey]);
     _query.where((o) => o[primaryKey]).equalTo(parsedIdentifier);
 
-    InstanceType instance = _query.entity.instanceType
-        .newInstance(const Symbol(""), []).reflectee as InstanceType;
+    final instance = _query.entity.instanceOf() as InstanceType;
     instance.readFromMap(request.body.as());
     _query.values = instance;
 

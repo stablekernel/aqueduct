@@ -1,8 +1,9 @@
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/db/managed/builders/entity_builder.dart';
-import 'package:aqueduct/src/db/managed/builders/validator_builder.dart';
-import 'package:aqueduct/src/db/managed/entity_mirrors.dart';
+import 'package:aqueduct/src/compilers/orm/data_model_builder.dart';
+import 'package:aqueduct/src/compilers/orm/entity_builder.dart';
+import 'package:aqueduct/src/compilers/orm/validator_builder.dart';
+import 'package:aqueduct/src/compilers/orm/entity_mirrors.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
@@ -82,18 +83,18 @@ class PropertyBuilder {
     if (type == null) {
       if (!isRelationship ||
           relationshipType == ManagedRelationshipType.belongsTo) {
-        throw ManagedDataModelError.invalidType(
+        throw ManagedDataModelErrorImpl.invalidType(
             declaration.owner.simpleName, declaration.simpleName);
       }
     }
 
     if (isRelationship) {
       if (column != null) {
-        throw ManagedDataModelError.invalidMetadata(
+        throw ManagedDataModelErrorImpl.invalidMetadata(
             parent.tableDefinitionTypeName, declaration.simpleName);
       }
       if (relate != null && relatedProperty.relate != null) {
-        throw ManagedDataModelError.dualMetadata(
+        throw ManagedDataModelErrorImpl.dualMetadata(
             parent.tableDefinitionTypeName,
             declaration.simpleName,
             relatedProperty.parent.tableDefinitionTypeName,
@@ -108,7 +109,7 @@ class PropertyBuilder {
 
     if (relate?.onDelete == DeleteRule.nullify &&
         (relate?.isRequired ?? false)) {
-      throw ManagedDataModelError.incompatibleDeleteRule(
+      throw ManagedDataModelErrorImpl.incompatibleDeleteRule(
           parent.tableDefinitionTypeName, declaration.simpleName);
     }
 
@@ -125,11 +126,11 @@ class PropertyBuilder {
           parent.entity,
           name,
           type,
-          (declaration as VariableMirror).type as ClassMirror,
+          ((declaration as VariableMirror).type as ClassMirror).reflectedType,
           destinationEntity,
           deleteRule,
           relationshipType,
-          Symbol(relatedProperty.name),
+          relatedProperty.name,
           unique: unique,
           indexed: true,
           nullable: nullable,
@@ -137,7 +138,7 @@ class PropertyBuilder {
           validators: validators.map((v) => v.managedValidator).toList());
     } else {
       attribute = ManagedAttributeDescription(
-          parent.entity, name, type, getDeclarationType(),
+          parent.entity, name, type, getDeclarationType().reflectedType,
           primaryKey: primaryKey,
           transientStatus: serialize,
           defaultValue: defaultValue,
@@ -219,7 +220,7 @@ class PropertyBuilder {
     if (!relate.isDeferred) {
       return builders.firstWhere((b) => b.instanceType == expectedInstanceType,
           orElse: () {
-        throw ManagedDataModelError.noDestinationEntity(
+        throw ManagedDataModelErrorImpl.noDestinationEntity(
             parent.tableDefinitionTypeName,
             declaration.simpleName,
             expectedInstanceType.simpleName);
@@ -231,7 +232,7 @@ class PropertyBuilder {
     }).toList();
 
     if (possibleEntities.length > 1) {
-      throw ManagedDataModelError.multipleDestinationEntities(
+      throw ManagedDataModelErrorImpl.multipleDestinationEntities(
           parent.tableDefinitionTypeName,
           declaration.simpleName,
           possibleEntities.map((e) => e.instanceTypeName).toList(),
@@ -240,7 +241,7 @@ class PropertyBuilder {
       return possibleEntities.first;
     }
 
-    throw ManagedDataModelError.noDestinationEntity(
+    throw ManagedDataModelErrorImpl.noDestinationEntity(
         parent.tableDefinitionTypeName,
         declaration.simpleName,
         expectedInstanceType.simpleName);

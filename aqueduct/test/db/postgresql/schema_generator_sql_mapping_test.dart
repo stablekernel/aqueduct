@@ -288,7 +288,7 @@ void main() {
           dm.entityForType(GeneratorModel2),
           DeleteRule.cascade,
           ManagedRelationshipType.belongsTo,
-          Symbol(dm.entityForType(GeneratorModel2).primaryKey),
+          dm.entityForType(GeneratorModel2).primaryKey,
           indexed: true,
           nullable: true);
       var cmds = psc.addColumn(

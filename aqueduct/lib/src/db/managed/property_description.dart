@@ -105,7 +105,7 @@ abstract class ManagedPropertyDescription {
   dynamic convertFromPrimitiveValue(dynamic value);
 
   /// The type of the variable that this property represents.
-  final ClassMirror declaredType;
+  final Type declaredType;
 
   /// Returns an [APISchemaObject] that represents this property.
   ///
@@ -151,7 +151,7 @@ abstract class ManagedPropertyDescription {
 /// adds two properties to [ManagedPropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class ManagedAttributeDescription extends ManagedPropertyDescription {
   ManagedAttributeDescription(ManagedEntity entity, String name,
-      ManagedType type, ClassMirror declaredType,
+      ManagedType type, Type declaredType,
       {Serialize transientStatus,
       bool primaryKey = false,
       String defaultValue,
@@ -173,7 +173,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
             validators: validators);
 
   ManagedAttributeDescription.transient(ManagedEntity entity, String name,
-      ManagedType type, ClassMirror declaredType, this.transientStatus)
+      ManagedType type, Type declaredType, this.transientStatus)
       : isPrimaryKey = false,
         defaultValue = null,
         super(entity, name, type, declaredType,
@@ -363,7 +363,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       ManagedEntity entity,
       String name,
       ManagedType type,
-      ClassMirror declaredType,
+      Type declaredType,
       this.destinationEntity,
       this.deleteRule,
       this.relationshipType,
@@ -390,11 +390,11 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   final ManagedRelationshipType relationshipType;
 
   /// The name of the [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
-  final Symbol inverseKey;
+  final String inverseKey;
 
   /// The [ManagedRelationshipDescription] on [destinationEntity] that represents the inverse of this relationship.
   ManagedRelationshipDescription get inverse =>
-      destinationEntity.relationships[MirrorSystem.getName(inverseKey)];
+      destinationEntity.relationships[inverseKey];
 
   /// Whether or not this relationship is on the belonging side.
   bool get isBelongsTo => relationshipType == ManagedRelationshipType.belongsTo;
@@ -412,7 +412,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       type = type.typeArguments.first;
     }
 
-    return type.isAssignableTo(destinationEntity.instanceType);
+    return type.isAssignableTo(reflectType(destinationEntity.instanceType));
   }
 
   @override
@@ -452,9 +452,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
         throw ValidationException(["invalid input type for '$name'"]);
       }
 
-      final instance = destinationEntity.instanceType
-          .newInstance(const Symbol(""), []).reflectee as ManagedObject;
-      instance.readFromMap(value as Map<String, dynamic>);
+      final instance = destinationEntity.instanceOf()..readFromMap(value as Map<String, dynamic>);
 
       return instance;
     }
@@ -469,18 +467,16 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       if (m is! Map<String, dynamic>) {
         throw ValidationException(["invalid input type for '$name'"]);
       }
-      final instance = destinationEntity.instanceType
-          .newInstance(const Symbol(""), []).reflectee as ManagedObject;
-      instance.readFromMap(m as Map<String, dynamic>);
+      final instance = destinationEntity.instanceOf()..readFromMap(m as Map<String, dynamic>);
       return instance;
     };
-    return declaredType.newInstance(#fromDynamic, [value.map(instantiator)]).reflectee;
+    return destinationEntity.setOf((value as List).map(instantiator));
   }
 
   @override
   APISchemaObject documentSchemaObject(APIDocumentContext context) {
     final relatedType = context.schema
-        .getObjectWithType(inverse.entity.instanceType.reflectedType);
+        .getObjectWithType(inverse.entity.instanceType);
 
     if (relationshipType == ManagedRelationshipType.hasMany) {
       return APISchemaObject.array(ofSchema: relatedType)
@@ -513,6 +509,6 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
         relTypeString = "has-a";
         break;
     }
-    return "- $name -> '${destinationEntity.name}' | Type: $relTypeString | Inverse: ${MirrorSystem.getName(inverseKey)}";
+    return "- $name -> '${destinationEntity.name}' | Type: $relTypeString | Inverse: ${inverseKey}";
   }
 }

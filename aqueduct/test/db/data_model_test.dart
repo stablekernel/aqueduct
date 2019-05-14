@@ -22,20 +22,20 @@ void main() {
 
     test("Entities have appropriate types", () {
       var entity = dataModel.entityForType(User);
-      expect(reflectClass(User) == entity.instanceType, true);
-      expect(reflectClass(_User) == entity.tableDefinition, true);
+      expect(User == entity.instanceType, true);
+      expect(_User == entity.tableDefinition, true);
 
       entity = dataModel.entityForType(Item);
-      expect(reflectClass(Item) == entity.instanceType, true);
-      expect(reflectClass(_Item) == entity.tableDefinition, true);
+      expect(Item == entity.instanceType, true);
+      expect(_Item == entity.tableDefinition, true);
 
       entity = dataModel.entityForType(Manager);
-      expect(reflectClass(Manager) == entity.instanceType, true);
-      expect(reflectClass(_Manager) == entity.tableDefinition, true);
+      expect(Manager == entity.instanceType, true);
+      expect(_Manager == entity.tableDefinition, true);
 
       entity = dataModel.entityForType(EnumObject);
-      expect(reflectClass(EnumObject) == entity.instanceType, true);
-      expect(reflectClass(_EnumObject) == entity.tableDefinition, true);
+      expect(EnumObject == entity.instanceType, true);
+      expect(_EnumObject == entity.tableDefinition, true);
     });
 
     test("Non-existent entity is null", () {
@@ -135,12 +135,12 @@ void main() {
       var relDesc = entity.relationships["user"];
       expect(relDesc is ManagedRelationshipDescription, true);
       expect(relDesc.isNullable, false);
-      expect(relDesc.inverseKey, #items);
+      expect(relDesc.inverseKey, "items");
       expect(
           relDesc.inverse ==
               dataModel
                   .entityForType(User)
-                  .relationships[MirrorSystem.getName(relDesc.inverseKey)],
+                  .relationships[relDesc.inverseKey],
           true);
       expect(relDesc.deleteRule, DeleteRule.cascade);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
@@ -150,12 +150,12 @@ void main() {
       relDesc = entity.relationships["worker"];
       expect(relDesc is ManagedRelationshipDescription, true);
       expect(relDesc.isNullable, true);
-      expect(relDesc.inverseKey, #manager);
+      expect(relDesc.inverseKey, "manager");
       expect(
           relDesc.inverse ==
               dataModel
                   .entityForType(User)
-                  .relationships[MirrorSystem.getName(relDesc.inverseKey)],
+                  .relationships[relDesc.inverseKey],
           true);
       expect(relDesc.deleteRule, DeleteRule.nullify);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
@@ -164,12 +164,12 @@ void main() {
       entity = dataModel.entityForType(User);
       relDesc = entity.relationships["manager"];
       expect(relDesc is ManagedRelationshipDescription, true);
-      expect(relDesc.inverseKey, #worker);
+      expect(relDesc.inverseKey, "worker");
       expect(
           relDesc.inverse ==
               dataModel
                   .entityForType(Manager)
-                  .relationships[MirrorSystem.getName(relDesc.inverseKey)],
+                  .relationships[relDesc.inverseKey],
           true);
       expect(
           relDesc.destinationEntity == dataModel.entityForType(Manager), true);
@@ -434,11 +434,11 @@ void main() {
 
     var joinEntity = model.entityForType(JoinMany);
     expect(
-        joinEntity.relationships["left"].destinationEntity.instanceType
+        reflectType(joinEntity.relationships["left"].destinationEntity.instanceType)
             .isSubtypeOf(reflectType(LeftMany)),
         true);
     expect(
-        joinEntity.relationships["right"].destinationEntity.instanceType
+      reflectType(joinEntity.relationships["right"].destinationEntity.instanceType)
             .isSubtypeOf(reflectType(RightMany)),
         true);
   });

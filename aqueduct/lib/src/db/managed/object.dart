@@ -1,5 +1,4 @@
 import 'dart:mirrors';
-
 import 'package:aqueduct/src/db/managed/data_model_manager.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:meta/meta.dart';
@@ -68,18 +67,6 @@ abstract class ManagedBacking {
 ///
 /// See more documentation on defining a data model at http://aqueduct.io/docs/db/modeling_data/
 abstract class ManagedObject<T> extends Serializable {
-  /// Creates a new instance of [entity] with [backing].
-  static ManagedObject instantiateDynamic(ManagedEntity entity,
-      {ManagedBacking backing}) {
-    ManagedObject object = entity.instanceType
-        .newInstance(const Symbol(""), []).reflectee as ManagedObject;
-    if (backing != null) {
-      object.backing = backing;
-    }
-    object.entity = entity;
-    return object;
-  }
-
   static bool get shouldAutomaticallyDocument => false;
 
   /// The [ManagedEntity] this instance is described by.
@@ -219,7 +206,6 @@ abstract class ManagedObject<T> extends Serializable {
   String _getPropertyNameFromInvocation(Invocation invocation) {
     // It memberName is not in symbolMap, it may be because that property doesn't exist for this object's entity.
     // But it also may occur for private ivars, in which case, we reconstruct the symbol and try that.
-
     var name = entity.symbolMap[invocation.memberName] ??
         entity.symbolMap[Symbol(MirrorSystem.getName(invocation.memberName))];
 

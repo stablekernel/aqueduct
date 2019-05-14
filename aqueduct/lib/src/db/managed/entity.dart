@@ -35,19 +35,19 @@ class ManagedEntity implements APIComponentDocumenter {
   /// The name of this entity.
   ///
   /// This name will match the name of [instanceType].
-  String get name => MirrorSystem.getName(instanceType.simpleName);
+  String get name => instanceType.toString();
 
   /// The type of instances represented by this entity.
   ///
   /// Managed objects are made up of two components, a table definition and an instance type. Applications
-  /// use instances of the instance type to work with queries and data from the database table this entity represents. This value is the [ClassMirror] on that type.
-  final ClassMirror instanceType;
+  /// use instances of the instance type to work with queries and data from the database table this entity represents.
+  final Type instanceType;
 
   /// The type of persistent instances represented by this entity.
   ///
   /// Managed objects are made up of two components, a table definition and an instance type. The system uses this type to define
-  /// the mapping to the underlying database table. This value is the [ClassMirror] on the persistent portion of a [ManagedObject] object.
-  final ClassMirror tableDefinition;
+  /// the mapping to the underlying database table.
+  final Type tableDefinition;
 
   /// The [ManagedDataModel] this instance belongs to.
   final ManagedDataModel dataModel;
@@ -165,11 +165,18 @@ class ManagedEntity implements APIComponentDocumenter {
   /// By default, the returned object will use a normal value backing map.
   /// If [backing] is non-null, it will be the backing map of the returned object.
   T instanceOf<T extends ManagedObject>({ManagedBacking backing}) {
+    final object = reflectClass(instanceType)
+      .newInstance(const Symbol(""), []).reflectee as ManagedObject;
     if (backing != null) {
-      return ManagedObject.instantiateDynamic(this, backing: backing) as T;
+      object.backing = backing;
     }
+    object.entity = this;
+    return object as T;
+  }
 
-    return ManagedObject.instantiateDynamic(this) as T;
+  ManagedSet setOf(Iterable<dynamic> objects) {
+    final type = reflectType(ManagedSet, [instanceType]) as ClassMirror;
+    return type.newInstance(const Symbol("fromDynamic"), [objects]).reflectee as ManagedSet;
   }
 
   /// Returns an attribute in this entity for a property selector.
@@ -334,6 +341,6 @@ class ManagedEntity implements APIComponentDocumenter {
   void documentComponents(APIDocumentContext context) {
     final obj = document(context);
     context.schema
-        .register(name, obj, representation: instanceType.reflectedType);
+        .register(name, obj, representation: instanceType);
   }
 }

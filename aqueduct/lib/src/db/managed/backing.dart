@@ -163,10 +163,9 @@ class ManagedAccessTrackingBacking extends ManagedBacking {
     if (property is ManagedRelationshipDescription) {
       final tracker = ManagedAccessTrackingBacking()..workingKeyPath = keyPath;
       if (property.relationshipType == ManagedRelationshipType.hasMany) {
-        return property.declaredType
-            .newInstance(const Symbol(''), []).reflectee;
+        return property.inverse.entity.setOf([]);
       } else {
-        return property.inverse.entity.instanceOf(backing: tracker);
+        return property.destinationEntity.instanceOf(backing: tracker);
       }
     } else if (property is ManagedAttributeDescription &&
         property.type.kind == ManagedPropertyType.document) {

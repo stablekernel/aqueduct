@@ -1,9 +1,8 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/validation/metadata.dart';
-
+import 'package:aqueduct/src/db/managed/managed.dart';
 import '../../utilities/mirror_helpers.dart';
-import 'managed.dart';
 
 // Expanding the list of ivars for each class yields duplicates of
 // any ivar is overridden. Since the order in which ivars are returned
