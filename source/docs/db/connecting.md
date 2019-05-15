@@ -21,7 +21,7 @@ The interface to a database from Aqueduct is an instance of `ManagedContext` tha
 - a `ManagedDataModel` that describes your application's data model
 - a `PersistentStore` that manages a connection to a single database
 
-A `ManagedContext` uses these two objects to coordinate moving data to and from your application and a database. A`Query<T>` object uses a context's persistent store to determine which database to send commands to, and a data model to map database rows to objects and vice versa.
+A `ManagedContext` uses these two objects to coordinate moving data to and from your application and a database. A `Query<T>` object uses a context's persistent store to determine which database to send commands to, and a data model to map database rows to objects and vice versa.
 
 A context, like all service objects, is created in `ApplicationChannel.prepare`.
 
@@ -47,7 +47,7 @@ var dataModel = ManagedDataModel([User, Post, Friendship]);
 ```
 
 !!! note "Finding ManagedObjects"
-        A managed object subclass must be directly or transitively imported into your application channel file. A file in your project directory that is not imported will not be found. There is typically no need to import a managed object subclass file directly: your application is initialized in your channel, where imports all of your controllers and services, which in turn import the managed object subclasses they use. As long as you are using your managed object declarations in your application, they'll be found.
+        A managed object subclass must be directly or transitively imported into your application channel file. A file in your project directory that is not imported will not be found. There is typically no need to import a managed object subclass file directly: your application is initialized in your channel, which imports all of your controllers and services, which in turn import the managed object subclasses they use. As long as you are using your managed object declarations in your application, they'll be found.
 
 Controllers that need to execute database queries must have a reference to a context; this is typically accomplished by passing the context to a controller's constructor:
 
