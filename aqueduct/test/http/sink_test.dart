@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 
 void main() {
   test("Find default ApplicationChannel", () {
-    expect(ApplicationChannel.defaultType, equals(TestChannel));
+    expect(Runtime.current.channels.length, equals(1));
+    expect(Runtime.current.channels.values.first.channelType, equals(TestChannel));
   });
 }
 

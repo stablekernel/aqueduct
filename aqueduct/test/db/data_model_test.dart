@@ -77,12 +77,10 @@ void main() {
     test("Entities have appropriate metadata", () {
       var entity = dataModel.entityForType(User);
       expect(entity.tableName, "_User");
-      expect(entity.dataModel == dataModel, true);
       expect(entity.primaryKey, "id");
 
       entity = dataModel.entityForType(Item);
       expect(entity.tableName, "_Item");
-      expect(entity.dataModel == dataModel, true);
       expect(entity.primaryKey, "name");
     });
 
@@ -138,9 +136,7 @@ void main() {
       expect(relDesc.inverseKey, "items");
       expect(
           relDesc.inverse ==
-              dataModel
-                  .entityForType(User)
-                  .relationships[relDesc.inverseKey],
+              dataModel.entityForType(User).relationships[relDesc.inverseKey],
           true);
       expect(relDesc.deleteRule, DeleteRule.cascade);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
@@ -153,9 +149,7 @@ void main() {
       expect(relDesc.inverseKey, "manager");
       expect(
           relDesc.inverse ==
-              dataModel
-                  .entityForType(User)
-                  .relationships[relDesc.inverseKey],
+              dataModel.entityForType(User).relationships[relDesc.inverseKey],
           true);
       expect(relDesc.deleteRule, DeleteRule.nullify);
       expect(relDesc.destinationEntity == dataModel.entityForType(User), true);
@@ -206,32 +200,88 @@ void main() {
     test("Managed objects can have foreign key references to one another", () {
       final dm = ManagedDataModel([CyclicLeft, CyclicRight]);
 
-      expect(dm.entityForType(CyclicLeft).relationships["leftRef"].destinationEntity.name, "CyclicRight");
-      expect(dm.entityForType(CyclicLeft).relationships["leftRef"].inverse.name, "from");
-      expect(dm.entityForType(CyclicLeft).relationships["leftRef"].isBelongsTo, true);
-      expect(dm.entityForType(CyclicLeft).relationships["from"].destinationEntity.name, "CyclicRight");
-      expect(dm.entityForType(CyclicLeft).relationships["from"].inverse.name, "rightRef");
-      expect(dm.entityForType(CyclicLeft).relationships["from"].isBelongsTo, false);
+      expect(
+          dm
+              .entityForType(CyclicLeft)
+              .relationships["leftRef"]
+              .destinationEntity
+              .name,
+          "CyclicRight");
+      expect(dm.entityForType(CyclicLeft).relationships["leftRef"].inverse.name,
+          "from");
+      expect(dm.entityForType(CyclicLeft).relationships["leftRef"].isBelongsTo,
+          true);
+      expect(
+          dm
+              .entityForType(CyclicLeft)
+              .relationships["from"]
+              .destinationEntity
+              .name,
+          "CyclicRight");
+      expect(dm.entityForType(CyclicLeft).relationships["from"].inverse.name,
+          "rightRef");
+      expect(dm.entityForType(CyclicLeft).relationships["from"].isBelongsTo,
+          false);
 
-      expect(dm.entityForType(CyclicRight).relationships["rightRef"].destinationEntity.name, "CyclicLeft");
-      expect(dm.entityForType(CyclicRight).relationships["rightRef"].inverse.name, "from");
-      expect(dm.entityForType(CyclicRight).relationships["rightRef"].isBelongsTo, true);
-      expect(dm.entityForType(CyclicRight).relationships["from"].destinationEntity.name, "CyclicLeft");
-      expect(dm.entityForType(CyclicRight).relationships["from"].inverse.name, "leftRef");
-      expect(dm.entityForType(CyclicRight).relationships["from"].isBelongsTo, false);
+      expect(
+          dm
+              .entityForType(CyclicRight)
+              .relationships["rightRef"]
+              .destinationEntity
+              .name,
+          "CyclicLeft");
+      expect(
+          dm.entityForType(CyclicRight).relationships["rightRef"].inverse.name,
+          "from");
+      expect(
+          dm.entityForType(CyclicRight).relationships["rightRef"].isBelongsTo,
+          true);
+      expect(
+          dm
+              .entityForType(CyclicRight)
+              .relationships["from"]
+              .destinationEntity
+              .name,
+          "CyclicLeft");
+      expect(dm.entityForType(CyclicRight).relationships["from"].inverse.name,
+          "leftRef");
+      expect(dm.entityForType(CyclicRight).relationships["from"].isBelongsTo,
+          false);
     });
 
     test("Managed objecs can have foreign key references to themselves", () {
       final dm = ManagedDataModel([SelfReferential]);
-      expect(dm.entityForType(SelfReferential).relationships["parent"].destinationEntity.name, "SelfReferential");
-      expect(dm.entityForType(SelfReferential).relationships["parent"].inverse.name, "child");
-      expect(dm.entityForType(SelfReferential).relationships["parent"].isBelongsTo, true);
-      expect(dm.entityForType(SelfReferential).relationships["child"].destinationEntity.name, "SelfReferential");
-      expect(dm.entityForType(SelfReferential).relationships["child"].inverse.name, "parent");
-      expect(dm.entityForType(SelfReferential).relationships["child"].isBelongsTo, false);
+      expect(
+          dm
+              .entityForType(SelfReferential)
+              .relationships["parent"]
+              .destinationEntity
+              .name,
+          "SelfReferential");
+      expect(
+          dm
+              .entityForType(SelfReferential)
+              .relationships["parent"]
+              .inverse
+              .name,
+          "child");
+      expect(
+          dm.entityForType(SelfReferential).relationships["parent"].isBelongsTo,
+          true);
+      expect(
+          dm
+              .entityForType(SelfReferential)
+              .relationships["child"]
+              .destinationEntity
+              .name,
+          "SelfReferential");
+      expect(
+          dm.entityForType(SelfReferential).relationships["child"].inverse.name,
+          "parent");
+      expect(
+          dm.entityForType(SelfReferential).relationships["child"].isBelongsTo,
+          false);
     });
-
-
   });
 
   group("Edge cases", () {
@@ -271,17 +321,6 @@ void main() {
           .relationships["partial"];
       expect(partial.destinationEntity.tableName,
           model.entityForType(SomeOtherRelationshipModel).tableName);
-    });
-
-    test("Two entities with same tableName should throw exception", () {
-      try {
-        var _ = ManagedDataModel([SameNameOne, SameNameTwo]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("SameNameOne"));
-        expect(e.message, contains("SameNameTwo"));
-        expect(e.message, contains("'fo'"));
-      }
     });
   });
 
@@ -351,39 +390,6 @@ void main() {
               .contains("foreignKeyColumn"),
           true);
     });
-
-    test("Can override property in partial and modify attrs/validators", () {
-      var dataModel =
-          ManagedDataModel([OverriddenTotalModel, PartialReferenceModel]);
-
-      var entity = dataModel.entityForType(OverriddenTotalModel);
-      var field = entity.attributes["field"];
-      expect(field.isUnique, true);
-      expect(field.validators.length, 1);
-    });
-  });
-
-  test("Delete rule of setNull throws exception if property is not nullable",
-      () {
-    try {
-      ManagedDataModel([Owner, FailingChild]);
-      expect(true, false);
-    } on ManagedDataModelError catch (e) {
-      expect(e.message,
-          contains("Relationship 'ref' on '_FailingChild' has both"));
-    }
-  });
-
-  test("Entity without primary key fails", () {
-    try {
-      ManagedDataModel([NoPrimaryKey]);
-      expect(true, false);
-    } on ManagedDataModelError catch (e) {
-      expect(
-          e.message,
-          contains(
-              "Class '_NoPrimaryKey' doesn't declare a primary key property"));
-    }
   });
 
   test("Transient properties are appropriately added to entity", () {
@@ -404,29 +410,6 @@ void main() {
     expect(entity.attributes["notAnAttribute"], isNull);
   });
 
-  test("Model with unsupported property type fails on compilation", () {
-    try {
-      ManagedDataModel([InvalidModel]);
-      expect(true, false);
-    } on ManagedDataModelError catch (e) {
-      expect(e.message, contains("'_InvalidModel'"));
-      expect(e.message, contains("'uri'"));
-      expect(e.message, contains("unsupported type"));
-    }
-  });
-
-  test("Model with unsupported transient property type fails on compilation",
-      () {
-    try {
-      ManagedDataModel([InvalidTransientModel]);
-      expect(true, false);
-    } on ManagedDataModelError catch (e) {
-      expect(e.message, contains("'InvalidTransientModel'"));
-      expect(e.message, contains("'uri'"));
-      expect(e.message, contains("unsupported type"));
-    }
-  });
-
   test(
       "Types with same inverse name for two relationships use type as tie-breaker to determine inverse",
       () {
@@ -434,78 +417,15 @@ void main() {
 
     var joinEntity = model.entityForType(JoinMany);
     expect(
-        reflectType(joinEntity.relationships["left"].destinationEntity.instanceType)
+        reflectType(
+                joinEntity.relationships["left"].destinationEntity.instanceType)
             .isSubtypeOf(reflectType(LeftMany)),
         true);
     expect(
-      reflectType(joinEntity.relationships["right"].destinationEntity.instanceType)
+        reflectType(joinEntity
+                .relationships["right"].destinationEntity.instanceType)
             .isSubtypeOf(reflectType(RightMany)),
         true);
-  });
-
-  group("Error cases", () {
-    test("Both properties have Relationship metadata", () {
-      try {
-        var _ = ManagedDataModel([InvalidCyclicLeft, InvalidCyclicRight]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("_InvalidCyclicLeft"));
-        expect(e.message, contains("_InvalidCyclicRight"));
-        expect(e.message, contains("but only one can"));
-      }
-    });
-
-    test("Propery is both autoincrement and default value, fails", () {
-      try {
-        var _ = ManagedDataModel([AutoincrementAndDefault]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("_AutoincrementAndDefault.i"));
-        expect(e.message, contains("autoincrement"));
-        expect(e.message, contains("default value"));
-      }
-    });
-
-    test("Model with Relationship and Column fails compilation", () {
-      try {
-        ManagedDataModel([InvalidMetadata, InvalidMetadata1]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("cannot both have"));
-        expect(e.message, contains("InvalidMetadata"));
-        expect(e.message, contains("'bar'"));
-      }
-    });
-
-    test("Managed objects with missing inverses fail compilation", () {
-      try {
-        ManagedDataModel([MissingInverse1, MissingInverseWrongSymbol]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("has no inverse property"));
-        expect(e.message, contains("'_MissingInverseWrongSymbol'"));
-        expect(e.message, contains("'has'"));
-      }
-
-      try {
-        ManagedDataModel([MissingInverse2, MissingInverseAbsent]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("'_MissingInverse2'"));
-        expect(e.message, contains("'inverseMany'"));
-      }
-    });
-
-    test("Duplicate inverse properties fail compilation", () {
-      try {
-        ManagedDataModel([DupInverse, DupInverseHas]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("has multiple relationship properties"));
-        expect(e.message, contains("'inverse'"));
-        expect(e.message, contains("foo, bar"));
-      }
-    });
   });
 
   group("Multi-unique", () {
@@ -559,54 +479,6 @@ void main() {
       expect(e.uniquePropertySet.contains(e.properties["rel"]), true);
       expect(e.uniquePropertySet.contains(e.properties["b"]), true);
     });
-
-    test(
-        "Add Table to table definition with only single element in unique list throws exception, warns to use Table",
-        () {
-      try {
-        ManagedDataModel([MultiUniqueFailureSingleElement]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.message,
-            contains("add 'Column(unique: true)' to declaration of 'a'"));
-      }
-    });
-
-    test(
-        "Add Table to table definition with empty unique list throws exception",
-        () {
-      try {
-        ManagedDataModel([MultiUniqueFailureNoElement]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("Must contain two or more attributes"));
-      }
-    });
-
-    test(
-        "Add Table to table definition with non-existent property in unique list throws exception",
-        () {
-      try {
-        ManagedDataModel([MultiUniqueFailureUnknown]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("'a' is not a property of this type"));
-      }
-    });
-
-    test(
-        "Add Table to table definition with has- property in unique list throws exception",
-        () {
-      try {
-        ManagedDataModel([
-          MultiUniqueFailureRelationship,
-          MultiUniqueFailureRelationshipInverse
-        ]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.message, contains("declares 'a' as unique"));
-      }
-    });
   });
 }
 
@@ -655,26 +527,6 @@ class _Manager {
 
   @Relate(Symbol('manager'))
   User worker;
-}
-
-class Owner extends ManagedObject<_Owner> implements _Owner {}
-
-class _Owner {
-  @primaryKey
-  int id;
-
-  FailingChild gen;
-}
-
-class FailingChild extends ManagedObject<_FailingChild>
-    implements _FailingChild {}
-
-class _FailingChild {
-  @primaryKey
-  int id;
-
-  @Relate(Symbol('gen'), onDelete: DeleteRule.nullify, isRequired: true)
-  Owner ref;
 }
 
 class TransientTest extends ManagedObject<_TransientTest>
@@ -743,34 +595,6 @@ class _TransientTest {
   String text;
 }
 
-class NoPrimaryKey extends ManagedObject<_NoPrimaryKey>
-    implements _NoPrimaryKey {}
-
-class _NoPrimaryKey {
-  String foo;
-}
-
-class InvalidModel extends ManagedObject<_InvalidModel>
-    implements _InvalidModel {}
-
-class _InvalidModel {
-  @primaryKey
-  int id;
-
-  Uri uri;
-}
-
-class InvalidTransientModel extends ManagedObject<_InvalidTransientModel>
-    implements _InvalidTransientModel {
-  @Serialize()
-  Uri uri;
-}
-
-class _InvalidTransientModel {
-  @primaryKey
-  int id;
-}
-
 class TotalModel extends ManagedObject<_TotalModel> implements _TotalModel {
   @Serialize()
   int transient;
@@ -778,16 +602,6 @@ class TotalModel extends ManagedObject<_TotalModel> implements _TotalModel {
 
 class _TotalModel extends PartialModel {
   String addedField;
-}
-
-class OverriddenTotalModel extends ManagedObject<_OverriddenTotalModel>
-    implements _OverriddenTotalModel {}
-
-class _OverriddenTotalModel extends PartialModel {
-  @override
-  @Column(indexed: true, unique: true)
-  @Validate.oneOf(["a", "b"])
-  String field;
 }
 
 class PartialModel {
@@ -890,26 +704,6 @@ class _JoinMany {
   RightMany right;
 }
 
-class InvalidCyclicLeft extends ManagedObject<_InvalidCyclicLeft> {}
-
-class _InvalidCyclicLeft {
-  @primaryKey
-  int id;
-
-  @Relate(Symbol('ref'))
-  InvalidCyclicRight ref;
-}
-
-class InvalidCyclicRight extends ManagedObject<_InvalidCyclicRight> {}
-
-class _InvalidCyclicRight {
-  @primaryKey
-  int id;
-
-  @Relate(Symbol('ref'))
-  InvalidCyclicLeft ref;
-}
-
 class CyclicLeft extends ManagedObject<_CyclicLeft> {}
 
 class _CyclicLeft {
@@ -934,102 +728,6 @@ class _CyclicRight {
   CyclicLeft from;
 }
 
-class SameNameOne extends ManagedObject<_SameNameOne> {}
-
-class _SameNameOne {
-  @primaryKey
-  int id;
-
-  static String tableName() => "fo";
-}
-
-class SameNameTwo extends ManagedObject<_SameNameTwo> {}
-
-class _SameNameTwo {
-  @primaryKey
-  int id;
-
-  static String tableName() => "fo";
-}
-
-class InvalidMetadata extends ManagedObject<_InvalidMetadata> {}
-
-class _InvalidMetadata {
-  @Column(primaryKey: true)
-  int id;
-
-  @Relate(Symbol('foo'))
-  @Column(indexed: true)
-  InvalidMetadata1 bar;
-}
-
-class InvalidMetadata1 extends ManagedObject<_InvalidMetadata1> {}
-
-class _InvalidMetadata1 {
-  @primaryKey
-  int id;
-
-  InvalidMetadata foo;
-}
-
-class MissingInverse1 extends ManagedObject<_MissingInverse1> {}
-
-class _MissingInverse1 {
-  @primaryKey
-  int id;
-
-  MissingInverseWrongSymbol inverse;
-}
-
-class MissingInverseWrongSymbol
-    extends ManagedObject<_MissingInverseWrongSymbol> {}
-
-class _MissingInverseWrongSymbol {
-  @primaryKey
-  int id;
-
-  @Relate(Symbol('foobar'))
-  MissingInverse1 has;
-}
-
-class MissingInverse2 extends ManagedObject<_MissingInverse2> {}
-
-class _MissingInverse2 {
-  @primaryKey
-  int id;
-
-  ManagedSet<MissingInverseAbsent> inverseMany;
-}
-
-class MissingInverseAbsent extends ManagedObject<_MissingInverseAbsent> {}
-
-class _MissingInverseAbsent {
-  @primaryKey
-  int id;
-}
-
-class DupInverseHas extends ManagedObject<_DupInverseHas> {}
-
-class _DupInverseHas {
-  @primaryKey
-  int id;
-
-  ManagedSet<DupInverse> inverse;
-}
-
-class DupInverse extends ManagedObject<_DupInverse> {}
-
-class _DupInverse {
-  @primaryKey
-  int id;
-
-  @Relate(Symbol('inverse'))
-  DupInverseHas foo;
-
-  @Relate(Symbol('inverse'))
-  DupInverseHas bar;
-}
-
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 
 class _EnumObject {
@@ -1050,60 +748,6 @@ class _MultiUnique {
 
   int a;
   int b;
-}
-
-class MultiUniqueFailureSingleElement
-    extends ManagedObject<_MultiUniqueFailureSingleElement> {}
-
-@Table.unique([Symbol('a')])
-class _MultiUniqueFailureSingleElement {
-  @primaryKey
-  int id;
-
-  int a;
-}
-
-class MultiUniqueFailureNoElement
-    extends ManagedObject<_MultiUniqueFailureNoElement> {}
-
-@Table.unique([])
-class _MultiUniqueFailureNoElement {
-  @primaryKey
-  int id;
-}
-
-class MultiUniqueFailureUnknown
-    extends ManagedObject<_MultiUniqueFailureUnknown> {}
-
-@Table.unique([Symbol('a'), Symbol('b')])
-class _MultiUniqueFailureUnknown {
-  @primaryKey
-  int id;
-
-  int b;
-}
-
-class MultiUniqueFailureRelationship
-    extends ManagedObject<_MultiUniqueFailureRelationship> {}
-
-@Table.unique([Symbol('a'), Symbol('b')])
-class _MultiUniqueFailureRelationship {
-  @primaryKey
-  int id;
-
-  MultiUniqueFailureRelationshipInverse a;
-  int b;
-}
-
-class MultiUniqueFailureRelationshipInverse
-    extends ManagedObject<_MultiUniqueFailureRelationshipInverse> {}
-
-class _MultiUniqueFailureRelationshipInverse {
-  @primaryKey
-  int id;
-
-  @Relate(Symbol('a'))
-  MultiUniqueFailureRelationship rel;
 }
 
 class MultiUniqueBelongsTo extends ManagedObject<_MultiUniqueBelongsTo> {}
@@ -1145,16 +789,9 @@ class _AnnotatedTable {
   int id;
 }
 
-class AutoincrementAndDefault extends ManagedObject<_AutoincrementAndDefault> {}
-class _AutoincrementAndDefault {
-  @primaryKey
-  int id;
+class SelfReferential extends ManagedObject<_SelfReferential>
+    implements _SelfReferential {}
 
-  @Column(autoincrement: true, defaultValue: "1")
-  int i;
-}
-
-class SelfReferential extends ManagedObject<_SelfReferential> implements _SelfReferential {}
 class _SelfReferential {
   @primaryKey
   int id;

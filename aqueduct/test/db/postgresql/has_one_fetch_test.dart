@@ -242,8 +242,10 @@ void main() {
       var q = Query<Parent>(context);
       var childJoin = q.join(object: (p) => p.child)
         ..join(object: (c) => c.toy);
-      childJoin.join(set: (c) => c.vaccinations)
-        .where((o) => o.kind).equalTo("V1");
+      childJoin
+          .join(set: (c) => c.vaccinations)
+          .where((o) => o.kind)
+          .equalTo("V1");
 
       var results = await q.fetch();
 
@@ -268,8 +270,10 @@ void main() {
 
       var childJoin = q.join(object: (p) => p.child)
         ..join(object: (c) => c.toy);
-      childJoin.join(set: (c) => c.vaccinations)
-        .where((o) => o.kind).equalTo("V1");
+      childJoin
+          .join(set: (c) => c.vaccinations)
+          .where((o) => o.kind)
+          .equalTo("V1");
       var results = await q.fetch();
       expect(results.length, 0);
     });
@@ -310,8 +314,9 @@ void main() {
 
       var childQuery = q.join(object: (p) => p.child)
         ..returningProperties((c) => [c.name]);
-      childQuery.join(set: (c) => c.vaccinations)
-        .returningProperties((v) => [v.kind]);
+      childQuery
+          .join(set: (c) => c.vaccinations)
+          .returningProperties((v) => [v.kind]);
 
       var parents = await q.fetch();
       for (var p in parents) {
@@ -338,8 +343,9 @@ void main() {
       var childQuery = q.join(object: (p) => p.child)
         ..returningProperties((c) => [c.cid]);
 
-      childQuery.join(set: (c) => c.vaccinations)
-        .returningProperties((v) => [v.vid]);
+      childQuery
+          .join(set: (c) => c.vaccinations)
+          .returningProperties((v) => [v.vid]);
 
       var parents = await q.fetch();
       for (var p in parents) {
@@ -407,8 +413,9 @@ void main() {
 
       try {
         var q = Query<Parent>(context);
-        q.join(object: (p) => p.child)
-          .returningProperties((c) => [c.cid, c.toy]);
+        q
+            .join(object: (p) => p.child)
+            .returningProperties((c) => [c.cid, c.toy]);
         expect(true, false);
       } on ArgumentError catch (e) {
         expect(

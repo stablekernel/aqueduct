@@ -35,7 +35,9 @@ void main() {
     expect(result.emailAddress, "2@a.com");
   });
 
-  test("Updating non-nullable property to null gives error that specifies the offending property", () async {
+  test(
+      "Updating non-nullable property to null gives error that specifies the offending property",
+      () async {
     context = await contextWithModels([TestModel]);
 
     var m = TestModel()

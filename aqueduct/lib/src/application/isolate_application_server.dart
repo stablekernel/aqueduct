@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:mirrors';
 
 import 'package:aqueduct/src/application/service_registry.dart';
 import 'package:logging/logging.dart';
@@ -11,7 +10,7 @@ import 'options.dart';
 
 class ApplicationIsolateServer extends ApplicationServer {
   ApplicationIsolateServer(
-      ClassMirror channelType,
+      Type channelType,
       ApplicationOptions configuration,
       int identifier,
       this.supervisingApplicationPort,
@@ -73,19 +72,6 @@ class ApplicationIsolateServer extends ApplicationServer {
     supervisingApplicationPort
         .send(ApplicationIsolateSupervisor.messageKeyStop);
   }
-}
-
-void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
-  final channelSourceLibrary =
-      currentMirrorSystem().libraries[params.streamLibraryURI];
-  final channelType = channelSourceLibrary
-      .declarations[Symbol(params.streamTypeName)] as ClassMirror;
-
-  final server = ApplicationIsolateServer(channelType, params.configuration,
-      params.identifier, params.parentMessagePort,
-      logToConsole: params.logToConsole);
-
-  server.start(shareHttpServer: true);
 }
 
 class ApplicationInitialServerMessage {

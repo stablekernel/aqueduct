@@ -356,33 +356,41 @@ void main() {
       var dataModel = ManagedDataModel([Left, Right]);
       var schema = Schema.fromDataModel(dataModel);
       final map = schema.asMap();
-      expect(map["tables"].firstWhere((t) => t["name"] == "_Left")["columns"].firstWhere((c) => c["name"] == "belongsToRight"), {
-        'name': 'belongsToRight',
-        'type': 'bigInteger',
-        'nullable': true,
-        'autoincrement': false,
-        'unique': true,
-        'defaultValue': null,
-        'primaryKey': false,
-        'relatedTableName': '_Right',
-        'relatedColumnName': 'id',
-        'deleteRule': 'nullify',
-        'indexed': true
-      });
+      expect(
+          map["tables"]
+              .firstWhere((t) => t["name"] == "_Left")["columns"]
+              .firstWhere((c) => c["name"] == "belongsToRight"),
+          {
+            'name': 'belongsToRight',
+            'type': 'bigInteger',
+            'nullable': true,
+            'autoincrement': false,
+            'unique': true,
+            'defaultValue': null,
+            'primaryKey': false,
+            'relatedTableName': '_Right',
+            'relatedColumnName': 'id',
+            'deleteRule': 'nullify',
+            'indexed': true
+          });
 
-      expect(map["tables"].firstWhere((t) => t["name"] == "_Right")["columns"].firstWhere((c) => c["name"] == "belongsToLeft"), {
-        'name': 'belongsToLeft',
-        'type': 'bigInteger',
-        'nullable': true,
-        'autoincrement': false,
-        'unique': true,
-        'defaultValue': null,
-        'primaryKey': false,
-        'relatedTableName': '_Left',
-        'relatedColumnName': 'id',
-        'deleteRule': 'nullify',
-        'indexed': true
-      });
+      expect(
+          map["tables"]
+              .firstWhere((t) => t["name"] == "_Right")["columns"]
+              .firstWhere((c) => c["name"] == "belongsToLeft"),
+          {
+            'name': 'belongsToLeft',
+            'type': 'bigInteger',
+            'nullable': true,
+            'autoincrement': false,
+            'unique': true,
+            'defaultValue': null,
+            'primaryKey': false,
+            'relatedTableName': '_Left',
+            'relatedColumnName': 'id',
+            'deleteRule': 'nullify',
+            'indexed': true
+          });
     });
   });
 

@@ -143,7 +143,7 @@ void main() {
     test("Can use implicit matcher across many to many table", () async {
       var q = Query<RootObject>(ctx)
         ..sortBy((r) => r.rid, QuerySortOrder.ascending);
-        //..where((o) => o.join.haveAtLeastOneWhere.other.value1).lessThan(4);
+      //..where((o) => o.join.haveAtLeastOneWhere.other.value1).lessThan(4);
 
       var results = await q.fetch();
       expect(results.map((r) => r.asMap()).toList(),
@@ -356,8 +356,7 @@ void main() {
   group("Self joins - implicit", () {
     test("Can implicit join through join table", () async {
       // 'Teams that have played at Minnesota'
-      var q = Query<Team>(ctx)
-        ..sortBy((t) => t.id, QuerySortOrder.ascending);
+      var q = Query<Team>(ctx)..sortBy((t) => t.id, QuerySortOrder.ascending);
 //        ..where((o) => o.awayGames.haveAtLeastOneWhere.homeTeam.name)
 //            .contains("Minn");
       var results = await q.fetch();
@@ -368,8 +367,7 @@ void main() {
           ]));
 
       // 'Teams that have played at Iowa'
-      q = Query<Team>(ctx)
-        ..sortBy((t) => t.id, QuerySortOrder.ascending);
+      q = Query<Team>(ctx)..sortBy((t) => t.id, QuerySortOrder.ascending);
 //        ..where((o) => o.awayGames.haveAtLeastOneWhere.homeTeam.name)
 //            .contains("Iowa");
       results = await q.fetch();
@@ -424,8 +422,10 @@ void main() {
         () async {
       // 'All teams and their away games where %Minn% is away team'
       var q = Query<Team>(ctx);
-      q.join(set: (t) => t.awayGames)
-        .where((o) => o.awayTeam.name).contains("Minn");
+      q
+          .join(set: (t) => t.awayGames)
+          .where((o) => o.awayTeam.name)
+          .contains("Minn");
       var results = await q.fetch();
       expect(results.length, 3);
       expect(
@@ -438,8 +438,10 @@ void main() {
 
       // All teams and their games played at %Minn%
       q = Query<Team>(ctx);
-      q.join(set: (t) => t.awayGames)
-        .where((o) => o.homeTeam.name).contains("Minn");
+      q
+          .join(set: (t) => t.awayGames)
+          .where((o) => o.homeTeam.name)
+          .contains("Minn");
       results = await q.fetch();
       expect(results.length, 3);
       expect(results.firstWhere((t) => t.name == "Iowa").awayGames.length, 1);
@@ -455,8 +457,10 @@ void main() {
     test("Can filter returned nested objects by their values", () async {
       // 'All teams and the games they've played at Minnesota'
       var q = Query<Team>(ctx);
-      q.join(set: (t) => t.awayGames)
-        .where((o) => o.homeTeam.name).contains("Minn");
+      q
+          .join(set: (t) => t.awayGames)
+          .where((o) => o.homeTeam.name)
+          .contains("Minn");
       var results = await q.fetch();
 
       expect(

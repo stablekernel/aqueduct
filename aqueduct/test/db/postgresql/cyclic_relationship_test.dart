@@ -227,7 +227,9 @@ void main() {
             ..parent = objs.first);
 
       q = Query<SelfRef>(context)..where((s) => s.id).equalTo(parent.id);
-      q.join(set: (s) => s.children).sortBy((s) => s.name, QuerySortOrder.ascending);
+      q
+          .join(set: (s) => s.children)
+          .sortBy((s) => s.name, QuerySortOrder.ascending);
 
       final all = await q.fetch();
       expect(all.map((s) => s.asMap()).toList(), [
@@ -261,20 +263,21 @@ void main() {
       final parent = await q.insert();
 
       final objs = await Query.insertObjects(
-        context,
-        ["a", "b", "c"].map((n) {
-          return SelfRef()
-            ..name = n
-            ..parent = parent;
-        }).toList());
+          context,
+          ["a", "b", "c"].map((n) {
+            return SelfRef()
+              ..name = n
+              ..parent = parent;
+          }).toList());
 
       await Query.insertObject(
-        context,
-        SelfRef()
-          ..name = "x"
-          ..parent = objs.first);
+          context,
+          SelfRef()
+            ..name = "x"
+            ..parent = objs.first);
 
-      q = Query<SelfRef>(context)..sortBy((s) => s.name, QuerySortOrder.ascending);
+      q = Query<SelfRef>(context)
+        ..sortBy((s) => s.name, QuerySortOrder.ascending);
       q.join(set: (s) => s.children).where((s) => s.name).greaterThan("b");
 
       final all = await q.fetch();
@@ -283,56 +286,92 @@ void main() {
           'id': 2,
           'name': 'a',
           'parent': {'id': 1},
-          'children': [{'id': 5, 'name': 'x', 'parent': {'id': 2}}]
+          'children': [
+            {
+              'id': 5,
+              'name': 'x',
+              'parent': {'id': 2}
+            }
+          ]
         },
-        {'id': 3, 'name': 'b', 'parent': {'id': 1}, 'children': []},
-        {'id': 4, 'name': 'c', 'parent': {'id': 1}, 'children': []},
+        {
+          'id': 3,
+          'name': 'b',
+          'parent': {'id': 1},
+          'children': []
+        },
+        {
+          'id': 4,
+          'name': 'c',
+          'parent': {'id': 1},
+          'children': []
+        },
         {
           'id': 1,
           'name': 'parent',
           'parent': null,
-          'children': [{'id': 4, 'name': 'c', 'parent': {'id': 1}}]
+          'children': [
+            {
+              'id': 4,
+              'name': 'c',
+              'parent': {'id': 1}
+            }
+          ]
         },
-        {'id': 5, 'name': 'x', 'parent': {'id': 2}, 'children': []},
+        {
+          'id': 5,
+          'name': 'x',
+          'parent': {'id': 2},
+          'children': []
+        },
       ]);
     });
 
     test("Join with where clause on both the primary and joined table",
         () async {
-          var q = Query<SelfRef>(context)..values.name = "parent";
-          final parent = await q.insert();
+      var q = Query<SelfRef>(context)..values.name = "parent";
+      final parent = await q.insert();
 
-          final objs = await Query.insertObjects(
-            context,
-            ["a", "b", "c"].map((n) {
-              return SelfRef()
-                ..name = n
-                ..parent = parent;
-            }).toList());
+      final objs = await Query.insertObjects(
+          context,
+          ["a", "b", "c"].map((n) {
+            return SelfRef()
+              ..name = n
+              ..parent = parent;
+          }).toList());
 
-          await Query.insertObject(
-            context,
-            SelfRef()
-              ..name = "x"
-              ..parent = objs.first);
+      await Query.insertObject(
+          context,
+          SelfRef()
+            ..name = "x"
+            ..parent = objs.first);
 
-          q = Query<SelfRef>(context)..where((s) => s.name).greaterThan("o");
-          q.join(set: (s) => s.children).where((s) => s.name).greaterThan("b");
+      q = Query<SelfRef>(context)..where((s) => s.name).greaterThan("o");
+      q.join(set: (s) => s.children).where((s) => s.name).greaterThan("b");
 
-          final all = await q.fetch();
-          expect(all.map((s) => s.asMap()).toList(), [
+      final all = await q.fetch();
+      expect(all.map((s) => s.asMap()).toList(), [
+        {
+          'id': 1,
+          'name': 'parent',
+          'parent': null,
+          'children': [
             {
-              'id': 1,
-              'name': 'parent',
-              'parent': null,
-              'children': [{'id': 4, 'name': 'c', 'parent': {'id': 1}}]
-            },
-            {"id": 5, "name": "x", "parent": {"id": 2}, "children": []}
-          ]);
-        });
+              'id': 4,
+              'name': 'c',
+              'parent': {'id': 1}
+            }
+          ]
+        },
+        {
+          "id": 5,
+          "name": "x",
+          "parent": {"id": 2},
+          "children": []
+        }
+      ]);
+    });
   });
-
-
 
   group("Reference to one another", () {
     setUp(() async {
@@ -353,15 +392,19 @@ void main() {
     });
 
     test("Updating and joining across tables", () async {
-      final r1 =
-      await Query.insertObject(context, Right()..name = "r1");
-      final l1 = await Query.insertObject(context, Left()..name = "l1"..belongsToRight = r1);
+      final r1 = await Query.insertObject(context, Right()..name = "r1");
+      final l1 = await Query.insertObject(
+          context,
+          Left()
+            ..name = "l1"
+            ..belongsToRight = r1);
       final updateQuery = Query<Right>(context)
         ..where((r) => r.id).equalTo(r1.id)
         ..values.belongsToLeft = l1;
       await updateQuery.updateOne();
 
-      final q = Query<Left>(context)..join(object: (l) => l.right).join(object: (r) => r.left);
+      final q = Query<Left>(context)
+        ..join(object: (l) => l.right).join(object: (r) => r.left);
       final all = await q.fetch();
       expect(all.map((s) => s.asMap()).toList(), [
         {
@@ -676,6 +719,7 @@ class _SelfRef {
 }
 
 class Left extends ManagedObject<_Left> implements _Left {}
+
 class _Left {
   @primaryKey
   int id;
@@ -686,10 +730,10 @@ class _Left {
 
   @Relate(#left)
   Right belongsToRight;
-
 }
 
 class Right extends ManagedObject<_Right> implements _Right {}
+
 class _Right {
   @primaryKey
   int id;

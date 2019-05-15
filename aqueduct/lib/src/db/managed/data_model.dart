@@ -1,6 +1,6 @@
 import 'package:aqueduct/src/openapi/documentable.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:aqueduct/src/utilities/reference_counting_list.dart';
-import 'package:aqueduct/src/compilers/orm/data_model_builder.dart';
 
 import 'package:aqueduct/src/db/query/query.dart';
 
@@ -25,9 +25,23 @@ class ManagedDataModel extends Object
   ///
   ///       new DataModel([User, Token, Post]);
   ManagedDataModel(List<Type> instanceTypes) {
-    var builder = DataModelBuilder(this, types: instanceTypes);
-    _entities = builder.entities;
-    _tableDefinitionToEntityMap = builder.tableDefinitionToEntityMap;
+    _entities = {};
+    _tableDefinitionToEntityMap = {};
+
+    final runtimes = Runtime.current.managedEntities;
+    final orderedRuntimes = instanceTypes.map((t) => runtimes[t]).toList();
+
+    final notFound = orderedRuntimes.where((e) => e == null).toList();
+    if (notFound.isNotEmpty) {
+      throw ManagedDataModelError(
+          "Data model types were not found: ${notFound.map((e) => e.entity.name).join(", ")}");
+    }
+
+    orderedRuntimes.forEach((runtime) {
+      _entities[runtime.entity.instanceType] = runtime.entity;
+      _tableDefinitionToEntityMap[runtime.entity.tableDefinition] =
+          runtime.entity;
+    });
   }
 
   /// Creates an instance of a [ManagedDataModel] from all subclasses of [ManagedObject] in all libraries visible to the calling library.
@@ -40,10 +54,14 @@ class ManagedDataModel extends Object
   ///
   /// This is the preferred method of instantiating this type.
   ManagedDataModel.fromCurrentMirrorSystem() {
-    final builder =
-        DataModelBuilder(this, findInstanceTypes: true);
-    _entities = builder.entities;
-    _tableDefinitionToEntityMap = builder.tableDefinitionToEntityMap;
+    _entities = {};
+    _tableDefinitionToEntityMap = {};
+
+    Runtime.current.managedEntities.forEach((t, runtime) {
+      _entities[t] = runtime.entity;
+      _tableDefinitionToEntityMap[runtime.entity.tableDefinition] =
+          runtime.entity;
+    });
   }
 
   Iterable<ManagedEntity> get entities => _entities.values;

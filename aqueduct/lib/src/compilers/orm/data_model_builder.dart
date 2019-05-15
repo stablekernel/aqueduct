@@ -2,14 +2,13 @@ import 'dart:mirrors';
 import 'package:aqueduct/src/compilers/orm/entity_builder.dart';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
+import 'package:aqueduct/src/runtime/orm/orm.dart';
 
 class DataModelBuilder {
-  DataModelBuilder(ManagedDataModel dataModel,
-      {List<Type> types, bool findInstanceTypes = false}) {
-    final instanceTypes =
-        findInstanceTypes ? _packageManagedObjectTypes : types;
+  DataModelBuilder() {
+    final instanceTypes = _packageManagedObjectTypes;
 
-    _builders = instanceTypes.map((t) => EntityBuilder(dataModel, t)).toList();
+    _builders = instanceTypes.map((t) => EntityBuilder(t)).toList();
     _builders.forEach((b) {
       b.compile(_builders);
     });
@@ -17,15 +16,12 @@ class DataModelBuilder {
 
     _builders.forEach((b) {
       b.link(_builders.map((eb) => eb.entity).toList());
-
-      final entity = b.entity;
-      entities[entity.instanceType] = entity;
-      tableDefinitionToEntityMap[entity.tableDefinition] = entity;
+      runtimes[b.entity.instanceType] = b.runtime;
     });
   }
 
-  Map<Type, ManagedEntity> entities = {};
-  Map<Type, ManagedEntity> tableDefinitionToEntityMap = {};
+  Map<Type, ManagedEntityRuntime> runtimes = {};
+
   List<EntityBuilder> _builders;
 
   void _validate() {

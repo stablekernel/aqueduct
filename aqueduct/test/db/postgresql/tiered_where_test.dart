@@ -81,8 +81,10 @@ void main() {
       //the join condition, so we must do an inner select that does the join and move
       // the additional expression to the where clause
 
-      q.join(object: (r) => r.child)
-        .where((o) => o.grandChild.gid).greaterThan(1);
+      q
+          .join(object: (r) => r.child)
+          .where((o) => o.grandChild.gid)
+          .greaterThan(1);
       var results = await q.fetch();
 
       for (var r in results) {

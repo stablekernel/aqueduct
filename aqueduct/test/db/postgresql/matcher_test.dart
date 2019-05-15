@@ -72,8 +72,7 @@ void main() {
       results = await q.fetch();
       expect(results.length, 0);
 
-      q = Query<TestModel>(context)
-        ..where((o) => o.email).not.equalTo("%.com");
+      q = Query<TestModel>(context)..where((o) => o.email).not.equalTo("%.com");
       results = await q.fetch();
       expect(results.length, 6);
 
@@ -81,7 +80,8 @@ void main() {
       results = await q.fetch();
       expect(results.length, 0);
 
-      q = Query<TestModel>(context)..where((o) => o.email).not.equalTo("\\%.com");
+      q = Query<TestModel>(context)
+        ..where((o) => o.email).not.equalTo("\\%.com");
       results = await q.fetch();
       expect(results.length, 6);
 
@@ -112,8 +112,7 @@ void main() {
       results = await q.fetch();
       expect(results.length, 0);
 
-      q = Query<TestModel>(context)
-        ..where((o) => o.email).not.equalTo("%.COM");
+      q = Query<TestModel>(context)..where((o) => o.email).not.equalTo("%.COM");
       results = await q.fetch();
       expect(results.length, 6);
 
@@ -121,7 +120,8 @@ void main() {
       results = await q.fetch();
       expect(results.length, 0);
 
-      q = Query<TestModel>(context)..where((o) => o.email).not.equalTo("\\%.COM");
+      q = Query<TestModel>(context)
+        ..where((o) => o.email).not.equalTo("\\%.COM");
       results = await q.fetch();
       expect(results.length, 6);
 
@@ -136,16 +136,14 @@ void main() {
     });
   });
 
-    group("Like matcher", () {
+  group("Like matcher", () {
     test("case sensitive default", () async {
-      var q = Query<TestModel>(context)
-        ..where((o) => o.email).like("0@a%");
+      var q = Query<TestModel>(context)..where((o) => o.email).like("0@a%");
       var results = await q.fetch();
       expect(results.length, 1);
       expect(results.first.id, 1);
 
-      q = Query<TestModel>(context)
-        ..where((o) => o.email).not.like("0@a%");
+      q = Query<TestModel>(context)..where((o) => o.email).not.like("0@a%");
       results = await q.fetch();
       expect(results.length, 5);
       expect(results.any((tm) => tm.id == 1), false);
@@ -154,8 +152,7 @@ void main() {
       results = await q.fetch();
       expect(results.length, 0);
 
-      q = Query<TestModel>(context)
-        ..where((o) => o.email).not.like("0@A%");
+      q = Query<TestModel>(context)..where((o) => o.email).not.like("0@A%");
       results = await q.fetch();
       expect(results.length, 6);
 
@@ -163,8 +160,7 @@ void main() {
       results = await q.fetch();
       expect(results.length, 6);
 
-      q = Query<TestModel>(context)
-        ..where((o) => o.email).not.like("%.com");
+      q = Query<TestModel>(context)..where((o) => o.email).not.like("%.com");
       results = await q.fetch();
       expect(results.length, 0);
 
@@ -172,8 +168,7 @@ void main() {
       results = await q.fetch();
       expect(results.length, 6);
 
-      q = Query<TestModel>(context)
-        ..where((o) => o.email).not.like("_@a.com");
+      q = Query<TestModel>(context)..where((o) => o.email).not.like("_@a.com");
       results = await q.fetch();
       expect(results.length, 0);
     });
@@ -191,7 +186,8 @@ void main() {
       expect(results.length, 5);
       expect(results.any((tm) => tm.email == "0@a.com"), false);
 
-      q = Query<TestModel>(context)..where((o) => o.email).like("%.COM", caseSensitive: false);
+      q = Query<TestModel>(context)
+        ..where((o) => o.email).like("%.COM", caseSensitive: false);
       results = await q.fetch();
       expect(results.length, 6);
 
@@ -200,7 +196,8 @@ void main() {
       results = await q.fetch();
       expect(results.length, 0);
 
-      q = Query<TestModel>(context)..where((o) => o.email).like("_@a.COM", caseSensitive: false);
+      q = Query<TestModel>(context)
+        ..where((o) => o.email).like("_@a.COM", caseSensitive: false);
       results = await q.fetch();
       expect(results.length, 6);
 

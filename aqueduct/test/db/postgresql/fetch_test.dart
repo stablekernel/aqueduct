@@ -138,7 +138,7 @@ void main() {
     context = await contextWithModels([TestModel]);
     try {
       Query<TestModel>(context)
-        .sortBy((u) => u["nonexisting"], QuerySortOrder.ascending);
+          .sortBy((u) => u["nonexisting"], QuerySortOrder.ascending);
       expect(true, false);
     } on ArgumentError catch (e) {
       expect(
@@ -450,7 +450,8 @@ void main() {
       expect(o.name, "bob");
     });
 
-    test("If object does not exist and type is specified, return null", () async {
+    test("If object does not exist and type is specified, return null",
+        () async {
       final o = await context.fetchObjectWithID<TestModel>(id + 1);
       expect(o, isNull);
     });
@@ -473,7 +474,9 @@ void main() {
       }
     });
 
-    test("If identifier type is not the same type as return type, throw exception with 404", () async {
+    test(
+        "If identifier type is not the same type as return type, throw exception with 404",
+        () async {
       final o = await context.fetchObjectWithID<TestModel>("not-an-int");
       expect(o, isNull);
     });

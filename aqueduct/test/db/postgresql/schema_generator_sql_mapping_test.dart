@@ -284,7 +284,7 @@ void main() {
       var propDesc = ManagedRelationshipDescription(
           dm.entityForType(GeneratorModel1),
           "foobar",
-        getManagedTypeFromType(reflectType(String)),
+          getManagedTypeFromType(reflectType(String)),
           null,
           dm.entityForType(GeneratorModel2),
           DeleteRule.cascade,
@@ -537,6 +537,7 @@ class _GenPost {
 }
 
 class GenNamed extends ManagedObject<_GenNamed> implements _GenNamed {}
+
 @Table(name: "GenNamed")
 class _GenNamed {
   @Column(primaryKey: true)

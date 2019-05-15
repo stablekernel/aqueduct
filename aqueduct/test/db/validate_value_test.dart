@@ -34,7 +34,9 @@ void main() {
       expect(t.validate(forEvent: Validating.update).isValid, false);
     });
 
-    test("A primary key that isn't @primaryKey does not have Validate.constant()", () {
+    test(
+        "A primary key that isn't @primaryKey does not have Validate.constant()",
+        () {
       final t = NonDefaultPK()..id = 1;
       expect(t.validate(forEvent: Validating.insert).isValid, true);
       expect(t.validate(forEvent: Validating.update).isValid, true);
@@ -57,13 +59,17 @@ void main() {
       expect(fk.validate().isValid, true);
     });
 
-    test("If foreign key object doesn't contain primary key, validator is not run", () {
+    test(
+        "If foreign key object doesn't contain primary key, validator is not run",
+        () {
       final fk = FK();
       fk.parent = Parent();
       expect(fk.validate().isValid, true);
     });
 
-    test("If primary key has a validator, it is not run when evaluated as a foreign key", () {
+    test(
+        "If primary key has a validator, it is not run when evaluated as a foreign key",
+        () {
       final fk = FK();
       fk.parent = Parent()..id = 10;
       expect(fk.validate().isValid, true);
@@ -236,10 +242,12 @@ void main() {
       expect(fk.validate().isValid, false);
     });
 
-    test("If foreign key object doesn't contain primary key, validator fails", () {
+    test("If foreign key object doesn't contain primary key, validator fails",
+        () {
       final fk = PresenceBelongsTo()..present = PresenceHas();
       expect(fk.validate().isValid, false);
-      expect(fk.validate().errors.first, contains("PresenceBelongsTo.present.id"));
+      expect(
+          fk.validate().errors.first, contains("PresenceBelongsTo.present.id"));
     });
   });
 
@@ -261,7 +269,7 @@ void main() {
     test("Relationship key must be absent", () {
       final o = AbsenceBelongsTo();
       expect(o.validate().isValid, true);
-      
+
       o.absent = AbsenceHas();
       expect(o.validate().isValid, false);
       expect(o.validate().errors.first, contains("AbsenceBelongsTo.absent.id"));
@@ -364,96 +372,13 @@ void main() {
     });
   });
 
-  group("Data model compilation failures", () {
-    test("DateTime fails to parse", () {
-      try {
-        ManagedDataModel([FailingDateTime]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("19x34"));
-        expect(e.toString(), contains("cannot be parsed as expected"));
-        expect(e.toString(), contains("_FDT.d"));
-      }
-    });
-
-    test("Non-string Validate.matches", () {
-      try {
-        ManagedDataModel([FailingRegex]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("is only valid for 'String'"));
-        expect(e.toString(), contains("_FRX.d"));
-      }
-    });
-
-    test("Non-string Validate.length", () {
-      try {
-        ManagedDataModel([FailingLength]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("is only valid for 'String'"));
-        expect(e.toString(), contains("_FLEN.d"));
-      }
-    });
-
-    test("Unsupported type, date, for oneOf", () {
-      try {
-        ManagedDataModel([UnsupportedDateOneOf]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("Validate.oneOf"));
-        expect(e.toString(), contains("compareDateOneOf20162017"));
-      }
-    });
-
-    test("Unsupported type, double, for oneOf", () {
-      try {
-        ManagedDataModel([UnsupportedDoubleOneOf]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("Validate.oneOf"));
-        expect(e.toString(), contains("someFloatingNumber"));
-      }
-    });
-
-    test("Non-matching type for oneOf", () {
-      try {
-        ManagedDataModel([FailingOneOf]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("Validate.oneOf"));
-        expect(e.toString(), contains("_FOO.d"));
-      }
-    });
-
-    test("Empty oneOf", () {
-      try {
-        ManagedDataModel([FailingEmptyOneOf]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("Validate.oneOf"));
-        expect(e.toString(), contains("_FEO.d"));
-      }
-    });
-
-    test("Heterogenous oneOf", () {
-      try {
-        ManagedDataModel([FailingHeterogenous]);
-        expect(true, false);
-      } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("Validate.oneOf"));
-        expect(e.toString(), contains("_FH.d"));
-      }
-    });
-
-    test("Can combine both metadata and arguments to Column", () {
-      final x = MultiValidate()..canOnlyBe4 = 3;
-      expect(x.validate().isValid, false);
-      x.canOnlyBe4 = 5;
-      expect(x.validate().isValid, false);
-      x.canOnlyBe4 = 4;
-      expect(x.validate().isValid, true);
-    });
+  test("Can combine both metadata and arguments to Column", () {
+    final x = MultiValidate()..canOnlyBe4 = 3;
+    expect(x.validate().isValid, false);
+    x.canOnlyBe4 = 5;
+    expect(x.validate().isValid, false);
+    x.canOnlyBe4 = 4;
+    expect(x.validate().isValid, true);
   });
 }
 
@@ -548,96 +473,6 @@ class CustomValidate extends Validate {
       context.addError("not XYZ");
     }
   }
-}
-
-class FailingDateTime extends ManagedObject<_FDT> {}
-
-class _FDT {
-  @primaryKey
-  int id;
-
-  @Validate.compare(greaterThanEqualTo: "19x34")
-  DateTime d;
-}
-
-class FailingRegex extends ManagedObject<_FRX> {}
-
-class _FRX {
-  @primaryKey
-  int id;
-
-  @Validate.matches("xyz")
-  int d;
-}
-
-class FailingLength extends ManagedObject<_FLEN> {}
-
-class _FLEN {
-  @primaryKey
-  int id;
-
-  @Validate.length(equalTo: 6)
-  int d;
-}
-
-class FailingEmptyOneOf extends ManagedObject<_FEO> {}
-
-class _FEO {
-  @primaryKey
-  int id;
-
-  @Validate.oneOf([])
-  int d;
-}
-
-class FailingOneOf extends ManagedObject<_FOO> {}
-
-class _FOO {
-  @primaryKey
-  int id;
-
-  @Validate.oneOf(["x", "y"])
-  int d;
-}
-
-class UnsupportedDateOneOf extends ManagedObject<_UDAOO> {}
-
-class _UDAOO {
-  @primaryKey
-  int id;
-
-  @Validate.oneOf(["2016-01-01T00:00:00", "2017-01-01T00:00:00"])
-  DateTime compareDateOneOf20162017;
-}
-
-class UnsupportedDoubleOneOf extends ManagedObject<_UDOOO> {}
-
-class _UDOOO {
-  @primaryKey
-  int id;
-
-  @Validate.oneOf(["3.14159265359", "2.71828"])
-  double someFloatingNumber;
-}
-
-class FailingHeterogenous extends ManagedObject<_FH> {}
-
-class _FH {
-  @primaryKey
-  int id;
-
-  @Validate.oneOf(["x", 1])
-  int d;
-}
-
-class FailingTransient extends ManagedObject<_FT> {
-  @Validate.compare(greaterThanEqualTo: 1)
-  int d;
-}
-
-class _FT {
-  @primaryKey
-  int id;
 }
 
 class V extends ManagedObject<_V> implements _V {
@@ -747,7 +582,7 @@ class _AbsenceHas {
 }
 
 class AbsenceBelongsTo extends ManagedObject<_AbsenceBelongsTo>
-  implements _AbsenceBelongsTo {}
+    implements _AbsenceBelongsTo {}
 
 class _AbsenceBelongsTo {
   @primaryKey
@@ -758,16 +593,22 @@ class _AbsenceBelongsTo {
   AbsenceHas absent;
 }
 
+class NonDefaultPK extends ManagedObject<_NonDefaultPK>
+    implements _NonDefaultPK {}
 
-class NonDefaultPK extends ManagedObject<_NonDefaultPK> implements _NonDefaultPK {}
 class _NonDefaultPK {
-  @Column(primaryKey: true, databaseType: ManagedPropertyType.bigInteger, autoincrement: true)
+  @Column(
+      primaryKey: true,
+      databaseType: ManagedPropertyType.bigInteger,
+      autoincrement: true)
   int id;
 
   String name;
 }
 
-class MultiValidate extends ManagedObject<_MultiValidate> implements _MultiValidate {}
+class MultiValidate extends ManagedObject<_MultiValidate>
+    implements _MultiValidate {}
+
 class _MultiValidate {
   @primaryKey
   int id;

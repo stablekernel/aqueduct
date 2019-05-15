@@ -5,13 +5,15 @@ void main() {
   test("Conflict returns 409", () {
     final exception = QueryException.conflict("invalid", ["xyz"]);
     expect(exception.response.statusCode, 409);
-    expect(exception.response.body, {"error": "invalid", "detail": "Offending Items: xyz"});
+    expect(exception.response.body,
+        {"error": "invalid", "detail": "Offending Items: xyz"});
   });
 
   test("Input returns 400", () {
     final exception = QueryException.input("invalid", ["xyz"]);
     expect(exception.response.statusCode, 400);
-    expect(exception.response.body, {"error": "invalid", "detail": "Offending Items: xyz"});
+    expect(exception.response.body,
+        {"error": "invalid", "detail": "Offending Items: xyz"});
   });
 
   test("Transport returns 503", () {
