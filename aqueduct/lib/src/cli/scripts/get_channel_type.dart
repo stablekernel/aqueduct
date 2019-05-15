@@ -11,7 +11,8 @@ class GetChannelExecutable extends Executable<String> {
   Future<String> execute() async {
     final channels = Runtime.current.channels;
     if (channels.length != 1) {
-      
+      throw StateError("No ApplicationChannel subclass was found for this project. "
+        "Make sure it is imported in your application library file.");
     }
     var runtime = Runtime.current.channels.values.first;
 
@@ -23,6 +24,7 @@ class GetChannelExecutable extends Executable<String> {
 
   static List<String> importsForPackage(String packageName) => [
         "package:aqueduct/aqueduct.dart",
-        "package:$packageName/$packageName.dart"
+        "package:$packageName/$packageName.dart",
+        "package:aqueduct/src/runtime/runtime.dart"
       ];
 }
