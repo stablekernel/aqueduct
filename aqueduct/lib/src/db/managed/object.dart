@@ -1,5 +1,3 @@
-import 'dart:mirrors';
-
 import 'package:aqueduct/src/db/managed/data_model_manager.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:meta/meta.dart';
@@ -68,18 +66,6 @@ abstract class ManagedBacking {
 ///
 /// See more documentation on defining a data model at http://aqueduct.io/docs/db/modeling_data/
 abstract class ManagedObject<T> extends Serializable {
-  /// Creates a new instance of [entity] with [backing].
-  static ManagedObject instantiateDynamic(ManagedEntity entity,
-      {ManagedBacking backing}) {
-    ManagedObject object = entity.instanceType
-        .newInstance(const Symbol(""), []).reflectee as ManagedObject;
-    if (backing != null) {
-      object.backing = backing;
-    }
-    object.entity = entity;
-    return object;
-  }
-
   static bool get shouldAutomaticallyDocument => false;
 
   /// The [ManagedEntity] this instance is described by.
@@ -200,40 +186,11 @@ abstract class ManagedObject<T> extends Serializable {
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
-    if (invocation.isGetter) {
-      if (invocation.memberName == #haveAtLeastOneWhere) {
-        return this;
-      }
-
-      return this[_getPropertyNameFromInvocation(invocation)];
-    } else if (invocation.isSetter) {
-      this[_getPropertyNameFromInvocation(invocation)] =
-          invocation.positionalArguments.first;
-
-      return null;
-    }
-
-    return super.noSuchMethod(invocation);
-  }
-
-  String _getPropertyNameFromInvocation(Invocation invocation) {
-    // It memberName is not in symbolMap, it may be because that property doesn't exist for this object's entity.
-    // But it also may occur for private ivars, in which case, we reconstruct the symbol and try that.
-
-    var name = entity.symbolMap[invocation.memberName] ??
-        entity.symbolMap[Symbol(MirrorSystem.getName(invocation.memberName))];
-
-    if (name == null) {
-      throw ArgumentError("Invalid property access for '${entity.name}'. "
-          "Property '${MirrorSystem.getName(invocation.memberName)}' does not exist on '${entity.name}'.");
-    }
-
-    return name;
+    return entity.runtime.dynamicAccessorImplementation(invocation, entity, this);
   }
 
   @override
   void readFromMap(Map<String, dynamic> object) {
-    final mirror = reflect(this);
     object.forEach((key, v) {
       final property = entity.properties[key];
       if (property == null) {
@@ -258,7 +215,7 @@ abstract class ManagedObject<T> extends Serializable {
             throw ValidationException(["invalid input type for key '$key'"]);
           }
 
-          mirror.setField(Symbol(key), decodedValue);
+          entity.runtime.setTransientValueForKey(this, key, decodedValue);
         }
       } else {
         backing.setValueForProperty(
@@ -286,11 +243,10 @@ abstract class ManagedObject<T> extends Serializable {
       }
     });
 
-    var reflectedThis = reflect(this);
     entity.attributes.values
         .where((attr) => attr.transientStatus?.isAvailableAsOutput ?? false)
         .forEach((attr) {
-      var value = reflectedThis.getField(Symbol(attr.name)).reflectee;
+      var value = entity.runtime.getTransientValueForKey(this, attr.name);
       if (value != null) {
         outputMap[attr.name] = value;
       }

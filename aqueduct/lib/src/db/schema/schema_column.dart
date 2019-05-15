@@ -1,5 +1,3 @@
-import 'dart:mirrors';
-
 import '../managed/managed.dart';
 import 'schema.dart';
 
@@ -252,7 +250,7 @@ class SchemaColumn {
   }
 
   @override
-  String toString() => "$name $relatedTableName";
+  String toString() => "$name (-> $relatedTableName.$relatedColumnName)";
 }
 
 /// The difference between two compared [SchemaColumn]s.
@@ -264,44 +262,59 @@ class SchemaColumnDifference {
     if (actualColumn != null && expectedColumn != null) {
       if (actualColumn.isPrimaryKey != expectedColumn.isPrimaryKey) {
         throw SchemaException(
-          "Cannot change primary key of '${expectedColumn.table.name}'");
+            "Cannot change primary key of '${expectedColumn.table.name}'");
       }
 
       if (actualColumn.relatedColumnName != expectedColumn.relatedColumnName) {
         throw SchemaException(
-          "Cannot change Relationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
+            "Cannot change Relationship inverse of '${expectedColumn.table.name}.${expectedColumn.name}'");
       }
 
       if (actualColumn.relatedTableName != expectedColumn.relatedTableName) {
         throw SchemaException(
-          "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
+            "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
       }
 
       if (actualColumn.type != expectedColumn.type) {
         throw SchemaException(
-          "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
+            "Cannot change type of '${expectedColumn.table.name}.${expectedColumn.name}'");
       }
 
       if (actualColumn.autoincrement != expectedColumn.autoincrement) {
         throw SchemaException(
-          "Cannot change autoincrement behavior of '${expectedColumn.table.name}.${expectedColumn.name}'");
+            "Cannot change autoincrement behavior of '${expectedColumn.table.name}.${expectedColumn.name}'");
       }
 
-      var expectedColumnRefl = reflect(expectedColumn);
-      var actualColumnRefl = reflect(actualColumn);
+      if (expectedColumn.name?.toLowerCase() !=
+          actualColumn.name?.toLowerCase()) {
+        _differingProperties.add(_PropertyDifference(
+            "name", expectedColumn.name, actualColumn.name));
+      }
 
-      symbols.forEach((sym) {
-        var expectedValue = expectedColumnRefl.getField(sym).reflectee;
-        var actualValue = actualColumnRefl.getField(sym).reflectee;
-        if (expectedValue is String) {
-          expectedValue = (expectedValue as String)?.toLowerCase();
-          actualValue = (actualValue as String)?.toLowerCase();
-        }
+      if (expectedColumn.isIndexed != actualColumn.isIndexed) {
+        _differingProperties.add(_PropertyDifference(
+            "isIndexed", expectedColumn.isIndexed, actualColumn.isIndexed));
+      }
 
-        if (expectedValue != actualValue) {
-          _differingProperties.add(MirrorSystem.getName(sym));
-        }
-      });
+      if (expectedColumn.isUnique != actualColumn.isUnique) {
+        _differingProperties.add(_PropertyDifference(
+          "isUnique", expectedColumn.isUnique, actualColumn.isUnique));
+      }
+
+      if (expectedColumn.isNullable != actualColumn.isNullable) {
+        _differingProperties.add(_PropertyDifference(
+            "isNullable", expectedColumn.isNullable, actualColumn.isNullable));
+      }
+
+      if (expectedColumn.defaultValue != actualColumn.defaultValue) {
+        _differingProperties.add(_PropertyDifference("defaultValue",
+            expectedColumn.defaultValue, actualColumn.defaultValue));
+      }
+
+      if (expectedColumn.deleteRule != actualColumn.deleteRule) {
+        _differingProperties.add(_PropertyDifference(
+            "deleteRule", expectedColumn.deleteRule, actualColumn.deleteRule));
+      }
     }
   }
 
@@ -335,31 +348,23 @@ class SchemaColumnDifference {
       ];
     }
 
-    return _differingProperties.map((propertyName) {
-      var expectedValue =
-          reflect(expectedColumn).getField(Symbol(propertyName)).reflectee;
-      var actualValue =
-          reflect(actualColumn).getField(Symbol(propertyName)).reflectee;
-
-      return "Column '${expectedColumn.name}' in table '${actualColumn.table.name}' expected "
-          "'$expectedValue' for '$propertyName', but migration files yield '$actualValue'";
+    return _differingProperties.map((property) {
+      return property.getErrorMessage(expectedColumn.table.name, expectedColumn.name);
     }).toList();
   }
 
-  List<String> _differingProperties = [];
+  List<_PropertyDifference> _differingProperties = [];
+}
 
-  /// List of comparable properties of a [SchemaColumn].
-  static const List<Symbol> symbols = [
-    #name,
-    #isIndexed,
-    #type,
-    #isNullable,
-    #autoincrement,
-    #isUnique,
-    #defaultValue,
-    #isPrimaryKey,
-    #relatedTableName,
-    #relatedColumnName,
-    #deleteRule
-  ];
+class _PropertyDifference {
+  _PropertyDifference(this.name, this.expectedValue, this.actualValue);
+
+  final String name;
+  final dynamic expectedValue;
+  final dynamic actualValue;
+
+  String getErrorMessage(String actualTableName, String expectedColumnName) {
+    return "Column '${expectedColumnName}' in table '${actualTableName}' expected "
+      "'$expectedValue' for '$name', but migration files yield '$actualValue'";
+  }
 }

@@ -1,5 +1,3 @@
-import 'dart:mirrors';
-
 import 'package:aqueduct/src/db/managed/backing.dart';
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
@@ -30,24 +28,30 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// You should never call this method directly, it will be called by [ManagedDataModel].
   ManagedEntity(
-      this.dataModel, this._tableName, this.instanceType, this.tableDefinition);
+      this.dataModel, this._tableName, this.instanceType, this.tableDefinition, this.runtime);
 
   /// The name of this entity.
   ///
   /// This name will match the name of [instanceType].
-  String get name => MirrorSystem.getName(instanceType.simpleName);
+  String get name => instanceType.toString();
 
   /// The type of instances represented by this entity.
   ///
   /// Managed objects are made up of two components, a table definition and an instance type. Applications
-  /// use instances of the instance type to work with queries and data from the database table this entity represents. This value is the [ClassMirror] on that type.
-  final ClassMirror instanceType;
+  /// use instances of the instance type to work with queries and data from the database table this entity represents.
+  final Type instanceType;
+
+  /// Set of callbacks that are implemented differently depending on compilation target.
+  ///
+  /// If running in default mode (mirrors enabled), is a set of mirror operations. Otherwise,
+  /// code generated.
+  final ManagedEntityRuntime runtime;
 
   /// The type of persistent instances represented by this entity.
   ///
   /// Managed objects are made up of two components, a table definition and an instance type. The system uses this type to define
-  /// the mapping to the underlying database table. This value is the [ClassMirror] on the persistent portion of a [ManagedObject] object.
-  final ClassMirror tableDefinition;
+  /// the mapping to the underlying database table.
+  final Type tableDefinition;
 
   /// The [ManagedDataModel] this instance belongs to.
   final ManagedDataModel dataModel;
@@ -166,10 +170,13 @@ class ManagedEntity implements APIComponentDocumenter {
   /// If [backing] is non-null, it will be the backing map of the returned object.
   T instanceOf<T extends ManagedObject>({ManagedBacking backing}) {
     if (backing != null) {
-      return ManagedObject.instantiateDynamic(this, backing: backing) as T;
+      return (runtime.instanceOfImplementation(backing: backing)..entity = this) as T;
     }
+    return (runtime.instanceOfImplementation()..entity = this) as T;
+  }
 
-    return ManagedObject.instantiateDynamic(this) as T;
+  ManagedSet<T> setOf<T extends ManagedObject>(Iterable<dynamic> objects) {
+    return runtime.setOfImplementation(objects) as ManagedSet<T>;
   }
 
   /// Returns an attribute in this entity for a property selector.
@@ -334,6 +341,18 @@ class ManagedEntity implements APIComponentDocumenter {
   void documentComponents(APIDocumentContext context) {
     final obj = document(context);
     context.schema
-        .register(name, obj, representation: instanceType.reflectedType);
+        .register(name, obj, representation: instanceType);
   }
+}
+
+abstract class ManagedEntityRuntime {
+  ManagedObject instanceOfImplementation({ManagedBacking backing});
+  ManagedSet setOfImplementation(Iterable<dynamic> objects);
+  void setTransientValueForKey(ManagedObject object, String key, dynamic value);
+  dynamic getTransientValueForKey(ManagedObject object, String key);
+  bool isValueInstanceOf(dynamic value);
+  bool isValueListOf(dynamic value);
+
+  dynamic dynamicAccessorImplementation(Invocation invocation, ManagedEntity entity, ManagedObject object);
+  dynamic dynamicConvertFromPrimitiveValue(ManagedPropertyDescription property, dynamic value);
 }

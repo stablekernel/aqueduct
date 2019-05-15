@@ -1,6 +1,7 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/compilers/orm/entity_mirrors.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 
@@ -246,7 +247,7 @@ void main() {
       var propDesc = ManagedAttributeDescription(
           dm.entityForType(GeneratorModel1),
           "foobar",
-          ManagedType(reflectType(int)),
+          getManagedTypeFromType(reflectType(int)),
           null,
           nullable: true);
       var cmds = psc.addColumn(
@@ -261,7 +262,7 @@ void main() {
       var propDesc = ManagedAttributeDescription(
           dm.entityForType(GeneratorModel1),
           "foobar",
-          ManagedType(reflectType(int)),
+          getManagedTypeFromType(reflectType(int)),
           null,
           defaultValue: "4",
           unique: true,
@@ -283,12 +284,12 @@ void main() {
       var propDesc = ManagedRelationshipDescription(
           dm.entityForType(GeneratorModel1),
           "foobar",
-          ManagedType(reflectType(String)),
+        getManagedTypeFromType(reflectType(String)),
           null,
           dm.entityForType(GeneratorModel2),
           DeleteRule.cascade,
           ManagedRelationshipType.belongsTo,
-          Symbol(dm.entityForType(GeneratorModel2).primaryKey),
+          dm.entityForType(GeneratorModel2).primaryKey,
           indexed: true,
           nullable: true);
       var cmds = psc.addColumn(
