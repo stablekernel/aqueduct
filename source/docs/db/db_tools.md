@@ -9,7 +9,7 @@ The `aqueduct db` command line tool creates and executes *migration files*. A mi
 
 An application's data model is described by its `ManagedObject<T>` subclasses and their [table definition](modeling_data.md). Migration files describe a series of database commands that will create or modify a database schema to match an application's data model. Migration files are executed on a database when an application is first deployed and when changes to the data model occur - like adding new `ManagedObject<T>` subclasses or adding an database index to a property.
 
-A migration file is automatically generated from your code. Each migration file contains only the changes made since the last migration file was generated. For example, if you began your application with a `Author` type and generated a migration file, the migration file would create the author table. If you then added a `Book` type generated a new migration file, the new file would only create the book table. When a migration is used to upgrade a database schema, every migration file that has not yet been run will be run.
+A migration file is automatically generated from your code. Each migration file contains only the changes made since the last migration file was generated. For example, if you began your application with a `Author` type and generated a migration file, the migration file would create the author table. If you then added a `Book` type and generated a new migration file, the new file would only create the book table. When a migration is used to upgrade a database schema, every migration file that has not yet been run will be run.
 
 Migration files must be stored in version control so that you can manage multiple databases for different environments.
 
@@ -27,7 +27,7 @@ Migration files are stored in an project's `migrations/` directory. Migration fi
 00000002_add_user_nickname.migration.dart
 ```
 
-The version number of migration files indicate the order in which they are applied. Leading zeros are stripped from the filenames before their version numbers are compared. Version numbers do not necessarily have to be continuous, but doing otherwise is not recommended. Migration files may be created altered after they are generated (see [seeding data](#seeding-data)).
+The version number of migration files indicate the order in which they are applied. Leading zeros are stripped from the filenames before their version numbers are compared. Version numbers do not necessarily have to be continuous, but doing otherwise is not recommended. Migration files may be altered after they are generated (see [seeding data](#seeding-data)).
 
 ## Validating Migration Files
 
@@ -65,7 +65,7 @@ databaseName: "database"
 
 During development, there is no need to create a migration file for each change. Execute migration files prior to deployment of a new version of an application.
 
-You may delete migration files (as long as you haven't ran them on a production database!). When `aqueduct db generate` is run again, will replay only the existing migration files before determining which commands to add to the new migration file. For example, if you have 10 migration files over time and delete them all - the next generated migration file will contain commands to recreate the entire database schema.
+You may delete migration files (as long as you haven't run them on a production database!). When `aqueduct db generate` is run again, it will replay only the existing migration files before determining which commands to add to the new migration file. For example, if you have 10 migration files over time and delete them all - the next generated migration file will contain commands to recreate the entire database schema.
 
 ### Seeding Data
 
@@ -91,7 +91,7 @@ class Migration2 extends Migration {
 }
 ```
 
-Seeding is ran after a migration's `ugprade` method has completed. Seeding data also occurs in the same transaction as `upgrade`.
+Seeding is run after a migration's `ugprade` method has completed. Seeding data also occurs in the same transaction as `upgrade`.
 
 ### Handling Non-nullable Additions
 
