@@ -17,7 +17,9 @@ class EntityBuilder {
         tableDefinitionType = _getTableDefinitionForType(type),
         metadata = firstMetadataOfType(_getTableDefinitionForType(type)) {
     name = _getName();
-    entity = ManagedEntity(dataModel, name, type, tableDefinitionType.reflectedType)
+
+    entity = ManagedEntity(dataModel, name, type,
+        tableDefinitionType.reflectedType, MirrorCallbacks(instanceType))
       ..validators = [];
     properties = _getProperties();
     primaryKeyProperty = properties
@@ -236,4 +238,56 @@ class EntityBuilder {
         .typeArguments
         .first as ClassMirror;
   }
+}
+
+class MirrorCallbacks extends ManagedEntityCallbacks {
+  MirrorCallbacks(this.instanceType);
+
+  final ClassMirror instanceType;
+
+  @override
+  ManagedObject instanceOfImplementation({ManagedBacking backing}) {
+    final object = instanceType.newInstance(const Symbol(""), []).reflectee
+        as ManagedObject;
+    if (backing != null) {
+      object.backing = backing;
+    }
+    return object;
+  }
+
+  @override
+  void setTransientValueForKey(
+      ManagedObject object, String key, dynamic value) {
+    reflect(object).setField(Symbol(key), value);
+  }
+
+  @override
+  ManagedSet setOfImplementation(Iterable<dynamic> objects) {
+    final type =
+        reflectType(ManagedSet, [instanceType.reflectedType]) as ClassMirror;
+    return type.newInstance(const Symbol("fromDynamic"), [objects]).reflectee
+        as ManagedSet;
+  }
+
+  @override
+  dynamic getTransientValueForKey(ManagedObject object, String key) {
+    return reflect(object).getField(Symbol(key)).reflectee;
+  }
+
+  @override
+  bool isValueInstanceOf(dynamic value) {
+    return reflect(value).type.isAssignableTo(instanceType);
+  }
+
+  @override
+  bool isValueListOf(dynamic value) {
+    final type = reflect(value).type;
+
+    if (!type.isSubtypeOf(reflectType(List))) {
+      return false;
+    }
+
+    return type.typeArguments.first.isAssignableTo(instanceType);
+  }
+
 }

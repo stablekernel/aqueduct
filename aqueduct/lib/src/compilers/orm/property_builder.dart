@@ -15,13 +15,17 @@ class PropertyBuilder {
         serialize = _getTransienceForProperty(declaration) {
     name = _getName();
     type = _getType();
-    _validators = validatorsFromDeclaration(declaration).map((v) => ValidatorBuilder(this, v)).toList();
+    _validators = validatorsFromDeclaration(declaration)
+        .map((v) => ValidatorBuilder(this, v))
+        .toList();
     if (column?.validators?.isNotEmpty ?? false) {
-      _validators.addAll(column.validators.map((v) => ValidatorBuilder(this, v)));
+      _validators
+          .addAll(column.validators.map((v) => ValidatorBuilder(this, v)));
     }
 
     if (type?.isEnumerated ?? false) {
-      _validators.add(ValidatorBuilder(this, Validate.oneOf(type.enumerationMap.values.toList())));
+      _validators.add(ValidatorBuilder(
+          this, Validate.oneOf(type.enumerationMap.values.toList())));
     }
   }
 
@@ -29,6 +33,7 @@ class PropertyBuilder {
   final DeclarationMirror declaration;
   final Relate relate;
   final Column column;
+
   List<ValidatorBuilder> get validators => _validators;
   Serialize serialize;
 
@@ -102,8 +107,9 @@ class PropertyBuilder {
       }
     } else {
       if (defaultValue != null && autoincrement) {
-        throw ManagedDataModelError("Property '${parent.name}.$name' is invalid. "
-          "A property cannot have a default value and be autoincrementing. ");
+        throw ManagedDataModelError(
+            "Property '${parent.name}.$name' is invalid. "
+            "A property cannot have a default value and be autoincrementing. ");
       }
     }
 
@@ -162,7 +168,6 @@ class PropertyBuilder {
     }
   }
 
-
   ClassMirror getDeclarationType() {
     final decl = declaration;
     TypeMirror type;
@@ -189,10 +194,10 @@ class PropertyBuilder {
     final declType = getDeclarationType();
     try {
       if (column?.databaseType != null) {
-        return ManagedType.fromKind(column.databaseType);
+        return ManagedType(declType.reflectedType, column.databaseType, null, null);
       }
 
-      return ManagedType(declType);
+      return getManagedTypeFromType(declType);
     } on UnsupportedError {
       return null;
     }

@@ -1,5 +1,4 @@
 import 'dart:mirrors';
-
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
@@ -265,15 +264,6 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
   }
 
   @override
-  bool isAssignableWith(dynamic dartValue) {
-    if (isEnumeratedValue) {
-      return enumerationValueMap.containsValue(dartValue);
-    }
-
-    return super.isAssignableWith(dartValue);
-  }
-
-  @override
   String toString() {
     final flagBuffer = StringBuffer();
     if (isPrimaryKey) {
@@ -347,7 +337,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
     } else if (type.kind == ManagedPropertyType.list ||
         type.kind == ManagedPropertyType.map) {
       try {
-        return runtimeCast(value, type.mirror);
+        return runtimeCast(value, reflectType(type.type));
       } on CastError catch (_) {
         throw ValidationException(["invalid input value for '$name'"]);
       }
@@ -402,17 +392,10 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   /// Whether or not a the argument can be assigned to this property.
   @override
   bool isAssignableWith(dynamic dartValue) {
-    TypeMirror type = reflect(dartValue).type;
-
-    if (type.isSubtypeOf(reflectType(List))) {
-      if (relationshipType != ManagedRelationshipType.hasMany) {
-        return false;
-      }
-
-      type = type.typeArguments.first;
+    if (relationshipType == ManagedRelationshipType.hasMany) {
+      return destinationEntity.callbacks.isValueListOf(dartValue);
     }
-
-    return type.isAssignableTo(reflectType(destinationEntity.instanceType));
+    return destinationEntity.callbacks.isValueInstanceOf(dartValue);
   }
 
   @override

@@ -219,7 +219,6 @@ abstract class ManagedObject<T> extends Serializable {
 
   @override
   void readFromMap(Map<String, dynamic> object) {
-    final mirror = reflect(this);
     object.forEach((key, v) {
       final property = entity.properties[key];
       if (property == null) {
@@ -244,7 +243,7 @@ abstract class ManagedObject<T> extends Serializable {
             throw ValidationException(["invalid input type for key '$key'"]);
           }
 
-          mirror.setField(Symbol(key), decodedValue);
+          entity.callbacks.setTransientValueForKey(this, key, decodedValue);
         }
       } else {
         backing.setValueForProperty(
@@ -272,11 +271,10 @@ abstract class ManagedObject<T> extends Serializable {
       }
     });
 
-    var reflectedThis = reflect(this);
     entity.attributes.values
         .where((attr) => attr.transientStatus?.isAvailableAsOutput ?? false)
         .forEach((attr) {
-      var value = reflectedThis.getField(Symbol(attr.name)).reflectee;
+      var value = entity.callbacks.getTransientValueForKey(this, attr.name);
       if (value != null) {
         outputMap[attr.name] = value;
       }

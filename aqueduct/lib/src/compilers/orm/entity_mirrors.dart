@@ -4,6 +4,50 @@ import 'package:aqueduct/src/db/managed/validation/metadata.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import '../../utilities/mirror_helpers.dart';
 
+
+ManagedType getManagedTypeFromType(TypeMirror type) {
+  ManagedPropertyType kind;
+  ManagedType elements;
+  Map<String, dynamic> enumerationMap;
+
+  if (type.isAssignableTo(reflectType(int))) {
+    kind = ManagedPropertyType.integer;
+  } else if (type.isAssignableTo(reflectType(String))) {
+    kind = ManagedPropertyType.string;
+  } else if (type.isAssignableTo(reflectType(DateTime))) {
+    kind = ManagedPropertyType.datetime;
+  } else if (type.isAssignableTo(reflectType(bool))) {
+    kind = ManagedPropertyType.boolean;
+  } else if (type.isAssignableTo(reflectType(double))) {
+    kind = ManagedPropertyType.doublePrecision;
+  } else if (type.isSubtypeOf(reflectType(Map))) {
+    if (!type.typeArguments.first.isAssignableTo(reflectType(String))) {
+      throw UnsupportedError(
+        "Invalid type '${type.reflectedType}' for 'ManagedType'. Key is invalid; must be 'String'.");
+    }
+    kind = ManagedPropertyType.map;
+    elements = getManagedTypeFromType(type.typeArguments.last);
+  } else if (type.isSubtypeOf(reflectType(List))) {
+    kind = ManagedPropertyType.list;
+    elements = getManagedTypeFromType(type.typeArguments.first);
+  } else if (type.isAssignableTo(reflectType(Document))) {
+    kind = ManagedPropertyType.document;
+  } else if (type is ClassMirror && type.isEnum) {
+    kind = ManagedPropertyType.string;
+    final enumeratedCases = type.getField(#values).reflectee as List<dynamic>;
+    enumerationMap = enumeratedCases.fold(<String, dynamic>{}, (m, v) {
+      m[v.toString().split(".").last] = v;
+      return m;
+    });
+  } else {
+    throw UnsupportedError(
+      "Invalid type '${type.reflectedType}' for 'ManagedType'.");
+  }
+
+  return ManagedType(type.reflectedType, kind, elements, enumerationMap);
+}
+
+
 // Expanding the list of ivars for each class yields duplicates of
 // any ivar is overridden. Since the order in which ivars are returned
 // is known (a subclass' ivars always come before its superclass'),
@@ -29,73 +73,6 @@ bool classHasDefaultConstructor(ClassMirror type) {
         dm.constructorName == const Symbol('') &&
         dm.parameters.every((p) => p.isOptional == true);
   });
-}
-
-VariableMirror instanceVariableFromClass(ClassMirror classMirror, Symbol name) {
-  return instanceVariablesFromClass(classMirror)
-      .firstWhere((dm) => dm.simpleName == name, orElse: () => null);
-}
-
-ClassMirror dartTypeFromDeclaration(DeclarationMirror declaration) {
-  if (declaration is MethodMirror) {
-    TypeMirror type;
-
-    if (declaration.isGetter) {
-      type = declaration.returnType;
-    } else if (declaration.isSetter) {
-      type = declaration.parameters.first.type;
-    }
-
-    if (type is! ClassMirror) {
-      throw ManagedDataModelError(
-          "Invalid type for field '${MirrorSystem.getName(declaration.simpleName)}'"
-          " in type '${MirrorSystem.getName(declaration.owner.simpleName)}'.");
-    }
-    return type as ClassMirror;
-  } else if (declaration is VariableMirror) {
-    if (declaration.type is! ClassMirror) {
-      throw ManagedDataModelError(
-          "Invalid type for field '${MirrorSystem.getName(declaration.simpleName)}'"
-          " in type '${MirrorSystem.getName(declaration.owner.simpleName)}'.");
-    }
-    return declaration.type as ClassMirror;
-  }
-
-  throw ManagedDataModelError(
-      "Tried getting property type description from non-property. This is an internal error, "
-      "as this method shouldn't be invoked on non-property or non-accessors.");
-}
-
-ManagedType propertyTypeFromDeclaration(DeclarationMirror declaration) {
-  try {
-    if (declaration is MethodMirror) {
-      TypeMirror type;
-
-      if (declaration.isGetter) {
-        type = declaration.returnType;
-      } else if (declaration.isSetter) {
-        type = declaration.parameters.first.type;
-      }
-
-      return ManagedType(type);
-    } else if (declaration is VariableMirror) {
-      var attributes = attributeMetadataFromDeclaration(declaration);
-
-      if (attributes?.databaseType != null) {
-        return ManagedType.fromKind(attributes.databaseType);
-      }
-
-      return ManagedType(declaration.type);
-    }
-  } on UnsupportedError catch (e) {
-    throw ManagedDataModelError("Invalid declaration "
-        "'${MirrorSystem.getName(declaration.owner.simpleName)}.${MirrorSystem.getName(declaration.simpleName)}'. "
-        "Reason: $e");
-  }
-
-  throw ManagedDataModelError(
-      "Tried getting property type description from non-property. This is an internal error, "
-      "as this method shouldn't be invoked on non-property or non-accessors.");
 }
 
 bool isInstanceVariableMirror(DeclarationMirror mirror) =>
@@ -139,32 +116,8 @@ bool isTransientPropertyOrAccessor(DeclarationMirror declaration) {
       isTransientProperty(declaration);
 }
 
-bool doesVariableMirrorRepresentRelationship(VariableMirror mirror) {
-  var modelMirror = reflectType(ManagedObject);
-  var orderedSetMirror = reflectType(ManagedSet);
-
-  if (mirror.type.isSubtypeOf(modelMirror)) {
-    return true;
-  } else if (mirror.type.isSubtypeOf(orderedSetMirror)) {
-    return mirror.type.typeArguments.any((tm) => tm.isSubtypeOf(modelMirror));
-  } else if (relationshipMetadataFromProperty(mirror)?.isDeferred ?? false) {
-    return true;
-  }
-
-  return false;
-}
-
-Table tableAttributeFromClass(ClassMirror typeMirror) =>
-    firstMetadataOfType(typeMirror, dynamicType: reflectType(Table));
-
 List<Validate> validatorsFromDeclaration(DeclarationMirror dm) =>
     allMetadataOfType<Validate>(dm);
 
 Serialize transientMetadataFromDeclaration(DeclarationMirror dm) =>
-    firstMetadataOfType(dm);
-
-Column attributeMetadataFromDeclaration(DeclarationMirror dm) =>
-    firstMetadataOfType(dm);
-
-Relate relationshipMetadataFromProperty(DeclarationMirror dm) =>
     firstMetadataOfType(dm);

@@ -1,5 +1,3 @@
-import 'dart:mirrors';
-
 import 'package:aqueduct/src/db/managed/backing.dart';
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
@@ -8,6 +6,8 @@ import 'package:aqueduct/src/openapi/openapi.dart';
 import '../query/query.dart';
 import 'managed.dart';
 import 'relationship_type.dart';
+
+
 
 /// Mapping information between a table in a database and a [ManagedObject] object.
 ///
@@ -30,7 +30,7 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// You should never call this method directly, it will be called by [ManagedDataModel].
   ManagedEntity(
-      this.dataModel, this._tableName, this.instanceType, this.tableDefinition);
+      this.dataModel, this._tableName, this.instanceType, this.tableDefinition, this.callbacks);
 
   /// The name of this entity.
   ///
@@ -42,6 +42,12 @@ class ManagedEntity implements APIComponentDocumenter {
   /// Managed objects are made up of two components, a table definition and an instance type. Applications
   /// use instances of the instance type to work with queries and data from the database table this entity represents.
   final Type instanceType;
+
+  /// Set of callbacks that are implemented differently depending on compilation target.
+  ///
+  /// If running in default mode (mirrors enabled), is a set of mirror operations. Otherwise,
+  /// code generated.
+  final ManagedEntityCallbacks callbacks;
 
   /// The type of persistent instances represented by this entity.
   ///
@@ -165,18 +171,14 @@ class ManagedEntity implements APIComponentDocumenter {
   /// By default, the returned object will use a normal value backing map.
   /// If [backing] is non-null, it will be the backing map of the returned object.
   T instanceOf<T extends ManagedObject>({ManagedBacking backing}) {
-    final object = reflectClass(instanceType)
-      .newInstance(const Symbol(""), []).reflectee as ManagedObject;
     if (backing != null) {
-      object.backing = backing;
+      return (callbacks.instanceOfImplementation(backing: backing)..entity = this) as T;
     }
-    object.entity = this;
-    return object as T;
+    return (callbacks.instanceOfImplementation()..entity = this) as T;
   }
 
-  ManagedSet setOf(Iterable<dynamic> objects) {
-    final type = reflectType(ManagedSet, [instanceType]) as ClassMirror;
-    return type.newInstance(const Symbol("fromDynamic"), [objects]).reflectee as ManagedSet;
+  ManagedSet<T> setOf<T extends ManagedObject>(Iterable<dynamic> objects) {
+    return callbacks.setOfImplementation(objects) as ManagedSet<T>;
   }
 
   /// Returns an attribute in this entity for a property selector.
@@ -343,4 +345,13 @@ class ManagedEntity implements APIComponentDocumenter {
     context.schema
         .register(name, obj, representation: instanceType);
   }
+}
+
+abstract class ManagedEntityCallbacks {
+  ManagedObject instanceOfImplementation({ManagedBacking backing});
+  ManagedSet setOfImplementation(Iterable<dynamic> objects);
+  void setTransientValueForKey(ManagedObject object, String key, dynamic value);
+  dynamic getTransientValueForKey(ManagedObject object, String key);
+  bool isValueInstanceOf(dynamic value);
+  bool isValueListOf(dynamic value);
 }

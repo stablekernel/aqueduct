@@ -250,7 +250,7 @@ class SchemaColumn {
   }
 
   @override
-  String toString() => "$name $relatedTableName";
+  String toString() => "$name (-> $relatedTableName.$relatedColumnName)";
 }
 
 /// The difference between two compared [SchemaColumn]s.
