@@ -4,6 +4,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/mixins/openapi_options.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 import 'package:yaml/yaml.dart';
 
@@ -51,13 +52,19 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
 
   @override
   Future<Map<String, dynamic>> execute() async {
+    if (Runtime.current.channels.length != 1) {
+      throw StateError(
+          "More than one ApplicationChannel subclass found: ${Runtime.current.channels.values.map((c) => "'${c.channelType}'").join(", ")}");
+    }
+
     try {
       var config = ApplicationOptions()..configurationFilePath = configPath;
 
       final yaml = (loadYaml(pubspecContents) as Map<dynamic, dynamic>)
           .cast<String, dynamic>();
+
       var document = await Application.document(
-          ApplicationChannel.defaultType, config, yaml);
+          Runtime.current.channels.values.first.channelType, config, yaml);
 
       document.servers = hosts;
       if (title != null) {

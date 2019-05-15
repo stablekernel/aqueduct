@@ -25,7 +25,11 @@ void main() {
     test("Reduce functions work correctly in a tansaction", () async {
       int result;
       await ctx.transaction((t) async {
-        await t.insertObject(Test()..i = 1..d = 2.0..dt = DateTime.now()..s = "x");
+        await t.insertObject(Test()
+          ..i = 1
+          ..d = 2.0
+          ..dt = DateTime.now()
+          ..s = "x");
         var q = Query<Test>(t);
         result = await q.reduce.count();
       });

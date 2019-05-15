@@ -5,11 +5,12 @@ void main() {
   test("Cannot change type", () {
     final original = Schema([
       SchemaTable(
-        "_u", [SchemaColumn("id", ManagedType.integer, isPrimaryKey: true)]),
+          "_u", [SchemaColumn("id", ManagedType.integer, isPrimaryKey: true)]),
     ]);
 
     final dest = Schema.from(original)
-      ..tableForName("_u").columnForName("id").type = ManagedPropertyType.doublePrecision;
+      ..tableForName("_u").columnForName("id").type =
+          ManagedPropertyType.doublePrecision;
 
     try {
       SchemaDifference(original, dest);

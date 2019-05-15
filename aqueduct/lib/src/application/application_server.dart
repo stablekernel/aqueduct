@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/src/application/channel.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:logging/logging.dart';
 
 import '../http/controller.dart';
@@ -15,11 +16,11 @@ import 'options.dart';
 /// instance of an [ApplicationChannel] subclass. Instances are created by [Application]
 /// and shouldn't be created otherwise.
 class ApplicationServer {
-  /// Creates a new server that sending requests to [channelType].
+  /// Creates a new server.
   ///
   /// You should not need to invoke this method directly.
-  ApplicationServer(ApplicationChannel instantiator(), this.options, this.identifier) {
-    channel = instantiator()
+  ApplicationServer(this.channelType, this.options, this.identifier) {
+    channel = Runtime.current.channels[channelType].instantiateChannel()
       ..server = this
       ..options = options;
   }
@@ -35,6 +36,8 @@ class ApplicationServer {
 
   /// The cached entrypoint of [channel].
   Controller entryPoint;
+
+  final Type channelType;
 
   /// Target for sending messages to other [ApplicationChannel.messageHub]s.
   ///

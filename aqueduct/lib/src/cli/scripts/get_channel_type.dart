@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:mirrors';
 
-import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
 class GetChannelExecutable extends Executable<String> {
@@ -9,12 +9,16 @@ class GetChannelExecutable extends Executable<String> {
 
   @override
   Future<String> execute() async {
-    var channelType = ApplicationChannel.defaultType;
+    final channels = Runtime.current.channels;
+    if (channels.length != 1) {
+      
+    }
+    var runtime = Runtime.current.channels.values.first;
 
-    if (channelType == null) {
+    if (runtime == null) {
       return null;
     }
-    return MirrorSystem.getName(reflectClass(channelType).simpleName);
+    return MirrorSystem.getName(reflectClass(runtime.channelType).simpleName);
   }
 
   static List<String> importsForPackage(String packageName) => [

@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/application/service_registry.dart';
 import 'package:logging/logging.dart';
 
@@ -11,12 +10,12 @@ import 'options.dart';
 
 class ApplicationIsolateServer extends ApplicationServer {
   ApplicationIsolateServer(
-      ApplicationChannel instantiator(),
+      Type channelType,
       ApplicationOptions configuration,
       int identifier,
       this.supervisingApplicationPort,
       {bool logToConsole = false})
-      : super(instantiator, configuration, identifier) {
+      : super(channelType, configuration, identifier) {
     if (logToConsole) {
       hierarchicalLoggingEnabled = true;
       logger.level = Level.ALL;
@@ -73,19 +72,6 @@ class ApplicationIsolateServer extends ApplicationServer {
     supervisingApplicationPort
         .send(ApplicationIsolateSupervisor.messageKeyStop);
   }
-}
-
-void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
-  final channelSourceLibrary =
-      currentMirrorSystem().libraries[params.streamLibraryURI];
-  final channelType = channelSourceLibrary
-      .declarations[Symbol(params.streamTypeName)] as ClassMirror;
-
-  final server = ApplicationIsolateServer(channelType, params.configuration,
-      params.identifier, params.parentMessagePort,
-      logToConsole: params.logToConsole);
-
-  server.start(shareHttpServer: true);
 }
 
 class ApplicationInitialServerMessage {

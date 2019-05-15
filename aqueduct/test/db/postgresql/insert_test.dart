@@ -35,7 +35,9 @@ void main() {
     }
   });
 
-  test("Setting a non-null value to null will identify offending column in response", () async {
+  test(
+      "Setting a non-null value to null will identify offending column in response",
+      () async {
     context = await contextWithModels([TestModel]);
 
     var m = TestModel()
@@ -157,7 +159,7 @@ void main() {
   test("Inserting multiple objects works and returns the objects", () async {
     context = await contextWithModels([TestModel]);
 
-      var m = TestModel()
+    var m = TestModel()
       ..name = "bob"
       ..emailAddress = "1@a.com";
 
@@ -180,7 +182,9 @@ void main() {
     expect(jay.emailAddress, "2@a.com");
   });
 
-  test("Inserting multiple objects with at least one bad one does not insert any objects into the database", () async {
+  test(
+      "Inserting multiple objects with at least one bad one does not insert any objects into the database",
+      () async {
     context = await contextWithModels([TestModel]);
 
     var goodModel = TestModel()
@@ -382,7 +386,9 @@ void main() {
   test("Can infer query from values in constructor", () async {
     context = await contextWithModels([TestModel]);
 
-    final tm = TestModel()..id = 1..name = "Fred";
+    final tm = TestModel()
+      ..id = 1
+      ..name = "Fred";
     final q = Query(context, values: tm);
     final t = await q.insert();
     expect(t.id, 1);

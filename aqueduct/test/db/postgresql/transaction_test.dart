@@ -29,7 +29,9 @@ void main() {
       await Query.insertObject(t, Model()..name = "Fred");
     });
 
-    final objects = await (Query<Model>(context)..sortBy((o) => o.name, QuerySortOrder.ascending)).fetch();
+    final objects = await (Query<Model>(context)
+          ..sortBy((o) => o.name, QuerySortOrder.ascending))
+        .fetch();
     expect(objects.length, 2);
     expect(objects.first.name, "Bob");
     expect(objects.last.name, "Fred");
@@ -57,7 +59,9 @@ void main() {
     expect(results.length, 3);
   });
 
-  test("Error thrown from query rolls back transaction and is thrown by transaction method", () async {
+  test(
+      "Error thrown from query rolls back transaction and is thrown by transaction method",
+      () async {
     try {
       await context.transaction((t) async {
         await Query.insertObject(t, Model()..name = "1");
@@ -73,7 +77,8 @@ void main() {
     expect((await Query<Model>(context).fetch()).length, 0);
   });
 
-  test("Error thrown from non-query code in transaction rolls back transaction and thrown by transaction method",
+  test(
+      "Error thrown from non-query code in transaction rolls back transaction and thrown by transaction method",
       () async {
     try {
       await context.transaction((t) async {
@@ -88,7 +93,8 @@ void main() {
     expect((await Query<Model>(context).fetch()).length, 0);
   });
 
-  test("A thrown rollback rolls back transaction and throws rollback", () async {
+  test("A thrown rollback rolls back transaction and throws rollback",
+      () async {
     try {
       await context.transaction((t) async {
         final res = await Query.insertObject(t, Model()..name = "1");
@@ -107,7 +113,9 @@ void main() {
     expect((await Query<Model>(context).fetch()).length, 0);
   });
 
-  test("Queries executed through persistentStore.execute use transaction context", () async {
+  test(
+      "Queries executed through persistentStore.execute use transaction context",
+      () async {
     await context.transaction((t) async {
       await Query.insertObject(t, Model()..name = "1");
       await t.persistentStore.execute("INSERT INTO _Model (name) VALUES ('2')");
@@ -117,7 +125,9 @@ void main() {
     expect((await Query<Model>(context).fetch()).length, 3);
   });
 
-  test("Query on original context within transaction block times out and cancels transaction", () async {
+  test(
+      "Query on original context within transaction block times out and cancels transaction",
+      () async {
     try {
       await context.transaction((t) async {
         await Query.insertObject(t, Model()..name = "1");

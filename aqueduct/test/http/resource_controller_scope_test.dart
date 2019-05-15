@@ -95,8 +95,7 @@ void main() {
   group("OpenAPI", () {
     APIDocument doc;
     setUpAll(() async {
-      doc = await Application.document(
-          Channel, ApplicationOptions(), {"version": "1.0", "name": "desc"});
+      doc = await Application.document(Channel, ApplicationOptions(), {"version": "1.0", "name": "desc"});
     });
 
     test(

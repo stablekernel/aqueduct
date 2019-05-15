@@ -2,6 +2,8 @@ import 'package:aqueduct/src/db/managed/backing.dart';
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/runtime/orm/orm.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 
 import '../query/query.dart';
 import 'managed.dart';
@@ -27,8 +29,7 @@ class ManagedEntity implements APIComponentDocumenter {
   /// Creates an instance of this type..
   ///
   /// You should never call this method directly, it will be called by [ManagedDataModel].
-  ManagedEntity(
-      this.dataModel, this._tableName, this.instanceType, this.tableDefinition, this.runtime);
+  ManagedEntity(this._tableName, this.instanceType, this.tableDefinition);
 
   /// The name of this entity.
   ///
@@ -45,16 +46,13 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// If running in default mode (mirrors enabled), is a set of mirror operations. Otherwise,
   /// code generated.
-  final ManagedEntityRuntime runtime;
+  ManagedEntityRuntime get runtime => Runtime.current.managedEntities[instanceType];
 
   /// The type of persistent instances represented by this entity.
   ///
   /// Managed objects are made up of two components, a table definition and an instance type. The system uses this type to define
   /// the mapping to the underlying database table.
   final Type tableDefinition;
-
-  /// The [ManagedDataModel] this instance belongs to.
-  final ManagedDataModel dataModel;
 
   /// All attribute values of this entity.
   ///
@@ -343,16 +341,4 @@ class ManagedEntity implements APIComponentDocumenter {
     context.schema
         .register(name, obj, representation: instanceType);
   }
-}
-
-abstract class ManagedEntityRuntime {
-  ManagedObject instanceOfImplementation({ManagedBacking backing});
-  ManagedSet setOfImplementation(Iterable<dynamic> objects);
-  void setTransientValueForKey(ManagedObject object, String key, dynamic value);
-  dynamic getTransientValueForKey(ManagedObject object, String key);
-  bool isValueInstanceOf(dynamic value);
-  bool isValueListOf(dynamic value);
-
-  dynamic dynamicAccessorImplementation(Invocation invocation, ManagedEntity entity, ManagedObject object);
-  dynamic dynamicConvertFromPrimitiveValue(ManagedPropertyDescription property, dynamic value);
 }

@@ -1,13 +1,13 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:isolate';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/runtime/app/channel.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:logging/logging.dart';
 
 import '../http/http.dart';
 import 'application_server.dart';
-import 'isolate_application_server.dart';
 import 'isolate_supervisor.dart';
 import 'options.dart';
 import 'service_registry.dart';
@@ -60,6 +60,7 @@ class Application<T extends ApplicationChannel> {
   /// This value will return to false after [stop] has completed.
   bool get isRunning => _hasFinishedLaunching;
   bool _hasFinishedLaunching = false;
+  ChannelRuntime get _runtime => Runtime.current.channels[T];
 
   /// Starts this application, allowing it to handle HTTP requests.
   ///
@@ -87,12 +88,12 @@ class Application<T extends ApplicationChannel> {
       }
     }
 
-    final channelType = reflectClass(T);
     try {
-      await _globalStart(channelType, options);
+      await _runtime.runGlobalInitialization(options);
 
       for (var i = 0; i < numberOfInstances; i++) {
-        final supervisor = await _spawn(channelType, options, i + 1,
+        final supervisor = await _runtime.spawn(
+            this, options, i + 1, logger, isolateStartupTimeout,
             logToConsole: consoleLogging);
         supervisors.add(supervisor);
         await supervisor.resume();
@@ -118,11 +119,10 @@ class Application<T extends ApplicationChannel> {
 
     options.address = InternetAddress.loopbackIPv4;
 
-    final channelType = reflectClass(T);
     try {
-      await _globalStart(channelType, options);
+      await _runtime.runGlobalInitialization(options);
 
-      server = ApplicationServer(channelType, options, 1);
+      server = ApplicationServer(_runtime.channelType, options, 1);
 
       await server.start();
       _hasFinishedLaunching = true;
@@ -152,14 +152,14 @@ class Application<T extends ApplicationChannel> {
 
   /// Creates an [APIDocument] from an [ApplicationChannel].
   ///
-  /// [channelType] must be a subclass [ApplicationChannel]. This method is called by the `aqueduct document` CLI.
-  static Future<APIDocument> document(Type channelType,
+  /// This method is called by the `aqueduct document` CLI.
+  static Future<APIDocument> document(Type type,
       ApplicationOptions config, Map<String, dynamic> projectSpec) async {
-    final channelMirror = reflectClass(channelType);
+    final runtime = Runtime.current.channels[type];
+    
+    await runtime.runGlobalInitialization(config);
 
-    await _globalStart(channelMirror, config);
-
-    final server = ApplicationServer(channelMirror, config, 1);
+    final server = ApplicationServer(runtime.channelType, config, 1);
 
     await server.channel.prepare();
 
@@ -168,36 +168,6 @@ class Application<T extends ApplicationChannel> {
     await server.channel.close();
 
     return doc;
-  }
-
-  static Future _globalStart(
-      Type channelType, ApplicationOptions config) {
-    const globalStartSymbol = #initializeApplication;
-    if (channelType.staticMembers[globalStartSymbol] != null) {
-      return channelType.invoke(globalStartSymbol, [config]).reflectee
-          as Future;
-    }
-
-    return null;
-  }
-
-  Future<ApplicationIsolateSupervisor> _spawn(
-      ClassMirror channelTypeMirror, ApplicationOptions config, int identifier,
-      {bool logToConsole = false}) async {
-    final receivePort = ReceivePort();
-
-    final streamLibraryURI = (channelTypeMirror.owner as LibraryMirror).uri;
-    final streamTypeName = MirrorSystem.getName(channelTypeMirror.simpleName);
-
-    final initialMessage = ApplicationInitialServerMessage(streamTypeName,
-        streamLibraryURI, config, identifier, receivePort.sendPort,
-        logToConsole: logToConsole);
-    final isolate = await Isolate.spawn(isolateServerEntryPoint, initialMessage,
-        paused: true);
-
-    return ApplicationIsolateSupervisor(
-        this, isolate, receivePort, identifier, logger,
-        startupTimeout: isolateStartupTimeout);
   }
 }
 
@@ -211,23 +181,4 @@ class ApplicationStartupException implements Exception {
 
   @override
   String toString() => originalException.toString();
-}
-
-abstract class ApplicationRuntimeSupport {
-  ApplicationChannel instantiateChannel();
-
-  Future runGlobalInitialization(Type channelType, ApplicationOptions config);
-  /*
-  const globalStartSymbol = #initializeApplication;
-    if (channelType.staticMembers[globalStartSymbol] != null) {
-      return channelType.invoke(globalStartSymbol, [config]).reflectee
-          as Future;
-    }
-
-    return null;
-   */
-
-  Future<ApplicationIsolateSupervisor> spawn(
-      Type channelType, ApplicationOptions config, int identifier,
-      {bool logToConsole = false});
 }

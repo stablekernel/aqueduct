@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:aqueduct/src/application/service_registry.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
@@ -183,39 +184,9 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   void documentComponents(APIDocumentContext registry) {
     entryPoint.documentComponents(registry);
 
-    final type = reflect(this).type;
-    final documenter = reflectType(APIComponentDocumenter);
-    type.declarations.values.forEach((member) {
-      if (member is VariableMirror && !member.isStatic) {
-        if (member.type.isAssignableTo(documenter)) {
-          final object = reflect(this).getField(member.simpleName).reflectee
-              as APIComponentDocumenter;
-          object?.documentComponents(registry);
-        }
-      }
+    Runtime.current.channels[runtimeType].getDocumentableChannelComponents(this).forEach((component) {
+      component.documentComponents(registry);
     });
-  }
-
-  /// Returns the subclass of [ApplicationChannel] found in an application library.
-  static Type get defaultType {
-    final channelType = reflectClass(ApplicationChannel);
-    final classes = currentMirrorSystem()
-        .libraries
-        .values
-        .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
-        .expand((lib) => lib.declarations.values)
-        .where((decl) =>
-            decl is ClassMirror &&
-            decl.isSubclassOf(channelType) &&
-            decl.reflectedType != ApplicationChannel)
-        .map((decl) => decl as ClassMirror)
-        .toList();
-
-    if (classes.isEmpty) {
-      return null;
-    }
-
-    return classes.first.reflectedType;
   }
 }
 

@@ -418,7 +418,7 @@ void main() {
     var u = (User()
       ..id = 1
       ..name = "Bob"
-      ..dateCreated = DateTime(2018,1,30))
+      ..dateCreated = DateTime(2018, 1, 30))
       ..removePropertyFromBackingMap("name");
 
     var m = u.asMap();
@@ -428,11 +428,12 @@ void main() {
     expect(m.containsKey("dateCreated"), true);
   });
 
-  test("Removing single non-existent property from backing map has no effect", () {
+  test("Removing single non-existent property from backing map has no effect",
+      () {
     var u = (User()
       ..id = 1
       ..name = "Bob"
-      ..dateCreated = DateTime(2018,1,30))
+      ..dateCreated = DateTime(2018, 1, 30))
       ..removePropertyFromBackingMap("dummy");
 
     var m = u.asMap();
@@ -446,7 +447,7 @@ void main() {
     var u = (User()
       ..id = 1
       ..name = "Bob"
-      ..dateCreated = DateTime(2018,1,30))
+      ..dateCreated = DateTime(2018, 1, 30))
       ..removePropertiesFromBackingMap(["name", "dateCreated"]);
 
     var m = u.asMap();
@@ -456,11 +457,12 @@ void main() {
     expect(m.containsKey("dateCreated"), false);
   });
 
-  test("Can remove single property from backing map with multi-property method", () {
+  test("Can remove single property from backing map with multi-property method",
+      () {
     var u = (User()
       ..id = 1
       ..name = "Bob"
-      ..dateCreated = DateTime(2018,1,30))
+      ..dateCreated = DateTime(2018, 1, 30))
       ..removePropertiesFromBackingMap(["name"]);
 
     var m = u.asMap();
@@ -470,11 +472,13 @@ void main() {
     expect(m.containsKey("dateCreated"), true);
   });
 
-  test("Removing multiple non-existent properties from backing map has no effect", () {
+  test(
+      "Removing multiple non-existent properties from backing map has no effect",
+      () {
     var u = (User()
       ..id = 1
       ..name = "Bob"
-      ..dateCreated = DateTime(2018,1,30))
+      ..dateCreated = DateTime(2018, 1, 30))
       ..removePropertiesFromBackingMap(["dummy1", "dummy2"]);
 
     var m = u.asMap();
@@ -546,53 +550,48 @@ void main() {
       "If complex type cannot be parsed into exact type, it fails with validation exception",
       () {
     try {
-      TransientTypeTest()
-        .readFromMap({
-          "deepList": wash([
-            {"str": 1}
-          ])
-        });
+      TransientTypeTest().readFromMap({
+        "deepList": wash([
+          {"str": 1}
+        ])
+      });
       fail('unreachable');
       // ignore: empty_catches
     } on ValidationException {}
 
     try {
-      TransientTypeTest()
-        .readFromMap({
-          "deepList": wash([
-            {"str": "val"},
-            {"int": 2}
-          ])
-        });
+      TransientTypeTest().readFromMap({
+        "deepList": wash([
+          {"str": "val"},
+          {"int": 2}
+        ])
+      });
       fail('unreachable');
       // ignore: empty_catches
     } on ValidationException {}
 
     try {
-      TransientTypeTest()
-        .readFromMap({
-          "deepList": wash(["str"])
-        });
+      TransientTypeTest().readFromMap({
+        "deepList": wash(["str"])
+      });
       fail('unreachable');
       // ignore: empty_catches
     } on ValidationException {}
 
     try {
-      TransientTypeTest()
-        .readFromMap({
-          "deepMap": wash({"str": 1})
-        });
+      TransientTypeTest().readFromMap({
+        "deepMap": wash({"str": 1})
+      });
       fail('unreachable');
       // ignore: empty_catches
     } on ValidationException {}
 
     try {
-      TransientTypeTest()
-        .readFromMap({
-          "deepMap": wash({
-            "key": {"str": "val", "int": 2}
-          })
-        });
+      TransientTypeTest().readFromMap({
+        "deepMap": wash({
+          "key": {"str": "val", "int": 2}
+        })
+      });
       fail('unreachable');
       // ignore: empty_catches
     } on ValidationException {}
@@ -790,34 +789,12 @@ void main() {
     });
   });
 
-  group("Constructors", () {
-    test("Can have constructor with only optional args", () {
-      final dm = ManagedDataModel([DefaultConstructorHasOptionalArgs]);
-      final _ = ManagedContext(dm, null);
-      final instance =
-          dm.entityForType(DefaultConstructorHasOptionalArgs).instanceOf();
-      expect(instance is DefaultConstructorHasOptionalArgs, true);
-    });
-
-    test("Cannot have unnamed constructor with required args", () {
-      try {
-        ManagedDataModel([DefaultConstructorHasRequiredArgs]);
-        fail('unreachable');
-      } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("DefaultConstructorHasRequiredArgs"));
-        expect(e.toString(), contains("default, unnamed constructor"));
-      }
-    });
-
-    test("Cannot have only named constructor", () {
-      try {
-        ManagedDataModel([HasNoDefaultConstructor]);
-        fail('unreachable');
-      } on ManagedDataModelError catch (e) {
-        expect(e.toString(), contains("HasNoDefaultConstructor"));
-        expect(e.toString(), contains("default, unnamed constructor"));
-      }
-    });
+  test("Can have constructor with only optional args", () {
+    final dm = ManagedDataModel([DefaultConstructorHasOptionalArgs]);
+    final _ = ManagedContext(dm, null);
+    final instance =
+        dm.entityForType(DefaultConstructorHasOptionalArgs).instanceOf();
+    expect(instance is DefaultConstructorHasOptionalArgs, true);
   });
 }
 
@@ -1117,20 +1094,10 @@ class _ConstructorOverride {
   String value;
 }
 
-class DefaultConstructorHasRequiredArgs
-    extends ManagedObject<_ConstructorTableDef> {
-  // ignore: avoid_unused_constructor_parameters
-  DefaultConstructorHasRequiredArgs(int foo);
-}
-
 class DefaultConstructorHasOptionalArgs
     extends ManagedObject<_ConstructorTableDef> {
   // ignore: avoid_unused_constructor_parameters
   DefaultConstructorHasOptionalArgs({int foo});
-}
-
-class HasNoDefaultConstructor extends ManagedObject<_ConstructorTableDef> {
-  HasNoDefaultConstructor.foo();
 }
 
 class _ConstructorTableDef {
@@ -1173,10 +1140,12 @@ class _Bottom {
   Middle middles;
 }
 
-class OverrideField extends ManagedObject<_OverrideField> implements _OverrideField {
+class OverrideField extends ManagedObject<_OverrideField>
+    implements _OverrideField {
   @override
   String field;
 }
+
 class _OverrideField {
   @primaryKey
   int id;

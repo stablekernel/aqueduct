@@ -306,8 +306,10 @@ void main() {
 
       var childJoin = q.join(set: (p) => p.children)
         ..join(object: (c) => c.toy);
-      childJoin.join(set: (c) => c.vaccinations)
-        .where((o) => o.kind).equalTo("V1");
+      childJoin
+          .join(set: (c) => c.vaccinations)
+          .where((o) => o.kind)
+          .equalTo("V1");
 
       var results = await q.fetch();
 
@@ -346,8 +348,10 @@ void main() {
 
       var childJoin = q.join(set: (p) => p.children)
         ..join(object: (c) => c.toy);
-      childJoin.join(set: (c) => c.vaccinations)
-        .where((o) => o.kind).equalTo("V1");
+      childJoin
+          .join(set: (c) => c.vaccinations)
+          .where((o) => o.kind)
+          .equalTo("V1");
 
       var results = await q.fetch();
       expect(results.length, 0);
@@ -461,8 +465,9 @@ void main() {
         () async {
       try {
         final q = Query<Parent>(context);
-        q.join(set: (p) => p.children)
-          .returningProperties((p) => [p.cid, p.vaccinations]);
+        q
+            .join(set: (p) => p.children)
+            .returningProperties((p) => [p.cid, p.vaccinations]);
 
         expect(true, false);
       } on ArgumentError catch (e) {
