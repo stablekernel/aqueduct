@@ -18,7 +18,7 @@ An operation method is an instance method of a `ResourceController` subclass tha
 class CityController extends ResourceController {
   @Operation.get()
   Future<Response> getAllCities() async {
-    return new Response.ok(["Atlanta", "Madison", "Mountain View"]);
+    return Response.ok(["Atlanta", "Madison", "Mountain View"]);
   }
 }
 ```
@@ -29,13 +29,13 @@ The above operation method will be invoked when `CityController` handles `GET` r
 class CityController extends ResourceController {
   @Operation.get()
   Future<Response> getAllCities() async {
-    return new Response.ok(["Atlanta", "Madison", "Mountain View"]);
+    return Response.ok(["Atlanta", "Madison", "Mountain View"]);
   }
 
   @Operation.get('name')
   Future<Response> getCityByName() async {
     final id = request.path.variables['name'];
-    return new Response.ok(fetchCityWithName(name));
+    return Response.ok(fetchCityWithName(name));
   }
 }
 ```
@@ -66,7 +66,7 @@ Here's an example of an operation that requires two path variables:
 Future<Response> getUserItem() async {
   final userID = request.path.variables['userID'];
   final itemID = request.path.variables['itemID'];
-  return new Response.ok(...);
+  return Response.ok(...);
 }
 ```
 
@@ -79,7 +79,7 @@ A `ResourceController` subclass must be preceded by a `Router` in the applicatio
 ```dart
 router
   .route("/cities/[:name]")
-  .link(() => new CityController());
+  .link(() => CityController());
 ```
 
 This route would allow `CityController` to implement operation methods for all HTTP methods with both no path variables and the 'name' path variable.
@@ -89,11 +89,11 @@ It is considered good practice to break sub-resources into their own controller.
 ```dart
 router
   .route("/cities/[:name]")
-  .link(() => new CityController());
+  .link(() => CityController());
 
 router
   .route("/cities/:name/attractions/[:id]")
-  .link(() => new CityAttractionController());
+  .link(() => CityAttractionController());
 ```
 
 By contrast, the route `/cities/[:name/[attractions/[:id]]]`, while valid, makes controller logic much more unwieldy.
@@ -106,10 +106,10 @@ Operation methods may *bind* properties of an HTTP request to its parameters. Wh
 @Operation.get('name')
 Future<Response> getCityByName(@Bind.header('x-api-key') String apiKey) async {
   if (!isValid(apiKey)) {
-    return new Response.unauthorized();
+    return Response.unauthorized();
   }
 
-  return new Response.ok(...);
+  return Response.ok(...);
 }
 ```
 
@@ -177,10 +177,10 @@ class CityController extends ResourceController {
   @Operation.get()
   Future<Response> getAllCities(@Bind.header('x-api-key') String apiKey) async {
     if (!isValid(apiKey)) {
-      return new Response.unauthorized();
+      return Response.unauthorized();
     }
 
-    return new Response.ok(['Atlanta', 'Madison', 'Mountain View']);
+    return Response.ok(['Atlanta', 'Madison', 'Mountain View']);
   }
 }
 ```
@@ -197,7 +197,7 @@ The following operation methods binds the query parameter named 'name' to the pa
 class CityController extends ResourceController {
   @Operation.get()
   Future<Response> getAllCities(@Bind.query('name') String cityName) async {
-    return new Response.ok(cities.where((c) => c.name == cityName).toList());
+    return Response.ok(cities.where((c) => c.name == cityName).toList());
   }
 }
 ```
@@ -216,7 +216,7 @@ The following operation method binds the path variable 'id' to the parameter `ci
 class CityController extends ResourceController {
   @Operation.get('id')
   Future<Response> getCityByID(@Bind.path('id') String cityID) async {
-    return new Response.ok(cities.where((c) => c.id == cityID).toList());
+    return Response.ok(cities.where((c) => c.id == cityID).toList());
   }
 }
 ```
@@ -239,7 +239,7 @@ class CityController extends ResourceController {
   Future<Response> addCity(@Bind.body() City city) async {
     final insertedCity = await context.insertObject(city);
 
-    return new Response.ok(insertedCity);
+    return Response.ok(insertedCity);
   }
 }
 ```
@@ -311,7 +311,7 @@ Besides binding, `ResourceController`s have some other behavior that is importan
 
 ### Request and Response Bodies
 
-An `ResourceController` can limit the content type of HTTP request bodies it accepts. By default, an `ResourceController` will accept only `application/json` request bodies for its `POST` and `PUT` methods. This can be modified by setting the `acceptedContentTypes` property in the constructor.
+A `ResourceController` can limit the content type of HTTP request bodies it accepts. By default, a `ResourceController` will accept only `application/json` request bodies for its `POST` and `PUT` methods. This can be modified by setting the `acceptedContentTypes` property in the constructor.
 
 ```dart
 class UserController extends ResourceController {
@@ -338,7 +338,7 @@ Future<Response> createThing() async {
 }
 ```
 
-An `ResourceController` can also have a default content type for its responses. By default, this is `application/json`. This default can be changed by changing `responseContentType` in the constructor:
+A `ResourceController` can also have a default content type for its responses. By default, this is `application/json`. This default can be changed by changing `responseContentType` in the constructor:
 
 ```dart
 class UserController extends ResourceController {
@@ -358,7 +358,7 @@ class UserController extends ResourceController {
 
   @Operation.get('id')
   Future<Response> getUserByID(@Bind.path('id') int id) async {
-    var response = new Response.ok(...);
+    var response = Response.ok(...);
 
     if (request.headers.value(Bind.headers.ACCEPT).startsWith("application/xml")) {
       response.contentType = ContentType.XML;
@@ -378,11 +378,11 @@ A `QueryController<T>` builds a `Query<T>` based on the incoming request. If the
 ```dart
 @Operation.put('id')
 Future<Response> updateUser(@Bind.path('id') int id, @Bind.body() User user) async {
-  var query = new Query<User>(context)
+  var query = Query<User>(context)
     ..where((u) => u.id).equalTo(id)
     ..values = user;
 
-  return new Response.ok(await query.updateOne());
+  return Response.ok(await query.updateOne());
 }
 ```
 
@@ -396,7 +396,7 @@ class UserController extends QueryController<User> {
   Future<Response> updateUser(@Bind.path('id') int id) async {
     // query already exists and is identical to the snippet above
     var result = await query.updateOne();
-    return new Response.ok(result);
+    return Response.ok(result);
   }
 }
 ```
@@ -406,7 +406,7 @@ A `ManagedObjectController<T>` is significantly more powerful; you don't even ne
 ```dart
 router
   .route("/users/[:id]")
-  .link(() => new ManagedObjectController<User>(context));
+  .link(() => ManagedObjectController<User>(context));
 ```
 
 This controller has the following behavior:
@@ -435,13 +435,13 @@ class UserController extends ManagedObjectController<User> {
 
   Future<Query<User>> willUpdateObjectWithQuery(
       Query<User> query) async {
-    query.values.lastUpdatedAt = new DateTime.now().toUtc();
+    query.values.lastUpdatedAt = DateTime.now().toUtc();
     return query;
   }
 
   Future<Response> didUpdateObject(User object) async {
     object.removePropertyFromBackingMap("private");
-    return new Response.ok(object);
+    return Response.ok(object);
   }
 }
 ```
