@@ -335,7 +335,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
     } else if (type.kind == ManagedPropertyType.list ||
         type.kind == ManagedPropertyType.map) {
       try {
-        return entity.callbacks.dynamicConvertFromPrimitiveValue(this, value);
+        return entity.runtime.dynamicConvertFromPrimitiveValue(this, value);
       } on CastError catch (_) {
         throw ValidationException(["invalid input value for '$name'"]);
       }
@@ -391,9 +391,9 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
   @override
   bool isAssignableWith(dynamic dartValue) {
     if (relationshipType == ManagedRelationshipType.hasMany) {
-      return destinationEntity.callbacks.isValueListOf(dartValue);
+      return destinationEntity.runtime.isValueListOf(dartValue);
     }
-    return destinationEntity.callbacks.isValueInstanceOf(dartValue);
+    return destinationEntity.runtime.isValueInstanceOf(dartValue);
   }
 
   @override

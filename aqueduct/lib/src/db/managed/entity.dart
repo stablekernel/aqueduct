@@ -28,7 +28,7 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// You should never call this method directly, it will be called by [ManagedDataModel].
   ManagedEntity(
-      this.dataModel, this._tableName, this.instanceType, this.tableDefinition, this.callbacks);
+      this.dataModel, this._tableName, this.instanceType, this.tableDefinition, this.runtime);
 
   /// The name of this entity.
   ///
@@ -45,7 +45,7 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// If running in default mode (mirrors enabled), is a set of mirror operations. Otherwise,
   /// code generated.
-  final ManagedEntityCallbacks callbacks;
+  final ManagedEntityRuntime runtime;
 
   /// The type of persistent instances represented by this entity.
   ///
@@ -170,13 +170,13 @@ class ManagedEntity implements APIComponentDocumenter {
   /// If [backing] is non-null, it will be the backing map of the returned object.
   T instanceOf<T extends ManagedObject>({ManagedBacking backing}) {
     if (backing != null) {
-      return (callbacks.instanceOfImplementation(backing: backing)..entity = this) as T;
+      return (runtime.instanceOfImplementation(backing: backing)..entity = this) as T;
     }
-    return (callbacks.instanceOfImplementation()..entity = this) as T;
+    return (runtime.instanceOfImplementation()..entity = this) as T;
   }
 
   ManagedSet<T> setOf<T extends ManagedObject>(Iterable<dynamic> objects) {
-    return callbacks.setOfImplementation(objects) as ManagedSet<T>;
+    return runtime.setOfImplementation(objects) as ManagedSet<T>;
   }
 
   /// Returns an attribute in this entity for a property selector.
@@ -345,7 +345,7 @@ class ManagedEntity implements APIComponentDocumenter {
   }
 }
 
-abstract class ManagedEntityCallbacks {
+abstract class ManagedEntityRuntime {
   ManagedObject instanceOfImplementation({ManagedBacking backing});
   ManagedSet setOfImplementation(Iterable<dynamic> objects);
   void setTransientValueForKey(ManagedObject object, String key, dynamic value);

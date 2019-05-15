@@ -19,7 +19,7 @@ class EntityBuilder {
     name = _getName();
 
     entity = ManagedEntity(dataModel, name, type,
-        tableDefinitionType.reflectedType, MirroredManagedEntityCallbacks(instanceType))
+        tableDefinitionType.reflectedType, MirroredManagedEntityRuntime(instanceType))
       ..validators = [];
     properties = _getProperties();
     primaryKeyProperty = properties
@@ -240,8 +240,8 @@ class EntityBuilder {
   }
 }
 
-class MirroredManagedEntityCallbacks extends ManagedEntityCallbacks {
-  MirroredManagedEntityCallbacks(this.instanceType);
+class MirroredManagedEntityRuntime extends ManagedEntityRuntime {
+  MirroredManagedEntityRuntime(this.instanceType);
 
   final ClassMirror instanceType;
 

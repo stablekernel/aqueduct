@@ -186,7 +186,7 @@ abstract class ManagedObject<T> extends Serializable {
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
-    return entity.callbacks.dynamicAccessorImplementation(invocation, entity, this);
+    return entity.runtime.dynamicAccessorImplementation(invocation, entity, this);
   }
 
   @override
@@ -215,7 +215,7 @@ abstract class ManagedObject<T> extends Serializable {
             throw ValidationException(["invalid input type for key '$key'"]);
           }
 
-          entity.callbacks.setTransientValueForKey(this, key, decodedValue);
+          entity.runtime.setTransientValueForKey(this, key, decodedValue);
         }
       } else {
         backing.setValueForProperty(
@@ -246,7 +246,7 @@ abstract class ManagedObject<T> extends Serializable {
     entity.attributes.values
         .where((attr) => attr.transientStatus?.isAvailableAsOutput ?? false)
         .forEach((attr) {
-      var value = entity.callbacks.getTransientValueForKey(this, attr.name);
+      var value = entity.runtime.getTransientValueForKey(this, attr.name);
       if (value != null) {
         outputMap[attr.name] = value;
       }
