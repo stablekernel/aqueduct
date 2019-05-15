@@ -7,8 +7,6 @@ import '../query/query.dart';
 import 'managed.dart';
 import 'relationship_type.dart';
 
-
-
 /// Mapping information between a table in a database and a [ManagedObject] object.
 ///
 /// An entity defines the mapping between a database table and [ManagedObject] subclass. Entities
@@ -354,4 +352,7 @@ abstract class ManagedEntityCallbacks {
   dynamic getTransientValueForKey(ManagedObject object, String key);
   bool isValueInstanceOf(dynamic value);
   bool isValueListOf(dynamic value);
+
+  dynamic dynamicAccessorImplementation(Invocation invocation, ManagedEntity entity, ManagedObject object);
+  dynamic dynamicConvertFromPrimitiveValue(ManagedPropertyDescription property, dynamic value);
 }

@@ -1,6 +1,4 @@
-import 'dart:mirrors';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
 
 import '../persistent_store/persistent_store.dart';
@@ -337,7 +335,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
     } else if (type.kind == ManagedPropertyType.list ||
         type.kind == ManagedPropertyType.map) {
       try {
-        return runtimeCast(value, reflectType(type.type));
+        return entity.callbacks.dynamicConvertFromPrimitiveValue(this, value);
       } on CastError catch (_) {
         throw ValidationException(["invalid input value for '$name'"]);
       }

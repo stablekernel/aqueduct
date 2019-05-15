@@ -19,7 +19,7 @@ class EntityBuilder {
     name = _getName();
 
     entity = ManagedEntity(dataModel, name, type,
-        tableDefinitionType.reflectedType, MirrorCallbacks(instanceType))
+        tableDefinitionType.reflectedType, MirroredManagedEntityCallbacks(instanceType))
       ..validators = [];
     properties = _getProperties();
     primaryKeyProperty = properties
@@ -240,8 +240,8 @@ class EntityBuilder {
   }
 }
 
-class MirrorCallbacks extends ManagedEntityCallbacks {
-  MirrorCallbacks(this.instanceType);
+class MirroredManagedEntityCallbacks extends ManagedEntityCallbacks {
+  MirroredManagedEntityCallbacks(this.instanceType);
 
   final ClassMirror instanceType;
 
@@ -290,4 +290,41 @@ class MirrorCallbacks extends ManagedEntityCallbacks {
     return type.typeArguments.first.isAssignableTo(instanceType);
   }
 
+  @override
+  dynamic dynamicAccessorImplementation(Invocation invocation, ManagedEntity entity, ManagedObject object) {
+    if (invocation.isGetter) {
+      if (invocation.memberName == #haveAtLeastOneWhere) {
+        return this;
+      }
+
+      return object[_getPropertyNameFromInvocation(invocation, entity)];
+    } else if (invocation.isSetter) {
+      object[_getPropertyNameFromInvocation(invocation, entity)] =
+        invocation.positionalArguments.first;
+
+      return null;
+    }
+
+    throw NoSuchMethodError.withInvocation(object, invocation);
+  }
+
+
+  @override
+  dynamic dynamicConvertFromPrimitiveValue(ManagedPropertyDescription property, dynamic value) {
+    return runtimeCast(value, reflectType(property.type.type));
+  }
+
+  String _getPropertyNameFromInvocation(Invocation invocation, ManagedEntity entity) {
+    // It memberName is not in symbolMap, it may be because that property doesn't exist for this object's entity.
+    // But it also may occur for private ivars, in which case, we reconstruct the symbol and try that.
+    var name = entity.symbolMap[invocation.memberName] ??
+      entity.symbolMap[Symbol(MirrorSystem.getName(invocation.memberName))];
+
+    if (name == null) {
+      throw ArgumentError("Invalid property access for '${entity.name}'. "
+        "Property '${MirrorSystem.getName(invocation.memberName)}' does not exist on '${entity.name}'.");
+    }
+
+    return name;
+  }
 }

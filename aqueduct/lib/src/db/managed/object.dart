@@ -1,4 +1,3 @@
-import 'dart:mirrors';
 import 'package:aqueduct/src/db/managed/data_model_manager.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:meta/meta.dart';
@@ -187,34 +186,7 @@ abstract class ManagedObject<T> extends Serializable {
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
-    if (invocation.isGetter) {
-      if (invocation.memberName == #haveAtLeastOneWhere) {
-        return this;
-      }
-
-      return this[_getPropertyNameFromInvocation(invocation)];
-    } else if (invocation.isSetter) {
-      this[_getPropertyNameFromInvocation(invocation)] =
-          invocation.positionalArguments.first;
-
-      return null;
-    }
-
-    return super.noSuchMethod(invocation);
-  }
-
-  String _getPropertyNameFromInvocation(Invocation invocation) {
-    // It memberName is not in symbolMap, it may be because that property doesn't exist for this object's entity.
-    // But it also may occur for private ivars, in which case, we reconstruct the symbol and try that.
-    var name = entity.symbolMap[invocation.memberName] ??
-        entity.symbolMap[Symbol(MirrorSystem.getName(invocation.memberName))];
-
-    if (name == null) {
-      throw ArgumentError("Invalid property access for '${entity.name}'. "
-          "Property '${MirrorSystem.getName(invocation.memberName)}' does not exist on '${entity.name}'.");
-    }
-
-    return name;
+    return entity.callbacks.dynamicAccessorImplementation(invocation, entity, this);
   }
 
   @override

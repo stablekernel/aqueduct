@@ -128,11 +128,13 @@ class PropertyBuilder {
       var destinationEntity =
           others.firstWhere((e) => e == relatedProperty.parent.entity);
 
+      final dartType =
+          ((declaration as VariableMirror).type as ClassMirror).reflectedType;
       relationship = ManagedRelationshipDescription(
           parent.entity,
           name,
           type,
-          ((declaration as VariableMirror).type as ClassMirror).reflectedType,
+          dartType,
           destinationEntity,
           deleteRule,
           relationshipType,
@@ -143,8 +145,9 @@ class PropertyBuilder {
           includedInDefaultResultSet: includeInDefaultResultSet,
           validators: validators.map((v) => v.managedValidator).toList());
     } else {
-      attribute = ManagedAttributeDescription(
-          parent.entity, name, type, getDeclarationType().reflectedType,
+      final dartType = getDeclarationType().reflectedType;
+      attribute = ManagedAttributeDescription(parent.entity, name, type,
+          dartType,
           primaryKey: primaryKey,
           transientStatus: serialize,
           defaultValue: defaultValue,
@@ -194,7 +197,8 @@ class PropertyBuilder {
     final declType = getDeclarationType();
     try {
       if (column?.databaseType != null) {
-        return ManagedType(declType.reflectedType, column.databaseType, null, null);
+        return ManagedType(
+            declType.reflectedType, column.databaseType, null, null);
       }
 
       return getManagedTypeFromType(declType);
