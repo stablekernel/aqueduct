@@ -55,7 +55,7 @@ var query = Query<User>(context)
   ..where((u) => u.id).equalTo(1);
 ```
 
-(The generated SQL here would be 'SELECT \_user.id, \_user.name, ... FROM \_user WHERE \_user.id = 1'.)
+(The generated SQL here would be `SELECT _user.id, _user.name, ... FROM _user WHERE _user.id = 1`.)
 
 There are many expression methods like `equalTo` - see the documentation for `QueryExpression<T>` for a complete list.
 
@@ -71,21 +71,21 @@ You may apply criteria to relationship properties, too. For nullable relationshi
 
 ```dart
 var employedQuery = Query<Person>(context)
-  ..where((c) => c.company).isNotNull();
+  ..where((p) => p.company).isNotNull();
 ```
 
 More often, you use the `identifiedBy` expression for finding objects that belong to a specific object. For example, when finding all employees for a given company:
 
 ```dart
 var preferredQuery = Query<Employee>(context)
-  ..where((c) => c.company).identifiedBy(23);
+  ..where((e) => e.company).identifiedBy(23);
 ```
 
 The above will only return employees who work for company with a primary key value of 23. It is equivalent to the following, and both are acceptable:
 
 ```dart
 var sameQuery = Query<Employee>(context)
-  ..where((c) => c.company.id).equalTo(23);
+  ..where((e) => e.company.id).equalTo(23);
 ```
 
 Notice in the above that you may select properties of relationships when building a query. Since an employee 'belongs-to' a company, the employee table has a column to store the primary key of a company. This is called a foreign key column. When building a query that selects the primary key of a belongs-to relationship, Aqueduct can interpret this to use the foreign key column value.
