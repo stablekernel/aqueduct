@@ -10,9 +10,9 @@ Instances of `FileController` serve a directory from the filesystem through an H
 ```dart
 @override
 Controller get entryPoint {
-  final router = new Router();
+  final router = Router();
 
-  router.route("/files/*").link(() => new FileController("public/"));
+  router.route("/files/*").link(() => FileController("public/"));
 
   return router;
 }
@@ -45,8 +45,8 @@ If a file does not exist, an `FileController` returns a 404 Not Found response.
 An `FileController` will set the content-type of the HTTP response based on the served files path extension. By default, it recognizes many common extensions like `.html`, `.css`, `.jpg`, `.js`. You may add content-types for extensions to an instance:
 
 ```dart
-var controller = new FileController("public/")
-  ..setContentTypeForExtension("xml", new ContentType("application", "xml"));
+var controller = FileController("public/")
+  ..setContentTypeForExtension("xml", ContentType("application", "xml"));
 ```
 
 If there is no entry for an extension of a file being served, the content-type defaults to `application/octet-stream`. An `FileController` will never invoke any encoders from `CodecRegistry`, but it will GZIP data if the repository allows compression for the content-type of the file (see `CodecRegistry.add` and `CodecRegistry.setAllowsCompression`).
@@ -58,8 +58,8 @@ An `FileController` always sets the the Last-Modified header of the response to 
 You may provide Cache-Control headers depending on the path of the file being served. Here's an example that adds `Cache-Control: public, max-age=31536000`
 
 ```dart
-var policy = new CachePolicy(expirationFromNow: new Duration(days: 365));
-var controller = new FileController("public/")
+var policy = CachePolicy(expirationFromNow: Duration(days: 365));
+var controller = FileController("public/")
   ..addCachePolicy(policy, (path) => path.endsWith(".css"));
 ```
 
@@ -68,23 +68,23 @@ var controller = new FileController("public/")
 A file can be served by any controller by setting the body object of a `Response` with its contents:
 
 ```dart
-var file = new File("index.html");
+var file = File("index.html");
 
 // By loading contents into memory first...
-var response = new Response.ok(file.readAsStringSync())
-  ..contentType = new ContentType("application", "html");
+var response = Response.ok(file.readAsStringSync())
+  ..contentType = ContentType("application", "html");
 
 // Or by streaming the contents from disk
-var response = new Response.ok(file.openRead())
+var response = Response.ok(file.openRead())
   ..encodeBody = false
-  ..contentType = new ContentType("application", "html");
+  ..contentType = ContentType("application", "html");
 ```
 
 It is important to understand the how Aqueduct [uses content-types to manipulate response bodies](request_and_response.md) to serve file contents.
 
-You may set the `CachePolicy` of any `Response`. Note that `CachePolicy` only modifies the Cache-Control header of a response - headers like Last-Modified and ETag are not added.
+You may set the `CachePolicy` of any `Response`. Note that `CachePolicy` only modifies the Cache-Control header of a response. Headers like Last-Modified and ETag are not added.
 
 ```dart
-var response = new Response.ok("contents")
-  ..cachePolicy = new CachePolicy();
+var response = Response.ok("contents")
+  ..cachePolicy = CachePolicy();
 ```
