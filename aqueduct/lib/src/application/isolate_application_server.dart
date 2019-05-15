@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:isolate';
-import 'dart:mirrors';
 
+import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/application/service_registry.dart';
 import 'package:logging/logging.dart';
 
@@ -11,12 +11,12 @@ import 'options.dart';
 
 class ApplicationIsolateServer extends ApplicationServer {
   ApplicationIsolateServer(
-      ClassMirror channelType,
+      ApplicationChannel instantiator(),
       ApplicationOptions configuration,
       int identifier,
       this.supervisingApplicationPort,
       {bool logToConsole = false})
-      : super(channelType, configuration, identifier) {
+      : super(instantiator, configuration, identifier) {
     if (logToConsole) {
       hierarchicalLoggingEnabled = true;
       logger.level = Level.ALL;

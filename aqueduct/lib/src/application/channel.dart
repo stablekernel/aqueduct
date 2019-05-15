@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors';
 
 import 'package:aqueduct/src/application/service_registry.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';

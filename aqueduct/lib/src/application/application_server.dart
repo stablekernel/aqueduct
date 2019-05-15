@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors';
 
 import 'package:aqueduct/src/application/channel.dart';
 import 'package:logging/logging.dart';
@@ -19,9 +18,8 @@ class ApplicationServer {
   /// Creates a new server that sending requests to [channelType].
   ///
   /// You should not need to invoke this method directly.
-  ApplicationServer(ClassMirror channelType, this.options, this.identifier) {
-    channel = (channelType.newInstance(const Symbol(""), []).reflectee
-        as ApplicationChannel)
+  ApplicationServer(ApplicationChannel instantiator(), this.options, this.identifier) {
+    channel = instantiator()
       ..server = this
       ..options = options;
   }

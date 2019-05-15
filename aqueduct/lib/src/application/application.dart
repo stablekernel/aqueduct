@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:isolate';
-import 'dart:mirrors';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
@@ -172,7 +171,7 @@ class Application<T extends ApplicationChannel> {
   }
 
   static Future _globalStart(
-      ClassMirror channelType, ApplicationOptions config) {
+      Type channelType, ApplicationOptions config) {
     const globalStartSymbol = #initializeApplication;
     if (channelType.staticMembers[globalStartSymbol] != null) {
       return channelType.invoke(globalStartSymbol, [config]).reflectee
@@ -212,4 +211,23 @@ class ApplicationStartupException implements Exception {
 
   @override
   String toString() => originalException.toString();
+}
+
+abstract class ApplicationRuntimeSupport {
+  ApplicationChannel instantiateChannel();
+
+  Future runGlobalInitialization(Type channelType, ApplicationOptions config);
+  /*
+  const globalStartSymbol = #initializeApplication;
+    if (channelType.staticMembers[globalStartSymbol] != null) {
+      return channelType.invoke(globalStartSymbol, [config]).reflectee
+          as Future;
+    }
+
+    return null;
+   */
+
+  Future<ApplicationIsolateSupervisor> spawn(
+      Type channelType, ApplicationOptions config, int identifier,
+      {bool logToConsole = false});
 }
