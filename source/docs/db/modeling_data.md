@@ -191,7 +191,7 @@ The `Relate` annotation has optional arguments to further define the relationshi
 @Relate(#cities, isRequired: true, rule: DeleteRule.cascade)
 ```
 
-A relationship may be be required or optional. For example, if `City.country` were required, than an `City` must always have an `Country`. By default, relationships are optional.
+A relationship may be be required or optional. For example, if `City.country` were required, than a `City` must always have a `Country`. By default, relationships are optional.
 
 A relationship has a delete rule. When an object is deleted, any objects that belong to its relationships are subject to this rule. The following table shows the rules and their behavior:
 
