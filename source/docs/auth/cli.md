@@ -17,7 +17,7 @@ aqueduct auth add-client \
 
 The `connect` option identifies the database for the application, which this tool will connect to and insert a record into the `ManagedAuthClient` database table. The identifier is provided through the `id` option.
 
-An OAuth 2.0 client created in this way is a *public* client; there is no client secret. An OAuth 2.0 client that uses the resource owner grant flow, but cannot secure its client secret, should use this type of client. An application can't secure its client secret if its source code is viewable - like any JavaScript application. It is suggested that native mobile applications also use public clients because their source code could potentially disassembled to reveal a client secret, but isn't necessarily required.
+An OAuth 2.0 client created in this way is a *public* client; there is no client secret. An OAuth 2.0 client that uses the resource owner grant flow, but cannot secure its client secret, should use this type of client. An application can't secure its client secret if its source code is viewable - like any JavaScript application. It is suggested that native mobile applications also use public clients because their source code could potentially be disassembled to reveal a client secret, but isn't necessarily required.
 
 When making requests to client authenticated endpoints (those protected with `Authorizer.basic`), the client secret is omitted from the authorization header. The string to base64 encode is `clientID:`, where the colon (`:`) is required. For example, to generate an authorization header in Dart for a public client:
 
