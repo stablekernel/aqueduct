@@ -1,27 +1,39 @@
 import 'dart:mirrors';
+import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/application/channel.dart';
-import 'package:aqueduct/src/runtime/app/channel.dart';
+import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/runtime/app/mirror.dart';
 
 class ApplicationBuilder {
-  ApplicationBuilder();
-
-  Map<Type, ChannelRuntime> get runtimes {
-    return Map.fromEntries(_channelTypes?.map((t) => MapEntry(t, ChannelRuntimeImpl(t))));
+  ApplicationBuilder() {
+    _types = currentMirrorSystem()
+      .libraries
+      .values
+      .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
+      .expand((lib) => lib.declarations.values)
+      .whereType<ClassMirror>().toList();
   }
-  static List<Type> get _channelTypes {
-    final channelType = reflectClass(ApplicationChannel);
-    final classes = currentMirrorSystem()
-        .libraries
-        .values
-        .where((lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file")
-        .expand((lib) => lib.declarations.values)
-        .whereType<ClassMirror>()
-        .where((decl) =>
-            decl.isSubclassOf(channelType) &&
-            decl.reflectedType != ApplicationChannel)
-        .toList();
+  
+  List<ClassMirror> _types;
 
-    return classes.map((c) => c.reflectedType).toList();
+  Map<Type, ChannelRuntime> get channels {
+    return Map.fromEntries(_subclassesOf(ApplicationChannel).map((t) => MapEntry(t, ChannelRuntimeImpl(t))));
+  }
+
+  Map<Type, SerializableRuntime> get serializables {
+    return Map.fromEntries(_subclassesOf(Serializable).map((t) => MapEntry(t, SerializableRuntimeImpl(t))));
+  }
+
+  Map<Type, ControllerRuntime> get controllers {
+    return Map.fromEntries(_subclassesOf(Serializable).map((t) => MapEntry(t, ControllerRuntimeImpl(t))));
+  }
+  
+  List<Type> _subclassesOf(Type type) {
+    final mirror = reflectClass(type);
+    return _types
+        .where((decl) =>
+            decl.isSubclassOf(mirror) &&
+            decl.reflectedType != type)
+        .map((c) => c.reflectedType).toList();
   }
 }

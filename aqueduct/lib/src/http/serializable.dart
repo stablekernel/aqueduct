@@ -1,6 +1,5 @@
-import 'dart:mirrors';
-
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 
 import 'http.dart';
 
@@ -15,24 +14,7 @@ abstract class Serializable {
   /// with [APIComponentDocumenter.documentVariable]. See the API reference
   /// for this method for supported types.
   APISchemaObject documentSchema(APIDocumentContext context) {
-    final mirror = reflect(this).type;
-
-    final obj = APISchemaObject.object({})
-      ..title = MirrorSystem.getName(mirror.simpleName);
-    try {
-      for (final property
-          in mirror.declarations.values.whereType<VariableMirror>()) {
-        final propName = MirrorSystem.getName(property.simpleName);
-        obj.properties[propName] =
-            APIComponentDocumenter.documentVariable(context, property);
-      }
-    } catch (e) {
-      obj.additionalPropertyPolicy = APISchemaAdditionalPropertyPolicy.freeForm;
-      obj.description =
-          "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}': ${e.toString()}";
-    }
-
-    return obj;
+    return Runtime.current.serializables[runtimeType].documentSchema(context);
   }
 
   /// Reads values from [object].

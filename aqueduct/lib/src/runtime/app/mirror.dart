@@ -7,7 +7,8 @@ import 'package:aqueduct/src/application/isolate_application_server.dart';
 import 'package:aqueduct/src/application/isolate_supervisor.dart';
 import 'package:aqueduct/src/application/options.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
-import 'package:aqueduct/src/runtime/app/channel.dart';
+import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:logging/logging.dart';
 
 class ChannelRuntimeImpl extends ChannelRuntime {
@@ -84,4 +85,49 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
       logToConsole: params.logToConsole);
 
   server.start(shareHttpServer: true);
+}
+
+
+class ControllerRuntimeImpl extends ControllerRuntime {
+  ControllerRuntimeImpl(Type t) : type = reflectClass(t);
+
+  final ClassMirror type;
+
+  @override
+  bool get isMutable {
+    // We have a whitelist for a few things declared in controller that can't be final.
+    final whitelist = ['policy=', '_nextController='];
+    final members = type.instanceMembers;
+    final fieldKeys = type.instanceMembers.keys
+      .where((sym) => !whitelist.contains(MirrorSystem.getName(sym)));
+    return fieldKeys.any((key) => members[key].isSetter);
+  }
+}
+
+class SerializableRuntimeImpl extends SerializableRuntime {
+  SerializableRuntimeImpl(Type t) : type = reflectClass(t);
+
+  final ClassMirror type;
+
+  @override
+  APISchemaObject documentSchema(APIDocumentContext context) {
+    final mirror = type;
+
+    final obj = APISchemaObject.object({})
+      ..title = MirrorSystem.getName(mirror.simpleName);
+    try {
+      for (final property
+      in mirror.declarations.values.whereType<VariableMirror>()) {
+        final propName = MirrorSystem.getName(property.simpleName);
+        obj.properties[propName] =
+          APIComponentDocumenter.documentVariable(context, property);
+      }
+    } catch (e) {
+      obj.additionalPropertyPolicy = APISchemaAdditionalPropertyPolicy.freeForm;
+      obj.description =
+      "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}': ${e.toString()}";
+    }
+
+    return obj;
+  }
 }

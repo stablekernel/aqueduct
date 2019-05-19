@@ -7,7 +7,9 @@ class Compiler {
     final out = Runtime();
 
     final app = ApplicationBuilder();
-    out.channels = app.runtimes;
+    out.channels = app.channels;
+    out.serializables = app.serializables;
+    out.controllers = app.controllers;
 
     final dm = DataModelBuilder();
     out.managedEntities = dm.runtimes;

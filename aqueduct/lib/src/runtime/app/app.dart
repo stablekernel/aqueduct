@@ -5,6 +5,7 @@ import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/application/isolate_supervisor.dart';
 import 'package:aqueduct/src/application/options.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
+import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
 
 abstract class ChannelRuntime {
@@ -14,4 +15,12 @@ abstract class ChannelRuntime {
   Future runGlobalInitialization(ApplicationOptions config);
   Future<ApplicationIsolateSupervisor> spawn(Application application, ApplicationOptions config, int identifier, Logger logger, Duration startupTimeout,
     {bool logToConsole = false});
+}
+
+abstract class ControllerRuntime {
+  bool get isMutable;
+}
+
+abstract class SerializableRuntime {
+  APISchemaObject documentSchema(APIDocumentContext context);
 }
