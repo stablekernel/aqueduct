@@ -15,60 +15,6 @@ import 'package:open_api/v3.dart';
 /// [ApplicationChannel], [Controller], [ManagedEntity], and [AuthServer] all implement this interface.
 ///
 abstract class APIComponentDocumenter {
-  /// Creates an [APISchemaObject] from a reflected variable.
-  ///
-  /// [mirror] must reflect on a variable of that has one of the following supported types:
-  /// [int], [double], [String], [DateTime], or [Serializable]. [mirror] may reflect a
-  /// [List] if every element of that list is one of the supported types. [mirror] may also reflect
-  /// a [Map] if the keys are [String]s and the values are supported types.
-  ///
-  /// Any documentation comments for the declared variable will available in the returned object.
-  static APISchemaObject documentVariable(
-      APIDocumentContext context, VariableMirror mirror) {
-    APISchemaObject object = documentType(context, mirror.type)
-      ..title = MirrorSystem.getName(mirror.simpleName);
-
-    return object;
-  }
-
-  /// Creates an [APISchemaObject] from a reflected class.
-  ///
-  /// [type] must be representable as an [APISchemaObject]. This includes primitive types (int, String, etc.),
-  /// maps, lists and any type that implements [Serializable].
-  ///
-  /// See [Serializable.documentSchema] for details on automatic document generation behavior for these types.
-  static APISchemaObject documentType(
-      APIDocumentContext context, TypeMirror type) {
-    if (type.isAssignableTo(reflectType(int))) {
-      return APISchemaObject.integer();
-    } else if (type.isAssignableTo(reflectType(double))) {
-      return APISchemaObject.number();
-    } else if (type.isAssignableTo(reflectType(String))) {
-      return APISchemaObject.string();
-    } else if (type.isAssignableTo(reflectType(bool))) {
-      return APISchemaObject.boolean();
-    } else if (type.isAssignableTo(reflectType(DateTime))) {
-      return APISchemaObject.string(format: "date-time");
-    } else if (type.isAssignableTo(reflectType(List))) {
-      return APISchemaObject.array(
-          ofSchema: documentType(context, type.typeArguments.first));
-    } else if (type.isAssignableTo(reflectType(Map))) {
-      if (!type.typeArguments.first.isAssignableTo(reflectType(String))) {
-        throw ArgumentError("Unsupported type 'Map' with non-string keys.");
-      }
-      return APISchemaObject()
-        ..type = APIType.object
-        ..additionalPropertySchema =
-            documentType(context, type.typeArguments.last);
-    } else if (type.isAssignableTo(reflectType(Serializable))) {
-      final instance = (type as ClassMirror).newInstance(const Symbol(''), []).reflectee as Serializable;
-      return instance.documentSchema(context);
-    }
-
-    throw ArgumentError(
-        "Unsupported type '${MirrorSystem.getName(type.simpleName)}' for 'APIComponentDocumenter.documentType'.");
-  }
-
   /// Tells this object to add its components to [context].
   ///
   /// You may register components with [context] in this method. The order in which components

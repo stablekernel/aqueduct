@@ -10,9 +10,7 @@ abstract class Serializable {
   /// Returns an [APISchemaObject] describing this object's type.
   ///
   /// The returned [APISchemaObject] will be of type [APIType.object]. By default, each instance variable
-  /// of the receiver's type will be a property of the return value. These variables are documented
-  /// with [APIComponentDocumenter.documentVariable]. See the API reference
-  /// for this method for supported types.
+  /// of the receiver's type will be a property of the return value.
   APISchemaObject documentSchema(APIDocumentContext context) {
     return Runtime.current.serializables[runtimeType].documentSchema(context);
   }

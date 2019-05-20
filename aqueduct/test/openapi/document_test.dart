@@ -3,6 +3,7 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:test/test.dart';
 
 /*
@@ -358,40 +359,9 @@ void main() {
       await ctx.finalize();
     });
 
-    test("Type documentation for primitive types", () {
-      expect(APIComponentDocumenter.documentType(ctx, reflectClass(int)).type,
-          APIType.integer);
-      expect(
-          APIComponentDocumenter.documentType(ctx, reflectClass(double)).type,
-          APIType.number);
-      expect(
-          APIComponentDocumenter.documentType(ctx, reflectClass(String)).type,
-          APIType.string);
-      expect(APIComponentDocumenter.documentType(ctx, reflectClass(bool)).type,
-          APIType.boolean);
-      expect(
-          APIComponentDocumenter.documentType(ctx, reflectClass(DateTime)).type,
-          APIType.string);
-      expect(
-          APIComponentDocumenter.documentType(ctx, reflectClass(DateTime))
-              .format,
-          "date-time");
-    });
-
-    test("Type documentation throws error in type is unsupported", () {
-      try {
-        APIComponentDocumenter.documentType(ctx, reflectClass(DefaultChannel));
-        fail("unreachable");
-        // ignore: empty_catches
-      } on ArgumentError {}
-    });
-
     test("Non-string key map throws error", () {
       try {
-        APIComponentDocumenter.documentType(
-            ctx,
-            (reflectClass(ComplexTypes).declarations[#x] as VariableMirror).type
-                as ClassMirror);
+        Runtime.current.serializables[InvalidMapKey].documentSchema(ctx);
         fail("unreachable");
         // ignore: empty_catches
       } on ArgumentError {}
@@ -399,10 +369,7 @@ void main() {
 
     test("List that contains non-serializble types throws", () {
       try {
-        APIComponentDocumenter.documentType(
-            ctx,
-            (reflectClass(ComplexTypes).declarations[#y] as VariableMirror).type
-                as ClassMirror);
+        Runtime.current.serializables[InvalidListValue].documentSchema(ctx);
         fail("unreachable");
         // ignore: empty_catches
       } on ArgumentError {}
@@ -410,65 +377,47 @@ void main() {
 
     test("Map that contains values that aren't serializable throws", () {
       try {
-        APIComponentDocumenter.documentType(
-            ctx,
-            (reflectClass(ComplexTypes).declarations[#z] as VariableMirror).type
-                as ClassMirror);
+        Runtime.current.serializables[InvalidMapValue].documentSchema(ctx);
         fail("unreachable");
         // ignore: empty_catches
       } on ArgumentError {}
     });
 
     test("Type documentation for complex types", () {
-      final stringIntMap = APIComponentDocumenter.documentType(
-          ctx,
-          (reflectClass(ComplexTypes).declarations[#a] as VariableMirror).type
-              as ClassMirror);
-      final intList = APIComponentDocumenter.documentType(
-          ctx,
-          (reflectClass(ComplexTypes).declarations[#b] as VariableMirror).type
-              as ClassMirror);
-      final listOfMaps = APIComponentDocumenter.documentType(
-          ctx,
-          (reflectClass(ComplexTypes).declarations[#c] as VariableMirror).type
-              as ClassMirror);
-      final listOfSerial = APIComponentDocumenter.documentType(
-          ctx,
-          (reflectClass(ComplexTypes).declarations[#d] as VariableMirror).type
-              as ClassMirror);
-      final serial = APIComponentDocumenter.documentType(
-          ctx,
-          (reflectClass(ComplexTypes).declarations[#e] as VariableMirror).type
-              as ClassMirror);
-      final stringListMap = APIComponentDocumenter.documentType(
-          ctx,
-          (reflectClass(ComplexTypes).declarations[#f] as VariableMirror).type
-              as ClassMirror);
+      final schema = Runtime.current.serializables[ComplexTypes].documentSchema(ctx);
 
-      expect(stringIntMap.type, APIType.object);
-      expect(stringIntMap.additionalPropertySchema.type, APIType.integer);
-      expect(intList.type, APIType.array);
-      expect(intList.items.type, APIType.integer);
-      expect(listOfMaps.type, APIType.array);
-      expect(listOfMaps.items.type, APIType.object);
-      expect(listOfMaps.items.additionalPropertySchema.type, APIType.string);
-      expect(listOfSerial.type, APIType.array);
-      expect(listOfSerial.items.type, APIType.object);
-      expect(listOfSerial.items.properties["x"].type, APIType.integer);
-      expect(serial.type, APIType.object);
-      expect(serial.properties["x"].type, APIType.integer);
-      expect(stringListMap.type, APIType.object);
-      expect(stringListMap.additionalPropertySchema.type, APIType.array);
-      expect(stringListMap.additionalPropertySchema.items.type, APIType.string);
+      expect(schema.properties["a"].type, APIType.object);
+      expect(schema.properties["a"].additionalPropertySchema.type, APIType.integer);
+
+      expect(schema.properties["b"].type, APIType.array);
+      expect(schema.properties["b"].items.type, APIType.integer);
+
+      expect(schema.properties["c"].type, APIType.array);
+      expect(schema.properties["c"].items.type, APIType.object);
+      expect(schema.properties["c"].items.additionalPropertySchema.type, APIType.string);
+
+      expect(schema.properties["d"].type, APIType.array);
+      expect(schema.properties["d"].items.type, APIType.object);
+      expect(schema.properties["d"].items.properties["x"].type, APIType.integer);
+
+      expect(schema.properties["e"].type, APIType.object);
+      expect(schema.properties["e"].properties["x"].type, APIType.integer);
+
+      expect(schema.properties["f"].type, APIType.object);
+      expect(schema.properties["f"].additionalPropertySchema.type, APIType.array);
+      expect(schema.properties["f"].additionalPropertySchema.items.type, APIType.string);
+
+      expect(schema.properties["integer"].type, APIType.integer);
+      expect(schema.properties["doublePrecision"].type, APIType.number);
+      expect(schema.properties["string"].type, APIType.string);
+      expect(schema.properties["boolean"].type, APIType.boolean);
+      expect(schema.properties["dateTime"].type, APIType.string);
+      expect(schema.properties["dateTime"].format, "date-time");
     });
   });
 }
 
 class ComplexTypes {
-  Map<int, String> x;
-  List<DefaultChannel> y;
-  Map<String, DefaultChannel> z;
-
   /// title
   Map<String, int> a;
 
@@ -480,6 +429,45 @@ class ComplexTypes {
   List<Serial> d;
   Serial e;
   Map<String, List<String>> f;
+
+  String string;
+  int integer;
+  DateTime dateTime;
+  double doublePrecision;
+  bool boolean;
+}
+
+class InvalidMapKey extends Serializable {
+  Map<int, String> x;
+  @override
+  void readFromMap(Map<String, dynamic> requestBody) {}
+
+  @override
+  Map<String, dynamic> asMap() {
+    return null;
+  }
+}
+
+class InvalidListValue extends Serializable {
+  List<DefaultChannel> y;
+  @override
+  void readFromMap(Map<String, dynamic> requestBody) {}
+
+  @override
+  Map<String, dynamic> asMap() {
+    return null;
+  }
+}
+
+class InvalidMapValue extends Serializable {
+  Map<String, DefaultChannel> z;
+  @override
+  void readFromMap(Map<String, dynamic> requestBody) {}
+
+  @override
+  Map<String, dynamic> asMap() {
+    return null;
+  }
 }
 
 class Serial extends Serializable {
