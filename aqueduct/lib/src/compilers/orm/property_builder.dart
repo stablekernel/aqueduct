@@ -2,8 +2,8 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/compilers/orm/data_model_builder.dart';
 import 'package:aqueduct/src/compilers/orm/entity_builder.dart';
-import 'package:aqueduct/src/compilers/orm/validator_builder.dart';
 import 'package:aqueduct/src/compilers/orm/entity_mirrors.dart';
+import 'package:aqueduct/src/compilers/orm/validator_builder.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
@@ -146,8 +146,8 @@ class PropertyBuilder {
           validators: validators.map((v) => v.managedValidator).toList());
     } else {
       final dartType = getDeclarationType().reflectedType;
-      attribute = ManagedAttributeDescription(parent.entity, name, type,
-          dartType,
+      attribute = ManagedAttributeDescription(
+          parent.entity, name, type, dartType,
           primaryKey: primaryKey,
           transientStatus: serialize,
           defaultValue: defaultValue,
@@ -208,6 +208,10 @@ class PropertyBuilder {
   }
 
   String _getName() {
+    if (column?.name != null) {
+      return column.name;
+    }
+    
     if (declaration is MethodMirror) {
       if ((declaration as MethodMirror).isGetter) {
         return MirrorSystem.getName(declaration.simpleName);

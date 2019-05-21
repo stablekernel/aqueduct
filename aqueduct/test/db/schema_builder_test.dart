@@ -323,6 +323,9 @@ class _ExtensiveModel {
 
   DateTime startDate;
 
+  @Column(name:'named_value')
+  String namedValue;
+
   @Column(indexed: true)
   int indexedValue;
 

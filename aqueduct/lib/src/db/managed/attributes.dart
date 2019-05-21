@@ -120,7 +120,8 @@ class Column {
   /// [defaultValue] is sent as-is to the database, therefore, if the default value is the integer value 2,
   /// pass the string "2". If the default value is a string, it must also be wrapped in single quotes: "'defaultValue'".
   const Column(
-      {bool primaryKey = false,
+      {String name,
+      bool primaryKey = false,
       ManagedPropertyType databaseType,
       bool nullable = false,
       String defaultValue,
@@ -129,7 +130,8 @@ class Column {
       bool omitByDefault = false,
       bool autoincrement = false,
       List<Validate> validators = const []})
-      : isPrimaryKey = primaryKey,
+      : name = name,
+        isPrimaryKey = primaryKey,
         databaseType = databaseType,
         isNullable = nullable,
         defaultValue = defaultValue,
@@ -139,6 +141,8 @@ class Column {
         autoincrement = autoincrement,
         validators = validators;
 
+  /// By default, the database column name is inferred from the Dart property name
+  final String name;
 
   /// When true, indicates that this property is the primary key.
   ///
@@ -238,7 +242,7 @@ class Serialize {
 ///
 /// The validator [Validate.constant] is automatically applied to a property with this annotation.
 const Column primaryKey = Column(
-  primaryKey: true,
-  databaseType: ManagedPropertyType.bigInteger,
-  autoincrement: true,
-  validators: [Validate.constant()]);
+    primaryKey: true,
+    databaseType: ManagedPropertyType.bigInteger,
+    autoincrement: true,
+    validators: [Validate.constant()]);
