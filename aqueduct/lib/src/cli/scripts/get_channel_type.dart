@@ -9,12 +9,12 @@ class GetChannelExecutable extends Executable<String> {
 
   @override
   Future<String> execute() async {
-    final channels = Runtime.current.channels;
+    final channels = Runtime.current.channels.iterable;
     if (channels.length != 1) {
       throw StateError("No ApplicationChannel subclass was found for this project. "
         "Make sure it is imported in your application library file.");
     }
-    var runtime = Runtime.current.channels.values.first;
+    var runtime = channels.first;
 
     if (runtime == null) {
       return null;

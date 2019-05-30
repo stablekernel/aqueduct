@@ -52,11 +52,12 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
 
   @override
   Future<Map<String, dynamic>> execute() async {
-    if (Runtime.current.channels.length != 1) {
+    final channels = Runtime.current.channels.iterable;
+    if (channels.length != 1) {
       throw StateError(
-          "More than one ApplicationChannel subclass found: ${Runtime.current.channels.values.map((c) => "'${c.channelType}'").join(", ")}");
+          "More than one ApplicationChannel subclass found: ${channels.map((c) => "'${c.channelType}'").join(", ")}");
     }
-
+    
     try {
       var config = ApplicationOptions()..configurationFilePath = configPath;
 
@@ -64,7 +65,7 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
           .cast<String, dynamic>();
 
       var document = await Application.document(
-          Runtime.current.channels.values.first.channelType, config, yaml);
+          channels.first.channelType, config, yaml);
 
       document.servers = hosts;
       if (title != null) {

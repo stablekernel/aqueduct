@@ -1,12 +1,12 @@
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/http/request.dart';
+import 'package:aqueduct/src/http/response.dart';
+import 'package:aqueduct/src/http/serializable.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
 
-import '../request.dart';
-import '../response.dart';
-import '../serializable.dart';
 import 'internal.dart';
 
 /// Parent class for annotations used for optional parameters in controller methods

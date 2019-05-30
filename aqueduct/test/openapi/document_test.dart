@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
@@ -360,27 +359,27 @@ void main() {
     });
 
     test("Non-string key map throws error", () {
-      try {
-        Runtime.current.serializables[InvalidMapKey].documentSchema(ctx);
-        fail("unreachable");
-        // ignore: empty_catches
-      } on ArgumentError {}
+      final schema = Runtime.current.serializables[InvalidMapKey].documentSchema(ctx);
+      expect(schema.properties.isEmpty, true);
+      expect(schema.additionalPropertyPolicy, equals(APISchemaAdditionalPropertyPolicy.freeForm));
+      expect(schema.description, contains("Failed to"));
+      expect(schema.description, contains("Map"));
     });
 
     test("List that contains non-serializble types throws", () {
-      try {
-        Runtime.current.serializables[InvalidListValue].documentSchema(ctx);
-        fail("unreachable");
-        // ignore: empty_catches
-      } on ArgumentError {}
+      final schema = Runtime.current.serializables[InvalidListValue].documentSchema(ctx);
+      expect(schema.properties.isEmpty, true);
+      expect(schema.additionalPropertyPolicy, equals(APISchemaAdditionalPropertyPolicy.freeForm));
+      expect(schema.description, contains("Failed to"));
+      expect(schema.description, contains("DefaultChannel"));
     });
 
     test("Map that contains values that aren't serializable throws", () {
-      try {
-        Runtime.current.serializables[InvalidMapValue].documentSchema(ctx);
-        fail("unreachable");
-        // ignore: empty_catches
-      } on ArgumentError {}
+      final schema = Runtime.current.serializables[InvalidMapValue].documentSchema(ctx);
+      expect(schema.properties.isEmpty, true);
+      expect(schema.additionalPropertyPolicy, equals(APISchemaAdditionalPropertyPolicy.freeForm));
+      expect(schema.description, contains("Failed to"));
+      expect(schema.description, contains("DefaultChannel"));
     });
 
     test("Type documentation for complex types", () {
@@ -417,7 +416,7 @@ void main() {
   });
 }
 
-class ComplexTypes {
+class ComplexTypes extends Serializable {
   /// title
   Map<String, int> a;
 
@@ -435,6 +434,14 @@ class ComplexTypes {
   DateTime dateTime;
   double doublePrecision;
   bool boolean;
+
+  @override
+  void readFromMap(Map<String, dynamic> requestBody) {}
+
+  @override
+  Map<String, dynamic> asMap() {
+    return null;
+  }
 }
 
 class InvalidMapKey extends Serializable {

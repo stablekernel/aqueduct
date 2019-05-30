@@ -5,8 +5,8 @@ import 'package:aqueduct/aqueduct.dart';
 
 void main() {
   test("Find default ApplicationChannel", () {
-    expect(Runtime.current.channels.length, equals(1));
-    expect(Runtime.current.channels.values.first.channelType, equals(TestChannel));
+    expect(Runtime.current.channels.iterable.length, equals(1));
+    expect(Runtime.current.channels.iterable.first.channelType, equals(TestChannel));
   });
 }
 

@@ -57,8 +57,8 @@ class ManagedDataModel extends Object
     _entities = {};
     _tableDefinitionToEntityMap = {};
 
-    Runtime.current.managedEntities.forEach((t, runtime) {
-      _entities[t] = runtime.entity;
+    Runtime.current.managedEntities.iterable.forEach((runtime) {
+      _entities[runtime.entity.instanceType] = runtime.entity;
       _tableDefinitionToEntityMap[runtime.entity.tableDefinition] =
           runtime.entity;
     });

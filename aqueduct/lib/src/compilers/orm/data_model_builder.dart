@@ -16,11 +16,11 @@ class DataModelBuilder {
 
     _builders.forEach((b) {
       b.link(_builders.map((eb) => eb.entity).toList());
-      runtimes[b.entity.instanceType] = b.runtime;
+      runtimes[b.entity.instanceType.toString()] = b.runtime;
     });
   }
 
-  Map<Type, ManagedEntityRuntime> runtimes = {};
+  Map<String, ManagedEntityRuntime> runtimes = {};
 
   List<EntityBuilder> _builders;
 

@@ -6,14 +6,17 @@ import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/application/isolate_application_server.dart';
 import 'package:aqueduct/src/application/isolate_supervisor.dart';
 import 'package:aqueduct/src/application/options.dart';
+import 'package:aqueduct/src/http/controller.dart';
+import 'package:aqueduct/src/http/resource_controller.dart';
 import 'package:aqueduct/src/http/serializable.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/runtime/app/app.dart';
+import 'package:aqueduct/src/runtime/app/resource_controller_mirror.dart';
 import 'package:logging/logging.dart';
 
 class ChannelRuntimeImpl extends ChannelRuntime {
-  ChannelRuntimeImpl(Type type) : type = reflectClass(type);
+  ChannelRuntimeImpl(this.type);
 
   final ClassMirror type;
 
@@ -79,7 +82,7 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
   final channelType = channelSourceLibrary
       .declarations[Symbol(params.streamTypeName)] as ClassMirror;
 
-  final runtime = ChannelRuntimeImpl(channelType.reflectedType);
+  final runtime = ChannelRuntimeImpl(channelType);
 
   final server = ApplicationIsolateServer(runtime.channelType, params.configuration,
       params.identifier, params.parentMessagePort,
@@ -90,9 +93,21 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
 
 
 class ControllerRuntimeImpl extends ControllerRuntime {
-  ControllerRuntimeImpl(Type t) : type = reflectClass(t);
+  ControllerRuntimeImpl(this.type) {
+    if (type.isSubclassOf(reflectClass(ResourceController))) {
+      resourceController = ResourceControllerRuntimeImpl(type);
+    }
+
+    if (isMutable && !type.isAssignableTo(reflectType(Recyclable))) {
+      throw StateError("Invalid controller '${MirrorSystem.getName(type.simpleName)}'. "
+        "Controllers must not have setters and all fields must be marked as final, or it must implement 'Recyclable'.");
+    }
+  }
 
   final ClassMirror type;
+
+  @override
+  ResourceControllerRuntime resourceController;
 
   @override
   bool get isMutable {
@@ -106,7 +121,7 @@ class ControllerRuntimeImpl extends ControllerRuntime {
 }
 
 class SerializableRuntimeImpl extends SerializableRuntime {
-  SerializableRuntimeImpl(Type t) : type = reflectClass(t);
+  SerializableRuntimeImpl(this.type);
 
   final ClassMirror type;
 

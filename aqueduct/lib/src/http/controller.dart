@@ -110,10 +110,6 @@ abstract class Controller
     if (instance is Recyclable) {
       _nextController = _ControllerRecycler(instantiator, instance);
     } else {
-      if (Runtime.current.controllers[runtimeType].isMutable) {
-        throw ArgumentError("Invalid controller '${instance.runtimeType}'. "
-            "Controllers must not have setters and all fields must be marked as final, or it must implement 'Recyclable'.");
-      }
       _nextController = instantiator();
     }
 
@@ -339,6 +335,7 @@ abstract class Controller
   }
 }
 
+@PreventCompilation()
 class _ControllerRecycler<T> extends Controller {
   _ControllerRecycler(this.generator, Recyclable<T> instance) {
     recycleState = instance.recycledState;
@@ -419,6 +416,7 @@ class _ControllerRecycler<T> extends Controller {
       nextInstanceToReceive.documentOperations(components, route, path);
 }
 
+@PreventCompilation()
 class _FunctionController extends Controller {
   _FunctionController(this._handler) : assert(_handler != null);
 

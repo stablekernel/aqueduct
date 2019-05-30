@@ -1,15 +1,13 @@
 import 'dart:async';
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/auth/auth.dart';
+import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/http/resource_controller_bindings.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
-import 'package:logging/logging.dart';
-
-import '../request.dart';
-import '../resource_controller.dart';
-import '../resource_controller_bindings.dart';
-import '../response.dart';
-import 'internal.dart';
+import 'package:aqueduct/src/runtime/app/app.dart';
+import 'package:aqueduct/src/runtime/app/mirror.dart';
+import 'package:aqueduct/src/runtime/app/resource_controller_mirror/internal.dart';
+import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 class BoundOperation {
   Symbol methodSymbol;
@@ -17,19 +15,23 @@ class BoundOperation {
   List<dynamic> positionalMethodArguments = [];
   Map<Symbol, dynamic> optionalMethodArguments = {};
 
-  Future<Response> invoke(InstanceMirror instance) {
-    properties.forEach((sym, value) => instance.setField(sym, value));
+  Future<Response> invoke(ResourceController instance) {
+    final mirror = reflect(instance);
+    // ignore: unnecessary_lambdas
+    properties.forEach((sym, value) {
+      mirror.setField(sym, value);
+    });
 
-    return instance
+    return mirror
         .invoke(
             methodSymbol, positionalMethodArguments, optionalMethodArguments)
         .reflectee as Future<Response>;
   }
 }
 
-class BoundController implements APIComponentDocumenter {
-  BoundController(this.controllerType) {
-    final allDeclarations = reflectClass(controllerType).declarations;
+class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
+  ResourceControllerRuntimeImpl(this.type) {
+    final allDeclarations = type.declarations;
 
     final boundProperties = allDeclarations.values
         .whereType<VariableMirror>()
@@ -42,9 +44,7 @@ class BoundController implements APIComponentDocumenter {
     });
     properties.addAll(boundProperties);
 
-    methods = reflectClass(controllerType)
-        .instanceMembers
-        .values
+    methods = type.instanceMembers.values
         .where(isOperation)
         .map((decl) => BoundMethod(decl))
         .toList();
@@ -52,18 +52,19 @@ class BoundController implements APIComponentDocumenter {
     if (conflictingOperations.isNotEmpty) {
       final opNames = conflictingOperations.map((s) => "'$s'").join(", ");
       throw StateError(
-          "Invalid controller. Controller '${controllerType.toString()}' has ambiguous operations. Offending operating methods: $opNames.");
+          "Invalid controller. Controller '${type.reflectedType.toString()}' has ambiguous operations. Offending operating methods: $opNames.");
     }
 
     if (unsatisfiableOperations.isNotEmpty) {
       final opNames = unsatisfiableOperations.map((s) => "'$s'").join(", ");
       throw StateError(
-          "Invalid controller. Controller '${controllerType.toString()}' has operations where "
+          "Invalid controller. Controller '${type.reflectedType.toString()}' has operations where "
           "parameter is bound with @Bind.path(), but path variable is not declared in @Operation(). Offending operation methods: $opNames");
     }
   }
 
-  final Type controllerType;
+  final ClassMirror type;
+
   List<BoundParameter> properties = [];
   List<BoundMethod> methods;
 
@@ -132,6 +133,7 @@ class BoundController implements APIComponentDocumenter {
   }
 
   // At the end of this method, request.body.decodedData will have been invoked.
+  @override
   Future<BoundOperation> bind(
       ResourceController controller, Request request) async {
     final boundMethod = methodBinderForRequest(request);
@@ -234,7 +236,7 @@ class BoundController implements APIComponentDocumenter {
   }
 
   @override
-  void documentComponents(APIDocumentContext context) {
+  void documentComponents(ResourceController rc, APIDocumentContext context) {
     methods.forEach((b) {
       [b.positionalParameters, b.optionalParameters]
           .expand((b) => b.map((b) => b.binding))
@@ -243,5 +245,151 @@ class BoundController implements APIComponentDocumenter {
         b.documentComponents(context);
       });
     });
+  }
+
+  @override
+  List<APIParameter> documentOperationParameters(
+      ResourceController rc, APIDocumentContext context, Operation operation) {
+    bool usesFormEncodedData = operation.method == "POST" &&
+        rc.acceptedContentTypes.any((ct) =>
+            ct.primaryType == "application" &&
+            ct.subType == "x-www-form-urlencoded");
+
+    return parametersForOperation(operation)
+        .map((param) {
+          if (param.binding is BoundBody) {
+            return null;
+          }
+          if (usesFormEncodedData && param.binding is BoundQueryParameter) {
+            return null;
+          }
+
+          return _documentParameter(context, operation, param);
+        })
+        .where((p) => p != null)
+        .toList();
+  }
+
+  @override
+  APIRequestBody documentOperationRequestBody(
+      ResourceController rc, APIDocumentContext context, Operation operation) {
+    final binder = _boundMethodForOperation(operation);
+    final usesFormEncodedData = operation.method == "POST" &&
+        rc.acceptedContentTypes.any((ct) =>
+            ct.primaryType == "application" &&
+            ct.subType == "x-www-form-urlencoded");
+    final boundBody = binder.positionalParameters
+            .firstWhere((p) => p.binding is BoundBody, orElse: () => null) ??
+        binder.optionalParameters
+            .firstWhere((p) => p.binding is BoundBody, orElse: () => null);
+
+    if (boundBody != null) {
+      final binding = boundBody.binding as BoundBody;
+      final ref = binding.getSchemaObjectReference(context);
+      if (ref != null) {
+        return APIRequestBody.schema(ref,
+            contentTypes: rc.acceptedContentTypes
+                .map((ct) => "${ct.primaryType}/${ct.subType}"),
+            required: boundBody.isRequired);
+      }
+    } else if (usesFormEncodedData) {
+      final Map<String, APISchemaObject> props =
+          parametersForOperation(operation)
+              .where((p) => p.binding is BoundQueryParameter)
+              .map((param) => _documentParameter(context, operation, param))
+              .fold(<String, APISchemaObject>{}, (prev, elem) {
+        prev[elem.name] = elem.schema;
+        return prev;
+      });
+
+      return APIRequestBody.schema(APISchemaObject.object(props),
+          contentTypes: ["application/x-www-form-urlencoded"], required: true);
+    }
+
+    return null;
+  }
+
+  @override
+  Map<String, APIOperation> documentOperations(ResourceController rc,
+      APIDocumentContext context, String route, APIPath path) {
+    final operations = methods
+        .where((method) => path.containsPathParameters(method.pathVariables));
+
+    return operations.fold(<String, APIOperation>{}, (prev, method) {
+      final instanceMembers = reflect(rc).type.instanceMembers;
+      Operation operation = firstMetadataOfType(
+          instanceMembers[method.methodSymbol]);
+
+      final operationDoc = APIOperation(
+          MirrorSystem.getName(method.methodSymbol),
+          rc.documentOperationResponses(context, operation),
+          summary: rc.documentOperationSummary(context, operation),
+          description: rc.documentOperationDescription(context, operation),
+          parameters: rc.documentOperationParameters(context, operation),
+          requestBody: rc.documentOperationRequestBody(context, operation),
+          tags: rc.documentOperationTags(context, operation));
+
+      if (method.scopes != null) {
+        context.defer(() async {
+          operationDoc.security?.forEach((sec) {
+            sec.requirements.forEach((name, operationScopes) {
+              final secType = context.document.components.securitySchemes[name];
+              if (secType?.type == APISecuritySchemeType.oauth2 ||
+                  secType?.type == APISecuritySchemeType.openID) {
+                _mergeScopes(operationScopes, method.scopes);
+              }
+            });
+          });
+        });
+      }
+
+      prev[method.httpMethod.toLowerCase()] = operationDoc;
+      return prev;
+    });
+  }
+
+  BoundMethod _boundMethodForOperation(Operation operation) {
+    return methods.firstWhere((m) {
+      if (m.httpMethod != operation.method) {
+        return false;
+      }
+
+      if (m.pathVariables.length != operation.pathVariables.length) {
+        return false;
+      }
+
+      if (!operation.pathVariables.every((p) => m.pathVariables.contains(p))) {
+        return false;
+      }
+
+      return true;
+    });
+  }
+
+  void _mergeScopes(
+      List<String> operationScopes, List<AuthScope> methodScopes) {
+    final existingScopes = operationScopes.map((s) => AuthScope(s)).toList();
+
+    methodScopes.forEach((methodScope) {
+      for (var existingScope in existingScopes) {
+        if (existingScope.isSubsetOrEqualTo(methodScope)) {
+          operationScopes.remove(existingScope.toString());
+        }
+      }
+
+      operationScopes.add(methodScope.toString());
+    });
+  }
+
+  APIParameter _documentParameter(
+      APIDocumentContext context, Operation operation, BoundParameter param) {
+    final schema =
+        SerializableRuntimeImpl.documentType(context, param.binding.boundType);
+    final documentedParameter = APIParameter(param.name, param.binding.location,
+        schema: schema,
+        required: param.isRequired,
+        allowEmptyValue: schema.type == APIType.boolean);
+
+    return documentedParameter;
   }
 }

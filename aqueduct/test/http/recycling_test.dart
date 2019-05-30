@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:test/test.dart';
 import 'package:http/http.dart' as http;
 
@@ -119,28 +120,6 @@ void main() {
     ]);
 
     expect(DefaultRecyclable.stateCount, 1);
-  });
-
-  test(
-      "A controller that is not Recyclable, but declares non-final properties throws a runtime error",
-      () {
-    try {
-      server.root.link(() => MutablePropertyController());
-      fail('unreachable');
-    } on ArgumentError catch (e) {
-      expect(e.toString(), contains("MutablePropertyController"));
-    }
-  });
-
-  test(
-      "A controller that is not Recyclable, but declares a setter throws a runtime error",
-      () {
-    try {
-      server.root.link(() => MutableSetterController());
-      fail('unreachable');
-    } on ArgumentError catch (e) {
-      expect(e.toString(), contains("MutableSetterController"));
-    }
   });
 
   test(
@@ -274,24 +253,6 @@ class DefaultRecyclable extends Controller implements Recyclable<String> {
   String get recycledState {
     stateCount++;
     return "state";
-  }
-}
-
-class MutablePropertyController extends Controller {
-  String mutableProperty;
-
-  @override
-  FutureOr<RequestOrResponse> handle(Request request) {
-    return request;
-  }
-}
-
-class MutableSetterController extends Controller {
-  set mutableSetter(String s) {}
-
-  @override
-  FutureOr<RequestOrResponse> handle(Request request) {
-    return request;
   }
 }
 
