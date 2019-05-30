@@ -317,8 +317,8 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
 
     return operations.fold(<String, APIOperation>{}, (prev, method) {
       final instanceMembers = reflect(rc).type.instanceMembers;
-      Operation operation = firstMetadataOfType(
-          instanceMembers[method.methodSymbol]);
+      Operation operation =
+          firstMetadataOfType(instanceMembers[method.methodSymbol]);
 
       final operationDoc = APIOperation(
           MirrorSystem.getName(method.methodSymbol),
