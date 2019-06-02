@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:open_api/v3.dart';
@@ -241,7 +240,7 @@ class APIComponentCollection<T extends APIObject> {
   /// If after [APIDocumentContext.finalize] is called and no object
   /// has been registered for [name], an error is thrown.
   T getObject(String name) {
-    final obj = reflectClass(T).newInstance(#empty, []).reflectee as T;
+    final obj = _getInstanceOf();
     obj.referenceURI = Uri(path: "/components/$_typeName/$name");
     return obj;
   }
@@ -255,10 +254,10 @@ class APIComponentCollection<T extends APIObject> {
   /// for [type]. If after [APIDocumentContext.finalize] is called and no object
   /// has been registered for [type], an error is thrown.
   T getObjectWithType(Type type) {
-    final obj = reflectClass(T).newInstance(#empty, []).reflectee as T;
+    final obj = _getInstanceOf();
     obj.referenceURI = Uri(
         path:
-            "/components/$_typeName/aqueduct-typeref:${MirrorSystem.getName(reflectType(type).simpleName)}");
+            "/components/$_typeName/aqueduct-typeref:$type");
 
     if (_typeReferenceMap.containsKey(type)) {
       obj.referenceURI = _typeReferenceMap[type].referenceURI;
@@ -272,6 +271,20 @@ class APIComponentCollection<T extends APIObject> {
     }
 
     return obj;
+  }
+
+  T _getInstanceOf() {
+    switch (T) {
+      case APISchemaObject: return APISchemaObject.empty() as T;
+      case APIResponse: return APIResponse.empty() as T;
+      case APIParameter: return APIParameter.empty() as T;
+      case APIRequestBody: return APIRequestBody.empty() as T;
+      case APIHeader: return APIHeader.empty() as T;
+      case APISecurityScheme: return APISecurityScheme.empty() as T;
+      case APICallback: return APICallback.empty() as T;
+    }
+
+    throw StateError("cannot reference API object of type $T");
   }
 
   /// Whether or not [type] has been registered with [register].
