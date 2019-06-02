@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:logging/logging.dart';
 
 import 'http.dart';
@@ -90,15 +90,6 @@ abstract class Controller
 
   Controller _nextController;
 
-  static bool _isControllerTypeMutable(Type controllerType) {
-    // We have a whitelist for a few things declared in controller that can't be final.
-    final whitelist = ['policy=', '_nextController='];
-    final members = reflectClass(controllerType).instanceMembers;
-    final fieldKeys = members.keys
-        .where((sym) => !whitelist.contains(MirrorSystem.getName(sym)));
-    return fieldKeys.any((key) => members[key].isSetter);
-  }
-
   /// Links a controller to the receiver to form a request channel.
   ///
   /// Establishes a channel containing the receiver and the controller returned by [instantiator]. If
@@ -119,10 +110,6 @@ abstract class Controller
     if (instance is Recyclable) {
       _nextController = _ControllerRecycler(instantiator, instance);
     } else {
-      if (_isControllerTypeMutable(instance.runtimeType)) {
-        throw ArgumentError("Invalid controller '${instance.runtimeType}'. "
-            "Controllers must not have setters and all fields must be marked as final, or it must implement 'Recyclable'.");
-      }
       _nextController = instantiator();
     }
 
@@ -348,6 +335,7 @@ abstract class Controller
   }
 }
 
+@PreventCompilation()
 class _ControllerRecycler<T> extends Controller {
   _ControllerRecycler(this.generator, Recyclable<T> instance) {
     recycleState = instance.recycledState;
@@ -428,6 +416,7 @@ class _ControllerRecycler<T> extends Controller {
       nextInstanceToReceive.documentOperations(components, route, path);
 }
 
+@PreventCompilation()
 class _FunctionController extends Controller {
   _FunctionController(this._handler) : assert(_handler != null);
 

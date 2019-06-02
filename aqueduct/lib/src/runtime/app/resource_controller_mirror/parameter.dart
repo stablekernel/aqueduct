@@ -1,10 +1,9 @@
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/http/http.dart';
+import 'package:aqueduct/src/http/resource_controller_bindings.dart';
+import 'package:aqueduct/src/runtime/app/resource_controller_mirror/bindings.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
-
-import '../request.dart';
-import '../resource_controller_bindings.dart';
-import 'internal.dart';
 
 class BoundParameter {
   BoundParameter(VariableMirror mirror, {this.isRequired = false})
@@ -18,7 +17,7 @@ class BoundParameter {
           "'${MirrorSystem.getName(mirror.type.simpleName)}'. Cannot bind dynamic parameters.");
     }
 
-    binding = b.bindToType(mirror.type as ClassMirror);
+    binding = bindToType(b, mirror.type as ClassMirror);
 
     try {
       binding.validate();
@@ -38,5 +37,20 @@ class BoundParameter {
 
   dynamic decode(Request request) {
     return binding.decode(request);
+  }
+
+  BoundInput bindToType(Bind metadata, ClassMirror typeMirror) {
+    switch (metadata.bindingType) {
+      case BindingType.query:
+        return BoundQueryParameter(typeMirror, metadata.name);
+      case BindingType.header:
+        return BoundHeader(typeMirror, metadata.name);
+      case BindingType.body:
+        return BoundBody(typeMirror, ignore: metadata.ignore, error: metadata.reject, required: metadata.require);
+      case BindingType.path:
+        return BoundPath(typeMirror, metadata.name);
+    }
+    throw StateError(
+      "Invalid controller. Operation parameter binding '${metadata.bindingType}' on '${metadata.name}' is unknown.");
   }
 }

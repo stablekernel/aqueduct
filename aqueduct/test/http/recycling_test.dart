@@ -122,28 +122,6 @@ void main() {
   });
 
   test(
-      "A controller that is not Recyclable, but declares non-final properties throws a runtime error",
-      () {
-    try {
-      server.root.link(() => MutablePropertyController());
-      fail('unreachable');
-    } on ArgumentError catch (e) {
-      expect(e.toString(), contains("MutablePropertyController"));
-    }
-  });
-
-  test(
-      "A controller that is not Recyclable, but declares a setter throws a runtime error",
-      () {
-    try {
-      server.root.link(() => MutableSetterController());
-      fail('unreachable');
-    } on ArgumentError catch (e) {
-      expect(e.toString(), contains("MutableSetterController"));
-    }
-  });
-
-  test(
       "A recycled controller always sends unhandled requests to the next linked controller",
       () async {
     server.root
@@ -274,24 +252,6 @@ class DefaultRecyclable extends Controller implements Recyclable<String> {
   String get recycledState {
     stateCount++;
     return "state";
-  }
-}
-
-class MutablePropertyController extends Controller {
-  String mutableProperty;
-
-  @override
-  FutureOr<RequestOrResponse> handle(Request request) {
-    return request;
-  }
-}
-
-class MutableSetterController extends Controller {
-  set mutableSetter(String s) {}
-
-  @override
-  FutureOr<RequestOrResponse> handle(Request request) {
-    return request;
   }
 }
 

@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/runtime/app/channel.dart';
+import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:logging/logging.dart';
 

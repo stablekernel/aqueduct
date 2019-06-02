@@ -1,14 +1,14 @@
 import 'dart:async';
 import 'dart:io';
-import 'dart:mirrors';
 
-import 'package:aqueduct/src/auth/objects.dart';
+import 'package:aqueduct/src/auth/auth.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+import 'package:aqueduct/src/runtime/app/app.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import 'http.dart';
-import 'resource_controller_internal/internal.dart';
 
 /// Controller for operating on an HTTP Resource.
 ///
@@ -65,11 +65,15 @@ import 'resource_controller_internal/internal.dart';
 ///
 /// To access the request directly, use [request]. Note that the [Request.body] of [request] will be decoded prior to invoking an operation method.
 abstract class ResourceController extends Controller
-    implements Recyclable<BoundController> {
-  @override
-  BoundController get recycledState {
-    return BoundController(reflect(this).type.reflectedType);
+    implements Recyclable<Null> {
+  ResourceController() {
+    _runtime = Runtime.current.controllers[runtimeType]?.resourceController;
   }
+
+  @override
+  Null get recycledState => null;
+
+  ResourceControllerRuntime _runtime;
 
   /// The request being processed by this [ResourceController].
   ///
@@ -101,8 +105,6 @@ abstract class ResourceController extends Controller
   /// that property with this value. Defaults to "application/json".
   ContentType responseContentType = ContentType.json;
 
-  BoundController _bound;
-
   /// Executed prior to handling a request, but after the [request] has been set.
   ///
   /// This method is used to do pre-process setup and filtering. The [request] will be set, but its body will not be decoded
@@ -125,8 +127,8 @@ abstract class ResourceController extends Controller
   void didDecodeRequestBody(RequestBody body) {}
 
   @override
-  void restore(BoundController state) {
-    _bound = state;
+  void restore(Null state) {
+    /* no op - fetched from static cache in Runtime */
   }
 
   @override
@@ -153,25 +155,7 @@ abstract class ResourceController extends Controller
   @mustCallSuper
   List<APIParameter> documentOperationParameters(
       APIDocumentContext context, Operation operation) {
-    bool usesFormEncodedData = operation.method == "POST" &&
-        acceptedContentTypes.any((ct) =>
-            ct.primaryType == "application" &&
-            ct.subType == "x-www-form-urlencoded");
-
-    return _bound
-        .parametersForOperation(operation)
-        .map((param) {
-          if (param.binding is BoundBody) {
-            return null;
-          }
-          if (usesFormEncodedData && param.binding is BoundQueryParameter) {
-            return null;
-          }
-
-          return _documentParameter(context, operation, param);
-        })
-        .where((p) => p != null)
-        .toList();
+    return _runtime.documentOperationParameters(this, context, operation);
   }
 
   /// Returns a documented summary for [operation].
@@ -199,41 +183,7 @@ abstract class ResourceController extends Controller
   /// automatically generated request body documentation.
   APIRequestBody documentOperationRequestBody(
       APIDocumentContext context, Operation operation) {
-    final binder = _boundMethodForOperation(operation);
-    final usesFormEncodedData = operation.method == "POST" &&
-        acceptedContentTypes.any((ct) =>
-            ct.primaryType == "application" &&
-            ct.subType == "x-www-form-urlencoded");
-    final boundBody = binder.positionalParameters
-            .firstWhere((p) => p.binding is BoundBody, orElse: () => null) ??
-        binder.optionalParameters
-            .firstWhere((p) => p.binding is BoundBody, orElse: () => null);
-
-    if (boundBody != null) {
-      final binding = boundBody.binding as BoundBody;
-      final ref = binding.getSchemaObjectReference(context);
-      if (ref != null) {
-        return APIRequestBody.schema(ref,
-            contentTypes: acceptedContentTypes
-                .map((ct) => "${ct.primaryType}/${ct.subType}"),
-            required: boundBody.isRequired);
-      }
-    } else if (usesFormEncodedData) {
-      final boundController = BoundController(runtimeType);
-      final Map<String, APISchemaObject> props = boundController
-          .parametersForOperation(operation)
-          .where((p) => p.binding is BoundQueryParameter)
-          .map((param) => _documentParameter(context, operation, param))
-          .fold(<String, APISchemaObject>{}, (prev, elem) {
-        prev[elem.name] = elem.schema;
-        return prev;
-      });
-
-      return APIRequestBody.schema(APISchemaObject.object(props),
-          contentTypes: ["application/x-www-form-urlencoded"], required: true);
-    }
-
-    return null;
+    return _runtime.documentOperationRequestBody(this, context, operation);
   }
 
   /// Returns a map of possible responses for [operation].
@@ -261,94 +211,12 @@ abstract class ResourceController extends Controller
   @override
   Map<String, APIOperation> documentOperations(
       APIDocumentContext context, String route, APIPath path) {
-    final operations = BoundController(runtimeType)
-        .methods
-        .where((method) => path.containsPathParameters(method.pathVariables));
-
-    return operations.fold(<String, APIOperation>{}, (prev, method) {
-      Operation operation = firstMetadataOfType(
-          reflect(this).type.instanceMembers[method.methodSymbol]);
-
-      final operationDoc = APIOperation(
-          MirrorSystem.getName(method.methodSymbol),
-          documentOperationResponses(context, operation),
-          summary: documentOperationSummary(context, operation),
-          description: documentOperationDescription(context, operation),
-          parameters: documentOperationParameters(context, operation),
-          requestBody: documentOperationRequestBody(context, operation),
-          tags: documentOperationTags(context, operation));
-
-      if (method.scopes != null) {
-        context.defer(() async {
-          operationDoc.security?.forEach((sec) {
-            sec.requirements.forEach((name, operationScopes) {
-              final secType = context.document.components.securitySchemes[name];
-              if (secType?.type == APISecuritySchemeType.oauth2 ||
-                  secType?.type == APISecuritySchemeType.openID) {
-                _mergeScopes(operationScopes, method.scopes);
-              }
-            });
-          });
-        });
-      }
-
-      prev[method.httpMethod.toLowerCase()] = operationDoc;
-      return prev;
-    });
+    return _runtime.documentOperations(this, context, route, path);
   }
 
   @override
   void documentComponents(APIDocumentContext context) {
-    BoundController(runtimeType).documentComponents(context);
-  }
-
-  /// Adds [methodScopes] to [operationScopes] if they do not exist.
-  ///
-  /// If [methodScopes] has a more demanding scope than one in [operationScopes],
-  /// that scope is replaced in [operationScopes] by the one in [methodScopes].
-  void _mergeScopes(
-      List<String> operationScopes, List<AuthScope> methodScopes) {
-    final existingScopes = operationScopes.map((s) => AuthScope(s)).toList();
-
-    methodScopes.forEach((methodScope) {
-      for (var existingScope in existingScopes) {
-        if (existingScope.isSubsetOrEqualTo(methodScope)) {
-          operationScopes.remove(existingScope.toString());
-        }
-      }
-
-      operationScopes.add(methodScope.toString());
-    });
-  }
-
-  APIParameter _documentParameter(
-      APIDocumentContext context, Operation operation, BoundParameter param) {
-    final schema =
-        APIComponentDocumenter.documentType(context, param.binding.boundType);
-    final documentedParameter = APIParameter(param.name, param.binding.location,
-        schema: schema,
-        required: param.isRequired,
-        allowEmptyValue: schema.type == APIType.boolean);
-
-    return documentedParameter;
-  }
-
-  BoundMethod _boundMethodForOperation(Operation operation) {
-    return _bound.methods.firstWhere((m) {
-      if (m.httpMethod != operation.method) {
-        return false;
-      }
-
-      if (m.pathVariables.length != operation.pathVariables.length) {
-        return false;
-      }
-
-      if (!operation.pathVariables.every((p) => m.pathVariables.contains(p))) {
-        return false;
-      }
-
-      return true;
-    });
+    _runtime.documentComponents(this, context);
   }
 
   bool _requestContentTypeIsSupported(Request req) {
@@ -360,6 +228,13 @@ abstract class ResourceController extends Controller
         null;
   }
 
+  List<String> _allowedMethodsForPathVariables(Iterable<String> pathVariables) {
+    return _runtime.operations
+        .where((op) => op.isSuitableForRequest(null, pathVariables.toList()))
+        .map((op) => op.method)
+        .toList();
+  }
+
   Future<Response> _process() async {
     if (!request.body.isEmpty) {
       if (!_requestContentTypeIsSupported(request)) {
@@ -367,8 +242,50 @@ abstract class ResourceController extends Controller
       }
     }
 
-    final binding = await _bound.bind(this, request);
-    final response = await binding.invoke(reflect(this));
+    final operation = _runtime.getOperationRuntime(
+        request.raw.method, request.path.variables.keys.toList());
+    if (operation == null) {
+      throw Response(
+          405,
+          {
+            "Allow":
+                _allowedMethodsForPathVariables(request.path.variables.keys)
+                    .join(", ")
+          },
+          null);
+    }
+
+    if (operation.scopes != null) {
+      if (request.authorization == null) {
+        // todo: this should be done compile-time
+        Logger("aqueduct").warning(
+            "'${runtimeType}' must be linked to channel that contains an 'Authorizer', because "
+            "it uses 'Scope' annotation for one or more of its operation methods.");
+        throw Response.serverError();
+      }
+
+      if (!AuthScope.verify(operation.scopes, request.authorization.scopes)) {
+        throw Response.forbidden(body: {
+          "error": "insufficient_scope",
+          "scope": operation.scopes.map((s) => s.toString()).join(" ")
+        });
+      }
+    }
+
+    if (!request.body.isEmpty) {
+      willDecodeRequestBody(request.body);
+      await request.body.decode();
+      didDecodeRequestBody(request.body);
+    }
+
+    final errors = <String>[];
+    _runtime.bindProperties(this, request, errors);
+
+    final response = await operation.invoke(this, request, errors);
+    if (errors.isNotEmpty) {
+      return Response.badRequest(body: {"error": errors.join(", ")});
+    }
+
     if (!response.hasExplicitlySetContentType) {
       response.contentType = responseContentType;
     }

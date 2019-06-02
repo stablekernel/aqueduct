@@ -1,8 +1,5 @@
-import 'dart:mirrors';
-
 import 'request_path.dart';
 import 'resource_controller.dart';
-import 'resource_controller_internal/internal.dart';
 import 'serializable.dart';
 
 /// Binds an instance method in [ResourceController] to an operation.
@@ -117,7 +114,7 @@ class Bind {
   /// If the bound parameter is a property without any additional metadata, it is optional for all methods in an [ResourceController].
   /// If the bound parameter is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   const Bind.query(this.name)
-      : _type = _BindType.query,
+      : bindingType = BindingType.query,
         require = null,
         ignore = null,
         reject = null;
@@ -144,7 +141,7 @@ class Bind {
   /// If the bound parameter is a property without any additional metadata, it is optional for all methods in an [ResourceController].
   /// If the bound parameter is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   const Bind.header(this.name)
-      : _type = _BindType.header,
+      : bindingType = BindingType.header,
         require = null,
         ignore = null,
         reject = null;
@@ -179,7 +176,7 @@ class Bind {
   /// If not required and not present in a request, the bound arguments and properties will be null when the operation method is invoked.
   const Bind.body({this.ignore, this.reject, this.require})
       : name = null,
-        _type = _BindType.body;
+        bindingType = BindingType.body;
 
   /// Binds a route variable from [RequestPath.variables] to an [ResourceController] operation method argument.
   ///
@@ -201,36 +198,20 @@ class Bind {
   /// If the request path is /users/1, /users/2, etc., `getOneUser` is invoked because the path variable `id` is present and matches
   /// the [Bind.path] argument. If no path variables are present, `getUsers` is invoked.
   const Bind.path(this.name)
-      : _type = _BindType.path,
+      : bindingType = BindingType.path,
         require = null,
         ignore = null,
         reject = null;
 
   final String name;
-  final _BindType _type;
+  final BindingType bindingType;
 
   final List<String> ignore;
   final List<String> reject;
   final List<String> require;
-
-  /// Used internally
-  BoundInput bindToType(ClassMirror typeMirror) {
-    switch (_type) {
-      case _BindType.query:
-        return BoundQueryParameter(typeMirror, name);
-      case _BindType.header:
-        return BoundHeader(typeMirror, name);
-      case _BindType.body:
-        return BoundBody(typeMirror, ignore: ignore, error: reject, required: require);
-      case _BindType.path:
-        return BoundPath(typeMirror, name);
-    }
-    throw StateError(
-        "Invalid controller. Operation parameter binding '$_type' on '$name' is unknown.");
-  }
 }
 
-enum _BindType { query, header, body, path }
+enum BindingType { query, header, body, path }
 
 /// Marks an [ResourceController] property binding as required.
 ///

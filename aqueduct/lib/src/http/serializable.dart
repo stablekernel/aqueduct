@@ -1,6 +1,5 @@
-import 'dart:mirrors';
-
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 
 import 'http.dart';
 
@@ -11,28 +10,9 @@ abstract class Serializable {
   /// Returns an [APISchemaObject] describing this object's type.
   ///
   /// The returned [APISchemaObject] will be of type [APIType.object]. By default, each instance variable
-  /// of the receiver's type will be a property of the return value. These variables are documented
-  /// with [APIComponentDocumenter.documentVariable]. See the API reference
-  /// for this method for supported types.
+  /// of the receiver's type will be a property of the return value.
   APISchemaObject documentSchema(APIDocumentContext context) {
-    final mirror = reflect(this).type;
-
-    final obj = APISchemaObject.object({})
-      ..title = MirrorSystem.getName(mirror.simpleName);
-    try {
-      for (final property
-          in mirror.declarations.values.whereType<VariableMirror>()) {
-        final propName = MirrorSystem.getName(property.simpleName);
-        obj.properties[propName] =
-            APIComponentDocumenter.documentVariable(context, property);
-      }
-    } catch (e) {
-      obj.additionalPropertyPolicy = APISchemaAdditionalPropertyPolicy.freeForm;
-      obj.description =
-          "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}': ${e.toString()}";
-    }
-
-    return obj;
+    return Runtime.current.serializables[runtimeType].documentSchema(context);
   }
 
   /// Reads values from [object].

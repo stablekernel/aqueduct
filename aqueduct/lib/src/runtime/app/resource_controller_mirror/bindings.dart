@@ -1,13 +1,12 @@
 import 'dart:mirrors';
 
+import 'package:aqueduct/src/http/request.dart';
+import 'package:aqueduct/src/http/serializable.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
+import 'package:aqueduct/src/runtime/app/resource_controller_mirror/parameter.dart';
+import 'package:aqueduct/src/runtime/app/resource_controller_mirror/utility.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
-
-import '../request.dart';
-import '../response.dart';
-import '../serializable.dart';
-import 'internal.dart';
 
 /// Parent class for annotations used for optional parameters in controller methods
 abstract class BoundInput {
@@ -47,9 +46,7 @@ abstract class BoundInput {
           .newInstance(#from, [iterable]).reflectee;
     } else {
       if (parameterValues.length > 1) {
-        throw Response.badRequest(body: {
-          "error": "multiple values for '$externalName' not expected"
-        });
+        throw ArgumentError("multiple values for '$externalName' not expected");
       }
       return convertParameterWithMirror(parameterValues.first, typeMirror);
     }
@@ -80,8 +77,7 @@ abstract class BoundInput {
       return classMirror
           .invoke(parseDecl.simpleName, [parameterValue]).reflectee;
     } catch (_) {
-      throw Response.badRequest(
-          body: {"error": "invalid value for '$externalName'"});
+      throw ArgumentError("invalid value for '$externalName'");
     }
   }
 }

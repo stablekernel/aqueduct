@@ -82,19 +82,6 @@ void main() {
     });
   });
 
-  test(
-      "Bound path variable in operation method without specifying in operation throws exception",
-      () async {
-    try {
-      server = await enableController("/foo/", UnboundController);
-      expect(true, false);
-    } on StateError catch (e) {
-      expect(e.toString(), contains("Invalid controller"));
-      expect(e.toString(), contains("'UnboundController'"));
-      expect(e.toString(), contains("'getOne'"));
-    }
-  });
-
   test("Crashing controller delivers 500", () async {
     server = await enableController("/a/:id", TController);
 
@@ -317,17 +304,6 @@ void main() {
         headers: {HttpHeaders.contentTypeHeader: ContentType.json.toString()},
         body: json.encode({"k": "v"}));
     expect(json.decode(resp.body), {"didDecode": true});
-  });
-
-  test("Ambiguous methods throws exception", () async {
-    try {
-      server = await enableController("/foo/:id", AmbiguousController);
-      expect(true, false);
-    } on StateError catch (e) {
-      expect(e.toString(), contains("'get1'"));
-      expect(e.toString(), contains("'get2'"));
-      expect(e.toString(), contains("'AmbiguousController'"));
-    }
   });
 
   group("Annotated HTTP parameters", () {
@@ -781,29 +757,10 @@ class DecodeCallbackController extends ResourceController {
   }
 }
 
-class AmbiguousController extends ResourceController {
-  @Operation.get("id")
-  Future<Response> get1(@Bind.path("id") int id) async {
-    return Response.ok(null);
-  }
-
-  @Operation.get("id")
-  Future<Response> get2(@Bind.path("id") int id) async {
-    return Response.ok(null);
-  }
-}
-
 class NoBindController extends ResourceController {
   @Operation.get("id")
   Future<Response> getOne() async {
     return Response.ok({"id": request.path.variables["id"]});
-  }
-}
-
-class UnboundController extends ResourceController {
-  @Operation.get()
-  Future<Response> getOne(@Bind.path("id") int id) async {
-    return Response.ok(null);
   }
 }
 

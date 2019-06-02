@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:aqueduct/aqueduct.dart';
 import "package:test/test.dart";
 
@@ -80,56 +79,6 @@ void main() {
     });
 
   });
-
-  group("Error cases", () {
-    test("Cannot bind dynamic", () {
-      final controller = ErrorDynamic();
-      try {
-        controller.restore(controller.recycledState);
-        controller.didAddToChannel();
-        fail('unreachable');
-      } on StateError catch (e) {
-        expect(e.toString(),
-            contains("Bad state: Invalid binding 'x' on 'ErrorDynamic.get1': 'dynamic'"));
-      }
-    });
-
-    test("Cannot bind invalid type to default implementation", () {
-      final controller = ErrorDefault();
-      try {
-        controller.restore(controller.recycledState);
-        controller.didAddToChannel();
-        fail('unreachable');
-      } on StateError catch (e) {
-        expect(e.toString(),
-            "Bad state: Invalid binding 'x' on 'ErrorDefault.get1': Parameter type does not implement static parse method.");
-      }
-    });
-
-    test("Cannot bind bool to header", () {
-      final controller = ErrorDefaultBool();
-      try {
-        controller.restore(controller.recycledState);
-        controller.didAddToChannel();
-        fail('unreachable');
-      } on StateError catch (e) {
-        expect(e.toString(),
-            "Bad state: Invalid binding 'x' on 'ErrorDefaultBool.get1': Parameter type does not implement static parse method.");
-      }
-    });
-
-    test("Cannot use filters if bound type is not serializable", () {
-      final controller = FilterNonSerializable();
-      try {
-        controller.restore(controller.recycledState);
-        controller.didAddToChannel();
-        fail('unreachable');
-      } on StateError catch (e) {
-        expect(e.toString(),
-          "Bad state: Invalid binding 'a' on 'FilterNonSerializable.get1': Filters can only be used on Serializable or List<Serializable>.");
-      }
-    });
-  });
 }
 
 class StandardSet extends ResourceController {
@@ -196,49 +145,6 @@ class BodyListBind extends ResourceController {
 class BodyListBindWithFilters extends ResourceController {
   @Operation.post()
   Future<Response> get1(@Bind.body(ignore: ["id"]) List<Serial> a) async {
-    return Response.ok(null);
-  }
-}
-
-class FilterNonSerializable extends ResourceController {
-  @Operation.post()
-  Future<Response> get1(@Bind.body(ignore: ["id"]) Map<String, dynamic> a) async {
-    return Response.ok(null);
-  }
-}
-
-class ErrorDynamic extends ResourceController {
-  @Operation.get()
-  Future<Response> get1(@Bind.header("foo") dynamic x) async {
-    return Response.ok(null);
-  }
-}
-
-class ErrorDefault extends ResourceController {
-  @Operation.get()
-  Future<Response> get1(@Bind.header("foo") HttpHeaders x) async {
-    return Response.ok(null);
-  }
-}
-
-class ErrorDefaultBool extends ResourceController {
-  @Operation.get()
-  // ignore: avoid_positional_boolean_parameters
-  Future<Response> get1(@Bind.header("foo") bool x) async {
-    return Response.ok(null);
-  }
-}
-
-class ErrorBody extends ResourceController {
-  @Operation.get()
-  Future<Response> get1(@Bind.body() HttpHeaders x) async {
-    return Response.ok(null);
-  }
-}
-
-class ErrorDefaultBody extends ResourceController {
-  @Operation.get()
-  Future<Response> get1(@Bind.body() String x) async {
     return Response.ok(null);
   }
 }
