@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:aqueduct/src/auth/auth.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 
 import 'http.dart';
@@ -217,7 +219,6 @@ abstract class ResourceController extends Controller
     _runtime.documentComponents(this, context);
   }
 
-
   bool _requestContentTypeIsSupported(Request req) {
     var incomingContentType = request.raw.headers.contentType;
     return acceptedContentTypes.firstWhere((ct) {
@@ -227,6 +228,13 @@ abstract class ResourceController extends Controller
         null;
   }
 
+  List<String> _allowedMethodsForPathVariables(Iterable<String> pathVariables) {
+    return _runtime.operations
+        .where((op) => op.isSuitableForRequest(null, pathVariables.toList()))
+        .map((op) => op.method)
+        .toList();
+  }
+
   Future<Response> _process() async {
     if (!request.body.isEmpty) {
       if (!_requestContentTypeIsSupported(request)) {
@@ -234,8 +242,50 @@ abstract class ResourceController extends Controller
       }
     }
 
-    final binding = await _runtime.bind(this, request);
-    final response = await binding.invoke(this);
+    final operation = _runtime.getOperationRuntime(
+        request.raw.method, request.path.variables.keys.toList());
+    if (operation == null) {
+      throw Response(
+          405,
+          {
+            "Allow":
+                _allowedMethodsForPathVariables(request.path.variables.keys)
+                    .join(", ")
+          },
+          null);
+    }
+
+    if (operation.scopes != null) {
+      if (request.authorization == null) {
+        // todo: this should be done compile-time
+        Logger("aqueduct").warning(
+            "'${runtimeType}' must be linked to channel that contains an 'Authorizer', because "
+            "it uses 'Scope' annotation for one or more of its operation methods.");
+        throw Response.serverError();
+      }
+
+      if (!AuthScope.verify(operation.scopes, request.authorization.scopes)) {
+        throw Response.forbidden(body: {
+          "error": "insufficient_scope",
+          "scope": operation.scopes.map((s) => s.toString()).join(" ")
+        });
+      }
+    }
+
+    if (!request.body.isEmpty) {
+      willDecodeRequestBody(request.body);
+      await request.body.decode();
+      didDecodeRequestBody(request.body);
+    }
+
+    final errors = <String>[];
+    _runtime.bindProperties(this, request, errors);
+
+    final response = await operation.invoke(this, request, errors);
+    if (errors.isNotEmpty) {
+      return Response.badRequest(body: {"error": errors.join(", ")});
+    }
+
     if (!response.hasExplicitlySetContentType) {
       response.contentType = responseContentType;
     }

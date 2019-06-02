@@ -4,12 +4,12 @@ import 'package:aqueduct/src/application/application.dart';
 import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/application/isolate_supervisor.dart';
 import 'package:aqueduct/src/application/options.dart';
+import 'package:aqueduct/src/auth/auth.dart';
 import 'package:aqueduct/src/http/http.dart';
 import 'package:aqueduct/src/http/resource_controller.dart';
 import 'package:aqueduct/src/http/resource_controller_bindings.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/runtime/app/resource_controller_mirror.dart';
 import 'package:logging/logging.dart';
 
 abstract class ChannelRuntime {
@@ -42,7 +42,11 @@ abstract class SerializableRuntime {
 }
 
 abstract class ResourceControllerRuntime {
-  Future<BoundOperation> bind(ResourceController controller, Request request);
+  List<ResourceControllerOperationRuntime> get operations;
+
+  void bindProperties(ResourceController rc, Request request, List<String> errorsIn);
+
+  ResourceControllerOperationRuntime getOperationRuntime(String method, List<String> pathVariables);
 
   void documentComponents(ResourceController rc, APIDocumentContext context);
 
@@ -54,4 +58,13 @@ abstract class ResourceControllerRuntime {
 
   Map<String, APIOperation> documentOperations(ResourceController rc,
       APIDocumentContext context, String route, APIPath path);
+}
+
+abstract class ResourceControllerOperationRuntime {
+  List<AuthScope> scopes;
+  List<String> pathVariables;
+  String method;
+
+  bool isSuitableForRequest(String requestMethod, List<String> requestPathVariables);
+  Future<Response> invoke(ResourceController rc, Request request, List<String> errorsIn);
 }

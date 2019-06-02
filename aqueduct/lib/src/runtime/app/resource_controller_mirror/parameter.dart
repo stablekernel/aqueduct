@@ -2,9 +2,8 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/http/http.dart';
 import 'package:aqueduct/src/http/resource_controller_bindings.dart';
+import 'package:aqueduct/src/runtime/app/resource_controller_mirror/bindings.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
-
-import 'internal.dart';
 
 class BoundParameter {
   BoundParameter(VariableMirror mirror, {this.isRequired = false})

@@ -1,9 +1,9 @@
 import 'dart:mirrors';
 import 'package:aqueduct/src/auth/auth.dart';
 import 'package:aqueduct/src/http/resource_controller_bindings.dart';
+import 'package:aqueduct/src/runtime/app/resource_controller_mirror/parameter.dart';
+import 'package:aqueduct/src/runtime/app/resource_controller_mirror/utility.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
-
-import 'internal.dart';
 
 class BoundMethod {
   BoundMethod(MethodMirror mirror) {
