@@ -4,7 +4,7 @@ This document describes how to set up your test code to test applications that u
 
 ## Testing Applications That Use the ORM
 
-Aqueduct's ORM uses PostgreSQL as its database. Before your tests run, Aqueduct will create your application's database tables in a local PostgreSQL database. After the tests complete, it will delete those tables. This allows you to start with an empty database for each test suite as well as control exactly which records are in your database while testing, but without having to manage database schemas or use an mock implementation (e.g., SQLite).
+Aqueduct's ORM uses PostgreSQL as its database. Before your tests run, Aqueduct will create your application's database tables in a local PostgreSQL database. After the tests complete, it will delete those tables. This allows you to start with an empty database for each test suite as well as control exactly which records are in your database while testing, but without having to manage database schemas or use a mock implementation (e.g., SQLite).
 
 !!! warning "You Must Install PostgreSQL Locally"
         On macOS, [Postgres.app](https://postgresapp.com) is a simple, self-contained PostgreSQL instance that you can run as a normal application. (See [PostgreSQL installation for other platforms](https://www.postgresql.org/download/).)
