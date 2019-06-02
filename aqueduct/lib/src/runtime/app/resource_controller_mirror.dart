@@ -47,7 +47,8 @@ class ResourceControllerOperationRuntimeImpl
   List<BoundParameter> optionalParameters = [];
 
   @override
-  Future<Response> invoke(ResourceController rc, Request request, List<String> errorsIn) async {
+  Future<Response> invoke(
+      ResourceController rc, Request request, List<String> errorsIn) async {
     final mirror = reflect(rc);
 
     final positionalMethodArguments = positionalParameters
@@ -55,7 +56,8 @@ class ResourceControllerOperationRuntimeImpl
           try {
             final value = p.decode(request);
             if (value == null && p.isRequired) {
-              errorsIn.add("missing required ${p.binding.type} '${p.name ?? ""}'");
+              errorsIn
+                  .add("missing required ${p.binding.type} '${p.name ?? ""}'");
               return null;
             }
 
@@ -202,7 +204,8 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
   }
 
   @override
-  void bindProperties(ResourceController rc, Request request, List<String> errorsIn) {
+  void bindProperties(
+      ResourceController rc, Request request, List<String> errorsIn) {
     final mirror = reflect(rc);
     properties.forEach((p) {
       try {
@@ -226,84 +229,6 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
         (binder) => binder.isSuitableForRequest(method, pathVariables),
         orElse: () => null);
   }
-
-  // At the end of this method, request.body.decodedData will have been invoked.
-//  @override
-//  Future<BoundOperation> bind(
-//      ResourceController controller, Request request) async {
-//    final boundMethod = methodBinderForRequest(request);
-//
-//    final parseWith = (BoundParameter binder) {
-//      var value = binder.decode(request);
-//      if (value == null && binder.isRequired) {
-//        return BoundValue.error(
-//            "missing required ${binder.binding.type} '${binder.name ?? ""}'");
-//      }
-//
-//      return BoundValue(value, symbol: binder.symbol);
-//    };
-//
-//    final initiallyBindWith = (BoundParameter binder) {
-//      if (binder.binding is BoundBody ||
-//          (binder.binding is BoundQueryParameter &&
-//              requestHasFormData(request))) {
-//        return BoundValue.deferred(binder, symbol: binder.symbol);
-//      }
-//
-//      return parseWith(binder);
-//    };
-//
-//    final boundProperties = properties.map(initiallyBindWith).toList();
-//    final boundPositionalArgs =
-//        boundMethod.positionalParameters.map(initiallyBindWith).toList();
-//    final boundOptonalArgs =
-//        boundMethod.optionalParameters.map(initiallyBindWith).toList();
-//    final flattened = [
-//      boundProperties,
-//      boundPositionalArgs,
-//      boundOptonalArgs,
-//    ].expand((x) => x).toList();
-//
-//    var errorMessage = flattened
-//        .where((v) => v.errorMessage != null)
-//        .map((v) => v.errorMessage)
-//        .join(", ");
-//
-//    if (errorMessage.isNotEmpty) {
-//      throw Response.badRequest(body: {"error": errorMessage});
-//    }
-//
-//    if (!request.body.isEmpty) {
-//      controller.willDecodeRequestBody(request.body);
-//      await request.body.decode();
-//      controller.didDecodeRequestBody(request.body);
-//    }
-//
-//    flattened.forEach((boundValue) {
-//      if (boundValue.deferredBinder != null) {
-//        final output = parseWith(boundValue.deferredBinder);
-//        boundValue.value = output.value;
-//        boundValue.errorMessage = output.errorMessage;
-//      }
-//    });
-//
-//    // Recheck error after deferred
-//    errorMessage = flattened
-//        .where((v) => v.errorMessage != null)
-//        .map((v) => v.errorMessage)
-//        .join(", ");
-//
-//    if (errorMessage.isNotEmpty) {
-//      throw Response.badRequest(body: {"error": errorMessage});
-//    }
-//
-//    return BoundOperation()
-//      ..methodSymbol = boundMethod.methodSymbol
-//      ..positionalMethodArguments =
-//          boundPositionalArgs.map((v) => v.value).toList()
-//      ..optionalMethodArguments = toSymbolMap(boundOptonalArgs)
-//      ..properties = toSymbolMap(boundProperties);
-//  }
 
   @override
   void documentComponents(ResourceController rc, APIDocumentContext context) {

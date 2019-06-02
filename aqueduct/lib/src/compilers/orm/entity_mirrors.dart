@@ -2,7 +2,7 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/validation/metadata.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
-import '../../utilities/mirror_helpers.dart';
+import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 
 ManagedType getManagedTypeFromType(TypeMirror type) {

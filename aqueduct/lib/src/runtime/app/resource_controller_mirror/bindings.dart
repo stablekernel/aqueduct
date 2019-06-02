@@ -1,7 +1,6 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/http/request.dart';
-import 'package:aqueduct/src/http/response.dart';
 import 'package:aqueduct/src/http/serializable.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/runtime/app/resource_controller_mirror/parameter.dart';
