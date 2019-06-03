@@ -2,6 +2,8 @@ import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/runtime/orm/orm.dart';
 import 'mirror_impl.dart' as loader;
 
+typedef Caster = T Function<T>(dynamic object, {Type runtimeType});
+
 class Runtime {
   static Runtime get current {
     return _current ??= loader.RuntimeLoader.load();
@@ -13,10 +15,15 @@ class Runtime {
 
   static Runtime _current;
 
+  Caster caster;
   RuntimeTypeCollection<ChannelRuntime> channels;
   RuntimeTypeCollection<ManagedEntityRuntime> managedEntities;
   RuntimeTypeCollection<ControllerRuntime> controllers;
   RuntimeTypeCollection<SerializableRuntime> serializables;
+
+  T cast<T>(dynamic object, {Type runtimeType}) {
+    return caster(object, runtimeType: runtimeType);
+  }
 }
 
 class RuntimeTypeCollection<R> {
