@@ -10,6 +10,7 @@ class RuntimeLoader {
     out.channels = RuntimeTypeCollection(app.channels);
     out.serializables = RuntimeTypeCollection(app.serializables);
     out.controllers = RuntimeTypeCollection(app.controllers);
+    out.caster = app.caster;
 
     final dm = DataModelBuilder();
     out.managedEntities = RuntimeTypeCollection(dm.runtimes);

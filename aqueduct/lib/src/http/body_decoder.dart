@@ -1,9 +1,8 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-import 'dart:mirrors';
 
-import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 
 import 'http.dart';
 
@@ -131,7 +130,7 @@ abstract class BodyDecoder {
 
   static T _cast<T>(dynamic body) {
     try {
-      return runtimeCast(body, reflectType(T)) as T;
+      return Runtime.current.cast(body);
     } on CastError {
       throw Response.badRequest(
           body: {"error": "request entity was unexpected type"});

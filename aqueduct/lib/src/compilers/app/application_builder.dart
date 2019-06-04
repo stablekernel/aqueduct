@@ -35,6 +35,48 @@ class ApplicationBuilder {
         .map((t) => MapEntry(_getClassName(t), ControllerRuntimeImpl(t))));
   }
 
+  T Function<T>(dynamic object, {Type runtimeType}) get caster {
+    return <T>(object, {Type runtimeType}) {
+      final intoType = reflectType(runtimeType ?? T);
+      return _runtimeCast(object, intoType) as T;
+    };
+  }
+
+  dynamic _runtimeCast(dynamic object, TypeMirror intoType) {
+    if (intoType.reflectedType == dynamic) {
+      return object;
+    }
+
+    final objectType = reflect(object).type;
+    if (objectType.isAssignableTo(intoType)) {
+      return object;
+    }
+
+    if (intoType.isSubtypeOf(reflectType(List))) {
+      if (object is! List) {
+        throw CastError();
+      }
+
+      final elementType = intoType.typeArguments.first;
+      final elements = (object as List).map((e) => _runtimeCast(e, elementType));
+      return (intoType as ClassMirror).newInstance(#from, [elements]).reflectee;
+    } else if (intoType.isSubtypeOf(reflectType(Map, [String, dynamic]))) {
+      if (object is! Map<String, dynamic>) {
+        throw CastError();
+      }
+
+      final output =
+      (intoType as ClassMirror).newInstance(const Symbol(""), []).reflectee as Map<String, dynamic>;
+      final valueType = intoType.typeArguments.last;
+      (object as Map<String, dynamic>).forEach((key, val) {
+        output[key] = _runtimeCast(val, valueType);
+      });
+      return output;
+    }
+
+    throw CastError();
+  }
+
   List<ClassMirror> _subclassesOf(Type type) {
     final mirror = reflectClass(type);
     return _types

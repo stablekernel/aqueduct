@@ -2,7 +2,7 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/runtime/orm/orm.dart';
-import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 
 class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   ManagedEntityRuntimeImpl(this.instanceType, this.entity);
@@ -78,7 +78,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
 
   @override
   dynamic dynamicConvertFromPrimitiveValue(ManagedPropertyDescription property, dynamic value) {
-    return runtimeCast(value, reflectType(property.type.type));
+    return Runtime.current.cast(value, runtimeType: property.type.type);
   }
 
   String _getPropertyNameFromInvocation(Invocation invocation, ManagedEntity entity) {
