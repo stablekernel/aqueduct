@@ -1,7 +1,7 @@
 name: aqueduct_doc_tools
 version: 0.0.1
 description: Tools
-author: stable|kernel <http://stablekernel.com>
+author: Stable Kernel <http://stablekernel.com>
 homepage: https://github.com/stablekernel/aqueduct
 
 environment:
