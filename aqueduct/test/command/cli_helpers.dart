@@ -56,6 +56,8 @@ class Terminal {
           .writeAsStringSync(_emptyProjectChannel);
       File.fromUri(libDir.uri.resolve("application_test.dart"))
           .writeAsStringSync(_emptyProjectLibrary);
+      File.fromUri(libDir.uri.resolve("analysis_options.yaml"))
+          .writeAsStringSync(_emptyProjectOptions);
 
       return Terminal(projectDir);
     }
@@ -308,6 +310,12 @@ class TestChannel extends ApplicationChannel {
   }
 }
   """;
+  static const _emptyProjectOptions =
+"""analyzer:
+  strong-mode:
+    implicit-casts: false
+""";
+
 }
 
 class CLIResult {

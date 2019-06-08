@@ -1,6 +1,4 @@
-import 'dart:io';
-
-import 'package:analyzer/analyzer.dart';
+import 'package:aqueduct/src/compilers/project_analyzer.dart';
 import 'package:crypto/crypto.dart';
 
 class MigrationSource {
@@ -18,23 +16,17 @@ class MigrationSource {
   }
 
   factory MigrationSource.fromFile(Uri uri) {
-    final fileUnit = parseDartFile(uri.toFilePath(windows: Platform.isWindows));
-
-    final sources = fileUnit.declarations
-        .whereType<ClassDeclaration>()
-        .where((ClassDeclaration classDecl) {
-      return classDecl.extendsClause.superclass.name.name == "Migration";
-    }).map((cu) {
-      final code = cu.toSource();
-      final offset = cu.name.offset - cu.offset;
-      return MigrationSource(code, uri, offset, offset + cu.name.length);
-    }).toList();
-
-    if (sources.length != 1) {
+    final analyzer = CodeAnalyzer(uri);
+    final migrationTypes = analyzer.getSubclassesFromFile("Migration", absolutePath: uri.path);
+    if (migrationTypes.length != 1) {
       throw StateError(
-          "Invalid migration file. Must contain exactly one 'Migration' subclass. File: '$uri'.");
+        "Invalid migration file. Must contain exactly one 'Migration' subclass. File: '$uri'.");
     }
-    return sources.first;
+
+    final klass = migrationTypes.first;
+    final source = klass.toSource();
+    final offset = klass.name.offset - klass.offset;
+    return MigrationSource(source, uri, offset, offset + klass.name.length);
   }
 
   Map<String, dynamic> asMap() {
