@@ -246,7 +246,6 @@ Future runMigrationCases(List<String> migrationNames,
   final migs =
       getOrderedTestMigrations(migrationNames, fromVersion: fromVersion);
 
-  print(migs);
   for (var mig in migs) {
     final file = File.fromUri(terminal.defaultMigrationDirectory.uri
         .resolve("${mig.versionNumber}_name.migration.dart"));
@@ -254,7 +253,6 @@ Future runMigrationCases(List<String> migrationNames,
         "import 'dart:async';\nimport 'package:aqueduct/aqueduct.dart';\n${mig.source}");
   }
 
-  print("${terminal.defaultMigrationDirectory.listSync().toList()}");
   final res = await terminal
       .runAqueductCommand("db", ["upgrade", "--connect", connectString]);
 

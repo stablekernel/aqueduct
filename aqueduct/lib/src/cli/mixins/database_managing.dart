@@ -30,7 +30,7 @@ abstract class CLIDatabaseManagingCommand implements CLICommand, CLIProject {
           .listSync()
           .where((fse) =>
               fse is File && pattern.hasMatch(fse.uri.pathSegments.last))
-          .map((fse) => MigrationSource.fromFile(fse.uri))
+          .map((fse) => MigrationSource.fromFile(fse.absolute.uri))
           .toList();
 
       sources.sort((s1, s2) => s1.versionNumber.compareTo(s2.versionNumber));
