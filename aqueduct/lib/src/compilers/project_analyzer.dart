@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/context_builder.dart';
 import 'package:analyzer/dart/analysis/context_locator.dart';
@@ -8,15 +10,17 @@ class CodeAnalyzer {
   CodeAnalyzer(this.uri) {
     final locator = ContextLocator();
 
-    final path =
-        PhysicalResourceProvider.INSTANCE.pathContext.normalize(uri.path);
+    final path = PhysicalResourceProvider.INSTANCE.pathContext
+        .normalize(uri.toFilePath(windows: Platform.isWindows));
     final roots = locator.locateRoots(includedPaths: [path]);
     if (roots.isEmpty) {
-      throw ArgumentError("directory is not a project directory");
+      throw ArgumentError(
+          "no analysis context found for path '${path}'; make sure this is a directory containing Dart files or a Dart file");
     }
 
     if (roots.length > 1) {
-      throw ArgumentError("directory contains multiple project directories");
+      throw ArgumentError(
+          "directory contains multiple possible analysis contexts; make sure only one project is in the path '${path}");
     }
 
     final projectRoot = roots.first;
@@ -30,16 +34,19 @@ class CodeAnalyzer {
   final Uri uri;
   AnalysisContext context;
 
-  ClassDeclaration getClassFromFile(String className, {String relativePath, String absolutePath}) {
-    return _getFileAstRoot(relativePath: relativePath, absolutePath: absolutePath)
+  ClassDeclaration getClassFromFile(String className,
+      {String relativePath, String absolutePath}) {
+    return _getFileAstRoot(
+            relativePath: relativePath, absolutePath: absolutePath)
         .declarations
         .whereType<ClassDeclaration>()
         .firstWhere((c) => c.name.name == className, orElse: () => null);
   }
 
-  List<ClassDeclaration> getSubclassesFromFile(
-      String superclassName, {String relativePath, String absolutePath}) {
-    return _getFileAstRoot(relativePath: relativePath, absolutePath: absolutePath)
+  List<ClassDeclaration> getSubclassesFromFile(String superclassName,
+      {String relativePath, String absolutePath}) {
+    return _getFileAstRoot(
+            relativePath: relativePath, absolutePath: absolutePath)
         .declarations
         .whereType<ClassDeclaration>()
         .where((c) => c.extendsClause.superclass.name.name == superclassName)
