@@ -33,7 +33,8 @@ void main() {
     final p = CodeAnalyzer(path);
 
     expect(p.context.contextRoot.analyzedFiles().length, 1);
-    expect(p.context.contextRoot.analyzedFiles().first, "${terminal.workingDirectory.path}/pubspec.yaml");
+    final expectedPath = terminal.workingDirectory.uri.resolve("pubspec.yaml");
+    expect(Uri.file(p.context.contextRoot.analyzedFiles().first), expectedPath);
   });
 
   test(

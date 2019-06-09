@@ -14,6 +14,8 @@ class CodeAnalyzer {
         .normalize(uri.toFilePath(windows: Platform.isWindows));
     final roots = locator.locateRoots(includedPaths: [path]);
     if (roots.isEmpty) {
+      print("Roots:");
+      print("\t${roots.map((cr) => "Packages: ${cr.packagesFile} Files: ${cr.analyzedFiles().join(", ")}").join("\n\t")}");
       throw ArgumentError(
           "no analysis context found for path '${path}'; make sure this is a directory containing Dart files or a Dart file");
     }
