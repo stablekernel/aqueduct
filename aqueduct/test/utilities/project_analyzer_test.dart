@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:test/test.dart';
 import 'package:aqueduct/src/compilers/project_analyzer.dart';
 
@@ -15,11 +17,11 @@ void main() {
     terminal = await Terminal.createProject();
     await terminal.getDependencies();
 
-    var path = terminal.workingDirectory.uri;
-    final p = ProjectAnalyzer(path);
-    expect(path.path, equals("${p.context.contextRoot.root.path}/"));
+      terminal = Terminal(Directory.fromUri(Uri.file("tmp/application_test/")).absolute);
 
-    final klass = p.getClassFromFile("TestChannel", relativePath: "lib/channel.dart");
+    var path = terminal.workingDirectory.uri;
+    final p = CodeAnalyzer(path);
+    final klass = p.getClassFromFile("TestChannel", terminal.libraryDirectory.absolute.uri.resolve("channel.dart").path);
     expect(klass, isNotNull);
     expect(klass.name.name, "TestChannel");
     expect(klass.extendsClause.superclass.name.name, "ApplicationChannel");
@@ -32,22 +34,7 @@ void main() {
     var path = terminal.workingDirectory.uri.resolve("pubspec.yaml");
     final p = CodeAnalyzer(path);
 
-    expect(p.context.contextRoot.analyzedFiles().length, 1);
     final expectedPath = terminal.workingDirectory.uri.resolve("pubspec.yaml");
-    expect(Uri.file(p.context.contextRoot.analyzedFiles().first), expectedPath);
-  });
-
-  test(
-      "If ProjectAnalyzer does not have package config, throws exception to indicate run pub get",
-      () async {
-    terminal = await Terminal.createProject();
-    var path = terminal.workingDirectory.uri;
-
-    try {
-      ProjectAnalyzer(path);
-      fail('unreachable');
-    } on StateError catch (e) {
-      expect(e.toString(), contains("Run 'pub get'"));
-    }
+    expect(p.contexts.contextFor(expectedPath.path).contextRoot.isAnalyzed(expectedPath.path), true);
   });
 }

@@ -222,7 +222,7 @@ List<MigrationSource> getOrderedTestMigrations(List<String> names,
 
   final analyzer = CodeAnalyzer(uri);
   final migrations = analyzer
-      .getSubclassesFromFile("Migration", absolutePath: uri.path)
+      .getSubclassesFromFile("Migration", uri.path)
       .where((cu) => names.contains(cu.name.name))
       .map((cu) {
     final code = cu.toSource();

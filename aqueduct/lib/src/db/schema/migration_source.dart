@@ -17,7 +17,7 @@ class MigrationSource {
 
   factory MigrationSource.fromFile(Uri uri) {
     final analyzer = CodeAnalyzer(uri);
-    final migrationTypes = analyzer.getSubclassesFromFile("Migration", absolutePath: uri.path);
+    final migrationTypes = analyzer.getSubclassesFromFile("Migration", uri.path);
     if (migrationTypes.length != 1) {
       throw StateError(
         "Invalid migration file. Must contain exactly one 'Migration' subclass. File: '$uri'.");

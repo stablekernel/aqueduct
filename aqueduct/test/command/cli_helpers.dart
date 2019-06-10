@@ -50,14 +50,15 @@ class Terminal {
       final libDir = Directory.fromUri(projectDir.uri.resolve("lib/"));
       libDir.createSync(recursive: true);
 
+      File.fromUri(projectDir.uri.resolve("analysis_options.yaml"))
+        .writeAsStringSync(_emptyProjectOptions);
       File.fromUri(projectDir.uri.resolve("pubspec.yaml"))
           .writeAsStringSync(_emptyProjectPubspec);
+
       File.fromUri(libDir.uri.resolve("channel.dart"))
           .writeAsStringSync(_emptyProjectChannel);
       File.fromUri(libDir.uri.resolve("application_test.dart"))
           .writeAsStringSync(_emptyProjectLibrary);
-      File.fromUri(libDir.uri.resolve("analysis_options.yaml"))
-          .writeAsStringSync(_emptyProjectOptions);
 
       return Terminal(projectDir);
     }
