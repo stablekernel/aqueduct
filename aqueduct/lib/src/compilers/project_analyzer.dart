@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -5,15 +7,14 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 class CodeAnalyzer {
   CodeAnalyzer(this.uri) {
     if (!uri.isAbsolute) {
-      throw ArgumentError("Uri must be absolute for CodeAnalyzer");
+      throw ArgumentError("'uri' must be absolute for CodeAnalyzer");
     }
 
-    final path = PhysicalResourceProvider.INSTANCE.pathContext
-      .normalize(uri.path);
+    final path =
+        PhysicalResourceProvider.INSTANCE.pathContext.normalize(uri.toFilePath(windows: Platform.isWindows));
     contexts = AnalysisContextCollection(includedPaths: [path]);
     if (contexts.contexts.isEmpty) {
-      throw ArgumentError(
-          "no analysis context found for path '${path}'; make sure this is a directory containing a pubspec.yaml file");
+      throw ArgumentError("no analysis context found for path '${path}'");
     }
   }
 
@@ -27,8 +28,8 @@ class CodeAnalyzer {
         .firstWhere((c) => c.name.name == className, orElse: () => null);
   }
 
-  List<ClassDeclaration> getSubclassesFromFile(String superclassName,
-      String absolutePath) {
+  List<ClassDeclaration> getSubclassesFromFile(
+      String superclassName, String absolutePath) {
     return _getFileAstRoot(absolutePath)
         .declarations
         .whereType<ClassDeclaration>()
@@ -37,7 +38,8 @@ class CodeAnalyzer {
   }
 
   CompilationUnit _getFileAstRoot(String absolutePath) {
-    final path = PhysicalResourceProvider.INSTANCE.pathContext.normalize(absolutePath);
+    final path =
+        PhysicalResourceProvider.INSTANCE.pathContext.normalize(absolutePath);
     final unit = contexts.contextFor(path).currentSession.getParsedUnit(path);
 
     if (unit.errors.isNotEmpty) {
