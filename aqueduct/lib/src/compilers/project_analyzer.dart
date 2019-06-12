@@ -11,10 +11,10 @@ class CodeAnalyzer {
     }
 
     final path =
-        PhysicalResourceProvider.INSTANCE.pathContext.normalize(uri.toFilePath());
+        PhysicalResourceProvider.INSTANCE.pathContext.normalize(uri.toFilePath(windows: Platform.isWindows));
     contexts = AnalysisContextCollection(includedPaths: [path]);
     if (contexts.contexts.isEmpty) {
-      throw ArgumentError("no analysis context found for path '${path}' (from ${uri.toFilePath()}");
+      throw ArgumentError("no analysis context found for path '${path}' (from ${uri.toFilePath(windows: Platform.isWindows)})");
     }
   }
 
