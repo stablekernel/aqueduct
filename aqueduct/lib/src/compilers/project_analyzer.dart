@@ -10,16 +10,16 @@ class CodeAnalyzer {
       throw ArgumentError("'uri' must be absolute for CodeAnalyzer");
     }
 
-    final path = PhysicalResourceProvider.INSTANCE.pathContext.fromUri(uri);
-    print("$uri => $path");
-//      .normalize(uri.toFilePath(windows: Platform.isWindows));
     contexts = AnalysisContextCollection(includedPaths: [path]);
     if (contexts.contexts.isEmpty) {
       throw ArgumentError("no analysis context found for path '${path}'");
     }
   }
 
+  String get path => PhysicalResourceProvider.INSTANCE.pathContext.normalize(PhysicalResourceProvider.INSTANCE.pathContext.fromUri(uri));
+
   final Uri uri;
+
   AnalysisContextCollection contexts;
 
   ClassDeclaration getClassFromFile(String className, String absolutePath) {
