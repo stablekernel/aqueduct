@@ -14,6 +14,8 @@ class CodeAnalyzer {
     if (contexts.contexts.isEmpty) {
       throw ArgumentError("no analysis context found for path '${path}'");
     }
+
+    print("${contexts.contexts.map((c) => "${c.contextRoot.root.path}:"+ c.analyzedFiles().join(", ")).join("\n\n")}");
   }
 
   String get path => PhysicalResourceProvider.INSTANCE.pathContext.normalize(PhysicalResourceProvider.INSTANCE.pathContext.fromUri(uri));
