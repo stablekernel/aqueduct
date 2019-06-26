@@ -22,13 +22,7 @@ class CodeAnalyzer {
   }
 
   String get path {
-    var p = PhysicalResourceProvider.INSTANCE.pathContext.normalize(PhysicalResourceProvider.INSTANCE.pathContext.fromUri(uri));
-    if (Platform.isWindows) {
-      while (p.startsWith("/")) {
-        p = p.substring(1);
-      }
-    }
-    return p;
+    return _fixPath(PhysicalResourceProvider.INSTANCE.pathContext.normalize(PhysicalResourceProvider.INSTANCE.pathContext.fromUri(uri)));
   }
 
   final Uri uri;
@@ -54,7 +48,8 @@ class CodeAnalyzer {
   CompilationUnit _getFileAstRoot(String absolutePath) {
     final path =
         PhysicalResourceProvider.INSTANCE.pathContext.normalize(absolutePath);
-    final unit = contexts.contextFor(path).currentSession.getParsedUnit(path);
+    print("${absolutePath} -> $path -> ${_fixPath(path)}");
+    final unit = contexts.contextFor(path).currentSession.getParsedUnit(_fixPath(path));
 
     if (unit.errors.isNotEmpty) {
       throw StateError(
@@ -62,5 +57,15 @@ class CodeAnalyzer {
     }
 
     return unit.unit;
+  }
+
+  String _fixPath(String inputPath) {
+    var p = inputPath;
+    if (Platform.isWindows) {
+      while (p.startsWith("/")) {
+        p = p.substring(1);
+      }
+    }
+    return p;
   }
 }
