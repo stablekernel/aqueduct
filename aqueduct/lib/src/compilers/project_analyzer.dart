@@ -10,6 +10,9 @@ class CodeAnalyzer {
       throw ArgumentError("'uri' must be absolute for CodeAnalyzer");
     }
 
+    // A leading slash is being added to path somewhere when running cli commands
+    // double-check that project analyzer tests and mgiration soruce tests work to narrow this down to cli only
+
     contexts = AnalysisContextCollection(includedPaths: [path]);
     if (contexts.contexts.isEmpty) {
       throw ArgumentError("no analysis context found for path '${path}'");
@@ -18,7 +21,15 @@ class CodeAnalyzer {
     print("${contexts.contexts.map((c) => "${c.contextRoot.root.path}:"+ c.analyzedFiles().join(", ")).join("\n\n")}");
   }
 
-  String get path => PhysicalResourceProvider.INSTANCE.pathContext.normalize(PhysicalResourceProvider.INSTANCE.pathContext.fromUri(uri));
+  String get path {
+    var p = PhysicalResourceProvider.INSTANCE.pathContext.normalize(PhysicalResourceProvider.INSTANCE.pathContext.fromUri(uri));
+    if (Platform.isWindows) {
+      while (p.startsWith("/")) {
+        p = p.substring(1);
+      }
+    }
+    return p;
+  }
 
   final Uri uri;
 
