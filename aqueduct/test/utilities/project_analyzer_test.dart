@@ -28,20 +28,4 @@ void main() {
     expect(klass.name.name, "TestChannel");
     expect(klass.extendsClause.superclass.name.name, "ApplicationChannel");
   });
-
-  test("Can create CodeAnalyzer for a single file", () async {
-    terminal = await Terminal.createProject();
-
-    // we can inherit dependencies from parent directory
-    var path = terminal.workingDirectory.absolute.uri.resolve("pubspec.yaml");
-    final p = CodeAnalyzer(path);
-
-    final expectedPath = terminal.workingDirectory.absolute.uri.resolve("pubspec.yaml");
-    expect(
-        p.contexts
-            .contextFor(expectedPath.path)
-            .contextRoot
-            .isAnalyzed(expectedPath.path),
-        true);
-  });
 }
