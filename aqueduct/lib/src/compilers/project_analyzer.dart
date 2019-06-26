@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -22,34 +20,34 @@ class CodeAnalyzer {
   }
 
   String get path {
-    return _fixPath(PhysicalResourceProvider.INSTANCE.pathContext.normalize(PhysicalResourceProvider.INSTANCE.pathContext.fromUri(uri)));
+    return _getPath(uri);
   }
 
   final Uri uri;
 
   AnalysisContextCollection contexts;
 
-  ClassDeclaration getClassFromFile(String className, String absolutePath) {
-    return _getFileAstRoot(absolutePath)
+  ClassDeclaration getClassFromFile(String className, Uri fileUri) {
+    return _getFileAstRoot(fileUri)
         .declarations
         .whereType<ClassDeclaration>()
         .firstWhere((c) => c.name.name == className, orElse: () => null);
   }
 
   List<ClassDeclaration> getSubclassesFromFile(
-      String superclassName, String absolutePath) {
-    return _getFileAstRoot(absolutePath)
+      String superclassName, Uri fileUri) {
+    return _getFileAstRoot(fileUri)
         .declarations
         .whereType<ClassDeclaration>()
         .where((c) => c.extendsClause.superclass.name.name == superclassName)
         .toList();
   }
 
-  CompilationUnit _getFileAstRoot(String absolutePath) {
-    final path =
-        PhysicalResourceProvider.INSTANCE.pathContext.normalize(absolutePath);
-    print("${absolutePath} -> $path -> ${_fixPath(path)}");
-    final unit = contexts.contextFor(path).currentSession.getParsedUnit(_fixPath(path));
+  CompilationUnit _getFileAstRoot(Uri fileUri) {
+    final path = _getPath(fileUri);
+
+    print("Eval: $fileUri -> $path");
+    final unit = contexts.contextFor(path).currentSession.getParsedUnit(path);
 
     if (unit.errors.isNotEmpty) {
       throw StateError(
@@ -59,13 +57,8 @@ class CodeAnalyzer {
     return unit.unit;
   }
 
-  String _fixPath(String inputPath) {
-    var p = inputPath;
-    if (Platform.isWindows) {
-      while (p.startsWith("/")) {
-        p = p.substring(1);
-      }
-    }
-    return p;
+
+  static String _getPath(Uri inputUri) {
+    return PhysicalResourceProvider.INSTANCE.pathContext.normalize(PhysicalResourceProvider.INSTANCE.pathContext.fromUri(inputUri));
   }
 }

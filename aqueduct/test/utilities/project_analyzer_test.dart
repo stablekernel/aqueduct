@@ -23,7 +23,7 @@ void main() {
     var path = terminal.workingDirectory.absolute.uri;
     final p = CodeAnalyzer(path);
     final klass = p.getClassFromFile("TestChannel",
-        terminal.libraryDirectory.absolute.uri.resolve("channel.dart").path);
+        terminal.libraryDirectory.absolute.uri.resolve("channel.dart"));
     expect(klass, isNotNull);
     expect(klass.name.name, "TestChannel");
     expect(klass.extendsClause.superclass.name.name, "ApplicationChannel");
