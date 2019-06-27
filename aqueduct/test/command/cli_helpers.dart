@@ -50,8 +50,11 @@ class Terminal {
       final libDir = Directory.fromUri(projectDir.uri.resolve("lib/"));
       libDir.createSync(recursive: true);
 
+      File.fromUri(projectDir.uri.resolve("analysis_options.yaml"))
+        .writeAsStringSync(_emptyProjectOptions);
       File.fromUri(projectDir.uri.resolve("pubspec.yaml"))
           .writeAsStringSync(_emptyProjectPubspec);
+
       File.fromUri(libDir.uri.resolve("channel.dart"))
           .writeAsStringSync(_emptyProjectChannel);
       File.fromUri(libDir.uri.resolve("application_test.dart"))
@@ -308,6 +311,12 @@ class TestChannel extends ApplicationChannel {
   }
 }
   """;
+  static const _emptyProjectOptions =
+"""analyzer:
+  strong-mode:
+    implicit-casts: false
+""";
+
 }
 
 class CLIResult {

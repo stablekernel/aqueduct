@@ -1,11 +1,10 @@
 // ignore: unnecessary_const
 @Tags(const ["cli"])
-
 import 'dart:async';
 import 'dart:io';
 
-import 'package:analyzer/analyzer.dart';
 import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/compilers/project_analyzer.dart';
 import 'package:aqueduct/src/db/schema/migration_source.dart';
 import 'package:test/test.dart';
 
@@ -76,7 +75,8 @@ void main() {
     expect(await runMigrationCases(["Case2"]), 0);
 
     var versionRow = await store.execute(
-        "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql") as List<List<dynamic>>;
+            "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql")
+        as List<List<dynamic>>;
     expect(versionRow.first.first, 1);
     var updateDate = versionRow.first.last;
 
@@ -187,14 +187,15 @@ void main() {
     expect(await tableExists(store, "_testobject"), false);
   });
 
-  test("If migration fails because adding a new non-nullable column to an table, a friendly error is emitted", () async {
+  test(
+      "If migration fails because adding a new non-nullable column to an table, a friendly error is emitted",
+      () async {
     StringBuffer buf = StringBuffer();
     expect(await runMigrationCases(["Case81", "Case82"], log: buf), isNot(0));
     expect(buf.toString(), contains("adding or altering"));
     expect(buf.toString(), contains("_testobject.name"));
     expect(buf.toString(), contains("unencodedInitialValue"));
   });
-
 }
 
 Future<List<String>> columnsOfTable(
@@ -206,8 +207,7 @@ Future<List<String>> columnsOfTable(
 }
 
 Future<bool> tableExists(PersistentStore store, String tableName) async {
-  final exists = await store.execute(
-      "SELECT to_regclass(@tableName:text)",
+  final exists = await store.execute("SELECT to_regclass(@tableName:text)",
       substitutionValues: {"tableName": tableName}) as List<List<dynamic>>;
 
   return exists.first.first != null;
@@ -215,23 +215,23 @@ Future<bool> tableExists(PersistentStore store, String tableName) async {
 
 List<MigrationSource> getOrderedTestMigrations(List<String> names,
     {int fromVersion = 0}) {
-  final fileUnit = parseDartFile("test/command/migration_execution_test.dart");
+  final uri = Directory.current.uri
+      .resolve("test/")
+      .resolve("command/")
+      .resolve("migration_execution_test.dart");
 
-  final migrations = fileUnit.declarations
-      .whereType<ClassDeclaration>()
-      .where((classDecl) {
-        return classDecl.extendsClause.superclass.name.name == "Migration";
-      })
+  final analyzer = CodeAnalyzer(uri);
+  final migrations = analyzer
+      .getSubclassesFromFile("Migration", analyzer.uri)
+      .where((cu) => names.contains(cu.name.name))
       .map((cu) {
-        final code = cu.toSource();
-        final offset = cu.name.offset - cu.offset;
+    final code = cu.toSource();
+    final offset = cu.name.offset - cu.offset;
 
-        // uri is temporary
-        return MigrationSource(code, Uri.parse("1.migration.dart"), offset,
-            offset + cu.name.length);
-      })
-      .where((ms) => names.contains(ms.originalName))
-      .toList();
+    // uri is temporary
+    return MigrationSource(
+        code, Uri.parse("1.migration.dart"), offset, offset + cu.name.length);
+  }).toList();
 
   migrations.forEach((ms) {
     final index = names.indexOf(ms.originalName) + 1 + fromVersion;
@@ -583,11 +583,11 @@ class Case81 extends Migration {
       "_TestObject",
       [
         SchemaColumn("id", ManagedPropertyType.bigInteger,
-          isPrimaryKey: true,
-          autoincrement: true,
-          isIndexed: false,
-          isNullable: false,
-          isUnique: false),
+            isPrimaryKey: true,
+            autoincrement: true,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false),
       ],
     ));
   }
@@ -605,13 +605,13 @@ class Case82 extends Migration {
   @override
   Future upgrade() async {
     database.addColumn(
-      "_TestObject",
-      SchemaColumn("name", ManagedPropertyType.string,
-        isPrimaryKey: false,
-        autoincrement: false,
-        isIndexed: false,
-        isNullable: false,
-        isUnique: false));
+        "_TestObject",
+        SchemaColumn("name", ManagedPropertyType.string,
+            isPrimaryKey: false,
+            autoincrement: false,
+            isIndexed: false,
+            isNullable: false,
+            isUnique: false));
   }
 
   @override
