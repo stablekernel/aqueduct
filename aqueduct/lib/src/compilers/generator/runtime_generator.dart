@@ -5,7 +5,14 @@ import 'dart:io';
 import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/runtime/orm/orm.dart';
 
-class RuntimeBuilder {
+const String _directiveToken = "___DIRECTIVES___";
+const String _assignmentToken = "___ASSIGNMENTS___";
+const String _channelMapVariable = "channelMap";
+const String _serializableMapVariable = "serializableMap";
+const String _controllerMapVariable = "controllerMap";
+const String _entityMapVariable = "entityMap";
+
+class RuntimeGenerator {
   List<_RuntimeElement> _elements = [];
 
   void addRuntime(Type baseType, String typeName, String source) {
@@ -20,7 +27,7 @@ class RuntimeBuilder {
       dir.createSync(recursive: true);
     }
 
-    final libraryFile = File.fromUri(dir.uri.resolve("runtime_impl.dart"));
+    final libraryFile = File.fromUri(dir.uri.resolve("loader.dart"));
     await libraryFile.writeAsString(loaderSource);
 
     await Future.forEach(_elements, (_RuntimeElement e) async {
@@ -33,15 +40,12 @@ class RuntimeBuilder {
     });
   }
 
-  static const String _directiveToken = "___DIRECTIVES___";
-  static const String _assignmentToken = "___ASSIGNMENTS___";
-  static const String _channelMapVariable = "channelMap";
-  static const String _serializableMapVariable = "serializableMap";
-  static const String _controllerMapVariable = "controllerMap";
-  static const String _entityMapVariable = "entityMap";
 
   String get _loaderShell => """
 import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:aqueduct/src/runtime/app/app.dart';
+import 'package:aqueduct/src/runtime/orm/orm.dart';
+
 $_directiveToken
 
 class RuntimeLoader {

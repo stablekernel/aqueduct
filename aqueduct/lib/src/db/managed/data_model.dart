@@ -29,15 +29,15 @@ class ManagedDataModel extends Object
     _tableDefinitionToEntityMap = {};
 
     final runtimes = Runtime.current.managedEntities;
-    final orderedRuntimes = instanceTypes.map((t) => runtimes[t]).toList();
+    final expectedRuntimes = instanceTypes.map((t) => runtimes[t]).toList();
 
-    final notFound = orderedRuntimes.where((e) => e == null).toList();
+    final notFound = expectedRuntimes.where((e) => e == null).toList();
     if (notFound.isNotEmpty) {
       throw ManagedDataModelError(
           "Data model types were not found: ${notFound.map((e) => e.entity.name).join(", ")}");
     }
 
-    orderedRuntimes.forEach((runtime) {
+    expectedRuntimes.forEach((runtime) {
       _entities[runtime.entity.instanceType] = runtime.entity;
       _tableDefinitionToEntityMap[runtime.entity.tableDefinition] =
           runtime.entity;

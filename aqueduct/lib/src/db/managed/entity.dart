@@ -31,6 +31,8 @@ class ManagedEntity implements APIComponentDocumenter {
   /// You should never call this method directly, it will be called by [ManagedDataModel].
   ManagedEntity(this._tableName, this.instanceType, this.tableDefinition);
 
+  ManagedEntity.complete(this._tableName, this.instanceType, this.tableDefinition, this.attributes, this.relationships, this.uniquePropertySet, this.validators, this.primaryKey, this.symbolMap);
+
   /// The name of this entity.
   ///
   /// This name will match the name of [instanceType].

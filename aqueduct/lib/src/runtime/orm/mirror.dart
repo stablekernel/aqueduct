@@ -75,7 +75,6 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
     throw NoSuchMethodError.withInvocation(object, invocation);
   }
 
-
   @override
   dynamic dynamicConvertFromPrimitiveValue(ManagedPropertyDescription property, dynamic value) {
     return Runtime.current.cast(value, runtimeType: property.type.type);
@@ -93,5 +92,101 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
     }
 
     return name;
+  }
+
+  @override
+  String get source {
+    final className = "${MirrorSystem.getName(instanceType.simpleName)}";
+    final originalFileUri = instanceType.location.sourceUri.toString();
+
+    return """
+import 'package:aqueduct/src/db/managed/managed.dart';
+import 'package:aqueduct/src/runtime/orm/orm.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
+import '$originalFileUri';
+/* need to import actual model type */
+
+final instance = ManagedEntityRuntimeImpl();
+
+class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
+  ManagedEntityRuntimeImpl() {
+   /* _entity = ManagedEntity.complete(...);*/
+  }
+
+  ManagedEntity _entity;
+
+  @override
+  String get source => throw UnsupportedError('This method is not implemented for compiled applications.');
+  
+  @override
+  ManagedEntity get entity => _entity; 
+
+  @override
+  ManagedObject instanceOfImplementation({ManagedBacking backing}) {
+    final object = $className();
+    if (backing != null) {
+      object.backing = backing;
+    }
+    return object;
+  }
+  
+  @override
+  void setTransientValueForKey(ManagedObject object, String key, dynamic value) {
+    $_setTransientValueForKeyImpl;
+  }
+  
+  @override
+  ManagedSet setOfImplementation(Iterable<dynamic> objects) {
+    return ManagedSet<$className>.fromDynamic(objects); 
+  }
+  
+  @override
+  dynamic getTransientValueForKey(ManagedObject object, String key) {
+    $_getTransientValueForKeyImpl;
+  }
+  
+  @override
+  bool isValueInstanceOf(dynamic value) {
+    return value is $className;
+  }
+  
+  @override
+  bool isValueListOf(dynamic value) {
+    return value is List<$className>;
+  }
+  
+  @override
+  dynamic dynamicAccessorImplementation(Invocation invocation, ManagedEntity entity, ManagedObject object) {
+    if (invocation.isGetter) {
+      return null;     
+      // return object[_getPropertyNameFromInvocation(invocation, entity)];
+    } else if (invocation.isSetter) {
+      //object[_getPropertyNameFromInvocation(invocation, entity)] =
+        //invocation.positionalArguments.first;
+
+      return null;
+    }
+
+    throw NoSuchMethodError.withInvocation(object, invocation);
+  }
+  
+  @override
+  dynamic dynamicConvertFromPrimitiveValue(ManagedPropertyDescription property, dynamic value) {
+  /* this needs to be improved to use the property's type to fix the implementation */
+    return Runtime.current.cast(value, runtimeType: property.type.type);
+  }
+}   
+    """;
+  }
+
+
+  String get _setTransientValueForKeyImpl {
+    // switch statement for each property key
+    return "";
+  }
+
+  String get _getTransientValueForKeyImpl {
+    // switch statement for each property key
+    return "";
   }
 }
