@@ -16,7 +16,13 @@ class RuntimeLinker {
           .split("\n")
           .firstWhere((line) => line.startsWith("aqueduct:"))
           .substring("aqueduct:".length);
-      srcFrameworkUri = Directory.fromUri(Uri.parse(aqueductPath)).parent.uri;
+
+      final aqueductUri = Uri.parse(aqueductPath);
+      if (aqueductUri.isAbsolute) {
+        srcFrameworkUri = Directory.fromUri(aqueductUri).parent.uri;
+      } else {
+        srcFrameworkUri = Directory.fromUri(srcProjectUri.resolveUri(aqueductUri).normalizePath()).parent.uri;
+      }
     }
   }
 
@@ -43,6 +49,7 @@ class RuntimeLinker {
     final pubpsecFile = File.fromUri(dstFrameworkUri.resolve("pubspec.yaml"));
     final pubspec = Pubspec.parse(pubpsecFile.readAsStringSync());
     final pubspecMap = <String, dynamic>{};
+    pubspecMap['environment'] = pubspec.environment.map((k, v) => MapEntry(k, v.toString()));
     pubspecMap['name'] = pubspec.name;
     pubspecMap['version'] = pubspec.version.toString();
     pubspecMap['dependencies'] = pubspec.dependencies.map((n, d) => MapEntry(n, _getDependencyValue(d)));
@@ -78,9 +85,9 @@ class RuntimeLinker {
     final pubpsecFile = File.fromUri(dstProjectUri.resolve("pubspec.yaml"));
     final pubspec = Pubspec.parse(pubpsecFile.readAsStringSync());
     final pubspecMap = <String, dynamic>{};
-
     pubspecMap['name'] = pubspec.name;
     pubspecMap['version'] = pubspec.version.toString();
+    pubspecMap['environment'] = pubspec.environment.map((k, v) => MapEntry(k, v.toString()));
     final deps = pubspecMap['dependencies'] = <String, dynamic>{};
     final overrides = pubspecMap['dependency_overrides'] = <String, dynamic>{};
 
