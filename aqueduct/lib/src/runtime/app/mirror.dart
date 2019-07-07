@@ -89,7 +89,7 @@ void entryPoint(ApplicationInitialServerMessage params) {
     logToConsole: params.logToConsole);
 
   server.start(shareHttpServer: true);
-};
+}
 
 class ChannelRuntimeImpl extends ChannelRuntime {
   @override
