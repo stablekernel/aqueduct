@@ -1,6 +1,8 @@
 import 'package:aqueduct/src/db/managed/managed.dart';
 
 abstract class ManagedEntityRuntime {
+  String get source;
+
   ManagedEntity get entity;
   ManagedObject instanceOfImplementation({ManagedBacking backing});
   ManagedSet setOfImplementation(Iterable<dynamic> objects);

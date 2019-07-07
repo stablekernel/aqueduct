@@ -74,6 +74,8 @@ class ApplicationIsolateServer extends ApplicationServer {
   }
 }
 
+typedef IsolateEntryFunction = void Function(ApplicationInitialServerMessage message);
+
 class ApplicationInitialServerMessage {
   ApplicationInitialServerMessage(this.streamTypeName, this.streamLibraryURI,
       this.configuration, this.identifier, this.parentMessagePort,

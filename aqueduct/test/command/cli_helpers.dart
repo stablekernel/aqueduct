@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/cli/runner.dart';
 import 'package:aqueduct/src/cli/running_process.dart';
+import 'package:meta/meta.dart';
 
 class Terminal {
   Terminal(this.workingDirectory) {
@@ -21,6 +22,7 @@ class Terminal {
       Directory.current.uri.resolve("test/").resolve("empty_project/"));
 
   List<String> defaultAqueductArgs;
+
   String get output {
     return _output.toString();
   }
@@ -51,7 +53,7 @@ class Terminal {
       libDir.createSync(recursive: true);
 
       File.fromUri(projectDir.uri.resolve("analysis_options.yaml"))
-        .writeAsStringSync(_emptyProjectOptions);
+          .writeAsStringSync(_emptyProjectOptions);
       File.fromUri(projectDir.uri.resolve("pubspec.yaml"))
           .writeAsStringSync(_emptyProjectPubspec);
 
@@ -93,12 +95,43 @@ class Terminal {
     } catch (_) {}
   }
 
+  static void copyDirectory({@required Uri src, @required Uri dst}) {
+    final srcDir = Directory.fromUri(src);
+    final dstDir = Directory.fromUri(dst);
+    if (!dstDir.existsSync()) {
+      dstDir.createSync(recursive: true);
+    }
+
+    srcDir.listSync().forEach((fse) {
+      if (fse is File) {
+        final outPath = dstDir.uri
+            .resolve(fse.uri.pathSegments.last)
+            .toFilePath(windows: Platform.isWindows);
+        fse.copySync(outPath);
+      } else if (fse is Directory) {
+        final segments = fse.uri.pathSegments;
+        final outPath = dstDir.uri.resolve(segments[segments.length - 2]);
+        copyDirectory(src: fse.uri, dst: outPath);
+      }
+    });
+  }
+
   Directory get defaultMigrationDirectory {
     return Directory.fromUri(workingDirectory.uri.resolve("migrations/"));
   }
 
   Directory get libraryDirectory {
     return Directory.fromUri(workingDirectory.uri.resolve("lib/"));
+  }
+
+  Terminal replicate() {
+    final outUri = temporaryDirectory.uri.resolve("replica/");
+    final dir = Directory.fromUri(outUri);
+    if (dir.existsSync()) {
+      dir.deleteSync(recursive: true);
+    }
+    copyDirectory(src: workingDirectory.uri, dst: outUri);
+    return Terminal(Directory.fromUri(outUri));
   }
 
   void clearOutput() {
@@ -139,9 +172,9 @@ class Terminal {
   File getFile(String path) {
     final pathComponents = path.split("/");
     final relativeDirectoryComponents =
-    pathComponents.sublist(0, pathComponents.length - 1);
+        pathComponents.sublist(0, pathComponents.length - 1);
     final directory = Directory.fromUri(relativeDirectoryComponents.fold(
-      workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/")));
+        workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/")));
     final file = File.fromUri(directory.uri.resolve(pathComponents.last));
     if (!file.existsSync()) {
       return null;
@@ -311,12 +344,10 @@ class TestChannel extends ApplicationChannel {
   }
 }
   """;
-  static const _emptyProjectOptions =
-"""analyzer:
+  static const _emptyProjectOptions = """analyzer:
   strong-mode:
     implicit-casts: false
 """;
-
 }
 
 class CLIResult {
@@ -330,6 +361,7 @@ class CLITask {
   StoppableProcess process;
 
   Future get hasStarted => _processStarted.future;
+
   Future<int> get exitCode => _processFinished.future;
 
   Completer<int> _processFinished = Completer<int>();

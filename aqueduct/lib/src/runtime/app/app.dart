@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:aqueduct/src/application/application.dart';
 import 'package:aqueduct/src/application/channel.dart';
-import 'package:aqueduct/src/application/isolate_supervisor.dart';
+import 'package:aqueduct/src/application/isolate_application_server.dart';
 import 'package:aqueduct/src/application/options.dart';
 import 'package:aqueduct/src/auth/auth.dart';
 import 'package:aqueduct/src/http/http.dart';
@@ -10,7 +10,6 @@ import 'package:aqueduct/src/http/resource_controller.dart';
 import 'package:aqueduct/src/http/resource_controller_bindings.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:logging/logging.dart';
 
 abstract class ChannelRuntime {
   Iterable<APIComponentDocumenter> getDocumentableChannelComponents(
@@ -18,26 +17,28 @@ abstract class ChannelRuntime {
 
   Type get channelType;
 
+  String get name;
+  Uri get libraryUri;
+  IsolateEntryFunction get isolateEntryPoint;
+
+  String get source;
+
   ApplicationChannel instantiateChannel();
 
   Future runGlobalInitialization(ApplicationOptions config);
-
-  Future<ApplicationIsolateSupervisor> spawn(
-      Application application,
-      ApplicationOptions config,
-      int identifier,
-      Logger logger,
-      Duration startupTimeout,
-      {bool logToConsole = false});
 }
 
 abstract class ControllerRuntime {
+  String get source;
+
   bool get isMutable;
 
   ResourceControllerRuntime get resourceController;
 }
 
 abstract class SerializableRuntime {
+  String get source;
+
   APISchemaObject documentSchema(APIDocumentContext context);
 }
 

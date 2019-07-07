@@ -1,6 +1,6 @@
 import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/runtime/orm/orm.dart';
-import 'mirror_impl.dart' as loader;
+import 'loader.dart' as loader;
 
 typedef Caster = T Function<T>(dynamic object, {Type runtimeType});
 

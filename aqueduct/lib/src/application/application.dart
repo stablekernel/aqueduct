@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'dart:isolate';
 
+import 'package:aqueduct/src/application/isolate_application_server.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/runtime/runtime.dart';
@@ -92,7 +94,7 @@ class Application<T extends ApplicationChannel> {
       await _runtime.runGlobalInitialization(options);
 
       for (var i = 0; i < numberOfInstances; i++) {
-        final supervisor = await _runtime.spawn(
+        final supervisor = await _spawn(
             this, options, i + 1, logger, isolateStartupTimeout,
             logToConsole: consoleLogging);
         supervisors.add(supervisor);
@@ -168,6 +170,30 @@ class Application<T extends ApplicationChannel> {
     await server.channel.close();
 
     return doc;
+  }
+
+  Future<ApplicationIsolateSupervisor> _spawn(
+    Application application,
+    ApplicationOptions config,
+    int identifier,
+    Logger logger,
+    Duration startupTimeout,
+    {bool logToConsole = false}) async {
+    final receivePort = ReceivePort();
+
+    final libraryUri = _runtime.libraryUri;
+    final typeName = _runtime.name;
+    final entryPoint = _runtime.isolateEntryPoint;
+
+    final initialMessage = ApplicationInitialServerMessage(typeName,
+      libraryUri, config, identifier, receivePort.sendPort,
+      logToConsole: logToConsole);
+    final isolate = await Isolate.spawn(entryPoint, initialMessage,
+      paused: true);
+
+    return ApplicationIsolateSupervisor(
+      application, isolate, receivePort, identifier, logger,
+      startupTimeout: startupTimeout);
   }
 }
 

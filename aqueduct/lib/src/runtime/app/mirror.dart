@@ -1,10 +1,9 @@
 import 'dart:async';
-import 'dart:isolate';
 import 'dart:mirrors';
+
 import 'package:aqueduct/src/application/application.dart';
 import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/application/isolate_application_server.dart';
-import 'package:aqueduct/src/application/isolate_supervisor.dart';
 import 'package:aqueduct/src/application/options.dart';
 import 'package:aqueduct/src/http/controller.dart';
 import 'package:aqueduct/src/http/resource_controller.dart';
@@ -13,12 +12,26 @@ import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/runtime/app/resource_controller_mirror.dart';
-import 'package:logging/logging.dart';
 
 class ChannelRuntimeImpl extends ChannelRuntime {
   ChannelRuntimeImpl(this.type);
 
   final ClassMirror type;
+
+  static const _globalStartSymbol = #initializeApplication;
+
+  @override
+  String get name => MirrorSystem.getName(type.simpleName);
+
+  @override
+  IsolateEntryFunction get isolateEntryPoint => isolateServerEntryPoint;
+
+  @override
+  Uri get libraryUri => (type.owner as LibraryMirror).uri;
+
+  bool get hasGlobalInitializationMethod {
+    return type.staticMembers[_globalStartSymbol] != null;
+  }
 
   @override
   Type get channelType => type.reflectedType;
@@ -30,40 +43,16 @@ class ChannelRuntimeImpl extends ChannelRuntime {
 
   @override
   Future runGlobalInitialization(ApplicationOptions config) {
-    const globalStartSymbol = #initializeApplication;
-    if (type.staticMembers[globalStartSymbol] != null) {
-      return type.invoke(globalStartSymbol, [config]).reflectee as Future;
+    if (hasGlobalInitializationMethod) {
+      return type.invoke(_globalStartSymbol, [config]).reflectee as Future;
     }
 
     return null;
   }
 
   @override
-  Future<ApplicationIsolateSupervisor> spawn(
-      Application application,
-      ApplicationOptions config,
-      int identifier,
-      Logger logger,
-      Duration startupTimeout,
-      {bool logToConsole = false}) async {
-    final receivePort = ReceivePort();
-
-    final streamLibraryURI = (type.owner as LibraryMirror).uri;
-    final streamTypeName = MirrorSystem.getName(type.simpleName);
-
-    final initialMessage = ApplicationInitialServerMessage(streamTypeName,
-        streamLibraryURI, config, identifier, receivePort.sendPort,
-        logToConsole: logToConsole);
-    final isolate = await Isolate.spawn(isolateServerEntryPoint, initialMessage,
-        paused: true);
-
-    return ApplicationIsolateSupervisor(
-        application, isolate, receivePort, identifier, logger,
-        startupTimeout: startupTimeout);
-  }
-
-  @override
-  Iterable<APIComponentDocumenter> getDocumentableChannelComponents(ApplicationChannel channel) {
+  Iterable<APIComponentDocumenter> getDocumentableChannelComponents(
+      ApplicationChannel channel) {
     final documenter = reflectType(APIComponentDocumenter);
     return type.declarations.values
         .whereType<VariableMirror>()
@@ -73,6 +62,66 @@ class ChannelRuntimeImpl extends ChannelRuntime {
       return reflect(channel).getField(dm.simpleName).reflectee
           as APIComponentDocumenter;
     }).where((o) => o != null);
+  }
+
+  @override
+  String get source {
+    final className = MirrorSystem.getName(type.simpleName);
+    final originalFileUri = type.location.sourceUri.toString();
+    final globalInitBody = hasGlobalInitializationMethod
+        ? "await $className.initializeApplication(config);"
+        : "";
+
+    return """
+import 'dart:async';    
+import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/runtime/app/app.dart';
+import 'package:aqueduct/src/application/isolate_application_server.dart';
+import '$originalFileUri';
+
+final instance = ChannelRuntimeImpl();
+
+class ChannelRuntimeImpl extends ChannelRuntime {
+  @override
+  String get source => throw UnsupportedError('This method is not implemented for compiled applications.');
+
+  @override
+  String get name => '$className';
+
+  @override
+  IsolateEntryFunction get isolateEntryPoint => (ApplicationInitialServerMessage params) {
+    final runtime = ChannelRuntimeImpl();
+    
+    final server = ApplicationIsolateServer(runtime.channelType,
+      params.configuration, params.identifier, params.parentMessagePort,
+      logToConsole: params.logToConsole);
+
+    server.start(shareHttpServer: true);
+  };
+  
+  @override
+  Uri get libraryUri => null;
+
+  @override
+  Type get channelType => $className;
+  
+  @override
+  ApplicationChannel instantiateChannel() {
+    return $className();
+  }
+  
+  @override
+  Future runGlobalInitialization(ApplicationOptions config) async {
+    $globalInitBody
+  }
+  
+  @override
+  Iterable<APIComponentDocumenter> getDocumentableChannelComponents(
+      ApplicationChannel channel) { 
+    throw UnsupportedError('This method is not implemented for compiled applications.');
+  }
+}
+    """;
   }
 }
 
@@ -84,13 +133,12 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
 
   final runtime = ChannelRuntimeImpl(channelType);
 
-  final server = ApplicationIsolateServer(runtime.channelType, params.configuration,
-      params.identifier, params.parentMessagePort,
+  final server = ApplicationIsolateServer(runtime.channelType,
+      params.configuration, params.identifier, params.parentMessagePort,
       logToConsole: params.logToConsole);
 
   server.start(shareHttpServer: true);
 }
-
 
 class ControllerRuntimeImpl extends ControllerRuntime {
   ControllerRuntimeImpl(this.type) {
@@ -99,8 +147,9 @@ class ControllerRuntimeImpl extends ControllerRuntime {
     }
 
     if (isMutable && !type.isAssignableTo(reflectType(Recyclable))) {
-      throw StateError("Invalid controller '${MirrorSystem.getName(type.simpleName)}'. "
-        "Controllers must not have setters and all fields must be marked as final, or it must implement 'Recyclable'.");
+      throw StateError(
+          "Invalid controller '${MirrorSystem.getName(type.simpleName)}'. "
+          "Controllers must not have setters and all fields must be marked as final, or it must implement 'Recyclable'.");
     }
   }
 
@@ -115,8 +164,37 @@ class ControllerRuntimeImpl extends ControllerRuntime {
     final whitelist = ['policy=', '_nextController='];
     final members = type.instanceMembers;
     final fieldKeys = type.instanceMembers.keys
-      .where((sym) => !whitelist.contains(MirrorSystem.getName(sym)));
+        .where((sym) => !whitelist.contains(MirrorSystem.getName(sym)));
     return fieldKeys.any((key) => members[key].isSetter);
+  }
+
+  @override
+  String get source {
+    final originalFileUri = type.location.sourceUri.toString();
+
+    return """
+import 'dart:async';    
+import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/runtime/app/app.dart';
+import '$originalFileUri';
+    
+final instance = ControllerRuntimeImpl();  
+    
+class ControllerRuntimeImpl extends ControllerRuntime {
+  ControllerRuntimeImpl() {
+    /* provide resource controller runtime instance */
+  }
+  
+  @override
+  String get source => throw UnsupportedError('This method is not implemented for compiled applications.');
+  
+  @override
+  bool get isMutable => ${isMutable};
+
+  ResourceControllerRuntime get resourceController => _resourceController;
+  ResourceControllerRuntime _resourceController;
+}    
+    """;
   }
 }
 
@@ -133,21 +211,21 @@ class SerializableRuntimeImpl extends SerializableRuntime {
       ..title = MirrorSystem.getName(mirror.simpleName);
     try {
       for (final property
-      in mirror.declarations.values.whereType<VariableMirror>()) {
+          in mirror.declarations.values.whereType<VariableMirror>()) {
         final propName = MirrorSystem.getName(property.simpleName);
         obj.properties[propName] = documentVariable(context, property);
       }
     } catch (e) {
       obj.additionalPropertyPolicy = APISchemaAdditionalPropertyPolicy.freeForm;
       obj.description =
-      "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}': ${e.toString()}";
+          "Failed to auto-document type '${MirrorSystem.getName(mirror.simpleName)}': ${e.toString()}";
     }
 
     return obj;
   }
 
   static APISchemaObject documentVariable(
-    APIDocumentContext context, VariableMirror mirror) {
+      APIDocumentContext context, VariableMirror mirror) {
     APISchemaObject object = documentType(context, mirror.type)
       ..title = MirrorSystem.getName(mirror.simpleName);
 
@@ -155,7 +233,7 @@ class SerializableRuntimeImpl extends SerializableRuntime {
   }
 
   static APISchemaObject documentType(
-    APIDocumentContext context, TypeMirror type) {
+      APIDocumentContext context, TypeMirror type) {
     if (type.isAssignableTo(reflectType(int))) {
       return APISchemaObject.integer();
     } else if (type.isAssignableTo(reflectType(double))) {
@@ -168,7 +246,7 @@ class SerializableRuntimeImpl extends SerializableRuntime {
       return APISchemaObject.string(format: "date-time");
     } else if (type.isAssignableTo(reflectType(List))) {
       return APISchemaObject.array(
-        ofSchema: documentType(context, type.typeArguments.first));
+          ofSchema: documentType(context, type.typeArguments.first));
     } else if (type.isAssignableTo(reflectType(Map))) {
       if (!type.typeArguments.first.isAssignableTo(reflectType(String))) {
         throw ArgumentError("Unsupported type 'Map' with non-string keys.");
@@ -176,13 +254,17 @@ class SerializableRuntimeImpl extends SerializableRuntime {
       return APISchemaObject()
         ..type = APIType.object
         ..additionalPropertySchema =
-        documentType(context, type.typeArguments.last);
+            documentType(context, type.typeArguments.last);
     } else if (type.isAssignableTo(reflectType(Serializable))) {
-      final instance = (type as ClassMirror).newInstance(const Symbol(''), []).reflectee as Serializable;
+      final instance = (type as ClassMirror)
+          .newInstance(const Symbol(''), []).reflectee as Serializable;
       return instance.documentSchema(context);
     }
 
     throw ArgumentError(
-      "Unsupported type '${MirrorSystem.getName(type.simpleName)}' for 'APIComponentDocumenter.documentType'.");
+        "Unsupported type '${MirrorSystem.getName(type.simpleName)}' for 'APIComponentDocumenter.documentType'.");
   }
+
+  @override
+  String get source => null;
 }

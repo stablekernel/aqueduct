@@ -2,7 +2,7 @@ import 'dart:async';
 import "dart:core";
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/runtime/mirror_impl.dart';
+import 'package:aqueduct/src/runtime/loader.dart';
 import "package:test/test.dart";
 
 void main() {

@@ -5,17 +5,20 @@ import 'package:test/test.dart';
 import 'cli_helpers.dart';
 
 void main() {
+  Terminal template;
   Terminal terminal;
 
   // This group handles checking the tool itself,
   // not the behavior of creating the appropriate migration file given schemas
   setUpAll(() async {
-    terminal = await Terminal.createProject();
+    template = await Terminal.createProject();
+    await template.getDependencies();
   });
 
   tearDownAll(Terminal.deleteTemporaryDirectory);
 
   setUp(() async {
+    terminal = template.replicate();
     terminal.addOrReplaceFile("lib/application_test.dart", """
 import 'package:aqueduct/aqueduct.dart';
 
@@ -35,13 +38,14 @@ class _TestObject {
   });
 
   test("Run without pub get yields error", () async {
+    File.fromUri(terminal.workingDirectory.uri.resolve("pubspec.lock")).deleteSync();
+    File.fromUri(terminal.workingDirectory.uri.resolve(".packages")).deleteSync();
+
     var res = await terminal.runAqueductCommand("db", ["generate"]);
     expect(res, isNot(0));
   });
 
   test("Ensure migration directory will get created on generation", () async {
-    await terminal.getDependencies(offline: true);
-
     expect(terminal.defaultMigrationDirectory.existsSync(), false);
     var res = await terminal.runAqueductCommand("db", ["generate"]);
     expect(res, 0);
@@ -51,8 +55,6 @@ class _TestObject {
   test(
       "If there are no migration files, create an initial one that validates to schema",
       () async {
-    await terminal.getDependencies(offline: true);
-
     // Putting a non-migration file in there to ensure that this doesn't prevent from being ugpraded
     terminal.defaultMigrationDirectory.createSync();
     terminal.addOrReplaceFile("migrations/notmigration.dart", " ");
@@ -68,8 +70,6 @@ class _TestObject {
   test(
       "If there is already a migration file, create an upgrade file with changes",
       () async {
-    await terminal.getDependencies(offline: true);
-
     var res = await terminal.runAqueductCommand("db", ["generate"]);
     expect(res, 0);
     terminal.clearOutput();
@@ -105,8 +105,6 @@ class _TestObject {
   });
 
   test("Can specify migration name other than default", () async {
-    await terminal.getDependencies(offline: true);
-
     var res = await terminal
         .runAqueductCommand("db", ["generate", "--name", "InitializeDatabase"]);
     expect(res, 0);
@@ -145,8 +143,6 @@ class _TestObject {
 
   test("Can specify migration directory other than default, relative path",
       () async {
-    await terminal.getDependencies(offline: true);
-
     var res = await terminal.runAqueductCommand(
         "db", ["generate", "--migration-directory", "foobar"]);
     expect(res, 0);
@@ -161,8 +157,6 @@ class _TestObject {
 
   test("Can specify migration directory other than default, absolute path",
       () async {
-    await terminal.getDependencies(offline: true);
-
     final migDir =
         Directory.fromUri(terminal.workingDirectory.uri.resolve("foobar/"));
     var res = await terminal.runAqueductCommand("db", [
@@ -180,7 +174,6 @@ class _TestObject {
 
   test("If migration file requires additional input, send message to user",
       () async {
-    await terminal.getDependencies(offline: true);
     var res = await terminal.runAqueductCommand("db", ["generate"]);
     expect(res, 0);
     terminal.clearOutput();

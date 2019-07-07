@@ -21,18 +21,24 @@ File get keyFile => File.fromUri(Directory.current.uri
     .resolve("aqueduct.key.pem"));
 
 void main() {
+  Terminal template;
   Terminal terminal;
   CLITask task;
 
+  setUpAll(() async {
+    template = await Terminal.createProject();
+    await template.getDependencies(offline: true);
+  });
+
   setUp(() async {
-    terminal = await Terminal.createProject();
-    await terminal.getDependencies(offline: true);
+    terminal = template.replicate();
   });
 
   tearDown(() async {
     await task?.process?.stop(0);
-    Terminal.deleteTemporaryDirectory();
   });
+
+  tearDownAll(Terminal.deleteTemporaryDirectory);
 
   test("Served application starts and responds to route", () async {
     task = terminal.startAqueductCommand("serve", ["-n", "1"]);
