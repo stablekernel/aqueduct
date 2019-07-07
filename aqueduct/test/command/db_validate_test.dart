@@ -10,8 +10,13 @@ void main() {
   group("Validating", () {
     Terminal terminal;
 
-    setUp(() async {
+    setUpAll(() async {
       terminal = await Terminal.createProject();
+      await terminal.getDependencies(offline: true);
+    });
+
+    setUp(() async {
+      await terminal.restoreDefaultTestProject();
       terminal.addOrReplaceFile("lib/application_test.dart", """
 class TestObject extends ManagedObject<_TestObject> {}
 
@@ -22,10 +27,9 @@ class _TestObject {
   String foo;
 }
       """);
-      await terminal.getDependencies(offline: true);
     });
 
-    tearDown(Terminal.deleteTemporaryDirectory);
+    tearDownAll(Terminal.deleteTemporaryDirectory);
 
     test("If validating with no migration dir, get error", () async {
       var res = await terminal.runAqueductCommand("db", ["validate"]);

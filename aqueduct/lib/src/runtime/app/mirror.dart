@@ -67,19 +67,17 @@ class ChannelRuntimeImpl extends ChannelRuntime {
   @override
   String get source {
     final className = MirrorSystem.getName(type.simpleName);
-
-    var globalInitBody = "";
-    if (hasGlobalInitializationMethod) {
-      globalInitBody = "await $className.initializeApplication(config);";
-    }
+    final originalFileUri = type.location.sourceUri.toString();
+    final globalInitBody = hasGlobalInitializationMethod
+        ? "await $className.initializeApplication(config);"
+        : "";
 
     return """
 import 'dart:async';    
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/application/isolate_application_server.dart';
-
-/* we need to import the actual channel */
+import '$originalFileUri';
 
 final instance = ChannelRuntimeImpl();
 
@@ -268,23 +266,5 @@ class SerializableRuntimeImpl extends SerializableRuntime {
   }
 
   @override
-  String get source {
-    return """
-import 'dart:async';    
-import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
-    
-final instance = SerializableRuntimeImpl();  
-    
-class SerializableRuntimeImpl extends SerializableRuntime {
-  @override
-  String get source => throw UnsupportedError('This method is not implemented for compiled applications.');
-
-  @override
-  APISchemaObject documentSchema(APIDocumentContext context) {
-    throw UnsupportedError('This method is not implemented for compiled applications.');
-  }
-}    
-    """;
-  }
+  String get source => null;
 }

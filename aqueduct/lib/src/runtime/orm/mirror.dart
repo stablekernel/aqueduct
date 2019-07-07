@@ -132,7 +132,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   
   @override
   void setTransientValueForKey(ManagedObject object, String key, dynamic value) {
-    $_setTransientValueForKeyImpl;
+    $_setTransientValueForKeyImpl
   }
   
   @override
@@ -142,7 +142,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   
   @override
   dynamic getTransientValueForKey(ManagedObject object, String key) {
-    $_getTransientValueForKeyImpl;
+    $_getTransientValueForKeyImpl
   }
   
   @override

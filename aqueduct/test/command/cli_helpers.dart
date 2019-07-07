@@ -21,6 +21,7 @@ class Terminal {
       Directory.current.uri.resolve("test/").resolve("empty_project/"));
 
   List<String> defaultAqueductArgs;
+
   String get output {
     return _output.toString();
   }
@@ -51,7 +52,7 @@ class Terminal {
       libDir.createSync(recursive: true);
 
       File.fromUri(projectDir.uri.resolve("analysis_options.yaml"))
-        .writeAsStringSync(_emptyProjectOptions);
+          .writeAsStringSync(_emptyProjectOptions);
       File.fromUri(projectDir.uri.resolve("pubspec.yaml"))
           .writeAsStringSync(_emptyProjectPubspec);
 
@@ -101,6 +102,37 @@ class Terminal {
     return Directory.fromUri(workingDirectory.uri.resolve("lib/"));
   }
 
+  /// If this terminal is the result pf [createProject] with no template,
+  /// this method restores the state of the directory to its initial state.
+  ///
+  /// If [retainPackagesFile] is true, any .packages file in this directory
+  /// is retained.
+  Future restoreDefaultTestProject({bool retainPackagesFile = true}) async {
+    final packagesFile = File.fromUri(workingDirectory.uri.resolve(".packages"));
+    final lockFile = File.fromUri(workingDirectory.uri.resolve("pubspec.lock"));
+    String packagesContent;
+    String lockContent;
+
+    if (packagesFile.existsSync()) {
+      packagesContent = packagesFile.readAsStringSync();
+    }
+
+    if (lockFile.existsSync()) {
+      lockContent = lockFile.readAsStringSync();
+    }
+
+    workingDirectory.deleteSync(recursive: true);
+    workingDirectory.createSync();
+    if (packagesContent != null) {
+      packagesFile.writeAsStringSync(packagesContent);
+    }
+    if (lockContent != null) {
+      lockFile.writeAsStringSync(lockContent);
+    }
+
+    await createProject(template: null);
+  }
+
   void clearOutput() {
     _output.clear();
   }
@@ -139,9 +171,9 @@ class Terminal {
   File getFile(String path) {
     final pathComponents = path.split("/");
     final relativeDirectoryComponents =
-    pathComponents.sublist(0, pathComponents.length - 1);
+        pathComponents.sublist(0, pathComponents.length - 1);
     final directory = Directory.fromUri(relativeDirectoryComponents.fold(
-      workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/")));
+        workingDirectory.uri, (Uri prev, elem) => prev.resolve("$elem/")));
     final file = File.fromUri(directory.uri.resolve(pathComponents.last));
     if (!file.existsSync()) {
       return null;
@@ -311,12 +343,10 @@ class TestChannel extends ApplicationChannel {
   }
 }
   """;
-  static const _emptyProjectOptions =
-"""analyzer:
+  static const _emptyProjectOptions = """analyzer:
   strong-mode:
     implicit-casts: false
 """;
-
 }
 
 class CLIResult {
@@ -330,6 +360,7 @@ class CLITask {
   StoppableProcess process;
 
   Future get hasStarted => _processStarted.future;
+
   Future<int> get exitCode => _processFinished.future;
 
   Completer<int> _processFinished = Completer<int>();

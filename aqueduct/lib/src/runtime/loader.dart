@@ -30,10 +30,6 @@ class RuntimeLoader {
       out.addRuntime(ChannelRuntime, key, runtime.source);
     });
 
-    app.serializables.forEach((key, runtime) {
-      out.addRuntime(SerializableRuntime, key, runtime.source);
-    });
-
     app.controllers.forEach((key, runtime) {
       out.addRuntime(ControllerRuntime, key, runtime.source);
     });
