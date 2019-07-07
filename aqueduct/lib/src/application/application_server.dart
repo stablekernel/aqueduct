@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/src/application/channel.dart';
+import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:logging/logging.dart';
 
@@ -20,7 +21,7 @@ class ApplicationServer {
   ///
   /// You should not need to invoke this method directly.
   ApplicationServer(this.channelType, this.options, this.identifier) {
-    channel = Runtime.current.channels[channelType].instantiateChannel()
+    channel = (Runtime.current.runtimes[channelType] as ChannelRuntime).instantiateChannel()
       ..server = this
       ..options = options;
   }

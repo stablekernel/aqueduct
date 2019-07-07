@@ -1,4 +1,5 @@
 import 'package:aqueduct/src/openapi/documentable.dart';
+import 'package:aqueduct/src/runtime/orm/orm.dart';
 import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:aqueduct/src/utilities/reference_counting_list.dart';
 
@@ -28,8 +29,13 @@ class ManagedDataModel extends Object
     _entities = {};
     _tableDefinitionToEntityMap = {};
 
-    final runtimes = Runtime.current.managedEntities;
-    final expectedRuntimes = instanceTypes.map((t) => runtimes[t]).toList();
+    final runtimes = Runtime.current.runtimes.iterable
+        .whereType<ManagedEntityRuntime>()
+        .toList();
+    final expectedRuntimes = instanceTypes
+        .map((t) => runtimes.firstWhere((e) => e.entity.instanceType == t,
+            orElse: () => null))
+        .toList();
 
     final notFound = expectedRuntimes.where((e) => e == null).toList();
     if (notFound.isNotEmpty) {
@@ -57,7 +63,9 @@ class ManagedDataModel extends Object
     _entities = {};
     _tableDefinitionToEntityMap = {};
 
-    Runtime.current.managedEntities.iterable.forEach((runtime) {
+    Runtime.current.runtimes.iterable
+        .whereType<ManagedEntityRuntime>()
+        .forEach((runtime) {
       _entities[runtime.entity.instanceType] = runtime.entity;
       _tableDefinitionToEntityMap[runtime.entity.tableDefinition] =
           runtime.entity;

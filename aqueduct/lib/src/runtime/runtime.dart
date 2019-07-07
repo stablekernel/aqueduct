@@ -1,5 +1,4 @@
 import 'package:aqueduct/src/runtime/app/app.dart';
-import 'package:aqueduct/src/runtime/orm/orm.dart';
 import 'loader.dart' as loader;
 
 typedef Caster = T Function<T>(dynamic object, {Type runtimeType});
@@ -16,24 +15,21 @@ class Runtime {
   static Runtime _current;
 
   Caster caster;
-  RuntimeTypeCollection<ChannelRuntime> channels;
-  RuntimeTypeCollection<ManagedEntityRuntime> managedEntities;
-  RuntimeTypeCollection<ControllerRuntime> controllers;
-  RuntimeTypeCollection<SerializableRuntime> serializables;
+  RuntimeTypeCollection runtimes;
 
   T cast<T>(dynamic object, {Type runtimeType}) {
     return caster(object, runtimeType: runtimeType);
   }
 }
 
-class RuntimeTypeCollection<R> {
+class RuntimeTypeCollection {
   RuntimeTypeCollection(this._runtimes);
 
-  Map<String, R> _runtimes;
+  Map<String, RuntimeBase> _runtimes;
 
-  Iterable<R> get iterable => _runtimes.values;
+  Iterable<RuntimeBase> get iterable => _runtimes.values;
   
-  R operator [] (Type t) {
+  RuntimeBase operator [] (Type t) {
     final typeName = t.toString();
     final r = _runtimes[typeName];
     if (r != null) {

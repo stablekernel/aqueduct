@@ -62,7 +62,7 @@ class Application<T extends ApplicationChannel> {
   /// This value will return to false after [stop] has completed.
   bool get isRunning => _hasFinishedLaunching;
   bool _hasFinishedLaunching = false;
-  ChannelRuntime get _runtime => Runtime.current.channels[T];
+  ChannelRuntime get _runtime => Runtime.current.runtimes[T] as ChannelRuntime;
 
   /// Starts this application, allowing it to handle HTTP requests.
   ///
@@ -157,7 +157,7 @@ class Application<T extends ApplicationChannel> {
   /// This method is called by the `aqueduct document` CLI.
   static Future<APIDocument> document(Type type,
       ApplicationOptions config, Map<String, dynamic> projectSpec) async {
-    final runtime = Runtime.current.channels[type];
+    final runtime = Runtime.current.runtimes[type] as ChannelRuntime;
     
     await runtime.runGlobalInitialization(config);
 

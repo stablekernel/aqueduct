@@ -2,21 +2,21 @@ import 'package:aqueduct/src/compilers/app/application_builder.dart';
 import 'package:aqueduct/src/compilers/generator/runtime_generator.dart';
 import 'package:aqueduct/src/compilers/orm/data_model_builder.dart';
 import 'package:aqueduct/src/runtime/app/app.dart';
-import 'package:aqueduct/src/runtime/orm/orm.dart';
 import 'package:aqueduct/src/runtime/runtime.dart';
 
 class RuntimeLoader {
   static Runtime load() {
     final out = Runtime();
 
+    final runtimes = <String, RuntimeBase>{};
     final app = ApplicationBuilder();
-    out.channels = RuntimeTypeCollection(app.channels);
-    out.serializables = RuntimeTypeCollection(app.serializables);
-    out.controllers = RuntimeTypeCollection(app.controllers);
+    runtimes.addAll(app.runtimes);
     out.caster = app.caster;
 
     final dm = DataModelBuilder();
-    out.managedEntities = RuntimeTypeCollection(dm.runtimes);
+    runtimes.addAll(dm.runtimes);
+
+    out.runtimes = RuntimeTypeCollection(runtimes);
 
     return out;
   }
@@ -26,18 +26,17 @@ class RuntimeLoader {
     final dm = DataModelBuilder();
     final out = RuntimeGenerator();
 
-    app.channels.forEach((key, runtime) {
-      out.addRuntime(ChannelRuntime, key, runtime.source);
-    });
 
-    app.controllers.forEach((key, runtime) {
-      out.addRuntime(ControllerRuntime, key, runtime.source);
+    app.runtimes.forEach((key, runtime) {
+      if (runtime is! SerializableRuntime) {
+        out.addRuntime(kind: runtime.kind, name: key, source: runtime.source);
+      }
     });
 
     /* app.caster ?? */
 
     dm.runtimes.forEach((key, runtime) {
-      out.addRuntime(ManagedEntityRuntime, key, runtime.source);
+      out.addRuntime(kind: runtime.kind, name: key, source: runtime.source);
     });
 
     return out;

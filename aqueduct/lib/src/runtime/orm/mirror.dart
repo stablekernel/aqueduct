@@ -5,6 +5,7 @@ import 'package:aqueduct/src/runtime/orm/orm.dart';
 import 'package:aqueduct/src/runtime/runtime.dart';
 
 class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
+
   ManagedEntityRuntimeImpl(this.instanceType, this.entity);
 
   final ClassMirror instanceType;

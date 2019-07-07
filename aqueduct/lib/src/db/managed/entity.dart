@@ -46,7 +46,7 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// If running in default mode (mirrors enabled), is a set of mirror operations. Otherwise,
   /// code generated.
-  ManagedEntityRuntime get runtime => Runtime.current.managedEntities[instanceType];
+  ManagedEntityRuntime get runtime => Runtime.current.runtimes[instanceType] as ManagedEntityRuntime;
 
   /// The type of persistent instances represented by this entity.
   ///

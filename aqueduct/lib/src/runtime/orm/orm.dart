@@ -1,7 +1,9 @@
 import 'package:aqueduct/src/db/managed/managed.dart';
+import 'package:aqueduct/src/runtime/app/app.dart';
 
-abstract class ManagedEntityRuntime {
-  String get source;
+abstract class ManagedEntityRuntime extends RuntimeBase {
+  @override
+  String get kind => "entity";
 
   ManagedEntity get entity;
   ManagedObject instanceOfImplementation({ManagedBacking backing});

@@ -16,24 +16,18 @@ class ApplicationBuilder {
         .whereType<ClassMirror>()
         .where((cm) => firstMetadataOfType<PreventCompilation>(cm) == null)
         .toList();
+
+    runtimes.addEntries(_subclassesOf(ApplicationChannel)
+      .map((t) => MapEntry(_getClassName(t), ChannelRuntimeImpl(t))));
+    runtimes.addEntries(_subclassesOf(Serializable)
+      .map((t) => MapEntry(_getClassName(t), SerializableRuntimeImpl(t))));
+    runtimes.addEntries(_subclassesOf(Controller)
+      .map((t) => MapEntry(_getClassName(t), ControllerRuntimeImpl(t))));
   }
 
   List<ClassMirror> _types;
 
-  Map<String, ChannelRuntime> get channels {
-    return Map.fromEntries(_subclassesOf(ApplicationChannel)
-        .map((t) => MapEntry(_getClassName(t), ChannelRuntimeImpl(t))));
-  }
-
-  Map<String, SerializableRuntime> get serializables {
-    return Map.fromEntries(_subclassesOf(Serializable)
-        .map((t) => MapEntry(_getClassName(t), SerializableRuntimeImpl(t))));
-  }
-
-  Map<String, ControllerRuntime> get controllers {
-    return Map.fromEntries(_subclassesOf(Controller)
-        .map((t) => MapEntry(_getClassName(t), ControllerRuntimeImpl(t))));
-  }
+  Map<String, RuntimeBase> runtimes = {};
 
   T Function<T>(dynamic object, {Type runtimeType}) get caster {
     return <T>(object, {Type runtimeType}) {
