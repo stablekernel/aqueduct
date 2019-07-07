@@ -14,17 +14,16 @@ void main() {
     await template.getDependencies();
   });
 
-  tearDownAll(() async {
-    await Terminal.deactivateCLI();
+  setUp(() {
+    terminal = template.replicate();
   });
 
-  tearDown(() async {
+  tearDownAll(() async {
+    await Terminal.deactivateCLI();
     Terminal.deleteTemporaryDirectory();
   });
 
   test("command with default args creates client page from current project dir pointing at localhost:8888", () async {
-    terminal = template.replicate();
-
     await terminal.runAqueductCommand("document", ["client"]);
 
     final clientContents = terminal.getFile("client.html")?.readAsStringSync();
@@ -38,8 +37,6 @@ void main() {
   });
 
   test("Replace relative urls with provided server", () async {
-    terminal = template.replicate();
-
     await terminal.runAqueductCommand("document", ["client", "--host", "https://server.com/v1/"]);
 
     final clientContents = terminal.getFile("client.html")?.readAsStringSync();

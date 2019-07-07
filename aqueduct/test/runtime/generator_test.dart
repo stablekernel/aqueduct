@@ -28,13 +28,29 @@ void main() {
     Terminal.deleteTemporaryDirectory();
   });
 
-  test("Can generate runtimes for channel and controllers (no ORM types)", () async {
+  test("Can generate runtimes for channel and controllers (no ORM types)",
+      () async {
     await runner.run();
     await runner.ensureValidSyntax();
 
-    expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("out/").resolve("channelruntime/")).existsSync(), true);
-    expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("out/").resolve("controllerruntime/")).existsSync(), true);
-    expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("out/").resolve("managedentityruntime/")).existsSync(), false);
+    expect(
+        Directory.fromUri(terminal.workingDirectory.uri
+                .resolve("out/")
+                .resolve("channelruntime/"))
+            .existsSync(),
+        true);
+    expect(
+        Directory.fromUri(terminal.workingDirectory.uri
+                .resolve("out/")
+                .resolve("controllerruntime/"))
+            .existsSync(),
+        true);
+    expect(
+        Directory.fromUri(terminal.workingDirectory.uri
+                .resolve("out/")
+                .resolve("managedentityruntime/"))
+            .existsSync(),
+        false);
   });
 
   test("If no channel exists, no channel runtime created", () async {
@@ -44,9 +60,24 @@ void main() {
     await runner.run();
     await runner.ensureValidSyntax();
 
-    expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("out/").resolve("controllerruntime/")).existsSync(), true);
-    expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("out/").resolve("channelruntime/")).existsSync(), false);
-    expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("out/").resolve("managedentityruntime/")).existsSync(), false);
+    expect(
+        Directory.fromUri(terminal.workingDirectory.uri
+                .resolve("out/")
+                .resolve("controllerruntime/"))
+            .existsSync(),
+        true);
+    expect(
+        Directory.fromUri(terminal.workingDirectory.uri
+                .resolve("out/")
+                .resolve("channelruntime/"))
+            .existsSync(),
+        false);
+    expect(
+        Directory.fromUri(terminal.workingDirectory.uri
+                .resolve("out/")
+                .resolve("managedentityruntime/"))
+            .existsSync(),
+        false);
   });
 
   test("Can generate ORM runtimes", () async {
@@ -67,10 +98,22 @@ void main() {
     await runner.run();
     await runner.ensureValidSyntax();
 
-    expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("out/").resolve("controllerruntime/")).existsSync(), true);
-    expect(Directory.fromUri(terminal.workingDirectory.uri.resolve("out/").resolve("channelruntime/")).existsSync(), true);
+    expect(
+        Directory.fromUri(terminal.workingDirectory.uri
+                .resolve("out/")
+                .resolve("controllerruntime/"))
+            .existsSync(),
+        true);
+    expect(
+        Directory.fromUri(terminal.workingDirectory.uri
+                .resolve("out/")
+                .resolve("channelruntime/"))
+            .existsSync(),
+        true);
 
-    final moDir = Directory.fromUri(terminal.workingDirectory.uri.resolve("out/").resolve("managedentityruntime/"));
+    final moDir = Directory.fromUri(terminal.workingDirectory.uri
+        .resolve("out/")
+        .resolve("managedentityruntime/"));
     expect(moDir.existsSync(), true);
     expect(moDir.listSync().length, 2);
   });
@@ -94,17 +137,21 @@ class Runner {
         onExit: onExit.sendPort);
     await onExit.first;
 
-    analyzer = CodeAnalyzer(terminal.workingDirectory.absolute.uri.resolve("out/"));
+    analyzer =
+        CodeAnalyzer(terminal.workingDirectory.absolute.uri.resolve("out/"));
   }
 
   Future ensureValidSyntax() async {
-    await Future.forEach(analyzer.contexts.contexts, (AnalysisContext ctx) async {
+    await Future.forEach(analyzer.contexts.contexts,
+        (AnalysisContext ctx) async {
       final files = ctx.contextRoot.analyzedFiles();
       await Future.forEach(files, (String file) async {
         final msgs = await ctx.currentSession.getErrors(file);
-        final errors = msgs.errors.where((e) => e.severity == Severity.error).toList();
+        final errors =
+            msgs.errors.where((e) => e.severity == Severity.error).toList();
         if (errors.isNotEmpty) {
-          print("${msgs.errors.map((e) => "${e.source.uri}:${e.offset}: ${e.message}").join("\n")}");
+          print(
+              "${msgs.errors.map((e) => "${e.source.uri}:${e.offset}: ${e.message}").join("\n")}");
         }
         expect(errors.isEmpty, true);
       });

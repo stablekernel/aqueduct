@@ -104,7 +104,6 @@ import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/runtime/orm/orm.dart';
 import 'package:aqueduct/src/runtime/runtime.dart';
 import '$originalFileUri';
-/* need to import actual model type */
 
 final instance = ManagedEntityRuntimeImpl();
 
