@@ -25,7 +25,6 @@ void main() {
   Terminal terminal;
   CLITask task;
 
-
   setUpAll(() async {
     template = await Terminal.createProject();
     await template.getDependencies(offline: true);
@@ -37,8 +36,9 @@ void main() {
 
   tearDown(() async {
     await task?.process?.stop(0);
-    Terminal.deleteTemporaryDirectory();
   });
+
+  tearDownAll(Terminal.deleteTemporaryDirectory);
 
   test("Served application starts and responds to route", () async {
     task = terminal.startAqueductCommand("serve", ["-n", "1"]);

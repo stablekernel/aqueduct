@@ -99,7 +99,7 @@ class Terminal {
     final srcDir = Directory.fromUri(src);
     final dstDir = Directory.fromUri(dst);
     if (!dstDir.existsSync()) {
-      dstDir.createSync();
+      dstDir.createSync(recursive: true);
     }
 
     srcDir.listSync().forEach((fse) {
