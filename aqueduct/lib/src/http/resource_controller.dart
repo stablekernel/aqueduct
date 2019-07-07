@@ -67,7 +67,7 @@ import 'http.dart';
 abstract class ResourceController extends Controller
     implements Recyclable<Null> {
   ResourceController() {
-    _runtime = Runtime.current.controllers[runtimeType]?.resourceController;
+    _runtime = (Runtime.current.runtimes[runtimeType] as ControllerRuntime)?.resourceController;
   }
 
   @override

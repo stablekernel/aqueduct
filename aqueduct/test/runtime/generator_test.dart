@@ -36,19 +36,19 @@ void main() {
     expect(
         Directory.fromUri(terminal.workingDirectory.uri
                 .resolve("out/")
-                .resolve("channelruntime/"))
+                .resolve("channel/"))
             .existsSync(),
         true);
     expect(
         Directory.fromUri(terminal.workingDirectory.uri
                 .resolve("out/")
-                .resolve("controllerruntime/"))
+                .resolve("controller/"))
             .existsSync(),
         true);
     expect(
         Directory.fromUri(terminal.workingDirectory.uri
                 .resolve("out/")
-                .resolve("managedentityruntime/"))
+                .resolve("entity/"))
             .existsSync(),
         false);
   });
@@ -63,19 +63,19 @@ void main() {
     expect(
         Directory.fromUri(terminal.workingDirectory.uri
                 .resolve("out/")
-                .resolve("controllerruntime/"))
+                .resolve("controller=/"))
             .existsSync(),
         true);
     expect(
         Directory.fromUri(terminal.workingDirectory.uri
                 .resolve("out/")
-                .resolve("channelruntime/"))
+                .resolve("channel=/"))
             .existsSync(),
         false);
     expect(
         Directory.fromUri(terminal.workingDirectory.uri
                 .resolve("out/")
-                .resolve("managedentityruntime/"))
+                .resolve("entity/"))
             .existsSync(),
         false);
   });
@@ -101,19 +101,19 @@ void main() {
     expect(
         Directory.fromUri(terminal.workingDirectory.uri
                 .resolve("out/")
-                .resolve("controllerruntime/"))
+                .resolve("controller/"))
             .existsSync(),
         true);
     expect(
         Directory.fromUri(terminal.workingDirectory.uri
                 .resolve("out/")
-                .resolve("channelruntime/"))
+                .resolve("channel/"))
             .existsSync(),
         true);
 
     final moDir = Directory.fromUri(terminal.workingDirectory.uri
         .resolve("out/")
-        .resolve("managedentityruntime/"));
+        .resolve("entity/"));
     expect(moDir.existsSync(), true);
     expect(moDir.listSync().length, 2);
   });
@@ -152,6 +152,7 @@ class Runner {
         if (errors.isNotEmpty) {
           print(
               "${msgs.errors.map((e) => "${e.source.uri}:${e.offset}: ${e.message}").join("\n")}");
+
         }
         expect(errors.isEmpty, true);
       });
