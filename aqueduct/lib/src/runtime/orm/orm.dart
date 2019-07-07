@@ -1,7 +1,7 @@
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/runtime/app/app.dart';
 
-abstract class ManagedEntityRuntime extends RuntimeBase {
+abstract class ManagedEntityRuntime extends RuntimeType {
   @override
   String get kind => "entity";
 

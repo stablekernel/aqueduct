@@ -27,7 +27,7 @@ class ApplicationBuilder {
 
   List<ClassMirror> _types;
 
-  Map<String, RuntimeBase> runtimes = {};
+  Map<String, RuntimeType> runtimes = {};
 
   T Function<T>(dynamic object, {Type runtimeType}) get caster {
     return <T>(object, {Type runtimeType}) {

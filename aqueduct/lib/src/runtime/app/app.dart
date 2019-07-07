@@ -11,12 +11,12 @@ import 'package:aqueduct/src/http/resource_controller_bindings.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 
-abstract class RuntimeBase {
+abstract class RuntimeType {
   String get kind;
   String get source;
 }
 
-abstract class ChannelRuntime extends RuntimeBase {
+abstract class ChannelRuntime extends RuntimeType {
   Iterable<APIComponentDocumenter> getDocumentableChannelComponents(
       ApplicationChannel channel);
 
@@ -34,7 +34,7 @@ abstract class ChannelRuntime extends RuntimeBase {
   Future runGlobalInitialization(ApplicationOptions config);
 }
 
-abstract class ControllerRuntime extends RuntimeBase {
+abstract class ControllerRuntime extends RuntimeType {
   @override
   String get kind => "controller";
 
@@ -43,7 +43,7 @@ abstract class ControllerRuntime extends RuntimeBase {
   ResourceControllerRuntime get resourceController;
 }
 
-abstract class SerializableRuntime extends RuntimeBase {
+abstract class SerializableRuntime extends RuntimeType {
   @override
   String get kind => "serializable";
 

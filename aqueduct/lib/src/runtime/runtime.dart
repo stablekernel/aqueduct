@@ -25,11 +25,11 @@ class Runtime {
 class RuntimeTypeCollection {
   RuntimeTypeCollection(this._runtimes);
 
-  Map<String, RuntimeBase> _runtimes;
+  Map<String, RuntimeType> _runtimes;
 
-  Iterable<RuntimeBase> get iterable => _runtimes.values;
+  Iterable<RuntimeType> get iterable => _runtimes.values;
   
-  RuntimeBase operator [] (Type t) {
+  RuntimeType operator [] (Type t) {
     final typeName = t.toString();
     final r = _runtimes[typeName];
     if (r != null) {

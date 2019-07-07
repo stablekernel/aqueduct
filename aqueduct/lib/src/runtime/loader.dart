@@ -8,7 +8,7 @@ class RuntimeLoader {
   static Runtime load() {
     final out = Runtime();
 
-    final runtimes = <String, RuntimeBase>{};
+    final runtimes = <String, RuntimeType>{};
     final app = ApplicationBuilder();
     runtimes.addAll(app.runtimes);
     out.caster = app.caster;
