@@ -20,6 +20,7 @@ dependencies:
   path: ^1.6.1
   postgres: ^1.0.0
   pub_cache: '>=0.2.0 <0.3.0'
+  pubspec_parse: '>=0.1.4 <1.0.0'
   pub_semver: ^1.4.0
   safe_config: ^2.0.0
   yaml: ^2.1.15

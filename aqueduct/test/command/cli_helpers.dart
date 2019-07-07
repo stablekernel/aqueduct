@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/cli/runner.dart';
 import 'package:aqueduct/src/cli/running_process.dart';
-import 'package:meta/meta.dart';
+import 'package:aqueduct/src/utilities/file_system.dart';
 
 class Terminal {
   Terminal(this.workingDirectory) {
@@ -93,27 +93,6 @@ class Terminal {
     try {
       temporaryDirectory.deleteSync(recursive: true);
     } catch (_) {}
-  }
-
-  static void copyDirectory({@required Uri src, @required Uri dst}) {
-    final srcDir = Directory.fromUri(src);
-    final dstDir = Directory.fromUri(dst);
-    if (!dstDir.existsSync()) {
-      dstDir.createSync();
-    }
-
-    srcDir.listSync().forEach((fse) {
-      if (fse is File) {
-        final outPath = dstDir.uri
-            .resolve(fse.uri.pathSegments.last)
-            .toFilePath(windows: Platform.isWindows);
-        fse.copySync(outPath);
-      } else if (fse is Directory) {
-        final segments = fse.uri.pathSegments;
-        final outPath = dstDir.uri.resolve(segments[segments.length - 2]);
-        copyDirectory(src: fse.uri, dst: outPath);
-      }
-    });
   }
 
   Directory get defaultMigrationDirectory {
