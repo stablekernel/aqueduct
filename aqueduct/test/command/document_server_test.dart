@@ -8,10 +8,13 @@ import 'package:http/http.dart' as http;
 import 'cli_helpers.dart';
 
 void main() {
-  Terminal terminal = Terminal(Terminal.temporaryDirectory);
+  Terminal template;
+  Terminal terminal;
 
   setUpAll(() async {
     await Terminal.activateCLI();
+    template = await Terminal.createProject(template: "db_and_auth");
+    await terminal.getDependencies();
   });
 
   tearDownAll(() async {
@@ -19,8 +22,7 @@ void main() {
   });
 
   setUp(() async {
-    terminal = await Terminal.createProject(template: "db_and_auth");
-    await terminal.getDependencies();
+    terminal = template.replicate();
   });
 
   tearDown(() async {

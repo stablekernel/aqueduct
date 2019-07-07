@@ -8,15 +8,16 @@ import 'cli_helpers.dart';
 
 void main() {
   group("Validating", () {
+    Terminal template;
     Terminal terminal;
 
     setUpAll(() async {
-      terminal = await Terminal.createProject();
-      await terminal.getDependencies(offline: true);
+      template = await Terminal.createProject();
+      await template.getDependencies(offline: true);
     });
 
     setUp(() async {
-      await terminal.restoreDefaultTestProject();
+      terminal = template.replicate();
       terminal.addOrReplaceFile("lib/application_test.dart", """
 class TestObject extends ManagedObject<_TestObject> {}
 

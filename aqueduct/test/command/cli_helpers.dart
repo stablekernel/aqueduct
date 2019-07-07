@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/cli/runner.dart';
 import 'package:aqueduct/src/cli/running_process.dart';
+import 'package:meta/meta.dart';
 
 class Terminal {
   Terminal(this.workingDirectory) {
@@ -94,6 +95,27 @@ class Terminal {
     } catch (_) {}
   }
 
+  static void copyDirectory({@required Uri src, @required Uri dst}) {
+    final srcDir = Directory.fromUri(src);
+    final dstDir = Directory.fromUri(dst);
+    if (!dstDir.existsSync()) {
+      dstDir.createSync();
+    }
+
+    srcDir.listSync().forEach((fse) {
+      if (fse is File) {
+        final outPath = dstDir.uri
+            .resolve(fse.uri.pathSegments.last)
+            .toFilePath(windows: Platform.isWindows);
+        fse.copySync(outPath);
+      } else if (fse is Directory) {
+        final segments = fse.uri.pathSegments;
+        final outPath = dstDir.uri.resolve(segments[segments.length - 2]);
+        copyDirectory(src: fse.uri, dst: outPath);
+      }
+    });
+  }
+
   Directory get defaultMigrationDirectory {
     return Directory.fromUri(workingDirectory.uri.resolve("migrations/"));
   }
@@ -102,35 +124,14 @@ class Terminal {
     return Directory.fromUri(workingDirectory.uri.resolve("lib/"));
   }
 
-  /// If this terminal is the result pf [createProject] with no template,
-  /// this method restores the state of the directory to its initial state.
-  ///
-  /// If [retainPackagesFile] is true, any .packages file in this directory
-  /// is retained.
-  Future restoreDefaultTestProject({bool retainPackagesFile = true}) async {
-    final packagesFile = File.fromUri(workingDirectory.uri.resolve(".packages"));
-    final lockFile = File.fromUri(workingDirectory.uri.resolve("pubspec.lock"));
-    String packagesContent;
-    String lockContent;
-
-    if (packagesFile.existsSync()) {
-      packagesContent = packagesFile.readAsStringSync();
+  Terminal replicate() {
+    final outUri = temporaryDirectory.uri.resolve("replica/");
+    final dir = Directory.fromUri(outUri);
+    if (dir.existsSync()) {
+      dir.deleteSync(recursive: true);
     }
-
-    if (lockFile.existsSync()) {
-      lockContent = lockFile.readAsStringSync();
-    }
-
-    workingDirectory.deleteSync(recursive: true);
-    workingDirectory.createSync();
-    if (packagesContent != null) {
-      packagesFile.writeAsStringSync(packagesContent);
-    }
-    if (lockContent != null) {
-      lockFile.writeAsStringSync(lockContent);
-    }
-
-    await createProject(template: null);
+    copyDirectory(src: workingDirectory.uri, dst: outUri);
+    return Terminal(Directory.fromUri(outUri));
   }
 
   void clearOutput() {

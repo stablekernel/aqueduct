@@ -11,16 +11,17 @@ import '../command/cli_helpers.dart';
 
 void main() {
   Runner runner;
+  Terminal template;
   Terminal terminal;
 
   setUpAll(() async {
-    terminal = await Terminal.createProject();
-    await terminal.getDependencies(offline: true);
-    runner = Runner(terminal);
+    template = await Terminal.createProject();
+    await template.getDependencies(offline: true);
   });
 
   setUp(() async {
-    await terminal.restoreDefaultTestProject();
+    terminal = template.replicate();
+    runner = Runner(terminal);
   });
 
   tearDownAll(() async {

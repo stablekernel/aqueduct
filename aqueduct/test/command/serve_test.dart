@@ -21,12 +21,18 @@ File get keyFile => File.fromUri(Directory.current.uri
     .resolve("aqueduct.key.pem"));
 
 void main() {
+  Terminal template;
   Terminal terminal;
   CLITask task;
 
+
+  setUpAll(() async {
+    template = await Terminal.createProject();
+    await template.getDependencies(offline: true);
+  });
+
   setUp(() async {
-    terminal = await Terminal.createProject();
-    await terminal.getDependencies(offline: true);
+    terminal = template.replicate();
   });
 
   tearDown(() async {

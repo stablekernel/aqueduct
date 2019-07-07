@@ -5,10 +5,13 @@ import 'package:test/test.dart';
 import 'cli_helpers.dart';
 
 void main() {
-  Terminal terminal = Terminal(Terminal.temporaryDirectory);
+  Terminal terminal;
+  Terminal template;
 
   setUpAll(() async {
     await Terminal.activateCLI();
+    template = await Terminal.createProject(template: "db_and_auth");
+    await template.getDependencies();
   });
 
   tearDownAll(() async {
@@ -20,8 +23,7 @@ void main() {
   });
 
   test("command with default args creates client page from current project dir pointing at localhost:8888", () async {
-    terminal = await Terminal.createProject(template: "db_and_auth");
-    await terminal.getDependencies();
+    terminal = template.replicate();
 
     await terminal.runAqueductCommand("document", ["client"]);
 
@@ -36,8 +38,7 @@ void main() {
   });
 
   test("Replace relative urls with provided server", () async {
-    terminal = await Terminal.createProject(template: "db_and_auth");
-    await terminal.getDependencies();
+    terminal = template.replicate();
 
     await terminal.runAqueductCommand("document", ["client", "--host", "https://server.com/v1/"]);
 
