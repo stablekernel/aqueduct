@@ -81,6 +81,7 @@ import '$originalFileUri';
 
 final instance = ChannelRuntimeImpl();
 
+<<<<<<< HEAD
 void entryPoint(ApplicationInitialServerMessage params) {
   final runtime = ChannelRuntimeImpl();
   
@@ -91,6 +92,8 @@ void entryPoint(ApplicationInitialServerMessage params) {
   server.start(shareHttpServer: true);
 };
 
+=======
+>>>>>>> master
 class ChannelRuntimeImpl extends ChannelRuntime {
   @override
   String get source => throw UnsupportedError('This method is not implemented for compiled applications.');
@@ -99,7 +102,19 @@ class ChannelRuntimeImpl extends ChannelRuntime {
   String get name => '$className';
 
   @override
+<<<<<<< HEAD
   IsolateEntryFunction get isolateEntryPoint => entryPoint;
+=======
+  IsolateEntryFunction get isolateEntryPoint => (ApplicationInitialServerMessage params) {
+    final runtime = ChannelRuntimeImpl();
+    
+    final server = ApplicationIsolateServer(runtime.channelType,
+      params.configuration, params.identifier, params.parentMessagePort,
+      logToConsole: params.logToConsole);
+
+    server.start(shareHttpServer: true);
+  };
+>>>>>>> master
   
   @override
   Uri get libraryUri => null;

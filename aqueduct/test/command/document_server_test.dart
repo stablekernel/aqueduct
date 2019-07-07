@@ -14,19 +14,16 @@ void main() {
   setUpAll(() async {
     await Terminal.activateCLI();
     template = await Terminal.createProject(template: "db_and_auth");
-    await terminal.getDependencies();
+    await template.getDependencies();
   });
 
   tearDownAll(() async {
     await Terminal.deactivateCLI();
+    Terminal.deleteTemporaryDirectory();
   });
 
   setUp(() async {
     terminal = template.replicate();
-  });
-
-  tearDown(() async {
-    Terminal.deleteTemporaryDirectory();
   });
 
   test("Can get API reference", () async {
