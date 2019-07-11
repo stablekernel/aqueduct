@@ -26,11 +26,11 @@ class RuntimeLoader {
     final dm = DataModelBuilder();
     final out = RuntimeGenerator();
 
-
     app.runtimes.forEach((key, runtime) {
-      if (runtime is! SerializableRuntime) {
-        out.addRuntime(kind: runtime.kind, name: key, source: runtime.source);
+      if (runtime is SerializableRuntime) {
+        return;
       }
+      out.addRuntime(kind: runtime.kind, name: key, source: runtime.source);
     });
 
     /* app.caster ?? */
