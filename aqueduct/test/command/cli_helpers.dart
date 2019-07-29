@@ -8,7 +8,7 @@ import 'package:aqueduct/src/cli/running_process.dart';
 import 'package:meta/meta.dart';
 
 class Terminal {
-  Terminal(this.workingDirectory) {
+  Terminal(Directory directory) : workingDirectory = directory.absolute {
     workingDirectory.createSync(recursive: true);
   }
 
@@ -219,14 +219,16 @@ class Terminal {
   }
 
   Future<ProcessResult> getDependencies({bool offline = true}) async {
-    var args = ["get", "--no-packages-dir"];
+    var args = ["get"];
     if (offline) {
       args.add("--offline");
     }
 
     final cmd = Platform.isWindows ? "pub.bat" : "pub";
     var result = await Process.run(cmd, args,
-            workingDirectory: workingDirectory.absolute.path, runInShell: true)
+            workingDirectory:
+                workingDirectory.uri.toFilePath(windows: Platform.isWindows),
+            runInShell: true)
         .timeout(const Duration(seconds: 45));
 
     if (result.exitCode != 0) {
