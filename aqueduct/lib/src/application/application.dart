@@ -118,8 +118,8 @@ class Application<T extends ApplicationChannel> {
       throw StateError(
           "Application error. Cannot invoke 'test' on already running Aqueduct application.");
     }
-
-    options.address = InternetAddress.loopbackIPv4;
+    
+    options.address ??= InternetAddress.loopbackIPv4;
 
     try {
       await _runtime.runGlobalInitialization(options);
