@@ -113,7 +113,7 @@ class _Task {
   @primaryKey
   int id;
 
-  @Column(#tasks)
+  @Relate(#tasks)
   User user;
 
   String contents;
