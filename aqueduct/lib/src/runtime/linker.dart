@@ -3,39 +3,54 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:aqueduct/src/utilities/file_system.dart';
+import 'package:meta/meta.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 
 class RuntimeLinker {
-  RuntimeLinker(this.srcProjectUri, this.runtimeLoaderUri,
-      {Map<String, Uri> dependencies}) {
-    _dependencies = dependencies ?? {};
-    if (!_dependencies.containsKey("aqueduct")) {
-      final packagesFile = File.fromUri(srcProjectUri.resolve(".packages"));
-      final aqueductPath = packagesFile
-          .readAsStringSync()
-          .split("\n")
-          .firstWhere((line) => line.startsWith("aqueduct:"))
-          .substring("aqueduct:".length);
-
-      final aqueductUri = Uri.parse(aqueductPath);
-      if (aqueductUri.isAbsolute) {
-        _dependencies["aqueduct"] = Directory.fromUri(aqueductUri).parent.uri;
-      } else {
-        _dependencies["aqueduct"] = Directory.fromUri(
-                srcProjectUri.resolveUri(aqueductUri).normalizePath())
-            .parent
-            .uri;
-      }
-    }
+  RuntimeLinker(
+      {@required this.srcProjectUri,
+      @required this.runtimeLoaderUri,
+      @required List<String> dependencies}) {
+    final map = _packagesMap;
+    _dependencies =
+        Map.fromEntries(dependencies.map((d) => MapEntry(d, map[d])));
   }
 
   final Uri srcProjectUri;
   final Uri runtimeLoaderUri;
   Map<String, Uri> _dependencies;
 
+  Map<String, Uri> get _packagesMap {
+    final packagesFile = File.fromUri(srcProjectUri.resolve(".packages"));
+    return Map.fromEntries(packagesFile
+        .readAsStringSync()
+        .split("\n")
+        .where((s) => !s.trimLeft().startsWith("#"))
+        .where((s) => s.trim().isNotEmpty)
+        .map((s) {
+      final packageName = s.substring(0, s.indexOf(":"));
+      final uri = Uri.parse(s.substring("$packageName:".length));
+      if (uri.isAbsolute) {
+        return MapEntry(packageName, Directory.fromUri(uri).parent.uri);
+      }
+      return MapEntry(
+          packageName,
+          Directory.fromUri(srcProjectUri.resolveUri(uri).normalizePath())
+              .parent
+              .uri);
+    }));
+  }
+
   Future<void> link(Uri outputUri) async {
     final packagesDir = Directory.fromUri(outputUri.resolve("packages/"));
     final projectDir = Directory.fromUri(outputUri.resolve("app/"));
+
+    if (packagesDir.existsSync()) {
+      packagesDir.deleteSync(recursive: true);
+    }
+    if (projectDir.existsSync()) {
+      projectDir.deleteSync(recursive: true);
+    }
 
     packagesDir.createSync(recursive: true);
     projectDir.createSync(recursive: true);
@@ -47,11 +62,8 @@ class RuntimeLinker {
   void _copyDependencies(Uri dstPackagesUri) {
     _dependencies.forEach((name, location) {
       final packageUri = dstPackagesUri.resolve("$name/");
-      final dir = Directory.fromUri(packageUri);
-      if (dir.existsSync()) {
-        dir.deleteSync(recursive: true);
-      }
-      dir.createSync(recursive: true);
+      final sourceDir = Directory.fromUri(packageUri);
+      sourceDir.createSync(recursive: true);
 
       final pubspecFile = File.fromUri(location.resolve("pubspec.yaml"))
           .copySync(packageUri
@@ -64,23 +76,27 @@ class RuntimeLinker {
 
       copyDirectory(
           src: location.resolve("lib/"), dst: packageUri.resolve("lib/"));
+
+      final frameworkRuntimeFile = File.fromUri(packageUri
+          .resolve("lib/")
+          .resolve("src/")
+          .resolve("runtime/")
+          .resolve("runtime.dart"));
+      if (!frameworkRuntimeFile.existsSync()) {
+        throw ArgumentError(
+            "Package '$name' has no runtime file. expected the file 'lib/src/runtime/runtime.dart' in '$packageUri'");
+      }
+
+      const replacementLine = "import 'loader.dart' as loader;";
+      final frameworkRuntimeContents = frameworkRuntimeFile.readAsStringSync();
+      if (!frameworkRuntimeContents.contains(replacementLine)) {
+        throw ArgumentError(
+            "The runtime for package '$name' is invalid. It must contain the directive: 'import 'loader.dart' as loader;'");
+      }
+      frameworkRuntimeFile.writeAsStringSync(
+          frameworkRuntimeContents.replaceFirst(
+              replacementLine, "import '$runtimeLoaderUri' as loader;"));
     });
-
-    /*
-     this should only happen for aqueduct package.
-     there should be some sort of mechanism for 'linking' a package
-     on a per-package basis
-      */
-
-    final frameworkRuntimeFile = File.fromUri(dstPackagesUri
-        .resolve("lib/")
-        .resolve("src/")
-        .resolve("runtime/")
-        .resolve("runtime.dart"));
-    final frameworkRuntimeContents = frameworkRuntimeFile.readAsStringSync();
-    frameworkRuntimeFile.writeAsStringSync(
-        frameworkRuntimeContents.replaceFirst("import 'loader.dart' as loader;",
-            "import '$runtimeLoaderUri' as loader;"));
   }
 
   void _copyProject(Uri dstProjectUri) {
@@ -99,7 +115,7 @@ class RuntimeLinker {
 
     final overrides = pubspecMap['dependency_overrides'];
     _dependencies.forEach((name, uri) {
-      overrides[name] = {"path": uri};
+      overrides[name] = {"path": uri.toFilePath(windows: Platform.isWindows)};
     });
     pubpsecFile.writeAsStringSync(json.encode(pubspecMap));
   }

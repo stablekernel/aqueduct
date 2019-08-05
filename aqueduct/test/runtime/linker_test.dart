@@ -91,7 +91,11 @@ Future main(List<String> args) async {
   final generator = RuntimeLoader.createGenerator();
   await generator.writeTo(buildDir.uri.resolve("runtime/"));
 
-  final linker = RuntimeLinker(buildDir.parent.uri, buildDir.uri.resolve("runtime/").resolve("loader.dart"));
+  final linker = RuntimeLinker(srcProjectUri: buildDir.parent.uri, 
+    runtimeLoaderUri: buildDir.uri.resolve("runtime/").resolve("loader.dart"),
+    dependencies: [
+      "aqueduct"
+    ]);
   await linker.link(buildDir.uri);
 }
 """;
