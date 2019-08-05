@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:aqueduct/src/utilities/file_system.dart';
-import 'package:meta/meta.dart';
 import 'package:pubspec_parse/pubspec_parse.dart';
 
 class RuntimeLinker {
