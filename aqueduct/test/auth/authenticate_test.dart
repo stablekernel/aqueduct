@@ -210,6 +210,17 @@ void main() {
       expect(await auth.verify(token.accessToken) is Authorization, true);
     });
 
+    test("Can create with sub-scope of client scope", () async {
+      delegate.allowedScopes = [AuthScope("user")];
+      var token = await auth.authenticate(
+          createdUser.username,
+          InMemoryAuthStorage.defaultPassword,
+          "com.stablekernel.public.scoped",
+          null,
+          requestedScopes: [AuthScope("user.self")]);
+      expect(token.scopes, [AuthScope("user.self")]);
+    });
+
     test("Cannot verify token that doesn't exist", () async {
       try {
         await auth.verify("nonsense");

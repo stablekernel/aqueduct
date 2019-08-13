@@ -116,6 +116,7 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   Map<String, AuthClient> clients;
   Map<int, TestUser> users = {};
   List<TestToken> tokens = [];
+  List<AuthScope> allowedScopes;
 
   void createUsers(int count) {
     for (int i = 0; i < count; i++) {
@@ -170,6 +171,7 @@ class InMemoryAuthStorage extends AuthServerDelegate {
     };
     users = {};
     tokens = [];
+    allowedScopes = AuthScope.any;
   }
 
   @override
@@ -280,6 +282,9 @@ class InMemoryAuthStorage extends AuthServerDelegate {
 
   @override
   FutureOr removeClient(AuthServer server, String id) => clients.remove(id);
+
+  @override
+  List<AuthScope> getAllowedScopes(ResourceOwner owner) => allowedScopes;
 }
 
 class DefaultPersistentStore extends PersistentStore {
