@@ -536,8 +536,8 @@ class AuthServer implements AuthValidator, APIComponentDocumenter {
           delegate.getAllowedScopes(authenticatable);
       if (!identical(validScopesForAuthenticatable, AuthScope.any)) {
         validScopes.retainWhere((clientAllowedScope) =>
-            validScopesForAuthenticatable
-                .any((userScope) => clientAllowedScope.allowsScope(userScope)));
+            validScopesForAuthenticatable.any((userScope) =>
+                clientAllowedScope.isSubsetOrEqualTo(userScope)));
 
         if (validScopes.isEmpty) {
           throw AuthServerException(AuthRequestError.invalidScope, client);

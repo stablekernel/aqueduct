@@ -241,7 +241,7 @@ class Authorization {
   /// to access [scope].
   bool isAuthorizedForScope(String scope) {
     final asScope = AuthScope(scope);
-    return scopes?.any(asScope.allowsScope) ?? false;
+    return scopes?.any(asScope.isSubsetOrEqualTo) ?? false;
   }
 }
 
@@ -338,7 +338,7 @@ class AuthScope {
 
     return requiredScopes.every((requiredScope) {
       final tokenHasValidScope = providedScopes
-          ?.any((tokenScope) => requiredScope.allowsScope(tokenScope));
+          ?.any((tokenScope) => requiredScope.isSubsetOrEqualTo(tokenScope));
 
       return tokenHasValidScope ?? false;
     });
@@ -399,23 +399,14 @@ class AuthScope {
     return elements;
   }
 
-  /// Whether or not this instance is a subset or equal to [scope].
+  /// Whether or not this instance is a subset or equal to [incomingScope].
   ///
   /// The scope `users:posts` is a subset of `users`.
-  bool isSubsetOrEqualTo(AuthScope scope) {
-    return allowsScope(scope);
-  }
-
-  /// Whether or not [incomingScope] has at least the same scoping access as this instance.
   ///
-  /// This check is used to determine if an [Authorizer] can allow a [Request] to pass if the [Request]'s
-  /// [Request.authorization] has a scope that has the same or more scope than there required scope of an [Authorizer].
-  ///
-  /// For example, the scope `user:location` would allow both `user` and `user:location`.
-  ///
-  /// The scope `user` would allow `user`,
-  /// but would not allow `user:location`, as `user:location` is more restrictive than the required scope.
-  bool allowsScope(AuthScope incomingScope) {
+  /// This check is used to determine if an [Authorizer] can allow a [Request]
+  /// to pass if the [Request]'s [Request.authorization] has a scope that has
+  /// the same or more scope than the required scope of an [Authorizer].
+  bool isSubsetOrEqualTo(AuthScope incomingScope) {
     if (incomingScope._lastModifier != null) {
       // If the modifier of the incoming scope is restrictive,
       // and this scope requires no restrictions, then it's not allowed.
@@ -452,12 +443,15 @@ class AuthScope {
     return true;
   }
 
-  /// String variant of [allowsScope].
+  /// Alias of [isSubsetOrEqualTo].
+  @Deprecated('Use AuthScope.isSubsetOrEqualTo() instead')
+  bool allowsScope(AuthScope incomingScope) => isSubsetOrEqualTo(incomingScope);
+
+  /// String variant of [isSubsetOrEqualTo].
   ///
-  /// Parses an instance of this type from [scopeString] and invokes [allowsScope].
-  bool allows(String scopeString) {
-    return allowsScope(AuthScope(scopeString));
-  }
+  /// Parses an instance of this type from [scopeString] and invokes
+  /// [isSubsetOrEqualTo].
+  bool allows(String scopeString) => isSubsetOrEqualTo(AuthScope(scopeString));
 
   /// Whether or not two scopes are exactly the same.
   bool isExactlyScope(AuthScope scope) {
