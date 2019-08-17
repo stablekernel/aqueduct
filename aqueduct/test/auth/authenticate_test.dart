@@ -210,7 +210,20 @@ void main() {
       expect(await auth.verify(token.accessToken) is Authorization, true);
     });
 
-    test("Can create with sub-scope of client scope", () async {
+    test("Can't create token without scope if client has scope", () async {
+      try {
+        await auth.authenticate(
+            createdUser.username,
+            InMemoryAuthStorage.defaultPassword,
+            "com.stablekernel.public.scoped",
+            null);
+        fail("Should throw AuthServerException");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
+    });
+
+    test("Can create token with sub-scope of client scope", () async {
       delegate.allowedScopes = [AuthScope("user")];
       var token = await auth.authenticate(
           createdUser.username,
@@ -219,6 +232,37 @@ void main() {
           null,
           requestedScopes: [AuthScope("user.self")]);
       expect(token.scopes, [AuthScope("user.self")]);
+    });
+
+    test("Don't grant requested scope if it exceeds client scope", () async {
+      try {
+        await auth.authenticate(
+            createdUser.username,
+            InMemoryAuthStorage.defaultPassword,
+            "com.stablekernel.public.scoped",
+            null,
+            requestedScopes: [AuthScope("admin")]);
+        fail("Should throw AuthServerException");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
+    });
+
+    test(
+        "Don't grant requested scope if it exceeds allowed scope of ResourceOwner",
+        () async {
+      delegate.allowedScopes = [AuthScope("user.self")];
+      try {
+        await auth.authenticate(
+            createdUser.username,
+            InMemoryAuthStorage.defaultPassword,
+            "com.stablekernel.public.scoped",
+            null,
+            requestedScopes: [AuthScope("user")]);
+        fail("Should throw AuthServerException");
+      } on AuthServerException catch (e) {
+        expect(e.reason, AuthRequestError.invalidScope);
+      }
     });
 
     test("Cannot verify token that doesn't exist", () async {
