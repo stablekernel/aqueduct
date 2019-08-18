@@ -1,3 +1,8 @@
+## 3.2.2-dev
+
+- [#723](https://github.com/stablekernel/aqueduct/pull/723) Fixes issue that prevented the `AuthServer` from granting tokens with sub-scopes when the servers `AuthServerDelegate.getAllowedScopes()` didn't return `AuthScope.any`.
+- Deprecates `AuthScope.allowsScope()`, use `AuthScope.isSubsetOrEqualTo()` instead.
+
 ## 3.2.1
 
 - Fixes issue when using `QueryReduce` inside a transaction.
