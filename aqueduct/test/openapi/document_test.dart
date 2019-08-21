@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/runtime/app/app.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/shim.dart';
 import 'package:test/test.dart';
 
 /*
@@ -360,7 +360,7 @@ void main() {
     });
 
     test("Non-string key map throws error", () {
-      final schema = (Runtime.current.runtimes[InvalidMapKey] as SerializableRuntime).documentSchema(ctx);
+      final schema = (RuntimeContext.current.runtimes[InvalidMapKey] as SerializableRuntime).documentSchema(ctx);
       expect(schema.properties.isEmpty, true);
       expect(schema.additionalPropertyPolicy, equals(APISchemaAdditionalPropertyPolicy.freeForm));
       expect(schema.description, contains("Failed to"));
@@ -368,7 +368,7 @@ void main() {
     });
 
     test("List that contains non-serializble types throws", () {
-      final schema = (Runtime.current.runtimes[InvalidListValue] as SerializableRuntime).documentSchema(ctx);
+      final schema = (RuntimeContext.current.runtimes[InvalidListValue] as SerializableRuntime).documentSchema(ctx);
       expect(schema.properties.isEmpty, true);
       expect(schema.additionalPropertyPolicy, equals(APISchemaAdditionalPropertyPolicy.freeForm));
       expect(schema.description, contains("Failed to"));
@@ -376,7 +376,7 @@ void main() {
     });
 
     test("Map that contains values that aren't serializable throws", () {
-      final schema = (Runtime.current.runtimes[InvalidMapValue] as SerializableRuntime).documentSchema(ctx);
+      final schema = (RuntimeContext.current.runtimes[InvalidMapValue] as SerializableRuntime).documentSchema(ctx);
       expect(schema.properties.isEmpty, true);
       expect(schema.additionalPropertyPolicy, equals(APISchemaAdditionalPropertyPolicy.freeForm));
       expect(schema.description, contains("Failed to"));
@@ -384,7 +384,7 @@ void main() {
     });
 
     test("Type documentation for complex types", () {
-      final schema = (Runtime.current.runtimes[ComplexTypes] as SerializableRuntime).documentSchema(ctx);
+      final schema = (RuntimeContext.current.runtimes[ComplexTypes] as SerializableRuntime).documentSchema(ctx);
 
       expect(schema.properties["a"].type, APIType.object);
       expect(schema.properties["a"].additionalPropertySchema.type, APIType.integer);

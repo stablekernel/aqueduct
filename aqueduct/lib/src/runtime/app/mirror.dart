@@ -12,6 +12,32 @@ import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/runtime/app/resource_controller_mirror.dart';
+import 'package:aqueduct/src/utilities/mirror_cast.dart';
+
+class BodyDecoderRuntimeImpl extends BodyDecoderRuntime {
+  @override
+  T cast<T>(dynamic input) {
+    return runtimeCast(input, reflectType(T)) as T;
+  }
+
+  @override
+  String get contents {
+    return """
+import 'package:aqueduct/src/runtime/app/app.dart';
+    
+final instance = BodyDecoderRuntimeImpl();    
+class BodyDecoderRuntimeImpl extends BodyDecoderRuntime {
+  @override
+  T cast<T>(dynamic input) {
+    return null;
+  }
+
+  @override
+  String get contents => throw UnsupportedError('This method is not implemented for compiled applications.');
+}    
+""";
+  }
+}
 
 class ChannelRuntimeImpl extends ChannelRuntime {
   ChannelRuntimeImpl(this.type);
@@ -65,7 +91,7 @@ class ChannelRuntimeImpl extends ChannelRuntime {
   }
 
   @override
-  String get source {
+  String get contents {
     final className = MirrorSystem.getName(type.simpleName);
     final originalFileUri = type.location.sourceUri.toString();
     final globalInitBody = hasGlobalInitializationMethod
@@ -93,7 +119,7 @@ void entryPoint(ApplicationInitialServerMessage params) {
 
 class ChannelRuntimeImpl extends ChannelRuntime {
   @override
-  String get source => throw UnsupportedError('This method is not implemented for compiled applications.');
+  String get contents => throw UnsupportedError('This method is not implemented for compiled applications.');
 
   @override
   String get name => '$className';
@@ -171,7 +197,7 @@ class ControllerRuntimeImpl extends ControllerRuntime {
   }
 
   @override
-  String get source {
+  String get contents {
     final originalFileUri = type.location.sourceUri.toString();
 
     return """
@@ -188,7 +214,7 @@ class ControllerRuntimeImpl extends ControllerRuntime {
   }
   
   @override
-  String get source => throw UnsupportedError('This method is not implemented for compiled applications.');
+  String get contents => throw UnsupportedError('This method is not implemented for compiled applications.');
   
   @override
   bool get isMutable => ${isMutable};
@@ -268,5 +294,5 @@ class SerializableRuntimeImpl extends SerializableRuntime {
   }
 
   @override
-  String get source => null;
+  String get contents => null;
 }

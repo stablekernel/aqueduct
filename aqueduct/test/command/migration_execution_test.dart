@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/compilers/project_analyzer.dart';
+import 'package:runtime/src/analyzer.dart';
 import 'package:aqueduct/src/cli/migration_source.dart';
 import 'package:test/test.dart';
 

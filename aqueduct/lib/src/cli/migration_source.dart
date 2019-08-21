@@ -1,4 +1,4 @@
-import 'package:aqueduct/src/compilers/project_analyzer.dart';
+import 'package:runtime/runtime.dart';
 import 'package:crypto/crypto.dart';
 
 class MigrationSource {

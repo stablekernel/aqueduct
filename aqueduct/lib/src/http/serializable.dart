@@ -1,6 +1,6 @@
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/runtime/app/app.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/shim.dart';
 
 import 'http.dart';
 
@@ -13,7 +13,7 @@ abstract class Serializable {
   /// The returned [APISchemaObject] will be of type [APIType.object]. By default, each instance variable
   /// of the receiver's type will be a property of the return value.
   APISchemaObject documentSchema(APIDocumentContext context) {
-    return (Runtime.current.runtimes[runtimeType] as SerializableRuntime).documentSchema(context);
+    return (RuntimeContext.current[runtimeType] as SerializableRuntime).documentSchema(context);
   }
 
   /// Reads values from [object].

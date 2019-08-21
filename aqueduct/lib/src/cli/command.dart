@@ -5,7 +5,7 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/cli/metadata.dart';
 import 'package:aqueduct/src/cli/running_process.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:aqueduct/src/utilities/mirror_cast.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:args/args.dart' as args;
 import 'package:yaml/yaml.dart';
@@ -102,7 +102,7 @@ abstract class CLICommand {
     if (T == int && val is String) {
       return int.parse(val) as T;
     }
-    return Runtime.current.cast(val);
+    return runtimeCast(val, reflectType(T)) as T;
   }
 
   void registerCommand(CLICommand cmd) {

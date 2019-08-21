@@ -1,11 +1,11 @@
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/runtime/orm/orm.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:aqueduct/src/utilities/reference_counting_list.dart';
 
 import 'package:aqueduct/src/db/query/query.dart';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
+import 'package:runtime/shim.dart';
 
 /// Instances of this class contain descriptions and metadata for mapping [ManagedObject]s to database rows.
 ///
@@ -29,7 +29,7 @@ class ManagedDataModel extends Object
     _entities = {};
     _tableDefinitionToEntityMap = {};
 
-    final runtimes = Runtime.current.runtimes.iterable
+    final runtimes = RuntimeContext.current.runtimes.iterable
         .whereType<ManagedEntityRuntime>()
         .toList();
     final expectedRuntimes = instanceTypes
@@ -63,7 +63,7 @@ class ManagedDataModel extends Object
     _entities = {};
     _tableDefinitionToEntityMap = {};
 
-    Runtime.current.runtimes.iterable
+    RuntimeContext.current.runtimes.iterable
         .whereType<ManagedEntityRuntime>()
         .forEach((runtime) {
       _entities[runtime.entity.instanceType] = runtime.entity;

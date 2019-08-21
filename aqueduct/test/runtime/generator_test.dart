@@ -4,7 +4,7 @@ import 'dart:isolate';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:aqueduct/src/compilers/project_analyzer.dart';
+import 'package:runtime/src/analyzer.dart';
 import 'package:test/test.dart';
 
 import '../command/cli_helpers.dart';

@@ -2,10 +2,9 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/runtime/orm/orm.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:aqueduct/src/utilities/mirror_cast.dart';
 
 class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
-
   ManagedEntityRuntimeImpl(this.instanceType, this.entity);
 
   final ClassMirror instanceType;
@@ -31,8 +30,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
 
   @override
   ManagedSet setOfImplementation(Iterable<dynamic> objects) {
-    final type =
-    reflectType(ManagedSet, [instanceType.reflectedType]) as ClassMirror;
+    final type = reflectType(ManagedSet, [instanceType.reflectedType]) as ClassMirror;
     return type.newInstance(const Symbol("fromDynamic"), [objects]).reflectee
     as ManagedSet;
   }
@@ -78,7 +76,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
 
   @override
   dynamic dynamicConvertFromPrimitiveValue(ManagedPropertyDescription property, dynamic value) {
-    return Runtime.current.cast(value, runtimeType: property.type.type);
+    return runtimeCast(value, reflectType(property.type.type));
   }
 
   String _getPropertyNameFromInvocation(Invocation invocation, ManagedEntity entity) {
@@ -96,7 +94,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   }
 
   @override
-  String get source {
+  String get contents {
     final className = "${MirrorSystem.getName(instanceType.simpleName)}";
     final originalFileUri = instanceType.location.sourceUri.toString();
 
@@ -116,7 +114,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   ManagedEntity _entity;
 
   @override
-  String get source => throw UnsupportedError('This method is not implemented for compiled applications.');
+  String get contents => throw UnsupportedError('This method is not implemented for compiled applications.');
   
   @override
   ManagedEntity get entity => _entity; 
@@ -173,7 +171,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   @override
   dynamic dynamicConvertFromPrimitiveValue(ManagedPropertyDescription property, dynamic value) {
   /* this needs to be improved to use the property's type to fix the implementation */
-    return Runtime.current.cast(value, runtimeType: property.type.type);
+    return null;
   }
 }   
     """;

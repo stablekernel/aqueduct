@@ -5,7 +5,7 @@ import 'dart:isolate';
 import 'package:aqueduct/src/application/isolate_application_server.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/runtime/app/app.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/shim.dart';
 import 'package:logging/logging.dart';
 
 import '../http/http.dart';
@@ -62,7 +62,7 @@ class Application<T extends ApplicationChannel> {
   /// This value will return to false after [stop] has completed.
   bool get isRunning => _hasFinishedLaunching;
   bool _hasFinishedLaunching = false;
-  ChannelRuntime get _runtime => Runtime.current.runtimes[T] as ChannelRuntime;
+  ChannelRuntime get _runtime => RuntimeContext.current[T] as ChannelRuntime;
 
   /// Starts this application, allowing it to handle HTTP requests.
   ///
@@ -157,7 +157,7 @@ class Application<T extends ApplicationChannel> {
   /// This method is called by the `aqueduct document` CLI.
   static Future<APIDocument> document(Type type,
       ApplicationOptions config, Map<String, dynamic> projectSpec) async {
-    final runtime = Runtime.current.runtimes[type] as ChannelRuntime;
+    final runtime = RuntimeContext.current[type] as ChannelRuntime;
     
     await runtime.runGlobalInitialization(config);
 

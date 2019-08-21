@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:aqueduct/src/auth/auth.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/runtime/app/app.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:runtime/shim.dart';
 
 import 'http.dart';
 
@@ -67,7 +67,7 @@ import 'http.dart';
 abstract class ResourceController extends Controller
     implements Recyclable<Null> {
   ResourceController() {
-    _runtime = (Runtime.current.runtimes[runtimeType] as ControllerRuntime)?.resourceController;
+    _runtime = (RuntimeContext.current.runtimes[runtimeType] as ControllerRuntime)?.resourceController;
   }
 
   @override
