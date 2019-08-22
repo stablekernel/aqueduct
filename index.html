@@ -212,20 +212,27 @@ components:
                     <a class="ext-logo" target="_blank" href="https://stackoverflow.com/questions/tagged/aqueduct"><i class="fa fa-stack-overflow"></i></a>
                 </div>
 
-                <!-- Begin MailChimp Signup Form -->
-                <div id="mc_embed_signup">
-                    <form action="https://stablekernel.us14.list-manage.com/subscribe/post?u=db1fd3d2efeb77abad6afde00&amp;id=e0c82e0a0f" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
-                        <div id="mc_embed_signup_scroll">
+                <!-- Begin ActiveCampaign Signup Form -->
+                <div id="nl_signup">
+                    <form method="POST" action="https://stablekernel.activehosted.com/proc.php" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank" novalidate>
+                        <div id="nl_signup_scroll">
                             <label for="mce-EMAIL">Subscribe for Aqueduct news and updates</label>
-                            <input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="email address" required>
+                            <input type="email" value="" name="email" class="email" id="mce-EMAIL" placeholder="email address" required>
                             <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
                             <div style="position: absolute; left: -5000px;" aria-hidden="true"><input type="text" name="b_db1fd3d2efeb77abad6afde00_e0c82e0a0f" tabindex="-1" value=""></div>
                             <div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
-                            <p class="privacy-policy">* By filling out this form, I accept stable|kernel's <a href="https://stablekernel.com/privacy-policy/">Privacy Policy</a>.</p>
                         </div>
+                        <input type="hidden" name="u" value="12" />
+                        <input type="hidden" name="f" value="12" />
+                        <input type="hidden" name="s" />
+                        <input type="hidden" name="c" value="0" />
+                        <input type="hidden" name="m" value="0" />
+                        <input type="hidden" name="act" value="sub" />
+                        <input type="hidden" name="v" value="2" />
+
                     </form>
                 </div>
-                <!--End mc_embed_signup-->
+                <!--End nl_signup-->
 
                 <div id="footer-links">
                     <p><a href="/docs/">Documentation</a></p>

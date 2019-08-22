@@ -254,19 +254,19 @@ a {
     color: white;
 }
 
-#mc_embed_signup {
+#nl_signup {
     margin-top: 40px;
     clear: left;
     font: 14px Helvetica,Arial,sans-serif;
     width: 100%;
 }
 
-#mc_embed_signup form {
+#nl_signup form {
     text-align: center;
     padding: 10px 0;
 }
 
-#mc_embed_signup label {
+#nl_signup label {
     display: block;
     font-size: 24px;
     padding-bottom: 10px;
@@ -274,12 +274,12 @@ a {
     font-family: 'Yantramanav';
 }
 
-#mc_embed_signup .privacy-policy {
+#nl_signup .privacy-policy {
     font-size: 13px;
     margin-top: 6px;
 }
 
-#mc_embed_signup input.email {
+#nl_signup input.email {
     font-family: "Open Sans","Helvetica Neue",Arial,Helvetica,Verdana,sans-serif;
     font-size: 15px;
     border: 1px solid #ABB0B2;
@@ -297,11 +297,11 @@ a {
     vertical-align: top;
 }
 
-#mc_embed_signup .clear {
+#nl_signup .clear {
     display: inline-block;
 }
 
-#mc_embed_signup .button {
+#nl_signup .button {
     font-size: 13px;
     border: none;
     -webkit-border-radius: 3px;
@@ -374,17 +374,17 @@ a {
         height: auto;
     }
 
-    #mc_embed_signup input.email {
+    #nl_signup input.email {
         width:100%;
         margin-bottom:5px;
     }
 
-    #mc_embed_signup .clear {
+    #nl_signup .clear {
         display: block;
         width: 100%
     }
 
-    #mc_embed_signup .button {
+    #nl_signup .button {
         width: 100%;
         margin:0;
     }
