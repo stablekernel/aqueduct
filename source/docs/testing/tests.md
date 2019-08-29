@@ -35,7 +35,7 @@ The `config.src.yaml` file must have the same structure as your deployment confi
     The `install` method calls `setUpAll` and `tearDownAll` from `package:test` to start and stop your application. You can manually start and stop your application by invoking `TestHarness.start` and `TestHarness.stop`. However, this is not recommended because `onSetUp` and `onTearDown` will not be called for each test.
 
 !!! note "Uncaught Exceptions when Testing"
-    A test harness configures the application the let uncaught exceptions escape so that they trigger a failure in your test. This is different than when running an application normally, where all exceptions are caught and send an error response to the HTTP client.
+    A test harness configures the application to let uncaught exceptions escape so that they trigger a failure in your test. This is different than when running an application normally, where all exceptions are caught and send an error response to the HTTP client.
 
 ### Using a TestHarness Subclass
 

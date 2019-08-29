@@ -4,9 +4,9 @@ For other deployment options, see [Deploying Aqueduct Applications](index.md).
 
 ### Purpose
 
-This document will describe the steps to deploy an Aqueduct application through Docker and/or a container orchestration platform like Kubernetes. For Dockerfile and Kubernetes templates, see [this repository](https://github.com/stablekernel/kubernetes).
+This document will describe the steps to deploy an Aqueduct application through Docker, Docker Compose or a container orchestration platform like Kubernetes. For Dockerfile and Kubernetes templates, see [this repository](https://github.com/stablekernel/kubernetes).
 
-If you are unfamiliar with deploying applications in this way, this is not a good beginner's guide and will not cover the topics of Docker or Kubernetes.
+If you are unfamiliar with deploying applications in this way, this is not a good beginner's guide and will not cover the topics of Docker, Docker Compose or Kubernetes.
 
 ### Dockerfiles
 
@@ -26,6 +26,46 @@ EXPOSE 80
 
 ENTRYPOINT ["pub", "run", "aqueduct:aqueduct", "serve", "--port", "80"]
 ```
+
+### Docker Compose
+
+To deploy your application (which uses the Aqueduct ORM) using Docker Compose, use this template:
+
+`Dockerfile`
+
+Use the `Dockerfile` specified above.
+
+`docker-compose.yml`
+
+```
+version: '3'
+services:
+  my-app:
+    build: .
+    ports:
+    - "80:80"
+
+  db:
+    image: "postgres:11"
+    container_name: "postgres_database"
+    environment:
+      - POSTGRES_PASSWORD=password-from-config-yaml
+      - POSTGRES_USER=user-from-config-yaml
+      - POSTGRES_DB=db-from-config-yaml
+    ports:
+      - "65432:port-from-config-yaml" # If you want to expose the db from the container
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data: {}
+
+```
+
+Once the service is up (using `docker-compose up -d`), you can run your database migrations using
+
+`aqueduct db upgrade --connect postgres://user-from-config-yaml:password-from-config-yaml@hostname:65432/db-from-config-yaml`
+
 
 ### Kubernetes Objects
 

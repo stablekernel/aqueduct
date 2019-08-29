@@ -17,7 +17,7 @@ class _Tweet {
 
 ### Built-in Validators
 
-There are a handful of built-in validations for common operations. For example, it is common to apply a regular expression to a value to ensure it formatted correctly or restrict the possible values to a list of available options. Common validators are available as named constructors f the `Validate` class. Here is an example:
+There are a handful of built-in validations for common operations. For example, it is common to apply a regular expression to a value to ensure it is formatted correctly or to restrict the possible values to a list of available options. Common validators are available as named constructors of the `Validate` class. Here is an example:
 
 ```dart
 class _Story {
@@ -41,7 +41,7 @@ See the API reference for `Validate` and its named constructors for possible opt
 
 ### Validating Relationships
 
-Validations are only valid for properties declared in a table definition. Validators applied to relationship properties are applied to the primary key of the related object (i.e. the foreign key value). Validation logic is only ran on the properties of the managed object being validated - validations on properties of a related object are *not* ran. When validating a graph of managed objects, you must initiate validation on any related objects manually.
+Validations are only valid for properties declared in a table definition. Validators applied to relationship properties are applied to the primary key of the related object (i.e. the foreign key value). Validation logic is only ran on the properties of the managed object being validated - validations on properties of a related object are *not* run. When validating a graph of managed objects, you must initiate validation on any related objects manually.
 
 !!! warning "Validating Related Objects"
           The behavior of a validation is different when an object is being validated as a relationship. In other words, a validation applied to the primary key of an object likely requires different behavior when being applied to a foreign key reference to that object.

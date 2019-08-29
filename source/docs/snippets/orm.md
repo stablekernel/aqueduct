@@ -123,7 +123,7 @@ class AppChannel extends ApplicationChannel {
 }
 
 class MyAppConfiguration extends Configuration {
-  MyAppConfiguration(String fileName) : super.fromFile(fileName);
+  MyAppConfiguration(String fileName) : super.fromFile(File(fileName));
 
   DatabaseConnectionConfiguration database;
 }

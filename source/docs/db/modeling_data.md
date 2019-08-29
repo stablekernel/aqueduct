@@ -61,7 +61,7 @@ The data type of a column is inferred from the Dart type of the property as show
 Some types can be represented by many database types; for example, an integer can be stored as 2, 4 or 8 bytes. Use the `databaseType` of a `Column` annotation to specify:
 
 ```dart
-@Column(databaseType: ManagedType.bigInteger)
+@Column(databaseType: ManagedPropertyType.bigInteger)
 int bigNumber;
 ```
 
@@ -76,7 +76,7 @@ A primary key can be any supported data type, and it is always unique and indexe
 
 ```dart
 class _Article {
-  @primaryKey // equivalent to @Column(primaryKey: true, databaseType: ManagedType.bigInteger, autoincrement: true)
+  @primaryKey // equivalent to @Column(primaryKey: true, databaseType: ManagedPropertyType.bigInteger, autoincrement: true)
   int id;
 
   ...
@@ -191,7 +191,7 @@ The `Relate` annotation has optional arguments to further define the relationshi
 @Relate(#cities, isRequired: true, rule: DeleteRule.cascade)
 ```
 
-A relationship may be be required or optional. For example, if `City.country` were required, than an `City` must always have an `Country`. By default, relationships are optional.
+A relationship may be be required or optional. For example, if `City.country` were required, than a `City` must always have a `Country`. By default, relationships are optional.
 
 A relationship has a delete rule. When an object is deleted, any objects that belong to its relationships are subject to this rule. The following table shows the rules and their behavior:
 

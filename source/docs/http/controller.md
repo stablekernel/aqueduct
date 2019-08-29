@@ -21,7 +21,7 @@ final controller = VerifyController();
 controller.link(() => ResponseController());
 ```
 
-In the above, `VerifyController` links `ResponseController`. A request handled by the verifying controller can either respond to the request or let the response controller handle it. If the verifying controller sends a respond, the response controller will never receive the request. Any number of controllers can be linked, but the last controller linked must respond to a request. Controllers that always respond to request are called *endpoint controllers*. *Middleware controllers* verify or or modify the request, and typically only respond when an error is encountered.
+In the above, `VerifyController` links `ResponseController`. A request handled by the verifying controller can either respond to the request or let the response controller handle it. If the verifying controller sends a respond, the response controller will never receive the request. Any number of controllers can be linked, but the last controller linked must respond to a request. Controllers that always respond to request are called *endpoint controllers*. *Middleware controllers* verify or modify the request, and typically only respond when an error is encountered.
 
 Linking occurs in an [application channel](../application/channel.md), and is finalized during startup of your application (i.e., once you have set up your controllers, the cannot be changed once the application starts receiving requests).
 

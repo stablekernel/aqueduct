@@ -24,7 +24,7 @@ The best practice for reading a configuration file is to subclass `Configuration
 
 ```dart
 class TodoConfiguration extends Configuration {
-  TodoConfiguration(String fileName) : super.fromFile(fileName);
+  TodoConfiguration(String fileName) : super.fromFile(File(fileName));
 
   DatabaseConnectionConfiguration database;
   String apiBaseURL;
