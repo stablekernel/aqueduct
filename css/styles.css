@@ -274,6 +274,11 @@ a {
     font-family: 'Yantramanav';
 }
 
+#mc_embed_signup .privacy-policy {
+    font-size: 13px;
+    margin-top: 6px;
+}
+
 #mc_embed_signup input.email {
     font-family: "Open Sans","Helvetica Neue",Arial,Helvetica,Verdana,sans-serif;
     font-size: 15px;
