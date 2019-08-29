@@ -15,7 +15,6 @@ pages:
 - Core Concepts: 'core_concepts.md'
 - Getting Started: 'getting_started.md'
 - Tour: 'tour.md'
-- 3.0 Migration Guide: 'migration.md'
 - Best Practices: 'best_practices.md'
 - IntelliJ IDEA Templates: 'intellij.md'
 - Tutorial:
@@ -39,6 +38,7 @@ pages:
     - 'Request Binding with Resource Controllers': 'http/resource_controller.md'
     - 'Serving Files and Caching': 'http/serving_files.md'
     - 'Websockets': 'http/websockets.md'
+    - 'Uploading Files': 'http/file_upload.md'
   - Databases and ORM:
     - 'Overview': 'db/index.md'
     - 'Connecting to a Database': 'db/connecting.md'

@@ -464,11 +464,11 @@ You can flatten this structure in a number of ways. In the simplest form, add a 
 ```dart
 class Team extends ManagedObject<_Team> implements _Team {
   @Serialize(input: false, output: true)
-  List<Player> players;
+  List<Map<String, dynamic>> players;
 }
 
 final team = ...;
-team.players = team.teamPlayers.map((t) => t.player).toList();
+team.players = team.teamPlayers.map((t) => t.player.asMap()).toList();
 // Remove teamPlayers; it is redundant
 team.backing.removeProperty("teamPlayers");
 ```

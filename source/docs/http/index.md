@@ -18,3 +18,4 @@ Your application is run by using the `aqueduct serve` command or the `bin/main.d
 - [Request Binding with ResourceControllers](resource_controller.md)
 - [Serving Files and Caching](serving_files.md)
 - [Websockets](websockets.md)
+- [Uploading Files](file_upload.md)

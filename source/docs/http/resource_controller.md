@@ -126,7 +126,7 @@ You may bind any number of HTTP request properties to a single operation method.
 
 ### Optional Bindings
 
-Bindings can be made optional. If a binding is optional, the operation method will still be called even if the bound property isn't in a request. To make a binding optional, move it to the optional parameters of an operation method:
+Bindings can be made optional. If a binding is optional, the operation method will still be called even if the binding isn't in a request. To make a binding optional, wrap it in curly brackets.
 
 ```dart
 @Operation.get()
@@ -139,7 +139,9 @@ Future<Response> getAllCities({@Bind.header('x-api-key') String apiKey}) async {
 }
 ```
 
-A bound parameter will be null if not in the request. Like any other Dart optional parameter, you can provide a default value:
+The curly bracket syntax is a Dart language feature for optional method parameters ([see more here](https://www.dartlang.org/guides/language/language-tour#optional-parameters)). If there are multiple optional parameters, use only one pair of curly brackets and list each optional parameter in those brackets.
+
+A bound parameter will be null if is not present in the request. You can provide a default value for optional parameters.
 
 ```dart
 @Operation.get()
