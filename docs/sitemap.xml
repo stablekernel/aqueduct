@@ -4,7 +4,7 @@
     
     <url>
      <loc>/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -12,7 +12,7 @@
     
     <url>
      <loc>/core_concepts/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -20,7 +20,7 @@
     
     <url>
      <loc>/getting_started/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -28,15 +28,7 @@
     
     <url>
      <loc>/tour/</loc>
-     <lastmod>2019-03-07</lastmod>
-     <changefreq>daily</changefreq>
-    </url>
-    
-
-    
-    <url>
-     <loc>/migration/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -44,7 +36,7 @@
     
     <url>
      <loc>/best_practices/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -52,7 +44,7 @@
     
     <url>
      <loc>/intellij/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
     
@@ -61,31 +53,31 @@
         
     <url>
      <loc>/tut/getting-started/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/tut/executing-queries/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/tut/storing-data/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/tut/writing-tests/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/tut/oauth2/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
@@ -147,31 +139,31 @@
         
     <url>
      <loc>/snippets/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/snippets/http/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/snippets/orm/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/snippets/auth/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
     <url>
      <loc>/snippets/test/</loc>
-     <lastmod>2019-03-07</lastmod>
+     <lastmod>2019-08-29</lastmod>
      <changefreq>daily</changefreq>
     </url>
         
