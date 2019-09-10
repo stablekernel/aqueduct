@@ -5,16 +5,16 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/cli/runner.dart';
 import 'package:aqueduct/src/cli/running_process.dart';
 
-import 'package:terminal/terminal.dart';
+import 'package:command_line_agent/command_line_agent.dart';
 
 class CLIClient {
-  CLIClient(this.terminal);
+  CLIClient(this.agent);
 
-  final Terminal terminal;
+  final CommandLineAgent agent;
 
-  ProjectTerminal get projectTerminal {
-    if (terminal is ProjectTerminal) {
-      return terminal as ProjectTerminal;
+  ProjectAgent get projectAgent {
+    if (agent is ProjectAgent) {
+      return agent as ProjectAgent;
     }
 
     throw StateError("is not a project terminal");
@@ -40,29 +40,29 @@ class CLIClient {
   }
 
   Directory get defaultMigrationDirectory {
-    return Directory.fromUri(terminal.workingDirectory.uri.resolve("migrations/"));
+    return Directory.fromUri(agent.workingDirectory.uri.resolve("migrations/"));
   }
 
   Directory get libraryDirectory {
-    return Directory.fromUri(terminal.workingDirectory.uri.resolve("lib/"));
+    return Directory.fromUri(agent.workingDirectory.uri.resolve("lib/"));
   }
 
   void delete() {
-    terminal.workingDirectory.deleteSync(recursive: true);
+    agent.workingDirectory.deleteSync(recursive: true);
   }
 
   CLIClient replicate(Uri uri) {
     var dstUri = uri;
     if (!uri.isAbsolute) {
-      dstUri = ProjectTerminal.projectsDirectory.uri.resolveUri(uri);
+      dstUri = ProjectAgent.projectsDirectory.uri.resolveUri(uri);
     }
 
     final dstDirectory = Directory.fromUri(dstUri);
     if (dstDirectory.existsSync()) {
       dstDirectory.deleteSync(recursive: true);
     }
-    Terminal.copyDirectory(src: terminal.workingDirectory.uri, dst: dstUri);
-    return CLIClient(ProjectTerminal.existing(dstUri));
+    CommandLineAgent.copyDirectory(src: agent.workingDirectory.uri, dst: dstUri);
+    return CLIClient(ProjectAgent.existing(dstUri));
   }
 
   void clearOutput() {
@@ -74,7 +74,7 @@ class CLIClient {
       String template,
       bool offline = true}) async {
     if (template == null) {
-      final client = CLIClient(ProjectTerminal(name, dependencies: {
+      final client = CLIClient(ProjectAgent(name, dependencies: {
         "aqueduct" : {
           "path": "../.."
         }
@@ -82,7 +82,7 @@ class CLIClient {
         "test": "^1.0.0"
       }));
       
-      client.projectTerminal.addLibraryFile("channel", """
+      client.projectAgent.addLibraryFile("channel", """
 import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
@@ -107,7 +107,7 @@ class TestChannel extends ApplicationChannel {
     }
     
     try {
-      ProjectTerminal.projectsDirectory.createSync();
+      ProjectAgent.projectsDirectory.createSync();
     } catch (_) {}
 
     final args = <String>[];
@@ -124,7 +124,7 @@ class TestChannel extends ApplicationChannel {
     await run("create", args);
     print("$output");
 
-    return CLIClient(ProjectTerminal.existing(ProjectTerminal.projectsDirectory.uri.resolve("$name/")));
+    return CLIClient(ProjectAgent.existing(ProjectAgent.projectsDirectory.uri.resolve("$name/")));
   }
 
   Future<int> executeMigrations(
@@ -169,7 +169,7 @@ class TestChannel extends ApplicationChannel {
 
     print("Running 'aqueduct ${args.join(" ")}'");
     final saved = Directory.current;
-    Directory.current = terminal.workingDirectory;
+    Directory.current = agent.workingDirectory;
 
     var cmd = Runner()..outputSink = _output;
     var results = cmd.options.parse(args);
@@ -191,7 +191,7 @@ class TestChannel extends ApplicationChannel {
 
     print("Starting 'aqueduct ${args.join(" ")}'");
     final saved = Directory.current;
-    Directory.current = terminal.workingDirectory;
+    Directory.current = agent.workingDirectory;
 
     var cmd = Runner()..outputSink = _output;
     var results = cmd.options.parse(args);

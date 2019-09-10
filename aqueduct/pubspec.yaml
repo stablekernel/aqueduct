@@ -29,8 +29,7 @@ dev_dependencies:
   matcher: '>=0.12.3 <0.14.0'
   test: ^1.3.0
   http: '>=0.11.3+7 <0.13.0'
-  terminal:
-    path: /Users/joeconway/Projects/terminal
+  command_line_agent: ^1.0.0-b1
   aqueduct_test:
     path: ../aqueduct_test
 

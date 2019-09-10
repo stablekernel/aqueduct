@@ -2,7 +2,7 @@
 @Tags(const ["cli"])
 import 'dart:io';
 
-import 'package:terminal/terminal.dart';
+import 'package:command_line_agent/command_line_agent.dart';
 import 'package:test/test.dart';
 
 import 'cli_helpers.dart';
@@ -12,15 +12,15 @@ void main() {
   CLIClient projectUnderTestCli;
 
   setUpAll(() async {
-    templateCli = await CLIClient(Terminal(ProjectTerminal.projectsDirectory)).createProject();
-    await templateCli.terminal.getDependencies(offline: true);
+    templateCli = await CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory)).createProject();
+    await templateCli.agent.getDependencies(offline: true);
   });
 
-  tearDownAll(ProjectTerminal.tearDownAll);
+  tearDownAll(ProjectAgent.tearDownAll);
 
   setUp(() async {
     projectUnderTestCli = templateCli.replicate(Uri.parse("replica/"));
-    projectUnderTestCli.projectTerminal.addLibraryFile("application_test", """
+    projectUnderTestCli.projectAgent.addLibraryFile("application_test", """
 import 'package:aqueduct/aqueduct.dart';
 
 class TestObject extends ManagedObject<_TestObject> {}
@@ -60,7 +60,7 @@ class _TestObject {
     var res = await projectUnderTestCli.run("db", ["generate"]);
     expect(res, 0);
 
-    projectUnderTestCli.terminal.modifyFile("migrations/00000001_initial.migration.dart",
+    projectUnderTestCli.agent.modifyFile("migrations/00000001_initial.migration.dart",
         (contents) {
       const upgradeLocation = "upgrade()";
       final nextLine =
@@ -81,7 +81,7 @@ class _TestObject {
     var res = await projectUnderTestCli.run("db", ["generate"]);
     expect(res, 0);
 
-    projectUnderTestCli.terminal.modifyFile("migrations/00000001_initial.migration.dart",
+    projectUnderTestCli.agent.modifyFile("migrations/00000001_initial.migration.dart",
         (contents) {
       const upgradeLocation = "upgrade()";
       final nextLine =

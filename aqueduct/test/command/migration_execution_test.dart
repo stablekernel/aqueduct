@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:runtime/src/analyzer.dart';
 import 'package:aqueduct/src/cli/migration_source.dart';
-import 'package:terminal/terminal.dart';
+import 'package:command_line_agent/command_line_agent.dart';
 import 'package:test/test.dart';
 
 import 'cli_helpers.dart';
@@ -22,9 +22,9 @@ void main() {
   PostgreSQLPersistentStore store;
 
   setUpAll(() async {
-    final t = CLIClient(Terminal(ProjectTerminal.projectsDirectory));
+    final t = CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory));
     cli = await t.createProject();
-    await cli.terminal.getDependencies(offline: true);
+    await cli.agent.getDependencies(offline: true);
   });
 
   setUp(() async {
@@ -55,7 +55,7 @@ void main() {
     await store?.close();
   });
 
-  tearDownAll(ProjectTerminal.tearDownAll);
+  tearDownAll(ProjectAgent.tearDownAll);
 
   test("Upgrade with no migration files returns 0 exit code", () async {
     expect(await runMigrationCases([]), 0);

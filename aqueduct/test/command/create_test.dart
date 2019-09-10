@@ -4,7 +4,7 @@ import 'dart:io';
 
 import 'package:path/path.dart' as path_lib;
 import 'package:pub_semver/pub_semver.dart';
-import 'package:terminal/terminal.dart';
+import 'package:command_line_agent/command_line_agent.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
@@ -15,19 +15,19 @@ void main() {
 
   setUpAll(() async {
     await CLIClient.activateCLI();
-    final terminal = Terminal(ProjectTerminal.projectsDirectory);
+    final terminal = CommandLineAgent(ProjectAgent.projectsDirectory);
     cli = CLIClient(terminal);
   });
 
   tearDown(() {
-    ProjectTerminal.projectsDirectory.listSync().forEach((e) {
+    ProjectAgent.projectsDirectory.listSync().forEach((e) {
       e.deleteSync(recursive: true);
     });
     cli.clearOutput();
   });
 
   tearDownAll(() {
-    ProjectTerminal.tearDownAll();
+    ProjectAgent.tearDownAll();
     CLIClient.deactivateCLI();
   });
 
@@ -39,7 +39,7 @@ void main() {
 
       expect(
           Directory.fromUri(
-                  cli.terminal.workingDirectory.uri.resolve("test_project/"))
+                  cli.agent.workingDirectory.uri.resolve("test_project/"))
               .existsSync(),
           true);
     });
@@ -50,7 +50,7 @@ void main() {
       expect(cli.output, contains("Invalid project name"));
       expect(cli.output, contains("snake_case"));
 
-      expect(ProjectTerminal.projectsDirectory.listSync().isEmpty, true);
+      expect(ProjectAgent.projectsDirectory.listSync().isEmpty, true);
     });
 
     test("Project name with uppercase characters fails immediately", () async {
@@ -61,7 +61,7 @@ void main() {
 
       expect(
           Directory.fromUri(
-                  cli.terminal.workingDirectory.uri.resolve("test_project/"))
+                  cli.agent.workingDirectory.uri.resolve("test_project/"))
               .existsSync(),
           false);
     });
@@ -74,7 +74,7 @@ void main() {
 
       expect(
           Directory.fromUri(
-                  cli.terminal.workingDirectory.uri.resolve("test_project/"))
+                  cli.agent.workingDirectory.uri.resolve("test_project/"))
               .existsSync(),
           false);
     });
@@ -106,7 +106,7 @@ void main() {
       expect(res, 0);
 
       var aqueductLocationString = File.fromUri(cli
-              .terminal.workingDirectory.uri
+              .agent.workingDirectory.uri
               .resolve("test_project/")
               .resolve(".packages"))
           .readAsStringSync()
@@ -147,7 +147,7 @@ void main() {
         final cmd = Platform.isWindows ? "pub.bat" : "pub";
         var res = Process.runSync(cmd, ["run", "test", "-j", "1"],
             runInShell: true,
-            workingDirectory: cli.terminal.workingDirectory.uri
+            workingDirectory: cli.agent.workingDirectory.uri
                 .resolve("test_project")
                 .toFilePath(windows: Platform.isWindows));
 

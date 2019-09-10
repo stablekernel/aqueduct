@@ -3,7 +3,7 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
-import 'package:terminal/terminal.dart';
+import 'package:command_line_agent/command_line_agent.dart';
 
 import '../context_helpers.dart';
 import 'cli_helpers.dart';
@@ -16,7 +16,7 @@ void main() {
   CLIClient cli;
 
   setUpAll(() async {
-    cli = CLIClient(ProjectTerminal("application_test", dependencies: {
+    cli = CLIClient(ProjectAgent("application_test", dependencies: {
       "aqueduct": {
         "path": "../.."
       }
@@ -24,7 +24,7 @@ void main() {
       "--connect",
       "postgres://dart:dart@localhost:5432/dart_test"
     ];
-    await cli.terminal.getDependencies();
+    await cli.agent.getDependencies();
   });
 
   setUp(() async {
@@ -44,7 +44,7 @@ void main() {
     await context.close();
   });
 
-  tearDownAll(ProjectTerminal.tearDownAll);
+  tearDownAll(ProjectAgent.tearDownAll);
 
   group("Success cases", () {
     test("Can create public client", () async {

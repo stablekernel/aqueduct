@@ -2,7 +2,7 @@
 @Tags(const ["cli"])
 import 'dart:io';
 
-import 'package:terminal/terminal.dart';
+import 'package:command_line_agent/command_line_agent.dart';
 import 'package:test/test.dart';
 import 'package:http/http.dart' as http;
 
@@ -14,13 +14,13 @@ void main() {
 
   setUpAll(() async {
     await CLIClient.activateCLI();
-    templateCli = await CLIClient(Terminal(ProjectTerminal.projectsDirectory)).createProject();
-    await templateCli.terminal.getDependencies(offline: true);
+    templateCli = await CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory)).createProject();
+    await templateCli.agent.getDependencies(offline: true);
   });
 
   tearDownAll(() async {
     await CLIClient.deactivateCLI();
-    ProjectTerminal.tearDownAll();
+    ProjectAgent.tearDownAll();
   });
 
   setUp(() async {
@@ -28,7 +28,7 @@ void main() {
   });
 
   tearDown(() {
-    projectUnderTestCli.terminal.workingDirectory.deleteSync(recursive: true);
+    projectUnderTestCli.agent.workingDirectory.deleteSync(recursive: true);
   });
 
   test("Can get API reference", () async {
@@ -37,7 +37,7 @@ void main() {
 
     expect(
         Directory.fromUri(
-                projectUnderTestCli.terminal.workingDirectory.uri.resolve(".aqueduct_spec/"))
+                projectUnderTestCli.agent.workingDirectory.uri.resolve(".aqueduct_spec/"))
             .existsSync(),
         true);
 
@@ -49,7 +49,7 @@ void main() {
     expect(await task.exitCode, 0);
     expect(
         Directory.fromUri(
-          projectUnderTestCli.terminal.workingDirectory.uri.resolve(".aqueduct_spec/"))
+          projectUnderTestCli.agent.workingDirectory.uri.resolve(".aqueduct_spec/"))
             .existsSync(),
         false);
   });

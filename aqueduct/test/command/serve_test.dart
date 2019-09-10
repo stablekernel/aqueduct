@@ -3,7 +3,7 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:terminal/terminal.dart';
+import 'package:command_line_agent/command_line_agent.dart';
 import 'package:test/test.dart';
 import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart' as yaml;
@@ -27,8 +27,8 @@ void main() {
   CLITask task;
 
   setUpAll(() async {
-    templateCli = await CLIClient(Terminal(ProjectTerminal.projectsDirectory)).createProject();
-    await templateCli.terminal.getDependencies(offline: true);
+    templateCli = await CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory)).createProject();
+    await templateCli.agent.getDependencies(offline: true);
   });
 
   setUp(() async {
@@ -39,7 +39,7 @@ void main() {
     await task?.process?.stop(0);
   });
 
-  tearDownAll(ProjectTerminal.tearDownAll);
+  tearDownAll(ProjectAgent.tearDownAll);
 
   test("Served application starts and responds to route", () async {
     task = projectUnderTestCli.start("serve", ["-n", "1"]);
@@ -64,7 +64,7 @@ void main() {
   });
 
   test("Ensure we don't find the base ApplicationChannel class", () async {
-    projectUnderTestCli.terminal.addOrReplaceFile("lib/application_test.dart",
+    projectUnderTestCli.agent.addOrReplaceFile("lib/application_test.dart",
         "import 'package:aqueduct/aqueduct.dart';");
 
     task = projectUnderTestCli.start("serve", ["-n", "1"]);
@@ -75,7 +75,7 @@ void main() {
   });
 
   test("Exception throw during initializeApplication halts startup", () async {
-    projectUnderTestCli.terminal.modifyFile("lib/channel.dart", (contents) {
+    projectUnderTestCli.agent.modifyFile("lib/channel.dart", (contents) {
       return contents.replaceFirst(
           "extends ApplicationChannel {", """extends ApplicationChannel {
 static Future initializeApplication(ApplicationOptions x) async { throw new Exception("error"); }            
@@ -94,10 +94,10 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start with valid SSL args opens https server", () async {
-    certificateFile.copySync(projectUnderTestCli.terminal.workingDirectory.uri
+    certificateFile.copySync(projectUnderTestCli.agent.workingDirectory.uri
         .resolve("server.crt")
         .toFilePath(windows: Platform.isWindows));
-    keyFile.copySync(projectUnderTestCli.terminal.workingDirectory.uri
+    keyFile.copySync(projectUnderTestCli.agent.workingDirectory.uri
         .resolve("server.key")
         .toFilePath(windows: Platform.isWindows));
 
@@ -125,10 +125,10 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start without one of SSL values throws exception", () async {
-    certificateFile.copySync(projectUnderTestCli.terminal.workingDirectory.uri
+    certificateFile.copySync(projectUnderTestCli.agent.workingDirectory.uri
         .resolve("server.crt")
         .toFilePath(windows: Platform.isWindows));
-    keyFile.copySync(projectUnderTestCli.terminal.workingDirectory.uri
+    keyFile.copySync(projectUnderTestCli.agent.workingDirectory.uri
         .resolve("server.key")
         .toFilePath(windows: Platform.isWindows));
 
@@ -146,12 +146,12 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start with invalid SSL values throws exceptions", () async {
-    keyFile.copySync(projectUnderTestCli.terminal.workingDirectory.uri
+    keyFile.copySync(projectUnderTestCli.agent.workingDirectory.uri
         .resolve("server.key")
         .toFilePath(windows: Platform.isWindows));
 
     var badCertFile =
-        File.fromUri(projectUnderTestCli.terminal.workingDirectory.uri.resolve("server.crt"));
+        File.fromUri(projectUnderTestCli.agent.workingDirectory.uri.resolve("server.crt"));
     badCertFile.writeAsStringSync("foobar");
 
     task = projectUnderTestCli.start("serve", [
@@ -168,7 +168,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Can't find SSL file, throws exception", () async {
-    keyFile.copySync(projectUnderTestCli.terminal.workingDirectory.uri
+    keyFile.copySync(projectUnderTestCli.agent.workingDirectory.uri
         .resolve("server.key")
         .toFilePath(windows: Platform.isWindows));
 
@@ -186,7 +186,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Run application with invalid code fails with error", () async {
-    projectUnderTestCli.terminal.modifyFile("lib/channel.dart", (contents) {
+    projectUnderTestCli.agent.modifyFile("lib/channel.dart", (contents) {
       return contents.replaceFirst("import", "importasjakads");
     });
 
@@ -200,8 +200,8 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Use config-path, relative path", () async {
-    projectUnderTestCli.terminal.addOrReplaceFile("foobar.yaml", "key: value");
-    projectUnderTestCli.terminal.modifyFile("lib/channel.dart", (c) {
+    projectUnderTestCli.agent.addOrReplaceFile("foobar.yaml", "key: value");
+    projectUnderTestCli.agent.modifyFile("lib/channel.dart", (c) {
       var newContents = c.replaceAll(
           'return new Response.ok({"key": "value"});',
           "return new Response.ok(new File(options.configurationFilePath).readAsStringSync())..contentType = ContentType.TEXT;");
@@ -217,8 +217,8 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Use config-path, absolute path", () async {
-    projectUnderTestCli.terminal.addOrReplaceFile("foobar.yaml", "key: value");
-    projectUnderTestCli.terminal.modifyFile("lib/channel.dart", (c) {
+    projectUnderTestCli.agent.addOrReplaceFile("foobar.yaml", "key: value");
+    projectUnderTestCli.agent.modifyFile("lib/channel.dart", (c) {
       var newContents = c.replaceAll(
           'return new Response.ok({"key": "value"});',
           "return new Response.ok(new File(options.configurationFilePath).readAsStringSync())..contentType = ContentType.TEXT;");
@@ -227,7 +227,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
 
     task = projectUnderTestCli.start("serve", [
       "--config-path",
-      projectUnderTestCli.terminal.workingDirectory.uri
+      projectUnderTestCli.agent.workingDirectory.uri
           .resolve("foobar.yaml")
           .toFilePath(windows: Platform.isWindows),
       "-n",

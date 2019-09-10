@@ -2,7 +2,7 @@
 @Tags(const ["cli"])
 import 'dart:convert';
 
-import 'package:terminal/terminal.dart';
+import 'package:command_line_agent/command_line_agent.dart';
 import 'package:test/test.dart';
 
 import 'cli_helpers.dart';
@@ -12,13 +12,13 @@ void main() {
 
   setUpAll(() async {
     await CLIClient.activateCLI();
-    final t = CLIClient(Terminal(ProjectTerminal.projectsDirectory));
+    final t = CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory));
     terminal = await t.createProject(template: "db_and_auth");
   });
 
   tearDownAll(() async {
     await CLIClient.deactivateCLI();
-    ProjectTerminal.tearDownAll();
+    ProjectAgent.tearDownAll();
   });
 
   tearDown(() {
@@ -61,7 +61,7 @@ void main() {
   });
 
   test("Can view error stacktrace when failing to doc", () async {
-    terminal.terminal.modifyFile("lib/controller/identity_controller.dart", (contents) {
+    terminal.agent.modifyFile("lib/controller/identity_controller.dart", (contents) {
       final lastCurly = contents.lastIndexOf("}");
       return contents.replaceRange(lastCurly, lastCurly, """
         @override 

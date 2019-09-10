@@ -1,7 +1,7 @@
 // ignore: unnecessary_const
 @Tags(const ["cli"])
 import 'dart:io';
-import 'package:terminal/terminal.dart';
+import 'package:command_line_agent/command_line_agent.dart';
 import 'package:test/test.dart';
 import 'cli_helpers.dart';
 
@@ -10,15 +10,15 @@ void main() {
   CLIClient projectUnderTestCli;
 
   setUpAll(() async {
-    templateCli = await CLIClient(Terminal(ProjectTerminal.projectsDirectory)).createProject();
-    await templateCli.terminal.getDependencies(offline: true);
+    templateCli = await CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory)).createProject();
+    await templateCli.agent.getDependencies(offline: true);
   });
 
-  tearDownAll(ProjectTerminal.tearDownAll);
+  tearDownAll(ProjectAgent.tearDownAll);
 
   setUp(() async {
     projectUnderTestCli = templateCli.replicate(Uri.parse("replica/"));
-    projectUnderTestCli.projectTerminal.addLibraryFile("application_test", """
+    projectUnderTestCli.projectAgent.addLibraryFile("application_test", """
 import 'package:aqueduct/aqueduct.dart';
     
 class TestObject extends ManagedObject<_TestObject> {}
@@ -38,8 +38,8 @@ class _TestObject {
   });
 
   test("Run without pub get yields error", () async {
-    File.fromUri(projectUnderTestCli.terminal.workingDirectory.uri.resolve("pubspec.lock")).deleteSync();
-    File.fromUri(projectUnderTestCli.terminal.workingDirectory.uri.resolve(".packages")).deleteSync();
+    File.fromUri(projectUnderTestCli.agent.workingDirectory.uri.resolve("pubspec.lock")).deleteSync();
+    File.fromUri(projectUnderTestCli.agent.workingDirectory.uri.resolve(".packages")).deleteSync();
 
     var res = await projectUnderTestCli.run("db", ["generate"]);
     expect(res, isNot(0));
@@ -57,7 +57,7 @@ class _TestObject {
       () async {
     // Putting a non-migration file in there to ensure that this doesn't prevent from being ugpraded
         projectUnderTestCli.defaultMigrationDirectory.createSync();
-        projectUnderTestCli.terminal.addOrReplaceFile("migrations/notmigration.dart", " ");
+        projectUnderTestCli.agent.addOrReplaceFile("migrations/notmigration.dart", " ");
 
     var res = await projectUnderTestCli.run("db", ["generate"]);
     expect(res, 0);
@@ -75,7 +75,7 @@ class _TestObject {
     projectUnderTestCli.clearOutput();
 
     // Let's add an index
-    projectUnderTestCli.terminal.modifyFile("lib/application_test.dart", (prev) {
+    projectUnderTestCli.agent.modifyFile("lib/application_test.dart", (prev) {
       return prev.replaceFirst(
           "String foo;", "@Column(indexed: true) String foo;");
     });
@@ -110,7 +110,7 @@ class _TestObject {
     projectUnderTestCli.clearOutput();
 
     // Let's add an index
-    projectUnderTestCli.terminal.modifyFile("lib/application_test.dart", (prev) {
+    projectUnderTestCli.agent.modifyFile("lib/application_test.dart", (prev) {
       return prev.replaceFirst(
           "String foo;", "@Column(indexed: true) String foo;");
     });
@@ -146,7 +146,7 @@ class _TestObject {
     expect(res, 0);
 
     final migDir =
-        Directory.fromUri(projectUnderTestCli.terminal.workingDirectory.uri.resolve("foobar/"));
+        Directory.fromUri(projectUnderTestCli.agent.workingDirectory.uri.resolve("foobar/"));
     final files = migDir.listSync();
     expect(
         files.any((fse) => fse is File && fse.path.endsWith("migration.dart")),
@@ -156,7 +156,7 @@ class _TestObject {
   test("Can specify migration directory other than default, absolute path",
       () async {
     final migDir =
-        Directory.fromUri(projectUnderTestCli.terminal.workingDirectory.uri.resolve("foobar/"));
+        Directory.fromUri(projectUnderTestCli.agent.workingDirectory.uri.resolve("foobar/"));
     var res = await projectUnderTestCli.run("db", [
       "generate",
       "--migration-directory",
@@ -176,7 +176,7 @@ class _TestObject {
     expect(res, 0);
     projectUnderTestCli.clearOutput();
 
-    projectUnderTestCli.terminal.modifyFile("lib/application_test.dart", (prev) {
+    projectUnderTestCli.agent.modifyFile("lib/application_test.dart", (prev) {
       return prev.replaceFirst("String foo;", "String foo;\nString bar;");
     });
     res = await projectUnderTestCli.run("db", ["generate"]);
