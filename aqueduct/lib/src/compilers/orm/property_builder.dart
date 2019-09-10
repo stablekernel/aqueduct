@@ -1,6 +1,6 @@
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/compilers/orm/data_model_builder.dart';
+import 'package:aqueduct/src/compilers/orm/data_model_compiler.dart';
 import 'package:aqueduct/src/compilers/orm/entity_builder.dart';
 import 'package:aqueduct/src/compilers/orm/validator_builder.dart';
 import 'package:aqueduct/src/compilers/orm/entity_mirrors.dart';

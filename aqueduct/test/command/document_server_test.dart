@@ -2,37 +2,42 @@
 @Tags(const ["cli"])
 import 'dart:io';
 
+import 'package:terminal/terminal.dart';
 import 'package:test/test.dart';
 import 'package:http/http.dart' as http;
 
 import 'cli_helpers.dart';
 
 void main() {
-  Terminal template;
-  Terminal terminal;
+  CLIClient templateCli;
+  CLIClient projectUnderTestCli;
 
   setUpAll(() async {
-    await Terminal.activateCLI();
-    template = await Terminal.createProject(template: "db_and_auth");
-    await template.getDependencies();
+    await CLIClient.activateCLI();
+    templateCli = await CLIClient(Terminal(ProjectTerminal.projectsDirectory)).createProject();
+    await templateCli.terminal.getDependencies(offline: true);
   });
 
   tearDownAll(() async {
-    await Terminal.deactivateCLI();
-    Terminal.deleteTemporaryDirectory();
+    await CLIClient.deactivateCLI();
+    ProjectTerminal.tearDownAll();
   });
 
   setUp(() async {
-    terminal = template.replicate();
+    projectUnderTestCli = templateCli.replicate(Uri.parse("replica/"));
+  });
+
+  tearDown(() {
+    projectUnderTestCli.terminal.workingDirectory.deleteSync(recursive: true);
   });
 
   test("Can get API reference", () async {
-    final task = terminal.startAqueductCommand("document", ["serve"]);
+    final task = projectUnderTestCli.start("document", ["serve"]);
     await task.hasStarted;
 
     expect(
         Directory.fromUri(
-                terminal.workingDirectory.uri.resolve(".aqueduct_spec/"))
+                projectUnderTestCli.terminal.workingDirectory.uri.resolve(".aqueduct_spec/"))
             .existsSync(),
         true);
 
@@ -44,7 +49,7 @@ void main() {
     expect(await task.exitCode, 0);
     expect(
         Directory.fromUri(
-                terminal.workingDirectory.uri.resolve(".aqueduct_spec/"))
+          projectUnderTestCli.terminal.workingDirectory.uri.resolve(".aqueduct_spec/"))
             .existsSync(),
         false);
   });

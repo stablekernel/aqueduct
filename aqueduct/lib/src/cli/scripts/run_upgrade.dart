@@ -96,7 +96,7 @@ class RunUpgradeExecutable extends Executable<Map<String, dynamic>> {
         "package:logging/logging.dart",
         "package:postgres/postgres.dart",
         "package:aqueduct/src/cli/migration_source.dart",
-        "package:aqueduct/src/runtime/runtime.dart"
+        "package:runtime/runtime.dart"
       ];
 }
 

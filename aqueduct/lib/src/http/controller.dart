@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
-import 'package:runtime/shim.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 
 import 'http.dart';
 

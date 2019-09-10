@@ -48,6 +48,6 @@ class SchemaBuilderExecutable extends Executable<Map<String, dynamic>> {
   static List<String> get imports => [
         "package:aqueduct/aqueduct.dart",
         "package:aqueduct/src/cli/migration_source.dart",
-        "package:aqueduct/src/runtime/runtime.dart"
+        "package:runtime/runtime.dart"
       ];
 }

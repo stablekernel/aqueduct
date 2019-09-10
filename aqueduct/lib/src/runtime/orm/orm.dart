@@ -1,5 +1,5 @@
 import 'package:aqueduct/src/db/managed/managed.dart';
-import 'package:runtime/runtime.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 
 abstract class ManagedEntityRuntime extends DynamicRuntime {
   @override

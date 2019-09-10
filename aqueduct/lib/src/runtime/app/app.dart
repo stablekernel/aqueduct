@@ -10,7 +10,7 @@ import 'package:aqueduct/src/http/resource_controller.dart';
 import 'package:aqueduct/src/http/resource_controller_bindings.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:runtime/runtime.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 
 abstract class BodyDecoderRuntime extends DynamicRuntime {
   @override

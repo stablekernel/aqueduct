@@ -11,7 +11,7 @@ class DataModelCompiler extends Compiler {
     final m = <String, DynamicRuntime>{};
 
     final instanceTypes = context.types
-      .where((c) => _isTypeManagedObjectSubclass(c.reflectedType))
+      .where(_isTypeManagedObjectSubclass)
       .map((c) => c.reflectedType);
 
     _builders = instanceTypes.map((t) => EntityBuilder(t)).toList();
@@ -46,10 +46,14 @@ class DataModelCompiler extends Compiler {
     _builders.forEach((b) => b.validate(_builders));
   }
 
-  static bool _isTypeManagedObjectSubclass(Type type) {
+  static bool _isTypeManagedObjectSubclass(ClassMirror mirror) {
     final managedObjectMirror = reflectClass(ManagedObject);
-    final mirror = reflectClass(type);
+
     if (!mirror.isSubclassOf(managedObjectMirror)) {
+      return false;
+    }
+
+    if (!mirror.hasReflectedType) {
       return false;
     }
 

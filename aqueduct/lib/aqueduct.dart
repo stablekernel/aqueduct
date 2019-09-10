@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2016, Stable Kernel LLC
+Copyright (c) 2019, Stable Kernel LLC
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -12,16 +12,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 
 /// The core libraries of the Aqueduct framework.
-///
-/// Exports the following libraries:
-///
-/// - 'logging'
-/// - 'safe_config'
-/// - 'aqueduct/application'
-/// - 'aqueduct/auth'
-/// - 'aqueduct/db'
-/// - 'aqueduct/http'
-/// - 'aqueduct/openapi'
 ///
 /// See documentation guides at https://aqueduct.io/docs/.
 library aqueduct;

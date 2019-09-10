@@ -16,9 +16,8 @@ class ApplicationCompiler extends Compiler {
       .map((t) => MapEntry(_getClassName(t), SerializableRuntimeImpl(t))));
     m.addEntries(context.getSubclassesOf(Controller)
       .map((t) => MapEntry(_getClassName(t), ControllerRuntimeImpl(t))));
-
-    m[_getClassName(reflectClass(BodyDecoder))] = BodyDecoderRuntimeImpl();
-
+    m.addEntries(context.getSubclassesOf(BodyDecoder)
+      .map((t) => MapEntry(_getClassName(t), BodyDecoderRuntimeImpl())));
     return m;
   }
 

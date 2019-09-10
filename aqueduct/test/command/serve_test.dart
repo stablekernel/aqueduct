@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:terminal/terminal.dart';
 import 'package:test/test.dart';
 import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart' as yaml;
@@ -21,38 +22,38 @@ File get keyFile => File.fromUri(Directory.current.uri
     .resolve("aqueduct.key.pem"));
 
 void main() {
-  Terminal template;
-  Terminal terminal;
+  CLIClient templateCli;
+  CLIClient projectUnderTestCli;
   CLITask task;
 
   setUpAll(() async {
-    template = await Terminal.createProject();
-    await template.getDependencies(offline: true);
+    templateCli = await CLIClient(Terminal(ProjectTerminal.projectsDirectory)).createProject();
+    await templateCli.terminal.getDependencies(offline: true);
   });
 
   setUp(() async {
-    terminal = template.replicate();
+    projectUnderTestCli = templateCli.replicate(Uri.parse("replica/"));
   });
 
   tearDown(() async {
     await task?.process?.stop(0);
   });
 
-  tearDownAll(Terminal.deleteTemporaryDirectory);
+  tearDownAll(ProjectTerminal.tearDownAll);
 
   test("Served application starts and responds to route", () async {
-    task = terminal.startAqueductCommand("serve", ["-n", "1"]);
+    task = projectUnderTestCli.start("serve", ["-n", "1"]);
     await task.hasStarted;
 
-    expect(terminal.output, contains("Port: 8888"));
-    expect(terminal.output, contains("config.yaml"));
+    expect(projectUnderTestCli.output, contains("Port: 8888"));
+    expect(projectUnderTestCli.output, contains("config.yaml"));
 
     var thisPubspec = yaml.loadYaml(
         File.fromUri(Directory.current.uri.resolve("pubspec.yaml"))
             .readAsStringSync());
     var thisVersion = Version.parse(thisPubspec["version"] as String);
-    expect(terminal.output, contains("CLI Version: $thisVersion"));
-    expect(terminal.output, contains("Aqueduct project version: $thisVersion"));
+    expect(projectUnderTestCli.output, contains("CLI Version: $thisVersion"));
+    expect(projectUnderTestCli.output, contains("Aqueduct project version: $thisVersion"));
 
     var result = await http.get("http://localhost:8888/example");
     expect(result.statusCode, 200);
@@ -63,44 +64,44 @@ void main() {
   });
 
   test("Ensure we don't find the base ApplicationChannel class", () async {
-    terminal.addOrReplaceFile("lib/application_test.dart",
+    projectUnderTestCli.terminal.addOrReplaceFile("lib/application_test.dart",
         "import 'package:aqueduct/aqueduct.dart';");
 
-    task = terminal.startAqueductCommand("serve", ["-n", "1"]);
+    task = projectUnderTestCli.start("serve", ["-n", "1"]);
     // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
-    expect(terminal.output, contains("No ApplicationChannel subclass"));
+    expect(projectUnderTestCli.output, contains("No ApplicationChannel subclass"));
   });
 
   test("Exception throw during initializeApplication halts startup", () async {
-    terminal.modifyFile("lib/channel.dart", (contents) {
+    projectUnderTestCli.terminal.modifyFile("lib/channel.dart", (contents) {
       return contents.replaceFirst(
           "extends ApplicationChannel {", """extends ApplicationChannel {
 static Future initializeApplication(ApplicationOptions x) async { throw new Exception("error"); }            
       """);
     });
 
-    task = terminal.startAqueductCommand("serve", ["-n", "1"]);
+    task = projectUnderTestCli.start("serve", ["-n", "1"]);
 
     // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
-    expect(terminal.output, contains("Application failed to start"));
-    expect(terminal.output, contains("Exception: error")); // error generated
-    expect(terminal.output,
+    expect(projectUnderTestCli.output, contains("Application failed to start"));
+    expect(projectUnderTestCli.output, contains("Exception: error")); // error generated
+    expect(projectUnderTestCli.output,
         contains("TestChannel.initializeApplication")); // stacktrace
   });
 
   test("Start with valid SSL args opens https server", () async {
-    certificateFile.copySync(terminal.workingDirectory.uri
+    certificateFile.copySync(projectUnderTestCli.terminal.workingDirectory.uri
         .resolve("server.crt")
         .toFilePath(windows: Platform.isWindows));
-    keyFile.copySync(terminal.workingDirectory.uri
+    keyFile.copySync(projectUnderTestCli.terminal.workingDirectory.uri
         .resolve("server.key")
         .toFilePath(windows: Platform.isWindows));
 
-    task = terminal.startAqueductCommand("serve", [
+    task = projectUnderTestCli.start("serve", [
       "--ssl-key-path",
       "server.key",
       "--ssl-certificate-path",
@@ -124,20 +125,20 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start without one of SSL values throws exception", () async {
-    certificateFile.copySync(terminal.workingDirectory.uri
+    certificateFile.copySync(projectUnderTestCli.terminal.workingDirectory.uri
         .resolve("server.crt")
         .toFilePath(windows: Platform.isWindows));
-    keyFile.copySync(terminal.workingDirectory.uri
+    keyFile.copySync(projectUnderTestCli.terminal.workingDirectory.uri
         .resolve("server.key")
         .toFilePath(windows: Platform.isWindows));
 
-    task = terminal.startAqueductCommand(
+    task = projectUnderTestCli.start(
         "serve", ["--ssl-key-path", "server.key", "-n", "1"]);
     // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
 
-    task = terminal.startAqueductCommand(
+    task = projectUnderTestCli.start(
         "serve", ["--ssl-certificate-path", "server.crt", "-n", "1"]);
     // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
@@ -145,15 +146,15 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Start with invalid SSL values throws exceptions", () async {
-    keyFile.copySync(terminal.workingDirectory.uri
+    keyFile.copySync(projectUnderTestCli.terminal.workingDirectory.uri
         .resolve("server.key")
         .toFilePath(windows: Platform.isWindows));
 
     var badCertFile =
-        File.fromUri(terminal.workingDirectory.uri.resolve("server.crt"));
+        File.fromUri(projectUnderTestCli.terminal.workingDirectory.uri.resolve("server.crt"));
     badCertFile.writeAsStringSync("foobar");
 
-    task = terminal.startAqueductCommand("serve", [
+    task = projectUnderTestCli.start("serve", [
       "--ssl-key-path",
       "server.key",
       "--ssl-certificate-path",
@@ -167,11 +168,11 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Can't find SSL file, throws exception", () async {
-    keyFile.copySync(terminal.workingDirectory.uri
+    keyFile.copySync(projectUnderTestCli.terminal.workingDirectory.uri
         .resolve("server.key")
         .toFilePath(windows: Platform.isWindows));
 
-    task = terminal.startAqueductCommand("serve", [
+    task = projectUnderTestCli.start("serve", [
       "--ssl-key-path",
       "server.key",
       "--ssl-certificate-path",
@@ -185,30 +186,29 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Run application with invalid code fails with error", () async {
-    terminal.modifyFile("lib/channel.dart", (contents) {
+    projectUnderTestCli.terminal.modifyFile("lib/channel.dart", (contents) {
       return contents.replaceFirst("import", "importasjakads");
     });
 
-    task = terminal.startAqueductCommand("serve", ["-n", "1"]);
+    task = projectUnderTestCli.start("serve", ["-n", "1"]);
     // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
 
     expect(await task.exitCode, isNot(0));
-    expect(terminal.output,
+    expect(projectUnderTestCli.output,
         contains("Variables must be declared using the keywords"));
   });
 
   test("Use config-path, relative path", () async {
-    terminal.addOrReplaceFile("foobar.yaml", "key: value",
-        importAqueduct: false);
-    terminal.modifyFile("lib/channel.dart", (c) {
+    projectUnderTestCli.terminal.addOrReplaceFile("foobar.yaml", "key: value");
+    projectUnderTestCli.terminal.modifyFile("lib/channel.dart", (c) {
       var newContents = c.replaceAll(
           'return new Response.ok({"key": "value"});',
           "return new Response.ok(new File(options.configurationFilePath).readAsStringSync())..contentType = ContentType.TEXT;");
       return "import 'dart:io';\n$newContents";
     });
 
-    task = terminal.startAqueductCommand(
+    task = projectUnderTestCli.start(
         "serve", ["--config-path", "foobar.yaml", "-n", "1"]);
     await task.hasStarted;
 
@@ -217,18 +217,17 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   });
 
   test("Use config-path, absolute path", () async {
-    terminal.addOrReplaceFile("foobar.yaml", "key: value",
-        importAqueduct: false);
-    terminal.modifyFile("lib/channel.dart", (c) {
+    projectUnderTestCli.terminal.addOrReplaceFile("foobar.yaml", "key: value");
+    projectUnderTestCli.terminal.modifyFile("lib/channel.dart", (c) {
       var newContents = c.replaceAll(
           'return new Response.ok({"key": "value"});',
           "return new Response.ok(new File(options.configurationFilePath).readAsStringSync())..contentType = ContentType.TEXT;");
       return "import 'dart:io';\n$newContents";
     });
 
-    task = terminal.startAqueductCommand("serve", [
+    task = projectUnderTestCli.start("serve", [
       "--config-path",
-      terminal.workingDirectory.uri
+      projectUnderTestCli.terminal.workingDirectory.uri
           .resolve("foobar.yaml")
           .toFilePath(windows: Platform.isWindows),
       "-n",

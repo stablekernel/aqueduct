@@ -1,6 +1,6 @@
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/compilers/orm/data_model_builder.dart';
+import 'package:aqueduct/src/compilers/orm/data_model_compiler.dart';
 import 'package:aqueduct/src/db/managed/attributes.dart';
 import 'package:aqueduct/src/db/managed/data_model.dart';
 import 'package:aqueduct/src/compilers/orm/entity_mirrors.dart';

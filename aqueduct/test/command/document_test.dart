@@ -2,31 +2,31 @@
 @Tags(const ["cli"])
 import 'dart:convert';
 
+import 'package:terminal/terminal.dart';
 import 'package:test/test.dart';
 
 import 'cli_helpers.dart';
 
 void main() {
-  Terminal terminal;
+  CLIClient terminal;
 
   setUpAll(() async {
-    await Terminal.activateCLI();
+    await CLIClient.activateCLI();
+    final t = CLIClient(Terminal(ProjectTerminal.projectsDirectory));
+    terminal = await t.createProject(template: "db_and_auth");
   });
 
   tearDownAll(() async {
-    await Terminal.deactivateCLI();
+    await CLIClient.deactivateCLI();
+    ProjectTerminal.tearDownAll();
   });
 
-  setUp(() async {
-    terminal = await Terminal.createProject(template: "db_and_auth");
-  });
-
-  tearDown(() async {
-    Terminal.deleteTemporaryDirectory();
+  tearDown(() {
+    terminal.clearOutput();
   });
 
   test("Document command uses project pubspec for metadata", () async {
-    await terminal.runAqueductCommand("document", ["--machine"]);
+    await terminal.run("document", ["--machine"]);
 
     final map = json.decode(terminal.output);
     expect(map["info"]["title"], "application_test");
@@ -35,7 +35,7 @@ void main() {
   });
 
   test("Can override title/version/etc.", () async {
-    await terminal.runAqueductCommand("document",
+    await terminal.run("document",
         ["--machine", "--title", "foobar", "--api-version", "2.0.0"]);
 
     final map = json.decode(terminal.output);
@@ -44,7 +44,7 @@ void main() {
   });
 
   test("Can set license, contact", () async {
-    await terminal.runAqueductCommand("document", [
+    await terminal.run("document", [
       "--machine",
       "--license-url",
       "http://whatever.com",
@@ -61,7 +61,7 @@ void main() {
   });
 
   test("Can view error stacktrace when failing to doc", () async {
-    terminal.modifyFile("lib/controller/identity_controller.dart", (contents) {
+    terminal.terminal.modifyFile("lib/controller/identity_controller.dart", (contents) {
       final lastCurly = contents.lastIndexOf("}");
       return contents.replaceRange(lastCurly, lastCurly, """
         @override 
@@ -72,7 +72,7 @@ void main() {
     });
 
     final exitCode = await terminal
-        .runAqueductCommand("document", ["--machine", "--stacktrace"]);
+        .run("document", ["--machine", "--stacktrace"]);
     expect(exitCode, isNot(0));
     expect(terminal.output, contains("IdentityController.documentComponents"));
     expect(terminal.output, contains("Exception: Hello!"));

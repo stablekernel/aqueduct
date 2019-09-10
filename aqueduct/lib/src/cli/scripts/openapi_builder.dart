@@ -56,7 +56,7 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
     final channels = RuntimeContext.current.runtimes.iterable.whereType<ChannelRuntime>();
     if (channels.length != 1) {
       throw StateError(
-          "More than one ApplicationChannel subclass found: ${channels.map((c) => "'${c.channelType}'").join(", ")}");
+          "Zero or more than one ApplicationChannel subclass found: ${channels.map((c) => "'${c.channelType}'").join(", ")}");
     }
     
     try {
@@ -149,6 +149,7 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
         "package:yaml/yaml.dart",
         "dart:convert",
         "dart:io",
+        "package:aqueduct/src/runtime/app/app.dart",
         "package:aqueduct/src/runtime/runtime.dart"
       ];
 }

@@ -3,7 +3,7 @@ import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/runtime/orm/orm.dart';
-import 'package:runtime/shim.dart';
+import 'package:aqueduct/src/runtime/runtime.dart';
 
 import '../query/query.dart';
 import 'managed.dart';
