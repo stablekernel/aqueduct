@@ -8,8 +8,7 @@ import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/object.dart';
 import 'package:aqueduct/src/compilers/orm/property_builder.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
-import 'package:aqueduct/src/runtime/orm/mirror.dart';
-import 'package:aqueduct/src/runtime/orm/orm.dart';
+import 'package:aqueduct/src/runtime/orm_impl.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:logging/logging.dart';
 

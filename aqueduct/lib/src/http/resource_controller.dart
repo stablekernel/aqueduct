@@ -3,10 +3,9 @@ import 'dart:io';
 
 import 'package:aqueduct/src/auth/auth.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/shim.dart';
 
 import 'http.dart';
 
@@ -292,4 +291,32 @@ abstract class ResourceController extends Controller
 
     return response;
   }
+}
+
+abstract class ResourceControllerRuntime {
+  List<ResourceControllerOperationRuntime> get operations;
+
+  void bindProperties(ResourceController rc, Request request, List<String> errorsIn);
+
+  ResourceControllerOperationRuntime getOperationRuntime(String method, List<String> pathVariables);
+
+  void documentComponents(ResourceController rc, APIDocumentContext context);
+
+  List<APIParameter> documentOperationParameters(
+    ResourceController rc, APIDocumentContext context, Operation operation);
+
+  APIRequestBody documentOperationRequestBody(
+    ResourceController rc, APIDocumentContext context, Operation operation);
+
+  Map<String, APIOperation> documentOperations(ResourceController rc,
+    APIDocumentContext context, String route, APIPath path);
+}
+
+abstract class ResourceControllerOperationRuntime {
+  List<AuthScope> scopes;
+  List<String> pathVariables;
+  String method;
+
+  bool isSuitableForRequest(String requestMethod, List<String> requestPathVariables);
+  Future<Response> invoke(ResourceController rc, Request request, List<String> errorsIn);
 }

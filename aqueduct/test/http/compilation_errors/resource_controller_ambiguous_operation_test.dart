@@ -2,7 +2,7 @@ import 'dart:async';
 import "dart:core";
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/shim.dart';
 import "package:test/test.dart";
 
 void main() {

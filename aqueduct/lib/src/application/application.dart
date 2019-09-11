@@ -4,8 +4,7 @@ import 'dart:isolate';
 
 import 'package:aqueduct/src/application/isolate_application_server.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/shim.dart';
 import 'package:logging/logging.dart';
 
 import '../http/http.dart';

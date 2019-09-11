@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/shim.dart';
 
 import 'http.dart';
 
@@ -436,4 +436,10 @@ class _FunctionController extends Controller {
 
     return nextController?.documentOperations(context, route, path);
   }
+}
+
+abstract class ControllerRuntime extends DynamicRuntime {
+  bool get isMutable;
+
+  ResourceControllerRuntime get resourceController;
 }

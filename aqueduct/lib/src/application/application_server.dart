@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/src/application/channel.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:logging/logging.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/shim.dart';
 
 import '../http/controller.dart';
 import '../http/request.dart';

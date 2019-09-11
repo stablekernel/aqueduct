@@ -3,13 +3,13 @@ import 'dart:io';
 
 import 'package:aqueduct/src/application/service_registry.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/shim.dart';
 
 import '../http/http.dart';
 import 'application.dart';
+import 'isolate_application_server.dart';
 
 /// An object that defines the behavior specific to your application.
 ///
@@ -265,3 +265,19 @@ class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
     await _inboundController.close();
   }
 }
+
+abstract class ChannelRuntime extends DynamicRuntime {
+  Iterable<APIComponentDocumenter> getDocumentableChannelComponents(
+    ApplicationChannel channel);
+
+  Type get channelType;
+
+  String get name;
+  Uri get libraryUri;
+  IsolateEntryFunction get isolateEntryPoint;
+
+  ApplicationChannel instantiateChannel();
+
+  Future runGlobalInitialization(ApplicationOptions config);
+}
+

@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/runtime/app/app.dart';
+import 'package:aqueduct/src/application/channel.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 import 'package:runtime/shim.dart';
 

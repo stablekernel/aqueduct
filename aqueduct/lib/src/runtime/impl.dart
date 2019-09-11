@@ -5,13 +5,13 @@ import 'package:aqueduct/src/application/application.dart';
 import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/application/isolate_application_server.dart';
 import 'package:aqueduct/src/application/options.dart';
+import 'package:aqueduct/src/http/body_decoder.dart';
 import 'package:aqueduct/src/http/controller.dart';
 import 'package:aqueduct/src/http/resource_controller.dart';
 import 'package:aqueduct/src/http/serializable.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
-import 'package:aqueduct/src/runtime/app/resource_controller_mirror.dart';
+import 'package:aqueduct/src/runtime/resource_controller_impl.dart';
 import 'package:aqueduct/src/utilities/mirror_cast.dart';
 
 class BodyDecoderRuntimeImpl extends BodyDecoderRuntime {

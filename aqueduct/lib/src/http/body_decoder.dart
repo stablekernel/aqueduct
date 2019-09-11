@@ -2,8 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:aqueduct/src/runtime/app/app.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/shim.dart';
 
 import 'http.dart';
 
@@ -144,4 +143,8 @@ abstract class BodyDecoder {
         BytesBuilder(), (BytesBuilder builder, data) => builder..add(data));
     return bytes.takeBytes();
   }
+}
+
+abstract class BodyDecoderRuntime extends DynamicRuntime {
+  T cast<T>(dynamic input);
 }

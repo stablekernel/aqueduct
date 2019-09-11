@@ -1,6 +1,5 @@
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/shim.dart';
 
 import 'http.dart';
 
@@ -108,4 +107,8 @@ class SerializableException implements HandlerException {
     final reasons = (response.body["reasons"] as List).join(", ");
     return "$errorString $reasons";
   }
+}
+
+abstract class SerializableRuntime extends DynamicRuntime {
+  APISchemaObject documentSchema(APIDocumentContext context);
 }

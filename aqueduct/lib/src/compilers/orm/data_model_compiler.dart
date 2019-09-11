@@ -4,9 +4,7 @@ import 'package:aqueduct/src/compilers/orm/entity_builder.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:runtime/runtime.dart';
 
-class DataModelCompiler extends Compiler {
-
-  @override
+class DataModelCompiler {
   Map<String, DynamicRuntime> compile(MirrorContext context) {
     final m = <String, DynamicRuntime>{};
 
