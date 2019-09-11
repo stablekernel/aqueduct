@@ -1,9 +1,9 @@
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/compilers/orm/data_model_compiler.dart';
-import 'package:aqueduct/src/compilers/orm/entity_builder.dart';
-import 'package:aqueduct/src/compilers/orm/validator_builder.dart';
-import 'package:aqueduct/src/compilers/orm/entity_mirrors.dart';
+import 'package:aqueduct/src/runtime/orm/data_model_compiler.dart';
+import 'package:aqueduct/src/runtime/orm/entity_builder.dart';
+import 'package:aqueduct/src/runtime/orm/validator_builder.dart';
+import 'package:aqueduct/src/runtime/orm/entity_mirrors.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';

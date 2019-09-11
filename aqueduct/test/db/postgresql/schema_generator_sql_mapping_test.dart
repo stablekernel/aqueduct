@@ -1,7 +1,7 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/compilers/orm/entity_mirrors.dart';
+import 'package:aqueduct/src/runtime/orm/entity_mirrors.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 

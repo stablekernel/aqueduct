@@ -1,5 +1,5 @@
 import 'dart:mirrors';
-import 'package:aqueduct/src/compilers/orm/entity_builder.dart';
+import 'package:aqueduct/src/runtime/orm/entity_builder.dart';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:runtime/runtime.dart';

@@ -1,7 +1,7 @@
 import 'dart:mirrors';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/application/channel.dart';
-import 'package:aqueduct/src/compilers/orm/data_model_compiler.dart';
+import 'package:aqueduct/src/runtime/orm/data_model_compiler.dart';
 
 import 'package:aqueduct/src/runtime/impl.dart';
 import 'package:runtime/runtime.dart';

@@ -1,6 +1,6 @@
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/compilers/orm/entity_mirrors.dart';
+import 'package:aqueduct/src/runtime/orm/entity_mirrors.dart';
 import 'package:aqueduct/src/db/postgresql/postgresql_query.dart';
 import 'package:aqueduct/src/db/postgresql/query_builder.dart';
 
