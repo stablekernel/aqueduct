@@ -188,7 +188,7 @@ Notice that the `Relate` annotation takes at least one argument: a symbol that m
 The `Relate` annotation has optional arguments to further define the relationship. Like `Column`, these are optional arguments, e.g.:
 
 ```dart
-@Relate(#cities, isRequired: true, rule: DeleteRule.cascade)
+@Relate(#cities, isRequired: true, onDelete: DeleteRule.cascade)
 ```
 
 A relationship may be be required or optional. For example, if `City.country` were required, than a `City` must always have a `Country`. By default, relationships are optional.
