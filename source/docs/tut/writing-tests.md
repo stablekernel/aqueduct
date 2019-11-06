@@ -263,7 +263,7 @@ Expected: --- HTTP Response ---
           was 'Fred' instead of 'Bob' at location ['name']
 ```
 
-The 'Expected' value tells us the response we expected - that it has a status code of 200, any headers and the body must have a certain structure. The 'Actual' value tells us what the actual response was - a 200 OK, a bunch of headers, and a body a hero named 'Fred'. 'Which' tells us exactly what went wrong - we were expected 'Bob', not 'Fred'. Let's update our test to expect 'Fred'.
+The 'Expected' value tells us the response we expected - that it has a status code of 200, any headers and the body must have a certain structure. The 'Actual' value tells us what the actual response was - a 200 OK, a bunch of headers, and a body a hero named 'Fred'. 'Which' tells us exactly what went wrong - we were expecting 'Bob', not 'Fred'. Let's update our test to expect 'Fred'.
 
 ```dart
 test("POST /heroes returns 200 OK", () async {
