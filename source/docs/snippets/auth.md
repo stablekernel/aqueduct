@@ -118,7 +118,7 @@ class AppChannel extends ApplicationChannel {
 
 class PasswordVerifier extends AuthValidator {
   @override
-  FutureOr<Authorization> validate<T>(AuthorizationParser<T> parser, T authorizationData, {List<AuthScope> requiredScope}) {}
+  FutureOr<Authorization> validate<T>(AuthorizationParser<T> parser, T authorizationData, {List<AuthScope> requiredScope}) {
     if (!isPasswordCorrect(authorizationData)) {
       return null;
     }
