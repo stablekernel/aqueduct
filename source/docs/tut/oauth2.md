@@ -205,7 +205,7 @@ You'll get back the new user object and its username:
 
 ## Setting up OAuth 2.0: Authenticating Users
 
-Now that we have a user with a password, we can can create an endpoint that takes user credentials and returns an access token. The good news is that this controller already exists in Aqueduct, you just have to hook it up to a route. Update `entryPoint` in `channel.dart` to add an `AuthController` for the route `/auth/token`:
+Now that we have a user with a password, we can create an endpoint that takes user credentials and returns an access token. The good news is that this controller already exists in Aqueduct, you just have to hook it up to a route. Update `entryPoint` in `channel.dart` to add an `AuthController` for the route `/auth/token`:
 
 ```dart
 @override
@@ -247,25 +247,33 @@ This will insert a new row into an OAuth 2.0 client table created by our last ro
 - the key-value `grant_type=password` is included in the request body
 - the request body content-type is `application/x-www-form-urlencoded`; this means the request body is effectively a query string (e.g. `username=bob&password=pw&grant_type=password`)
 
-In Dart code, this would like this:
+In Dart code, this would look like this:
 
 ```dart
-import 'package:http/http.dart' as http; // Must include http package in your pubspec.yaml
+import 'dart:async';
+import 'dart:convert';
 
-final clientID = "com.heroes.tutorial";
-final body = "username=bob&password=password&grant_type=password";
+import 'package:http/http.dart'
+    as http; // Must include http: any package in your pubspec.yaml
+
+Future<void> main() async {
+  const clientID = "org.hasenbalg.zeiterfassung";
+  const body = "username=bob&password=password&grant_type=password";
 
 // Note the trailing colon (:) after the clientID.
 // A client identifier secret would follow this, but there is no secret, so it is the empty string.
-final clientCredentials = Base64Encoder().convert("$clientID:".codeUnits);
+  final String clientCredentials =
+      const Base64Encoder().convert("$clientID:".codeUnits);
 
-final response = await http.post(
-  "https://stablekernel.com/auth/token",
-  headers: {
-    "Content-Type": "application/x-www-form-urlencoded",
-    "Authorization": "Basic $clientCredentials"
-  },
-  body: body);
+  final http.Response response =
+      await http.post("http://localhost:8888/auth/token",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            "Authorization": "Basic $clientCredentials"
+          },
+          body: body);
+  print(response.body);
+}
 ```
 
 You can execute that code or you can use the following `curl`:
