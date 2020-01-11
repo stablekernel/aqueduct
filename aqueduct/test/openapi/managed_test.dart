@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
@@ -114,7 +113,7 @@ void main() {
         expect(dataModel.entityForType(model).attributes[propName], isNotNull);
 
         final model3 = doc.components
-          .schemas[MirrorSystem.getName(reflectType(model).simpleName)];
+          .schemas[model.toString()];
         // ... since we're checking that it doesn't exist in the spec
         expect(model3.properties[propName], isNull);
       });

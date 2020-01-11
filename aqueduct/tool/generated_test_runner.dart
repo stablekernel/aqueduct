@@ -9,9 +9,8 @@ Future main(List<String> args) async {
     (String s) => s.contains("/compilation_errors/"),
     (String s) => s.contains("test/openapi/"),
     (String s) => s.contains("postgresql/migration/"),
-    (String s) => s.contains("db/migration/")
-
-
+    (String s) => s.contains("db/migration/"),
+    (String s) => s.endsWith("entity_mirrors_test.dart")
   ];
   final testFiles = Directory.fromUri(Directory.current.uri.resolve("test/"))
       .listSync(recursive: true)
