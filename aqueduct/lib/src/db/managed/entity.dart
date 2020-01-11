@@ -2,7 +2,7 @@ import 'package:aqueduct/src/db/managed/backing.dart';
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:runtime/shim.dart';
+import 'package:runtime/runtime.dart';
 
 import '../query/query.dart';
 import 'managed.dart';
@@ -342,7 +342,7 @@ class ManagedEntity implements APIComponentDocumenter {
   }
 }
 
-abstract class ManagedEntityRuntime extends DynamicRuntime {
+abstract class ManagedEntityRuntime {
   ManagedEntity get entity;
   ManagedObject instanceOfImplementation({ManagedBacking backing});
   ManagedSet setOfImplementation(Iterable<dynamic> objects);

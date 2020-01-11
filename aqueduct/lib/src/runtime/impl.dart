@@ -13,15 +13,17 @@ import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/runtime/resource_controller_impl.dart';
 import 'package:aqueduct/src/utilities/mirror_cast.dart';
+import 'package:runtime/runtime.dart';
 
-class BodyDecoderRuntimeImpl extends BodyDecoderRuntime {
+class BodyDecoderRuntimeImpl extends BodyDecoderRuntime implements SourceCompiler {
   @override
   T cast<T>(dynamic input) {
     return runtimeCast(input, reflectType(T)) as T;
   }
 
+
   @override
-  String get contents {
+  String compile(BuildContext ctx) {
     return """
 import 'package:aqueduct/src/runtime/app/app.dart';
     
@@ -39,7 +41,7 @@ class BodyDecoderRuntimeImpl extends BodyDecoderRuntime {
   }
 }
 
-class ChannelRuntimeImpl extends ChannelRuntime {
+class ChannelRuntimeImpl extends ChannelRuntime implements SourceCompiler {
   ChannelRuntimeImpl(this.type);
 
   final ClassMirror type;
@@ -90,8 +92,10 @@ class ChannelRuntimeImpl extends ChannelRuntime {
     }).where((o) => o != null);
   }
 
+
   @override
-  String get contents {
+  String compile(BuildContext ctx)
+  {
     final className = MirrorSystem.getName(type.simpleName);
     final originalFileUri = type.location.sourceUri.toString();
     final globalInitBody = hasGlobalInitializationMethod
@@ -168,7 +172,7 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
   server.start(shareHttpServer: true);
 }
 
-class ControllerRuntimeImpl extends ControllerRuntime {
+class ControllerRuntimeImpl extends ControllerRuntime implements SourceCompiler {
   ControllerRuntimeImpl(this.type) {
     if (type.isSubclassOf(reflectClass(ResourceController))) {
       resourceController = ResourceControllerRuntimeImpl(type);
@@ -196,8 +200,9 @@ class ControllerRuntimeImpl extends ControllerRuntime {
     return fieldKeys.any((key) => members[key].isSetter);
   }
 
+
   @override
-  String get contents {
+  String compile(BuildContext ctx) {
     final originalFileUri = type.location.sourceUri.toString();
 
     return """
@@ -292,7 +297,4 @@ class SerializableRuntimeImpl extends SerializableRuntime {
     throw ArgumentError(
         "Unsupported type '${MirrorSystem.getName(type.simpleName)}' for 'APIComponentDocumenter.documentType'.");
   }
-
-  @override
-  String get contents => null;
 }

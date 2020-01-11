@@ -4,7 +4,7 @@ import 'package:aqueduct/src/utilities/reference_counting_list.dart';
 import 'package:aqueduct/src/db/query/query.dart';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
-import 'package:runtime/shim.dart';
+import 'package:runtime/runtime.dart';
 
 /// Instances of this class contain descriptions and metadata for mapping [ManagedObject]s to database rows.
 ///

@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:runtime/shim.dart';
+import 'package:runtime/runtime.dart';
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 

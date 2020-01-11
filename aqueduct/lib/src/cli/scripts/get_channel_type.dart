@@ -3,7 +3,7 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/application/channel.dart';
 import 'package:isolate_executor/isolate_executor.dart';
-import 'package:runtime/shim.dart';
+import 'package:runtime/runtime.dart';
 
 class GetChannelExecutable extends Executable<String> {
   GetChannelExecutable(Map<String, dynamic> message) : super(message);

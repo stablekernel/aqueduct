@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:mirrors';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/application/channel.dart';
@@ -6,11 +7,10 @@ import 'package:aqueduct/src/runtime/orm/data_model_compiler.dart';
 import 'package:aqueduct/src/runtime/impl.dart';
 import 'package:runtime/runtime.dart';
 
-class ApplicationCompiler extends Compiler {
-
+class AqueductCompiler extends Compiler {
   @override
-  Map<String, DynamicRuntime> compile(MirrorContext context) {
-    final m = <String, DynamicRuntime>{};
+  Map<String, dynamic> compile(MirrorContext context) {
+    final m = <String, dynamic>{};
 
     m.addEntries(context.getSubclassesOf(ApplicationChannel)
       .map((t) => MapEntry(_getClassName(t), ChannelRuntimeImpl(t))));
@@ -31,5 +31,11 @@ class ApplicationCompiler extends Compiler {
   }
 
   @override
-  String get libraryFileName => "aqueduct/aqueduct.dart";
+  void deflectPackage(Directory destinationDirectory) {
+    final libFile = File.fromUri(
+      destinationDirectory.uri.resolve("lib/").resolve("aqueduct.dart"));
+    final contents = libFile.readAsStringSync();
+    libFile.writeAsStringSync(
+      contents.replaceFirst("export 'package:aqueduct/src/runtime/compiler.dart';", ""));
+  }
 }

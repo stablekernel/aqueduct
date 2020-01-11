@@ -2,8 +2,10 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/utilities/mirror_cast.dart';
+import 'package:runtime/runtime.dart';
 
-class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
+class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
+    implements SourceCompiler {
   ManagedEntityRuntimeImpl(this.instanceType, this.entity);
 
   final ClassMirror instanceType;
@@ -14,7 +16,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   @override
   ManagedObject instanceOfImplementation({ManagedBacking backing}) {
     final object = instanceType.newInstance(const Symbol(""), []).reflectee
-    as ManagedObject;
+        as ManagedObject;
     if (backing != null) {
       object.backing = backing;
     }
@@ -23,15 +25,16 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
 
   @override
   void setTransientValueForKey(
-    ManagedObject object, String key, dynamic value) {
+      ManagedObject object, String key, dynamic value) {
     reflect(object).setField(Symbol(key), value);
   }
 
   @override
   ManagedSet setOfImplementation(Iterable<dynamic> objects) {
-    final type = reflectType(ManagedSet, [instanceType.reflectedType]) as ClassMirror;
+    final type =
+        reflectType(ManagedSet, [instanceType.reflectedType]) as ClassMirror;
     return type.newInstance(const Symbol("fromDynamic"), [objects]).reflectee
-    as ManagedSet;
+        as ManagedSet;
   }
 
   @override
@@ -56,7 +59,8 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   }
 
   @override
-  dynamic dynamicAccessorImplementation(Invocation invocation, ManagedEntity entity, ManagedObject object) {
+  dynamic dynamicAccessorImplementation(
+      Invocation invocation, ManagedEntity entity, ManagedObject object) {
     if (invocation.isGetter) {
       if (invocation.memberName == #haveAtLeastOneWhere) {
         return this;
@@ -65,7 +69,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
       return object[_getPropertyNameFromInvocation(invocation, entity)];
     } else if (invocation.isSetter) {
       object[_getPropertyNameFromInvocation(invocation, entity)] =
-        invocation.positionalArguments.first;
+          invocation.positionalArguments.first;
 
       return null;
     }
@@ -74,26 +78,28 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   }
 
   @override
-  dynamic dynamicConvertFromPrimitiveValue(ManagedPropertyDescription property, dynamic value) {
+  dynamic dynamicConvertFromPrimitiveValue(
+      ManagedPropertyDescription property, dynamic value) {
     return runtimeCast(value, reflectType(property.type.type));
   }
 
-  String _getPropertyNameFromInvocation(Invocation invocation, ManagedEntity entity) {
+  String _getPropertyNameFromInvocation(
+      Invocation invocation, ManagedEntity entity) {
     // It memberName is not in symbolMap, it may be because that property doesn't exist for this object's entity.
     // But it also may occur for private ivars, in which case, we reconstruct the symbol and try that.
     var name = entity.symbolMap[invocation.memberName] ??
-      entity.symbolMap[Symbol(MirrorSystem.getName(invocation.memberName))];
+        entity.symbolMap[Symbol(MirrorSystem.getName(invocation.memberName))];
 
     if (name == null) {
       throw ArgumentError("Invalid property access for '${entity.name}'. "
-        "Property '${MirrorSystem.getName(invocation.memberName)}' does not exist on '${entity.name}'.");
+          "Property '${MirrorSystem.getName(invocation.memberName)}' does not exist on '${entity.name}'.");
     }
 
     return name;
   }
 
   @override
-  String get contents {
+  String compile(BuildContext ctx) {
     final className = "${MirrorSystem.getName(instanceType.simpleName)}";
     final originalFileUri = instanceType.location.sourceUri.toString();
 
@@ -173,7 +179,6 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
 }   
     """;
   }
-
 
   String get _setTransientValueForKeyImpl {
     // switch statement for each property key

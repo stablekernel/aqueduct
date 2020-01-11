@@ -5,7 +5,7 @@ import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/mixins/openapi_options.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:isolate_executor/isolate_executor.dart';
-import 'package:runtime/shim.dart';
+import 'package:runtime/runtime.dart';
 import 'package:yaml/yaml.dart';
 
 class OpenAPIBuilder extends Executable<Map<String, dynamic>> {

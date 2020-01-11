@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:runtime/shim.dart';
+import 'package:runtime/runtime.dart';
 import 'package:test/test.dart';
 
 /*

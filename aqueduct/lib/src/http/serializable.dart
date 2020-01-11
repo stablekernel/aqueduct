@@ -1,5 +1,5 @@
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:runtime/shim.dart';
+import 'package:runtime/runtime.dart';
 
 import 'http.dart';
 
@@ -109,6 +109,6 @@ class SerializableException implements HandlerException {
   }
 }
 
-abstract class SerializableRuntime extends DynamicRuntime {
+abstract class SerializableRuntime {
   APISchemaObject documentSchema(APIDocumentContext context);
 }

@@ -206,6 +206,7 @@ class _RouteController extends Controller {
         } else if (rs.isRemainingMatcher) {
           return "{path}";
         }
+        throw StateError("unknown specification");
       }).join("/");
       final pathKey = "/$elements";
 

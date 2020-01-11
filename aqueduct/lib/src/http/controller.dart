@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
-import 'package:runtime/shim.dart';
+import 'package:runtime/runtime.dart';
 
 import 'http.dart';
 
@@ -438,7 +438,7 @@ class _FunctionController extends Controller {
   }
 }
 
-abstract class ControllerRuntime extends DynamicRuntime {
+abstract class ControllerRuntime {
   bool get isMutable;
 
   ResourceControllerRuntime get resourceController;

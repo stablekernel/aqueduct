@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:runtime/shim.dart';
+import 'package:runtime/runtime.dart';
 
 import 'http.dart';
 
@@ -65,6 +65,8 @@ abstract class BodyDecoder {
     }
     return _bytes;
   }
+
+  BodyDecoderRuntime get _runtime => RuntimeContext.current[runtimeType] as BodyDecoderRuntime;
 
   final Stream<List<int>> _originalByteStream;
   dynamic _decodedData;
@@ -130,8 +132,7 @@ abstract class BodyDecoder {
 
   T _cast<T>(dynamic body) {
     try {
-      final runtime = RuntimeContext.current[runtimeType] as BodyDecoderRuntime;
-      return runtime.cast<T>(body);
+      return _runtime.cast<T>(body);
     } on CastError {
       throw Response.badRequest(
           body: {"error": "request entity was unexpected type"});
@@ -145,6 +146,6 @@ abstract class BodyDecoder {
   }
 }
 
-abstract class BodyDecoderRuntime extends DynamicRuntime {
+abstract class BodyDecoderRuntime {
   T cast<T>(dynamic input);
 }

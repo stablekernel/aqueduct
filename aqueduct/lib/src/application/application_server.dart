@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:aqueduct/src/application/channel.dart';
 import 'package:logging/logging.dart';
-import 'package:runtime/shim.dart';
+import 'package:runtime/runtime.dart';
 
 import '../http/controller.dart';
 import '../http/request.dart';

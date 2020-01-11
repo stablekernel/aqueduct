@@ -5,8 +5,8 @@ import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:runtime/runtime.dart';
 
 class DataModelCompiler {
-  Map<String, DynamicRuntime> compile(MirrorContext context) {
-    final m = <String, DynamicRuntime>{};
+  Map<String, dynamic> compile(MirrorContext context) {
+    final m = <String, dynamic>{};
 
     final instanceTypes = context.types
       .where(_isTypeManagedObjectSubclass)
