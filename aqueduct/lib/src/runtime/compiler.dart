@@ -7,7 +7,6 @@ import 'package:aqueduct/src/runtime/orm/data_model_compiler.dart';
 
 import 'package:aqueduct/src/runtime/impl.dart';
 import 'package:runtime/runtime.dart';
-import 'package:yaml/yaml.dart';
 
 class AqueductCompiler extends Compiler {
   @override

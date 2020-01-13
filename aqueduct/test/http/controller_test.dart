@@ -137,7 +137,9 @@ void main() {
         req.raw.response.close();
 
         return null;
-      }).linkFunction((req) {
+      }).linkFunction(
+          // ignore: missing_return
+          (req) {
         set = true;
       });
 
@@ -458,6 +460,4 @@ class PrepareTailController extends Controller {
   FutureOr<RequestOrResponse> handle(Request request) {
     return request;
   }
-
-
 }

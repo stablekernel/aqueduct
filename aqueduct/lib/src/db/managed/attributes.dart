@@ -206,13 +206,12 @@ class Column {
 class Serialize {
   /// Annotates a [ManagedObject] property so it can be serialized.
   ///
-  /// Properties declared in a [ManagedObject] subclass are not included in [ManagedObject.asMap]
-  /// and are not read in [ManagedObject.read]. Adding an instance of this type as an annotation
-  /// allows those properties to be read from a map and written to a map.
+  /// A [ManagedObject] property declaration with this metadata will have its value encoded/decoded when
+  /// converting the managed object to and from a [Map].
   ///
-  /// If [input] is true, this property is assignable with [ManagedObject.read].
+  /// If [input] is true, this property's value is set when converting from a map.
   ///
-  /// If [output] is true, this property will be added to [ManagedObject.asMap].
+  /// If [output] is true, this property is in the map created by [ManagedObject.asMap].
   /// This key is only included if the value is non-null.
   ///
   /// Both [input] and [output] default to true.

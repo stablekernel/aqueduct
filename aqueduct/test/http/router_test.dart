@@ -103,10 +103,12 @@ void main() {
       router.route("/a/[:id]").linkFunction((req) async {
         // ignore: unawaited_futures
         req.respond(Response(200, null, null));
+        return null;
       });
       router.route("/a/:id/f").linkFunction((req) async {
         // ignore: unawaited_futures
         req.respond(Response(201, null, null));
+        return null;
       });
 
       server = await enableRouter(router);

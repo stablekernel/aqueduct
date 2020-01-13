@@ -104,6 +104,7 @@ class Runner {
         } else if (fse is File) {
           return fse.uri.pathSegments.last != ".nojekyll";
         }
+        return false;
       })
       .forEach((fse) {
         fse.deleteSync(recursive: true);

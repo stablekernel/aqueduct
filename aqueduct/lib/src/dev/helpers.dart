@@ -178,8 +178,8 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   }
 
   @override
-  void removeTokens(AuthServer server, dynamic identifier) {
-    return tokens.removeWhere((t) => t.resourceOwnerIdentifier == identifier);
+  void removeTokens(AuthServer server, dynamic resourceOwnerID) {
+    return tokens.removeWhere((t) => t.resourceOwnerIdentifier == resourceOwnerID);
   }
 
   @override
@@ -210,23 +210,23 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   }
 
   @override
-  void removeToken(AuthServer server, AuthCode code) =>
-      tokens.removeWhere((t) => t.code == code.code);
+  void removeToken(AuthServer server, AuthCode grantedByCode) =>
+      tokens.removeWhere((t) => t.code == grantedByCode.code);
 
   @override
-  FutureOr addToken(AuthServer server, AuthToken t, {AuthCode issuedFrom}) {
+  FutureOr addToken(AuthServer server, AuthToken token, {AuthCode issuedFrom}) {
     if (issuedFrom != null) {
       var existingIssued = tokens.firstWhere(
-          (token) => token.code == issuedFrom?.code,
+          (t) => t.code == issuedFrom?.code,
           orElse: () => null);
-      var replacement = TestToken.from(t);
+      var replacement = TestToken.from(token);
       replacement.code = issuedFrom.code;
       replacement.scopes = issuedFrom.requestedScopes;
 
       tokens.remove(existingIssued);
       tokens.add(replacement);
     } else {
-      tokens.add(TestToken.from(t));
+      tokens.add(TestToken.from(token));
     }
 
     return null;
@@ -235,11 +235,11 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   @override
   FutureOr updateToken(
       AuthServer server,
-      String accessToken,
+      String oldAccessToken,
       String newAccessToken,
       DateTime newIssueDate,
       DateTime newExpirationDate) {
-    var existing = tokens.firstWhere((e) => e.accessToken == accessToken,
+    var existing = tokens.firstWhere((e) => e.accessToken == oldAccessToken,
         orElse: () => null);
     if (existing != null) {
       var replacement = TestToken.from(existing)
@@ -276,10 +276,10 @@ class InMemoryAuthStorage extends AuthServerDelegate {
       tokens.removeWhere((c) => c.code == code);
 
   @override
-  FutureOr<AuthClient> getClient(AuthServer server, String id) => clients[id];
+  FutureOr<AuthClient> getClient(AuthServer server, String clientID) => clients[clientID];
 
   @override
-  FutureOr removeClient(AuthServer server, String id) => clients.remove(id);
+  FutureOr removeClient(AuthServer server, String clientID) => clients.remove(clientID);
 }
 
 class DefaultPersistentStore extends PersistentStore {
@@ -309,11 +309,11 @@ class DefaultPersistentStore extends PersistentStore {
 
   @override
   Future<T> transaction<T>(ManagedContext transactionContext,
-          Future<T> queries(ManagedContext transaction)) async =>
+          Future<T> transactionBlock(ManagedContext transaction)) async =>
       throw Exception("Transaciton not supported on mock");
 
   @override
-  List<String> createTable(SchemaTable t, {bool isTemporary = false}) => [];
+  List<String> createTable(SchemaTable table, {bool isTemporary = false}) => [];
 
   @override
   List<String> renameTable(SchemaTable table, String name) => [];
@@ -374,10 +374,10 @@ class DefaultPersistentStore extends PersistentStore {
   Future<int> get schemaVersion async => 0;
 
   @override
-  Future<Schema> upgrade(Schema from, List<Migration> migrations,
+  Future<Schema> upgrade(Schema fromSchema, List<Migration> withMigrations,
       {bool temporary = false}) async {
-    var out = from;
-    for (var migration in migrations) {
+    var out = fromSchema;
+    for (var migration in withMigrations) {
       migration.database = SchemaBuilder(this, out);
       await migration.upgrade();
       await migration.seed();
