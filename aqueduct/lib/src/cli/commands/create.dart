@@ -69,7 +69,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     }
 
     displayInfo(
-        "Fetching project dependencies (pub get --no-packages-dir ${offline ? "--offline" : ""})...");
+        "Fetching project dependencies (pub get ${offline ? "--offline" : ""})...");
     displayInfo("Please wait...");
     try {
       await fetchProjectDependencies(destDirectory, offline: offline);
@@ -236,7 +236,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
 
   Future<int> fetchProjectDependencies(Directory workingDirectory,
       {bool offline = false}) async {
-    var args = ["get", "--no-packages-dir"];
+    var args = ["get"];
     if (offline) {
       args.add("--offline");
     }
