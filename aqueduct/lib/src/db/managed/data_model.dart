@@ -25,9 +25,6 @@ class ManagedDataModel extends Object
   ///
   ///       new DataModel([User, Token, Post]);
   ManagedDataModel(List<Type> instanceTypes) {
-    _entities = {};
-    _tableDefinitionToEntityMap = {};
-
     final runtimes = RuntimeContext.current.runtimes.iterable
         .whereType<ManagedEntityRuntime>()
         .toList();
@@ -59,9 +56,6 @@ class ManagedDataModel extends Object
   ///
   /// This is the preferred method of instantiating this type.
   ManagedDataModel.fromCurrentMirrorSystem() {
-    _entities = {};
-    _tableDefinitionToEntityMap = {};
-
     RuntimeContext.current.runtimes.iterable
         .whereType<ManagedEntityRuntime>()
         .forEach((runtime) {

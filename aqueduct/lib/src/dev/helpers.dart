@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/db/query/mixin.dart';
-export 'context_helpers.dart';
+export 'package:aqueduct/src/dev/context_helpers.dart';
 
 void justLogEverything() {
   hierarchicalLoggingEnabled = true;

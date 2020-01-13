@@ -20,7 +20,7 @@ dependencies:
   postgres: ^1.0.0
   pub_cache: '>=0.2.0 <0.3.0'
   pub_semver: ^1.4.0
-  safe_config: ^2.0.0
+  safe_config: ^3.0.0
   yaml: ^2.1.15
   runtime:
     path: /Users/joeconway/Projects/runtime
@@ -35,3 +35,7 @@ dev_dependencies:
 
 executables:
   aqueduct: aqueduct
+
+dependency_overrides:
+  safe_config:
+    path: /Users/joeconway/Projects/safe_config

@@ -9,7 +9,7 @@ import 'package:aqueduct/src/cli/migration_source.dart';
 import 'package:command_line_agent/command_line_agent.dart';
 import 'package:test/test.dart';
 
-import 'cli_helpers.dart';
+import 'package:aqueduct/src/dev/cli_helpers.dart';
 
 CLIClient cli;
 DatabaseConfiguration connectInfo = DatabaseConfiguration.withConnectionInfo(

@@ -12,7 +12,12 @@ Future main(List<String> args) async {
     (String s) => s.contains("db/migration/"),
     (String s) => s.endsWith("entity_mirrors_test.dart")
   ];
-  final testFiles = Directory.fromUri(Directory.current.uri.resolve("test/"))
+
+  final testDir = args.isNotEmpty
+      ? Directory.current.uri.resolveUri(Uri.parse(args[0]))
+      : Directory.current.uri.resolve("test/");
+
+  final testFiles = Directory.fromUri(testDir)
       .listSync(recursive: true)
       .whereType<File>()
       .where((f) => f.path.endsWith("_test.dart"))
@@ -28,26 +33,22 @@ Future main(List<String> args) async {
         "(Pass: $passCounter Fail: $failCounter Remain: $remainingCounter)";
     print("${makePrompt()} Loading test ${f.path}...");
     final ctx = BuildContext(
-        Directory.current.uri.resolve("lib/").resolve("safe_config.dart"),
-        Directory.current.uri.resolve("build/"),
+        Directory.current.uri.resolve("lib/").resolve("aqueduct.dart"),
+        Directory.current.uri.resolve("_build/"),
         Directory.current.uri.resolve("run"),
         f.readAsStringSync(),
-        includeDevDependencies: true);
+        forTests: true);
     final bm = BuildManager(ctx);
     await bm.build();
 
     print("${makePrompt()} Running tests derived from ${f.path}...");
-    final result = await Process.run("./run", [],
+    final result = await Process.start("dart", ["test/main_test.dart"],
         workingDirectory:
-            Directory.current.uri.toFilePath(windows: Platform.isWindows),
-        environment: {
-          "TEST_BOOL": "true",
-          "TEST_DB_ENV_VAR": "postgres://user:password@host:5432/dbname",
-          "TEST_VALUE": "1"
-        });
-    print(result.stdout);
-    print(result.stderr);
-    if (result.exitCode != 0) {
+            ctx.buildDirectoryUri.toFilePath(windows: Platform.isWindows));
+    stdout.addStream(result.stdout);
+    stderr.addStream(result.stderr);
+
+    if (await result.exitCode != 0) {
       exitCode = -1;
       failCounter++;
       print("Tests FAILED in ${f.path}.");
@@ -56,7 +57,6 @@ Future main(List<String> args) async {
     }
     print("${makePrompt()} Completed tests derived from ${f.path}.");
     await bm.clean();
-    File.fromUri(Directory.current.uri.resolve("run")).deleteSync();
     remainingCounter--;
   }
 }

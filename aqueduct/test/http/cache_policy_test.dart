@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
-import '../helpers.dart';
+import 'package:aqueduct/src/dev/helpers.dart';
 
 // Some CachePolicy fields are tested by file_controller_test.dart, this
 // file tests the combinations not tested there.

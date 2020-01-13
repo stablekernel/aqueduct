@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import '../../helpers.dart';
+import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   group("Offset/limit", () {

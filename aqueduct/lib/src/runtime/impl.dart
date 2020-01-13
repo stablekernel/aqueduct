@@ -25,17 +25,13 @@ class BodyDecoderRuntimeImpl extends BodyDecoderRuntime implements SourceCompile
   @override
   String compile(BuildContext ctx) {
     return """
-import 'package:aqueduct/src/runtime/app/app.dart';
-    
+import 'package:aqueduct/src/http/body_decoder.dart';    
 final instance = BodyDecoderRuntimeImpl();    
 class BodyDecoderRuntimeImpl extends BodyDecoderRuntime {
   @override
   T cast<T>(dynamic input) {
     return null;
   }
-
-  @override
-  String get contents => throw UnsupportedError('This method is not implemented for compiled applications.');
 }    
 """;
   }
@@ -105,7 +101,6 @@ class ChannelRuntimeImpl extends ChannelRuntime implements SourceCompiler {
     return """
 import 'dart:async';    
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/application/isolate_application_server.dart';
 import '$originalFileUri';
 
@@ -122,9 +117,6 @@ void entryPoint(ApplicationInitialServerMessage params) {
 }
 
 class ChannelRuntimeImpl extends ChannelRuntime {
-  @override
-  String get contents => throw UnsupportedError('This method is not implemented for compiled applications.');
-
   @override
   String get name => '$className';
 
@@ -208,7 +200,6 @@ class ControllerRuntimeImpl extends ControllerRuntime implements SourceCompiler 
     return """
 import 'dart:async';    
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
 import '$originalFileUri';
     
 final instance = ControllerRuntimeImpl();  
@@ -217,9 +208,6 @@ class ControllerRuntimeImpl extends ControllerRuntime {
   ControllerRuntimeImpl() {
     /* provide resource controller runtime instance */
   }
-  
-  @override
-  String get contents => throw UnsupportedError('This method is not implemented for compiled applications.');
   
   @override
   bool get isMutable => ${isMutable};

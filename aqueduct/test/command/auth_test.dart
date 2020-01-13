@@ -5,8 +5,8 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 import 'package:command_line_agent/command_line_agent.dart';
 
-import '../context_helpers.dart';
-import 'cli_helpers.dart';
+import 'package:aqueduct/src/dev/context_helpers.dart';
+import 'package:aqueduct/src/dev/cli_helpers.dart';
 
 void main() {
   final dataModel = ManagedDataModel.fromCurrentMirrorSystem();

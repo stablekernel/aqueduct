@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'dart:mirrors';
 import 'package:aqueduct/aqueduct.dart';
@@ -6,6 +7,7 @@ import 'package:aqueduct/src/runtime/orm/data_model_compiler.dart';
 
 import 'package:aqueduct/src/runtime/impl.dart';
 import 'package:runtime/runtime.dart';
+import 'package:yaml/yaml.dart';
 
 class AqueductCompiler extends Compiler {
   @override
@@ -37,5 +39,19 @@ class AqueductCompiler extends Compiler {
     final contents = libFile.readAsStringSync();
     libFile.writeAsStringSync(
       contents.replaceFirst("export 'package:aqueduct/src/runtime/compiler.dart';", ""));
+  }
+
+  @override
+  void didFinishPackageGeneration(BuildContext context) {
+    if (context.forTests) {
+      print("Copying aqueduct_test...");
+      copyDirectory(src: context.sourceApplicationDirectory.uri.resolve("../").resolve("aqueduct_test/"), 
+        dst: context.buildPackagesDirectory.uri.resolve("aqueduct_test/"));
+      final targetPubspecFile = File.fromUri(context.buildDirectoryUri.resolve("pubspec.yaml"));
+      final pubspecContents = json.decode(targetPubspecFile.readAsStringSync());
+      pubspecContents["dev_dependencies"]["aqueduct_test"]["path"] = "packages/aqueduct_test";
+      pubspecContents["dependency_overrides"]["aqueduct"] = pubspecContents["dependencies"]["aqueduct"];
+      targetPubspecFile.writeAsStringSync(json.encode(pubspecContents));
+    }
   }
 }

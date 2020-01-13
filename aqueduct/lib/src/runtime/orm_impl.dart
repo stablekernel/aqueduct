@@ -117,9 +117,6 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   ManagedEntity _entity;
 
   @override
-  String get contents => throw UnsupportedError('This method is not implemented for compiled applications.');
-  
-  @override
   ManagedEntity get entity => _entity; 
 
   @override
