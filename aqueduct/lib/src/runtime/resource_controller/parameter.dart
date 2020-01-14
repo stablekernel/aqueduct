@@ -46,11 +46,15 @@ class BoundParameter {
       case BindingType.header:
         return BoundHeader(typeMirror, metadata.name);
       case BindingType.body:
-        return BoundBody(typeMirror, ignore: metadata.ignore, error: metadata.reject, required: metadata.require);
+        return BoundBody(typeMirror,
+            accept: metadata.accept,
+            ignore: metadata.ignore,
+            error: metadata.reject,
+            required: metadata.require);
       case BindingType.path:
         return BoundPath(typeMirror, metadata.name);
     }
     throw StateError(
-      "Invalid controller. Operation parameter binding '${metadata.bindingType}' on '${metadata.name}' is unknown.");
+        "Invalid controller. Operation parameter binding '${metadata.bindingType}' on '${metadata.name}' is unknown.");
   }
 }
