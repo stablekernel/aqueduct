@@ -13,18 +13,23 @@ Future main(List<String> args) async {
     (String s) => s.endsWith("entity_mirrors_test.dart")
   ];
 
-  final testDir = args.isNotEmpty
-      ? Directory.current.uri.resolveUri(Uri.parse(args[0]))
-      : Directory.current.uri.resolve("test/");
+  List<File> testFiles;
 
-  final testFiles = Directory.fromUri(testDir)
-      .listSync(recursive: true)
-      .whereType<File>()
-      .where((f) => f.path.endsWith("_test.dart"))
-      .where((f) => blacklist
-          .every((blacklistFunction) => blacklistFunction(f.uri.path) == false))
-      .toList();
+  if (args.length == 1) {
+    testFiles = [File(args.first)];
+  } else {
+    final testDir = args.isNotEmpty
+        ? Directory.current.uri.resolveUri(Uri.parse(args[0]))
+        : Directory.current.uri.resolve("test/");
 
+    testFiles = Directory.fromUri(testDir)
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((f) => f.path.endsWith("_test.dart"))
+        .where((f) => blacklist.every(
+            (blacklistFunction) => blacklistFunction(f.uri.path) == false))
+        .toList();
+  }
   var remainingCounter = testFiles.length;
   var passCounter = 0;
   var failCounter = 0;
@@ -56,7 +61,7 @@ Future main(List<String> args) async {
       passCounter++;
     }
     print("${makePrompt()} Completed tests derived from ${f.path}.");
-    await bm.clean();
+//    await bm.clean();
     remainingCounter--;
   }
 }
