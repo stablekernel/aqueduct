@@ -52,20 +52,21 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
 
   @override
   Future<Map<String, dynamic>> execute() async {
-    final channels = RuntimeContext.current.runtimes.iterable.whereType<ChannelRuntime>();
+    final channels =
+        RuntimeContext.current.runtimes.iterable.whereType<ChannelRuntime>();
     if (channels.length != 1) {
       throw StateError(
           "Zero or more than one ApplicationChannel subclass found: ${channels.map((c) => "'${c.channelType}'").join(", ")}");
     }
-    
+
     try {
       var config = ApplicationOptions()..configurationFilePath = configPath;
 
       final yaml = (loadYaml(pubspecContents) as Map<dynamic, dynamic>)
           .cast<String, dynamic>();
 
-      var document = await Application.document(
-          channels.first.channelType, config, yaml);
+      var document =
+          await Application.document(channels.first.channelType, config, yaml);
 
       document.servers = hosts;
       if (title != null) {
@@ -148,7 +149,7 @@ class OpenAPIBuilder extends Executable<Map<String, dynamic>> {
         "package:yaml/yaml.dart",
         "dart:convert",
         "dart:io",
-        "package:aqueduct/src/runtime/runtime.dart"
+        "package:runtime/runtime.dart"
       ];
 }
 

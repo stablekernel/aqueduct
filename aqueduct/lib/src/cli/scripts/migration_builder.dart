@@ -43,7 +43,7 @@ class MigrationBuilderExecutable extends Executable<Map<String, dynamic>> {
   static List<String> importsForPackage(String packageName) => [
         "package:aqueduct/aqueduct.dart",
         "package:$packageName/$packageName.dart",
-        "package:aqueduct/src/runtime/runtime.dart"
+        "package:runtime/runtime.dart"
       ];
 }
 
