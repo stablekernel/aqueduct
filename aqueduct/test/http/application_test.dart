@@ -171,16 +171,15 @@ class TestChannel extends ApplicationChannel {
   }
 }
 
-class TController extends ResourceController {
-  @Operation.get()
-  Future<Response> getAll() async {
+class TController extends Controller {
+  @override
+  FutureOr<RequestOrResponse> handle(Request request) {
     return Response.ok("t_ok");
   }
 }
 
-class RController extends ResourceController {
-  @Operation.get()
-  Future<Response> getAll() async {
+class RController extends Controller {
+  FutureOr<RequestOrResponse> handle(Request request) {
     return Response.ok("r_ok");
   }
 }

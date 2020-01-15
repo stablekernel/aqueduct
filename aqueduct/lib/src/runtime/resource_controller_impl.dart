@@ -8,7 +8,9 @@ import 'package:aqueduct/src/runtime/impl.dart';
 import 'package:aqueduct/src/runtime/resource_controller/bindings.dart';
 import 'package:aqueduct/src/runtime/resource_controller/parameter.dart';
 import 'package:aqueduct/src/runtime/resource_controller/utility.dart';
+import 'package:aqueduct/src/runtime/resource_controller_generator.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+import 'package:runtime/runtime.dart' hide firstMetadataOfType;
 
 class ResourceControllerOperationRuntimeImpl
     extends ResourceControllerOperationRuntime {
@@ -370,4 +372,6 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
 
     return documentedParameter;
   }
+
+  String compile(BuildContext ctx) => getResourceControllerImplSource(this, ctx);
 }
