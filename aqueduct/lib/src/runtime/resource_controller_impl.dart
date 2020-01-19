@@ -95,25 +95,6 @@ class ResourceControllerOperationRuntimeImpl
             methodSymbol, positionalMethodArguments, optionalMethodArguments)
         .reflectee as Future<Response>;
   }
-
-  /// Checks if a request's method and path variables will select this binder.
-  ///
-  /// Note that [requestMethod] may be null; if this is the case, only
-  /// path variables are compared.
-  @override
-  bool isSuitableForRequest(
-      String requestMethod, List<String> requestPathVariables) {
-    if (requestMethod != null && requestMethod.toUpperCase() != method) {
-      return false;
-    }
-
-    if (pathVariables.length != requestPathVariables.length) {
-      return false;
-    }
-
-    return requestPathVariables
-        .every((varName) => pathVariables.contains(varName));
-  }
 }
 
 class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
@@ -221,14 +202,6 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
         errorsIn.add(e.message as String);
       }
     });
-  }
-
-  @override
-  ResourceControllerOperationRuntime getOperationRuntime(
-      String method, List<String> pathVariables) {
-    return operations.firstWhere(
-        (binder) => binder.isSuitableForRequest(method, pathVariables),
-        orElse: () => null);
   }
 
   @override

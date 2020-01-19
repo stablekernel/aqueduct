@@ -298,7 +298,12 @@ abstract class ResourceControllerRuntime {
 
   void bindProperties(ResourceController rc, Request request, List<String> errorsIn);
 
-  ResourceControllerOperationRuntime getOperationRuntime(String method, List<String> pathVariables);
+  ResourceControllerOperationRuntime getOperationRuntime(
+    String method, List<String> pathVariables) {
+    return operations.firstWhere(
+        (op) => op.isSuitableForRequest(method, pathVariables),
+      orElse: () => null);
+  }
 
   void documentComponents(ResourceController rc, APIDocumentContext context);
 
@@ -317,6 +322,23 @@ abstract class ResourceControllerOperationRuntime {
   List<String> pathVariables;
   String method;
 
-  bool isSuitableForRequest(String requestMethod, List<String> requestPathVariables);
+  /// Checks if a request's method and path variables will select this binder.
+  ///
+  /// Note that [requestMethod] may be null; if this is the case, only
+  /// path variables are compared.
+  bool isSuitableForRequest(
+    String requestMethod, List<String> requestPathVariables) {
+    if (requestMethod != null && requestMethod.toUpperCase() != method) {
+      return false;
+    }
+
+    if (pathVariables.length != requestPathVariables.length) {
+      return false;
+    }
+
+    return requestPathVariables
+      .every((varName) => pathVariables.contains(varName));
+  }
+
   Future<Response> invoke(ResourceController rc, Request request, List<String> errorsIn);
 }
