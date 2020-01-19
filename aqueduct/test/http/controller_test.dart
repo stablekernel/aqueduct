@@ -165,11 +165,13 @@ void main() {
     test(
         "Logging after socket is closed throws uncaught exception, still works correctly after",
         () async {
+          final request = await HttpClient().get("localhost", 8000, "/detach");
+          final response = await request.close();
       try {
-        await http.get("http://localhost:8000/detach");
+        await response.toList();
         expect(true, false);
         // ignore: empty_catches
-      } on http.ClientException {}
+      } on HttpException {}
 
       expect((await http.get("http://localhost:8000/detach")).statusCode, 200);
     });
