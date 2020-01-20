@@ -20,7 +20,7 @@ dependencies:
   postgres: ^1.0.0
   pub_cache: '>=0.2.0 <0.3.0'
   pub_semver: ^1.4.0
-  safe_config: ^3.0.0-b1
+  safe_config: ^3.0.0-b2
   yaml: ^2.1.15
   runtime: ^1.0.0-5
 
