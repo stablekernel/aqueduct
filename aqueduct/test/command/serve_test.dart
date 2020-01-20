@@ -213,7 +213,7 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
     await task.hasStarted;
 
     var result = await http.get("http://localhost:8888/example");
-    expect(result.body, "key: value");
+    expect(result.body, contains("key: value"));
   });
 
   test("Use config-path, absolute path", () async {
@@ -236,6 +236,6 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
     await task.hasStarted;
 
     var result = await http.get("http://localhost:8888/example");
-    expect(result.body, "key: value");
+    expect(result.body, contains("key: value"));
   });
 }
