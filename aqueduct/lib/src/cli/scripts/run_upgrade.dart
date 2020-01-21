@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/db/schema/migration_source.dart';
+import 'package:aqueduct/src/cli/migration_source.dart';
 import 'package:postgres/postgres.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
@@ -95,8 +95,8 @@ class RunUpgradeExecutable extends Executable<Map<String, dynamic>> {
         "package:aqueduct/aqueduct.dart",
         "package:logging/logging.dart",
         "package:postgres/postgres.dart",
-        "package:aqueduct/src/db/schema/migration_source.dart",
-        "package:aqueduct/src/runtime/runtime.dart"
+        "package:aqueduct/src/cli/migration_source.dart",
+        "package:runtime/runtime.dart"
       ];
 }
 

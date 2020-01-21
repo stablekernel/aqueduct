@@ -2,8 +2,7 @@ import 'package:aqueduct/src/db/managed/backing.dart';
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/runtime/orm/orm.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/runtime.dart';
 
 import '../query/query.dart';
 import 'managed.dart';
@@ -46,7 +45,7 @@ class ManagedEntity implements APIComponentDocumenter {
   ///
   /// If running in default mode (mirrors enabled), is a set of mirror operations. Otherwise,
   /// code generated.
-  ManagedEntityRuntime get runtime => Runtime.current.managedEntities[instanceType];
+  ManagedEntityRuntime get runtime => RuntimeContext.current[instanceType] as ManagedEntityRuntime;
 
   /// The type of persistent instances represented by this entity.
   ///
@@ -341,4 +340,17 @@ class ManagedEntity implements APIComponentDocumenter {
     context.schema
         .register(name, obj, representation: instanceType);
   }
+}
+
+abstract class ManagedEntityRuntime {
+  ManagedEntity get entity;
+  ManagedObject instanceOfImplementation({ManagedBacking backing});
+  ManagedSet setOfImplementation(Iterable<dynamic> objects);
+  void setTransientValueForKey(ManagedObject object, String key, dynamic value);
+  dynamic getTransientValueForKey(ManagedObject object, String key);
+  bool isValueInstanceOf(dynamic value);
+  bool isValueListOf(dynamic value);
+
+  dynamic dynamicAccessorImplementation(Invocation invocation, ManagedEntity entity, ManagedObject object);
+  dynamic dynamicConvertFromPrimitiveValue(ManagedPropertyDescription property, dynamic value);
 }

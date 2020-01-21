@@ -1,12 +1,16 @@
 import 'dart:mirrors';
-import 'package:aqueduct/src/compilers/orm/entity_builder.dart';
+import 'package:aqueduct/src/runtime/orm/entity_builder.dart';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
-import 'package:aqueduct/src/runtime/orm/orm.dart';
+import 'package:runtime/runtime.dart';
 
-class DataModelBuilder {
-  DataModelBuilder() {
-    final instanceTypes = _packageManagedObjectTypes;
+class DataModelCompiler {
+  Map<String, dynamic> compile(MirrorContext context) {
+    final m = <String, dynamic>{};
+
+    final instanceTypes = context.types
+      .where(_isTypeManagedObjectSubclass)
+      .map((c) => c.reflectedType);
 
     _builders = instanceTypes.map((t) => EntityBuilder(t)).toList();
     _builders.forEach((b) {
@@ -16,11 +20,11 @@ class DataModelBuilder {
 
     _builders.forEach((b) {
       b.link(_builders.map((eb) => eb.entity).toList());
-      runtimes[b.entity.instanceType.toString()] = b.runtime;
+      m[b.entity.instanceType.toString()] = b.runtime;
     });
-  }
 
-  Map<String, ManagedEntityRuntime> runtimes = {};
+    return m;
+  }
 
   List<EntityBuilder> _builders;
 
@@ -32,32 +36,22 @@ class DataModelBuilder {
           .map((eb) => eb.instanceTypeName)
           .toList();
       if (withSameName.length > 1) {
-        throw ManagedDataModelErrorImpl.duplicateTables(builder.name, withSameName);
+        throw ManagedDataModelErrorImpl.duplicateTables(
+            builder.name, withSameName);
       }
     });
 
     _builders.forEach((b) => b.validate(_builders));
   }
 
-  static List<Type> get _packageManagedObjectTypes {
-    final libraries = currentMirrorSystem().libraries.values.where(
-        (lib) => lib.uri.scheme == "package" || lib.uri.scheme == "file");
-
-    final types = libraries
-        .expand((lib) => lib.declarations.values)
-        .whereType<ClassMirror>()
-        .where((decl) => decl.hasReflectedType)
-        .map((decl) => decl.reflectedType)
-        .where(_isTypeManagedObjectSubclass)
-        .toList();
-
-    return types;
-  }
-
-  static bool _isTypeManagedObjectSubclass(Type type) {
+  static bool _isTypeManagedObjectSubclass(ClassMirror mirror) {
     final managedObjectMirror = reflectClass(ManagedObject);
-    final mirror = reflectClass(type);
+
     if (!mirror.isSubclassOf(managedObjectMirror)) {
+      return false;
+    }
+
+    if (!mirror.hasReflectedType) {
       return false;
     }
 

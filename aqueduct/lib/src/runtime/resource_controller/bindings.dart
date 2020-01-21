@@ -3,9 +3,9 @@ import 'dart:mirrors';
 import 'package:aqueduct/src/http/request.dart';
 import 'package:aqueduct/src/http/serializable.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
-import 'package:aqueduct/src/runtime/app/resource_controller_mirror/parameter.dart';
-import 'package:aqueduct/src/runtime/app/resource_controller_mirror/utility.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:aqueduct/src/runtime/resource_controller/parameter.dart';
+import 'package:aqueduct/src/runtime/resource_controller/utility.dart';
+import 'package:aqueduct/src/utilities/mirror_cast.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
 
@@ -233,7 +233,7 @@ class BoundBody extends BoundInput implements APIComponentDocumenter {
       return v;
     }
 
-    return Runtime.current.cast(request.body.as(), runtimeType: boundType.reflectedType);
+    return runtimeCast(request.body.as(), boundType);
   }
 
   @override

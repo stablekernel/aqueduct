@@ -4,24 +4,27 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/compilers/project_analyzer.dart';
-import 'package:aqueduct/src/db/schema/migration_source.dart';
+import 'package:runtime/src/analyzer.dart';
+import 'package:aqueduct/src/cli/migration_source.dart';
+import 'package:command_line_agent/command_line_agent.dart';
 import 'package:test/test.dart';
 
-import 'cli_helpers.dart';
+import 'package:aqueduct/src/dev/cli_helpers.dart';
 
-Terminal terminal;
+CLIClient cli;
 DatabaseConfiguration connectInfo = DatabaseConfiguration.withConnectionInfo(
-    "dart", "dart", "localhost", 5432, "dart_test");
+  "dart", "dart", "localhost", 5432, "dart_test");
 String connectString =
-    "postgres://${connectInfo.username}:${connectInfo.password}@${connectInfo.host}:${connectInfo.port}/${connectInfo.databaseName}";
+  "postgres://${connectInfo.username}:${connectInfo.password}@${connectInfo.host}:${connectInfo.port}/${connectInfo.databaseName}";
 
 void main() {
+
   PostgreSQLPersistentStore store;
 
   setUpAll(() async {
-    terminal = await Terminal.createProject();
-    await terminal.getDependencies(offline: true);
+    final t = CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory));
+    cli = await t.createProject();
+    await cli.agent.getDependencies(offline: true);
   });
 
   setUp(() async {
@@ -33,10 +36,10 @@ void main() {
         connectInfo.port,
         connectInfo.databaseName);
 
-    if (terminal.defaultMigrationDirectory.existsSync()) {
-      terminal.defaultMigrationDirectory.deleteSync(recursive: true);
+    if (cli.defaultMigrationDirectory.existsSync()) {
+      cli.defaultMigrationDirectory.deleteSync(recursive: true);
     }
-    terminal.defaultMigrationDirectory.createSync();
+    cli.defaultMigrationDirectory.createSync();
   });
 
   tearDown(() async {
@@ -52,11 +55,11 @@ void main() {
     await store?.close();
   });
 
-  tearDownAll(Terminal.deleteTemporaryDirectory);
+  tearDownAll(ProjectAgent.tearDownAll);
 
   test("Upgrade with no migration files returns 0 exit code", () async {
     expect(await runMigrationCases([]), 0);
-    expect(terminal.output, contains("No migration files"));
+    expect(cli.output, contains("No migration files"));
   });
 
   test("Generate and execute initial schema makes workable DB", () async {
@@ -80,14 +83,14 @@ void main() {
     expect(versionRow.first.first, 1);
     var updateDate = versionRow.first.last;
 
-    terminal.clearOutput();
+    cli.clearOutput();
     expect(await runMigrationCases(["Case2"]), 0);
     versionRow = await store.execute(
             "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql")
         as List<List>;
     expect(versionRow.length, 1);
     expect(versionRow.first.last, equals(updateDate));
-    expect(terminal.output, contains("already current (version: 1)"));
+    expect(cli.output, contains("already current (version: 1)"));
   });
 
   test("Multiple migration files are ran", () async {
@@ -110,7 +113,7 @@ void main() {
     expect(version, [
       [1]
     ]);
-    terminal.clearOutput();
+    cli.clearOutput();
 
     expect(await columnsOfTable(store, "_testobject"), ["id", "foo"]);
     expect(await tableExists(store, "_foo"), false);
@@ -145,10 +148,10 @@ void main() {
       () async {
     expect(await runMigrationCases(["Case61", "Case62", "Case63"]), isNot(0));
 
-    expect(terminal.output.contains("Applied schema version 1 successfully"),
+    expect(cli.output.contains("Applied schema version 1 successfully"),
         true);
     expect(
-        terminal.output, contains("relation \"_unknowntable\" does not exist"));
+      cli.output, contains("relation \"_unknowntable\" does not exist"));
 
     expect(await tableExists(store, store.versionTable.name), false);
     expect(await tableExists(store, "_testobject"), false);
@@ -159,15 +162,15 @@ void main() {
       "If migrations have already been applied, and new migrations occur where the first fails, those pending migrations are cancelled",
       () async {
     expect(await runMigrationCases(["Case61"]), 0);
-    expect(terminal.output.contains("Applied schema version 1 successfully"),
+    expect(cli.output.contains("Applied schema version 1 successfully"),
         true);
-    terminal.clearOutput();
+    cli.clearOutput();
 
     expect(await runMigrationCases(["Case62", "Case63"], fromVersion: 1),
         isNot(0));
 
     expect(
-        terminal.output, contains("relation \"_unknowntable\" does not exist"));
+      cli.output, contains("relation \"_unknowntable\" does not exist"));
 
     final version = await store
         .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
@@ -247,16 +250,15 @@ Future runMigrationCases(List<String> migrationNames,
       getOrderedTestMigrations(migrationNames, fromVersion: fromVersion);
 
   for (var mig in migs) {
-    final file = File.fromUri(terminal.defaultMigrationDirectory.uri
+    final file = File.fromUri(cli.defaultMigrationDirectory.uri
         .resolve("${mig.versionNumber}_name.migration.dart"));
     file.writeAsStringSync(
         "import 'dart:async';\nimport 'package:aqueduct/aqueduct.dart';\n${mig.source}");
   }
 
-  final res = await terminal
-      .runAqueductCommand("db", ["upgrade", "--connect", connectString]);
+  final res = await cli.run("db", ["upgrade", "--connect", connectString]);
 
-  log?.write(terminal.output);
+  log?.write(cli.output);
 
   return res;
 }

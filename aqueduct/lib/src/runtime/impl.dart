@@ -5,15 +5,39 @@ import 'package:aqueduct/src/application/application.dart';
 import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/application/isolate_application_server.dart';
 import 'package:aqueduct/src/application/options.dart';
+import 'package:aqueduct/src/http/body_decoder.dart';
 import 'package:aqueduct/src/http/controller.dart';
 import 'package:aqueduct/src/http/resource_controller.dart';
 import 'package:aqueduct/src/http/serializable.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
-import 'package:aqueduct/src/runtime/app/resource_controller_mirror.dart';
+import 'package:aqueduct/src/runtime/resource_controller_impl.dart';
+import 'package:aqueduct/src/utilities/mirror_cast.dart';
+import 'package:runtime/runtime.dart';
 
-class ChannelRuntimeImpl extends ChannelRuntime {
+class BodyDecoderRuntimeImpl extends BodyDecoderRuntime implements SourceCompiler {
+  @override
+  T cast<T>(dynamic input) {
+    return runtimeCast(input, reflectType(T)) as T;
+  }
+
+
+  @override
+  String compile(BuildContext ctx) {
+    return """
+import 'package:aqueduct/src/http/body_decoder.dart';    
+final instance = BodyDecoderRuntimeImpl();    
+class BodyDecoderRuntimeImpl extends BodyDecoderRuntime {
+  @override
+  T cast<T>(dynamic input) {
+    return null;
+  }
+}    
+""";
+  }
+}
+
+class ChannelRuntimeImpl extends ChannelRuntime implements SourceCompiler {
   ChannelRuntimeImpl(this.type);
 
   final ClassMirror type;
@@ -64,8 +88,10 @@ class ChannelRuntimeImpl extends ChannelRuntime {
     }).where((o) => o != null);
   }
 
+
   @override
-  String get source {
+  String compile(BuildContext ctx)
+  {
     final className = MirrorSystem.getName(type.simpleName);
     final originalFileUri = type.location.sourceUri.toString();
     final globalInitBody = hasGlobalInitializationMethod
@@ -75,29 +101,27 @@ class ChannelRuntimeImpl extends ChannelRuntime {
     return """
 import 'dart:async';    
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
 import 'package:aqueduct/src/application/isolate_application_server.dart';
 import '$originalFileUri';
 
 final instance = ChannelRuntimeImpl();
 
-class ChannelRuntimeImpl extends ChannelRuntime {
-  @override
-  String get source => throw UnsupportedError('This method is not implemented for compiled applications.');
+void entryPoint(ApplicationInitialServerMessage params) {
+  final runtime = ChannelRuntimeImpl();
+  
+  final server = ApplicationIsolateServer(runtime.channelType,
+    params.configuration, params.identifier, params.parentMessagePort,
+    logToConsole: params.logToConsole);
 
+  server.start(shareHttpServer: true);
+}
+
+class ChannelRuntimeImpl extends ChannelRuntime {
   @override
   String get name => '$className';
 
   @override
-  IsolateEntryFunction get isolateEntryPoint => (ApplicationInitialServerMessage params) {
-    final runtime = ChannelRuntimeImpl();
-    
-    final server = ApplicationIsolateServer(runtime.channelType,
-      params.configuration, params.identifier, params.parentMessagePort,
-      logToConsole: params.logToConsole);
-
-    server.start(shareHttpServer: true);
-  };
+  IsolateEntryFunction get isolateEntryPoint => entryPoint;
   
   @override
   Uri get libraryUri => null;
@@ -140,7 +164,7 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
   server.start(shareHttpServer: true);
 }
 
-class ControllerRuntimeImpl extends ControllerRuntime {
+class ControllerRuntimeImpl extends ControllerRuntime implements SourceCompiler {
   ControllerRuntimeImpl(this.type) {
     if (type.isSubclassOf(reflectClass(ResourceController))) {
       resourceController = ResourceControllerRuntimeImpl(type);
@@ -168,14 +192,14 @@ class ControllerRuntimeImpl extends ControllerRuntime {
     return fieldKeys.any((key) => members[key].isSetter);
   }
 
+
   @override
-  String get source {
+  String compile(BuildContext ctx) {
     final originalFileUri = type.location.sourceUri.toString();
 
     return """
 import 'dart:async';    
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
 import '$originalFileUri';
     
 final instance = ControllerRuntimeImpl();  
@@ -184,9 +208,6 @@ class ControllerRuntimeImpl extends ControllerRuntime {
   ControllerRuntimeImpl() {
     /* provide resource controller runtime instance */
   }
-  
-  @override
-  String get source => throw UnsupportedError('This method is not implemented for compiled applications.');
   
   @override
   bool get isMutable => ${isMutable};
@@ -264,7 +285,4 @@ class SerializableRuntimeImpl extends SerializableRuntime {
     throw ArgumentError(
         "Unsupported type '${MirrorSystem.getName(type.simpleName)}' for 'APIComponentDocumenter.documentType'.");
   }
-
-  @override
-  String get source => null;
 }

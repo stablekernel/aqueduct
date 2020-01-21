@@ -2,13 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import "dart:core";
 import "dart:io";
-import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
 import "package:test/test.dart";
 
-import '../helpers.dart';
+import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   HttpServer server;
@@ -24,7 +23,7 @@ void main() {
   });
 
   test("Get w/ no params", () async {
-    server = await enableController("/a", TController);
+    server = await enableController("/a", () => TController());
 
     var res = await http.get("http://localhost:4040/a");
 
@@ -33,7 +32,7 @@ void main() {
   });
 
   test("Get w/ 1 param", () async {
-    server = await enableController("/a/:id", TController);
+    server = await enableController("/a/:id", () => TController());
     var res = await http.get("http://localhost:4040/a/123");
 
     expect(res.statusCode, 200);
@@ -41,7 +40,7 @@ void main() {
   });
 
   test("Get w/ 2 param", () async {
-    server = await enableController("/a/:id/:flag", TController);
+    server = await enableController("/a/:id/:flag", () => TController());
 
     var res = await http.get("http://localhost:4040/a/123/active");
 
@@ -50,14 +49,14 @@ void main() {
   });
 
   test("Can get path variable without binding", () async {
-    server = await enableController("/:id", NoBindController);
+    server = await enableController("/:id", () => NoBindController());
     var response = await http.get("http://localhost:4040/foo");
     expect(json.decode(response.body), {"id": "foo"});
   });
 
   group("Unsupported method", () {
     test("Returns status code 405 with Allow response header", () async {
-      server = await enableController("/a", TController);
+      server = await enableController("/a", () => TController());
 
       var res = await http.delete("http://localhost:4040/a");
       expect(res.statusCode, 405);
@@ -66,7 +65,7 @@ void main() {
 
     test("Only returns allow for specific resource within controller",
         () async {
-      server = await enableController("/a/[:id/[:flag]]", TController);
+      server = await enableController("/a/[:id/[:flag]]", () => TController());
 
       var res = await http.delete("http://localhost:4040/a");
       expect(res.statusCode, 405);
@@ -83,7 +82,7 @@ void main() {
   });
 
   test("Crashing controller delivers 500", () async {
-    server = await enableController("/a/:id", TController);
+    server = await enableController("/a/:id", () => TController());
 
     var res = await http.put("http://localhost:4040/a/a");
 
@@ -91,7 +90,7 @@ void main() {
   });
 
   test("Only respond to appropriate content types", () async {
-    server = await enableController("/a", TController);
+    server = await enableController("/a", () => TController());
 
     var body = json.encode({"a": "b"});
     var res = await http.post("http://localhost:4040/a",
@@ -101,7 +100,7 @@ void main() {
   });
 
   test("Return error when wrong content type", () async {
-    server = await enableController("/a", TController);
+    server = await enableController("/a", () => TController());
 
     var body = json.encode({"a": "b"});
     var res = await http.post("http://localhost:4040/a",
@@ -111,7 +110,7 @@ void main() {
 
   test("Query parameters get delivered if exposed as optional params",
       () async {
-    server = await enableController("/a", QController);
+    server = await enableController("/a", () => QController());
 
     var res = await http.get("http://localhost:4040/a?opt=x");
     expect(res.body, "\"OK\"");
@@ -127,7 +126,7 @@ void main() {
 
     await server.close(force: true);
 
-    server = await enableController("/:id", QController);
+    server = await enableController("/:id", () => QController());
 
     res = await http.get("http://localhost:4040/123?opt=x");
     expect(res.body, "\"OK\"");
@@ -143,7 +142,7 @@ void main() {
   });
 
   test("Path parameters are parsed into appropriate type", () async {
-    server = await enableController("/:id", IntController);
+    server = await enableController("/:id", () => IntController());
 
     var res = await http.get("http://localhost:4040/123");
     expect(res.body, "\"246\"");
@@ -153,7 +152,7 @@ void main() {
 
     await server.close(force: true);
 
-    server = await enableController("/:time", DateTimeController);
+    server = await enableController("/:time", () => DateTimeController());
     res = await http.get("http://localhost:4040/2001-01-01T00:00:00.000000Z");
     expect(res.statusCode, 200);
     expect(res.body, "\"2001-01-01 00:00:05.000Z\"");
@@ -163,7 +162,7 @@ void main() {
   });
 
   test("Query parameters are parsed into appropriate types", () async {
-    server = await enableController("/a", IntController);
+    server = await enableController("/a", () => IntController());
     var res = await http.get("http://localhost:4040/a?opt=12");
     expect(res.body, "\"12\"");
 
@@ -176,7 +175,7 @@ void main() {
 
     await server.close(force: true);
 
-    server = await enableController("/a", DateTimeController);
+    server = await enableController("/a", () => DateTimeController());
     res = await http
         .get("http://localhost:4040/a?opt=2001-01-01T00:00:00.000000Z");
     expect(res.statusCode, 200);
@@ -191,7 +190,7 @@ void main() {
   });
 
   test("Query parameters can be obtained from x-www-form-urlencoded", () async {
-    server = await enableController("/a", IntController);
+    server = await enableController("/a", () => IntController());
     var res = await http.post("http://localhost:4040/a",
         headers: {"Content-Type": "application/x-www-form-urlencoded"},
         body: "opt=7");
@@ -199,7 +198,7 @@ void main() {
   });
 
   test("Model and lists are encoded in response", () async {
-    server = await enableController("/a/:thing", ModelEncodeController);
+    server = await enableController("/a/:thing", () => ModelEncodeController());
     var res = await http.get("http://localhost:4040/a/list");
     expect(json.decode(res.body), [
       {"id": 1},
@@ -221,7 +220,7 @@ void main() {
   });
 
   test("Controllers return no body if null", () async {
-    server = await enableController("/a/:thing", ModelEncodeController);
+    server = await enableController("/a/:thing", () => ModelEncodeController());
 
     var res = await http.get("http://localhost:4040/a/null");
     expect(res.body, isEmpty);
@@ -229,7 +228,7 @@ void main() {
   });
 
   test("Sending bad JSON returns 400", () async {
-    server = await enableController("/a", TController);
+    server = await enableController("/a", () => TController());
     var res = await http.post("http://localhost:4040/a",
         body: "{`foobar' : 2}", headers: {"Content-Type": "application/json"});
     expect(res.statusCode, 400);
@@ -239,7 +238,7 @@ void main() {
   });
 
   test("Prefilter requests", () async {
-    server = await enableController("/a", FilteringController);
+    server = await enableController("/a", () => FilteringController());
 
     var resp = await http.get("http://localhost:4040/a");
     expect(resp.statusCode, 200);
@@ -251,14 +250,14 @@ void main() {
   });
 
   test("Request with multiple query parameters of same key", () async {
-    server = await enableController("/a", MultiQueryParamController);
+    server = await enableController("/a", () => MultiQueryParamController());
     var resp = await http.get("http://localhost:4040/a?params=1&params=2");
     expect(resp.statusCode, 200);
     expect(resp.body, '"1,2"');
   });
 
   test("Request with query parameter key is bool", () async {
-    server = await enableController("/a", BooleanQueryParamController);
+    server = await enableController("/a", () => BooleanQueryParamController());
     var resp = await http.get("http://localhost:4040/a?param");
     expect(resp.statusCode, 200);
     expect(resp.body, '"true"');
@@ -269,7 +268,7 @@ void main() {
   });
 
   test("Content-Type defaults to application/json", () async {
-    server = await enableController("/a", TController);
+    server = await enableController("/a", () => TController());
     var resp = await http.get("http://localhost:4040/a");
     expect(resp.statusCode, 200);
     expect(ContentType.parse(resp.headers["content-type"]).primaryType,
@@ -278,7 +277,7 @@ void main() {
   });
 
   test("Content-Type can be set adjusting responseContentType", () async {
-    server = await enableController("/a", ContentTypeController);
+    server = await enableController("/a", () => ContentTypeController());
     var resp =
         await http.get("http://localhost:4040/a?opt=responseContentType");
     expect(resp.statusCode, 200);
@@ -288,7 +287,7 @@ void main() {
 
   test("Content-Type set directly on Response overrides responseContentType",
       () async {
-    server = await enableController("/a", ContentTypeController);
+    server = await enableController("/a", () => ContentTypeController());
     var resp = await http.get("http://localhost:4040/a?opt=direct");
     expect(resp.statusCode, 200);
     expect(resp.headers["content-type"], "text/plain");
@@ -296,7 +295,7 @@ void main() {
   });
 
   test("didDecodeRequestBody invoked when there is a request body", () async {
-    server = await enableController("/a", DecodeCallbackController);
+    server = await enableController("/a", () => DecodeCallbackController());
     var resp = await http.get("http://localhost:4040/a");
     expect(json.decode(resp.body), {"didDecode": false});
 
@@ -308,7 +307,7 @@ void main() {
 
   group("Annotated HTTP parameters", () {
     test("are supplied correctly", () async {
-      server = await enableController("/a", HTTPParameterController);
+      server = await enableController("/a", () => HTTPParameterController());
       var resp = await http.get(
           "http://localhost:4040/a?number=3&Shaqs=1&Table=IKEA&table_legs=8",
           headers: {
@@ -332,7 +331,7 @@ void main() {
     });
 
     test("optional parameters aren't required", () async {
-      server = await enableController("/a", HTTPParameterController);
+      server = await enableController("/a", () => HTTPParameterController());
       var resp = await http
           .get("http://localhost:4040/a?Shaqs=1&Table=IKEA", headers: {
         "x-request-id": "3423423adfea90",
@@ -353,7 +352,7 @@ void main() {
     });
 
     test("missing required controller header param fails", () async {
-      server = await enableController("/a", HTTPParameterController);
+      server = await enableController("/a", () => HTTPParameterController());
       var resp = await http
           .get("http://localhost:4040/a?Shaqs=1&Table=IKEA", headers: {
         "Cookie": "Chips Ahoy",
@@ -365,7 +364,7 @@ void main() {
     });
 
     test("missing required controller query param fails", () async {
-      server = await enableController("/a", HTTPParameterController);
+      server = await enableController("/a", () => HTTPParameterController());
       var resp = await http.get("http://localhost:4040/a?Table=IKEA", headers: {
         "x-request-id": "3423423adfea90",
         "Cookie": "Chips Ahoy",
@@ -377,7 +376,7 @@ void main() {
     });
 
     test("missing required method header param fails", () async {
-      server = await enableController("/a", HTTPParameterController);
+      server = await enableController("/a", () => HTTPParameterController());
       var resp = await http
           .get("http://localhost:4040/a?Shaqs=1&Table=IKEA", headers: {
         "x-request-id": "3423423adfea90",
@@ -389,7 +388,7 @@ void main() {
     });
 
     test("missing require method query param fails", () async {
-      server = await enableController("/a", HTTPParameterController);
+      server = await enableController("/a", () => HTTPParameterController());
       var resp = await http.get("http://localhost:4040/a?Shaqs=1", headers: {
         "x-request-id": "3423423adfea90",
         "Cookie": "Chips Ahoy",
@@ -401,7 +400,7 @@ void main() {
     });
 
     test("reports all missing required parameters", () async {
-      server = await enableController("/a", HTTPParameterController);
+      server = await enableController("/a", () => HTTPParameterController());
       var resp = await http.get("http://localhost:4040/a");
 
       expect(resp.statusCode, 400);
@@ -413,7 +412,7 @@ void main() {
     });
 
     test("Headers are case-INsensitive", () async {
-      server = await enableController("/a", HTTPParameterController);
+      server = await enableController("/a", () => HTTPParameterController());
       var resp = await http.get(
           "http://localhost:4040/a?number=3&Shaqs=1&Table=IKEA&table_legs=8",
           headers: {
@@ -437,7 +436,7 @@ void main() {
     });
 
     test("Query parameters are case-SENSITIVE", () async {
-      server = await enableController("/a", HTTPParameterController);
+      server = await enableController("/a", () => HTTPParameterController());
       var resp = await http
           .get("http://localhost:4040/a?SHAQS=1&table=IKEA", headers: {
         "X-Request-ID": "3423423adfea90",
@@ -454,7 +453,7 @@ void main() {
 
     test("May only be one query parameter if arg type is not List<T>",
         () async {
-      server = await enableController("/a", DuplicateParamController);
+      server = await enableController("/a", () => DuplicateParamController());
       var resp = await http
           .get("http://localhost:4040/a?list=a&list=b&single=x&single=y");
 
@@ -466,7 +465,7 @@ void main() {
 
     test("Can be more than one query parameters for arg type that is List<T>",
         () async {
-      server = await enableController("/a", DuplicateParamController);
+      server = await enableController("/a", () => DuplicateParamController());
       var resp =
           await http.get("http://localhost:4040/a?list=a&list=b&single=x");
 
@@ -480,7 +479,7 @@ void main() {
 
     test("Can be exactly one query parameter for arg type that is List<T>",
         () async {
-      server = await enableController("/a", DuplicateParamController);
+      server = await enableController("/a", () => DuplicateParamController());
       var resp = await http.get("http://localhost:4040/a?list=a&single=x");
 
       expect(resp.statusCode, 200);
@@ -493,7 +492,7 @@ void main() {
 
     test("Missing required List<T> query parameter still returns 400",
         () async {
-      server = await enableController("/a", DuplicateParamController);
+      server = await enableController("/a", () => DuplicateParamController());
       var resp = await http.get("http://localhost:4040/a?single=x");
 
       expect(resp.statusCode, 400);
@@ -505,7 +504,7 @@ void main() {
   group("Recycling", () {
     test("Multiple requests to same controller yield correct results",
         () async {
-      server = await enableController("/a/[:id/[:flag]]", TController);
+      server = await enableController("/a/[:id/[:flag]]", () => TController());
 
       final List<http.Response> responses = await Future.wait([
         http.get("http://localhost:4040/a"),
@@ -764,10 +763,9 @@ class NoBindController extends ResourceController {
   }
 }
 
-Future<HttpServer> enableController(String pattern, Type controller) async {
+Future<HttpServer> enableController(String pattern, Controller instantiate()) async {
   var router = Router();
-  router.route(pattern).link(() => reflectClass(controller)
-      .newInstance(const Symbol(""), []).reflectee as Controller);
+  router.route(pattern).link(instantiate);
   router.didAddToChannel();
 
   var server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);

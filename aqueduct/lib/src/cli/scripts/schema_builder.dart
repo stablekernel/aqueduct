@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/db/schema/migration_source.dart';
+import 'package:aqueduct/src/cli/migration_source.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
 class SchemaBuilderExecutable extends Executable<Map<String, dynamic>> {
@@ -47,7 +47,7 @@ class SchemaBuilderExecutable extends Executable<Map<String, dynamic>> {
 
   static List<String> get imports => [
         "package:aqueduct/aqueduct.dart",
-        "package:aqueduct/src/db/schema/migration_source.dart",
-        "package:aqueduct/src/runtime/runtime.dart"
+        "package:aqueduct/src/cli/migration_source.dart",
+        "package:runtime/runtime.dart"
       ];
 }

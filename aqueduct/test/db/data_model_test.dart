@@ -1,10 +1,8 @@
-import 'dart:mirrors';
-
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
 import 'package:test/test.dart';
 
-import '../helpers.dart';
+import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   group("Valid data model", () {
@@ -417,14 +415,10 @@ void main() {
 
     var joinEntity = model.entityForType(JoinMany);
     expect(
-        reflectType(
-                joinEntity.relationships["left"].destinationEntity.instanceType)
-            .isSubtypeOf(reflectType(LeftMany)),
+      joinEntity.relationships["left"].destinationEntity.instanceType == LeftMany,
         true);
-    expect(
-        reflectType(joinEntity
-                .relationships["right"].destinationEntity.instanceType)
-            .isSubtypeOf(reflectType(RightMany)),
+    expect(joinEntity
+      .relationships["right"].destinationEntity.instanceType == RightMany,
         true);
   });
 

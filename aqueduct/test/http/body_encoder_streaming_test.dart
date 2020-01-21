@@ -6,7 +6,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import '../helpers.dart';
+import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   var defaultSize = RequestBody.maxSize;
@@ -46,7 +46,8 @@ void main() {
         ..contentType = ContentType("application", "octet-stream");
       server = await bindAndRespondWith(response);
 
-      var resultFuture = http.get("http://localhost:8888");
+      final request = await HttpClient().get("localhost", 8888, "/");
+      final resultFuture = request.close();
 
       sc.add([1, 2, 3, 4]);
       sc.add([5, 6, 7, 8]);
@@ -54,10 +55,11 @@ void main() {
       // ignore: unawaited_futures
       sc.close();
 
+      final resp = await resultFuture;
       try {
-        await resultFuture;
+        await resp.toList();
         expect(true, false);
-      } on http.ClientException catch (e) {
+      } on HttpException catch (e) {
         expect(
             e.toString(), contains("Connection closed while receiving data"));
       }
@@ -126,7 +128,8 @@ void main() {
         ..contentType = ContentType("application", "crash");
       server = await bindAndRespondWith(response);
 
-      var resultFuture = http.get("http://localhost:8888");
+      final request = await HttpClient().get("localhost", 8888, "/");
+      final resultFuture = request.close();
 
       sc.add("abcd");
       sc.add("efgh");
@@ -134,9 +137,10 @@ void main() {
       sc.close();
 
       try {
-        await resultFuture;
+        final resp = await resultFuture;
+        await resp.toList();
         expect(true, false);
-      } on http.ClientException catch (e) {
+      } on HttpException catch (e) {
         expect(
             e.toString(), contains("Connection closed while receiving data"));
       }

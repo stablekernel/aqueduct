@@ -3,12 +3,13 @@ import 'dart:io';
 
 import 'package:aqueduct/src/application/service_registry.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:runtime/runtime.dart';
 
 import '../http/http.dart';
 import 'application.dart';
+import 'isolate_application_server.dart';
 
 /// An object that defines the behavior specific to your application.
 ///
@@ -184,7 +185,9 @@ abstract class ApplicationChannel implements APIComponentDocumenter {
   void documentComponents(APIDocumentContext registry) {
     entryPoint.documentComponents(registry);
 
-    Runtime.current.channels[runtimeType].getDocumentableChannelComponents(this).forEach((component) {
+    (RuntimeContext.current[runtimeType] as ChannelRuntime)
+        .getDocumentableChannelComponents(this)
+        .forEach((component) {
       component.documentComponents(registry);
     });
   }
@@ -262,3 +265,19 @@ class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
     await _inboundController.close();
   }
 }
+
+abstract class ChannelRuntime {
+  Iterable<APIComponentDocumenter> getDocumentableChannelComponents(
+    ApplicationChannel channel);
+
+  Type get channelType;
+
+  String get name;
+  Uri get libraryUri;
+  IsolateEntryFunction get isolateEntryPoint;
+
+  ApplicationChannel instantiateChannel();
+
+  Future runGlobalInitialization(ApplicationOptions config);
+}
+

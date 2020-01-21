@@ -1,5 +1,5 @@
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/runtime.dart';
 
 import 'http.dart';
 
@@ -12,7 +12,7 @@ abstract class Serializable {
   /// The returned [APISchemaObject] will be of type [APIType.object]. By default, each instance variable
   /// of the receiver's type will be a property of the return value.
   APISchemaObject documentSchema(APIDocumentContext context) {
-    return Runtime.current.serializables[runtimeType].documentSchema(context);
+    return (RuntimeContext.current[runtimeType] as SerializableRuntime).documentSchema(context);
   }
 
   /// Reads values from [object].
@@ -107,4 +107,8 @@ class SerializableException implements HandlerException {
     final reasons = (response.body["reasons"] as List).join(", ");
     return "$errorString $reasons";
   }
+}
+
+abstract class SerializableRuntime {
+  APISchemaObject documentSchema(APIDocumentContext context);
 }
