@@ -87,7 +87,7 @@ void main() {
     });
 
     test("Can use accept filters", () async {
-      server = await enableController("/", FilterController);
+      server = await enableController("/", () => FilterController());
       final response =
           await postJSON({"required": "", "accept": "", "noAccept": ""});
 
@@ -130,7 +130,7 @@ void main() {
     });
 
     test("Can use accept filters on List<Serializable>", () async {
-      server = await enableController("/", FilterListController);
+      server = await enableController("/", () => FilterListController());
       final response = await postJSON([
         {"required": "", "accept": ""},
         {"required": "", "noAccept": ""}
@@ -387,7 +387,8 @@ class ByteListController extends ResourceController {
   }
 }
 
-Future<HttpServer> enableController(String pattern, Controller instantiate()) async {
+Future<HttpServer> enableController(
+    String pattern, Controller instantiate()) async {
   var router = Router();
   router.route(pattern).link(instantiate);
   router.didAddToChannel();
