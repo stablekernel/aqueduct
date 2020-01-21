@@ -241,7 +241,7 @@ A private variable in a table definition removes it from the serialized represen
 
 ### Transient Properties
 
-Properties declares in a managed object subclass are called *transient* because they are not stored in a database. For example, consider an `Author` type that stores first and last name as separate columns. Instead of redundantly storing a 'full name' in the database, a transient property can combine the first and last name:
+Properties declared in a managed object subclass are called *transient* because they are not stored in a database. For example, consider an `Author` type that stores first and last name as separate columns. Instead of redundantly storing a 'full name' in the database, a transient property can combine the first and last name:
 
 ```dart
 class Author extends ManagedObject<_Author> implements _Author {
