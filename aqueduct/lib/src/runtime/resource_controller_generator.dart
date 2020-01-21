@@ -1,11 +1,19 @@
+import 'package:aqueduct/src/http/resource_controller.dart';
 import 'package:aqueduct/src/runtime/resource_controller_impl.dart';
 import 'package:runtime/runtime.dart';
 
 String getInvokerSource(ResourceControllerOperationRuntimeImpl op, ResourceControllerRuntimeImpl controller, BuildContext context) {
-  return """(rc, request, errorsIn) async {
-  
-  }
-  """;
+  final buf = StringBuffer();
+
+  buf.writeln("(rc, request, errorsIn) async {");
+
+  op.positionalParameters.forEach((parameter) {
+
+  });
+
+  buf.writeln("}");
+
+  return buf.toString();
 }
 
 String getResourceControllerImplSource(
@@ -13,7 +21,7 @@ String getResourceControllerImplSource(
   final runtimes = runtime.operations.map((op) {
     return "ResourceControllerOperationRuntimeImpl('${op.method}', "
       "[${op.pathVariables.map((p) => "'$p'").join(",")}],"
-      "[${op.scopes.map((s) => "'$s'").join(",")}],"
+      "[${op.scopes?.map((s) => "'$s'")?.join(",") ?? ""}],"
       "${getInvokerSource(op, runtime, context)})";
   }).join(",\n");
 
@@ -22,16 +30,11 @@ String getResourceControllerImplSource(
 class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {  
   @override
   List<ResourceControllerOperationRuntimeImpl> operations = [
-    return [$runtimes];
+    $runtimes
   ];
 
-  
   void bindProperties(ResourceController rc, Request request, List<String> errorsIn) {
   
-  }
-  
-  ResourceControllerOperationRuntime getOperationRuntime(String method, List<String> pathVariables) {
-    return null;
   }
   
   void documentComponents(ResourceController rc, APIDocumentContext context) => throw StateError('not valid in compiled app');
