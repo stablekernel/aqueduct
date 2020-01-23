@@ -4,7 +4,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 import 'package:test/test.dart';
 
-import '../context_helpers.dart';
+import 'package:aqueduct/src/dev/context_helpers.dart';
 
 // These tests are similar to managed_auth_storage_test, but handle the cases where authenticatables
 // have scope rules.

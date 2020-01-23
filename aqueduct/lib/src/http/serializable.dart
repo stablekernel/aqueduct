@@ -1,5 +1,5 @@
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:runtime/runtime.dart';
 
 import 'http.dart';
 
@@ -12,7 +12,7 @@ abstract class Serializable {
   /// The returned [APISchemaObject] will be of type [APIType.object]. By default, each instance variable
   /// of the receiver's type will be a property of the return value.
   APISchemaObject documentSchema(APIDocumentContext context) {
-    return Runtime.current.serializables[runtimeType].documentSchema(context);
+    return (RuntimeContext.current[runtimeType] as SerializableRuntime).documentSchema(context);
   }
 
   /// Reads values from [object].
@@ -30,9 +30,10 @@ abstract class Serializable {
   /// The key name must exactly match the name of the property as defined in the receiver's type.
   /// If [object] contains a key that is unknown to the receiver, an exception is thrown (status code: 400).
   ///
-  /// [ignore], [reject] and [require] are filters on [object]'s keys with the following behaviors:
+  /// [accept], [ignore], [reject] and [require] are filters on [object]'s keys with the following behaviors:
   ///
-  /// If [ignore] is set, each value for that key is ignored and their value is discarded.
+  /// If [accept] is set, all values for the keys that are not given are ignored and discarded.
+  /// If [ignore] is set, all values for the given keys are ignored and discarded.
   /// If [reject] is set, if [object] contains any of these keys, a status code 400 exception is thrown.
   /// If [require] is set, all keys must be present in [object].
   ///
@@ -41,10 +42,11 @@ abstract class Serializable {
   ///     var user = User()
   ///       ..read(values, ignore: ["id"]);
   void read(Map<String, dynamic> object,
-      {Iterable<String> ignore,
+      {Iterable<String> accept,
+      Iterable<String> ignore,
       Iterable<String> reject,
       Iterable<String> require}) {
-    if (ignore == null && reject == null && require == null) {
+    if (accept == null && ignore == null && reject == null && require == null) {
       readFromMap(object);
       return;
     }
@@ -55,10 +57,10 @@ abstract class Serializable {
       if (reject?.contains(key) ?? false) {
         throw SerializableException(["invalid input key '$key'"]);
       }
-      if (ignore?.contains(key) ?? false) {
+      if ((ignore?.contains(key) ?? false) ||
+          !(accept?.contains(key) ?? true)) {
         copy.remove(key);
       }
-
       stillRequired?.remove(key);
     });
 
@@ -107,4 +109,8 @@ class SerializableException implements HandlerException {
     final reasons = (response.body["reasons"] as List).join(", ");
     return "$errorString $reasons";
   }
+}
+
+abstract class SerializableRuntime {
+  APISchemaObject documentSchema(APIDocumentContext context);
 }

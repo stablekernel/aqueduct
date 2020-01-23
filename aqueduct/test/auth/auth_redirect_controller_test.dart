@@ -7,7 +7,7 @@ import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
 import 'package:test/test.dart';
 
-import '../helpers.dart';
+import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   Application<TestChannel> application;

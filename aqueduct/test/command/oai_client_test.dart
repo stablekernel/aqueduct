@@ -1,32 +1,34 @@
 // ignore: unnecessary_const
 @Tags(const ["cli"])
+import 'package:command_line_agent/command_line_agent.dart';
 import 'package:test/test.dart';
 
-import 'cli_helpers.dart';
+import 'package:aqueduct/src/dev/cli_helpers.dart';
 
 void main() {
-  Terminal terminal;
-  Terminal template;
+  CLIClient templateCli;
+  CLIClient projectUnderTestCli;
 
   setUpAll(() async {
-    await Terminal.activateCLI();
-    template = await Terminal.createProject(template: "db_and_auth");
-    await template.getDependencies();
+    await CLIClient.activateCLI();
+    final t = CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory));
+    templateCli = await t.createProject(template: "db_and_auth");
+    await templateCli.agent.getDependencies(offline: true);
   });
 
   setUp(() {
-    terminal = template.replicate();
+    projectUnderTestCli = templateCli.replicate(Uri.parse("replica/"));
   });
 
   tearDownAll(() async {
-    await Terminal.deactivateCLI();
-    Terminal.deleteTemporaryDirectory();
+    await CLIClient.deactivateCLI();
+    ProjectAgent.tearDownAll();
   });
 
   test("command with default args creates client page from current project dir pointing at localhost:8888", () async {
-    await terminal.runAqueductCommand("document", ["client"]);
+    await projectUnderTestCli.run("document", ["client"]);
 
-    final clientContents = terminal.getFile("client.html")?.readAsStringSync();
+    final clientContents = projectUnderTestCli.agent.getFile("client.html")?.readAsStringSync();
     expect(clientContents, contains('spec: {"openapi":"3.0.0"'));
     expect(clientContents, contains('<script src="https://unpkg.com/swagger-ui-dist@3.12.1/swagger-ui-bundle.js"></script>'));
 
@@ -37,9 +39,9 @@ void main() {
   });
 
   test("Replace relative urls with provided server", () async {
-    await terminal.runAqueductCommand("document", ["client", "--host", "https://server.com/v1/"]);
+    await projectUnderTestCli.run("document", ["client", "--host", "https://server.com/v1/"]);
 
-    final clientContents = terminal.getFile("client.html")?.readAsStringSync();
+    final clientContents = projectUnderTestCli.agent.getFile("client.html")?.readAsStringSync();
     expect(clientContents, contains('spec: {"openapi":"3.0.0"'));
     expect(clientContents, contains('<script src="https://unpkg.com/swagger-ui-dist@3.12.1/swagger-ui-bundle.js"></script>'));
 

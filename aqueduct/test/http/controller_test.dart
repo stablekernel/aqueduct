@@ -6,7 +6,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import '../helpers.dart';
+import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   group("Linking", () {
@@ -137,7 +137,9 @@ void main() {
         req.raw.response.close();
 
         return null;
-      }).linkFunction((req) {
+      }).linkFunction(
+          // ignore: missing_return
+          (req) {
         set = true;
       });
 
@@ -163,11 +165,13 @@ void main() {
     test(
         "Logging after socket is closed throws uncaught exception, still works correctly after",
         () async {
+          final request = await HttpClient().get("localhost", 8000, "/detach");
+          final response = await request.close();
       try {
-        await http.get("http://localhost:8000/detach");
+        await response.toList();
         expect(true, false);
         // ignore: empty_catches
-      } on http.ClientException {}
+      } on HttpException {}
 
       expect((await http.get("http://localhost:8000/detach")).statusCode, 200);
     });
@@ -458,6 +462,4 @@ class PrepareTailController extends Controller {
   FutureOr<RequestOrResponse> handle(Request request) {
     return request;
   }
-
-
 }

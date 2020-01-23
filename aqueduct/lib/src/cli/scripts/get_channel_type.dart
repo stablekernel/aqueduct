@@ -1,15 +1,16 @@
 import 'dart:async';
 import 'dart:mirrors';
 
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:aqueduct/src/application/channel.dart';
 import 'package:isolate_executor/isolate_executor.dart';
+import 'package:runtime/runtime.dart';
 
 class GetChannelExecutable extends Executable<String> {
   GetChannelExecutable(Map<String, dynamic> message) : super(message);
 
   @override
   Future<String> execute() async {
-    final channels = Runtime.current.channels.iterable;
+    final channels = RuntimeContext.current.runtimes.iterable.whereType<ChannelRuntime>();
     if (channels.length != 1) {
       throw StateError("No ApplicationChannel subclass was found for this project. "
         "Make sure it is imported in your application library file.");
@@ -25,6 +26,6 @@ class GetChannelExecutable extends Executable<String> {
   static List<String> importsForPackage(String packageName) => [
         "package:aqueduct/aqueduct.dart",
         "package:$packageName/$packageName.dart",
-        "package:aqueduct/src/runtime/runtime.dart"
+        "package:runtime/runtime.dart"
       ];
 }

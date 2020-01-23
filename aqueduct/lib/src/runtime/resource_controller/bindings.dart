@@ -3,9 +3,9 @@ import 'dart:mirrors';
 import 'package:aqueduct/src/http/request.dart';
 import 'package:aqueduct/src/http/serializable.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
-import 'package:aqueduct/src/runtime/app/resource_controller_mirror/parameter.dart';
-import 'package:aqueduct/src/runtime/app/resource_controller_mirror/utility.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
+import 'package:aqueduct/src/runtime/resource_controller/parameter.dart';
+import 'package:aqueduct/src/runtime/resource_controller/utility.dart';
+import 'package:aqueduct/src/utilities/mirror_cast.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:open_api/v3.dart';
 
@@ -168,12 +168,17 @@ class BoundQueryParameter extends BoundInput {
 
 class BoundBody extends BoundInput implements APIComponentDocumenter {
   BoundBody(ClassMirror typeMirror,
-      {List<String> ignore, List<String> error, List<String> required})
-      : ignoreFilter = ignore,
+      {List<String> accept,
+      List<String> ignore,
+      List<String> error,
+      List<String> required})
+      : acceptFilter = accept,
+        ignoreFilter = ignore,
         errorFilter = error,
         requiredFilter = required,
         super(typeMirror, null);
 
+  final List<String> acceptFilter;
   final List<String> ignoreFilter;
   final List<String> errorFilter;
   final List<String> requiredFilter;
@@ -193,7 +198,10 @@ class BoundBody extends BoundInput implements APIComponentDocumenter {
 
   @override
   void validate() {
-    if (ignoreFilter != null || errorFilter != null || requiredFilter != null) {
+    if (acceptFilter != null ||
+        ignoreFilter != null ||
+        errorFilter != null ||
+        requiredFilter != null) {
       if (!(_isBoundToSerializable || _isBoundToListOfSerializable)) {
         throw 'Filters can only be used on Serializable or List<Serializable>.';
       }
@@ -210,7 +218,10 @@ class BoundBody extends BoundInput implements APIComponentDocumenter {
       final value =
           boundType.newInstance(const Symbol(""), []).reflectee as Serializable;
       value.read(request.body.as(),
-          ignore: ignoreFilter, reject: errorFilter, require: requiredFilter);
+          accept: acceptFilter,
+          ignore: ignoreFilter,
+          reject: errorFilter,
+          require: requiredFilter);
 
       return value;
     } else if (_isBoundToListOfSerializable) {
@@ -224,7 +235,10 @@ class BoundBody extends BoundInput implements APIComponentDocumenter {
         final value =
             typeArg.newInstance(const Symbol(""), []).reflectee as Serializable;
         value.read(object,
-            ignore: ignoreFilter, reject: errorFilter, require: requiredFilter);
+            accept: acceptFilter,
+            ignore: ignoreFilter,
+            reject: errorFilter,
+            require: requiredFilter);
 
         return value;
       }).toList();
@@ -233,7 +247,7 @@ class BoundBody extends BoundInput implements APIComponentDocumenter {
       return v;
     }
 
-    return Runtime.current.cast(request.body.as(), runtimeType: boundType.reflectedType);
+    return runtimeCast(request.body.as(), boundType);
   }
 
   @override

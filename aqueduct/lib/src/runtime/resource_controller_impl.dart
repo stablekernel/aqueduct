@@ -4,11 +4,10 @@ import 'dart:mirrors';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/http/resource_controller_bindings.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
-import 'package:aqueduct/src/runtime/app/app.dart';
-import 'package:aqueduct/src/runtime/app/mirror.dart';
-import 'package:aqueduct/src/runtime/app/resource_controller_mirror/bindings.dart';
-import 'package:aqueduct/src/runtime/app/resource_controller_mirror/parameter.dart';
-import 'package:aqueduct/src/runtime/app/resource_controller_mirror/utility.dart';
+import 'package:aqueduct/src/runtime/impl.dart';
+import 'package:aqueduct/src/runtime/resource_controller/bindings.dart';
+import 'package:aqueduct/src/runtime/resource_controller/parameter.dart';
+import 'package:aqueduct/src/runtime/resource_controller/utility.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 class ResourceControllerOperationRuntimeImpl

@@ -1,13 +1,13 @@
 import 'dart:async';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/runtime/loader.dart';
+import 'package:runtime/runtime.dart';
 import "package:test/test.dart";
 
 void main() {
   test("Cannot bind invalid type to default implementation", () {
     try {
-      RuntimeLoader.load();
+      RuntimeContext.current;
       fail('unreachable');
     } on StateError catch (e) {
       expect(e.toString(),

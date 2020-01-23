@@ -115,6 +115,7 @@ class Bind {
   /// If the bound parameter is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   const Bind.query(this.name)
       : bindingType = BindingType.query,
+        accept = null,
         require = null,
         ignore = null,
         reject = null;
@@ -142,6 +143,7 @@ class Bind {
   /// If the bound parameter is a property with [requiredBinding], it is required for all methods in an [ResourceController].
   const Bind.header(this.name)
       : bindingType = BindingType.header,
+        accept = null,
         require = null,
         ignore = null,
         reject = null;
@@ -174,7 +176,7 @@ class Bind {
   /// No operation method will be called in this case.
   ///
   /// If not required and not present in a request, the bound arguments and properties will be null when the operation method is invoked.
-  const Bind.body({this.ignore, this.reject, this.require})
+  const Bind.body({this.accept, this.ignore, this.reject, this.require})
       : name = null,
         bindingType = BindingType.body;
 
@@ -199,6 +201,7 @@ class Bind {
   /// the [Bind.path] argument. If no path variables are present, `getUsers` is invoked.
   const Bind.path(this.name)
       : bindingType = BindingType.path,
+        accept = null,
         require = null,
         ignore = null,
         reject = null;
@@ -206,6 +209,7 @@ class Bind {
   final String name;
   final BindingType bindingType;
 
+  final List<String> accept;
   final List<String> ignore;
   final List<String> reject;
   final List<String> require;

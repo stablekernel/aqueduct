@@ -7,7 +7,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
 import "package:test/test.dart";
 
-import '../helpers.dart';
+import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   group("Router basics", () {
@@ -103,10 +103,12 @@ void main() {
       router.route("/a/[:id]").linkFunction((req) async {
         // ignore: unawaited_futures
         req.respond(Response(200, null, null));
+        return null;
       });
       router.route("/a/:id/f").linkFunction((req) async {
         // ignore: unawaited_futures
         req.respond(Response(201, null, null));
+        return null;
       });
 
       server = await enableRouter(router);

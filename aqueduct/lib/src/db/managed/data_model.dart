@@ -1,10 +1,10 @@
 import 'package:aqueduct/src/openapi/documentable.dart';
-import 'package:aqueduct/src/runtime/runtime.dart';
 import 'package:aqueduct/src/utilities/reference_counting_list.dart';
 
 import 'package:aqueduct/src/db/query/query.dart';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
+import 'package:runtime/runtime.dart';
 
 /// Instances of this class contain descriptions and metadata for mapping [ManagedObject]s to database rows.
 ///
@@ -25,11 +25,13 @@ class ManagedDataModel extends Object
   ///
   ///       new DataModel([User, Token, Post]);
   ManagedDataModel(List<Type> instanceTypes) {
-    _entities = {};
-    _tableDefinitionToEntityMap = {};
-
-    final runtimes = Runtime.current.managedEntities;
-    final expectedRuntimes = instanceTypes.map((t) => runtimes[t]).toList();
+    final runtimes = RuntimeContext.current.runtimes.iterable
+        .whereType<ManagedEntityRuntime>()
+        .toList();
+    final expectedRuntimes = instanceTypes
+        .map((t) => runtimes.firstWhere((e) => e.entity.instanceType == t,
+            orElse: () => null))
+        .toList();
 
     final notFound = expectedRuntimes.where((e) => e == null).toList();
     if (notFound.isNotEmpty) {
@@ -54,10 +56,9 @@ class ManagedDataModel extends Object
   ///
   /// This is the preferred method of instantiating this type.
   ManagedDataModel.fromCurrentMirrorSystem() {
-    _entities = {};
-    _tableDefinitionToEntityMap = {};
-
-    Runtime.current.managedEntities.iterable.forEach((runtime) {
+    RuntimeContext.current.runtimes.iterable
+        .whereType<ManagedEntityRuntime>()
+        .forEach((runtime) {
       _entities[runtime.entity.instanceType] = runtime.entity;
       _tableDefinitionToEntityMap[runtime.entity.tableDefinition] =
           runtime.entity;

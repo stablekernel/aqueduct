@@ -1,10 +1,9 @@
 import 'dart:convert';
-import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
-import '../helpers.dart';
+import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   ManagedContext context;
@@ -39,16 +38,6 @@ void main() {
     expect(obj.value, "foo");
   });
 
-  test("NoSuchMethod still throws", () {
-    var user = User();
-    try {
-      reflect(user).invoke(#foo, []);
-
-      expect(true, false);
-      // ignore: empty_catches
-    } on NoSuchMethodError {}
-  });
-
   test("Model object construction", () {
     var user = User();
     user.name = "Joe";
@@ -78,25 +67,6 @@ void main() {
   test("Accessing model object without field should return null", () {
     var user = User();
     expect(user.name, isNull);
-  });
-
-  test("Getting/setting property that is undeclared throws exception", () {
-    var user = User();
-
-    try {
-      reflect(user).getField(#foo);
-      expect(true, false);
-    } on ArgumentError catch (e) {
-      expect(e.toString(), contains("Property 'foo' does not exist on 'User'"));
-    }
-
-    try {
-      reflect(user).setField(#foo, "hey");
-      expect(true, false);
-    } on ArgumentError catch (e) {
-      expect(
-          e.toString(), contains("Property 'foo=' does not exist on 'User'"));
-    }
   });
 
   test("Can assign and read embedded objects", () {
