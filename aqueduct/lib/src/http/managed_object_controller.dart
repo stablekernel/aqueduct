@@ -377,17 +377,20 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   }
 
   void _authorizeForScopes(List<String> scopes) {
-    if (scopes != null) {
-      if (request.authorization == null) {
-        throw Response.serverError();
-      }
+    if (scopes == null) {
+      return;
+    }
+    if (request.authorization == null) {
+      // TODO::RED log error
+      throw Response.serverError();
+    }
 
-      if (!AuthScope.verify(
-          scopes.map((scopeStr) => AuthScope(scopeStr)).toList(),
-          request.authorization.scopes)) {
-        throw Response.forbidden(
-            body: {"error": "insufficient_scope", "scope": scopes.join(" ")});
-      }
+    final scopesToVerify =
+        scopes.map((scopeStr) => AuthScope(scopeStr)).toList();
+
+    if (!AuthScope.verify(scopesToVerify, request.authorization.scopes)) {
+      throw Response.forbidden(
+          body: {"error": "insufficient_scope", "scope": scopes.join(" ")});
     }
   }
 
