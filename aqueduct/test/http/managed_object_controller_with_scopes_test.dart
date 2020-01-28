@@ -12,8 +12,9 @@ void main() {
     app.options.port = 8888;
     List<TestModel> allObjects = [];
 
-    var clientWithScope = (String scopes) {
-      return Agent.onPort(app.options.port)..headers['Authorization'] = scopes;
+    var clientWithScopes = (List<String> scopes) {
+      return Agent.onPort(app.options.port)
+        ..headers['Authorization'] = scopes.join(' ');
     };
 
     var insufficientScopeMatch =
@@ -39,23 +40,24 @@ void main() {
     });
 
     test("Can get one object with appropriate scope", () async {
-      var resp = await clientWithScope('get').request("/controller/2").get();
+      var resp = await clientWithScopes(['get']).request("/controller/2").get();
       expect(resp, hasResponse(200, body: allObjects[1].asMap()));
     });
 
     test("Can not get one object without the appropriate scope", () async {
-      var resp = await clientWithScope('non').request("/controller/2").get();
+      var resp = await clientWithScopes(['non']).request("/controller/2").get();
       expect(resp, hasResponse(403, body: insufficientScopeMatch('get')));
     });
 
     test("Can get all objects with appropriate scope", () async {
-      var resp = await clientWithScope('getAll').request("/controller").get();
+      var resp =
+          await clientWithScopes(['getAll']).request("/controller").get();
       expect(resp,
           hasResponse(200, body: allObjects.map((m) => m.asMap()).toList()));
     });
 
     test("Can not get all objects without the appropriate scope", () async {
-      var resp = await clientWithScope('non').request("/controller").get();
+      var resp = await clientWithScopes(['non']).request("/controller").get();
       expect(resp, hasResponse(403, body: insufficientScopeMatch('getAll')));
     });
 
@@ -66,21 +68,21 @@ void main() {
         "createdAt": allObjects[1].createdAt.toIso8601String()
       };
 
-      var resp = await (clientWithScope('put').request("/controller/2")
+      var resp = await (clientWithScopes(['put']).request("/controller/2")
             ..body = {"name": "Fred"})
           .put();
       expect(resp, hasResponse(200, body: expectedMap));
     });
 
     test("Can not update an object without the appropriate scope", () async {
-      var resp = await (clientWithScope('non').request("/controller/2")
+      var resp = await (clientWithScopes(['non']).request("/controller/2")
             ..body = {"name": "Fred"})
           .put();
       expect(resp, hasResponse(403, body: insufficientScopeMatch('put')));
     });
 
     test("Can create an object with the appropriate scope", () async {
-      var resp = await (clientWithScope('post').request("/controller")
+      var resp = await (clientWithScopes(['post']).request("/controller")
             ..body = {
               "name": "John",
               "createdAt": DateTime(2000, 12, 12).toUtc().toIso8601String()
@@ -96,7 +98,7 @@ void main() {
     });
 
     test("Can not create an object without the appropriate scope", () async {
-      var resp = await (clientWithScope('non').request("/controller")
+      var resp = await (clientWithScopes(['non']).request("/controller")
             ..body = {
               "name": "John",
               "createdAt": DateTime(2000, 12, 12).toUtc().toIso8601String()
@@ -106,17 +108,57 @@ void main() {
     });
 
     test("Can delete object with the appropriate scope", () async {
-      expect(await clientWithScope('delete').request("/controller/2").delete(),
+      expect(
+          await clientWithScopes(['delete']).request("/controller/2").delete(),
           hasStatus(200));
-      expect(await clientWithScope('get').request("/controller/2").get(),
+      expect(await clientWithScopes(['get']).request("/controller/2").get(),
           hasStatus(404));
     });
 
     test("Can not delete object withput the appropriate scope", () async {
-      expect(await clientWithScope('non').request("/controller/3").delete(),
+      expect(await clientWithScopes(['non']).request("/controller/3").delete(),
           hasResponse(403, body: insufficientScopeMatch('delete')));
-      expect(await clientWithScope('get').request("/controller/3").get(),
+      expect(await clientWithScopes(['get']).request("/controller/3").get(),
           hasStatus(200));
+    });
+
+    test("All required scopes should be available", () async {
+      var resp =
+          await clientWithScopes(['first']).request("/controller_two/1").get();
+
+      expect(
+          resp, hasResponse(403, body: insufficientScopeMatch('first second')));
+
+      resp =
+          await clientWithScopes(['second']).request("/controller_two/1").get();
+      expect(
+          resp, hasResponse(403, body: insufficientScopeMatch('first second')));
+
+      resp = await clientWithScopes(['first', 'second'])
+          .request("/controller_two/1")
+          .get();
+      expect(resp, hasResponse(200, body: allObjects[0].asMap()));
+
+      resp = await clientWithScopes(['first', 'second', 'third'])
+          .request("/controller_two/1")
+          .get();
+      expect(resp, hasResponse(200, body: allObjects[0].asMap()));
+    });
+
+    test("Any authorized user can match empty scopes list", () async {
+      var resp =
+          await clientWithScopes(['first']).request("/controller_non/1").get();
+
+      expect(resp, hasResponse(200, body: allObjects[0].asMap()));
+
+      resp =
+          await clientWithScopes(['second']).request("/controller_non/1").get();
+
+      expect(resp, hasResponse(200, body: allObjects[0].asMap()));
+
+      resp = await clientWithScopes(['non']).request("/controller_non/1").get();
+
+      expect(resp, hasResponse(200, body: allObjects[0].asMap()));
     });
   });
 }
@@ -169,6 +211,14 @@ class TestChannel extends ApplicationChannel {
                 create: ['post'],
                 update: ['put'],
                 delete: ['delete'])));
+
+    router.route("/controller_two/[:id]").link(() => AuthorizerMock()).link(
+        () => ManagedObjectController<TestModel>(context,
+            scopes: const ActionScopes(find: ['first', 'second'])));
+
+    router.route("/controller_non/[:id]").link(() => AuthorizerMock()).link(
+        () => ManagedObjectController<TestModel>(context,
+            scopes: const ActionScopes(find: [])));
     return router;
   }
 }
