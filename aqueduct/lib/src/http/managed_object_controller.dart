@@ -41,7 +41,9 @@ import 'http.dart';
 class ManagedObjectController<InstanceType extends ManagedObject>
     extends ResourceController {
   /// Creates an instance of a [ManagedObjectController].
-  ManagedObjectController(ManagedContext context) : super() {
+  ManagedObjectController(ManagedContext context,
+      {this.scopes = const ActionScopes()})
+      : super() {
     _query = Query<InstanceType>(context);
   }
 
@@ -51,7 +53,8 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   /// where the static type argument cannot be defined. Behaves just like the unnamed constructor.
   ///
   ManagedObjectController.forEntity(
-      ManagedEntity entity, ManagedContext context)
+      ManagedEntity entity, ManagedContext context,
+      {this.scopes = const ActionScopes()})
       : super() {
     _query = Query.forEntity(entity, context);
   }
@@ -65,10 +68,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   Query<InstanceType> _query;
 
-  /// Used to authorize GET /<name>/:id action
-  ///
-  /// You may override it to return the required scopes for the the actions to be authorized
-  List<String> get findObjectWithIdScopes => null;
+  final ActionScopes scopes;
 
   /// Executed prior to a fetch by ID query.
   ///
@@ -98,7 +98,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.get("id")
   Future<Response> getObject(@Bind.path("id") String id) async {
-    _authorizeForScopes(findObjectWithIdScopes);
+    _authorizeForScopes(scopes.find);
     var primaryKey = _query.entity.primaryKey;
     final parsedIdentifier =
         _getIdentifierFromPath(id, _query.entity.properties[primaryKey]);
@@ -114,11 +114,6 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       return didFindObject(result);
     }
   }
-
-  /// Used to authorize POST /<name> action
-  ///
-  /// You may override it to return the required scopes for the the actions to be authorized
-  List<String> get createNewObjectScopes => null;
 
   /// Executed prior to an insert query being executed.
   ///
@@ -139,7 +134,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.post()
   Future<Response> createObject() async {
-    _authorizeForScopes(createNewObjectScopes);
+    _authorizeForScopes(scopes.create);
     final instance = _query.entity.instanceOf() as InstanceType;
     instance.readFromMap(request.body.as());
     _query.values = instance;
@@ -149,11 +144,6 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
     return didInsertObject(result);
   }
-
-  /// Used to authorize DELETE /<name>/:id action
-  ///
-  /// You may override it to return the required scopes for the the actions to be authorized
-  List<String> get deleteObjectWithIdScopes => null;
 
   /// Executed prior to a delete query being executed.
   ///
@@ -181,7 +171,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.delete("id")
   Future<Response> deleteObject(@Bind.path("id") String id) async {
-    _authorizeForScopes(deleteObjectWithIdScopes);
+    _authorizeForScopes(scopes.delete);
     var primaryKey = _query.entity.primaryKey;
     final parsedIdentifier =
         _getIdentifierFromPath(id, _query.entity.properties[primaryKey]);
@@ -197,11 +187,6 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       return didDeleteObjectWithID(id);
     }
   }
-
-  /// Used to authorize PUT /<name> action
-  ///
-  /// You may override it to return the required scopes for the the actions to be authorized
-  List<String> get modifyObjectWithIdScopes => null;
 
   /// Executed prior to a update query being executed.
   ///
@@ -229,7 +214,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.put("id")
   Future<Response> updateObject(@Bind.path("id") String id) async {
-    _authorizeForScopes(modifyObjectWithIdScopes);
+    _authorizeForScopes(scopes.update);
     var primaryKey = _query.entity.primaryKey;
     final parsedIdentifier =
         _getIdentifierFromPath(id, _query.entity.properties[primaryKey]);
@@ -248,11 +233,6 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       return didUpdateObject(results);
     }
   }
-
-  /// Used to authorize GET /<name> action
-  ///
-  /// You may override it to return the required scopes for the the actions to be authorized
-  List<String> get findObjectsScopes => null;
 
   /// Executed prior to a fetch query being executed.
   ///
@@ -312,7 +292,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       /// This value must take the form 'name,asc' or 'name,desc', where name
       /// is the property of the returned objects to sort on.
       @Bind.query("sortBy") List<String> sortBy}) async {
-    _authorizeForScopes(findObjectsScopes);
+    _authorizeForScopes(scopes.index);
 
     _query.fetchLimit = count;
     _query.offset = offset;
@@ -518,4 +498,15 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
     return null;
   }
+}
+
+class ActionScopes {
+  const ActionScopes(
+      {this.index, this.delete, this.update, this.create, this.find});
+
+  final List<String> find;
+  final List<String> index;
+  final List<String> create;
+  final List<String> update;
+  final List<String> delete;
 }

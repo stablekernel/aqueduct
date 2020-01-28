@@ -161,10 +161,14 @@ class TestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = Router();
-    router
-        .route("/controller/[:id]")
-        .link(() => AuthorizerMock())
-        .link(() => SubclassWithScopes(context));
+    router.route("/controller/[:id]").link(() => AuthorizerMock()).link(() =>
+        ManagedObjectController<TestModel>(context,
+            scopes: const ActionScopes(
+                find: ['get'],
+                index: ['getAll'],
+                create: ['post'],
+                update: ['put'],
+                delete: ['delete'])));
     return router;
   }
 }
@@ -177,23 +181,4 @@ class _TestModel {
 
   String name;
   DateTime createdAt;
-}
-
-class SubclassWithScopes extends ManagedObjectController<TestModel> {
-  SubclassWithScopes(ManagedContext context) : super(context);
-
-  @override
-  List<String> get findObjectWithIdScopes => ['get'];
-
-  @override
-  List<String> get findObjectsScopes => ['getAll'];
-
-  @override
-  List<String> get createNewObjectScopes => ['post'];
-
-  @override
-  List<String> get modifyObjectWithIdScopes => ['put'];
-
-  @override
-  List<String> get deleteObjectWithIdScopes => ['delete'];
 }
