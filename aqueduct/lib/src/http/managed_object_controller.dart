@@ -385,8 +385,6 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     }
 
     if (request.authorization == null) {
-      // TODO::RED log error
-
       Logger("aqueduct").warning(
           "'${runtimeType}' must be linked to channel that contains an 'Authorizer', because "
           "it ActionScopes set for one or more of CRUD actions.");
