@@ -76,7 +76,11 @@ import 'managed_object_controller_action_scopes.dart';
 class ManagedObjectController<InstanceType extends ManagedObject>
     extends ResourceController {
   /// Creates an instance of a [ManagedObjectController].
-  ManagedObjectController(ManagedContext context, {this.scopes}) : super() {
+  ManagedObjectController(ManagedContext context,
+      {this.scopes,
+      this.createFilter = const ReadBodyFilter(),
+      this.updateFilter = const ReadBodyFilter()})
+      : super() {
     _query = Query<InstanceType>(context);
   }
 
@@ -102,6 +106,8 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   Query<InstanceType> _query;
 
   ActionScopes scopes;
+  ReadBodyFilter createFilter;
+  ReadBodyFilter updateFilter;
 
   /// Executed prior to a fetch by ID query.
   ///
@@ -169,7 +175,11 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   Future<Response> createObject() async {
     _authorizeForScopes(scopes?.create);
     final instance = _query.entity.instanceOf() as InstanceType;
-    instance.readFromMap(request.body.as());
+    instance.read(request.body.as(),
+        accept: createFilter.accept,
+        ignore: createFilter.ignore,
+        reject: createFilter.reject,
+        require: createFilter.require);
     _query.values = instance;
 
     _query = await willInsertObjectWithQuery(_query);
@@ -254,7 +264,13 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     _query.where((o) => o[primaryKey]).equalTo(parsedIdentifier);
 
     final instance = _query.entity.instanceOf() as InstanceType;
-    instance.readFromMap(request.body.as());
+
+    instance.read(request.body.as(),
+        accept: updateFilter.accept,
+        ignore: updateFilter.ignore,
+        reject: updateFilter.reject,
+        require: updateFilter.require);
+
     _query.values = instance;
 
     _query = await willUpdateObjectWithQuery(_query);
@@ -540,4 +556,13 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
     return null;
   }
+}
+
+class ReadBodyFilter {
+  const ReadBodyFilter({this.accept, this.ignore, this.reject, this.require});
+
+  final List<String> accept;
+  final List<String> ignore;
+  final List<String> reject;
+  final List<String> require;
 }
