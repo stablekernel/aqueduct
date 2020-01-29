@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:aqueduct/src/auth/auth.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:logging/logging.dart';
 
 import '../db/db.dart';
 import 'http.dart';
@@ -383,9 +384,18 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     if (scopes == null) {
       return;
     }
+
     if (request.authorization == null) {
       // TODO::RED log error
+
+      Logger("aqueduct").warning(
+          "'${runtimeType}' must be linked to channel that contains an 'Authorizer', because "
+          "it ActionScopes set for one or more of CRUD actions.");
       throw Response.serverError();
+    }
+
+    if (scopeStrings == null) {
+      return;
     }
 
     final scopesToVerify =
