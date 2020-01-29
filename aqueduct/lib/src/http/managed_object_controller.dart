@@ -66,8 +66,7 @@ import 'managed_object_controller_action_scopes.dart';
 class ManagedObjectController<InstanceType extends ManagedObject>
     extends ResourceController {
   /// Creates an instance of a [ManagedObjectController].
-  ManagedObjectController(ManagedContext context, {this.scopes = null})
-      : super() {
+  ManagedObjectController(ManagedContext context, {this.scopes}) : super() {
     _query = Query<InstanceType>(context);
   }
 
@@ -78,7 +77,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   ///
   ManagedObjectController.forEntity(
       ManagedEntity entity, ManagedContext context,
-      {this.scopes = const ActionScopes()})
+      {this.scopes})
       : super() {
     _query = Query.forEntity(entity, context);
   }
