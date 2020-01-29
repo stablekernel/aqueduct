@@ -5,6 +5,7 @@ import 'package:aqueduct/src/openapi/openapi.dart';
 
 import '../db/db.dart';
 import 'http.dart';
+import 'managed_object_controller_action_scopes.dart';
 
 /// A [Controller] that implements basic CRUD operations for a [ManagedObject].
 ///
@@ -12,19 +13,42 @@ import 'http.dart';
 /// directly to a database [Query]. For example, this [Controller] handles an HTTP PUT request by executing an update [Query]; the path variable in the request
 /// indicates the value of the primary key for the updated row and the HTTP request body are the values updated.
 ///
-/// When routing to a [ManagedObjectController], you must provide the following route pattern, where <name> can be any string:
+/// When routing to a [ManagedObjectController], you must provide the following route pattern, where `resource-name` can be any string:
 ///
-///       router.route("/<name>/[:id]")
+///       router.route("/resource-name/[:id]")
 ///
 /// You may optionally use the static method [ManagedObjectController.routePattern] to create this string for you.
 ///
 /// The mapping for HTTP request to action is as follows:
 ///
-/// - GET /<name>/:id -> Fetch Object by ID
-/// - PUT /<name>/:id -> Update Object by ID, HTTP Request Body contains update values.
-/// - DELETE /<name>/:id -> Delete Object by ID
-/// - POST /<name> -> Create new Object, HTTP Request Body contains update values.
-/// - GET /<name> -> Fetch instances of Object
+/// - GET /resource-name/:id -> Fetch Object by ID
+/// - PUT /resource-name/:id -> Update Object by ID, HTTP Request Body contains update values.
+/// - DELETE /resource-name/:id -> Delete Object by ID
+/// - POST /resource-name -> Create new Object, HTTP Request Body contains update values.
+/// - GET /resource-name -> Fetch instances of Object
+///
+/// If you want to use scope authorization for the CRUD actions you may pass [ActionScopes] object
+/// in both constructors [ManagedObjectController()] and [ManagedObjectController.forEntity()].
+/// Example:
+/// ```
+/// ManagedObjectController<User>(
+///   context,
+///   scopes: const ActionScopes(
+///     index: ['notes.readonly'],
+///     find: ['notes.readonly'],
+///     update: ['notes'],
+///     create: ['notes'],
+///     delete: ['notes', 'admin'],
+///   )
+///  )
+/// ```
+/// [ActionScopes] has 5 properties that could be set during construction:
+///
+/// - find   - when set all scopes given should be present for GET /resource-name/:id to be authorized
+/// - update - when set all scopes given should be present for PUT /resource-name/:id objects to be authorized
+/// - delete - when set all scopes given should be present for DELETE /resource-name/:id objects to be authorized
+/// - create - when set all scopes given should be present for POST /resource-name objects to be authorized
+/// - index  - when set all scopes given should be present for GET /resource-name to be authorized
 ///
 /// You may use this class without subclassing, but you may also subclass it to modify the executed [Query] prior to its execution, or modify the returned [Response] after the query has been completed.
 ///
@@ -41,8 +65,7 @@ import 'http.dart';
 class ManagedObjectController<InstanceType extends ManagedObject>
     extends ResourceController {
   /// Creates an instance of a [ManagedObjectController].
-  ManagedObjectController(ManagedContext context,
-      {this.scopes = const ActionScopes()})
+  ManagedObjectController(ManagedContext context, {this.scopes = null})
       : super() {
     _query = Query<InstanceType>(context);
   }
@@ -98,7 +121,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.get("id")
   Future<Response> getObject(@Bind.path("id") String id) async {
-    _authorizeForScopes(scopes.find);
+    _authorizeForScopes(scopes?.find);
     var primaryKey = _query.entity.primaryKey;
     final parsedIdentifier =
         _getIdentifierFromPath(id, _query.entity.properties[primaryKey]);
@@ -134,7 +157,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.post()
   Future<Response> createObject() async {
-    _authorizeForScopes(scopes.create);
+    _authorizeForScopes(scopes?.create);
     final instance = _query.entity.instanceOf() as InstanceType;
     instance.readFromMap(request.body.as());
     _query.values = instance;
@@ -171,7 +194,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.delete("id")
   Future<Response> deleteObject(@Bind.path("id") String id) async {
-    _authorizeForScopes(scopes.delete);
+    _authorizeForScopes(scopes?.delete);
     var primaryKey = _query.entity.primaryKey;
     final parsedIdentifier =
         _getIdentifierFromPath(id, _query.entity.properties[primaryKey]);
@@ -214,7 +237,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.put("id")
   Future<Response> updateObject(@Bind.path("id") String id) async {
-    _authorizeForScopes(scopes.update);
+    _authorizeForScopes(scopes?.update);
     var primaryKey = _query.entity.primaryKey;
     final parsedIdentifier =
         _getIdentifierFromPath(id, _query.entity.properties[primaryKey]);
@@ -292,7 +315,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       /// This value must take the form 'name,asc' or 'name,desc', where name
       /// is the property of the returned objects to sort on.
       @Bind.query("sortBy") List<String> sortBy}) async {
-    _authorizeForScopes(scopes.index);
+    _authorizeForScopes(scopes?.index);
 
     _query.fetchLimit = count;
     _query.offset = offset;
@@ -356,7 +379,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return didFindObjects(results);
   }
 
-  void _authorizeForScopes(List<String> scopes) {
+  void _authorizeForScopes(List<String> scopeStrings) {
     if (scopes == null) {
       return;
     }
@@ -366,11 +389,13 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     }
 
     final scopesToVerify =
-        scopes.map((scopeStr) => AuthScope(scopeStr)).toList();
+        scopeStrings.map((scopeString) => AuthScope(scopeString)).toList();
 
     if (!AuthScope.verify(scopesToVerify, request.authorization.scopes)) {
-      throw Response.forbidden(
-          body: {"error": "insufficient_scope", "scope": scopes.join(" ")});
+      throw Response.forbidden(body: {
+        "error": "insufficient_scope",
+        "scope": scopeStrings.join(" ")
+      });
     }
   }
 
@@ -498,15 +523,4 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
     return null;
   }
-}
-
-class ActionScopes {
-  const ActionScopes(
-      {this.index, this.delete, this.update, this.create, this.find});
-
-  final List<String> find;
-  final List<String> index;
-  final List<String> create;
-  final List<String> update;
-  final List<String> delete;
 }

@@ -8,6 +8,7 @@ export 'file_controller.dart';
 export 'handler_exception.dart';
 export 'http_codec_repository.dart';
 export 'managed_object_controller.dart';
+export 'managed_object_controller_action_scopes.dart';
 export 'query_controller.dart';
 export 'request.dart';
 export 'request_body.dart';
