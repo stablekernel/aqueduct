@@ -30,6 +30,7 @@ import 'managed_object_controller_action_scopes.dart';
 ///
 /// If you want to use scope authorization for the CRUD actions you may pass [ActionScopes] object
 /// in both constructors [ManagedObjectController()] and [ManagedObjectController.forEntity()].
+/// Alternatively [scopes] property may be set after construction.
 /// Example:
 /// ```
 /// ManagedObjectController<User>(
@@ -41,7 +42,16 @@ import 'managed_object_controller_action_scopes.dart';
 ///     create: ['notes'],
 ///     delete: ['notes', 'admin'],
 ///   )
-///  )
+///  );
+///  // or
+/// ManagedObjectController<User>(context)
+///   ..scopes = const ActionScopes(
+///     index: ['notes.readonly'],
+///     find: ['notes.readonly'],
+///     update: ['notes'],
+///     create: ['notes'],
+///     delete: ['notes', 'admin'],
+///  );
 /// ```
 /// [ActionScopes] has 5 properties that could be set during construction:
 ///
@@ -91,7 +101,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   Query<InstanceType> _query;
 
-  final ActionScopes scopes;
+  ActionScopes scopes;
 
   /// Executed prior to a fetch by ID query.
   ///
