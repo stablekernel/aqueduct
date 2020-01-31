@@ -7,6 +7,7 @@ import 'package:logging/logging.dart';
 import '../db/db.dart';
 import 'http.dart';
 import 'managed_object_controller_action_scopes.dart';
+import 'managed_object_controller_body_filter.dart';
 
 /// A [Controller] that implements basic CRUD operations for a [ManagedObject].
 ///
@@ -73,6 +74,26 @@ import 'managed_object_controller_action_scopes.dart';
 /// - pageAfter (string): indicates the page value and direction of the paging. pageBy must also be set. See [Query.pageBy] for more information.
 /// - pagePrior (string): indicates the page value and direction of the paging. pageBy must also be set. See [Query.pageBy] for more information.
 /// - sortBy (string): indicates the sort order. The syntax is 'sortBy=key,order' where key is a property of [InstanceType] and order is either 'asc' or 'desc'. You may specify multiple sortBy parameters.
+///
+/// If you want to filter the bodies of POST and PUT requests you may pass [ReadBodyFilter] object
+/// in [ManagedObjectController] constructors as the named parameters [createFilter] and [updateFilter] respectively.
+/// Alternatively [createFilter] and [updateFilter] property may be set after construction.
+/// The filters behave the same way as if you passed them to [Serializable.read()]
+/// Example:
+/// ```
+/// ManagedObjectController<User>(
+///   context,
+///   createFilter: const ReadBodyFilter(
+///     accept: ['username', 'password', 'role'],
+///   ),
+///   updateFilter: const ReadBodyFilter(
+///     reject: ['role'],
+///   ));
+///  // or
+/// ManagedObjectController<User>(context)
+///   ..createFilter = const ReadBodyFilter(accept: ['username', 'password', 'role'])
+///   ..updateFilter = const ReadBodyFilter(reject: ['role']);
+/// ```
 class ManagedObjectController<InstanceType extends ManagedObject>
     extends ResourceController {
   /// Creates an instance of a [ManagedObjectController].
@@ -556,13 +577,4 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
     return null;
   }
-}
-
-class ReadBodyFilter {
-  const ReadBodyFilter({this.accept, this.ignore, this.reject, this.require});
-
-  final List<String> accept;
-  final List<String> ignore;
-  final List<String> reject;
-  final List<String> require;
 }
