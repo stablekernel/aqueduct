@@ -1588,7 +1588,7 @@ aqueduct db upgrade --connect postgres://heroes_user:password@localhost:5432/her
 
 
 <h2 id="setting-up-oauth-20-authenticating-users">Setting up OAuth 2.0: Authenticating Users</h2>
-<p>Now that we have a user with a password, we can can create an endpoint that takes user credentials and returns an access token. The good news is that this controller already exists in Aqueduct, you just have to hook it up to a route. Update <code>entryPoint</code> in <code>channel.dart</code> to add an <code>AuthController</code> for the route <code>/auth/token</code>:</p>
+<p>Now that we have a user with a password, we can create an endpoint that takes user credentials and returns an access token. The good news is that this controller already exists in Aqueduct, you just have to hook it up to a route. Update <code>entryPoint</code> in <code>channel.dart</code> to add an <code>AuthController</code> for the route <code>/auth/token</code>:</p>
 <div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">override</span>
 <span class="n">Controller</span> <span class="kd">get</span> <span class="n">entryPoint</span> <span class="p">{</span>
   <span class="kd">final</span> <span class="n">router</span> <span class="o">=</span> <span class="n">Router</span><span class="p">();</span>
@@ -1628,23 +1628,31 @@ aqueduct db upgrade --connect postgres://heroes_user:password@localhost:5432/her
 <li>the key-value <code>grant_type=password</code> is included in the request body</li>
 <li>the request body content-type is <code>application/x-www-form-urlencoded</code>; this means the request body is effectively a query string (e.g. <code>username=bob&amp;password=pw&amp;grant_type=password</code>)</li>
 </ul>
-<p>In Dart code, this would like this:</p>
-<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;package:http/http.dart&#39;</span> <span class="k">as</span> <span class="n">http</span><span class="p">;</span> <span class="c1">// Must include http package in your pubspec.yaml</span>
+<p>In Dart code, this would look like this:</p>
+<div class="codehilite"><pre><span></span><span class="k">import</span> <span class="s1">&#39;dart:async&#39;</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">&#39;dart:convert&#39;</span><span class="p">;</span>
 
-<span class="kd">final</span> <span class="n">clientID</span> <span class="o">=</span> <span class="s2">&quot;com.heroes.tutorial&quot;</span><span class="p">;</span>
-<span class="kd">final</span> <span class="n">body</span> <span class="o">=</span> <span class="s2">&quot;username=bob&amp;password=password&amp;grant_type=password&quot;</span><span class="p">;</span>
+<span class="k">import</span> <span class="s1">&#39;package:http/http.dart&#39;</span>
+    <span class="k">as</span> <span class="n">http</span><span class="p">;</span> <span class="c1">// Must include http: any package in your pubspec.yaml</span>
+
+<span class="n">Future</span><span class="o">&lt;</span><span class="kt">void</span><span class="o">&gt;</span> <span class="n">main</span><span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
+  <span class="kd">const</span> <span class="n">clientID</span> <span class="o">=</span> <span class="s2">&quot;org.hasenbalg.zeiterfassung&quot;</span><span class="p">;</span>
+  <span class="kd">const</span> <span class="n">body</span> <span class="o">=</span> <span class="s2">&quot;username=bob&amp;password=password&amp;grant_type=password&quot;</span><span class="p">;</span>
 
 <span class="c1">// Note the trailing colon (:) after the clientID.</span>
 <span class="c1">// A client identifier secret would follow this, but there is no secret, so it is the empty string.</span>
-<span class="kd">final</span> <span class="n">clientCredentials</span> <span class="o">=</span> <span class="n">Base64Encoder</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">clientID</span><span class="s2">:&quot;</span><span class="p">.</span><span class="n">codeUnits</span><span class="p">);</span>
+  <span class="kd">final</span> <span class="kt">String</span> <span class="n">clientCredentials</span> <span class="o">=</span>
+      <span class="kd">const</span> <span class="n">Base64Encoder</span><span class="p">().</span><span class="n">convert</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">$</span><span class="n">clientID</span><span class="s2">:&quot;</span><span class="p">.</span><span class="n">codeUnits</span><span class="p">);</span>
 
-<span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">http</span><span class="p">.</span><span class="n">post</span><span class="p">(</span>
-  <span class="s2">&quot;https://stablekernel.com/auth/token&quot;</span><span class="p">,</span>
-  <span class="nl">headers:</span> <span class="p">{</span>
-    <span class="s2">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s2">&quot;application/x-www-form-urlencoded&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;Authorization&quot;</span><span class="o">:</span> <span class="s2">&quot;Basic </span><span class="si">$</span><span class="n">clientCredentials</span><span class="s2">&quot;</span>
-  <span class="p">},</span>
-  <span class="nl">body:</span> <span class="n">body</span><span class="p">);</span>
+  <span class="kd">final</span> <span class="n">http</span><span class="p">.</span><span class="n">Response</span> <span class="n">response</span> <span class="o">=</span>
+      <span class="kd">await</span> <span class="n">http</span><span class="p">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;http://localhost:8888/auth/token&quot;</span><span class="p">,</span>
+          <span class="nl">headers:</span> <span class="p">{</span>
+            <span class="s2">&quot;Content-Type&quot;</span><span class="o">:</span> <span class="s2">&quot;application/x-www-form-urlencoded&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Authorization&quot;</span><span class="o">:</span> <span class="s2">&quot;Basic </span><span class="si">$</span><span class="n">clientCredentials</span><span class="s2">&quot;</span>
+          <span class="p">},</span>
+          <span class="nl">body:</span> <span class="n">body</span><span class="p">);</span>
+  <span class="n">print</span><span class="p">(</span><span class="n">response</span><span class="p">.</span><span class="n">body</span><span class="p">);</span>
+<span class="p">}</span>
 </pre></div>
 
 

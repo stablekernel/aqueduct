@@ -1801,11 +1801,11 @@
 <p>A symbol is a name identifier in Dart; a symbol can refer to a class, method, or property. The <code>#name</code> syntax is a <em>symbol literal</em>.</p>
 </div>
 <p>The <code>Relate</code> annotation has optional arguments to further define the relationship. Like <code>Column</code>, these are optional arguments, e.g.:</p>
-<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">Relate</span><span class="p">(</span><span class="err">#</span><span class="n">cities</span><span class="p">,</span> <span class="nl">isRequired:</span> <span class="kc">true</span><span class="p">,</span> <span class="nl">rule:</span> <span class="n">DeleteRule</span><span class="p">.</span><span class="n">cascade</span><span class="p">)</span>
+<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">Relate</span><span class="p">(</span><span class="err">#</span><span class="n">cities</span><span class="p">,</span> <span class="nl">isRequired:</span> <span class="kc">true</span><span class="p">,</span> <span class="nl">onDelete:</span> <span class="n">DeleteRule</span><span class="p">.</span><span class="n">cascade</span><span class="p">)</span>
 </pre></div>
 
 
-<p>A relationship may be be required or optional. For example, if <code>City.country</code> were required, than a <code>City</code> must always have a <code>Country</code>. By default, relationships are optional.</p>
+<p>A relationship may be be required or optional. For example, if <code>City.country</code> were required, then a <code>City</code> must always have a <code>Country</code>. By default, relationships are optional.</p>
 <p>A relationship has a delete rule. When an object is deleted, any objects that belong to its relationships are subject to this rule. The following table shows the rules and their behavior:</p>
 <table>
 <thead>
@@ -1870,7 +1870,7 @@
 <h3 id="private-variables">Private Variables</h3>
 <p>A private variable in a table definition removes it from the serialized representation of an object. A private variable is always fetched when making a database query, but it is not read when invoking <code>read</code> and is not written when invoking <code>asMap</code>. Both of these methods are invoked when reading a managed object from a request body, or writing it to a response body.</p>
 <h3 id="transient-properties">Transient Properties</h3>
-<p>Properties declares in a managed object subclass are called <em>transient</em> because they are not stored in a database. For example, consider an <code>Author</code> type that stores first and last name as separate columns. Instead of redundantly storing a 'full name' in the database, a transient property can combine the first and last name:</p>
+<p>Properties declared in a managed object subclass are called <em>transient</em> because they are not stored in a database. For example, consider an <code>Author</code> type that stores first and last name as separate columns. Instead of redundantly storing a 'full name' in the database, a transient property can combine the first and last name:</p>
 <div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Author</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Author</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Author</span> <span class="p">{</span>
   <span class="kt">String</span> <span class="kd">get</span> <span class="n">name</span> <span class="o">=&gt;</span> <span class="s2">&quot;</span><span class="si">$</span><span class="n">firstName</span><span class="s2"> </span><span class="si">$</span><span class="n">lastName</span><span class="s2">&quot;</span><span class="p">;</span>
   <span class="kd">set</span> <span class="n">name</span><span class="p">(</span><span class="kt">String</span> <span class="n">fullName</span><span class="p">)</span> <span class="p">{</span>

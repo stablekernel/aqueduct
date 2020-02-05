@@ -1410,7 +1410,7 @@
 
 
 <div class="admonition warning">
-<p>The <code>expires_in</code> field is a computed property based on the delta of the issue date and expiration date. You should avoid manually editing the values for the columns <code>issuedate</code> and <code>expirationdate</code></p>
+<p>The <code>expires_in</code> field is a computed property based on the delta of the issue date and expiration date. The unit is seconds. You should avoid manually editing the values for the columns <code>issuedate</code> and <code>expirationdate</code></p>
 </div>
 <p>Tokens are refreshed through the same endpoint, but with a payload that only contains the refresh token and <code>grant_type=refresh_token</code>.</p>
 <div class="codehilite"><pre><span></span>grant_type=refresh_token&amp;refresh_token=kjasdiuz9u3namnsd

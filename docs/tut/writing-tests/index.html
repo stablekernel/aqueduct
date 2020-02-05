@@ -1679,7 +1679,7 @@
 </pre></div>
 
 
-<p>The 'Expected' value tells us the response we expected - that it has a status code of 200, any headers and the body must have a certain structure. The 'Actual' value tells us what the actual response was - a 200 OK, a bunch of headers, and a body a hero named 'Fred'. 'Which' tells us exactly what went wrong - we were expected 'Bob', not 'Fred'. Let's update our test to expect 'Fred'.</p>
+<p>The 'Expected' value tells us the response we expected - that it has a status code of 200, any headers and the body must have a certain structure. The 'Actual' value tells us what the actual response was - a 200 OK, a bunch of headers, and a body a hero named 'Fred'. 'Which' tells us exactly what went wrong - we were expecting 'Bob', not 'Fred'. Let's update our test to expect 'Fred'.</p>
 <div class="codehilite"><pre><span></span><span class="n">test</span><span class="p">(</span><span class="s2">&quot;POST /heroes returns 200 OK&quot;</span><span class="p">,</span> <span class="p">()</span> <span class="kd">async</span> <span class="p">{</span>
   <span class="kd">final</span> <span class="n">response</span> <span class="o">=</span> <span class="kd">await</span> <span class="n">harness</span><span class="p">.</span><span class="n">agent</span><span class="p">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/heroes&quot;</span><span class="p">,</span> <span class="nl">body:</span> <span class="p">{</span>
     <span class="s2">&quot;name&quot;</span><span class="o">:</span> <span class="s2">&quot;Fred&quot;</span>
