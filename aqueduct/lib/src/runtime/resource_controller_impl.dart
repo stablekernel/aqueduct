@@ -48,51 +48,14 @@ class ResourceControllerOperationRuntimeImpl
   List<BoundParameter> optionalParameters = [];
 
   @override
-  Future<Response> invoke(
-      ResourceController rc, Request request, List<String> errorsIn) async {
+  Future<Response> invoke(ResourceController rc, Request request,
+      ResourceControllerOperationArgs frame) async {
     final mirror = reflect(rc);
 
-    final positionalMethodArguments = positionalParameters
-        .map((p) {
-          try {
-            final value = p.decode(request);
-            if (value == null && p.isRequired) {
-              errorsIn
-                  .add("missing required ${p.binding.type} '${p.name ?? ""}'");
-              return null;
-            }
-
-            return value;
-          } on ArgumentError catch (e) {
-            errorsIn.add(e.message as String);
-            return null;
-          }
-        })
-        .where((p) => p != null)
-        .toList();
-
-    final optionalMethodArguments =
-        Map<Symbol, dynamic>.fromEntries(optionalParameters.map((p) {
-      try {
-        final value = p.decode(request);
-        if (value == null) {
-          return null;
-        }
-
-        return MapEntry(p.symbol, value);
-      } on ArgumentError catch (e) {
-        errorsIn.add(e.message as String);
-        return null;
-      }
-    }).where((e) => e != null));
-
-    if (errorsIn.isNotEmpty) {
-      return null;
-    }
+    frame.instanceVariables.forEach(mirror.setField);
 
     return mirror
-        .invoke(
-            methodSymbol, positionalMethodArguments, optionalMethodArguments)
+        .invoke(methodSymbol, frame.positionalArguments, frame.namedArguments)
         .reflectee as Future<Response>;
   }
 }
@@ -183,25 +146,6 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
         })
         .map((op) => MirrorSystem.getName(op.methodSymbol))
         .toList();
-  }
-
-  @override
-  void bindProperties(
-      ResourceController rc, Request request, List<String> errorsIn) {
-    final mirror = reflect(rc);
-    properties.forEach((p) {
-      try {
-        final value = p.decode(request);
-        if (p.isRequired && value == null) {
-          errorsIn.add("missing required ${p.binding.type} '${p.name ?? ""}'");
-          return;
-        }
-
-        mirror.setField(p.symbol, value);
-      } on ArgumentError catch (e) {
-        errorsIn.add(e.message as String);
-      }
-    });
   }
 
   @override
@@ -346,5 +290,6 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
     return documentedParameter;
   }
 
-  String compile(BuildContext ctx) => getResourceControllerImplSource(this, ctx);
+  String compile(BuildContext ctx) =>
+      getResourceControllerImplSource(this, ctx);
 }

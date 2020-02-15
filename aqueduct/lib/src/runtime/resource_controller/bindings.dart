@@ -101,7 +101,7 @@ class BoundPath extends BoundInput {
       : super(typeMirror, segment);
 
   @override
-  String get type => "Path";
+  String get type => "path";
 
   @override
   APIParameterLocation get location => APIParameterLocation.path;
@@ -118,7 +118,7 @@ class BoundHeader extends BoundInput {
       : super(typeMirror, header);
 
   @override
-  String get type => "Header";
+  String get type => "header";
 
   @override
   APIParameterLocation get location => APIParameterLocation.header;
@@ -135,7 +135,7 @@ class BoundQueryParameter extends BoundInput {
       : super(typeMirror, key);
 
   @override
-  String get type => "Query Parameter";
+  String get type => "query parameter";
 
   @override
   APIParameterLocation get location => APIParameterLocation.query;
@@ -179,7 +179,7 @@ class BoundBody extends BoundInput implements APIComponentDocumenter {
   final List<String> requiredFilter;
 
   @override
-  String get type => "Body";
+  String get type => "body";
 
   @override
   APIParameterLocation get location => null;
