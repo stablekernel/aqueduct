@@ -19,6 +19,9 @@ abstract class ResourceControllerRuntime {
         (op) => op.isSuitableForRequest(method, pathVariables),
         orElse: () => null);
   }
+
+  void applyRequestProperties(ResourceController untypedController,
+      ResourceControllerOperationInvocationArgs args);
 }
 
 abstract class ResourceControllerDocumenter {
@@ -53,7 +56,7 @@ class ResourceControllerOperation {
   final List<ResourceControllerParameter> namedParameters;
 
   final Future<Response> Function(ResourceController resourceController,
-      Request request, ResourceControllerOperationInvocationArgs args) invoker;
+      ResourceControllerOperationInvocationArgs args) invoker;
 
   /// Checks if a request's method and path variables will select this binder.
   ///
@@ -104,6 +107,10 @@ class ResourceControllerParameter {
   /// The location in the request that this parameter is bound to
   final BindingType location;
 
+  final bool isRequired;
+
+  final dynamic Function(dynamic input) _decoder;
+
   String get locationName {
     switch (location) {
       case BindingType.query:
@@ -117,10 +124,6 @@ class ResourceControllerParameter {
     }
     throw StateError('invalid location');
   }
-
-  final bool isRequired;
-
-  final dynamic Function(dynamic input) _decoder;
 
   dynamic decode(Request request) {
     switch (location) {

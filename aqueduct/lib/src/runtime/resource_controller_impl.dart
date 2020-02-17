@@ -89,6 +89,14 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
         .toList();
   }
 
+  @override
+  void applyRequestProperties(ResourceController untypedController,
+      ResourceControllerOperationInvocationArgs args) {
+    final rcMirror = reflect(untypedController);
+
+    args.instanceVariables.forEach(rcMirror.setField);
+  }
+
   ResourceControllerParameter getParameterForVariable(VariableMirror mirror,
       {@required bool isRequired}) {
     final metadata = mirror.metadata
@@ -238,12 +246,8 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
         dartMethodName: MirrorSystem.getName(symbol),
         httpMethod: operation.method.toUpperCase(),
         pathVariables: operation.pathVariables,
-        invoker: (rc, req, args) {
-          final rcMirror = reflect(rc);
-
-          args.instanceVariables.forEach(rcMirror.setField);
-
-          return rcMirror
+        invoker: (rc, args) {
+          return reflect(rc)
               .invoke(symbol, args.positionalArguments, args.namedArguments)
               .reflectee as Future<Response>;
         });
@@ -282,9 +286,6 @@ void _enforceTypeCanBeParsedFromString(
   throw _makeError(varMirror, 'Invalid parameter type.');
 }
 
-// todo: refactor this to avoid needing externalName here
-// then, need to have a generated version of these 2 methods, and the
-// BindingType.body decoder. (assigned in [getParameterForVariable]
 dynamic _convertParameterListWithMirror(
     List<String> parameterValues, TypeMirror typeMirror) {
   if (parameterValues == null) {

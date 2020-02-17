@@ -357,7 +357,8 @@ abstract class ResourceController extends Controller
     }
 
     /* bind and invoke */
-    final response = await operation.invoker(this, request, args);
+    _runtime.applyRequestProperties(this, args);
+    final response = await operation.invoker(this, args);
     if (!response.hasExplicitlySetContentType) {
       response.contentType = responseContentType;
     }
