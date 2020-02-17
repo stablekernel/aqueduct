@@ -125,13 +125,10 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
                   "Filters can only be used on Serializable or List<Serializable>.");
             }
           }
-          decoder = (b) {
-            final body = b as RequestBody;
-            if (body.isEmpty) {
-              return null;
-            }
+          if (isDecodingSerializable) {
+            decoder = (b) {
+              final body = b as RequestBody;
 
-            if (isDecodingSerializable) {
               final value = boundType
                   .newInstance(const Symbol(""), []).reflectee as Serializable;
               value.read(body.as(),
@@ -140,7 +137,10 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
                   require: metadata.require);
 
               return value;
-            } else if (isDecodingListOfSerializable) {
+            };
+          } else if (isDecodingListOfSerializable) {
+            decoder = (b) {
+              final body = b as RequestBody;
               final bodyList = body.as<List<Map<String, dynamic>>>();
               if (bodyList.isEmpty) {
                 return boundType.newInstance(#from, [[]]).reflectee;
@@ -159,12 +159,14 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
                 return value;
               }).toList();
 
-              final v = boundType.newInstance(#from, [iterable]).reflectee;
-              return v;
-            }
-
-            return runtimeCast(body.as(), boundType);
-          };
+              return boundType.newInstance(#from, [iterable]).reflectee;
+            };
+          } else {
+            decoder = (b) {
+              final body = b as RequestBody;
+              return runtimeCast(body.as(), boundType);
+            };
+          }
         }
         break;
       case BindingType.query:
@@ -288,10 +290,6 @@ void _enforceTypeCanBeParsedFromString(
 
 dynamic _convertParameterListWithMirror(
     List<String> parameterValues, TypeMirror typeMirror) {
-  if (parameterValues == null) {
-    return null;
-  }
-
   if (typeMirror.isSubtypeOf(reflectType(List))) {
     final iterable = parameterValues.map((str) =>
         _convertParameterWithMirror(str, typeMirror.typeArguments.first));

@@ -134,6 +134,8 @@ class ResourceControllerParameter {
           if (value == null) {
             if (request.body.isFormData) {
               value = request.body.as<Map<String, List<String>>>()[name];
+            } else {
+              return null;
             }
           }
           return _decoder(value);
@@ -141,11 +143,32 @@ class ResourceControllerParameter {
         break;
 
       case BindingType.body:
-        return _decoder(request.body);
+        {
+          if (request.body.isEmpty) {
+            return null;
+          }
+          return _decoder(request.body);
+        }
+        break;
       case BindingType.header:
-        return _decoder(request.raw.headers[name]);
+        {
+          final header = request.raw.headers[name];
+          if (header == null) {
+            return null;
+          }
+          return _decoder(header);
+        }
+        break;
+
       case BindingType.path:
-        return _decoder(request.path.variables[name]);
+        {
+          final path = request.path.variables[name];
+          if (path == null) {
+            return null;
+          }
+          return _decoder(path);
+        }
+        break;
     }
     return _decoder(request);
   }
