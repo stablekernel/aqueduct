@@ -8,6 +8,7 @@ import 'package:aqueduct/src/application/options.dart';
 import 'package:aqueduct/src/http/body_decoder.dart';
 import 'package:aqueduct/src/http/controller.dart';
 import 'package:aqueduct/src/http/resource_controller.dart';
+import 'package:aqueduct/src/http/resource_controller_interfaces.dart';
 import 'package:aqueduct/src/http/serializable.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';

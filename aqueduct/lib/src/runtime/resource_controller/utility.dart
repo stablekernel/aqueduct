@@ -5,8 +5,6 @@ import 'package:aqueduct/src/http/http.dart';
 import 'package:aqueduct/src/http/resource_controller_bindings.dart';
 import 'package:aqueduct/src/http/resource_controller_scope.dart';
 
-import 'bindings.dart';
-
 bool requestHasFormData(Request request) {
   var contentType = request.raw.headers.contentType;
   if (contentType != null &&
@@ -16,12 +14,6 @@ bool requestHasFormData(Request request) {
   }
 
   return false;
-}
-
-Map<Symbol, dynamic> toSymbolMap(Iterable<BoundValue> boundValues) {
-  return Map.fromIterable(boundValues.where((v) => v.value != null),
-      key: (v) => (v as BoundValue).symbol,
-      value: (v) => (v as BoundValue).value);
 }
 
 bool isOperation(DeclarationMirror m) {

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/src/auth/auth.dart';
+import 'package:aqueduct/src/http/resource_controller_interfaces.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -156,7 +157,8 @@ abstract class ResourceController extends Controller
   @mustCallSuper
   List<APIParameter> documentOperationParameters(
       APIDocumentContext context, Operation operation) {
-    return _runtime.documentOperationParameters(this, context, operation);
+    return _runtime.documenter
+        ?.documentOperationParameters(this, context, operation);
   }
 
   /// Returns a documented summary for [operation].
@@ -184,7 +186,8 @@ abstract class ResourceController extends Controller
   /// automatically generated request body documentation.
   APIRequestBody documentOperationRequestBody(
       APIDocumentContext context, Operation operation) {
-    return _runtime.documentOperationRequestBody(this, context, operation);
+    return _runtime.documenter
+        ?.documentOperationRequestBody(this, context, operation);
   }
 
   /// Returns a map of possible responses for [operation].
@@ -212,12 +215,12 @@ abstract class ResourceController extends Controller
   @override
   Map<String, APIOperation> documentOperations(
       APIDocumentContext context, String route, APIPath path) {
-    return _runtime.documentOperations(this, context, route, path);
+    return _runtime.documenter?.documentOperations(this, context, route, path);
   }
 
   @override
   void documentComponents(APIDocumentContext context) {
-    _runtime.documentComponents(this, context);
+    _runtime.documenter?.documentComponents(this, context);
   }
 
   bool _requestContentTypeIsSupported(Request req) {
@@ -232,7 +235,7 @@ abstract class ResourceController extends Controller
   List<String> _allowedMethodsForPathVariables(Iterable<String> pathVariables) {
     return _runtime.operations
         .where((op) => op.isSuitableForRequest(null, pathVariables.toList()))
-        .map((op) => op.method)
+        .map((op) => op.httpMethod)
         .toList();
   }
 
@@ -279,23 +282,29 @@ abstract class ResourceController extends Controller
       didDecodeRequestBody(request.body);
     }
 
+    /* Begin decoding bindings */
+    final args = ResourceControllerOperationInvocationArgs();
     final errors = <String>[];
-    final args = ResourceControllerOperationArgs();
+    final errorCatchWrapper = (f) {
+      try {
+        return f();
+      } on ArgumentError catch (e) {
+        errors.add(e.message as String);
+      }
+      return null;
+    };
+
     args.positionalArguments = operation.positionalParameters
         .map((p) {
-          try {
+          return errorCatchWrapper(() {
             final value = p.decode(request);
             if (value == null && p.isRequired) {
-              errors
-                  .add("missing required ${p.type} '${p.name ?? ""}'");
+              errors.add("missing required ${p.location} '${p.name ?? ""}'");
               return null;
             }
 
             return value;
-          } on ArgumentError catch (e) {
-            errors.add(e.message as String);
-            return null;
-          }
+          });
         })
         .where((p) => p != null)
         .toList();
@@ -308,7 +317,7 @@ abstract class ResourceController extends Controller
           return null;
         }
 
-        return MapEntry(p.symbol, value);
+        return MapEntry(Symbol(p.symbolName), value);
       } on ArgumentError catch (e) {
         errors.add(e.message as String);
         return null;
@@ -316,107 +325,33 @@ abstract class ResourceController extends Controller
     }).where((e) => e != null));
 
     args.instanceVariables =
-        Map<Symbol, dynamic>.fromEntries(operation.instanceVariables.map((p) {
+        Map<Symbol, dynamic>.fromEntries(_runtime.ivarParameters.map((p) {
       try {
         final value = p.decode(request);
         if (p.isRequired && value == null) {
-          errors.add("missing required ${p.type} '${p.name ?? ""}'");
+          errors.add("missing required ${p.location} '${p.name ?? ""}'");
           return null;
         }
 
-        return MapEntry(p.symbol, value);
+        return MapEntry(Symbol(p.symbolName), value);
       } on ArgumentError catch (e) {
         errors.add(e.message as String);
         return null;
       }
     }).where((e) => e != null));
 
+    /* finished decoding bindings, checking for errors */
+
     if (errors.isNotEmpty) {
       return Response.badRequest(body: {"error": errors.join(", ")});
     }
 
+    /* bind and invoke */
     final response = await operation.invoker(this, request, args);
-    if (errors.isNotEmpty) {
-      return Response.badRequest(body: {"error": errors.join(", ")});
-    }
-
     if (!response.hasExplicitlySetContentType) {
       response.contentType = responseContentType;
     }
 
     return response;
   }
-}
-
-abstract class ResourceControllerRuntime {
-  List<ResourceControllerOperationRuntime> get operations;
-
-  ResourceControllerOperationRuntime getOperationRuntime(
-      String method, List<String> pathVariables) {
-    return operations.firstWhere(
-        (op) => op.isSuitableForRequest(method, pathVariables),
-        orElse: () => null);
-  }
-
-  void documentComponents(ResourceController rc, APIDocumentContext context);
-
-  List<APIParameter> documentOperationParameters(
-      ResourceController rc, APIDocumentContext context, Operation operation);
-
-  APIRequestBody documentOperationRequestBody(
-      ResourceController rc, APIDocumentContext context, Operation operation);
-
-  Map<String, APIOperation> documentOperations(ResourceController rc,
-      APIDocumentContext context, String route, APIPath path);
-}
-
-class ResourceControllerOperationRuntime {
-  List<AuthScope> scopes;
-  List<String> pathVariables;
-  String method;
-
-  List<ResourceControllerParameterRuntime> positionalParameters;
-  List<ResourceControllerParameterRuntime> namedParameters;
-  List<ResourceControllerParameterRuntime> instanceVariables;
-
-  Future<Response> Function(ResourceController resourceController,
-      Request request, ResourceControllerOperationArgs args) invoker;
-
-  /// Checks if a request's method and path variables will select this binder.
-  ///
-  /// Note that [requestMethod] may be null; if this is the case, only
-  /// path variables are compared.
-  bool isSuitableForRequest(
-      String requestMethod, List<String> requestPathVariables) {
-    if (requestMethod != null && requestMethod.toUpperCase() != method) {
-      return false;
-    }
-
-    if (pathVariables.length != requestPathVariables.length) {
-      return false;
-    }
-
-    return requestPathVariables
-        .every((varName) => pathVariables.contains(varName));
-  }
-}
-
-abstract class ResourceControllerParameterRuntime {
-  Symbol symbol;
-  String name;
-
-  /// Location in the request
-  ///
-  /// Values are: header, query parameter, body, path
-  String type;
-
-  bool isRequired;
-
-  dynamic decode(Request request);
-}
-
-class ResourceControllerOperationArgs {
-  Map<Symbol, dynamic> instanceVariables;
-  Map<Symbol, dynamic> namedArguments;
-  List<dynamic> positionalArguments;
 }

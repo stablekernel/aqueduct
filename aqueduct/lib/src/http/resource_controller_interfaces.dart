@@ -1,0 +1,116 @@
+import 'dart:async';
+
+import 'package:aqueduct/src/auth/auth.dart';
+import 'package:aqueduct/src/http/http.dart';
+import 'package:aqueduct/src/http/resource_controller.dart';
+import 'package:aqueduct/src/http/resource_controller_bindings.dart';
+import 'package:aqueduct/src/openapi/openapi.dart';
+import 'package:meta/meta.dart';
+
+abstract class ResourceControllerRuntime {
+  List<ResourceControllerParameter> ivarParameters;
+  List<ResourceControllerOperation> operations;
+
+  ResourceControllerDocumenter documenter;
+
+  ResourceControllerOperation getOperationRuntime(
+    String method, List<String> pathVariables) {
+    return operations.firstWhere(
+        (op) => op.isSuitableForRequest(method, pathVariables),
+      orElse: () => null);
+  }
+}
+
+abstract class ResourceControllerDocumenter {
+  void documentComponents(ResourceController rc, APIDocumentContext context);
+
+  List<APIParameter> documentOperationParameters(
+    ResourceController rc, APIDocumentContext context, Operation operation);
+
+  APIRequestBody documentOperationRequestBody(
+    ResourceController rc, APIDocumentContext context, Operation operation);
+
+  Map<String, APIOperation> documentOperations(ResourceController rc,
+    APIDocumentContext context, String route, APIPath path);
+}
+
+class ResourceControllerOperation {
+  ResourceControllerOperation(
+    {@required this.scopes,
+      @required this.pathVariables,
+      @required this.httpMethod,
+      @required this.dartMethodName,
+      @required this.positionalParameters,
+      @required this.namedParameters,
+      @required this.invoker});
+
+  final List<AuthScope> scopes;
+  final List<String> pathVariables;
+  final String httpMethod;
+  final String dartMethodName;
+
+  final List<ResourceControllerParameter> positionalParameters;
+  final List<ResourceControllerParameter> namedParameters;
+
+  final Future<Response> Function(ResourceController resourceController,
+    Request request, ResourceControllerOperationInvocationArgs args) invoker;
+
+  /// Checks if a request's method and path variables will select this binder.
+  ///
+  /// Note that [requestMethod] may be null; if this is the case, only
+  /// path variables are compared.
+  bool isSuitableForRequest(
+    String requestMethod, List<String> requestPathVariables) {
+    if (requestMethod != null && requestMethod.toUpperCase() != httpMethod) {
+      return false;
+    }
+
+    if (pathVariables.length != requestPathVariables.length) {
+      return false;
+    }
+
+    return requestPathVariables.every(pathVariables.contains);
+  }
+}
+
+class ResourceControllerParameter {
+  ResourceControllerParameter({
+    @required this.symbolName,
+    @required this.name,
+    @required this.location,
+    @required this.isRequired,
+    @required this.decode,
+    @required this.type
+  });
+
+  final String symbolName;
+  final String name;
+  final Type type;
+
+  APIParameterLocation get apiLocation {
+    switch (location) {
+      case BindingType.body:
+        throw StateError('body parameters do not have a location');
+      case BindingType.header:
+        return APIParameterLocation.header;
+      case BindingType.query:
+        return APIParameterLocation.query;
+      case BindingType.path:
+        return APIParameterLocation.path;
+    }
+    throw StateError('unknown location');
+  }
+
+  /// The location in the request that this parameter is bound to
+  final BindingType location;
+
+  final bool isRequired;
+
+  final dynamic Function(Request request) decode;
+}
+
+class ResourceControllerOperationInvocationArgs {
+  Map<Symbol, dynamic> instanceVariables;
+  Map<Symbol, dynamic> namedArguments;
+  List<dynamic> positionalArguments;
+}

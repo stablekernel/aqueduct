@@ -1,11 +1,12 @@
 import 'package:aqueduct/src/http/resource_controller.dart';
+import 'package:aqueduct/src/http/resource_controller_interfaces.dart';
 import 'package:aqueduct/src/runtime/resource_controller_impl.dart';
 import 'package:runtime/runtime.dart';
 
-String getInvokerSource(ResourceControllerOperationRuntimeImpl op, ResourceControllerRuntimeImpl controller, BuildContext context) {
+String getInvokerSource(ResourceControllerOperation op, ResourceControllerRuntimeImpl controller, BuildContext context) {
   final buf = StringBuffer();
 
-  buf.writeln("(rc, request, errorsIn) async {");
+  buf.writeln("(rc, request, args) async {");
 
   op.positionalParameters.forEach((parameter) {
 
@@ -19,7 +20,7 @@ String getInvokerSource(ResourceControllerOperationRuntimeImpl op, ResourceContr
 String getResourceControllerImplSource(
     ResourceControllerRuntimeImpl runtime, BuildContext context) {
   final runtimes = runtime.operations.map((op) {
-    return "ResourceControllerOperationRuntimeImpl('${op.method}', "
+    return "ResourceControllerOperationRuntimeImpl('${op.httpMethod}', "
       "[${op.pathVariables.map((p) => "'$p'").join(",")}],"
       "[${op.scopes?.map((s) => "'$s'")?.join(",") ?? ""}],"
       "${getInvokerSource(op, runtime, context)})";

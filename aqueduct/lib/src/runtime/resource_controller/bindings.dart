@@ -3,7 +3,6 @@ import 'dart:mirrors';
 import 'package:aqueduct/src/http/request.dart';
 import 'package:aqueduct/src/http/serializable.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
-import 'package:aqueduct/src/runtime/resource_controller/parameter.dart';
 import 'package:aqueduct/src/runtime/resource_controller/utility.dart';
 import 'package:aqueduct/src/utilities/mirror_cast.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
@@ -23,7 +22,7 @@ abstract class BoundInput {
 
   APIParameterLocation get location;
 
-  void validate() {
+  void compile() {
     if (boundType.isAssignableTo(reflectType(List))) {
       _enforceTypeCanBeParsedFromString(boundType.typeArguments.first);
     } else {
@@ -83,19 +82,6 @@ abstract class BoundInput {
   }
 }
 
-class BoundValue {
-  BoundValue(this.value, {this.symbol});
-
-  BoundValue.deferred(this.deferredBinder, {this.symbol});
-
-  BoundValue.error(this.errorMessage);
-
-  Symbol symbol;
-  dynamic value;
-  BoundParameter deferredBinder;
-  String errorMessage;
-}
-
 class BoundPath extends BoundInput {
   BoundPath(ClassMirror typeMirror, String segment)
       : super(typeMirror, segment);
@@ -141,7 +127,7 @@ class BoundQueryParameter extends BoundInput {
   APIParameterLocation get location => APIParameterLocation.query;
 
   @override
-  void validate() {
+  void compile() {
     final isListOfBools = boundType.isAssignableTo(reflectType(List)) &&
         boundType.typeArguments.first.isAssignableTo(reflectType(bool));
 
@@ -149,7 +135,7 @@ class BoundQueryParameter extends BoundInput {
       return;
     }
 
-    super.validate();
+    super.compile();
   }
 
   @override
@@ -192,7 +178,7 @@ class BoundBody extends BoundInput implements APIComponentDocumenter {
       boundType.typeArguments.first.isSubtypeOf(reflectType(Serializable));
 
   @override
-  void validate() {
+  void compile() {
     if (ignoreFilter != null || errorFilter != null || requiredFilter != null) {
       if (!(_isBoundToSerializable || _isBoundToListOfSerializable)) {
         throw 'Filters can only be used on Serializable or List<Serializable>.';

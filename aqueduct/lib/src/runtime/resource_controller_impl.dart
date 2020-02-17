@@ -3,22 +3,146 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/http/resource_controller_bindings.dart';
-import 'package:aqueduct/src/openapi/documentable.dart';
-import 'package:aqueduct/src/runtime/impl.dart';
-import 'package:aqueduct/src/runtime/resource_controller/bindings.dart';
-import 'package:aqueduct/src/runtime/resource_controller/parameter.dart';
+import 'package:aqueduct/src/http/resource_controller_interfaces.dart';
+import 'package:aqueduct/src/runtime/resource_controller/documenter.dart';
 import 'package:aqueduct/src/runtime/resource_controller/utility.dart';
 import 'package:aqueduct/src/runtime/resource_controller_generator.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
+import 'package:meta/meta.dart';
 import 'package:runtime/runtime.dart' hide firstMetadataOfType;
 
-class ResourceControllerOperationRuntimeImpl
-    extends ResourceControllerOperationRuntime {
-  ResourceControllerOperationRuntimeImpl(MethodMirror mirror) {
+class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
+  ResourceControllerRuntimeImpl(this.type) {
+    final allDeclarations = type.declarations;
+
+    ivarParameters = allDeclarations.values
+        .whereType<VariableMirror>()
+        .where((decl) => decl.metadata.any((im) => im.reflectee is Bind))
+        .map((decl) {
+      final isRequired = allDeclarations[decl.simpleName]
+          .metadata
+          .any((im) => im.reflectee is RequiredBinding);
+      return getParameterForVariable(decl, isRequired: isRequired);
+    }).toList();
+
+    operations = type.instanceMembers.values
+        .where(isOperation)
+        .map(getOperationForMethod)
+        .toList();
+
+    if (conflictingOperations.isNotEmpty) {
+      final opNames = conflictingOperations.map((s) => "'$s'").join(", ");
+      throw StateError(
+          "Invalid controller. Controller '${type.reflectedType.toString()}' has "
+          "ambiguous operations. Offending operating methods: $opNames.");
+    }
+
+    if (unsatisfiableOperations.isNotEmpty) {
+      final opNames = unsatisfiableOperations.map((s) => "'$s'").join(", ");
+      throw StateError(
+          "Invalid controller. Controller '${type.reflectedType.toString()}' has operations where "
+          "parameter is bound with @Bind.path(), but path variable is not declared in "
+          "@Operation(). Offending operation methods: $opNames");
+    }
+
+    documenter = ResourceControllerDocumenterImpl(this);
+  }
+
+  final ClassMirror type;
+
+  String compile(BuildContext ctx) =>
+      getResourceControllerImplSource(this, ctx);
+
+  List<String> get unsatisfiableOperations {
+    return operations
+        .where((op) {
+          final argPathParameters = op.positionalParameters
+              .where((p) => p.location == BindingType.path);
+
+          return !argPathParameters
+              .every((p) => op.pathVariables.contains(p.name));
+        })
+        .map((op) => op.dartMethodName)
+        .toList();
+  }
+
+  List<String> get conflictingOperations {
+    return operations
+        .where((op) {
+          final possibleConflicts = operations.where((b) => b != op);
+
+          return possibleConflicts.any((opToCompare) {
+            if (opToCompare.httpMethod != op.httpMethod) {
+              return false;
+            }
+
+            if (opToCompare.pathVariables.length != op.pathVariables.length) {
+              return false;
+            }
+
+            return opToCompare.pathVariables
+                .every((p) => op.pathVariables.contains(p));
+          });
+        })
+        .map((op) => op.dartMethodName)
+        .toList();
+  }
+
+  ResourceControllerParameter getParameterForVariable(VariableMirror mirror,
+      {@required bool isRequired}) {
+    final metadata = mirror.metadata
+        .firstWhere((im) => im.reflectee is Bind)
+        .reflectee as Bind;
+
+    if (mirror.type is! ClassMirror) {
+      throw StateError(
+          "Invalid binding '${MirrorSystem.getName(mirror.simpleName)}' on '${getMethodAndClassName(mirror)}': "
+          "'${MirrorSystem.getName(mirror.type.simpleName)}'. Cannot bind dynamic parameters.");
+    }
+    final boundType = mirror.type as ClassMirror;
+
+    try {
+      if (boundType.isAssignableTo(reflectType(List))) {
+        _enforceTypeCanBeParsedFromString(boundType.typeArguments.first);
+      } else {
+        _enforceTypeCanBeParsedFromString(boundType);
+      }
+    } catch (e) {
+      throw StateError(
+          "Invalid binding '${MirrorSystem.getName(mirror.simpleName)}' on '${getMethodAndClassName(mirror)}': "
+          "$e");
+    }
+
+    if (metadata.bindingType == BindingType.body) {
+      final _isBoundToSerializable =
+          boundType.isSubtypeOf(reflectType(Serializable));
+
+      final _isBoundToListOfSerializable = boundType
+              .isSubtypeOf(reflectType(List)) &&
+          boundType.typeArguments.first.isSubtypeOf(reflectType(Serializable));
+      if (metadata.ignore != null ||
+          metadata.reject != null ||
+          metadata.require != null) {
+        if (!(_isBoundToSerializable || _isBoundToListOfSerializable)) {
+          throw StateError(
+              "Invalid binding '${MirrorSystem.getName(mirror.simpleName)}' on '${getMethodAndClassName(mirror)}': "
+              "Filters can only be used on Serializable or List<Serializable>.");
+        }
+      }
+    }
+
+    return ResourceControllerParameter(
+        name: metadata.name,
+        type: mirror.type.reflectedType,
+        symbolName: MirrorSystem.getName(mirror.simpleName),
+        location: metadata.bindingType,
+        isRequired: isRequired,
+        decode: (req) {});
+  }
+
+  ResourceControllerOperation getOperationForMethod(MethodMirror mirror) {
     final operation = getMethodOperationMetadata(mirror);
-    methodSymbol = mirror.simpleName;
-    method = operation.method.toUpperCase();
-    pathVariables = operation.pathVariables;
+    final symbol = mirror.simpleName;
 
     final parametersWithoutMetadata = mirror.parameters
         .where((p) => firstMetadataOfType<Bind>(p) == null)
@@ -31,265 +155,51 @@ class ResourceControllerOperationRuntimeImpl
           "'${getMethodAndClassName(parametersWithoutMetadata.first)}': Must have @Bind annotation.");
     }
 
-    positionalParameters = mirror.parameters
-        .where((pm) => !pm.isOptional)
-        .map((pm) => BoundParameter(pm, isRequired: true))
-        .toList();
-    optionalParameters = mirror.parameters
-        .where((pm) => pm.isOptional)
-        .map((pm) => BoundParameter(pm, isRequired: false))
-        .toList();
+    return ResourceControllerOperation(
+        positionalParameters: mirror.parameters
+            .where((pm) => !pm.isOptional)
+            .map((pm) => getParameterForVariable(pm, isRequired: true))
+            .toList(),
+        namedParameters: mirror.parameters
+            .where((pm) => pm.isOptional)
+            .map((pm) => getParameterForVariable(pm, isRequired: false))
+            .toList(),
+        scopes: getMethodScopes(mirror),
+        dartMethodName: MirrorSystem.getName(symbol),
+        httpMethod: operation.method.toUpperCase(),
+        pathVariables: operation.pathVariables,
+        invoker: (rc, req, args) {
+          final rcMirror = reflect(rc);
 
-    scopes = getMethodScopes(mirror);
-  }
+          args.instanceVariables.forEach(rcMirror.setField);
 
-  Symbol methodSymbol;
-  List<BoundParameter> positionalParameters = [];
-  List<BoundParameter> optionalParameters = [];
-
-  @override
-  Future<Response> invoke(ResourceController rc, Request request,
-      ResourceControllerOperationArgs frame) async {
-    final mirror = reflect(rc);
-
-    frame.instanceVariables.forEach(mirror.setField);
-
-    return mirror
-        .invoke(methodSymbol, frame.positionalArguments, frame.namedArguments)
-        .reflectee as Future<Response>;
+          return rcMirror
+              .invoke(symbol, args.positionalArguments, args.namedArguments)
+              .reflectee as Future<Response>;
+        });
   }
 }
 
-class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
-  ResourceControllerRuntimeImpl(this.type) {
-    final allDeclarations = type.declarations;
-
-    final boundProperties = allDeclarations.values
-        .whereType<VariableMirror>()
-        .where((decl) => decl.metadata.any((im) => im.reflectee is Bind))
-        .map((decl) {
-      final isRequired = allDeclarations[decl.simpleName]
-          .metadata
-          .any((im) => im.reflectee is RequiredBinding);
-      return BoundParameter(decl, isRequired: isRequired);
-    });
-    properties.addAll(boundProperties);
-
-    operations = type.instanceMembers.values
-        .where(isOperation)
-        .map((decl) => ResourceControllerOperationRuntimeImpl(decl))
-        .toList();
-
-    if (conflictingOperations.isNotEmpty) {
-      final opNames = conflictingOperations.map((s) => "'$s'").join(", ");
-      throw StateError(
-          "Invalid controller. Controller '${type.reflectedType.toString()}' has ambiguous operations. Offending operating methods: $opNames.");
-    }
-
-    if (unsatisfiableOperations.isNotEmpty) {
-      final opNames = unsatisfiableOperations.map((s) => "'$s'").join(", ");
-      throw StateError(
-          "Invalid controller. Controller '${type.reflectedType.toString()}' has operations where "
-          "parameter is bound with @Bind.path(), but path variable is not declared in @Operation(). Offending operation methods: $opNames");
-    }
+void _enforceTypeCanBeParsedFromString(TypeMirror typeMirror) {
+  if (typeMirror is! ClassMirror) {
+    throw 'Cannot bind dynamic type parameters.';
   }
 
-  final ClassMirror type;
-
-  @override
-  List<ResourceControllerOperationRuntimeImpl> operations;
-
-  List<BoundParameter> properties = [];
-
-  List<BoundParameter> parametersForOperation(Operation op) {
-    final methodBinder = operations.firstWhere(
-        (b) => b.isSuitableForRequest(op.method, op.pathVariables),
-        orElse: () => null);
-
-    return [
-      properties,
-      methodBinder?.positionalParameters ?? [],
-      methodBinder?.optionalParameters ?? []
-    ].expand((i) => i).toList();
+  if (typeMirror.isAssignableTo(reflectType(String))) {
+    return;
   }
 
-  List<String> get unsatisfiableOperations {
-    return operations
-        .where((op) {
-          final argPathParameters =
-              op.positionalParameters.where((p) => p.binding is BoundPath);
-
-          return !argPathParameters
-              .every((p) => op.pathVariables.contains(p.name));
-        })
-        .map((binder) => MirrorSystem.getName(binder.methodSymbol))
-        .toList();
+  final classMirror = typeMirror as ClassMirror;
+  if (!classMirror.staticMembers.containsKey(#parse)) {
+    throw 'Parameter type does not implement static parse method.';
   }
 
-  List<String> get conflictingOperations {
-    return operations
-        .where((op) {
-          final possibleConflicts = operations.where((b) => b != op);
-
-          return possibleConflicts.any((opToCompare) {
-            if (opToCompare.method != op.method) {
-              return false;
-            }
-
-            if (opToCompare.pathVariables.length != op.pathVariables.length) {
-              return false;
-            }
-
-            return opToCompare.pathVariables
-                .every((p) => op.pathVariables.contains(p));
-          });
-        })
-        .map((op) => MirrorSystem.getName(op.methodSymbol))
-        .toList();
+  final parseMethod = classMirror.staticMembers[#parse];
+  final params = parseMethod.parameters.where((p) => !p.isOptional).toList();
+  if (params.length == 1 &&
+      params.first.type.isAssignableTo(reflectType(String))) {
+    return;
   }
 
-  @override
-  void documentComponents(ResourceController rc, APIDocumentContext context) {
-    operations.forEach((b) {
-      [b.positionalParameters, b.optionalParameters]
-          .expand((b) => b.map((b) => b.binding))
-          .whereType<BoundBody>()
-          .forEach((b) {
-        b.documentComponents(context);
-      });
-    });
-  }
-
-  @override
-  List<APIParameter> documentOperationParameters(
-      ResourceController rc, APIDocumentContext context, Operation operation) {
-    bool usesFormEncodedData = operation.method == "POST" &&
-        rc.acceptedContentTypes.any((ct) =>
-            ct.primaryType == "application" &&
-            ct.subType == "x-www-form-urlencoded");
-
-    return parametersForOperation(operation)
-        .map((param) {
-          if (param.binding is BoundBody) {
-            return null;
-          }
-          if (usesFormEncodedData && param.binding is BoundQueryParameter) {
-            return null;
-          }
-
-          return _documentParameter(context, operation, param);
-        })
-        .where((p) => p != null)
-        .toList();
-  }
-
-  @override
-  APIRequestBody documentOperationRequestBody(
-      ResourceController rc, APIDocumentContext context, Operation operation) {
-    final binder =
-        getOperationRuntime(operation.method, operation.pathVariables)
-            as ResourceControllerOperationRuntimeImpl;
-    final usesFormEncodedData = operation.method == "POST" &&
-        rc.acceptedContentTypes.any((ct) =>
-            ct.primaryType == "application" &&
-            ct.subType == "x-www-form-urlencoded");
-    final boundBody = binder.positionalParameters
-            .firstWhere((p) => p.binding is BoundBody, orElse: () => null) ??
-        binder.optionalParameters
-            .firstWhere((p) => p.binding is BoundBody, orElse: () => null);
-
-    if (boundBody != null) {
-      final binding = boundBody.binding as BoundBody;
-      final ref = binding.getSchemaObjectReference(context);
-      if (ref != null) {
-        return APIRequestBody.schema(ref,
-            contentTypes: rc.acceptedContentTypes
-                .map((ct) => "${ct.primaryType}/${ct.subType}"),
-            required: boundBody.isRequired);
-      }
-    } else if (usesFormEncodedData) {
-      final Map<String, APISchemaObject> props =
-          parametersForOperation(operation)
-              .where((p) => p.binding is BoundQueryParameter)
-              .map((param) => _documentParameter(context, operation, param))
-              .fold(<String, APISchemaObject>{}, (prev, elem) {
-        prev[elem.name] = elem.schema;
-        return prev;
-      });
-
-      return APIRequestBody.schema(APISchemaObject.object(props),
-          contentTypes: ["application/x-www-form-urlencoded"], required: true);
-    }
-
-    return null;
-  }
-
-  @override
-  Map<String, APIOperation> documentOperations(ResourceController rc,
-      APIDocumentContext context, String route, APIPath path) {
-    final opsForPath = operations
-        .where((method) => path.containsPathParameters(method.pathVariables));
-
-    return opsForPath.fold(<String, APIOperation>{}, (prev, method) {
-      final instanceMembers = reflect(rc).type.instanceMembers;
-      Operation operation =
-          firstMetadataOfType(instanceMembers[method.methodSymbol]);
-
-      final operationDoc = APIOperation(
-          MirrorSystem.getName(method.methodSymbol),
-          rc.documentOperationResponses(context, operation),
-          summary: rc.documentOperationSummary(context, operation),
-          description: rc.documentOperationDescription(context, operation),
-          parameters: rc.documentOperationParameters(context, operation),
-          requestBody: rc.documentOperationRequestBody(context, operation),
-          tags: rc.documentOperationTags(context, operation));
-
-      if (method.scopes != null) {
-        context.defer(() async {
-          operationDoc.security?.forEach((sec) {
-            sec.requirements.forEach((name, operationScopes) {
-              final secType = context.document.components.securitySchemes[name];
-              if (secType?.type == APISecuritySchemeType.oauth2 ||
-                  secType?.type == APISecuritySchemeType.openID) {
-                _mergeScopes(operationScopes, method.scopes);
-              }
-            });
-          });
-        });
-      }
-
-      prev[method.method.toLowerCase()] = operationDoc;
-      return prev;
-    });
-  }
-
-  void _mergeScopes(
-      List<String> operationScopes, List<AuthScope> methodScopes) {
-    final existingScopes = operationScopes.map((s) => AuthScope(s)).toList();
-
-    methodScopes.forEach((methodScope) {
-      for (var existingScope in existingScopes) {
-        if (existingScope.isSubsetOrEqualTo(methodScope)) {
-          operationScopes.remove(existingScope.toString());
-        }
-      }
-
-      operationScopes.add(methodScope.toString());
-    });
-  }
-
-  APIParameter _documentParameter(
-      APIDocumentContext context, Operation operation, BoundParameter param) {
-    final schema =
-        SerializableRuntimeImpl.documentType(context, param.binding.boundType);
-    final documentedParameter = APIParameter(param.name, param.binding.location,
-        schema: schema,
-        required: param.isRequired,
-        allowEmptyValue: schema.type == APIType.boolean);
-
-    return documentedParameter;
-  }
-
-  String compile(BuildContext ctx) =>
-      getResourceControllerImplSource(this, ctx);
+  throw 'Invalid parameter type.';
 }

@@ -179,6 +179,7 @@ class TController extends Controller {
 }
 
 class RController extends Controller {
+  @override
   FutureOr<RequestOrResponse> handle(Request request) {
     return Response.ok("r_ok");
   }
