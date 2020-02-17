@@ -14,10 +14,10 @@ abstract class ResourceControllerRuntime {
   ResourceControllerDocumenter documenter;
 
   ResourceControllerOperation getOperationRuntime(
-    String method, List<String> pathVariables) {
+      String method, List<String> pathVariables) {
     return operations.firstWhere(
         (op) => op.isSuitableForRequest(method, pathVariables),
-      orElse: () => null);
+        orElse: () => null);
   }
 }
 
@@ -25,18 +25,18 @@ abstract class ResourceControllerDocumenter {
   void documentComponents(ResourceController rc, APIDocumentContext context);
 
   List<APIParameter> documentOperationParameters(
-    ResourceController rc, APIDocumentContext context, Operation operation);
+      ResourceController rc, APIDocumentContext context, Operation operation);
 
   APIRequestBody documentOperationRequestBody(
-    ResourceController rc, APIDocumentContext context, Operation operation);
+      ResourceController rc, APIDocumentContext context, Operation operation);
 
   Map<String, APIOperation> documentOperations(ResourceController rc,
-    APIDocumentContext context, String route, APIPath path);
+      APIDocumentContext context, String route, APIPath path);
 }
 
 class ResourceControllerOperation {
   ResourceControllerOperation(
-    {@required this.scopes,
+      {@required this.scopes,
       @required this.pathVariables,
       @required this.httpMethod,
       @required this.dartMethodName,
@@ -53,14 +53,14 @@ class ResourceControllerOperation {
   final List<ResourceControllerParameter> namedParameters;
 
   final Future<Response> Function(ResourceController resourceController,
-    Request request, ResourceControllerOperationInvocationArgs args) invoker;
+      Request request, ResourceControllerOperationInvocationArgs args) invoker;
 
   /// Checks if a request's method and path variables will select this binder.
   ///
   /// Note that [requestMethod] may be null; if this is the case, only
   /// path variables are compared.
   bool isSuitableForRequest(
-    String requestMethod, List<String> requestPathVariables) {
+      String requestMethod, List<String> requestPathVariables) {
     if (requestMethod != null && requestMethod.toUpperCase() != httpMethod) {
       return false;
     }
@@ -74,14 +74,14 @@ class ResourceControllerOperation {
 }
 
 class ResourceControllerParameter {
-  ResourceControllerParameter({
-    @required this.symbolName,
-    @required this.name,
-    @required this.location,
-    @required this.isRequired,
-    @required this.decode,
-    @required this.type
-  });
+  ResourceControllerParameter(
+      {@required this.symbolName,
+      @required this.name,
+      @required this.location,
+      @required this.isRequired,
+      @required dynamic Function(dynamic input) decoder,
+      @required this.type})
+      : _decoder = decoder;
 
   final String symbolName;
   final String name;
@@ -104,9 +104,48 @@ class ResourceControllerParameter {
   /// The location in the request that this parameter is bound to
   final BindingType location;
 
+  String get locationName {
+    switch (location) {
+      case BindingType.query:
+        return "query";
+      case BindingType.body:
+        return "body";
+      case BindingType.header:
+        return "header";
+      case BindingType.path:
+        return "path";
+    }
+    throw StateError('invalid location');
+  }
+
   final bool isRequired;
 
-  final dynamic Function(Request request) decode;
+  final dynamic Function(dynamic input) _decoder;
+
+  dynamic decode(Request request) {
+    switch (location) {
+      case BindingType.query:
+        {
+          var queryParameters = request.raw.uri.queryParametersAll;
+          var value = queryParameters[name];
+          if (value == null) {
+            if (request.body.isFormData) {
+              value = request.body.as<Map<String, List<String>>>()[name];
+            }
+          }
+          return _decoder(value);
+        }
+        break;
+
+      case BindingType.body:
+        return _decoder(request.body);
+      case BindingType.header:
+        return _decoder(request.raw.headers[name]);
+      case BindingType.path:
+        return _decoder(request.path.variables[name]);
+    }
+    return _decoder(request);
+  }
 }
 
 class ResourceControllerOperationInvocationArgs {

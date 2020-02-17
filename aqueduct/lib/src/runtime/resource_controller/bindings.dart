@@ -143,7 +143,7 @@ class BoundQueryParameter extends BoundInput {
     var queryParameters = request.raw.uri.queryParametersAll;
     var value = queryParameters[externalName];
     if (value == null) {
-      if (requestHasFormData(request)) {
+      if (request.body.isFormData) {
         value = request.body.as<Map<String, List<String>>>()[externalName];
       }
     }

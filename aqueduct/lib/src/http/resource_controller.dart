@@ -285,23 +285,33 @@ abstract class ResourceController extends Controller
     /* Begin decoding bindings */
     final args = ResourceControllerOperationInvocationArgs();
     final errors = <String>[];
-    final errorCatchWrapper = (f) {
+    final errorCatchWrapper = (ResourceControllerParameter p, f) {
       try {
         return f();
       } on ArgumentError catch (e) {
-        errors.add(e.message as String);
+        errors.add(
+            "${e.message as String} for ${p.locationName} value '${p.name}'");
       }
       return null;
+    };
+    final checkIfMissingRequiredAndEmitErrorIfSo = (ResourceControllerParameter p, dynamic v) {
+      if (v == null && p.isRequired) {
+        if (p.location == BindingType.body) {
+          errors.add("missing required ${p.locationName}");
+        } else {
+          errors.add(
+            "missing required ${p.locationName} '${p.name ?? ""}'");
+        }
+        return null;
+      }
     };
 
     args.positionalArguments = operation.positionalParameters
         .map((p) {
-          return errorCatchWrapper(() {
+          return errorCatchWrapper(p, () {
             final value = p.decode(request);
-            if (value == null && p.isRequired) {
-              errors.add("missing required ${p.location} '${p.name ?? ""}'");
-              return null;
-            }
+
+            checkIfMissingRequiredAndEmitErrorIfSo(p, value);
 
             return value;
           });
@@ -309,36 +319,36 @@ abstract class ResourceController extends Controller
         .where((p) => p != null)
         .toList();
 
-    args.namedArguments =
-        Map<Symbol, dynamic>.fromEntries(operation.namedParameters.map((p) {
-      try {
-        final value = p.decode(request);
-        if (value == null) {
-          return null;
-        }
+    final namedEntries = operation.namedParameters
+        .map((p) {
+          return errorCatchWrapper(p, () {
+            final value = p.decode(request);
+            if (value == null) {
+              return null;
+            }
 
-        return MapEntry(Symbol(p.symbolName), value);
-      } on ArgumentError catch (e) {
-        errors.add(e.message as String);
-        return null;
-      }
-    }).where((e) => e != null));
+            return MapEntry(Symbol(p.symbolName), value);
+          });
+        })
+        .where((p) => p != null)
+        .cast<MapEntry<Symbol, dynamic>>();
 
-    args.instanceVariables =
-        Map<Symbol, dynamic>.fromEntries(_runtime.ivarParameters.map((p) {
-      try {
-        final value = p.decode(request);
-        if (p.isRequired && value == null) {
-          errors.add("missing required ${p.location} '${p.name ?? ""}'");
-          return null;
-        }
+    args.namedArguments = Map<Symbol, dynamic>.fromEntries(namedEntries);
 
-        return MapEntry(Symbol(p.symbolName), value);
-      } on ArgumentError catch (e) {
-        errors.add(e.message as String);
-        return null;
-      }
-    }).where((e) => e != null));
+    final ivarEntries = _runtime.ivarParameters
+        .map((p) {
+          return errorCatchWrapper(p, () {
+            final value = p.decode(request);
+
+            checkIfMissingRequiredAndEmitErrorIfSo(p, value);
+
+            return MapEntry(Symbol(p.symbolName), value);
+          });
+        })
+        .where((e) => e != null)
+        .cast<MapEntry<Symbol, dynamic>>();
+
+    args.instanceVariables = Map<Symbol, dynamic>.fromEntries(ivarEntries);
 
     /* finished decoding bindings, checking for errors */
 

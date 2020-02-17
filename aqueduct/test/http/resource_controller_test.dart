@@ -360,7 +360,7 @@ void main() {
 
       expect(resp.statusCode, 400);
       expect(json.decode(resp.body),
-          {"error": "missing required Header 'X-Request-id'"});
+          {"error": "missing required header 'X-Request-id'"});
     });
 
     test("missing required controller query param fails", () async {
@@ -372,7 +372,7 @@ void main() {
 
       expect(resp.statusCode, 400);
       expect(json.decode(resp.body),
-          {"error": "missing required Query Parameter 'Shaqs'"});
+          {"error": "missing required query 'Shaqs'"});
     });
 
     test("missing required method header param fails", () async {
@@ -384,7 +384,7 @@ void main() {
 
       expect(resp.statusCode, 400);
       expect(json.decode(resp.body),
-          {"error": "missing required Header 'Cookie'"});
+          {"error": "missing required header 'Cookie'"});
     });
 
     test("missing require method query param fails", () async {
@@ -396,7 +396,7 @@ void main() {
 
       expect(resp.statusCode, 400);
       expect(json.decode(resp.body),
-          {"error": "missing required Query Parameter 'Table'"});
+          {"error": "missing required query 'Table'"});
     });
 
     test("reports all missing required parameters", () async {
@@ -446,7 +446,7 @@ void main() {
       expect(resp.statusCode, 400);
 
       expect(json.decode(resp.body)["error"],
-          contains("missing required Query Parameter"));
+          contains("missing required query"));
       expect(json.decode(resp.body)["error"], contains("Table"));
       expect(json.decode(resp.body)["error"], contains("Shaqs"));
     });
@@ -460,7 +460,7 @@ void main() {
       expect(resp.statusCode, 400);
 
       expect(json.decode(resp.body)["error"],
-          "multiple values for 'single' not expected");
+          "multiple values not expected for query value 'single'");
     });
 
     test("Can be more than one query parameters for arg type that is List<T>",

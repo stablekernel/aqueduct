@@ -5,17 +5,6 @@ import 'package:aqueduct/src/http/http.dart';
 import 'package:aqueduct/src/http/resource_controller_bindings.dart';
 import 'package:aqueduct/src/http/resource_controller_scope.dart';
 
-bool requestHasFormData(Request request) {
-  var contentType = request.raw.headers.contentType;
-  if (contentType != null &&
-      contentType.primaryType == "application" &&
-      contentType.subType == "x-www-form-urlencoded") {
-    return true;
-  }
-
-  return false;
-}
-
 bool isOperation(DeclarationMirror m) {
   return getMethodOperationMetadata(m) != null;
 }
