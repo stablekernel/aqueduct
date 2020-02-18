@@ -52,7 +52,7 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
   final ClassMirror type;
 
   String compile(BuildContext ctx) =>
-      getResourceControllerImplSource(this, ctx);
+      getResourceControllerImplSource(ctx, this);
 
   List<String> get unsatisfiableOperations {
     return operations
@@ -212,12 +212,16 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
     }
 
     return ResourceControllerParameter(
+        ignoreFilter: metadata.ignore,
+        rejectFilter: metadata.reject,
+        requireFilter: metadata.require,
         name: metadata.name,
         type: mirror.type.reflectedType,
         symbolName: MirrorSystem.getName(mirror.simpleName),
         location: metadata.bindingType,
         isRequired: isRequired,
-        decoder: decoder);
+        decoder: decoder,
+        defaultValue: (mirror is ParameterMirror) ? mirror.defaultValue?.reflectee : null);
   }
 
   ResourceControllerOperation getOperationForMethod(MethodMirror mirror) {
@@ -242,7 +246,10 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
             .toList(),
         namedParameters: mirror.parameters
             .where((pm) => pm.isOptional)
-            .map((pm) => getParameterForVariable(pm, isRequired: false))
+            .map((pm) => getParameterForVariable(
+                  pm,
+                  isRequired: false,
+                ))
             .toList(),
         scopes: getMethodScopes(mirror),
         dartMethodName: MirrorSystem.getName(symbol),
@@ -305,10 +312,6 @@ dynamic _convertParameterListWithMirror(
 
 dynamic _convertParameterWithMirror(
     String parameterValue, TypeMirror typeMirror) {
-  if (parameterValue == null) {
-    return null;
-  }
-
   if (typeMirror.isSubtypeOf(reflectType(bool))) {
     return true;
   }

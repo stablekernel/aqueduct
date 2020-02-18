@@ -83,12 +83,27 @@ class ResourceControllerParameter {
       @required this.location,
       @required this.isRequired,
       @required dynamic Function(dynamic input) decoder,
-      @required this.type})
+      @required this.type,
+      @required this.defaultValue,
+      @required this.ignoreFilter,
+        @required this.requireFilter,
+        @required this.rejectFilter})
       : _decoder = decoder;
 
   final String symbolName;
   final String name;
   final Type type;
+  final dynamic defaultValue;
+  final List<String> ignoreFilter;
+  final List<String> requireFilter;
+  final List<String> rejectFilter;
+
+  /// The location in the request that this parameter is bound to
+  final BindingType location;
+
+  final bool isRequired;
+
+  final dynamic Function(dynamic input) _decoder;
 
   APIParameterLocation get apiLocation {
     switch (location) {
@@ -103,13 +118,6 @@ class ResourceControllerParameter {
     }
     throw StateError('unknown location');
   }
-
-  /// The location in the request that this parameter is bound to
-  final BindingType location;
-
-  final bool isRequired;
-
-  final dynamic Function(dynamic input) _decoder;
 
   String get locationName {
     switch (location) {

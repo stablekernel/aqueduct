@@ -31,7 +31,7 @@ final instance = BodyDecoderRuntimeImpl();
 class BodyDecoderRuntimeImpl extends BodyDecoderRuntime {
   @override
   T cast<T>(dynamic input) {
-    return input;
+    return input as T;
   }
 }    
 """;

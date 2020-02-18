@@ -1,68 +1,231 @@
-import 'package:aqueduct/src/http/resource_controller.dart';
+import 'dart:mirrors';
+
+import 'package:aqueduct/src/http/resource_controller_bindings.dart';
 import 'package:aqueduct/src/http/resource_controller_interfaces.dart';
+import 'package:aqueduct/src/runtime/resource_controller/documenter.dart';
 import 'package:aqueduct/src/runtime/resource_controller_impl.dart';
 import 'package:runtime/runtime.dart';
 
-String getInvokerSource(ResourceControllerOperation op, ResourceControllerRuntimeImpl controller, BuildContext context) {
+String sourcifyValue(dynamic v) {
+  if (v is String) {
+    return "'$v'";
+  }
+
+  return "$v";
+}
+
+String getInvokerSource(BuildContext context,
+    ResourceControllerRuntimeImpl controller, ResourceControllerOperation op) {
   final buf = StringBuffer();
+  final subclassName = MirrorSystem.getName(controller.type.simpleName);
 
-  buf.writeln("(rc, request, args) async {");
+  buf.writeln("(rc, args) {");
+  buf.writeln("  return (rc as $subclassName).${op.dartMethodName}(");
 
-  op.positionalParameters.forEach((parameter) {
-
+  var counter = 0;
+  op.positionalParameters.forEach((p) {
+    buf.writeln("    args.positionalArguments[$counter] as ${p.type},");
+    counter++;
   });
 
+  op.namedParameters.forEach((p) {
+    var defaultValue = sourcifyValue(p.defaultValue);
+
+    buf.writeln(
+        "    ${p.symbolName}: args.namedArguments['${p.symbolName}'] as ${p.type} ?? $defaultValue,");
+  });
+
+  buf.writeln("  );");
   buf.writeln("}");
 
   return buf.toString();
 }
 
-String getResourceControllerImplSource(
-    ResourceControllerRuntimeImpl runtime, BuildContext context) {
-  final runtimes = runtime.operations.map((op) {
-    return "ResourceControllerOperationRuntimeImpl('${op.httpMethod}', "
-      "[${op.pathVariables.map((p) => "'$p'").join(",")}],"
-      "[${op.scopes?.map((s) => "'$s'")?.join(",") ?? ""}],"
-      "${getInvokerSource(op, runtime, context)})";
-  }).join(",\n");
+String getApplyRequestPropertiesSource(
+    BuildContext context, ResourceControllerRuntimeImpl runtime) {
+  StringBuffer buf = StringBuffer();
+  final subclassName = MirrorSystem.getName(runtime.type.simpleName);
 
+  runtime.ivarParameters.forEach((f) {
+    buf.writeln("(untypedController as $subclassName).${f.symbolName} "
+        "= args.instanceVariables['${f.symbolName}'] as ${f.type};");
+  });
+
+  return buf.toString();
+}
+
+String getResourceControllerImplSource(
+    BuildContext context, ResourceControllerRuntimeImpl runtime) {
+  final ivarSources = runtime.ivarParameters
+      .map((i) => getParameterSource(context, runtime, i))
+      .join(",\n");
+  final operationSources = runtime.operations
+      .map((o) => getOperationSource(context, runtime, o))
+      .join(",\n");
 
   return """
-class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {  
-  @override
-  List<ResourceControllerOperationRuntimeImpl> operations = [
-    $runtimes
-  ];
-
-  void bindProperties(ResourceController rc, Request request, List<String> errorsIn) {
+class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
+  ResourceControllerRuntimeImpl() {
+    ivarParameters = [$ivarSources];
+    operations = [$operationSources];
+  }    
   
+  void applyRequestProperties(ResourceController untypedController,
+    ResourceControllerOperationInvocationArgs args) {
+    ${getApplyRequestPropertiesSource(context, runtime)}
   }
-  
-  void documentComponents(ResourceController rc, APIDocumentContext context) => throw StateError('not valid in compiled app');
-  
-  List<APIParameter> documentOperationParameters(
-    ResourceController rc, APIDocumentContext context, Operation operation) => throw StateError('not valid in compiled app');
-  
-  APIRequestBody documentOperationRequestBody(
-    ResourceController rc, APIDocumentContext context, Operation operation) => throw StateError('not valid in compiled app');
-  
-  Map<String, APIOperation> documentOperations(ResourceController rc,
-    APIDocumentContext context, String route, APIPath path) => throw StateError('not valid in compiled app');
+}
+  """;
 }
 
-class ResourceControllerOperationRuntimeImpl extends ResourceControllerOperationRuntime {
-  ResourceControllerOperationRuntimeImpl(String method, List<String> pathVariables, List<AuthScope> scopes, this.invoker) {
-    this.scopes = scopes;
-    this.pathVariables = pathVariables;
-    this.method = method;
+String getDecoderSource(
+    BuildContext context,
+    ResourceControllerRuntimeImpl runtime,
+    ResourceControllerParameter parameter) {
+  switch (parameter.location) {
+    case BindingType.path:
+      {
+        return getElementDecoderSource(parameter.type);
+      }
+      break;
+    case BindingType.header:
+      {
+        return getListDecoderSource(parameter);
+      }
+      break;
+    case BindingType.query:
+      {
+        return getListDecoderSource(parameter);
+      }
+      break;
+    case BindingType.body:
+      {
+        return getBodyDecoderSource(parameter);
+      }
+      break;
   }
-  
-  final Future<Response> Function(
-      ResourceController rc, Request request, List<String> errorsIn) invoker;
-      
-  @override
-  Future<Response> invoke(
-      ResourceController rc, Request request, List<String> errorsIn) => invoker(rc, request, errorsIn);
+  throw StateError("unknown parameter");
 }
+
+String getBodyDecoderSource(ResourceControllerParameter p) {
+  final ignore = p.ignoreFilter.map((s) => "'$s'").join(",");
+  final reject = p.rejectFilter.map((s) => "'$s'").join(",");
+  final require = p.requireFilter.map((s) => "'$s'").join(",");
+
+  if (isSerializable(p.type)) {
+    return """(v) {
+    return ${p.type}()
+      ..read((v as RequestBody).as(), 
+           ignore: [$ignore],
+           reject: [$reject],
+           require: [$require]);
+    }
+    """;
+  } else if (isListSerializable(p.type)) {
+    return """ (b) {
+      final body = b as RequestBody;
+      final bodyList = body.as<List<Map<String, dynamic>>>();
+      if (bodyList.isEmpty) {
+        return ${p.type}.from([]);         
+      }
+
+      final iterable = bodyList.map((object) {
+        return ${reflectType(p.type).typeArguments.first}()
+          ..read(object,
+            ignore: [$ignore],
+            reject: [$reject],
+            require: [$require]);
+      }).toList();
+
+      return ${p.type}.from(iterable);       
+    }""";
+  }
+
+  return """(b) { 
+    return (b as RequestBody).as<${p.type}>();
+  }""";
+}
+
+String getElementDecoderSource(Type type) {
+  final className = "${type}";
+  if (reflectType(type).isSubtypeOf(reflectType(bool))) {
+    return "(v) { return true; }";
+  } else if (reflectType(type).isSubtypeOf(reflectType(String))) {
+    return "(v) { return v as String; }";
+  }
+
+  return """(v) {
+  try {
+    return $className.parse(v as String);
+  } catch (_) {
+    throw ArgumentError("invalid value");
+  }
+}
+      """;
+}
+
+String getListDecoderSource(ResourceControllerParameter p) {
+  if (reflectType(p.type).isSubtypeOf(reflectType(List))) {
+    final mapper = getElementDecoderSource(
+      reflectType(p.type).typeArguments.first.reflectedType);
+    return """(v) {
+  return ${p.type}.from((v as List).map($mapper));  
+}  """;
+  }
+
+  return """(v) {
+  final listOfValues = v as List;
+  if (listOfValues.length > 1) {
+    throw ArgumentError("multiple values not expected");
+  }
+  return ${getElementDecoderSource(p.type)}(listOfValues.first);
+}  
+  """;
+}
+
+String getParameterSource(
+    BuildContext context,
+    ResourceControllerRuntimeImpl runtime,
+    ResourceControllerParameter parameter) {
+  /*
+  Cannot include this because it could contain invalid token, e.g. List<String>
+type: ${sourcifyValue(parameter.type)},
+   */
+  return """
+ResourceControllerParameter(
+  name: ${sourcifyValue(parameter.name)},
+  ignoreFilter: ${sourcifyValue(parameter.ignoreFilter)},
+  rejectFilter: ${sourcifyValue(parameter.rejectFilter)},
+  requireFilter: ${sourcifyValue(parameter.requireFilter)},  
+  symbolName: ${sourcifyValue(parameter.symbolName)},
+  location: ${sourcifyValue(parameter.location)},
+  isRequired: ${sourcifyValue(parameter.isRequired)},
+  defaultValue: ${sourcifyValue(parameter.defaultValue)},
+  decoder: ${getDecoderSource(context, runtime, parameter)})
+  """;
+}
+
+String getOperationSource(
+    BuildContext context,
+    ResourceControllerRuntimeImpl runtime,
+    ResourceControllerOperation operation) {
+  final scopeElements = operation.scopes?.map((s) => "'AuthScope($s)'")?.join(",");
+  final namedParameters = operation.namedParameters
+      .map((p) => getParameterSource(context, runtime, p))
+      .join(",");
+  final positionalParameters = operation.positionalParameters
+      .map((p) => getParameterSource(context, runtime, p))
+      .join(",");
+  final pathVars = operation.pathVariables.map((s) => "'$s'").join(",");
+
+  return """
+ResourceControllerOperation(
+  positionalParameters: [$positionalParameters],
+  namedParameters: [$namedParameters],
+  scopes: ${operation.scopes == null ? null : "[$scopeElements]"},
+  dartMethodName: ${sourcifyValue(operation.dartMethodName)},
+  httpMethod: ${sourcifyValue(operation.httpMethod)},
+  pathVariables: [$pathVars],
+  invoker: ${getInvokerSource(context, runtime, operation)})  
   """;
 }
