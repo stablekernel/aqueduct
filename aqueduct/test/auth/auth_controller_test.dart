@@ -13,7 +13,6 @@ void main() {
   HttpServer server;
   AuthServer authenticationServer;
   Router router;
-
   ////////////
 
   setUp(() async {

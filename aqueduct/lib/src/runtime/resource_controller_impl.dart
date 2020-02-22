@@ -306,6 +306,9 @@ dynamic _convertParameterListWithMirror(
 
     return (typeMirror as ClassMirror).newInstance(#from, [iterable]).reflectee;
   } else {
+    if (parameterValues == null) {
+      print('wtf');
+    }
     if (parameterValues.length > 1) {
       throw ArgumentError("multiple values not expected");
     }

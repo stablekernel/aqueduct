@@ -140,13 +140,11 @@ class ResourceControllerParameter {
       case BindingType.query:
         {
           var queryParameters = request.raw.uri.queryParametersAll;
-          var value = queryParameters[name];
+          var value = request.body.isFormData
+              ? request.body.as<Map<String, List<String>>>()[name]
+              : queryParameters[name];
           if (value == null) {
-            if (request.body.isFormData) {
-              value = request.body.as<Map<String, List<String>>>()[name];
-            } else {
-              return null;
-            }
+            return null;
           }
           return _decoder(value);
         }
