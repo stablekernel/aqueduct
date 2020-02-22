@@ -8,6 +8,7 @@ import 'package:aqueduct/src/application/options.dart';
 import 'package:aqueduct/src/http/body_decoder.dart';
 import 'package:aqueduct/src/http/controller.dart';
 import 'package:aqueduct/src/http/resource_controller.dart';
+import 'package:aqueduct/src/http/resource_controller_interfaces.dart';
 import 'package:aqueduct/src/http/serializable.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
@@ -15,12 +16,12 @@ import 'package:aqueduct/src/runtime/resource_controller_impl.dart';
 import 'package:aqueduct/src/utilities/mirror_cast.dart';
 import 'package:runtime/runtime.dart';
 
-class BodyDecoderRuntimeImpl extends BodyDecoderRuntime implements SourceCompiler {
+class BodyDecoderRuntimeImpl extends BodyDecoderRuntime
+    implements SourceCompiler {
   @override
   T cast<T>(dynamic input) {
     return runtimeCast(input, reflectType(T)) as T;
   }
-
 
   @override
   String compile(BuildContext ctx) {
@@ -30,7 +31,7 @@ final instance = BodyDecoderRuntimeImpl();
 class BodyDecoderRuntimeImpl extends BodyDecoderRuntime {
   @override
   T cast<T>(dynamic input) {
-    return null;
+    return input as T;
   }
 }    
 """;
@@ -88,10 +89,8 @@ class ChannelRuntimeImpl extends ChannelRuntime implements SourceCompiler {
     }).where((o) => o != null);
   }
 
-
   @override
-  String compile(BuildContext ctx)
-  {
+  String compile(BuildContext ctx) {
     final className = MirrorSystem.getName(type.simpleName);
     final originalFileUri = type.location.sourceUri.toString();
     final globalInitBody = hasGlobalInitializationMethod
@@ -164,7 +163,8 @@ void isolateServerEntryPoint(ApplicationInitialServerMessage params) {
   server.start(shareHttpServer: true);
 }
 
-class ControllerRuntimeImpl extends ControllerRuntime implements SourceCompiler {
+class ControllerRuntimeImpl extends ControllerRuntime
+    implements SourceCompiler {
   ControllerRuntimeImpl(this.type) {
     if (type.isSubclassOf(reflectClass(ResourceController))) {
       resourceController = ResourceControllerRuntimeImpl(type);
@@ -192,7 +192,6 @@ class ControllerRuntimeImpl extends ControllerRuntime implements SourceCompiler 
     return fieldKeys.any((key) => members[key].isSetter);
   }
 
-
   @override
   String compile(BuildContext ctx) {
     final originalFileUri = type.location.sourceUri.toString();
@@ -202,11 +201,11 @@ import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import '$originalFileUri';
     
-final instance = ControllerRuntimeImpl();  
+final instance = ControllerRuntimeImpl();
     
 class ControllerRuntimeImpl extends ControllerRuntime {
   ControllerRuntimeImpl() {
-    /* provide resource controller runtime instance */
+    ${resourceController == null ? "" : "_resourceController = ResourceControllerRuntimeImpl();"}
   }
   
   @override
@@ -214,7 +213,9 @@ class ControllerRuntimeImpl extends ControllerRuntime {
 
   ResourceControllerRuntime get resourceController => _resourceController;
   ResourceControllerRuntime _resourceController;
-}    
+}
+
+${(resourceController as ResourceControllerRuntimeImpl)?.compile(ctx) ?? ""}
     """;
   }
 }
@@ -283,6 +284,7 @@ class SerializableRuntimeImpl extends SerializableRuntime {
     }
 
     throw ArgumentError(
-        "Unsupported type '${MirrorSystem.getName(type.simpleName)}' for 'APIComponentDocumenter.documentType'.");
+        "Unsupported type '${MirrorSystem.getName(type.simpleName)}' "
+          "for 'APIComponentDocumenter.documentType'.");
   }
 }

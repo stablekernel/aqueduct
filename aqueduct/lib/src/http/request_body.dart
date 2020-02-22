@@ -29,8 +29,10 @@ class RequestBody extends BodyDecoder {
   static int maxSize = 1024 * 1024 * 10;
 
   final HttpRequest _request;
+
   bool get _hasContent =>
       _hasContentLength || _request.headers.chunkedTransferEncoding;
+
   bool get _hasContentLength => (_request.headers.contentLength ?? 0) > 0;
 
   @override
@@ -82,6 +84,11 @@ class RequestBody extends BodyDecoder {
 
   @override
   bool get isEmpty => !_hasContent;
+
+  bool get isFormData =>
+      contentType != null &&
+      contentType.primaryType == "application" &&
+      contentType.subType == "x-www-form-urlencoded";
 
   final Stream<List<int>> _originalByteStream;
   StreamController<List<int>> _bufferingController;

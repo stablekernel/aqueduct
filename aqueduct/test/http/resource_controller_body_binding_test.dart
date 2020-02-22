@@ -215,7 +215,7 @@ void main() {
       var response = await postJSON(null);
       expect(response.statusCode, 400);
       expect(json.decode(response.body)["error"],
-          contains("missing required Body"));
+          contains("missing required body"));
     });
 
     test("Expect list of objects, got list of strings", () async {

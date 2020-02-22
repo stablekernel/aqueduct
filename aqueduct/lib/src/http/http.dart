@@ -14,6 +14,7 @@ export 'request_body.dart';
 export 'request_path.dart';
 export 'resource_controller.dart';
 export 'resource_controller_bindings.dart';
+export 'resource_controller_interfaces.dart';
 export 'resource_controller_scope.dart';
 export 'response.dart';
 export 'router.dart';
