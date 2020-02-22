@@ -85,15 +85,17 @@ class ResourceControllerParameter {
       @required dynamic Function(dynamic input) decoder,
       @required this.type,
       @required this.defaultValue,
+      @required this.acceptFilter,
       @required this.ignoreFilter,
-        @required this.requireFilter,
-        @required this.rejectFilter})
+      @required this.requireFilter,
+      @required this.rejectFilter})
       : _decoder = decoder;
 
   final String symbolName;
   final String name;
   final Type type;
   final dynamic defaultValue;
+  final List<String> acceptFilter;
   final List<String> ignoreFilter;
   final List<String> requireFilter;
   final List<String> rejectFilter;

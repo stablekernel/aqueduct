@@ -12,6 +12,7 @@ Future main(List<String> args) async {
     (String s) => s.contains("db/migration/"),
     (String s) => s.endsWith("entity_mirrors_test.dart"),
     (String s) => s.endsWith("moc_openapi_test.dart"),
+    (String s) => s.endsWith("entity_mirrors_test.dart")
   ];
 
   List<File> testFiles;

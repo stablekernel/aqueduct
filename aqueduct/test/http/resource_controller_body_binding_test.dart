@@ -86,6 +86,14 @@ void main() {
       expect((await postJSON({"key": ""})).statusCode, 400);
     });
 
+    test("Can use accept filters", () async {
+      server = await enableController("/", () => FilterController());
+      final response =
+          await postJSON({"required": "", "accept": "", "noAccept": ""});
+
+      expect(json.decode(response.body), {"required": "", "accept": ""});
+    });
+
     test("Can use ignore filters on List<Serializable>", () async {
       server = await enableController("/", () => FilterListController());
       final response = await postJSON([
@@ -121,6 +129,19 @@ void main() {
           400);
     });
 
+    test("Can use accept filters on List<Serializable>", () async {
+      server = await enableController("/", () => FilterListController());
+      final response = await postJSON([
+        {"required": "", "accept": ""},
+        {"required": "", "noAccept": ""}
+      ]);
+
+      expect(json.decode(response.body), [
+        {"required": "", "accept": ""},
+        {"required": ""}
+      ]);
+    });
+
     test("Can bind primitive map", () async {
       server = await enableController("/", () => MapController());
       var m = {"name": "Bob"};
@@ -129,15 +150,12 @@ void main() {
       expect(json.decode(response.body), m);
     });
 
-
     test("Can get a list of bytes from an octet-stream", () async {
       server = await enableController("/", () => ByteListController());
 
-      final response = await http
-        .post("http://localhost:4040",
-        headers: {"Content-Type": "application/octet-stream"},
-        body: [1, 2, 3])
-        .catchError((err) => null);
+      final response = await http.post("http://localhost:4040",
+          headers: {"Content-Type": "application/octet-stream"},
+          body: [1, 2, 3]).catchError((err) => null);
 
       expect(response.statusCode, 200);
       expect(response.bodyBytes, [1, 2, 3]);
@@ -313,7 +331,18 @@ class CrashController extends ResourceController {
 class FilterController extends ResourceController {
   @Operation.post()
   Future<Response> create(
-      @Bind.body(ignore: ["ignore"], require: ["required"], reject: ["error"])
+      @Bind.body(accept: [
+    "accept",
+    "ignore",
+    "required",
+    "error"
+  ], ignore: [
+    "ignore"
+  ], require: [
+    "required"
+  ], reject: [
+    "error"
+  ])
           TestSerializable tm) async {
     return Response.ok(tm);
   }
@@ -322,7 +351,18 @@ class FilterController extends ResourceController {
 class FilterListController extends ResourceController {
   @Operation.post()
   Future<Response> create(
-      @Bind.body(ignore: ["ignore"], require: ["required"], reject: ["error"])
+      @Bind.body(accept: [
+    "accept",
+    "ignore",
+    "required",
+    "error"
+  ], ignore: [
+    "ignore"
+  ], require: [
+    "required"
+  ], reject: [
+    "error"
+  ])
           List<TestSerializable> tm) async {
     return Response.ok(tm);
   }
@@ -342,11 +382,13 @@ class ByteListController extends ResourceController {
 
   @Operation.post()
   Future<Response> create(@Bind.body() List<int> tm) async {
-    return Response.ok(tm)..contentType = ContentType("application", "octet-stream");
+    return Response.ok(tm)
+      ..contentType = ContentType("application", "octet-stream");
   }
 }
 
-Future<HttpServer> enableController(String pattern, Controller instantiate()) async {
+Future<HttpServer> enableController(
+    String pattern, Controller instantiate()) async {
   var router = Router();
   router.route(pattern).link(instantiate);
   router.didAddToChannel();

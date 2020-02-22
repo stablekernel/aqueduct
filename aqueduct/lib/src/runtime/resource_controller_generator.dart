@@ -111,11 +111,12 @@ String getBodyDecoderSource(ResourceControllerParameter p) {
   final ignore = p.ignoreFilter.map((s) => "'$s'").join(",");
   final reject = p.rejectFilter.map((s) => "'$s'").join(",");
   final require = p.requireFilter.map((s) => "'$s'").join(",");
-
+  final accept = p.acceptFilter.map((s) => "'$s'").join(",");
   if (isSerializable(p.type)) {
     return """(v) {
     return ${p.type}()
       ..read((v as RequestBody).as(), 
+           accept: [$accept],
            ignore: [$ignore],
            reject: [$reject],
            require: [$require]);
@@ -132,6 +133,7 @@ String getBodyDecoderSource(ResourceControllerParameter p) {
       final iterable = bodyList.map((object) {
         return ${reflectType(p.type).typeArguments.first}()
           ..read(object,
+            acccept: [$accept],
             ignore: [$ignore],
             reject: [$reject],
             require: [$require]);
@@ -194,6 +196,7 @@ type: ${sourcifyValue(parameter.type)},
   return """
 ResourceControllerParameter(
   name: ${sourcifyValue(parameter.name)},
+  acceptFilter: ${sourcifyValue(parameter.acceptFilter)},
   ignoreFilter: ${sourcifyValue(parameter.ignoreFilter)},
   rejectFilter: ${sourcifyValue(parameter.rejectFilter)},
   requireFilter: ${sourcifyValue(parameter.requireFilter)},  
