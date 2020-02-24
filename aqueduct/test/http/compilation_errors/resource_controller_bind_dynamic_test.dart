@@ -11,7 +11,7 @@ void main() {
       fail('unreachable');
     } on StateError catch (e) {
       expect(e.toString(),
-        contains("Bad state: Invalid binding 'x' on 'ErrorDynamic.get1': 'dynamic'"));
+        contains("Invalid binding 'x' on 'ErrorDynamic.get1'"));
     }
   });
 }

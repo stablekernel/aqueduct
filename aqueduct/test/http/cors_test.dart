@@ -8,6 +8,7 @@ import "package:test/test.dart";
 
 // These tests are based on the specification found at http://www.w3.org/TR/cors/.
 void main() {
+  Controller.letUncaughtExceptionsEscape = true;
   var app = Application<CORSChannel>();
   app.options.port = 8000;
 

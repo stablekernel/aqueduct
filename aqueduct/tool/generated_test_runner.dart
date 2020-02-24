@@ -10,6 +10,8 @@ Future main(List<String> args) async {
     (String s) => s.contains("test/openapi/"),
     (String s) => s.contains("postgresql/migration/"),
     (String s) => s.contains("db/migration/"),
+    (String s) => s.endsWith("entity_mirrors_test.dart"),
+    (String s) => s.endsWith("moc_openapi_test.dart"),
     (String s) => s.endsWith("entity_mirrors_test.dart")
   ];
 
