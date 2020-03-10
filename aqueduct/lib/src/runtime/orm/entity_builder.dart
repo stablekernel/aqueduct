@@ -15,12 +15,12 @@ import 'package:logging/logging.dart';
 class EntityBuilder {
   EntityBuilder(Type type)
       : instanceType = reflectClass(type),
-        tableDefinitionType = _getTableDefinitionForType(type),
-        metadata = firstMetadataOfType(_getTableDefinitionForType(type)) {
+        tableDefinitionType = getTableDefinitionForType(type),
+        metadata = firstMetadataOfType(getTableDefinitionForType(type)) {
     name = _getName();
 
-    entity = ManagedEntity(name, type,
-        tableDefinitionType.reflectedType)
+    entity = ManagedEntity(
+        name, type, MirrorSystem.getName(tableDefinitionType.simpleName))
       ..validators = [];
 
     runtime = ManagedEntityRuntimeImpl(instanceType, entity);
@@ -233,7 +233,7 @@ class EntityBuilder {
     return out;
   }
 
-  static ClassMirror _getTableDefinitionForType(Type instanceType) {
+  static ClassMirror getTableDefinitionForType(Type instanceType) {
     final ifNotFoundException = ManagedDataModelError(
         "Invalid instance type '$instanceType' '${reflectClass(instanceType).simpleName}' is not subclass of 'ManagedObject'.");
 
@@ -245,4 +245,3 @@ class EntityBuilder {
         .first as ClassMirror;
   }
 }
-

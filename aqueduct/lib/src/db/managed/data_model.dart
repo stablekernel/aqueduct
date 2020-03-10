@@ -70,7 +70,7 @@ class ManagedDataModel extends Object
 
   Iterable<ManagedEntity> get entities => _entities.values;
   Map<Type, ManagedEntity> _entities = {};
-  Map<Type, ManagedEntity> _tableDefinitionToEntityMap = {};
+  Map<String, ManagedEntity> _tableDefinitionToEntityMap = {};
 
   /// Returns a [ManagedEntity] for a [Type].
   ///
@@ -83,7 +83,7 @@ class ManagedDataModel extends Object
   ///           int id;
   ///         }
   ManagedEntity entityForType(Type type) {
-    return _entities[type] ?? _tableDefinitionToEntityMap[type];
+    return _entities[type] ?? _tableDefinitionToEntityMap[type.toString()];
   }
 
   @override

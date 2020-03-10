@@ -251,7 +251,7 @@ class ManagedDataModelErrorImpl extends ManagedDataModelError {
       return null;
     }
 
-    return _getName(reflectType(entity.tableDefinition).simpleName);
+    return entity.tableDefinition;
   }
 
   static String _getInstanceClassName(ManagedEntity entity) {

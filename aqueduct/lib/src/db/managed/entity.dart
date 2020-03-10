@@ -48,11 +48,11 @@ class ManagedEntity implements APIComponentDocumenter {
   ManagedEntityRuntime get runtime =>
       RuntimeContext.current[instanceType] as ManagedEntityRuntime;
 
-  /// The type of persistent instances represented by this entity.
+  /// The name of type of persistent instances represented by this entity.
   ///
-  /// Managed objects are made up of two components, a table definition and an instance type. The system uses this type to define
-  /// the mapping to the underlying database table.
-  final Type tableDefinition;
+  /// Managed objects are made up of two components, a table definition and an instance type.
+  /// The system uses this type to define the mapping to the underlying database table.
+  final String tableDefinition;
 
   /// All attribute values of this entity.
   ///
@@ -358,8 +358,7 @@ abstract class ManagedEntityRuntime {
 
   bool isValueListOf(dynamic value);
 
-  dynamic dynamicAccessorImplementation(
-      Invocation invocation, ManagedEntity entity, ManagedObject object);
+  String getPropertyName(Invocation invocation, ManagedEntity entity);
 
   dynamic dynamicConvertFromPrimitiveValue(
       ManagedPropertyDescription property, dynamic value);

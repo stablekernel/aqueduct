@@ -39,6 +39,10 @@ class ManagedType {
   /// [type] must be representable by [ManagedPropertyType].
   ManagedType(this.type, this.kind, this.elements, this.enumerationMap);
 
+  static ManagedType make<T>(ManagedPropertyType kind, ManagedType elements, Map<String, dynamic> enumerationMap) {
+    return ManagedType(T, kind, elements, enumerationMap);
+  }
+
   /// The primitive kind of this type.
   ///
   /// All types have a kind. If kind is a map or list, it will also have [elements].

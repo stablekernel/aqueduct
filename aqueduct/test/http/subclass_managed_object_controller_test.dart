@@ -7,7 +7,6 @@ import 'package:aqueduct/aqueduct.dart';
 void main() {
   group("Standard operations", () {
     var app = Application<TestChannel>();
-    Controller.letUncaughtExceptionsEscape = true;
     app.options.port = 8888;
     var client = Agent.onPort(app.options.port);
     List<TestModel> allObjects = [];

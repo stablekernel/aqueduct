@@ -192,6 +192,9 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
         break;
       case BindingType.path:
         {
+          if (boundType.isAssignableTo(reflectType(List))) {
+            throw _makeError(mirror, "Cannot bind variable of type 'List' to path parameter.");
+          }
           decoder = (value) {
             return _convertParameterWithMirror(value as String, mirror.type);
           };

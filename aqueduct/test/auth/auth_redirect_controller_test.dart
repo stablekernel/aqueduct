@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
 import 'package:test/test.dart';
 
