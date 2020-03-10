@@ -106,10 +106,19 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
       inverseType = "${property.destinationEntity.instanceType}";
     }
 
-    final type = reflectClass(property.entity.tableDefinition);
-    final klass = context.analyzer.getClassFromFile(
-        MirrorSystem.getName(type.simpleName), type.location.sourceUri);
-    final field = klass.getField("${property.name}");
+    // If type extends other types, we have to look for those as well.
+    final findField = (ClassMirror classMirror) {
+      final klass = context.analyzer.getClassFromFile(
+          MirrorSystem.getName(classMirror.simpleName),
+          context.resolveUri(classMirror.location.sourceUri));
+      return klass.getField("${property.name}");
+    };
+    var type = reflectClass(property.entity.tableDefinition);
+    var field = findField(type);
+    while (field == null && type.reflectedType != Object) {
+      type = type.superclass;
+      field = findField(type);
+    }
 
     final metadata = field.metadata.where((a) {
       final type = (RuntimeContext.current as MirrorContext).types.firstWhere(
@@ -129,16 +138,20 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
   }
 
   String _getManagedTypeInstantiator(ManagedType type) {
+    if (type == null) {
+      return "null";
+    }
+
     final elementStr = type.elements == null
-      ? "null"
-      : _getManagedTypeInstantiator(type.elements);
+        ? "null"
+        : _getManagedTypeInstantiator(type.elements);
 
     final enumStr = type.enumerationMap == null
-      ? "null"
-      : "{${type.enumerationMap.keys.map((k) {
-        var vStr = sourcifyValue(type.enumerationMap[k]);
-        return "'$k': $vStr";
-    }).join(",")}}";
+        ? "null"
+        : "{${type.enumerationMap.keys.map((k) {
+            var vStr = sourcifyValue(type.enumerationMap[k]);
+            return "'$k': $vStr";
+          }).join(",")}}";
 
     return "ManagedType(${type.type}, ${type.kind}, $elementStr, $enumStr)";
   }
@@ -181,8 +194,8 @@ ManagedRelationshipDescription(
   entity,
   '${relationship.name}',
   ${_getManagedTypeInstantiator(relationship.type)},
-  ${relationship.declaredType},
-  dataModel.entities['${relationship.destinationEntity.name}'],
+  null /*${relationship.declaredType}*/,
+  dataModel.entities.firstWhere((e) => e.name == '${relationship.destinationEntity.name}'),
   ${relationship.deleteRule},
   ${relationship.relationshipType},
   '${relationship.inverseKey}',
@@ -221,7 +234,7 @@ final entity = ManagedEntity('${entity.tableName}', ${entity.instanceType}, null
     }).join(", ");
 
     return """
-import 'package:aqueduct/src/db/managed/managed.dart';
+import 'package:aqueduct/aqueduct.dart';
 import '$originalFileUri';
 
 final instance = ManagedEntityRuntimeImpl();
