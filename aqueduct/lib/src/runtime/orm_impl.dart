@@ -265,7 +265,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   
   @override
   void setTransientValueForKey(ManagedObject object, String key, dynamic value) {
-    $_setTransientValueForKeyImpl
+    ${_getSetTransientValueForKeyImpl(ctx)}
   }
   
   @override
@@ -275,7 +275,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   
   @override
   dynamic getTransientValueForKey(ManagedObject object, String key) {
-    $_getTransientValueForKeyImpl
+    ${_getGetTransientValueForKeyImpl(ctx)}
   }
   
   @override
@@ -312,12 +312,12 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
     """;
   }
 
-  String get _setTransientValueForKeyImpl {
+  String _getSetTransientValueForKeyImpl(BuildContext ctx) {
     // switch statement for each property key
     return "";
   }
 
-  String get _getTransientValueForKeyImpl {
+  String _getGetTransientValueForKeyImpl(BuildContext ctx) {
     // switch statement for each property key
     return "";
   }
