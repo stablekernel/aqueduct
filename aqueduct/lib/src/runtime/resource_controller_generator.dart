@@ -100,19 +100,27 @@ String getDecoderSource(
   throw StateError("unknown parameter");
 }
 
+String sourcifyFilter(List<String> filter) {
+  if (filter == null) {
+    return "null";
+  }
+
+  return "[${filter?.map((s) => "'$s'")?.join(",")}]";
+}
+
 String getBodyDecoderSource(ResourceControllerParameter p) {
-  final ignore = p.ignoreFilter.map((s) => "'$s'").join(",");
-  final reject = p.rejectFilter.map((s) => "'$s'").join(",");
-  final require = p.requireFilter.map((s) => "'$s'").join(",");
-  final accept = p.acceptFilter.map((s) => "'$s'").join(",");
+  final ignore = sourcifyFilter(p.ignoreFilter);
+  final reject = sourcifyFilter(p.rejectFilter);
+  final require = sourcifyFilter(p.requireFilter);
+  final accept = sourcifyFilter(p.acceptFilter);
   if (isSerializable(p.type)) {
     return """(v) {
     return ${p.type}()
       ..read((v as RequestBody).as(), 
-           accept: [$accept],
-           ignore: [$ignore],
-           reject: [$reject],
-           require: [$require]);
+           accept: $accept,
+           ignore: $ignore,
+           reject: $reject,
+           require: $require);
     }
     """;
   } else if (isListSerializable(p.type)) {
@@ -124,12 +132,12 @@ String getBodyDecoderSource(ResourceControllerParameter p) {
       }
 
       final iterable = bodyList.map((object) {
-        return ${reflectType(p.type).typeArguments.first}()
+        return ${reflectType(p.type).typeArguments.first.reflectedType}()
           ..read(object,
-            acccept: [$accept],
-            ignore: [$ignore],
-            reject: [$reject],
-            require: [$require]);
+            accept: $accept,
+            ignore: $ignore,
+            reject: $reject,
+            require: $require);
       }).toList();
 
       return ${p.type}.from(iterable);       
@@ -189,10 +197,10 @@ type: ${sourcifyValue(parameter.type)},
   return """
 ResourceControllerParameter(
   name: ${sourcifyValue(parameter.name)},
-  acceptFilter: ${sourcifyValue(parameter.acceptFilter)},
-  ignoreFilter: ${sourcifyValue(parameter.ignoreFilter)},
-  rejectFilter: ${sourcifyValue(parameter.rejectFilter)},
-  requireFilter: ${sourcifyValue(parameter.requireFilter)},  
+  acceptFilter: ${sourcifyFilter(parameter.acceptFilter)},
+  ignoreFilter: ${sourcifyFilter(parameter.ignoreFilter)},
+  rejectFilter: ${sourcifyFilter(parameter.rejectFilter)},
+  requireFilter: ${sourcifyFilter(parameter.requireFilter)},  
   symbolName: ${sourcifyValue(parameter.symbolName)},
   location: ${sourcifyValue(parameter.location)},
   isRequired: ${sourcifyValue(parameter.isRequired)},
