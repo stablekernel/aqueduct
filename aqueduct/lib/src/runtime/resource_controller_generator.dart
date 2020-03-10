@@ -213,7 +213,7 @@ String getOperationSource(
     BuildContext context,
     ResourceControllerRuntimeImpl runtime,
     ResourceControllerOperation operation) {
-  final scopeElements = operation.scopes?.map((s) => "'AuthScope($s)'")?.join(",");
+  final scopeElements = operation.scopes?.map((s) => "AuthScope(${sourcifyValue(s.toString())})")?.join(",");
   final namedParameters = operation.namedParameters
       .map((p) => getParameterSource(context, runtime, p))
       .join(",");
