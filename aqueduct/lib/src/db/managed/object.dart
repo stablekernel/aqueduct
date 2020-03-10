@@ -66,15 +66,10 @@ abstract class ManagedBacking {
 ///
 /// See more documentation on defining a data model at http://aqueduct.io/docs/db/modeling_data/
 abstract class ManagedObject<T> extends Serializable {
-  ManagedObject() {
-    entity = ManagedDataModelManager.findEntity(runtimeType);
-    backing = ManagedValueBacking();
-  }
-
   static bool get shouldAutomaticallyDocument => false;
 
   /// The [ManagedEntity] this instance is described by.
-  ManagedEntity entity;
+  ManagedEntity entity = ManagedDataModelManager.findEntity(T);
 
   /// The persistent values of this object.
   ///
@@ -84,7 +79,7 @@ abstract class ManagedObject<T> extends Serializable {
   ///
   /// You rarely need to use [backing] directly. There are many implementations of [ManagedBacking]
   /// for fulfilling the behavior of the ORM, so you cannot rely on its behavior.
-  ManagedBacking backing;
+  ManagedBacking backing = ManagedValueBacking();
 
   /// Retrieves a value by property name from [backing].
   dynamic operator [](String propertyName) {
@@ -191,7 +186,19 @@ abstract class ManagedObject<T> extends Serializable {
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
-    return entity.runtime.dynamicAccessorImplementation(invocation, entity, this);
+    final propertyName = entity.runtime.getPropertyName(invocation, entity);
+    if (propertyName != null) {
+      if (invocation.isGetter) {
+        return this[propertyName];
+      } else if (invocation.isSetter) {
+        this[propertyName] =
+          invocation.positionalArguments.first;
+
+        return null;
+      }
+    }
+
+    throw NoSuchMethodError.withInvocation(this, invocation);
   }
 
   @override

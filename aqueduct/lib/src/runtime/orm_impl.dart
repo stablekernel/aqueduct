@@ -1,6 +1,7 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
+import 'package:aqueduct/src/runtime/orm/entity_builder.dart';
 import 'package:aqueduct/src/utilities/mirror_cast.dart';
 import 'package:aqueduct/src/utilities/sourcify.dart';
 import 'package:runtime/runtime.dart';
@@ -58,24 +59,13 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
 
     return type.typeArguments.first.isAssignableTo(instanceType);
   }
-
+  
   @override
-  dynamic dynamicAccessorImplementation(
-      Invocation invocation, ManagedEntity entity, ManagedObject object) {
-    if (invocation.isGetter) {
-      if (invocation.memberName == #haveAtLeastOneWhere) {
-        return this;
-      }
-
-      return object[_getPropertyNameFromInvocation(invocation, entity)];
-    } else if (invocation.isSetter) {
-      object[_getPropertyNameFromInvocation(invocation, entity)] =
-          invocation.positionalArguments.first;
-
-      return null;
-    }
-
-    throw NoSuchMethodError.withInvocation(object, invocation);
+  String getPropertyName(Invocation invocation, ManagedEntity entity) {
+    // It memberName is not in symbolMap, it may be because that property doesn't exist for this object's entity.
+    // But it also may occur for private ivars, in which case, we reconstruct the symbol and try that.
+    return entity.symbolMap[invocation.memberName] ??
+      entity.symbolMap[Symbol(MirrorSystem.getName(invocation.memberName))];
   }
 
   @override
@@ -83,22 +73,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
       ManagedPropertyDescription property, dynamic value) {
     return runtimeCast(value, reflectType(property.type.type));
   }
-
-  String _getPropertyNameFromInvocation(
-      Invocation invocation, ManagedEntity entity) {
-    // It memberName is not in symbolMap, it may be because that property doesn't exist for this object's entity.
-    // But it also may occur for private ivars, in which case, we reconstruct the symbol and try that.
-    var name = entity.symbolMap[invocation.memberName] ??
-        entity.symbolMap[Symbol(MirrorSystem.getName(invocation.memberName))];
-
-    if (name == null) {
-      throw ArgumentError("Invalid property access for '${entity.name}'. "
-          "Property '${MirrorSystem.getName(invocation.memberName)}' does not exist on '${entity.name}'.");
-    }
-
-    return name;
-  }
-
+  
   String _getValidators(
       BuildContext context, ManagedPropertyDescription property) {
     var inverseType = "null";
@@ -113,10 +88,14 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
           context.resolveUri(classMirror.location.sourceUri));
       return klass.getField("${property.name}");
     };
-    var type = reflectClass(property.entity.tableDefinition);
+
+    var type = EntityBuilder.getTableDefinitionForType(property.entity.instanceType); 
     var field = findField(type);
-    while (field == null && type.reflectedType != Object) {
+    while (field == null) {
       type = type.superclass;
+      if (type.reflectedType == Object) {
+        break;
+      }
       field = findField(type);
     }
 
@@ -153,7 +132,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
             return "'$k': $vStr";
           }).join(",")}}";
 
-    return "ManagedType(${type.type}, ${type.kind}, $elementStr, $enumStr)";
+    return "ManagedType.make<${type.type}>(${type.kind}, $elementStr, $enumStr)";
   }
 
   String _getDefaultValueLiteral(ManagedAttributeDescription attribute) {
@@ -166,16 +145,16 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
 
   String _getAttributeInstantiator(
       BuildContext ctx, ManagedAttributeDescription attribute) {
-    if (attribute.isTransient) {
-      return """
-ManagedAttributeDescription.transient(entity, '${attribute.name}',
-  ${_getManagedTypeInstantiator(attribute.type)}, ${attribute.declaredType}, ${attribute.transientStatus})""";
-    }
+    final transienceStr = attribute.isTransient
+        ? "Serialize(input: ${attribute.transientStatus.isAvailableAsInput}, output: ${attribute.transientStatus.isAvailableAsOutput})"
+        : null;
+    final validatorStr =
+        attribute.isTransient ? "null" : "[${_getValidators(ctx, attribute)}]";
 
     return """
-ManagedAttributeDescription(entity, '${attribute.name}',
-    ${_getManagedTypeInstantiator(attribute.type)}, ${attribute.declaredType},
-    transientStatus: ${attribute.transientStatus},
+ManagedAttributeDescription.make<${attribute.declaredType}>(entity, '${attribute.name}',
+    ${_getManagedTypeInstantiator(attribute.type)}, 
+    transientStatus: $transienceStr,
     primaryKey: ${attribute.isPrimaryKey},
     defaultValue: ${_getDefaultValueLiteral(attribute)},
     unique: ${attribute.isUnique},
@@ -183,18 +162,17 @@ ManagedAttributeDescription(entity, '${attribute.name}',
     nullable: ${attribute.isNullable},
     includedInDefaultResultSet: ${attribute.isIncludedInDefaultResultSet},
     autoincrement: ${attribute.autoincrement},
-    validators: [${_getValidators(ctx, attribute)}])    
+    validators: $validatorStr)    
     """;
   }
 
   String _getRelationshipInstantiator(
       BuildContext ctx, ManagedRelationshipDescription relationship) {
     return """
-ManagedRelationshipDescription(
+ManagedRelationshipDescription.make<${relationship.declaredType}>(
   entity,
   '${relationship.name}',
   ${_getManagedTypeInstantiator(relationship.type)},
-  null /*${relationship.declaredType}*/,
   dataModel.entities.firstWhere((e) => e.name == '${relationship.destinationEntity.name}'),
   ${relationship.deleteRule},
   ${relationship.relationshipType},
@@ -216,13 +194,59 @@ ManagedRelationshipDescription(
         ? "null"
         : "[${entity.uniquePropertySet.map((u) => "'${u.name}'").join(",")}]";
 
+    final symbolMapBuffer = StringBuffer();
+    entity.properties.forEach((str, val) {
+      final sourcifiedKey = sourcifyValue(str);
+      symbolMapBuffer.write("Symbol($sourcifiedKey): $sourcifiedKey,");
+      symbolMapBuffer.write("Symbol(${sourcifyValue("$str=")}): $sourcifiedKey,");
+    });
+
+    final tableDef = EntityBuilder.getTableDefinitionForType(entity.instanceType).reflectedType.toString();
+
     return """() {    
-final entity = ManagedEntity('${entity.tableName}', ${entity.instanceType}, null);
+final entity = ManagedEntity('${entity.tableName}', ${entity.instanceType}, ${sourcifyValue(tableDef)});
   return entity
-    ..attributes = {$attributesStr}
     ..uniquePropertySet = $uniqueStr
-    ..primaryKey = '${entity.primaryKey}';
+    ..primaryKey = '${entity.primaryKey}'
+    ..symbolMap = {${symbolMapBuffer.toString()}}
+    ..attributes = {$attributesStr};
 }()""";
+  }
+
+  String _getSetTransientValueForKeyImpl(BuildContext ctx) {
+    final cases = entity.attributes.values
+        .where((attr) => attr.isTransient)
+        .where((attr) => attr.transientStatus.isAvailableAsInput)
+        .map((attr) {
+      return "case '${attr.name}': (object as ${instanceType.reflectedType}).${attr.name} = value as ${attr.declaredType}; break;";
+    }).join("\n");
+
+    return """switch (key) {
+    $cases
+}""";
+  }
+
+  String _getGetTransientValueForKeyImpl(BuildContext ctx) {
+    final cases = entity.attributes.values
+        .where((attr) => attr.isTransient)
+        .where((attr) => attr.transientStatus.isAvailableAsOutput)
+        .map((attr) {
+      return "case '${attr.name}': return (object as ${instanceType.reflectedType}).${attr.name};";
+    }).join("\n");
+
+    return """switch (key) {
+    $cases
+}""";
+  }
+
+  String _getDynamicConvertFromPrimitiveValueImpl(BuildContext ctx) {
+    return """/* this needs to be improved to use the property's type to fix the implementation */
+return value;
+    """;
+  }
+
+  String _getGetPropertyNameImpl(BuildContext ctx) {
+    return "return entity.symbolMap[invocation.memberName];";
   }
 
   @override
@@ -289,36 +313,15 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   }
   
   @override
-  dynamic dynamicAccessorImplementation(Invocation invocation, ManagedEntity entity, ManagedObject object) {
-    if (invocation.isGetter) {
-      return null;     
-      // return object[_getPropertyNameFromInvocation(invocation, entity)];
-    } else if (invocation.isSetter) {
-      //object[_getPropertyNameFromInvocation(invocation, entity)] =
-        //invocation.positionalArguments.first;
-
-      return null;
-    }
-
-    throw NoSuchMethodError.withInvocation(object, invocation);
+  String getPropertyName(Invocation invocation, ManagedEntity entity) {
+    ${_getGetPropertyNameImpl(ctx)}    
   }
   
   @override
   dynamic dynamicConvertFromPrimitiveValue(ManagedPropertyDescription property, dynamic value) {
-  /* this needs to be improved to use the property's type to fix the implementation */
-    return null;
+    ${_getDynamicConvertFromPrimitiveValueImpl(ctx)}  
   }
 }   
     """;
-  }
-
-  String _getSetTransientValueForKeyImpl(BuildContext ctx) {
-    // switch statement for each property key
-    return "";
-  }
-
-  String _getGetTransientValueForKeyImpl(BuildContext ctx) {
-    // switch statement for each property key
-    return "";
   }
 }

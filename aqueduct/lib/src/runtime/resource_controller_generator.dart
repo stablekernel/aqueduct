@@ -195,7 +195,7 @@ String getParameterSource(
 type: ${sourcifyValue(parameter.type)},
    */
   return """
-ResourceControllerParameter(
+ResourceControllerParameter.make<${parameter.type}>(
   name: ${sourcifyValue(parameter.name)},
   acceptFilter: ${sourcifyFilter(parameter.acceptFilter)},
   ignoreFilter: ${sourcifyFilter(parameter.ignoreFilter)},
