@@ -183,7 +183,7 @@ class ResourceControllerParameter {
 }
 
 class ResourceControllerOperationInvocationArgs {
-  Map<Symbol, dynamic> instanceVariables;
-  Map<Symbol, dynamic> namedArguments;
+  Map<String, dynamic> instanceVariables;
+  Map<String, dynamic> namedArguments;
   List<dynamic> positionalArguments;
 }

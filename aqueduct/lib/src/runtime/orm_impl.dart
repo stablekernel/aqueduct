@@ -2,6 +2,7 @@ import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/utilities/mirror_cast.dart';
+import 'package:aqueduct/src/utilities/sourcify.dart';
 import 'package:runtime/runtime.dart';
 
 class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
@@ -98,10 +99,126 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
     return name;
   }
 
+  String _getValidators(
+      BuildContext context, ManagedPropertyDescription property) {
+    var inverseType = "null";
+    if (property is ManagedRelationshipDescription) {
+      inverseType = "${property.destinationEntity.instanceType}";
+    }
+
+    final type = reflectClass(property.entity.tableDefinition);
+    final klass = context.analyzer.getClassFromFile(
+        MirrorSystem.getName(type.simpleName), type.location.sourceUri);
+    final field = klass.getField("${property.name}");
+
+    final metadata = field.metadata.where((a) {
+      final type = (RuntimeContext.current as MirrorContext).types.firstWhere(
+          (t) => MirrorSystem.getName(t.simpleName) == a.name.name,
+          orElse: () => null);
+      return type?.isSubtypeOf(reflectType(Validate)) ?? false;
+    });
+
+    return metadata.map((m) {
+      return """"() {
+  final validator = ${m.toSource().substring(1)};
+  final state = validator.compile(${property.type}, relationshipInverseType: $inverseType);
+  return ManagedValidator(validator, state);
+}()
+    """;
+    }).join(", ");
+  }
+
+  String _getManagedTypeInstantiator(ManagedType type) {
+    final elementStr = type.elements == null
+      ? "null"
+      : _getManagedTypeInstantiator(type.elements);
+
+    final enumStr = type.enumerationMap == null
+      ? "null"
+      : "{${type.enumerationMap.keys.map((k) {
+        var vStr = sourcifyValue(type.enumerationMap[k]);
+        return "'$k': $vStr";
+    }).join(",")}}";
+
+    return "ManagedType(${type.type}, ${type.kind}, $elementStr, $enumStr)";
+  }
+
+  String _getDefaultValueLiteral(ManagedAttributeDescription attribute) {
+    final value = attribute.defaultValue;
+    return sourcifyValue(value,
+        onError:
+            "The default value for '${attribute.entity.instanceType}.${attribute.name}' "
+            "contains both double and single quotes");
+  }
+
+  String _getAttributeInstantiator(
+      BuildContext ctx, ManagedAttributeDescription attribute) {
+    if (attribute.isTransient) {
+      return """
+ManagedAttributeDescription.transient(entity, '${attribute.name}',
+  ${_getManagedTypeInstantiator(attribute.type)}, ${attribute.declaredType}, ${attribute.transientStatus})""";
+    }
+
+    return """
+ManagedAttributeDescription(entity, '${attribute.name}',
+    ${_getManagedTypeInstantiator(attribute.type)}, ${attribute.declaredType},
+    transientStatus: ${attribute.transientStatus},
+    primaryKey: ${attribute.isPrimaryKey},
+    defaultValue: ${_getDefaultValueLiteral(attribute)},
+    unique: ${attribute.isUnique},
+    indexed: ${attribute.isIndexed},
+    nullable: ${attribute.isNullable},
+    includedInDefaultResultSet: ${attribute.isIncludedInDefaultResultSet},
+    autoincrement: ${attribute.autoincrement},
+    validators: [${_getValidators(ctx, attribute)}])    
+    """;
+  }
+
+  String _getRelationshipInstantiator(
+      BuildContext ctx, ManagedRelationshipDescription relationship) {
+    return """
+ManagedRelationshipDescription(
+  entity,
+  '${relationship.name}',
+  ${_getManagedTypeInstantiator(relationship.type)},
+  ${relationship.declaredType},
+  dataModel.entities['${relationship.destinationEntity.name}'],
+  ${relationship.deleteRule},
+  ${relationship.relationshipType},
+  '${relationship.inverseKey}',
+  unique: ${relationship.isUnique},
+  indexed: ${relationship.isIndexed},
+  nullable: ${relationship.isNullable},
+  includedInDefaultResultSet: ${relationship.isIncludedInDefaultResultSet},
+  validators: [${_getValidators(ctx, relationship)}])
+    """;
+  }
+
+  String _getEntityConstructor(BuildContext context) {
+    final attributesStr = entity.attributes.keys.map((name) {
+      return "'$name': ${_getAttributeInstantiator(context, entity.attributes[name])}";
+    }).join(", ");
+
+    final uniqueStr = entity.uniquePropertySet == null
+        ? "null"
+        : "[${entity.uniquePropertySet.map((u) => "'${u.name}'").join(",")}]";
+
+    return """() {    
+final entity = ManagedEntity('${entity.tableName}', ${entity.instanceType}, null);
+  return entity
+    ..attributes = {$attributesStr}
+    ..uniquePropertySet = $uniqueStr
+    ..primaryKey = '${entity.primaryKey}';
+}()""";
+  }
+
   @override
   String compile(BuildContext ctx) {
     final className = "${MirrorSystem.getName(instanceType.simpleName)}";
     final originalFileUri = instanceType.location.sourceUri.toString();
+    final relationshipsStr = entity.relationships.keys.map((name) {
+      return "'$name': ${_getRelationshipInstantiator(ctx, entity.relationships[name])}";
+    }).join(", ");
 
     return """
 import 'package:aqueduct/src/db/managed/managed.dart';
@@ -111,13 +228,18 @@ final instance = ManagedEntityRuntimeImpl();
 
 class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   ManagedEntityRuntimeImpl() {
-   /* _entity = ManagedEntity.complete(...);*/
+   _entity = ${_getEntityConstructor(ctx)};
   }
 
   ManagedEntity _entity;
 
   @override
   ManagedEntity get entity => _entity; 
+
+  @override
+  void finalize(ManagedDataModel dataModel) {
+    _entity.relationships = {$relationshipsStr};
+  }
 
   @override
   ManagedObject instanceOfImplementation({ManagedBacking backing}) {

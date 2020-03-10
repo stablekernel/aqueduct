@@ -4,15 +4,8 @@ import 'package:aqueduct/src/http/resource_controller_bindings.dart';
 import 'package:aqueduct/src/http/resource_controller_interfaces.dart';
 import 'package:aqueduct/src/runtime/resource_controller/documenter.dart';
 import 'package:aqueduct/src/runtime/resource_controller_impl.dart';
+import 'package:aqueduct/src/utilities/sourcify.dart';
 import 'package:runtime/runtime.dart';
-
-String sourcifyValue(dynamic v) {
-  if (v is String) {
-    return "'$v'";
-  }
-
-  return "$v";
-}
 
 String getInvokerSource(BuildContext context,
     ResourceControllerRuntimeImpl controller, ResourceControllerOperation op) {
