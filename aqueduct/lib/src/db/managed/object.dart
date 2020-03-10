@@ -66,10 +66,15 @@ abstract class ManagedBacking {
 ///
 /// See more documentation on defining a data model at http://aqueduct.io/docs/db/modeling_data/
 abstract class ManagedObject<T> extends Serializable {
+  ManagedObject() {
+    entity = ManagedDataModelManager.findEntity(runtimeType);
+    backing = ManagedValueBacking();
+  }
+
   static bool get shouldAutomaticallyDocument => false;
 
   /// The [ManagedEntity] this instance is described by.
-  ManagedEntity entity = ManagedDataModelManager.findEntity(T);
+  ManagedEntity entity;
 
   /// The persistent values of this object.
   ///
@@ -79,7 +84,7 @@ abstract class ManagedObject<T> extends Serializable {
   ///
   /// You rarely need to use [backing] directly. There are many implementations of [ManagedBacking]
   /// for fulfilling the behavior of the ORM, so you cannot rely on its behavior.
-  ManagedBacking backing = ManagedValueBacking();
+  ManagedBacking backing;
 
   /// Retrieves a value by property name from [backing].
   dynamic operator [](String propertyName) {
