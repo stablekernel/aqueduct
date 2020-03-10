@@ -327,13 +327,13 @@ abstract class ResourceController extends Controller
               return null;
             }
 
-            return MapEntry(Symbol(p.symbolName), value);
+            return MapEntry(p.symbolName, value);
           });
         })
         .where((p) => p != null)
-        .cast<MapEntry<Symbol, dynamic>>();
+        .cast<MapEntry<String, dynamic>>();
 
-    args.namedArguments = Map<Symbol, dynamic>.fromEntries(namedEntries);
+    args.namedArguments = Map<String, dynamic>.fromEntries(namedEntries);
 
     final ivarEntries = _runtime.ivarParameters
         .map((p) {
@@ -342,13 +342,13 @@ abstract class ResourceController extends Controller
 
             checkIfMissingRequiredAndEmitErrorIfSo(p, value);
 
-            return MapEntry(Symbol(p.symbolName), value);
+            return MapEntry(p.symbolName, value);
           });
         })
         .where((e) => e != null)
-        .cast<MapEntry<Symbol, dynamic>>();
+        .cast<MapEntry<String, dynamic>>();
 
-    args.instanceVariables = Map<Symbol, dynamic>.fromEntries(ivarEntries);
+    args.instanceVariables = Map<String, dynamic>.fromEntries(ivarEntries);
 
     /* finished decoding bindings, checking for errors */
 
