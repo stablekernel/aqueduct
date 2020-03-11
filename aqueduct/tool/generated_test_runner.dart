@@ -34,11 +34,11 @@ Future main(List<String> args) async {
         .toList();
   }
   var remainingCounter = testFiles.length;
-  var passCounter = 0;
-  var failCounter = 0;
+  final passingFiles = <File>[];
+  final failingFiles = <File>[];
   for (File f in testFiles) {
     final makePrompt = () =>
-        "(Pass: $passCounter Fail: $failCounter Remain: $remainingCounter)";
+        "(Pass: ${passingFiles.length} Fail: ${failingFiles.length} Remain: $remainingCounter)";
     print("${makePrompt()} Loading test ${f.path}...");
     final ctx = BuildContext(
         Directory.current.uri.resolve("lib/").resolve("aqueduct.dart"),
@@ -53,18 +53,44 @@ Future main(List<String> args) async {
     final result = await Process.start("dart", ["test/main_test.dart"],
         workingDirectory:
             ctx.buildDirectoryUri.toFilePath(windows: Platform.isWindows));
-    stdout.addStream(result.stdout);
+    // enable this if you want all of the test results (spammy)
+    // stdout.addStream(result.stdout);
     stderr.addStream(result.stderr);
 
     if (await result.exitCode != 0) {
       exitCode = -1;
-      failCounter++;
+      failingFiles.add(f);
       print("Tests FAILED in ${f.path}.");
     } else {
-      passCounter++;
+      passingFiles.add(f);
     }
     print("${makePrompt()} Completed tests derived from ${f.path}.");
 //    await bm.clean();
     remainingCounter--;
   }
+
+  print("==============");
+  print("Result Summary");
+  print("==============");
+
+  final testRoot = Directory.current.uri.resolve("test/");
+  final stripParentDir = (Uri uri) {
+    final testPathIterator = uri.pathSegments.iterator;
+    final parentDirPathIterator = testRoot.pathSegments.iterator;
+    while (parentDirPathIterator.moveNext()) {
+      testPathIterator.moveNext();
+    }
+    final components = <String>[];
+    while (testPathIterator.moveNext()) {
+      components.add(testPathIterator.current);
+    }
+    return components.join("/");
+  };
+
+  passingFiles.forEach((f) {
+    print("  ${stripParentDir(f.uri)}: success");
+  });
+  failingFiles.forEach((f) {
+    print("  ${stripParentDir(f.uri)}: FAILURE");
+  });
 }

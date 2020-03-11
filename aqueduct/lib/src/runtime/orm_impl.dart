@@ -1,6 +1,7 @@
 import 'dart:mirrors';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
+import 'package:aqueduct/src/db/managed/relationship_type.dart';
 import 'package:aqueduct/src/runtime/orm/entity_builder.dart';
 import 'package:aqueduct/src/utilities/mirror_cast.dart';
 import 'package:aqueduct/src/utilities/sourcify.dart';
@@ -59,13 +60,13 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
 
     return type.typeArguments.first.isAssignableTo(instanceType);
   }
-  
+
   @override
   String getPropertyName(Invocation invocation, ManagedEntity entity) {
     // It memberName is not in symbolMap, it may be because that property doesn't exist for this object's entity.
     // But it also may occur for private ivars, in which case, we reconstruct the symbol and try that.
     return entity.symbolMap[invocation.memberName] ??
-      entity.symbolMap[Symbol(MirrorSystem.getName(invocation.memberName))];
+        entity.symbolMap[Symbol(MirrorSystem.getName(invocation.memberName))];
   }
 
   @override
@@ -73,7 +74,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
       ManagedPropertyDescription property, dynamic value) {
     return runtimeCast(value, reflectType(property.type.type));
   }
-  
+
   String _getValidators(
       BuildContext context, ManagedPropertyDescription property) {
     var inverseType = "null";
@@ -89,7 +90,8 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
       return klass.getField("${property.name}");
     };
 
-    var type = EntityBuilder.getTableDefinitionForType(property.entity.instanceType); 
+    var type =
+        EntityBuilder.getTableDefinitionForType(property.entity.instanceType);
     var field = findField(type);
     while (field == null) {
       type = type.superclass;
@@ -149,7 +151,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
         ? "Serialize(input: ${attribute.transientStatus.isAvailableAsInput}, output: ${attribute.transientStatus.isAvailableAsOutput})"
         : null;
     final validatorStr =
-        attribute.isTransient ? "null" : "[${_getValidators(ctx, attribute)}]";
+        attribute.isTransient ? "[]" : "[${_getValidators(ctx, attribute)}]";
 
     return """
 ManagedAttributeDescription.make<${attribute.declaredType}>(entity, '${attribute.name}',
@@ -198,10 +200,14 @@ ManagedRelationshipDescription.make<${relationship.declaredType}>(
     entity.properties.forEach((str, val) {
       final sourcifiedKey = sourcifyValue(str);
       symbolMapBuffer.write("Symbol($sourcifiedKey): $sourcifiedKey,");
-      symbolMapBuffer.write("Symbol(${sourcifyValue("$str=")}): $sourcifiedKey,");
+      symbolMapBuffer
+          .write("Symbol(${sourcifyValue("$str=")}): $sourcifiedKey,");
     });
 
-    final tableDef = EntityBuilder.getTableDefinitionForType(entity.instanceType).reflectedType.toString();
+    final tableDef =
+        EntityBuilder.getTableDefinitionForType(entity.instanceType)
+            .reflectedType
+            .toString();
 
     return """() {    
 final entity = ManagedEntity('${entity.tableName}', ${entity.instanceType}, ${sourcifyValue(tableDef)});
@@ -257,9 +263,21 @@ return value;
       return "'$name': ${_getRelationshipInstantiator(ctx, entity.relationships[name])}";
     }).join(", ");
 
+    // Need to import any relationships...
+    final directives = entity.relationships.values.map((r) {
+      var mirror = reflectType(r.declaredType);
+      if (mirror.isSubtypeOf(reflectType(ManagedSet))) {
+        mirror = mirror.typeArguments.first;
+      }
+
+      final uri = mirror.location.sourceUri;
+      return "import '$uri' show ${mirror.reflectedType};";
+    }).join("\n");
+
     return """
 import 'package:aqueduct/aqueduct.dart';
 import '$originalFileUri';
+$directives
 
 final instance = ManagedEntityRuntimeImpl();
 
@@ -276,6 +294,9 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   @override
   void finalize(ManagedDataModel dataModel) {
     _entity.relationships = {$relationshipsStr};
+    _entity.validators = [];
+    _entity.validators.addAll(_entity.attributes.values.expand((a) => a.validators));
+    _entity.validators.addAll(_entity.relationships.values.expand((a) => a.validators));
   }
 
   @override
