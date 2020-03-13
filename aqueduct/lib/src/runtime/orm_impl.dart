@@ -262,7 +262,7 @@ ManagedRelationshipDescription.make<${relationship.declaredType}>(
 
     final uniqueStr = entity.uniquePropertySet == null
         ? "null"
-        : "[${entity.uniquePropertySet.map((u) => "'${u.name}'").join(",")}]";
+        : "[${entity.uniquePropertySet.map((u) => "'${u.name}'").join(",")}].map((k) => entity.attributes[k]).toList()";
 
     final symbolMapBuffer = StringBuffer();
     entity.properties.forEach((str, val) {
@@ -279,11 +279,10 @@ ManagedRelationshipDescription.make<${relationship.declaredType}>(
 
     return """() {    
 final entity = ManagedEntity('${entity.tableName}', ${entity.instanceType}, ${sourcifyValue(tableDef)});
-  return entity
-    ..uniquePropertySet = $uniqueStr
+return entity    
     ..primaryKey = '${entity.primaryKey}'
     ..symbolMap = {${symbolMapBuffer.toString()}}
-    ..attributes = {$attributesStr};
+    ..attributes = {$attributesStr};    
 }()""";
   }
 
@@ -331,6 +330,10 @@ return value;
       return "'$name': ${_getRelationshipInstantiator(ctx, entity.relationships[name])}";
     }).join(", ");
 
+    final uniqueStr = entity.uniquePropertySet == null
+        ? "null"
+        : "[${entity.uniquePropertySet.map((u) => "'${u.name}'").join(",")}].map((k) => entity.properties[k]).toList()";
+
     // Need to import any relationships...
     final directives = entity.relationships.values.map((r) {
       var mirror = reflectType(r.declaredType);
@@ -365,6 +368,8 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
     _entity.validators = [];
     _entity.validators.addAll(_entity.attributes.values.expand((a) => a.validators));
     _entity.validators.addAll(_entity.relationships.values.expand((a) => a.validators));
+    
+    entity.uniquePropertySet = $uniqueStr;
   }
 
   @override

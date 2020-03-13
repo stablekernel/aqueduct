@@ -36,7 +36,9 @@ Future main(List<String> args) async {
   var remainingCounter = testFiles.length;
   final passingFiles = <File>[];
   final failingFiles = <File>[];
+  testFiles = testFiles.where((f) => f.path.endsWith("ssl_test.dart")).toList();
   for (File f in testFiles) {
+    final currentTime = DateTime.now();
     final makePrompt = () =>
         "(Pass: ${passingFiles.length} Fail: ${failingFiles.length} Remain: $remainingCounter)";
     print("${makePrompt()} Loading test ${f.path}...");
@@ -52,7 +54,15 @@ Future main(List<String> args) async {
     print("${makePrompt()} Running tests derived from ${f.path}...");
     final result = await Process.start("dart", ["test/main_test.dart"],
         workingDirectory:
-            ctx.buildDirectoryUri.toFilePath(windows: Platform.isWindows));
+            ctx.buildDirectoryUri.toFilePath(windows: Platform.isWindows),
+        environment: {
+          'AQUEDUCT_CI_DIR_LOCATION': Directory.current.uri
+              .resolve("../")
+              .resolve("ci/")
+              .toFilePath(windows: Platform.isWindows)
+        });
+    // ignore: unawaited_futures
+    stdout.addStream(result.stdout);
     // ignore: unawaited_futures
     stderr.addStream(result.stderr);
 
@@ -64,10 +74,9 @@ Future main(List<String> args) async {
       passingFiles.add(f);
     }
 
-    // ignore: unawaited_futures
-    result.stdout.drain().catchError((_) => null);
-
-    print("${makePrompt()} Completed tests derived from ${f.path}.");
+    final elapsed = DateTime.now().difference(currentTime);
+    print(
+        "${makePrompt()} (${elapsed.inSeconds}s) Completed tests derived from ${f.path}.");
 //    await bm.clean();
     remainingCounter--;
   }
@@ -84,9 +93,9 @@ Future main(List<String> args) async {
       testPathIterator.moveNext();
     }
     final components = <String>[];
-    while (testPathIterator.moveNext()) {
+    do {
       components.add(testPathIterator.current);
-    }
+    } while (testPathIterator.moveNext());
     return components.join("/");
   };
 
