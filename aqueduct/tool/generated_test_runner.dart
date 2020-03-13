@@ -36,7 +36,6 @@ Future main(List<String> args) async {
   var remainingCounter = testFiles.length;
   final passingFiles = <File>[];
   final failingFiles = <File>[];
-  testFiles = testFiles.where((f) => f.path.endsWith("ssl_test.dart")).toList();
   for (File f in testFiles) {
     final currentTime = DateTime.now();
     final makePrompt = () =>
