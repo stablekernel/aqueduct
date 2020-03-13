@@ -21,6 +21,13 @@ class ValidatorBuilder {
   }
 
   void validate(List<EntityBuilder> entityBuilders) {
+    if (property.isRelationship) {
+      if (property.relationshipType != ManagedRelationshipType.belongsTo) {
+        throw ManagedDataModelError(
+          "Invalid '@Validate' on property '${property.parent.name}.${property
+            .name}'. Validations cannot be performed on has-one or has-many relationships.");
+      }
+    }
     Type type;
     var prop = property;
     if (property.isRelationship) {

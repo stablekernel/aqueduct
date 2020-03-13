@@ -1,7 +1,8 @@
 import 'dart:mirrors';
+import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
-import 'package:aqueduct/src/db/managed/relationship_type.dart';
 import 'package:aqueduct/src/runtime/orm/entity_builder.dart';
 import 'package:aqueduct/src/utilities/mirror_cast.dart';
 import 'package:aqueduct/src/utilities/sourcify.dart';
@@ -75,47 +76,114 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
     return runtimeCast(value, reflectType(property.type.type));
   }
 
+  String _getValidatorConstructionFromAnnotation(BuildContext buildCtx,
+      Annotation annotation, ManagedPropertyDescription property) {
+    // For every annotation, grab the name of the type and find the corresponding type mirror in our list of type mirrors.
+    // Documentation mismatch: `annotation.name.name` is NOT the class name, it is the entire constructor name.
+    final typeOfAnnotationName = annotation.name.name.split(".").first;
+    final mirrorOfAnnotationType = buildCtx.context.types.firstWhere(
+        (t) => MirrorSystem.getName(t.simpleName) == typeOfAnnotationName,
+        orElse: () => null);
+
+    // NEXT STEP
+    // FOr each WILL IMPORT print statement (3 total?)
+    // we actuallyneed to import that uri in the generated source file
+    // and
+
+    String validatorSource;
+    if (mirrorOfAnnotationType?.isSubtypeOf(reflectType(Validate)) ?? false) {
+      // If the annotation is a const Validate instantiation, we just copy it directly.
+      print("WILL IMPORT (a): ${annotation.element.source.uri}");
+      validatorSource = "[${annotation.toSource().substring(1)}]";
+    } else if (mirrorOfAnnotationType?.isSubtypeOf(reflectType(Column)) ??
+        false) {
+      // This is a direct column constructor and potentially has instances of Validate in its constructor
+      // We should be able to navigate the unresolved AST to copy this text.
+      validatorSource =
+          _getValidatorArgExpressionFromColumnArgList(annotation.arguments)
+              ?.toSource();
+      if (validatorSource == null) {
+        return null;
+      }
+    } else if (mirrorOfAnnotationType == null) {
+      // Then this is not a const constructor - there is no type - it is a
+      // instance (pointing at a const constructor) e.g. @primaryKey.
+      final element = annotation.elementAnnotation?.element;
+      if (element is! PropertyAccessorElement) {
+        return null;
+      }
+
+      final type = (element as PropertyAccessorElement).variable.type;
+      final isSubclassOfValidate = buildCtx.context
+          .getSubclassesOf(Validate)
+          .any((subclass) =>
+              MirrorSystem.getName(subclass.simpleName) ==
+              type.getDisplayString());
+      final isSubclassOfColumm = type.getDisplayString() == "Column";
+
+      if (isSubclassOfValidate) {
+        print("WILL IMPORT (b): ${annotation.element.source.uri}");
+        validatorSource = "[${annotation.toSource().substring(1)}]";
+      } else if (isSubclassOfColumm) {
+        // todo: for each validator in the arg list, import its source uri
+        final originatingLibrary =
+            element.session.getParsedLibraryByElement(element.library);
+        final elementDeclaration = originatingLibrary
+            .getElementDeclaration(
+                (element as PropertyAccessorElement).variable)
+            .node as VariableDeclaration;
+
+        final args = _getValidatorArgExpressionFromColumnArgList(
+            (elementDeclaration.initializer as MethodInvocation).argumentList);
+
+        if (args == null) {
+          return null;
+        }
+
+        validatorSource = args.toSource();
+      }
+
+      // If it was something other than what we expected, so bail out
+      return null;
+    } else {
+      return null;
+    }
+
+    final inverseType = property is ManagedRelationshipDescription
+        ? "${property.destinationEntity.instanceType}"
+        : "null";
+    // Once we have the const instantiation source, return a code snippet that instantiates all of the validation objects.
+    return """() {
+  return $validatorSource.map((v) {
+    final state = v.compile(${_getManagedTypeInstantiator(property.type)}, relationshipInverseType: $inverseType);
+    return ManagedValidator(v, state);
+  });  
+}()""";
+  }
+
   String _getValidators(
       BuildContext context, ManagedPropertyDescription property) {
-    var inverseType = "null";
-    if (property is ManagedRelationshipDescription) {
-      inverseType = "${property.destinationEntity.instanceType}";
-    }
+    // For the property we are looking at, grab all of its annotations from the analyzer.
+    // We also have all of the instances created by these annotations available in some
+    // way or another in the [property].
+    final fieldAnnotations = context.getAnnotationsFromField(
+        EntityBuilder.getTableDefinitionForType(property.entity.instanceType)
+            .reflectedType,
+        property.name);
 
-    // If type extends other types, we have to look for those as well.
-    final findField = (ClassMirror classMirror) {
-      final klass = context.analyzer.getClassFromFile(
-          MirrorSystem.getName(classMirror.simpleName),
-          context.resolveUri(classMirror.location.sourceUri));
-      return klass.getField("${property.name}");
-    };
+    return fieldAnnotations
+        .map((annotation) => _getValidatorConstructionFromAnnotation(
+            context, annotation, property))
+        .where((s) => s != null)
+        .join(",");
+  }
 
-    var type =
-        EntityBuilder.getTableDefinitionForType(property.entity.instanceType);
-    var field = findField(type);
-    while (field == null) {
-      type = type.superclass;
-      if (type.reflectedType == Object) {
-        break;
-      }
-      field = findField(type);
-    }
-
-    final metadata = field.metadata.where((a) {
-      final type = (RuntimeContext.current as MirrorContext).types.firstWhere(
-          (t) => MirrorSystem.getName(t.simpleName) == a.name.name,
-          orElse: () => null);
-      return type?.isSubtypeOf(reflectType(Validate)) ?? false;
-    });
-
-    return metadata.map((m) {
-      return """"() {
-  final validator = ${m.toSource().substring(1)};
-  final state = validator.compile(${property.type}, relationshipInverseType: $inverseType);
-  return ManagedValidator(validator, state);
-}()
-    """;
-    }).join(", ");
+  Expression _getValidatorArgExpressionFromColumnArgList(ArgumentList argList) {
+    return argList.arguments
+        .whereType<NamedExpression>()
+        .firstWhere((c) => c.name.label.name == "validators",
+            orElse: () => null)
+        ?.expression;
   }
 
   String _getManagedTypeInstantiator(ManagedType type) {
@@ -164,7 +232,7 @@ ManagedAttributeDescription.make<${attribute.declaredType}>(entity, '${attribute
     nullable: ${attribute.isNullable},
     includedInDefaultResultSet: ${attribute.isIncludedInDefaultResultSet},
     autoincrement: ${attribute.autoincrement},
-    validators: $validatorStr)    
+    validators: $validatorStr.expand<ManagedValidator>((i) => i as Iterable<ManagedValidator>).toList())    
     """;
   }
 
@@ -183,7 +251,7 @@ ManagedRelationshipDescription.make<${relationship.declaredType}>(
   indexed: ${relationship.isIndexed},
   nullable: ${relationship.isNullable},
   includedInDefaultResultSet: ${relationship.isIncludedInDefaultResultSet},
-  validators: [${_getValidators(ctx, relationship)}])
+  validators: [${_getValidators(ctx, relationship)}].expand<ManagedValidator>((i) => i as Iterable<ManagedValidator>).toList())
     """;
   }
 

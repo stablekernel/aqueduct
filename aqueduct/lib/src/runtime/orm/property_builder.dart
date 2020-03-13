@@ -15,9 +15,11 @@ class PropertyBuilder {
         serialize = _getTransienceForProperty(declaration) {
     name = _getName();
     type = _getType();
+
     _validators = validatorsFromDeclaration(declaration)
         .map((v) => ValidatorBuilder(this, v))
         .toList();
+
     if (column?.validators?.isNotEmpty ?? false) {
       _validators
           .addAll(column.validators.map((v) => ValidatorBuilder(this, v)));

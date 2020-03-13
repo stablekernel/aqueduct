@@ -53,8 +53,7 @@ Future main(List<String> args) async {
     final result = await Process.start("dart", ["test/main_test.dart"],
         workingDirectory:
             ctx.buildDirectoryUri.toFilePath(windows: Platform.isWindows));
-    // enable this if you want all of the test results (spammy)
-    // stdout.addStream(result.stdout);
+    // ignore: unawaited_futures
     stderr.addStream(result.stderr);
 
     if (await result.exitCode != 0) {
@@ -64,6 +63,10 @@ Future main(List<String> args) async {
     } else {
       passingFiles.add(f);
     }
+
+    // ignore: unawaited_futures
+    result.stdout.drain().catchError((_) => null);
+
     print("${makePrompt()} Completed tests derived from ${f.path}.");
 //    await bm.clean();
     remainingCounter--;
