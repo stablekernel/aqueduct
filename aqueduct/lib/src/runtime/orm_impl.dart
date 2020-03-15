@@ -85,6 +85,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
         (t) => MirrorSystem.getName(t.simpleName) == typeOfAnnotationName,
         orElse: () => null);
 
+    // todo joeconwaystk
     // NEXT STEP
     // FOr each WILL IMPORT print statement (3 total?)
     // we actuallyneed to import that uri in the generated source file
@@ -319,7 +320,24 @@ return value;
   }
 
   String _getGetPropertyNameImpl(BuildContext ctx) {
-    return "return entity.symbolMap[invocation.memberName];";
+    return """final name = entity.symbolMap[invocation.memberName];
+if (name != null) {
+  return name;
+}
+
+final invocationMemberNameAsString = invocation.memberName.toString();
+final idxUnderscore = invocationMemberNameAsString.indexOf("_");
+if (idxUnderscore < 0) {
+  return null;
+}
+final idxEnd = invocationMemberNameAsString.indexOf("\\")");
+if (idxEnd < 0) {
+  return null;
+}
+final symbolName = invocationMemberNameAsString.substring(idxUnderscore, idxEnd);
+
+return entity.symbolMap[Symbol(symbolName)];
+""";
   }
 
   @override
