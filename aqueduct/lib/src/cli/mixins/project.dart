@@ -1,7 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/metadata.dart';
+import 'package:aqueduct/src/cli/scripts/get_channel_type.dart';
+import 'package:isolate_executor/isolate_executor.dart';
 import 'package:pub_semver/pub_semver.dart';
 import 'package:yaml/yaml.dart';
 import 'package:path/path.dart' as path_lib;
@@ -95,4 +98,18 @@ abstract class CLIProject implements CLICommand {
       rethrow;
     } catch (_) {}
   }
+
+  Future<String> getChannelName() async {
+    final name = await IsolateExecutor.run(GetChannelExecutable({}),
+      packageConfigURI: packageConfigUri,
+      imports: GetChannelExecutable.importsForPackage(libraryName),
+      logHandler: displayProgress);
+    if (name == null) {
+      throw CLIException(
+        "No ApplicationChannel subclass found in $packageName/$libraryName");
+    }
+
+    return name;
+  }
+
 }
