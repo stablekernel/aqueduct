@@ -6,6 +6,7 @@ import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/runtime/orm/entity_builder.dart';
 import 'package:aqueduct/src/utilities/mirror_cast.dart';
 import 'package:aqueduct/src/utilities/sourcify.dart';
+import 'package:meta/meta.dart';
 import 'package:runtime/runtime.dart';
 
 class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
@@ -77,7 +78,8 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
   }
 
   String _getValidatorConstructionFromAnnotation(BuildContext buildCtx,
-      Annotation annotation, ManagedPropertyDescription property) {
+      Annotation annotation, ManagedPropertyDescription property,
+      {@required List<Uri> importUris}) {
     // For every annotation, grab the name of the type and find the corresponding type mirror in our list of type mirrors.
     // Documentation mismatch: `annotation.name.name` is NOT the class name, it is the entire constructor name.
     final typeOfAnnotationName = annotation.name.name.split(".").first;
@@ -85,27 +87,27 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
         (t) => MirrorSystem.getName(t.simpleName) == typeOfAnnotationName,
         orElse: () => null);
 
-    // todo joeconwaystk
-    // NEXT STEP
-    // FOr each WILL IMPORT print statement (3 total?)
-    // we actuallyneed to import that uri in the generated source file
-    // and
+    // Following cases: @Validate, @Column(validators: [Validate]), or a const variable reference
 
     String validatorSource;
     if (mirrorOfAnnotationType?.isSubtypeOf(reflectType(Validate)) ?? false) {
-      // If the annotation is a const Validate instantiation, we just copy it directly.
-      print("WILL IMPORT (a): ${annotation.element.source.uri}");
+      // If the annotation is a const Validate instantiation, we just copy it directly
+      // and import the file where the const constructor is declared.
+      importUris?.add(annotation.element.source.uri);
       validatorSource = "[${annotation.toSource().substring(1)}]";
     } else if (mirrorOfAnnotationType?.isSubtypeOf(reflectType(Column)) ??
         false) {
       // This is a direct column constructor and potentially has instances of Validate in its constructor
       // We should be able to navigate the unresolved AST to copy this text.
-      validatorSource =
-          _getValidatorArgExpressionFromColumnArgList(annotation.arguments)
-              ?.toSource();
-      if (validatorSource == null) {
+      final elements = _getConstructorSourcesFromColumnArgList(
+              annotation.arguments,
+              importUris: importUris)
+          ?.map((c) => c)
+          ?.join(",");
+      if (elements == null) {
         return null;
       }
+      validatorSource = "[$elements]";
     } else if (mirrorOfAnnotationType == null) {
       // Then this is not a const constructor - there is no type - it is a
       // instance (pointing at a const constructor) e.g. @primaryKey.
@@ -123,10 +125,9 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
       final isSubclassOfColumm = type.getDisplayString() == "Column";
 
       if (isSubclassOfValidate) {
-        print("WILL IMPORT (b): ${annotation.element.source.uri}");
+        importUris.add(annotation.element.source.uri);
         validatorSource = "[${annotation.toSource().substring(1)}]";
       } else if (isSubclassOfColumm) {
-        // todo: for each validator in the arg list, import its source uri
         final originatingLibrary =
             element.session.getParsedLibraryByElement(element.library);
         final elementDeclaration = originatingLibrary
@@ -134,17 +135,20 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
                 (element as PropertyAccessorElement).variable)
             .node as VariableDeclaration;
 
-        final args = _getValidatorArgExpressionFromColumnArgList(
-            (elementDeclaration.initializer as MethodInvocation).argumentList);
-
+        final args = _getConstructorSourcesFromColumnArgList(
+                (elementDeclaration.initializer as MethodInvocation)
+                    .argumentList,
+                importUris: importUris)
+            ?.map((c) => c)
+            ?.join(",");
         if (args == null) {
           return null;
         }
 
-        validatorSource = args.toSource();
+        validatorSource = "[$args]";
       }
 
-      // If it was something other than what we expected, so bail out
+      // If it was something other than what we expected, we bail out
       return null;
     } else {
       return null;
@@ -163,7 +167,8 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
   }
 
   String _getValidators(
-      BuildContext context, ManagedPropertyDescription property) {
+      BuildContext context, ManagedPropertyDescription property,
+      {@required List<Uri> importUris}) {
     // For the property we are looking at, grab all of its annotations from the analyzer.
     // We also have all of the instances created by these annotations available in some
     // way or another in the [property].
@@ -174,17 +179,41 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
 
     return fieldAnnotations
         .map((annotation) => _getValidatorConstructionFromAnnotation(
-            context, annotation, property))
+            context, annotation, property,
+            importUris: importUris))
         .where((s) => s != null)
         .join(",");
   }
 
-  Expression _getValidatorArgExpressionFromColumnArgList(ArgumentList argList) {
-    return argList.arguments
+  List<String> _getConstructorSourcesFromColumnArgList(ArgumentList argList,
+      {@required List<Uri> importUris}) {
+    final expression = argList.arguments
         .whereType<NamedExpression>()
         .firstWhere((c) => c.name.label.name == "validators",
             orElse: () => null)
-        ?.expression;
+        ?.expression as ListLiteral;
+    if (expression == null) {
+      return null;
+    }
+
+    /*
+    // todo: these expressions could also be a top-level var, a static const variable, and potentially others
+    // we have to find out what imports are needed to support the expression
+    importUris.addAll(expression.elements.map((e) {
+      if (e is MethodInvocation) {
+        return null;
+      } else if (e is InstanceCreationExpression) {
+        return e.staticElement.source.uri;
+      }
+
+
+      return null;
+    }).where((e) => e != null));
+    */
+
+    return expression.elements
+        .map((e) => e.toSource())
+        .toList();
   }
 
   String _getManagedTypeInstantiator(ManagedType type) {
@@ -215,12 +244,14 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
   }
 
   String _getAttributeInstantiator(
-      BuildContext ctx, ManagedAttributeDescription attribute) {
+      BuildContext ctx, ManagedAttributeDescription attribute,
+      {@required List<Uri> importUris}) {
     final transienceStr = attribute.isTransient
         ? "Serialize(input: ${attribute.transientStatus.isAvailableAsInput}, output: ${attribute.transientStatus.isAvailableAsOutput})"
         : null;
-    final validatorStr =
-        attribute.isTransient ? "[]" : "[${_getValidators(ctx, attribute)}]";
+    final validatorStr = attribute.isTransient
+        ? "[]"
+        : "[${_getValidators(ctx, attribute, importUris: importUris)}]";
 
     return """
 ManagedAttributeDescription.make<${attribute.declaredType}>(entity, '${attribute.name}',
@@ -238,7 +269,8 @@ ManagedAttributeDescription.make<${attribute.declaredType}>(entity, '${attribute
   }
 
   String _getRelationshipInstantiator(
-      BuildContext ctx, ManagedRelationshipDescription relationship) {
+      BuildContext ctx, ManagedRelationshipDescription relationship,
+      {@required List<Uri> importUris}) {
     return """
 ManagedRelationshipDescription.make<${relationship.declaredType}>(
   entity,
@@ -252,18 +284,15 @@ ManagedRelationshipDescription.make<${relationship.declaredType}>(
   indexed: ${relationship.isIndexed},
   nullable: ${relationship.isNullable},
   includedInDefaultResultSet: ${relationship.isIncludedInDefaultResultSet},
-  validators: [${_getValidators(ctx, relationship)}].expand<ManagedValidator>((i) => i as Iterable<ManagedValidator>).toList())
+  validators: [${_getValidators(ctx, relationship, importUris: importUris)}].expand<ManagedValidator>((i) => i as Iterable<ManagedValidator>).toList())
     """;
   }
 
-  String _getEntityConstructor(BuildContext context) {
+  String _getEntityConstructor(BuildContext context,
+      {@required List<Uri> importUris}) {
     final attributesStr = entity.attributes.keys.map((name) {
-      return "'$name': ${_getAttributeInstantiator(context, entity.attributes[name])}";
+      return "'$name': ${_getAttributeInstantiator(context, entity.attributes[name], importUris: importUris)}";
     }).join(", ");
-
-    final uniqueStr = entity.uniquePropertySet == null
-        ? "null"
-        : "[${entity.uniquePropertySet.map((u) => "'${u.name}'").join(",")}].map((k) => entity.attributes[k]).toList()";
 
     final symbolMapBuffer = StringBuffer();
     entity.properties.forEach((str, val) {
@@ -342,17 +371,24 @@ return entity.symbolMap[Symbol(symbolName)];
 
   @override
   String compile(BuildContext ctx) {
+    final importUris = <Uri>[];
+
     final className = "${MirrorSystem.getName(instanceType.simpleName)}";
     final originalFileUri = instanceType.location.sourceUri.toString();
     final relationshipsStr = entity.relationships.keys.map((name) {
-      return "'$name': ${_getRelationshipInstantiator(ctx, entity.relationships[name])}";
+      return "'$name': ${_getRelationshipInstantiator(ctx, entity.relationships[name], importUris: importUris)}";
     }).join(", ");
 
     final uniqueStr = entity.uniquePropertySet == null
         ? "null"
         : "[${entity.uniquePropertySet.map((u) => "'${u.name}'").join(",")}].map((k) => entity.properties[k]).toList()";
 
-    // Need to import any relationships...
+    final entityConstructor =
+        _getEntityConstructor(ctx, importUris: importUris);
+
+    // Need to import any relationships types and metadata types
+    // todo: limit import of importUris to only show necessary symbol
+
     final directives = entity.relationships.values.map((r) {
       var mirror = reflectType(r.declaredType);
       if (mirror.isSubtypeOf(reflectType(ManagedSet))) {
@@ -361,18 +397,19 @@ return entity.symbolMap[Symbol(symbolName)];
 
       final uri = mirror.location.sourceUri;
       return "import '$uri' show ${mirror.reflectedType};";
-    }).join("\n");
+    }).toList()
+      ..addAll(Set.from(importUris).map((uri) => "import '$uri';"));
 
     return """
 import 'package:aqueduct/aqueduct.dart';
 import '$originalFileUri';
-$directives
+${directives.join("\n")}
 
 final instance = ManagedEntityRuntimeImpl();
 
 class ManagedEntityRuntimeImpl extends ManagedEntityRuntime {
   ManagedEntityRuntimeImpl() {
-   _entity = ${_getEntityConstructor(ctx)};
+   _entity = $entityConstructor;
   }
 
   ManagedEntity _entity;
