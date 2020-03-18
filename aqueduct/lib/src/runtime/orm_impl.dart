@@ -77,7 +77,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
     return runtimeCast(value, reflectType(property.type.type));
   }
 
-  String _getValidatorConstructionFromAnnotation(BuildContext buildCtx,
+  List<String> _getValidatorConstructionFromAnnotation(BuildContext buildCtx,
       Annotation annotation, ManagedPropertyDescription property,
       {@required List<Uri> importUris}) {
     // For every annotation, grab the name of the type and find the corresponding type mirror in our list of type mirrors.
@@ -88,46 +88,41 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
         orElse: () => null);
 
     // Following cases: @Validate, @Column(validators: [Validate]), or a const variable reference
-
-    String validatorSource;
     if (mirrorOfAnnotationType?.isSubtypeOf(reflectType(Validate)) ?? false) {
       // If the annotation is a const Validate instantiation, we just copy it directly
       // and import the file where the const constructor is declared.
       importUris?.add(annotation.element.source.uri);
-      validatorSource = "[${annotation.toSource().substring(1)}]";
+      return [annotation.toSource().substring(1)];
     } else if (mirrorOfAnnotationType?.isSubtypeOf(reflectType(Column)) ??
         false) {
       // This is a direct column constructor and potentially has instances of Validate in its constructor
       // We should be able to navigate the unresolved AST to copy this text.
-      final elements = _getConstructorSourcesFromColumnArgList(
-              annotation.arguments,
-              importUris: importUris)
-          ?.map((c) => c)
-          ?.join(",");
-      if (elements == null) {
-        return null;
-      }
-      validatorSource = "[$elements]";
+      return _getConstructorSourcesFromColumnArgList(annotation.arguments,
+                  importUris: importUris)
+              ?.map((c) => c)
+              ?.toList() ??
+          [];
     } else if (mirrorOfAnnotationType == null) {
       // Then this is not a const constructor - there is no type - it is a
       // instance (pointing at a const constructor) e.g. @primaryKey.
       final element = annotation.elementAnnotation?.element;
       if (element is! PropertyAccessorElement) {
-        return null;
+        return [];
       }
 
       final type = (element as PropertyAccessorElement).variable.type;
-      final isSubclassOfValidate = buildCtx.context
-          .getSubclassesOf(Validate)
-          .any((subclass) =>
-              MirrorSystem.getName(subclass.simpleName) ==
-              type.getDisplayString());
-      final isSubclassOfColumm = type.getDisplayString() == "Column";
+      final isSubclassOrInstanceOfValidate = buildCtx.context
+              .getSubclassesOf(Validate)
+              .any((subclass) =>
+                  MirrorSystem.getName(subclass.simpleName) ==
+                  type.getDisplayString()) ||
+          type.getDisplayString() == "Validate";
+      final isInstanceOfColumn = type.getDisplayString() == "Column";
 
-      if (isSubclassOfValidate) {
+      if (isSubclassOrInstanceOfValidate) {
         importUris.add(annotation.element.source.uri);
-        validatorSource = "[${annotation.toSource().substring(1)}]";
-      } else if (isSubclassOfColumm) {
+        return [annotation.toSource().substring(1)];
+      } else if (isInstanceOfColumn) {
         final originatingLibrary =
             element.session.getParsedLibraryByElement(element.library);
         final elementDeclaration = originatingLibrary
@@ -135,35 +130,16 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
                 (element as PropertyAccessorElement).variable)
             .node as VariableDeclaration;
 
-        final args = _getConstructorSourcesFromColumnArgList(
-                (elementDeclaration.initializer as MethodInvocation)
-                    .argumentList,
-                importUris: importUris)
-            ?.map((c) => c)
-            ?.join(",");
-        if (args == null) {
-          return null;
-        }
-
-        validatorSource = "[$args]";
+        return _getConstructorSourcesFromColumnArgList(
+                    (elementDeclaration.initializer as MethodInvocation)
+                        .argumentList,
+                    importUris: importUris)
+                ?.map((c) => c)
+                ?.toList() ??
+            [];
       }
-
-      // If it was something other than what we expected, we bail out
-      return null;
-    } else {
-      return null;
     }
-
-    final inverseType = property is ManagedRelationshipDescription
-        ? "${property.destinationEntity.instanceType}"
-        : "null";
-    // Once we have the const instantiation source, return a code snippet that instantiates all of the validation objects.
-    return """() {
-  return $validatorSource.map((v) {
-    final state = v.compile(${_getManagedTypeInstantiator(property.type)}, relationshipInverseType: $inverseType);
-    return ManagedValidator(v, state);
-  });  
-}()""";
+    return [];
   }
 
   String _getValidators(
@@ -177,12 +153,33 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
             .reflectedType,
         property.name);
 
-    return fieldAnnotations
+    final constructorInvocations = fieldAnnotations
         .map((annotation) => _getValidatorConstructionFromAnnotation(
             context, annotation, property,
             importUris: importUris))
-        .where((s) => s != null)
-        .join(",");
+        .expand((i) => i)
+        .toList();
+
+    if (property.type?.isEnumerated ?? false) {
+      final enumeratedValues =
+          property.type.enumerationMap.values.map(sourcifyValue).join(",");
+      constructorInvocations.add('Validate.oneOf([$enumeratedValues])');
+    }
+
+    if (constructorInvocations.isEmpty) {
+      return "";
+    }
+
+    final inverseType = property is ManagedRelationshipDescription
+        ? "${property.destinationEntity.instanceType}"
+        : "null";
+
+    return """() {
+  return [${constructorInvocations.join(",")}].map((v) {
+    final state = v.compile(${_getManagedTypeInstantiator(property.type)}, relationshipInverseType: $inverseType);
+    return ManagedValidator(v, state);
+  });  
+}()""";
   }
 
   List<String> _getConstructorSourcesFromColumnArgList(ArgumentList argList,
@@ -211,9 +208,7 @@ class ManagedEntityRuntimeImpl extends ManagedEntityRuntime
     }).where((e) => e != null));
     */
 
-    return expression.elements
-        .map((e) => e.toSource())
-        .toList();
+    return expression.elements.map((e) => e.toSource()).toList();
   }
 
   String _getManagedTypeInstantiator(ManagedType type) {
@@ -387,8 +382,7 @@ return entity.symbolMap[Symbol(symbolName)];
         _getEntityConstructor(ctx, importUris: importUris);
 
     // Need to import any relationships types and metadata types
-    // todo: limit import of importUris to only show necessary symbol
-
+    // todo: limit import of importUris to only show symbols required to replicate metadata
     final directives = entity.relationships.values.map((r) {
       var mirror = reflectType(r.declaredType);
       if (mirror.isSubtypeOf(reflectType(ManagedSet))) {
