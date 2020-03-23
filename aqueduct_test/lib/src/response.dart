@@ -19,6 +19,9 @@ class TestResponse {
   /// not need to invoke [TestResponseBody.decode] or any of its asynchronous
   /// decoding methods.
   final TestResponseBody body;
+  
+  /// HTTP response.
+  HttpClientResponse get innerResponse => _innerResponse;
 
   /// HTTP response headers.
   HttpHeaders get headers => _innerResponse.headers;
