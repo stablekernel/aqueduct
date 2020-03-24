@@ -1537,7 +1537,7 @@
 
 <h2 id="complexunsupported-where-clause-using-or">Complex/Unsupported WHERE Clause (using 'OR')</h2>
 <div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Team</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">predicate</span> <span class="o">=</span> <span class="k">new</span> <span class="n">QueryPredicate</span><span class="p">(</span><span class="s2">&quot;name = &#39;@name1&#39; OR name = &#39;@name2&#39;&quot;</span><span class="p">,</span> <span class="p">{</span>
+  <span class="p">..</span><span class="n">predicate</span> <span class="o">=</span> <span class="k">new</span> <span class="n">QueryPredicate</span><span class="p">(</span><span class="s2">&quot;name = @name1 OR name = @name2&quot;</span><span class="p">,</span> <span class="p">{</span>
       <span class="s2">&quot;name1&quot;</span><span class="o">:</span> <span class="s2">&quot;Badgers&quot;</span><span class="p">,</span>
       <span class="s2">&quot;name2&quot;</span><span class="o">:</span> <span class="s2">&quot;Gophers&quot;</span>
     <span class="p">});</span>
