@@ -72,7 +72,7 @@ var teamsWithRookies = await query.fetch();
 
 ```dart
 var query = new Query<Team>(context)
-  ..predicate = new QueryPredicate("name = '@name1' OR name = '@name2'", {
+  ..predicate = new QueryPredicate("name = @name1 OR name = @name2", {
       "name1": "Badgers",
       "name2": "Gophers"
     });
