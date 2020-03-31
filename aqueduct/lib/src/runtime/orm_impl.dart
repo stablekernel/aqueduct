@@ -410,6 +410,7 @@ return entity.symbolMap[Symbol(symbolName)];
 
     return """
 import 'package:aqueduct/aqueduct.dart';
+import 'package:runtime/runtime.dart';
 import '$originalFileUri';
 ${directives.join("\n")}
 
