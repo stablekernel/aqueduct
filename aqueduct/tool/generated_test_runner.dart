@@ -76,7 +76,7 @@ Future main(List<String> args) async {
     final elapsed = DateTime.now().difference(currentTime);
     print(
         "${makePrompt()} (${elapsed.inSeconds}s) Completed tests derived from ${f.path}.");
-//    await bm.clean();
+    await bm.clean();
     remainingCounter--;
   }
 

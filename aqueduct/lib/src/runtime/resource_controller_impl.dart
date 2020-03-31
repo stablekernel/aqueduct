@@ -165,12 +165,6 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
               return boundType.newInstance(#from, [iterable]).reflectee;
             };
           } else {
-            if (!isTypeFullyPrimitive(boundType)) {
-              throw _makeError(mirror,
-                "Non-Serializable body bindings must be composed of "
-                  "primitive types (List, Map, String, int, double, bool).");
-            }
-
             decoder = (b) {
               final body = b as RequestBody;
               return runtimeCast(body.as(), boundType);
