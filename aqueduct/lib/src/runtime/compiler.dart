@@ -19,8 +19,6 @@ class AqueductCompiler extends Compiler {
       .map((t) => MapEntry(_getClassName(t), SerializableRuntimeImpl(t))));
     m.addEntries(context.getSubclassesOf(Controller)
       .map((t) => MapEntry(_getClassName(t), ControllerRuntimeImpl(t))));
-    m.addEntries(context.getSubclassesOf(BodyDecoder)
-      .map((t) => MapEntry(_getClassName(t), BodyDecoderRuntimeImpl())));
 
     m.addAll(DataModelCompiler().compile(context));
 

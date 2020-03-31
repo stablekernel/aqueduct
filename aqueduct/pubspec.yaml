@@ -22,7 +22,7 @@ dependencies:
   pub_semver: ^1.4.0
   safe_config: ^3.0.0-b2
   yaml: ^2.1.15
-  runtime: ^1.0.0-7
+  runtime: ^1.0.0-8
 
 dev_dependencies:
   matcher: '>=0.12.3 <0.14.0'

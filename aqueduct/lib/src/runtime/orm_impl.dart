@@ -4,7 +4,6 @@ import 'package:analyzer/dart/element/element.dart';
 
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/runtime/orm/entity_builder.dart';
-import 'package:aqueduct/src/utilities/mirror_cast.dart';
 import 'package:aqueduct/src/utilities/sourcify.dart';
 import 'package:meta/meta.dart';
 import 'package:runtime/runtime.dart';
@@ -338,9 +337,24 @@ return entity
   }
 
   String _getDynamicConvertFromPrimitiveValueImpl(BuildContext ctx) {
-    return """/* this needs to be improved to use the property's type to fix the implementation */
-return value;
-    """;
+    final buf = StringBuffer();
+
+    entity.properties.forEach((k, v) {
+      if (v is ManagedAttributeDescription) {
+        if (v.isTransient) {
+          if (v.type.kind == ManagedPropertyType.list ||
+              v.type.kind == ManagedPropertyType.map) {
+            buf.writeln("""
+            if (property.name == '$k') { return RuntimeContext.current.coerce<${v.type.type}>(value); } 
+            """);
+          }
+        }
+      }
+    });
+
+    buf.writeln(
+        "throw StateError('unknown state in _getDynamicConvertFromPrimitiveValueImpl');");
+    return buf.toString();
   }
 
   String _getGetPropertyNameImpl(BuildContext ctx) {
