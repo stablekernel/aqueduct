@@ -323,7 +323,7 @@ class Validate {
               relationshipInverseType: relationshipInverseType);
         }
       case ValidateType.comparison:
-        return _comparionCompiler(typeBeingValidated,
+        return _comparisonCompiler(typeBeingValidated,
             relationshipInverseType: relationshipInverseType);
       case ValidateType.regex:
         return _regexCompiler(typeBeingValidated,
@@ -514,7 +514,7 @@ class Validate {
     return comparisons;
   }
 
-  dynamic _comparionCompiler(ManagedType typeBeingValidated,
+  dynamic _comparisonCompiler(ManagedType typeBeingValidated,
       {Type relationshipInverseType}) {
     final exprs = _expressions;
     exprs.forEach((expr) {

@@ -19,8 +19,6 @@ class AqueductCompiler extends Compiler {
       .map((t) => MapEntry(_getClassName(t), SerializableRuntimeImpl(t))));
     m.addEntries(context.getSubclassesOf(Controller)
       .map((t) => MapEntry(_getClassName(t), ControllerRuntimeImpl(t))));
-    m.addEntries(context.getSubclassesOf(BodyDecoder)
-      .map((t) => MapEntry(_getClassName(t), BodyDecoderRuntimeImpl())));
 
     m.addAll(DataModelCompiler().compile(context));
 
@@ -29,6 +27,12 @@ class AqueductCompiler extends Compiler {
 
   String _getClassName(ClassMirror mirror) {
     return MirrorSystem.getName(mirror.simpleName);
+  }
+
+
+  @override
+  List<Uri> getUrisToResolve(BuildContext context) {
+    return context.context.getSubclassesOf(ManagedObject).map((c) => c.location.sourceUri).toList();
   }
 
   @override

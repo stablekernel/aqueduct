@@ -458,6 +458,20 @@ void main() {
     expect(m.containsKey("dateCreated"), true);
   });
 
+  test("DeepMap Transient Properties of all types can be read and returned", () {
+    var m = (TransientTypeTest()
+      ..readFromMap(wash({
+        "deepMap": {
+          "ok": {"ik1": 1, "ik2": 2}
+        }
+      })))
+      .asMap();
+
+    expect(m["deepMap"], {
+      "ok": {"ik1": 1, "ik2": 2}
+    });
+  }, skip: "NYI in AOT");
+
   test("Transient Properties of all types can be read and returned", () {
     var dateString = "2016-10-31T15:40:45+00:00";
     var m = (TransientTypeTest()
@@ -475,10 +489,7 @@ void main() {
             "deepList": [
               {"str": "val"},
               {"other": "otherval"}
-            ],
-            "deepMap": {
-              "ok": {"ik1": 1, "ik2": 2}
-            }
+            ]
           })))
         .asMap();
 
@@ -496,9 +507,6 @@ void main() {
       {"str": "val"},
       {"other": "otherval"}
     ]);
-    expect(m["deepMap"], {
-      "ok": {"ik1": 1, "ik2": 2}
-    });
 
     var tm = m["transientMap"];
     expect(tm is Map, true);
@@ -517,12 +525,41 @@ void main() {
   });
 
   test(
+    "If map type cannot be parsed into exact type, it fails with validation exception",
+      () {
+
+      try {
+        TransientTypeTest().readFromMap({
+          "deepMap": wash({"str": 1})
+        });
+        fail('unreachable');
+        // ignore: empty_catches
+      } on ValidationException {}
+
+      try {
+        TransientTypeTest().readFromMap({
+          "deepMap": wash({
+            "key": {"str": "val", "int": 2}
+          })
+        });
+        fail('unreachable');
+        // ignore: empty_catches
+      } on ValidationException {}
+
+      try {
+        TransientTypeTest().readFromMap({"deepMap": wash("str")});
+        fail('unreachable');
+        // ignore: empty_catches
+      } on ValidationException {}
+    });
+
+  test(
       "If complex type cannot be parsed into exact type, it fails with validation exception",
       () {
     try {
       TransientTypeTest().readFromMap({
         "deepList": wash([
-          {"str": 1}
+          "string"
         ])
       });
       fail('unreachable');
@@ -533,41 +570,9 @@ void main() {
       TransientTypeTest().readFromMap({
         "deepList": wash([
           {"str": "val"},
-          {"int": 2}
+          "string"
         ])
       });
-      fail('unreachable');
-      // ignore: empty_catches
-    } on ValidationException {}
-
-    try {
-      TransientTypeTest().readFromMap({
-        "deepList": wash(["str"])
-      });
-      fail('unreachable');
-      // ignore: empty_catches
-    } on ValidationException {}
-
-    try {
-      TransientTypeTest().readFromMap({
-        "deepMap": wash({"str": 1})
-      });
-      fail('unreachable');
-      // ignore: empty_catches
-    } on ValidationException {}
-
-    try {
-      TransientTypeTest().readFromMap({
-        "deepMap": wash({
-          "key": {"str": "val", "int": 2}
-        })
-      });
-      fail('unreachable');
-      // ignore: empty_catches
-    } on ValidationException {}
-
-    try {
-      TransientTypeTest().readFromMap({"deepMap": wash("str")});
       fail('unreachable');
       // ignore: empty_catches
     } on ValidationException {}
@@ -948,7 +953,7 @@ class TransientTypeTest extends ManagedObject<_TransientTypeTest>
   }
 
   @Serialize()
-  List<Map<String, String>> deepList;
+  List<Map<String, dynamic>> deepList;
 
   @Serialize()
   Map<String, Map<String, int>> deepMap;

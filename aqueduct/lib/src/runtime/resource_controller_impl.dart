@@ -7,7 +7,6 @@ import 'package:aqueduct/src/http/resource_controller_interfaces.dart';
 import 'package:aqueduct/src/runtime/resource_controller/documenter.dart';
 import 'package:aqueduct/src/runtime/resource_controller/utility.dart';
 import 'package:aqueduct/src/runtime/resource_controller_generator.dart';
-import 'package:aqueduct/src/utilities/mirror_cast.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 import 'package:meta/meta.dart';
 import 'package:runtime/runtime.dart' hide firstMetadataOfType;
@@ -119,12 +118,14 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
               isListSerializable(boundType.reflectedType);
           if (metadata.ignore != null ||
               metadata.reject != null ||
-              metadata.require != null) {
+              metadata.require != null ||
+              metadata.accept != null) {
             if (!(isDecodingSerializable || isDecodingListOfSerializable)) {
               throw _makeError(mirror,
                   "Filters can only be used on Serializable or List<Serializable>.");
             }
           }
+
           if (isDecodingSerializable) {
             decoder = (b) {
               final body = b as RequestBody;

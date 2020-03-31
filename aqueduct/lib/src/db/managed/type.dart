@@ -39,7 +39,8 @@ class ManagedType {
   /// [type] must be representable by [ManagedPropertyType].
   ManagedType(this.type, this.kind, this.elements, this.enumerationMap);
 
-  static ManagedType make<T>(ManagedPropertyType kind, ManagedType elements, Map<String, dynamic> enumerationMap) {
+  static ManagedType make<T>(ManagedPropertyType kind, ManagedType elements,
+      Map<String, dynamic> enumerationMap) {
     return ManagedType(T, kind, elements, enumerationMap);
   }
 
@@ -70,20 +71,29 @@ class ManagedType {
     }
 
     switch (kind) {
-      case ManagedPropertyType.bigInteger: return dartValue is int;
-      case ManagedPropertyType.integer: return dartValue is int;
-      case ManagedPropertyType.boolean: return dartValue is bool;
-      case ManagedPropertyType.datetime: return dartValue is DateTime;
-      case ManagedPropertyType.doublePrecision: return dartValue is double;
-      case ManagedPropertyType.map: return dartValue is Map<String, dynamic>;
-      case ManagedPropertyType.list: return dartValue is List<dynamic>;
-      case ManagedPropertyType.document: return dartValue is Document;
-      case ManagedPropertyType.string: {
-        if (enumerationMap != null) {
-          return enumerationMap.values.contains(dartValue);
+      case ManagedPropertyType.bigInteger:
+        return dartValue is int;
+      case ManagedPropertyType.integer:
+        return dartValue is int;
+      case ManagedPropertyType.boolean:
+        return dartValue is bool;
+      case ManagedPropertyType.datetime:
+        return dartValue is DateTime;
+      case ManagedPropertyType.doublePrecision:
+        return dartValue is double;
+      case ManagedPropertyType.map:
+        return dartValue is Map<String, dynamic>;
+      case ManagedPropertyType.list:
+        return dartValue is List<dynamic>;
+      case ManagedPropertyType.document:
+        return dartValue is Document;
+      case ManagedPropertyType.string:
+        {
+          if (enumerationMap != null) {
+            return enumerationMap.values.contains(dartValue);
+          }
+          return dartValue is String;
         }
-        return dartValue is String;
-      }
     }
 
     return false;

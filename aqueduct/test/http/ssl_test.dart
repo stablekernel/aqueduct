@@ -13,7 +13,7 @@ void main() {
     });
 
     test("Start with HTTPS", () async {
-      var ciDirUri = Directory.current.uri.resolve("../").resolve("ci/");
+      var ciDirUri = getCIDirectoryUri();
 
       app = Application<TestChannel>()
         ..options.certificateFilePath = ciDirUri
@@ -38,6 +38,13 @@ void main() {
       await socket.close();
     });
   });
+}
+
+Uri getCIDirectoryUri() {
+  final env = Platform.environment['AQUEDUCT_CI_DIR_LOCATION'];
+  return env != null
+      ? Uri.parse(env)
+      : Directory.current.uri.resolve("../").resolve("ci/");
 }
 
 class TestChannel extends ApplicationChannel {

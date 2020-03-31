@@ -2,9 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:aqueduct/src/http/http.dart';
 import 'package:runtime/runtime.dart';
-
-import 'http.dart';
 
 /// Decodes [bytes] according to [contentType].
 ///
@@ -66,8 +65,6 @@ abstract class BodyDecoder {
     return _bytes;
   }
 
-  BodyDecoderRuntime get _runtime => RuntimeContext.current[runtimeType] as BodyDecoderRuntime;
-
   final Stream<List<int>> _originalByteStream;
   dynamic _decodedData;
   List<int> _bytes;
@@ -78,16 +75,13 @@ abstract class BodyDecoder {
   /// The bytes of this object will be decoded according to that codec. If the codec
   /// produces a value that is not [T], a bad request error [Response] is thrown.
   ///
+  /// [T] must be a primitive type (String, int, double, bool, or a List or Map containing only these types).
+  /// An error is not thrown if T is not one of these types, but compiled Aqueduct applications may fail at runtime.
+  ///
   /// Performance considerations:
   ///
   /// The decoded value is retained, and subsequent invocations of this method return the
   /// retained value to avoid performing the decoding process again.
-  ///
-  /// When [T] is a collection type, specifying type parameters can impact performance.
-  /// For example, if [T] is `List<String>`, each element of the decoded list is verified
-  /// to be an instance of [String]. If [T] is `List<dynamic>`, this check is not performed.
-  /// It is the developer's responsibility to ensure the objects in the list are the
-  /// expected type.
   Future<T> decode<T>() async {
     if (hasBeenDecoded) {
       return _cast<T>(_decodedData);
@@ -121,7 +115,7 @@ abstract class BodyDecoder {
   /// Returns previously decoded object as [T].
   ///
   /// This method is the synchronous version of [decode]. However, [decode] must have been called
-  /// prior to invoking this method.
+  /// prior to invoking this method or an error is thrown.
   T as<T>() {
     if (!hasBeenDecoded) {
       throw StateError("Attempted to access request body without decoding it.");
@@ -132,8 +126,8 @@ abstract class BodyDecoder {
 
   T _cast<T>(dynamic body) {
     try {
-      return _runtime.cast<T>(body);
-    } on CastError {
+      return RuntimeContext.current.coerce<T>(body);
+    } on TypeCoercionException {
       throw Response.badRequest(
           body: {"error": "request entity was unexpected type"});
     }
@@ -144,8 +138,4 @@ abstract class BodyDecoder {
         BytesBuilder(), (BytesBuilder builder, data) => builder..add(data));
     return bytes.takeBytes();
   }
-}
-
-abstract class BodyDecoderRuntime {
-  T cast<T>(dynamic input);
 }

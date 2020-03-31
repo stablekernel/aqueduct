@@ -1,5 +1,6 @@
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:open_api/v3.dart';
+import 'package:runtime/runtime.dart';
 
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
@@ -360,7 +361,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
         type.kind == ManagedPropertyType.map) {
       try {
         return entity.runtime.dynamicConvertFromPrimitiveValue(this, value);
-      } on CastError catch (_) {
+      } on TypeCoercionException {
         throw ValidationException(["invalid input value for '$name'"]);
       }
     }
