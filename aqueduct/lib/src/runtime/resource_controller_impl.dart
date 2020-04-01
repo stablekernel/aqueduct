@@ -53,6 +53,24 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
   String compile(BuildContext ctx) =>
       getResourceControllerImplSource(ctx, this);
 
+  List<String> get directives {
+    final directives = <String>[];
+    operations.forEach((op) {
+      final imports = [
+        op.positionalParameters,
+        op.namedParameters,
+        ivarParameters
+      ]
+          .expand((i) => i)
+          .map((p) => reflectType(p.type).location.sourceUri)
+          .where((uri) => uri != null && (uri.scheme == "package" || (uri.scheme == "file" && uri.isAbsolute)))
+          .map((uri) => "import '$uri';")
+          .toList();
+      directives.addAll(imports);
+    });
+    return directives;
+  }
+
   List<String> get unsatisfiableOperations {
     return operations
         .where((op) {
@@ -194,7 +212,8 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
       case BindingType.path:
         {
           if (boundType.isAssignableTo(reflectType(List))) {
-            throw _makeError(mirror, "Cannot bind variable of type 'List' to path parameter.");
+            throw _makeError(mirror,
+                "Cannot bind variable of type 'List' to path parameter.");
           }
           decoder = (value) {
             return _convertParameterWithMirror(value as String, mirror.type);

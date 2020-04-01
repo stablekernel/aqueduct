@@ -176,6 +176,7 @@ class ControllerRuntimeImpl extends ControllerRuntime
 import 'dart:async';    
 import 'package:aqueduct/aqueduct.dart';
 import '$originalFileUri';
+${(resourceController as ResourceControllerRuntimeImpl)?.directives?.join("\n") ?? ""}
     
 final instance = ControllerRuntimeImpl();
     

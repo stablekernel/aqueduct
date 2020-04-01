@@ -190,10 +190,6 @@ String getParameterSource(
     BuildContext context,
     ResourceControllerRuntimeImpl runtime,
     ResourceControllerParameter parameter) {
-  /*
-  Cannot include this because it could contain invalid token, e.g. List<String>
-type: ${sourcifyValue(parameter.type)},
-   */
   return """
 ResourceControllerParameter.make<${parameter.type}>(
   name: ${sourcifyValue(parameter.name)},
