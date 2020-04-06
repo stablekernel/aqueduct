@@ -1,8 +1,8 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
-import 'package:aqueduct/src/dev/helpers.dart';
-import 'package:aqueduct/src/dev/model_graph.dart';
+import '../../not_tests/helpers.dart';
+import '../../not_tests/model_graph.dart';
 
 /*
   If you're going to look at these tests, you'll have to draw out the model graph defined in model_graph.dart

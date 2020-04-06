@@ -4,7 +4,7 @@ import "dart:core";
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
-import 'package:aqueduct/src/dev/helpers.dart';
+import '../not_tests/helpers.dart';
 
 void main() {
   APIDocument doc;

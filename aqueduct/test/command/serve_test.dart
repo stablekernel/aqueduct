@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:yaml/yaml.dart' as yaml;
 import 'package:pub_semver/pub_semver.dart';
 
-import 'package:aqueduct/src/dev/cli_helpers.dart';
+import '../not_tests/cli_helpers.dart';
 
 File get certificateFile => File.fromUri(Directory.current.uri
     .resolve("../")

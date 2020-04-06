@@ -1,8 +1,8 @@
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
-import 'package:aqueduct/src/dev/helpers.dart';
-import 'package:aqueduct/src/dev/model_graph.dart';
+import '../../not_tests/helpers.dart';
+import '../../not_tests/model_graph.dart';
 
 /*
   The more rigid tests on joining are covered by tiered_where, has_many and has_one tests.

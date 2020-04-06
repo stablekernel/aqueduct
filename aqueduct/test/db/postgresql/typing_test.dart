@@ -3,7 +3,7 @@ import 'package:aqueduct/src/db/postgresql/query_builder.dart';
 
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/dev/helpers.dart';
+import '../../not_tests/helpers.dart';
 
 void main() {
   ManagedContext context;

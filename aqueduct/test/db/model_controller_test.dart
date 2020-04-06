@@ -8,7 +8,7 @@ import 'package:aqueduct/src/db/query/mixin.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import 'package:aqueduct/src/dev/helpers.dart';
+import '../not_tests/helpers.dart';
 
 void main() {
   Controller.letUncaughtExceptionsEscape = true;

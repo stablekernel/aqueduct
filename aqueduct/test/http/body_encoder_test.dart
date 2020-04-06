@@ -6,7 +6,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:http/http.dart' as http;
 import 'package:test/test.dart';
 
-import 'package:aqueduct/src/dev/helpers.dart';
+import '../not_tests/helpers.dart';
 
 void main() {
   HttpServer server;

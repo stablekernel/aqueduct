@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
-import 'package:aqueduct/src/dev/helpers.dart';
+import '../../not_tests/helpers.dart';
 
 /*
   The test data is like so:

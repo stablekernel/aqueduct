@@ -1,3 +1,12 @@
+## 3.3.0-b1
+
+- Adds 'aqueduct build' command that generates an executable binary of an Aqueduct app, with some known issues
+    - Windows is not currently supported.
+    - Compilation may fail when a project uses relative paths in import directives (try using package imports to resolve).
+    - Body decoding behaviors such as `RequestBody.as<T>` `RequestBody.decode<T>` have restrictions when building:
+        - The type parameter may be any of the five primitive types `int`, `double`, `num`, `String`, `bool`; `Map<String, T>` where `T` is a primitive, and `List<T>` where `T` is a primitive or `Map<String, dynamic>`.
+        - These restrictions apply to `@Bind.body`, too, but you may still bind `Serializable` and `List<Serializable>`.
+
 ## 3.2.2-dev
 
 - [#723](https://github.com/stablekernel/aqueduct/pull/723) Fixes issue that prevented the `AuthServer` from granting tokens with sub-scopes when the servers `AuthServerDelegate.getAllowedScopes()` didn't return `AuthScope.any`.

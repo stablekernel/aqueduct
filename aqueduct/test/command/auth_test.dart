@@ -1,12 +1,12 @@
 // ignore: unnecessary_const
 @Tags(const ["cli"])
-import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 import 'package:command_line_agent/command_line_agent.dart';
+import 'package:test/test.dart';
 
-import 'package:aqueduct/src/dev/context_helpers.dart';
-import 'package:aqueduct/src/dev/cli_helpers.dart';
+import '../not_tests/cli_helpers.dart';
+import '../not_tests/context_helpers.dart';
 
 void main() {
   final dataModel = ManagedDataModel.fromCurrentMirrorSystem();

@@ -6,7 +6,7 @@ import 'package:aqueduct/managed_auth.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
 import 'package:test/test.dart';
 
-import 'package:aqueduct/src/dev/context_helpers.dart';
+import '../not_tests/context_helpers.dart';
 
 // These tests mostly duplicate authenticate_test.dart, but also add a few more
 // to manage long-term storage/cleanup of tokens and related items.

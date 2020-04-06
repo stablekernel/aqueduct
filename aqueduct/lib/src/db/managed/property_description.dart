@@ -182,6 +182,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
             autoincrement: false,
             validators: []);
 
+  // ignore: prefer_constructors_over_static_methods
   static ManagedAttributeDescription make<T>(
       ManagedEntity entity, String name, ManagedType type,
       {Serialize transientStatus,
@@ -393,6 +394,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
             includedInDefaultResultSet: includedInDefaultResultSet,
             validators: validators);
 
+  // ignore: prefer_constructors_over_static_methods
   static ManagedRelationshipDescription make<T>(
       ManagedEntity entity,
       String name,
