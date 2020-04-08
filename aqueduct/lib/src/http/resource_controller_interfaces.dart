@@ -91,6 +91,7 @@ class ResourceControllerParameter {
       @required this.rejectFilter})
       : _decoder = decoder;
 
+  // ignore: prefer_constructors_over_static_methods
   static ResourceControllerParameter make<T>(
     {@required String symbolName,
       @required String name,
