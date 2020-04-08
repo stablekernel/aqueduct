@@ -2,10 +2,11 @@
 
 - Adds 'aqueduct build' command that generates an executable binary of an Aqueduct app, with some known issues
     - Windows is not currently supported.
-    - Compilation may fail when a project uses relative paths in import directives (try using package imports to resolve).
-    - Body decoding behaviors such as `RequestBody.as<T>` `RequestBody.decode<T>` have restrictions when building:
-        - The type parameter may be any of the five primitive types `int`, `double`, `num`, `String`, `bool`; `Map<String, T>` where `T` is a primitive, and `List<T>` where `T` is a primitive or `Map<String, dynamic>`.
-        - These restrictions apply to `@Bind.body`, too, but you may still bind `Serializable` and `List<Serializable>`.
+    - Compilation will fail for files that import relative URIs and declare at least one type that is a subclass of any of `ManagedObject`, `ApplicationChannel`, `Controller`, `ResourceController`, `Configuration`.
+        - Convert relative URI imports to package imports to resolve.
+    - Body decoding behaviors such as `RequestBody.as<T>` `RequestBody.decode<T>` have restrictions when running in compiled mode:
+        - The type parameter `T` may be any of the five primitive types `int`, `double`, `num`, `String`, `bool`; `Map<String, T>` where `T` is a primitive, and `List<T>` where `T` is a primitive or `Map<String, dynamic>`.
+        - These restrictions apply to the type of a `@Bind.body` parameter (you may also bind `Serializable` and `List<Serializable>`).
 
 ## 3.2.2-dev
 
