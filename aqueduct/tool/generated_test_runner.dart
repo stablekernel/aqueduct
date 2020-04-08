@@ -41,11 +41,15 @@ Future main(List<String> args) async {
     final makePrompt = () =>
         "(Pass: ${passingFiles.length} Fail: ${failingFiles.length} Remain: $remainingCounter)";
     print("${makePrompt()} Loading test ${f.path}...");
+
+    final source = f.readAsStringSync();
+    // We need to replace any relative path imports in source
+
     final ctx = BuildContext(
         Directory.current.uri.resolve("lib/").resolve("aqueduct.dart"),
         Directory.current.uri.resolve("_build/"),
         Directory.current.uri.resolve("run"),
-        f.readAsStringSync(),
+        source,
         forTests: true);
     final bm = BuildManager(ctx);
     await bm.build();

@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:aqueduct/aqueduct.dart';
 import 'package:test/test.dart';
 
-import '../../not_tests/helpers.dart';
-import '../../not_tests/model_graph.dart';
+import 'package:aqueduct/src/dev/helpers.dart';
+import 'package:aqueduct/src/dev/model_graph.dart';
 
 /*
   many to many should just be an extension of tests in belongs_to_fetch, tiered_where, has_many and has_one tests

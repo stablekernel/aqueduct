@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
 import 'package:aqueduct/aqueduct.dart';
-import '../../not_tests/helpers.dart';
+import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   ManagedContext context;
