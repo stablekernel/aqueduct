@@ -1,17 +1,18 @@
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
-import 'package:aqueduct/src/db/postgresql/builders/table.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
-import 'package:postgres/postgres.dart';
+import 'package:aqueduct/src/db/shared/returnable.dart';
+
+import 'package:aqueduct/src/db/shared/builders/table.dart';
 
 /// Common interface for values that can be mapped to/from a database.
-abstract class Returnable {}
 
 class ColumnBuilder extends Returnable {
-  ColumnBuilder(this.table, this.property, {this.documentKeyPath});
+  ColumnBuilder(this.dbWrapper,this.table, this.property, {this.documentKeyPath});
 
-  static List<Returnable> fromKeys(TableBuilder table, List<KeyPath> keys) {
+  static List<Returnable> fromKeys(
+      TableBuilder table, List<KeyPath> keys, DbWrapper dbWrapper) {
     final entity = table.entity;
 
     // Ensure the primary key is always available and at 0th index.
@@ -33,7 +34,7 @@ class ColumnBuilder extends Returnable {
     }
 
     return List.from(keys.map((key) {
-      return ColumnBuilder(table, propertyForName(entity, key.path.first.name),
+      return ColumnBuilder(dbWrapper,table, propertyForName(entity, key.path.first.name),
           documentKeyPath: key.dynamicElements);
     }));
   }
@@ -57,16 +58,6 @@ class ColumnBuilder extends Returnable {
     return property;
   }
 
-  static Map<ManagedPropertyType, PostgreSQLDataType> typeMap = {
-    ManagedPropertyType.integer: PostgreSQLDataType.integer,
-    ManagedPropertyType.bigInteger: PostgreSQLDataType.bigInteger,
-    ManagedPropertyType.string: PostgreSQLDataType.text,
-    ManagedPropertyType.datetime: PostgreSQLDataType.timestampWithoutTimezone,
-    ManagedPropertyType.boolean: PostgreSQLDataType.boolean,
-    ManagedPropertyType.doublePrecision: PostgreSQLDataType.double,
-    ManagedPropertyType.document: PostgreSQLDataType.json
-  };
-
   static Map<PredicateOperator, String> symbolTable = {
     PredicateOperator.lessThan: "<",
     PredicateOperator.greaterThan: ">",
@@ -79,6 +70,7 @@ class ColumnBuilder extends Returnable {
   final TableBuilder table;
   final ManagedPropertyDescription property;
   final List<dynamic> documentKeyPath;
+  final DbWrapper dbWrapper;
 
   dynamic convertValueForStorage(dynamic value) {
     if (value == null) {
@@ -124,15 +116,8 @@ class ColumnBuilder extends Returnable {
     return value;
   }
 
-  String get sqlTypeSuffix {
-    var type =
-        PostgreSQLFormat.dataTypeStringForDataType(typeMap[property.type.kind]);
-    if (type != null) {
-      return ":$type";
-    }
+  String get sqlTypeSuffix =>dbWrapper.suffix(property);
 
-    return "";
-  }
 
   String sqlColumnName(
       {bool withTypeSuffix = false,
@@ -164,3 +149,5 @@ class ColumnBuilder extends Returnable {
     return name;
   }
 }
+
+

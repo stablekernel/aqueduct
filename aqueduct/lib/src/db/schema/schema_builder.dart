@@ -468,6 +468,9 @@ class SchemaBuilder {
       } else {
         builder.write(", isIndexed: false");
       }
+      if(column.size!=null){
+        builder.write(",size:${column.size}");
+      }
     }
 
     if (column.isNullable) {

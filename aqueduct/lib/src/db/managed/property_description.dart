@@ -22,6 +22,7 @@ abstract class ManagedPropertyDescription {
       bool nullable = false,
       bool includedInDefaultResultSet = true,
       bool autoincrement = false,
+      this.size,
       List<ManagedValidator> validators = const []})
       : isUnique = unique,
         isIndexed = indexed,
@@ -69,6 +70,8 @@ abstract class ManagedPropertyDescription {
   /// By default, false. When true, it signals to the [PersistentStore] that this property should automatically be assigned a value
   /// by the database.
   final bool autoincrement;
+
+  final int size;
 
   /// Whether or not this attribute is private or not.
   ///
@@ -158,6 +161,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       bool nullable = false,
       bool includedInDefaultResultSet = true,
       bool autoincrement = false,
+      int size,
       List<ManagedValidator> validators = const []})
       : isPrimaryKey = primaryKey,
         defaultValue = defaultValue,
@@ -168,6 +172,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
             nullable: nullable,
             includedInDefaultResultSet: includedInDefaultResultSet,
             autoincrement: autoincrement,
+            size:size,
             validators: validators);
 
   ManagedAttributeDescription.transient(ManagedEntity entity, String name,
@@ -193,6 +198,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
       bool nullable = false,
       bool includedInDefaultResultSet = true,
       bool autoincrement = false,
+      int size,
       List<ManagedValidator> validators = const []}) {
     return ManagedAttributeDescription(entity, name, type, T,
         transientStatus: transientStatus,
@@ -203,6 +209,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
         nullable: nullable,
         includedInDefaultResultSet: includedInDefaultResultSet,
         autoincrement: autoincrement,
+        size: size,
         validators: validators);
   }
 
@@ -386,12 +393,14 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       bool indexed = false,
       bool nullable = false,
       bool includedInDefaultResultSet = true,
+      int size,
       List<ManagedValidator> validators = const []})
       : super(entity, name, type, declaredType,
             unique: unique,
             indexed: indexed,
             nullable: nullable,
             includedInDefaultResultSet: includedInDefaultResultSet,
+            size:size,
             validators: validators);
 
   // ignore: prefer_constructors_over_static_methods
@@ -407,6 +416,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       bool indexed = false,
       bool nullable = false,
       bool includedInDefaultResultSet = true,
+      int size,
       List<ManagedValidator> validators = const []}) {
     return ManagedRelationshipDescription(entity, name, type, T,
         destinationEntity, deleteRule, relationshipType, inverseKey,
@@ -414,6 +424,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
         indexed: indexed,
         nullable: nullable,
         includedInDefaultResultSet: includedInDefaultResultSet,
+        size: size,
         validators: validators);
   }
 

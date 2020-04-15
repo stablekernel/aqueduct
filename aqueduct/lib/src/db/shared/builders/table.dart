@@ -1,54 +1,57 @@
 import 'package:aqueduct/src/db/managed/key_path.dart';
 import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/managed/relationship_type.dart';
-
-import 'package:aqueduct/src/db/postgresql/builders/column.dart';
-import 'package:aqueduct/src/db/postgresql/builders/expression.dart';
-import 'package:aqueduct/src/db/postgresql/builders/sort.dart';
-import 'package:aqueduct/src/db/postgresql/postgresql_query.dart';
 import 'package:aqueduct/src/db/query/matcher_expression.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
+import 'package:aqueduct/src/db/query/mixin.dart';
 import 'package:aqueduct/src/db/query/predicate.dart';
 import 'package:aqueduct/src/db/query/query.dart';
+import 'package:aqueduct/src/db/shared/returnable.dart';
+import 'package:aqueduct/src/db/shared/builders/column.dart';
+import 'package:aqueduct/src/db/shared/builders/expression.dart';
+import 'package:aqueduct/src/db/shared/builders/sort.dart';
 
 class TableBuilder implements Returnable {
-  TableBuilder(PostgresQuery query, {this.parent, this.joinedBy})
+  TableBuilder(QueryMixin query, {this.parent, this.joinedBy, this.dbWrapper})
       : entity = query.entity,
         _manualPredicate = query.predicate {
     if (parent != null) {
       tableAlias = createTableAlias();
     }
-    returning = ColumnBuilder.fromKeys(this, query.propertiesToFetch ?? []);
+    returning =
+        ColumnBuilder.fromKeys(this, query.propertiesToFetch ?? [], dbWrapper);
 
     columnSortBuilders = query.sortDescriptors
-            ?.map((s) => ColumnSortBuilder(this, s.key, s.order))
+            ?.map((s) => ColumnSortBuilder(dbWrapper, this, s.key, s.order))
             ?.toList() ??
         [];
 
     if (query.pageDescriptor != null) {
-      columnSortBuilders.add(ColumnSortBuilder(
-          this, query.pageDescriptor.propertyName, query.pageDescriptor.order));
+      columnSortBuilders.add(ColumnSortBuilder(dbWrapper, this,
+          query.pageDescriptor.propertyName, query.pageDescriptor.order));
 
       if (query.pageDescriptor.boundingValue != null) {
         final prop = entity.properties[query.pageDescriptor.propertyName];
         final operator = query.pageDescriptor.order == QuerySortOrder.ascending
             ? PredicateOperator.greaterThan
             : PredicateOperator.lessThan;
-        final expr = ColumnExpressionBuilder(this, prop,
+        final expr = dbWrapper.getColumnExpressionBuilder(this, prop,
             ComparisonExpression(query.pageDescriptor.boundingValue, operator));
+        // final expr = ColumnExpressionBuilder(dbWrapper,this, prop,
+        //     ComparisonExpression(query.pageDescriptor.boundingValue, operator));
         expressionBuilders.add(expr);
       }
     }
 
     query.subQueries?.forEach((relationshipDesc, subQuery) {
-      addJoinTableBuilder(TableBuilder(subQuery as PostgresQuery,
+      addJoinTableBuilder(TableBuilder(subQuery as QueryMixin,
           parent: this, joinedBy: relationshipDesc));
     });
 
     addColumnExpressions(query.expressions);
   }
 
-  TableBuilder.implicit(this.parent, this.joinedBy)
+  TableBuilder.implicit(this.parent, this.joinedBy, this.dbWrapper)
       : entity = joinedBy.inverse.entity,
         _manualPredicate = QueryPredicate.empty() {
     tableAlias = createTableAlias();
@@ -67,6 +70,7 @@ class TableBuilder implements Returnable {
   int aliasCounter = 0;
 
   final QueryPredicate _manualPredicate;
+  final DbWrapper dbWrapper;
 
   ManagedRelationshipDescription get foreignKeyProperty =>
       joinedBy.relationshipType == ManagedRelationshipType.belongsTo
@@ -93,11 +97,12 @@ class TableBuilder implements Returnable {
   QueryPredicate get joiningPredicate {
     ColumnBuilder left, right;
     if (identical(foreignKeyProperty, joinedBy)) {
-      left = ColumnBuilder(parent, joinedBy);
-      right = ColumnBuilder(this, entity.primaryKeyAttribute);
+      left = ColumnBuilder(dbWrapper, parent, joinedBy);
+      right = ColumnBuilder(dbWrapper, this, entity.primaryKeyAttribute);
     } else {
-      left = ColumnBuilder(parent, parent.entity.primaryKeyAttribute);
-      right = ColumnBuilder(this, joinedBy.inverse);
+      left =
+          ColumnBuilder(dbWrapper, parent, parent.entity.primaryKeyAttribute);
+      right = ColumnBuilder(dbWrapper, this, joinedBy.inverse);
     }
 
     var leftColumn = left.sqlColumnName(withTableNamespace: true);
@@ -154,15 +159,19 @@ class TableBuilder implements Returnable {
 
         if (isColumn) {
           // This will occur if we selected a column.
-          final expr =
-              ColumnExpressionBuilder(this, lastElement, expression.expression);
+          // final expr = ColumnExpressionBuilder(
+          //     dbWrapper, this, lastElement, expression.expression);
+          final expr = dbWrapper.getColumnExpressionBuilder(
+              this, lastElement, expression.expression);
           expressionBuilders.add(expr);
           return;
         }
       } else if (isForeignKey) {
         // This will occur if we selected a belongs to relationship or a belongs to relationship's
         // primary key. In either case, this is a column in this table (a foreign key column).
-        final expr = ColumnExpressionBuilder(
+        // final expr = ColumnExpressionBuilder(dbWrapper, this,
+        //     expression.keyPath.path.first, expression.expression);
+        final expr = dbWrapper.getColumnExpressionBuilder(
             this, expression.keyPath.path.first, expression.expression);
         expressionBuilders.add(expr);
         return;
@@ -178,14 +187,18 @@ class TableBuilder implements Returnable {
     final lastElement = expression.keyPath.path.last;
     if (lastElement is ManagedRelationshipDescription) {
       final inversePrimaryKey = lastElement.inverse.entity.primaryKeyAttribute;
-      final expr = ColumnExpressionBuilder(
+      // final expr = ColumnExpressionBuilder(
+      //     dbWrapper, joinedTable, inversePrimaryKey, expression.expression,
+      //     prefix: tableAlias);
+      final expr = dbWrapper.getColumnExpressionBuilder(
           joinedTable, inversePrimaryKey, expression.expression,
           prefix: tableAlias);
       expressionBuilders.add(expr);
     } else {
-      final expr = ColumnExpressionBuilder(
-          joinedTable, lastElement, expression.expression,
-          prefix: tableAlias);
+      // final expr = ColumnExpressionBuilder(
+      //     dbWrapper, joinedTable, lastElement, expression.expression,
+      //     prefix: tableAlias);
+      final expr=dbWrapper.getColumnExpressionBuilder(joinedTable, lastElement, expression.expression);
       expressionBuilders.add(expr);
     }
   }
@@ -204,7 +217,7 @@ class TableBuilder implements Returnable {
           .whereType<TableBuilder>()
           .firstWhere((m) => m.isJoinOnProperty(head), orElse: () => null);
       if (join == null) {
-        join = TableBuilder.implicit(this, head);
+        join = TableBuilder.implicit(this, head, dbWrapper);
         addJoinTableBuilder(join);
       }
       return join._findJoinedTable(KeyPath.byRemovingFirstNKeys(keyPath, 1));

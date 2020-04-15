@@ -1,16 +1,15 @@
-import 'package:aqueduct/src/db/managed/relationship_type.dart';
-import 'package:aqueduct/src/db/postgresql/postgresql_dbwrapper.dart';
+import 'package:aqueduct/aqueduct.dart';
+import 'package:aqueduct/src/db/mysql/mysql_dbwrapper.dart';
+import 'package:aqueduct/src/db/mysql/mysql_query.dart';
+import 'package:aqueduct/src/db/mysql/row_instantiator.dart';
 import 'package:aqueduct/src/db/shared/builders/sort.dart';
 import 'package:aqueduct/src/db/shared/builders/table.dart';
 import 'package:aqueduct/src/db/shared/builders/value.dart';
-import 'package:aqueduct/src/db/postgresql/postgresql_query.dart';
+import 'package:sqljocky5/sqljocky.dart';
 
-import '../db.dart';
-import 'row_instantiator.dart';
 
-class PostgresQueryBuilder extends TableBuilder {
-  PostgresQueryBuilder(PostgresQuery query)
-      : super( query,dbWrapper:PostgreSQLDbWrapper()) {
+class MySqlQueryBuilder extends TableBuilder {
+  MySqlQueryBuilder(MySqlQuery query) : super(query,dbWrapper:MySqlDbWrapper()) {
     (query.valueMap ?? query.values?.backing?.contents)
         .forEach(addColumnValueBuilder);
 
@@ -27,7 +26,8 @@ class PostgresQueryBuilder extends TableBuilder {
 
   final List<ColumnValueBuilder> columnValueBuilders = [];
 
-  bool get containsJoins => returning.reversed.any((p) => p is TableBuilder);
+  bool get containsJoins =>
+      returning.reversed.any((p) => p is TableBuilder);
 
   String get sqlWhereClause {
     if (predicate?.format == null) {
@@ -36,6 +36,7 @@ class PostgresQueryBuilder extends TableBuilder {
     if (predicate.format.isEmpty) {
       return null;
     }
+
     return predicate.format;
   }
 
@@ -46,12 +47,13 @@ class PostgresQueryBuilder extends TableBuilder {
         builder.value;
   }
 
-  List<T> instancesForRows<T extends ManagedObject>(List<List<dynamic>> rows) {
-    final instantiator = PostgreSQLRowInstantiator(this, returning);
+  List<T> instancesForRows<T extends ManagedObject>(List<Row> rows) {
+    final instantiator = MySqlRowInstantiator(this, returning);
     return instantiator.instancesForRows<T>(rows);
   }
 
-  ColumnValueBuilder _createColumnValueBuilder(String key, dynamic value) {
+  ColumnValueBuilder _createColumnValueBuilder(
+      String key, dynamic value) {
     var property = entity.properties[key];
     if (property == null) {
       throw ArgumentError("Invalid query. Column '$key' does "
@@ -65,7 +67,7 @@ class PostgresQueryBuilder extends TableBuilder {
 
       if (value != null) {
         if (value is ManagedObject || value is Map) {
-          return ColumnValueBuilder( dbWrapper,
+          return ColumnValueBuilder(dbWrapper,
               this, property, value[property.destinationEntity.primaryKey]);
         }
 
@@ -83,42 +85,48 @@ class PostgresQueryBuilder extends TableBuilder {
    */
 
   String get sqlColumnsAndValuesToUpdate {
-    return columnValueBuilders.map((m) {
+    return columnValueBuilders.where((c) => !c.property.autoincrement).map((m) {
       final columnName = m.sqlColumnName();
-      final variableName =
-          m.sqlColumnName(withPrefix: "@$valueKeyPrefix", withTypeSuffix: true);
-      return "$columnName=$variableName";
+      final variableName = m.sqlColumnName(
+        withPrefix: "$valueKeyPrefix", /* withTypeSuffix: true*/
+      );
+      return "$columnName=?/*$variableName*/";
     }).join(",");
   }
 
   String get sqlColumnsToInsert {
-    return columnValueBuilders.map((c) => c.sqlColumnName()).join(",");
+    return columnValueBuilders
+        .where((c) => !c.property.autoincrement)
+        .map((c) => "${c.sqlColumnName()}")
+        .join(",");
   }
 
   String get sqlValuesToInsert {
     return columnValueBuilders
-        .map((c) => c.sqlColumnName(
-            withTypeSuffix: true, withPrefix: "@$valueKeyPrefix"))
+        .where((c) => !c.property.autoincrement)
+        //  .map((c) => "?/*${c.sqlColumnName()}*/")
+        .map((c) =>
+            "?/*${c.sqlColumnName(withTypeSuffix: true, withPrefix: "$valueKeyPrefix")}*/")
         .join(",");
   }
 
   String get sqlColumnsToReturn {
     return flattenedColumnsToReturn
-        .map((p) => p.sqlColumnName(withTableNamespace: containsJoins))
+        .map((p) => "${p.sqlColumnName(withTableNamespace: containsJoins)}")
         .join(",");
   }
 
   String get sqlOrderBy {
     var allSorts = List<ColumnSortBuilder>.from(columnSortBuilders);
 
-    var nestedSorts =
-        returning.whereType<TableBuilder>().expand((m) => m.columnSortBuilders);
+    var nestedSorts = returning
+        .whereType<TableBuilder>()
+        .expand((m) => m.columnSortBuilders);
     allSorts.addAll(nestedSorts);
 
     if (allSorts.isEmpty) {
       return "";
     }
-
     return "ORDER BY ${allSorts.map((s) => s.sqlOrderBy).join(",")}";
   }
 }

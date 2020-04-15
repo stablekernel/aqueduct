@@ -12,7 +12,8 @@ class SchemaColumn {
       this.autoincrement = false,
       this.isUnique = false,
       this.defaultValue,
-      this.isPrimaryKey = false}) {
+      this.isPrimaryKey = false,
+      this.size}) {
     _type = typeStringForType(type);
   }
 
@@ -22,6 +23,7 @@ class SchemaColumn {
       this.isUnique = false,
       this.relatedTableName,
       this.relatedColumnName,
+      this.size,
       DeleteRule rule = DeleteRule.nullify}) {
     isIndexed = true;
     _type = typeStringForType(type);
@@ -47,6 +49,7 @@ class SchemaColumn {
     autoincrement = desc.autoincrement;
     isUnique = desc.isUnique;
     isIndexed = desc.isIndexed;
+    size = desc.size;
   }
 
   /// Creates a copy of [otherColumn].
@@ -62,6 +65,7 @@ class SchemaColumn {
     relatedTableName = otherColumn.relatedTableName;
     relatedColumnName = otherColumn.relatedColumnName;
     _deleteRule = otherColumn._deleteRule;
+    size = otherColumn.size;
   }
 
   /// Creates an instance of this type from [map].
@@ -79,6 +83,7 @@ class SchemaColumn {
     relatedTableName = map["relatedTableName"] as String;
     relatedColumnName = map["relatedColumnName"] as String;
     _deleteRule = map["deleteRule"] as String;
+    size = map["size"] as int;
   }
 
   /// Creates an empty instance of this type.
@@ -133,6 +138,9 @@ class SchemaColumn {
   /// If this column has a foreign key constraint, this property is the name
   /// of the reference column in [relatedTableName].
   String relatedColumnName;
+
+  /// 字段大小
+  int size;
 
   /// The delete rule for this column if it is a foreign key column.
   ///
@@ -245,7 +253,8 @@ class SchemaColumn {
       "relatedTableName": relatedTableName,
       "relatedColumnName": relatedColumnName,
       "deleteRule": _deleteRule,
-      "indexed": isIndexed
+      "indexed": isIndexed,
+      "size":size
     };
   }
 
@@ -298,7 +307,7 @@ class SchemaColumnDifference {
 
       if (expectedColumn.isUnique != actualColumn.isUnique) {
         _differingProperties.add(_PropertyDifference(
-          "isUnique", expectedColumn.isUnique, actualColumn.isUnique));
+            "isUnique", expectedColumn.isUnique, actualColumn.isUnique));
       }
 
       if (expectedColumn.isNullable != actualColumn.isNullable) {
@@ -349,7 +358,8 @@ class SchemaColumnDifference {
     }
 
     return _differingProperties.map((property) {
-      return property.getErrorMessage(expectedColumn.table.name, expectedColumn.name);
+      return property.getErrorMessage(
+          expectedColumn.table.name, expectedColumn.name);
     }).toList();
   }
 
@@ -365,6 +375,6 @@ class _PropertyDifference {
 
   String getErrorMessage(String actualTableName, String expectedColumnName) {
     return "Column '${expectedColumnName}' in table '${actualTableName}' expected "
-      "'$expectedValue' for '$name', but migration files yield '$actualValue'";
+        "'$expectedValue' for '$name', but migration files yield '$actualValue'";
   }
 }

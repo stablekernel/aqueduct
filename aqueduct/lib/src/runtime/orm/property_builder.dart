@@ -63,6 +63,7 @@ class PropertyBuilder {
   bool autoincrement = false;
   DeleteRule deleteRule;
   List<ValidatorBuilder> _validators;
+  int size;
 
   void compile(List<EntityBuilder> entityBuilders) {
     if (type == null) {
@@ -86,6 +87,7 @@ class PropertyBuilder {
       nullable = column?.isNullable ?? false;
       includeInDefaultResultSet = !(column?.shouldOmitByDefault ?? false);
       autoincrement = column?.autoincrement ?? false;
+      size=column?.size;
     }
 
     validators.forEach((vb) => vb.compile(entityBuilders));
@@ -148,6 +150,7 @@ class PropertyBuilder {
           relatedProperty.name,
           unique: unique,
           indexed: true,
+          size: size,
           nullable: nullable,
           includedInDefaultResultSet: includeInDefaultResultSet,
           validators: validators.map((v) => v.managedValidator).toList());
@@ -163,6 +166,7 @@ class PropertyBuilder {
           nullable: nullable,
           includedInDefaultResultSet: includeInDefaultResultSet,
           autoincrement: autoincrement,
+          size: size,
           validators: validators.map((v) => v.managedValidator).toList());
     }
   }

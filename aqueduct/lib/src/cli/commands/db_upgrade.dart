@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/mixins/database_connecting.dart';
 import 'package:aqueduct/src/cli/mixins/database_managing.dart';
@@ -97,6 +98,16 @@ class CLIDatabaseUpgrade extends CLICommand
     if (s is PostgreSQLPersistentStore) {
       return DBInfo("postgres", s.username, s.password, s.host, s.port,
           s.databaseName, s.timeZone);
+    } else if (s is MySqlPersistentStore) {
+      MySqlPersistentStore m = s;
+      return DBInfo(
+          "mysql",
+          m.connectionSettings.user,
+          m.connectionSettings.password,
+          m.connectionSettings.host,
+          m.connectionSettings.port,
+          m.connectionSettings.db,
+          "UTC");
     }
 
     return null;
