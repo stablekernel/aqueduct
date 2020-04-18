@@ -6,7 +6,7 @@ import 'dart:convert';
 Future main(List<String> args) async {
   var options = new ArgParser(allowTrailingOptions: false)
     ..addOption("base-ref-url",
-    abbr: "b", help: "Base URL of API reference", defaultsTo: "https://www.dartdocs.org/documentation/aqueduct/latest/")
+    abbr: "b", help: "Base URL of API reference", defaultsTo: "https://pub.dev/documentation/aqueduct/latest/")
     ..addOption("source-branch",
         abbr: "s",
         help: "Branch of Aqueduct to generate API reference from.",

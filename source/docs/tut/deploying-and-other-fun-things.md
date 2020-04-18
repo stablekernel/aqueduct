@@ -79,7 +79,7 @@ Run `aqueduct serve` and open a browser to `http://localhost:8888/questions` - y
 
 We've only touched on a small part of Aqueduct, but we've hit the fundamentals pretty well. The rest of the guides on this site will take you deeper on these topics, and topics we haven't covered like OAuth 2.0.
 
-It's very important that you get comfortable using the [API reference](https://www.dartdocs.org/documentation/aqueduct/latest) in addition to these guides. If you are looking to solve a problem, start by looking at the API reference for all of the objects you have access to (including the type you are writing the method for). The properties and methods you have access to will lead you to more properties and methods that'll eventually do what you want done.
+It's very important that you get comfortable using the [API reference](https://pub.dev/documentation/aqueduct/latest/) in addition to these guides. If you are looking to solve a problem, start by looking at the API reference for all of the objects you have access to (including the type you are writing the method for). The properties and methods you have access to will lead you to more properties and methods that'll eventually do what you want done.
 
 Users of the documentation viewer [Dash](https://kapeli.com/dash) can add Aqueduct through the `Preferences` pane, under `Downloads`.
 

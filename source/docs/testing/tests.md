@@ -147,7 +147,7 @@ test("Get 200 that at least have these keys", () async {
 });
 ```
 
-This ensures that `key3` is not in the map. This is different than verifying `key3: null`, which would be true if `key3`'s value was actually the null value. See the [API Reference](https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct.test/aqueduct.test-library.html) for `aqueduct/test` for more matchers.
+This ensures that `key3` is not in the map. This is different than verifying `key3: null`, which would be true if `key3`'s value was actually the null value. See the [API Reference](https://pub.dev/documentation/aqueduct_test/latest/) for `aqueduct_test` for more matchers.
 
 ### Verifying Side Effects
 

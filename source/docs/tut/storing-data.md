@@ -55,7 +55,7 @@ INSERT INTO _Hero (name) VALUES ('Hero Name');
 ```
 
 !!! tip "Column Attributes"
-    The `id` of a hero is automatically generated because of its `@primaryKey` annotation. This annotation is a `Column` that configures the id to be both a primary key and be 'auto-incrementing'. Auto-incremented columns values are generated automatically (1, 2, 3...). See [the API reference for Column](https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Column-class.html) for column options.
+    The `id` of a hero is automatically generated because of its `@primaryKey` annotation. This annotation is a `Column` that configures the id to be both a primary key and be 'auto-incrementing'. Auto-incremented columns values are generated automatically (1, 2, 3...). See [the API reference for Column](https://pub.dev/documentation/aqueduct/latest/aqueduct/Column-class.html) for column options.
 
 Re-run your application. In the browser application, click on `Heroes` near the top of the page. Then, enter a name into the `Hero name:` field and click `Add`. The new hero will appear. You can re-run the application and that hero will still be available, because it has been stored in the database on your machine.
 
@@ -109,7 +109,7 @@ Response.ok([])
 The first argument to `Response.ok` is a *body object*. A body object is automatically encoded according to the `contentType` of its response. By default, the content type of a response is `application/json` - so by default, all of our response body objects are JSON-encoded in the response body.
 
 !!! note "Other Response Constructors"
-    The default constructor for a `Response` takes a status code, map of headers and a body object: `Response(200, {}, "body")`. There are many named constructors for `Response`, like `Response.ok` or `Response.notFound`. These constructors set the status code and expose parameters that are intended for that type of response. For example, a 200 OK response should have a body, so `Response.ok` has a required body object argument. See [the API reference for Response](https://www.dartdocs.org/documentation/aqueduct/latest/aqueduct/Response-class.html) for possible constructors and properties of a response.
+    The default constructor for a `Response` takes a status code, map of headers and a body object: `Response(200, {}, "body")`. There are many named constructors for `Response`, like `Response.ok` or `Response.notFound`. These constructors set the status code and expose parameters that are intended for that type of response. For example, a 200 OK response should have a body, so `Response.ok` has a required body object argument. See [the API reference for Response](https://pub.dev/documentation/aqueduct/latest/aqueduct/Response-class.html) for possible constructors and properties of a response.
 
 To change the format a body object is encoded into, you set the `contentType` of the response. For example,
 

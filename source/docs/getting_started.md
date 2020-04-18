@@ -20,7 +20,7 @@ There are different approaches depending on how you prefer to learn.
 * The [guided tutorial](tut/getting-started.md) is a hands-on walkthrough where you build an application while learning basic Aqueduct concepts.
 * The [example repository](https://github.com/stablekernel/aqueduct_examples) contains a few deployable applications that you may review or tinker with.
 * The guides (located in the menu on this website) dive deeply into the concepts of Aqueduct and show example code.
-* [Creating a new project](#creating-a-project) and using the [API reference](http://dartdocs.org/documentation/aqueduct/latest/) to jump right in.
+* [Creating a new project](#creating-a-project) and using the [API reference](https://pub.dev/documentation/aqueduct/latest/) to jump right in.
 
 It is best to first understand how HTTP requests are responded to - the foundation of Aqueduct - before moving on to topics such as the ORM and OAuth 2.0. Both the tutorial and the [HTTP guides](http/index.md) are the primary source of this information. A project created by the `aqueduct` tool has example routes connected for modification, too.
 

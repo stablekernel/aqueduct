@@ -129,7 +129,7 @@ Aqueduct is an object oriented framework - behaviors are implemented by instance
 
 Many types in Aqueduct have a prefix in common with related types. For example, types like `AuthServer`, `AuthServerDelegate` and `AuthCode` are all related because they deal with authentication and authorization. Methods are named consistently across classes (e.g, `asMap` is a common method name).
 
-When looking for a solution, look at the [API reference](https://www.dartdocs.org/documentation/aqueduct/latest/) for the objects you have access to. These objects may already have the behavior you wish to implement or have a reference to an object with that behavior.
+When looking for a solution, look at the [API reference](https://pub.dev/documentation/aqueduct/latest/) for the objects you have access to. These objects may already have the behavior you wish to implement or have a reference to an object with that behavior.
 
 ### Use try-catch Sparingly
 

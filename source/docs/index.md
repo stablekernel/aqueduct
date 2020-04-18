@@ -19,11 +19,11 @@ The menu on the left contains a hierarchy documents. Those documents - and how y
 | Tutorial | A linear, guided tutorial to building your first application | A 1-3 hour long tutorial to learn Aqueduct |
 | Guides | A hierarchy of in-depth guides for the many facets of Aqueduct | Refer to these documents often to understand concepts and usage of Aqueduct |
 
-In addition to these guides, be sure to use the [API Reference](https://www.dartdocs.org/documentation/aqueduct/latest) to look up classes, methods, functions and other elements of the framework.
+In addition to these guides, be sure to use the [API Reference](https://pub.dev/documentation/aqueduct/latest/) to look up classes, methods, functions and other elements of the framework.
 
 ## Getting Started Tips
 
-The best way to get started is to read the [Core Concepts guide](core_concepts.md) while working through the [tutorial](tut/getting-started.md). Then, add new features to the application created during the tutorial by looking up the classes you are using in the [API Reference](https://www.dartdocs.org/documentation/aqueduct/latest), and implementing behavior not found in the tutorial. It's a good idea to install a tool like [Dash](https://kapeli.com/docsets#dartdoc) for viewing the API Reference.
+The best way to get started is to read the [Core Concepts guide](core_concepts.md) while working through the [tutorial](tut/getting-started.md). Then, add new features to the application created during the tutorial by looking up the classes you are using in the [API Reference](https://pub.dev/documentation/aqueduct/latest/), and implementing behavior not found in the tutorial. 
 
 Once you have the basic concepts down, start reading the guides in the left hand menu to take advantage of the many features of the framework. Check out the repository of examples [here](https://github.com/stablekernel/aqueduct_examples).
 

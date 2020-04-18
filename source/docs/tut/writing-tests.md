@@ -186,7 +186,7 @@ test("GET /heroes returns 200 OK", () async {
 This expectation ensures that the body is a list and that every element is an object with a `id` greater than 0, and a `name` that is a string. When expecting a body value, the body is first decoded from its content-type before the expectation. In practice, this means that your JSON response body is deserialized into an object or list. Your expectations of the body are built from Dart objects like `List` and `Object` that deserialized from JSON.
 
 !!! tip "Matchers"
-    The function `everyElement` is a `Matcher` from `package:matcher`. There are many types of matchers for all kinds of scenarios, and `package:aqueduct_test` includes Aqueduct-specific matchers. See the [aqueduct_test API Reference](https://www.dartdocs.org/documentation/aqueduct_test/latest/) for all Aqueduct matchers.
+    The function `everyElement` is a `Matcher` from `package:matcher`. There are many types of matchers for all kinds of scenarios, and `package:aqueduct_test` includes Aqueduct-specific matchers. See the [aqueduct_test API Reference](https://www.pub.dev/documentation/aqueduct_test/latest/) for all Aqueduct matchers.
 
 This test actually has an error that we will fix in it by using another matcher. Right now, this endpoint returns an *empty list* because there are no heroes in the database! Let's insert a hero before we make this request, and also expect that there is at least one element in the body. Make sure to import `hero.dart` at the top of the file!
 
