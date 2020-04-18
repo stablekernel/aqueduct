@@ -42,14 +42,7 @@ class CLIServer extends CLICommand with CLIProject {
   int get port => decode("port");
 
   @Option("isolates", abbr: "n", help: "Number of isolates processing requests")
-  int get numberOfIsolates {
-    int isolateCount = decode("isolates");
-    if (isolateCount == null) {
-      final count = Platform.numberOfProcessors ~/ 2;
-      return count > 0 ? count : 1;
-    }
-    return isolateCount;
-  }
+  int get numberOfIsolates => decode("isolates") ?? 0;
 
   @Option("address",
       abbr: "a",
@@ -110,7 +103,6 @@ class CLIServer extends CLICommand with CLIProject {
       "PORT": port,
       "ADDRESS": address,
       "IPV6_ONLY": ipv6Only,
-      "NUMBER_OF_ISOLATES": numberOfIsolates,
       "CONFIGURATION_FILE_PATH": configurationFile.path,
       "SSL_KEY_PATH": keyPath,
       "SSL_CERTIFICATE_PATH": certificatePath,

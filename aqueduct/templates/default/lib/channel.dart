@@ -1,4 +1,4 @@
-import 'wildfire.dart';
+import 'package:wildfire/wildfire.dart';
 
 /// This type initializes an application.
 ///

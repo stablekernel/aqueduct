@@ -1,5 +1,5 @@
-import '../model/user.dart';
-import '../wildfire.dart';
+import 'package:wildfire/model/user.dart';
+import 'package:wildfire/wildfire.dart';
 
 class IdentityController extends ResourceController {
   IdentityController(this.context);
