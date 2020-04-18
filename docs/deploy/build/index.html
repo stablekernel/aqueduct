@@ -18,7 +18,7 @@
     
     
       
-        <title>Validations - Aqueduct</title>
+        <title>Creating an Aqueduct Executable - Aqueduct</title>
       
     
     
@@ -79,11 +79,11 @@
             
               
                 <span class="md-header-nav__parent">
-                  Guide: Databases and ORM
+                  Guide: Deployment
                 </span>
               
             
-            Validations
+            Creating an Aqueduct Executable
           
         </span>
       </div>
@@ -632,12 +632,10 @@
       
       
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+  <li class="md-nav__item md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-11" type="checkbox" id="nav-11" checked>
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-11" type="checkbox" id="nav-11">
     
     <label class="md-nav__link" for="nav-11">
       Guide: Databases and ORM
@@ -655,7 +653,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../" title="Overview" class="md-nav__link">
+    <a href="../../db/" title="Overview" class="md-nav__link">
       Overview
     </a>
   </li>
@@ -667,7 +665,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../connecting/" title="Connecting to a Database" class="md-nav__link">
+    <a href="../../db/connecting/" title="Connecting to a Database" class="md-nav__link">
       Connecting to a Database
     </a>
   </li>
@@ -679,7 +677,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
+    <a href="../../db/modeling_data/" title="Modeling Data and Relationships" class="md-nav__link">
       Modeling Data and Relationships
     </a>
   </li>
@@ -691,7 +689,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../serialization/" title="Serialization and Deserialization" class="md-nav__link">
+    <a href="../../db/serialization/" title="Serialization and Deserialization" class="md-nav__link">
       Serialization and Deserialization
     </a>
   </li>
@@ -703,7 +701,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../executing_queries/" title="Basic Queries" class="md-nav__link">
+    <a href="../../db/executing_queries/" title="Basic Queries" class="md-nav__link">
       Basic Queries
     </a>
   </li>
@@ -715,7 +713,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../advanced_queries/" title="Advanced Queries" class="md-nav__link">
+    <a href="../../db/advanced_queries/" title="Advanced Queries" class="md-nav__link">
       Advanced Queries
     </a>
   </li>
@@ -727,7 +725,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../transactions/" title="Transactions" class="md-nav__link">
+    <a href="../../db/transactions/" title="Transactions" class="md-nav__link">
       Transactions
     </a>
   </li>
@@ -737,89 +735,11 @@
           
           
 
-  
 
-
-  <li class="md-nav__item md-nav__item--active">
-    
-    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
-    
-      
-    
-    
-      <label class="md-nav__link md-nav__link--active" for="toc">
-        Validations
-      </label>
-    
-    <a href="./" title="Validations" class="md-nav__link md-nav__link--active">
+  <li class="md-nav__item">
+    <a href="../../db/validations/" title="Validations" class="md-nav__link">
       Validations
     </a>
-    
-      
-<nav class="md-nav md-nav--secondary">
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="toc">Table of contents</label>
-    <ul class="md-nav__list" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#built-in-validators" title="Built-in Validators" class="md-nav__link">
-    Built-in Validators
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#validating-relationships" title="Validating Relationships" class="md-nav__link">
-    Validating Relationships
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-validators" title="Custom Validators" class="md-nav__link">
-    Custom Validators
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#validation-behavior" title="Validation Behavior" class="md-nav__link">
-    Validation Behavior
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#other-validator-behavior" title="Other Validator Behavior" class="md-nav__link">
-    Other Validator Behavior
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#skipping-validations" title="Skipping Validations" class="md-nav__link">
-    Skipping Validations
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#update-and-insert-callbacks" title="Update and Insert Callbacks" class="md-nav__link">
-    Update and Insert Callbacks
-  </a>
-  
-</li>
-      
-      
-      
-    </ul>
-  
-</nav>
-    
   </li>
 
         
@@ -829,7 +749,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../db_tools/" title="Migration and Tooling" class="md-nav__link">
+    <a href="../../db/db_tools/" title="Migration and Tooling" class="md-nav__link">
       Migration and Tooling
     </a>
   </li>
@@ -841,7 +761,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../json_columns/" title="JSON Document Storage" class="md-nav__link">
+    <a href="../../db/json_columns/" title="JSON Document Storage" class="md-nav__link">
       JSON Document Storage
     </a>
   </li>
@@ -1216,10 +1136,12 @@
       
       
 
+  
 
-  <li class="md-nav__item md-nav__item--nested">
+
+  <li class="md-nav__item md-nav__item--active md-nav__item--nested">
     
-      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-16" type="checkbox" id="nav-16">
+      <input class="md-toggle md-nav__toggle" data-md-toggle="nav-16" type="checkbox" id="nav-16" checked>
     
     <label class="md-nav__link" for="nav-16">
       Guide: Deployment
@@ -1237,7 +1159,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../deploy/" title="Overview" class="md-nav__link">
+    <a href="../" title="Overview" class="md-nav__link">
       Overview
     </a>
   </li>
@@ -1247,11 +1169,67 @@
           
           
 
+  
 
-  <li class="md-nav__item">
-    <a href="../../deploy/build/" title="Creating an Aqueduct Executable" class="md-nav__link">
+
+  <li class="md-nav__item md-nav__item--active">
+    
+    <input class="md-toggle md-nav__toggle" data-md-toggle="toc" type="checkbox" id="toc">
+    
+      
+    
+    
+      <label class="md-nav__link md-nav__link--active" for="toc">
+        Creating an Aqueduct Executable
+      </label>
+    
+    <a href="./" title="Creating an Aqueduct Executable" class="md-nav__link md-nav__link--active">
       Creating an Aqueduct Executable
     </a>
+    
+      
+<nav class="md-nav md-nav--secondary">
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="toc">Table of contents</label>
+    <ul class="md-nav__list" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#beta-notes-and-known-issues" title="Beta Notes and Known Issues:" class="md-nav__link">
+    Beta Notes and Known Issues:
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#building-and-running-an-executable" title="Building and Running an Executable" class="md-nav__link">
+    Building and Running an Executable
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building-cross-platform-with-docker" title="Building Cross-Platform with Docker" class="md-nav__link">
+    Building Cross-Platform with Docker
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+      
+      
+    </ul>
+  
+</nav>
+    
   </li>
 
         
@@ -1261,7 +1239,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../deploy/deploy_local/" title="Deploy Locally (VM)" class="md-nav__link">
+    <a href="../deploy_local/" title="Deploy Locally (VM)" class="md-nav__link">
       Deploy Locally (VM)
     </a>
   </li>
@@ -1273,7 +1251,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../deploy/deploy_docker/" title="Deploying with Docker and Kubernetes (VM)" class="md-nav__link">
+    <a href="../deploy_docker/" title="Deploying with Docker and Kubernetes (VM)" class="md-nav__link">
       Deploying with Docker and Kubernetes (VM)
     </a>
   </li>
@@ -1285,7 +1263,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../deploy/deploy_heroku/" title="Deploy on Heroku (VM)" class="md-nav__link">
+    <a href="../deploy_heroku/" title="Deploy on Heroku (VM)" class="md-nav__link">
       Deploy on Heroku (VM)
     </a>
   </li>
@@ -1297,7 +1275,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../deploy/deploy_aws/" title="Deploy on AWS (VM)" class="md-nav__link">
+    <a href="../deploy_aws/" title="Deploy on AWS (VM)" class="md-nav__link">
       Deploy on AWS (VM)
     </a>
   </li>
@@ -1309,7 +1287,7 @@
 
 
   <li class="md-nav__item">
-    <a href="../../deploy/script/" title="Deploying without aqueduct serve (VM)" class="md-nav__link">
+    <a href="../script/" title="Deploying without aqueduct serve (VM)" class="md-nav__link">
       Deploying without aqueduct serve (VM)
     </a>
   </li>
@@ -1341,51 +1319,29 @@
     <ul class="md-nav__list" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#built-in-validators" title="Built-in Validators" class="md-nav__link">
-    Built-in Validators
+  <a href="#beta-notes-and-known-issues" title="Beta Notes and Known Issues:" class="md-nav__link">
+    Beta Notes and Known Issues:
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#validating-relationships" title="Validating Relationships" class="md-nav__link">
-    Validating Relationships
+  <a href="#building-and-running-an-executable" title="Building and Running an Executable" class="md-nav__link">
+    Building and Running an Executable
+  </a>
+  
+    <nav class="md-nav">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building-cross-platform-with-docker" title="Building Cross-Platform with Docker" class="md-nav__link">
+    Building Cross-Platform with Docker
   </a>
   
 </li>
-      
-        <li class="md-nav__item">
-  <a href="#custom-validators" title="Custom Validators" class="md-nav__link">
-    Custom Validators
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#validation-behavior" title="Validation Behavior" class="md-nav__link">
-    Validation Behavior
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#other-validator-behavior" title="Other Validator Behavior" class="md-nav__link">
-    Other Validator Behavior
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#skipping-validations" title="Skipping Validations" class="md-nav__link">
-    Skipping Validations
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#update-and-insert-callbacks" title="Update and Insert Callbacks" class="md-nav__link">
-    Update and Insert Callbacks
-  </a>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -1403,240 +1359,32 @@
             <article class="md-content__inner md-typeset">
               
                 
-                  <a href="https://github.com/stablekernel/aqueduct/edit/docs/source/source/docs/db/validations.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
+                  <a href="https://github.com/stablekernel/aqueduct/edit/docs/source/source/docs/deploy/build.md" title="Edit this page" class="md-icon md-content__icon">&#xE3C9;</a>
                 
                 
-                <h1 id="validating-data">Validating Data</h1>
-<p>Data is added to a database through <code>update</code> and <code>insert</code> queries. As part of these two operations, a <code>ManagedObject&lt;T&gt;</code> will ensure that its properties have valid values. For example, a <code>Person</code> object might ensure that its name starts with a capital letter and that its phone number has only numeric values.  If one or more validation fails, the update or insert operation will fail and the data is not sent to the database. A validation failure will throw a <code>QueryException</code> that returns an HTTP response with error messaging to help the client correct their request.</p>
-<p>The preferred way of setting a validation is to add <code>Validate</code> metadata to properties of a table definition. Here's an example of a validation that ensures a tweet is less than 140 characters:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Tweet</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Tweet</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Tweet</span> <span class="p">{}</span>
-<span class="kd">class</span> <span class="nc">_Tweet</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">primaryKey</span>
-  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
-
-  <span class="err">@</span><span class="n">Validate</span><span class="p">.</span><span class="n">length</span><span class="p">(</span><span class="nl">lessThan:</span> <span class="m">140</span><span class="p">)</span>
-  <span class="kt">String</span> <span class="n">message</span><span class="p">;</span>
-<span class="p">}</span>
+                <h1 id="creating-an-aqueduct-executable">Creating an Aqueduct Executable</h1>
+<h3 id="beta-notes-and-known-issues">Beta Notes and Known Issues:</h3>
+<p>This feature is currently in beta and there are known issues.</p>
+<ul>
+<li>Windows is not currently supported due to filesystem operations that have not been tested on the OS.</li>
+<li>Request body decoding methods, <code>RequestBody.as&lt;T&gt;</code> and <code>RequestBody.decode&lt;T&gt;</code>, have restrictions on the their type parameters when running as an executable. These types are limited to primitive types, such as <code>int</code>, <code>String</code>, <code>double</code>, <code>num</code>, <code>List</code> (of aforementioned primitives, or <code>Map&lt;String, dynamic&gt;</code>) and <code>Map</code> (keys must <code>String</code>, values may be any of the aforementioned primitive types).</li>
+<li>There are bugs! Please report them to <a href="https://github.com/stablekernel/aqueduct/issues">the Aqueduct repository</a>.</li>
+</ul>
+<h2 id="building-and-running-an-executable">Building and Running an Executable</h2>
+<p>By default, Aqueduct runs in the Dart VM. A VM application optimizes over time and is very convenient for machines that already have Dart installed. However, VM applications are slower to startup, consume significantly more memory, and aren't as portable. Therefore, Aqueduct offers an option to build an executable version of your application. This is done by running the following command in your Aqueduct app's project directory:</p>
+<div class="codehilite"><pre><span></span>aqueduct build
 </pre></div>
 
 
-<h3 id="built-in-validators">Built-in Validators</h3>
-<p>There are a handful of built-in validations for common operations. For example, it is common to apply a regular expression to a value to ensure it is formatted correctly or to restrict the possible values to a list of available options. Common validators are available as named constructors of the <code>Validate</code> class. Here is an example:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Story</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">primaryKey</span>
-  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
-
-  <span class="err">@</span><span class="n">Validate</span><span class="p">.</span><span class="n">oneOf</span><span class="p">(</span><span class="kd">const</span> <span class="p">[</span><span class="s2">&quot;started&quot;</span><span class="p">,</span> <span class="s2">&quot;accepted&quot;</span><span class="p">,</span> <span class="s2">&quot;rejected&quot;</span><span class="p">,</span> <span class="s2">&quot;delivered&quot;</span><span class="p">])</span>
-  <span class="kt">String</span> <span class="n">state</span><span class="p">;</span>
-<span class="p">}</span>
+<p>The output of this command is an executable that contains your application without the expensive VM. The name of the executable defaults to 'XXXXX' and is run from the command-line like any other executable:</p>
+<div class="codehilite"><pre><span></span>  ./my_app
 </pre></div>
 
 
-<p>A built-in validator is useful because it automatically generates an error message that is returned in an HTTP response. For example, the previous code snippet indicates that the <code>state</code> property must be one of the four listed strings. If a value other than one of those four strings is used, the error message returned to the HTTP client would be:</p>
-<div class="codehilite"><pre><span></span>&quot;The value `invalidValue` is not valid for `state`. Valid values are: &#39;started&#39;, &#39;accepted&#39;, &#39;rejected&#39;, &#39;delivered&#39;.&quot;.
-</pre></div>
-
-
-<p>See the API reference for <code>Validate</code> and its named constructors for possible options.</p>
-<p><code>Validate</code> annotations on properties declared in a managed object subclass (transient properties) have no effect.</p>
-<h3 id="validating-relationships">Validating Relationships</h3>
-<p>Validations are only valid for properties declared in a table definition. Validators applied to relationship properties are applied to the primary key of the related object (i.e. the foreign key value). Validation logic is only ran on the properties of the managed object being validated - validations on properties of a related object are <em>not</em> run. When validating a graph of managed objects, you must initiate validation on any related objects manually.</p>
-<div class="admonition warning">
-<p class="admonition-title">Validating Related Objects<p>The behavior of a validation is different when an object is being validated as a relationship. In other words, a validation applied to the primary key of an object likely requires different behavior when being applied to a foreign key reference to that object.</p>
-</p>
-</div>
-<h3 id="custom-validators">Custom Validators</h3>
-<p>There will be times where the built-in validators are not sufficient for your application's use case. You may create subclasses of <code>Validate</code> to provide custom validation behavior. For example, if there were a <code>ValidatePhoneNumber</code> class:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">_Person</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">primaryKey</span>
-  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
-
-  <span class="err">@</span><span class="n">ValidatePhoneNumber</span><span class="p">()</span>
-  <span class="kt">String</span> <span class="n">phoneNumber</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p>A subclass of <code>Validate</code> must override <code>Validate.validate()</code> and call the superclass' primary constructor when instantiated. Here's an example of that phone number validator:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">ValidatePhoneNumber</span> <span class="kd">extends</span> <span class="n">Validate</span> <span class="p">{</span>
-  <span class="n">ValidatePhoneNumber</span><span class="p">({</span><span class="kt">bool</span> <span class="nl">onUpdate:</span> <span class="kc">true</span><span class="p">,</span> <span class="kt">bool</span> <span class="nl">onInsert:</span> <span class="kc">true</span><span class="p">})</span> <span class="o">:</span>
-    <span class="k">super</span><span class="p">(</span><span class="nl">onUpdate:</span> <span class="n">onUpdate</span><span class="p">,</span> <span class="nl">onInsert:</span> <span class="n">onInsert</span><span class="p">);</span>
-
-  <span class="err">@</span><span class="n">override</span>
-  <span class="kt">void</span> <span class="n">validate</span><span class="p">(</span><span class="n">ValidationContext</span> <span class="n">context</span><span class="p">,</span> <span class="kt">dynamic</span> <span class="n">value</span><span class="p">)</span> <span class="p">{</span>  
-    <span class="k">if</span> <span class="p">(</span><span class="n">value</span><span class="p">.</span><span class="n">length</span> <span class="o">!=</span> <span class="m">15</span><span class="p">)</span> <span class="p">{</span>
-      <span class="n">context</span><span class="p">.</span><span class="n">addError</span><span class="p">(</span><span class="s2">&quot;must be 15 digits&quot;</span><span class="p">);</span>      
-    <span class="p">}</span>
-
-    <span class="k">if</span> <span class="p">(</span><span class="n">containsNonNumericValues</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="p">{</span>
-      <span class="n">context</span><span class="p">.</span><span class="n">addError</span><span class="p">(</span><span class="s2">&quot;must contain characters 0-9 only.&quot;</span><span class="p">);</span>      
-    <span class="p">}</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p>If <code>value</code> is doesn't meet the validation criteria, this method adds an error string to the <code>ValidationContext</code> it is passed. Error messages should be brief and indicate the successful criteria that failed. Information about the property being validated will automatically be added to the error message, so you do not need to include that information. If the context has no errors at the end of validation, the validation succeeds; otherwise, it fails.</p>
-<p>A <code>ValidationContext</code> also has information about the property being validated, and whether the validation is running for an object being inserted or an object being updated.</p>
-<h3 id="validation-behavior">Validation Behavior</h3>
-<p>A property may have more than one <code>Validate</code> metadata. In this case, all of the validations for a property must pass. The order in which multiple validations are performed is undefined and subject to change. Here's an example of validations that ensure a property's value is 10 characters long and only contains 10 alphabetic capital letters:</p>
-<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">Validate</span><span class="p">.</span><span class="n">length</span><span class="p">(</span><span class="nl">equalTo:</span> <span class="m">10</span><span class="p">)</span>
-<span class="err">@</span><span class="n">Validate</span><span class="p">.</span><span class="n">matches</span><span class="p">(</span><span class="s2">r&quot;$[A-Z]+^&quot;</span><span class="p">)</span>
-<span class="kt">String</span> <span class="n">tenCapitalLetters</span><span class="p">;</span>
-</pre></div>
-
-
-<p>By default, validations are executed when a <code>Query&lt;T&gt;</code>'s <code>insert</code> or <code>update</code> method is invoked. A validator can be restricted to only run on <code>insert</code> or <code>update</code> by passing values for its optional constructor arguments <code>onUpdate</code> and <code>onInsert</code>:</p>
-<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">Validate</span><span class="p">.</span><span class="n">matches</span><span class="p">(</span><span class="s2">r&quot;^[A-Z]+$&quot;</span><span class="p">,</span> <span class="nl">onInsert:</span> <span class="kc">true</span><span class="p">,</span> <span class="nl">onUpdate:</span> <span class="kc">false</span><span class="p">)</span>
-<span class="kt">String</span> <span class="n">validateOnInsertOnly</span><span class="p">;</span>
-</pre></div>
-
-
-<p>It is important to understand how validations work when a value for a property is <em>not</em> specified in an insert or update query. For example, consider a <code>Person</code> with a <code>name</code> and <code>email</code> property and then inserted in a query where <code>email</code> hasn't been set:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Person</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span><span class="p">;</span>
-
-<span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
-</pre></div>
-
-
-<p>Because <code>email</code> was not set on <code>Query.values</code>, validations will not be run on that property.</p>
-<p>There are two special validators that can require a property to be set, or require that a property <em>not</em> be set. <code>Validate.present()</code> requires that the associated property must have a value. A property with this validator must be provided each time the object is inserted or updated. For example, the following declaration requires that <code>email</code> is set on insertion, but doesn't have to be for updates:</p>
-<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">Validate</span><span class="p">.</span><span class="n">present</span><span class="p">(</span><span class="nl">onUpdate:</span> <span class="kc">false</span><span class="p">,</span> <span class="nl">onInsert:</span> <span class="kc">true</span><span class="p">)</span>
-<span class="kt">String</span> <span class="n">email</span><span class="p">;</span>
-</pre></div>
-
-
-<p>The inverse of <code>Validate.present()</code> is <code>Validate.absent()</code>. This validation prevents a property from being set. This is useful when a value should be included during insertion, but can't be updated. Here's an example:</p>
-<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">Validate</span><span class="p">.</span><span class="n">absent</span><span class="p">(</span><span class="nl">onUpdate:</span> <span class="kc">true</span><span class="p">,</span> <span class="nl">onInsert:</span> <span class="kc">false</span><span class="p">)</span>
-<span class="kt">String</span> <span class="n">canOnlyBeSetOnce</span><span class="p">;</span>
-</pre></div>
-
-
-<p>In the above declaration, the validator is only run on update operations and ensures that the property <code>canOnlyBeSetOnce</code> does not have a value. Because this validator is not run on insert operations, there is no restriction when the object is first inserted.</p>
-<p>Validators are not run when a value is null. For example, the following insertion explicitly inserts <code>null</code> for the property <code>email</code>:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Person</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">email</span> <span class="o">=</span> <span class="kc">null</span>
-  <span class="p">..</span><span class="n">values</span><span class="p">.</span><span class="n">name</span> <span class="o">=</span> <span class="s2">&quot;Bob&quot;</span><span class="p">;</span>
-
-<span class="kd">await</span> <span class="n">query</span><span class="p">.</span><span class="n">insert</span><span class="p">();</span>
-</pre></div>
-
-
-<p>Nullability is enforced by <code>Column.isNullable</code> property. Consider the following declaration:</p>
-<div class="codehilite"><pre><span></span><span class="err">@</span><span class="n">Column</span><span class="p">(</span><span class="nl">nullable:</span> <span class="kc">false</span><span class="p">)</span>
-<span class="err">@</span><span class="n">Validate</span><span class="p">.</span><span class="n">length</span><span class="p">(</span><span class="nl">greaterThan:</span> <span class="m">10</span><span class="p">)</span>
-<span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
-</pre></div>
-
-
-<p>Here, the property <code>name</code> must not be null and must be greater than 10 characters long. The behavior of inserting or updating this property is shown in the following table.</p>
-<table>
-<thead>
-<tr>
-<th>Input Value for Name</th>
-<th>Validation Runs?</th>
-<th>Outcome</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Insert value longer than 10 characters</td>
-<td>Yes</td>
-<td>Successful database insert</td>
-</tr>
-<tr>
-<td>Insert value shorter than 10 characters</td>
-<td>Yes</td>
-<td>Database insert not executed, exception thrown</td>
-</tr>
-<tr>
-<td>Insert value not specified</td>
-<td>No</td>
-<td>Database insert fails with non-null violation, exception thrown</td>
-</tr>
-<tr>
-<td>Insert value is null</td>
-<td>No</td>
-<td>Database insert fails with non-null violation, exception thrown</td>
-</tr>
-<tr>
-<td>Update value longer than 10 characters</td>
-<td>Yes</td>
-<td>Successful database update</td>
-</tr>
-<tr>
-<td>Update value shorter than 10 characters</td>
-<td>Yes</td>
-<td>Database update not executed, exception thrown</td>
-</tr>
-<tr>
-<td>Update value not specified</td>
-<td>No</td>
-<td>Successful database update</td>
-</tr>
-<tr>
-<td>Update value is explicit null</td>
-<td>No</td>
-<td>Successful database update</td>
-</tr>
-</tbody>
-</table>
-<p>This behavior allows <code>ManagedObject&lt;T&gt;</code> instances to be partially updated, which also allows for partial PUTs. Partial PUTs can be prevented by adding <code>Validate.present()</code> metadata to all properties.</p>
-<p>This also means that any custom validator can assert that a value passed to <code>Validate.validate()</code> is non-null.</p>
-<h3 id="other-validator-behavior">Other Validator Behavior</h3>
-<p>For validators that can't be built by subclassing <code>Validate</code>, you may override <code>ManagedObject&lt;T&gt;.validate()</code>. This method is useful when a validation involves more than one property. Here's an example:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Person</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Person</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Person</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">override</span>
-  <span class="n">ValidationContext</span> <span class="n">validate</span><span class="p">({</span><span class="n">Validating</span> <span class="nl">forEvent:</span> <span class="n">Validating</span><span class="p">.</span><span class="n">insert</span><span class="p">})</span> <span class="p">{</span>
-   <span class="kd">final</span> <span class="n">ctx</span> <span class="o">=</span> <span class="k">super</span><span class="p">.</span><span class="n">validate</span><span class="p">(</span><span class="nl">forEvent:</span> <span class="n">forEvent</span><span class="p">);</span>
-
-    <span class="k">if</span> <span class="p">(</span><span class="n">a</span> <span class="o">+</span> <span class="n">b</span> <span class="o">&gt;</span> <span class="m">10</span><span class="p">)</span> <span class="p">{</span>
-      <span class="n">ctx</span><span class="p">.</span><span class="n">addError</span><span class="p">(</span><span class="s2">&quot;a + b must be greater than 10&quot;</span><span class="p">);</span>
-    <span class="p">}</span>
-
-    <span class="k">return</span> <span class="n">ctx</span><span class="p">;</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p>When overriding this method, the <code>super</code> implementation must be invoked to run validations managed by annotations. You must return the <code>ValidationContext</code> created by the superclass' implementation.</p>
-<h3 id="skipping-validations">Skipping Validations</h3>
-<p>Validations are only run when values are set via <code>Query&lt;T&gt;.values</code>. Values set via <code>Query&lt;T&gt;.valueMap</code> are not validated and is useful for inserting data without validation. Here's an example of skipping validation:</p>
-<div class="codehilite"><pre><span></span><span class="kd">var</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">Query</span><span class="o">&lt;</span><span class="n">Person</span><span class="o">&gt;</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
-  <span class="p">..</span><span class="n">valueMap</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;name&quot;</span> <span class="o">:</span> <span class="s2">&quot;xyz&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;email&quot;</span> <span class="o">:</span> <span class="s2">&quot;whatever&quot;</span>
-  <span class="p">};</span>
-</pre></div>
-
-
-<h3 id="update-and-insert-callbacks">Update and Insert Callbacks</h3>
-<p><code>ManagedObject&lt;T&gt;</code> subclasses may override <code>willUpdate</code> and <code>willInsert</code> to make changes prior to being updated or inserted. For example, a managed object may have updated and created dates that can be guaranteed to be set when inserted or updated:</p>
-<div class="codehilite"><pre><span></span><span class="kd">class</span> <span class="nc">Person</span> <span class="kd">extends</span> <span class="n">ManagedObject</span><span class="o">&lt;</span><span class="n">_Person</span><span class="o">&gt;</span> <span class="kd">implements</span> <span class="n">_Person</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">override</span>
-  <span class="kt">void</span> <span class="n">willUpdate</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">updatedAt</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">now</span><span class="p">().</span><span class="n">toUtc</span><span class="p">();</span>
-  <span class="p">}</span>
-
-  <span class="err">@</span><span class="n">override</span>
-  <span class="kt">void</span> <span class="n">willInsert</span><span class="p">()</span> <span class="p">{</span>
-    <span class="n">createdAt</span> <span class="o">=</span> <span class="k">new</span> <span class="n">DateTime</span><span class="p">.</span><span class="n">now</span><span class="p">().</span><span class="n">toUtc</span><span class="p">();</span>
-  <span class="p">}</span>
-<span class="p">}</span>
-<span class="kd">class</span> <span class="nc">_Person</span> <span class="p">{</span>
-  <span class="err">@</span><span class="n">primaryKey</span>
-  <span class="kt">int</span> <span class="n">id</span><span class="p">;</span>
-
-  <span class="kt">String</span> <span class="n">name</span><span class="p">;</span>
-  <span class="n">DateTime</span> <span class="n">createdAt</span><span class="p">;</span>
-  <span class="n">DateTime</span> <span class="n">updatedAt</span><span class="p">;</span>
-<span class="p">}</span>
-</pre></div>
-
-
-<p>Both <code>willUpdate</code> and <code>willInsert</code> are run before any validation occurs. Like validations, <code>willUpdate</code> and <code>willInsert</code> are skipped when using <code>Query.valueMap</code>.</p>
+<p>Executable's can only be run on the platform that created them. For example, you cannot create an executable in macOS and run it on Windows.</p>
+<h3 id="building-cross-platform-with-docker">Building Cross-Platform with Docker</h3>
+<hr />
+<p>TBD</p>
                 
                   
                 
@@ -1655,7 +1403,7 @@
     <div class="md-footer-nav">
       <nav class="md-footer-nav__inner md-grid">
         
-          <a href="../transactions/" title="Transactions" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
+          <a href="../" title="Overview" class="md-flex md-footer-nav__link md-footer-nav__link--prev" rel="prev">
             <div class="md-flex__cell md-flex__cell--shrink">
               <i class="md-icon md-icon--arrow-back md-footer-nav__button"></i>
             </div>
@@ -1664,19 +1412,19 @@
                 <span class="md-footer-nav__direction">
                   Previous
                 </span>
-                Transactions
+                Overview
               </span>
             </div>
           </a>
         
         
-          <a href="../db_tools/" title="Migration and Tooling" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
+          <a href="../deploy_local/" title="Deploy Locally (VM)" class="md-flex md-footer-nav__link md-footer-nav__link--next" rel="next">
             <div class="md-flex__cell md-flex__cell--stretch md-footer-nav__title">
               <span class="md-flex__ellipsis">
                 <span class="md-footer-nav__direction">
                   Next
                 </span>
-                Migration and Tooling
+                Deploy Locally (VM)
               </span>
             </div>
             <div class="md-flex__cell md-flex__cell--shrink">
