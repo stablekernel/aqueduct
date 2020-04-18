@@ -1,5 +1,5 @@
 name: aqueduct
-version: 3.3.0-b1
+version: 3.3.0-b2
 description: A modern HTTP server application framework, ORM and OAuth2 provider with OpenAPI 3.0 integration. Foundation for REST, RPC or GraphQL services.
 homepage: https://aqueduct.io
 documentation:
@@ -17,7 +17,7 @@ dependencies:
   open_api: ^2.0.1
   password_hash: ^2.0.0
   path: ^1.6.1
-  postgres: ^1.0.0
+  postgres: ^2.1.1
   pub_cache: '>=0.2.0 <0.3.0'
   pub_semver: ^1.4.0
   safe_config: ^3.0.0-b2
