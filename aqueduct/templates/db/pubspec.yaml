@@ -11,4 +11,4 @@ dependencies:
 
 dev_dependencies:
   test: ^1.0.0
-  aqueduct_test: ^1.0.0
+  aqueduct_test: ^2.0.0-b1
