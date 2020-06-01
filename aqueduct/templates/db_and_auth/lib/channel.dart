@@ -1,9 +1,9 @@
-import 'controller/identity_controller.dart';
-import 'controller/register_controller.dart';
-import 'controller/user_controller.dart';
-import 'model/user.dart';
-import 'utility/html_template.dart';
-import 'wildfire.dart';
+import 'package:wildfire/controller/identity_controller.dart';
+import 'package:wildfire/controller/register_controller.dart';
+import 'package:wildfire/controller/user_controller.dart';
+import 'package:wildfire/model/user.dart';
+import 'package:wildfire/utility/html_template.dart';
+import 'package:wildfire/wildfire.dart';
 
 /// This type initializes an application.
 ///
