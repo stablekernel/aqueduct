@@ -74,7 +74,7 @@ Connection information for a database is most often read from a configuration fi
 
 ```dart
 class MyConfiguration extends Configuration {
-  MyConfiguration(String configPath) : super.fromFile(configPath);
+  MyConfiguration(String configPath) : super.fromFile(File(configPath));
 
   DatabaseConfiguration database;
 }
