@@ -87,7 +87,8 @@ class ManagedValidator {
   final dynamic state;
 
   Future<void> validate(ValidationContext context, dynamic value) async {
-    await definition.validate(context, value);
+    await definition.validateAsync(context, value);
+    definition.validate(context, value);
   }
 
   static String _getEventName(Validating op) {

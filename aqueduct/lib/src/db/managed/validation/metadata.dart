@@ -32,7 +32,8 @@ class ValidationContext {
   void addError(String reason) {
     final p = property;
     if (p is ManagedRelationshipDescription) {
-      errors.add("${p.entity.name}.${p.name}.${p.destinationEntity.primaryKey}: $reason");
+      errors.add(
+          "${p.entity.name}.${p.name}.${p.destinationEntity.primaryKey}: $reason");
     } else {
       errors.add("${p.entity.name}.${p.name}: $reason");
     }
@@ -350,7 +351,7 @@ class Validate {
   /// This method is not run when [input] is null.
   ///
   /// The type of [input] will have already been type-checked prior to executing this method.
-  Future<void> validate(ValidationContext context, dynamic input) async {
+  void validate(ValidationContext context, dynamic input) {
     switch (type) {
       case ValidateType.absent:
         {}
@@ -390,6 +391,11 @@ class Validate {
         break;
     }
   }
+
+  /// Validates the [input] value.
+  ///
+  /// Subclasses override this method to provide validation behavior.
+  Future<void> validateAsync(ValidationContext context, dynamic input) async {}
 
   /// Adds constraints to an [APISchemaObject] imposed by this validator.
   ///
