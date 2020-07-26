@@ -113,17 +113,15 @@ class BodyBind extends ResourceController {
 }
 
 class StandardListSet extends ResourceController {
-  @Operation.get('id')
   Future<Response> get1(@Bind.header("foo") List<String> a,
-      @Bind.path("id") List<String> b, @Bind.query("c") List<String> c) async {
+      @Bind.header("id") List<String> b, @Bind.query("c") List<String> c) async {
     return Response.ok(null);
   }
 }
 
 class ParseListSet extends ResourceController {
-  @Operation.get('id')
   Future<Response> get1(@Bind.header("foo") List<int> a,
-      @Bind.path("id") List<DateTime> b, @Bind.query("c") List<num> c) async {
+      @Bind.header("id") List<DateTime> b, @Bind.query("c") List<num> c) async {
     return Response.ok(null);
   }
 }

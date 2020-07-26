@@ -8,7 +8,7 @@ import 'package:command_line_agent/command_line_agent.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
-import 'package:aqueduct/src/dev/cli_helpers.dart';
+import '../not_tests/cli_helpers.dart';
 
 void main() {
   CLIClient cli;

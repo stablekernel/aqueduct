@@ -4,15 +4,8 @@ import 'package:aqueduct/src/http/resource_controller_bindings.dart';
 import 'package:aqueduct/src/http/resource_controller_interfaces.dart';
 import 'package:aqueduct/src/runtime/resource_controller/documenter.dart';
 import 'package:aqueduct/src/runtime/resource_controller_impl.dart';
+import 'package:aqueduct/src/utilities/sourcify.dart';
 import 'package:runtime/runtime.dart';
-
-String sourcifyValue(dynamic v) {
-  if (v is String) {
-    return "'$v'";
-  }
-
-  return "$v";
-}
 
 String getInvokerSource(BuildContext context,
     ResourceControllerRuntimeImpl controller, ResourceControllerOperation op) {
@@ -107,19 +100,27 @@ String getDecoderSource(
   throw StateError("unknown parameter");
 }
 
+String sourcifyFilter(List<String> filter) {
+  if (filter == null) {
+    return "null";
+  }
+
+  return "[${filter?.map((s) => "'$s'")?.join(",")}]";
+}
+
 String getBodyDecoderSource(ResourceControllerParameter p) {
-  final ignore = p.ignoreFilter.map((s) => "'$s'").join(",");
-  final reject = p.rejectFilter.map((s) => "'$s'").join(",");
-  final require = p.requireFilter.map((s) => "'$s'").join(",");
-  final accept = p.acceptFilter.map((s) => "'$s'").join(",");
+  final ignore = sourcifyFilter(p.ignoreFilter);
+  final reject = sourcifyFilter(p.rejectFilter);
+  final require = sourcifyFilter(p.requireFilter);
+  final accept = sourcifyFilter(p.acceptFilter);
   if (isSerializable(p.type)) {
     return """(v) {
     return ${p.type}()
       ..read((v as RequestBody).as(), 
-           accept: [$accept],
-           ignore: [$ignore],
-           reject: [$reject],
-           require: [$require]);
+           accept: $accept,
+           ignore: $ignore,
+           reject: $reject,
+           require: $require);
     }
     """;
   } else if (isListSerializable(p.type)) {
@@ -131,12 +132,12 @@ String getBodyDecoderSource(ResourceControllerParameter p) {
       }
 
       final iterable = bodyList.map((object) {
-        return ${reflectType(p.type).typeArguments.first}()
+        return ${reflectType(p.type).typeArguments.first.reflectedType}()
           ..read(object,
-            acccept: [$accept],
-            ignore: [$ignore],
-            reject: [$reject],
-            require: [$require]);
+            accept: $accept,
+            ignore: $ignore,
+            reject: $reject,
+            require: $require);
       }).toList();
 
       return ${p.type}.from(iterable);       
@@ -189,17 +190,13 @@ String getParameterSource(
     BuildContext context,
     ResourceControllerRuntimeImpl runtime,
     ResourceControllerParameter parameter) {
-  /*
-  Cannot include this because it could contain invalid token, e.g. List<String>
-type: ${sourcifyValue(parameter.type)},
-   */
   return """
-ResourceControllerParameter(
+ResourceControllerParameter.make<${parameter.type}>(
   name: ${sourcifyValue(parameter.name)},
-  acceptFilter: ${sourcifyValue(parameter.acceptFilter)},
-  ignoreFilter: ${sourcifyValue(parameter.ignoreFilter)},
-  rejectFilter: ${sourcifyValue(parameter.rejectFilter)},
-  requireFilter: ${sourcifyValue(parameter.requireFilter)},  
+  acceptFilter: ${sourcifyFilter(parameter.acceptFilter)},
+  ignoreFilter: ${sourcifyFilter(parameter.ignoreFilter)},
+  rejectFilter: ${sourcifyFilter(parameter.rejectFilter)},
+  requireFilter: ${sourcifyFilter(parameter.requireFilter)},  
   symbolName: ${sourcifyValue(parameter.symbolName)},
   location: ${sourcifyValue(parameter.location)},
   isRequired: ${sourcifyValue(parameter.isRequired)},
@@ -212,7 +209,7 @@ String getOperationSource(
     BuildContext context,
     ResourceControllerRuntimeImpl runtime,
     ResourceControllerOperation operation) {
-  final scopeElements = operation.scopes?.map((s) => "'AuthScope($s)'")?.join(",");
+  final scopeElements = operation.scopes?.map((s) => "AuthScope(${sourcifyValue(s.toString())})")?.join(",");
   final namedParameters = operation.namedParameters
       .map((p) => getParameterSource(context, runtime, p))
       .join(",");

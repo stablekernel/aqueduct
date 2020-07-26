@@ -186,7 +186,19 @@ abstract class ManagedObject<T> extends Serializable {
 
   @override
   dynamic noSuchMethod(Invocation invocation) {
-    return entity.runtime.dynamicAccessorImplementation(invocation, entity, this);
+    final propertyName = entity.runtime.getPropertyName(invocation, entity);
+    if (propertyName != null) {
+      if (invocation.isGetter) {
+        return this[propertyName];
+      } else if (invocation.isSetter) {
+        this[propertyName] =
+          invocation.positionalArguments.first;
+
+        return null;
+      }
+    }
+
+    throw NoSuchMethodError.withInvocation(this, invocation);
   }
 
   @override

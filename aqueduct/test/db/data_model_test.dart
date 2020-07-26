@@ -21,19 +21,19 @@ void main() {
     test("Entities have appropriate types", () {
       var entity = dataModel.entityForType(User);
       expect(User == entity.instanceType, true);
-      expect(_User == entity.tableDefinition, true);
+      expect('_User' == entity.tableDefinition, true);
 
       entity = dataModel.entityForType(Item);
       expect(Item == entity.instanceType, true);
-      expect(_Item == entity.tableDefinition, true);
+      expect('_Item' == entity.tableDefinition, true);
 
       entity = dataModel.entityForType(Manager);
       expect(Manager == entity.instanceType, true);
-      expect(_Manager == entity.tableDefinition, true);
+      expect('_Manager' == entity.tableDefinition, true);
 
       entity = dataModel.entityForType(EnumObject);
       expect(EnumObject == entity.instanceType, true);
-      expect(_EnumObject == entity.tableDefinition, true);
+      expect('_EnumObject' == entity.tableDefinition, true);
     });
 
     test("Non-existent entity is null", () {

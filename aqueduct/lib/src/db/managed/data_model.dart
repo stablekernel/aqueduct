@@ -44,6 +44,7 @@ class ManagedDataModel extends Object
       _tableDefinitionToEntityMap[runtime.entity.tableDefinition] =
           runtime.entity;
     });
+    expectedRuntimes.forEach((runtime) => runtime.finalize(this));
   }
 
   /// Creates an instance of a [ManagedDataModel] from all subclasses of [ManagedObject] in all libraries visible to the calling library.
@@ -56,18 +57,20 @@ class ManagedDataModel extends Object
   ///
   /// This is the preferred method of instantiating this type.
   ManagedDataModel.fromCurrentMirrorSystem() {
-    RuntimeContext.current.runtimes.iterable
-        .whereType<ManagedEntityRuntime>()
-        .forEach((runtime) {
+    final runtimes = RuntimeContext.current.runtimes.iterable
+        .whereType<ManagedEntityRuntime>();
+
+    runtimes.forEach((runtime) {
       _entities[runtime.entity.instanceType] = runtime.entity;
       _tableDefinitionToEntityMap[runtime.entity.tableDefinition] =
           runtime.entity;
     });
+    runtimes.forEach((runtime) => runtime.finalize(this));
   }
 
   Iterable<ManagedEntity> get entities => _entities.values;
   Map<Type, ManagedEntity> _entities = {};
-  Map<Type, ManagedEntity> _tableDefinitionToEntityMap = {};
+  Map<String, ManagedEntity> _tableDefinitionToEntityMap = {};
 
   /// Returns a [ManagedEntity] for a [Type].
   ///
@@ -80,7 +83,7 @@ class ManagedDataModel extends Object
   ///           int id;
   ///         }
   ManagedEntity entityForType(Type type) {
-    return _entities[type] ?? _tableDefinitionToEntityMap[type];
+    return _entities[type] ?? _tableDefinitionToEntityMap[type.toString()];
   }
 
   @override

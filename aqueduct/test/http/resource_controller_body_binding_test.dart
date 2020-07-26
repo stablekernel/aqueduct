@@ -307,20 +307,6 @@ class PropertyTestController extends ResourceController {
   }
 }
 
-class NotSerializableController extends ResourceController {
-  @Operation.post()
-  Future<Response> create(@Bind.body() Uri uri) async {
-    return Response.ok(null);
-  }
-}
-
-class ListNotSerializableController extends ResourceController {
-  @Operation.post()
-  Future<Response> create(@Bind.body() List<Uri> uri) async {
-    return Response.ok(null);
-  }
-}
-
 class CrashController extends ResourceController {
   @Operation.post()
   Future<Response> create(@Bind.body() CrashModel tm) async {

@@ -7,8 +7,6 @@ import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/metadata.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:aqueduct/src/cli/running_process.dart';
-import 'package:aqueduct/src/cli/scripts/get_channel_type.dart';
-import 'package:isolate_executor/isolate_executor.dart';
 
 class CLIServer extends CLICommand with CLIProject {
   String derivedChannelType;
@@ -44,14 +42,7 @@ class CLIServer extends CLICommand with CLIProject {
   int get port => decode("port");
 
   @Option("isolates", abbr: "n", help: "Number of isolates processing requests")
-  int get numberOfIsolates {
-    int isolateCount = decode("isolates");
-    if (isolateCount == null) {
-      final count = Platform.numberOfProcessors ~/ 2;
-      return count > 0 ? count : 1;
-    }
-    return isolateCount;
-  }
+  int get numberOfIsolates => decode("isolates") ?? 0;
 
   @Option("address",
       abbr: "a",
@@ -112,10 +103,10 @@ class CLIServer extends CLICommand with CLIProject {
       "PORT": port,
       "ADDRESS": address,
       "IPV6_ONLY": ipv6Only,
-      "NUMBER_OF_ISOLATES": numberOfIsolates,
       "CONFIGURATION_FILE_PATH": configurationFile.path,
       "SSL_KEY_PATH": keyPath,
-      "SSL_CERTIFICATE_PATH": certificatePath
+      "SSL_CERTIFICATE_PATH": certificatePath,
+      "NUMBER_OF_ISOLATES": numberOfIsolates
     };
 
     displayInfo("Starting application '$packageName/$libraryName'");
@@ -179,19 +170,6 @@ class CLIServer extends CLICommand with CLIProject {
     return process;
   }
 
-  Future<String> deriveApplicationLibraryDetails() async {
-    final name = await IsolateExecutor.run(GetChannelExecutable({}),
-        packageConfigURI: packageConfigUri,
-        imports: GetChannelExecutable.importsForPackage(libraryName),
-        logHandler: displayProgress);
-    if (name == null) {
-      throw CLIException(
-          "No ApplicationChannel subclass found in $packageName/$libraryName");
-    }
-
-    return name;
-  }
-
   Future prepare() async {
     if (keyPath != null && certificatePath == null) {
       throw CLIException(
@@ -203,7 +181,7 @@ class CLIServer extends CLICommand with CLIProject {
     }
 
     displayInfo("Preparing...");
-    derivedChannelType = await deriveApplicationLibraryDetails();
+    derivedChannelType = await getChannelName();
   }
 
   String createScriptSource(Map<String, dynamic> values) {
@@ -246,7 +224,7 @@ Future main(List<String> args, dynamic sendPort) async {
 
     app.options = config;
     
-    await startApplication(app, $numberOfIsolates, sendPort);
+    await startApplication(app, ${values['NUMBER_OF_ISOLATES']}, sendPort);
 }
     """;
 

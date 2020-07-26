@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:aqueduct/aqueduct.dart';
-import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct_test/aqueduct_test.dart';
 import 'package:test/test.dart';
 
@@ -780,89 +779,7 @@ void main() {
     });
   });
 
-  group("Documentation", () {
-    Map<String, APIOperation> operations;
-    setUpAll(() async {
-      final context = APIDocumentContext(APIDocument()
-        ..info = APIInfo("title", "1.0.0")
-        ..paths = {}
-        ..components = APIComponents());
-      AuthRedirectController ac =
-          AuthRedirectController(AuthServer(InMemoryAuthStorage()));
-      ac.restore(ac.recycledState);
-      ac.didAddToChannel();
-      operations = ac.documentOperations(context, "/", APIPath());
-      await context.finalize();
-    });
 
-    test("Has GET and POST operation", () {
-      expect(operations, {"get": isNotNull, "post": isNotNull});
-    });
-
-    test("GET serves HTML string for only response", () {
-      expect(operations["get"].responses.length, 1);
-      expect(
-          operations["get"].responses["200"].content["text/html"].schema.type,
-          APIType.string);
-    });
-
-    test("GET has parameters for client_id, state, response_type and scope",
-        () {
-      final op = operations["get"];
-      expect(op.parameters.length, 4);
-      expect(
-          op.parameters.every((p) => p.location == APIParameterLocation.query),
-          true);
-      expect(op.parameterNamed("client_id").schema.type, APIType.string);
-      expect(op.parameterNamed("scope").schema.type, APIType.string);
-      expect(op.parameterNamed("response_type").schema.type, APIType.string);
-      expect(op.parameterNamed("state").schema.type, APIType.string);
-
-      expect(op.parameterNamed("client_id").isRequired, true);
-      expect(op.parameterNamed("scope").isRequired, false);
-      expect(op.parameterNamed("response_type").isRequired, true);
-      expect(op.parameterNamed("state").isRequired, true);
-    });
-
-    test(
-        "POST has body parameteters for client_id, state, response_type, scope, username and password",
-        () {
-      final op = operations["post"];
-      expect(op.parameters.length, 0);
-      expect(op.requestBody.isRequired, true);
-
-      final content =
-          op.requestBody.content["application/x-www-form-urlencoded"];
-      expect(content, isNotNull);
-
-      expect(content.schema.type, APIType.object);
-      expect(content.schema.properties.length, 6);
-      expect(content.schema.properties["client_id"].type, APIType.string);
-      expect(content.schema.properties["scope"].type, APIType.string);
-      expect(content.schema.properties["state"].type, APIType.string);
-      expect(content.schema.properties["response_type"].type, APIType.string);
-      expect(content.schema.properties["username"].type, APIType.string);
-      expect(content.schema.properties["password"].type, APIType.string);
-      expect(content.schema.properties["password"].format, "password");
-      expect(content.schema.required,
-          ["client_id", "state", "response_type", "username", "password"]);
-    });
-
-    test("POST response can be redirect or bad request", () {
-      expect(operations["post"].responses, {
-        "${HttpStatus.movedTemporarily}": isNotNull,
-        "${HttpStatus.badRequest}": isNotNull,
-      });
-    });
-
-    test("POST response is a redirect", () {
-      final redirectResponse =
-          operations["post"].responses["${HttpStatus.movedTemporarily}"];
-      expect(redirectResponse.content, isNull);
-      expect(redirectResponse.headers["Location"].schema.type, APIType.string);
-      expect(redirectResponse.headers["Location"].schema.format, "uri");
-    });
-  });
 }
 
 class TestChannel extends ApplicationChannel

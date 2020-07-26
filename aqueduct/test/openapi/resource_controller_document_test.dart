@@ -161,13 +161,6 @@ void main() {
   });
 
   test(
-      "If request body documentation can't be generated from Bind.body(), show null for request body",
-      () {
-    final collectionOperations = document.paths["/b"].operations;
-    expect(collectionOperations["put"].requestBody, isNull);
-  });
-
-  test(
       "If Serializable overrides automatic generation, it is not automatically generated and must be registered",
       () {
     final collectionOperations = document.paths["/b"].operations;
@@ -299,3 +292,4 @@ class OverrideGeneration extends Serializable {
 }
 
 class PODO {}
+

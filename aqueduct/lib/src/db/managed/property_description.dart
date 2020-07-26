@@ -1,5 +1,6 @@
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:open_api/v3.dart';
+import 'package:runtime/runtime.dart';
 
 import '../persistent_store/persistent_store.dart';
 import '../query/query.dart';
@@ -147,8 +148,8 @@ abstract class ManagedPropertyDescription {
 /// Each scalar property [ManagedObject] object persists is described by an instance of [ManagedAttributeDescription]. This class
 /// adds two properties to [ManagedPropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class ManagedAttributeDescription extends ManagedPropertyDescription {
-  ManagedAttributeDescription(ManagedEntity entity, String name,
-      ManagedType type, Type declaredType,
+  ManagedAttributeDescription(
+      ManagedEntity entity, String name, ManagedType type, Type declaredType,
       {Serialize transientStatus,
       bool primaryKey = false,
       String defaultValue,
@@ -180,6 +181,30 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
             includedInDefaultResultSet: false,
             autoincrement: false,
             validators: []);
+
+  // ignore: prefer_constructors_over_static_methods
+  static ManagedAttributeDescription make<T>(
+      ManagedEntity entity, String name, ManagedType type,
+      {Serialize transientStatus,
+      bool primaryKey = false,
+      String defaultValue,
+      bool unique = false,
+      bool indexed = false,
+      bool nullable = false,
+      bool includedInDefaultResultSet = true,
+      bool autoincrement = false,
+      List<ManagedValidator> validators = const []}) {
+    return ManagedAttributeDescription(entity, name, type, T,
+        transientStatus: transientStatus,
+        primaryKey: primaryKey,
+        defaultValue: defaultValue,
+        unique: unique,
+        indexed: indexed,
+        nullable: nullable,
+        includedInDefaultResultSet: includedInDefaultResultSet,
+        autoincrement: autoincrement,
+        validators: validators);
+  }
 
   /// Whether or not this attribute is the primary key for its [ManagedEntity].
   ///
@@ -226,8 +251,9 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
 
     // Add'l schema info
     prop.isNullable = isNullable;
-    validators.forEach((v) => v.definition.constrainSchemaObject(context, prop));
-    
+    validators
+        .forEach((v) => v.definition.constrainSchemaObject(context, prop));
+
     if (isEnumeratedValue) {
       prop.enumerated = prop.enumerated.map(convertToPrimitiveValue).toList();
     }
@@ -336,7 +362,7 @@ class ManagedAttributeDescription extends ManagedPropertyDescription {
         type.kind == ManagedPropertyType.map) {
       try {
         return entity.runtime.dynamicConvertFromPrimitiveValue(this, value);
-      } on CastError catch (_) {
+      } on TypeCoercionException {
         throw ValidationException(["invalid input value for '$name'"]);
       }
     }
@@ -367,6 +393,29 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
             nullable: nullable,
             includedInDefaultResultSet: includedInDefaultResultSet,
             validators: validators);
+
+  // ignore: prefer_constructors_over_static_methods
+  static ManagedRelationshipDescription make<T>(
+      ManagedEntity entity,
+      String name,
+      ManagedType type,
+      ManagedEntity destinationEntity,
+      DeleteRule deleteRule,
+      ManagedRelationshipType relationshipType,
+      String inverseKey,
+      {bool unique = false,
+      bool indexed = false,
+      bool nullable = false,
+      bool includedInDefaultResultSet = true,
+      List<ManagedValidator> validators = const []}) {
+    return ManagedRelationshipDescription(entity, name, type, T,
+        destinationEntity, deleteRule, relationshipType, inverseKey,
+        unique: unique,
+        indexed: indexed,
+        nullable: nullable,
+        includedInDefaultResultSet: includedInDefaultResultSet,
+        validators: validators);
+  }
 
   /// The entity that this relationship's instances are represented by.
   final ManagedEntity destinationEntity;
@@ -433,7 +482,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
         throw ValidationException(["invalid input type for '$name'"]);
       }
 
-      final instance = destinationEntity.instanceOf()..readFromMap(value as Map<String, dynamic>);
+      final instance = destinationEntity.instanceOf()
+        ..readFromMap(value as Map<String, dynamic>);
 
       return instance;
     }
@@ -448,7 +498,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       if (m is! Map<String, dynamic>) {
         throw ValidationException(["invalid input type for '$name'"]);
       }
-      final instance = destinationEntity.instanceOf()..readFromMap(m as Map<String, dynamic>);
+      final instance = destinationEntity.instanceOf()
+        ..readFromMap(m as Map<String, dynamic>);
       return instance;
     };
     return destinationEntity.setOf((value as List).map(instantiator));
@@ -456,8 +507,8 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
 
   @override
   APISchemaObject documentSchemaObject(APIDocumentContext context) {
-    final relatedType = context.schema
-        .getObjectWithType(inverse.entity.instanceType);
+    final relatedType =
+        context.schema.getObjectWithType(inverse.entity.instanceType);
 
     if (relationshipType == ManagedRelationshipType.hasMany) {
       return APISchemaObject.array(ofSchema: relatedType)

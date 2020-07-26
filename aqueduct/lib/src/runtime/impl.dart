@@ -5,7 +5,6 @@ import 'package:aqueduct/src/application/application.dart';
 import 'package:aqueduct/src/application/channel.dart';
 import 'package:aqueduct/src/application/isolate_application_server.dart';
 import 'package:aqueduct/src/application/options.dart';
-import 'package:aqueduct/src/http/body_decoder.dart';
 import 'package:aqueduct/src/http/controller.dart';
 import 'package:aqueduct/src/http/resource_controller.dart';
 import 'package:aqueduct/src/http/resource_controller_interfaces.dart';
@@ -13,30 +12,7 @@ import 'package:aqueduct/src/http/serializable.dart';
 import 'package:aqueduct/src/openapi/documentable.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:aqueduct/src/runtime/resource_controller_impl.dart';
-import 'package:aqueduct/src/utilities/mirror_cast.dart';
 import 'package:runtime/runtime.dart';
-
-class BodyDecoderRuntimeImpl extends BodyDecoderRuntime
-    implements SourceCompiler {
-  @override
-  T cast<T>(dynamic input) {
-    return runtimeCast(input, reflectType(T)) as T;
-  }
-
-  @override
-  String compile(BuildContext ctx) {
-    return """
-import 'package:aqueduct/src/http/body_decoder.dart';    
-final instance = BodyDecoderRuntimeImpl();    
-class BodyDecoderRuntimeImpl extends BodyDecoderRuntime {
-  @override
-  T cast<T>(dynamic input) {
-    return input as T;
-  }
-}    
-""";
-  }
-}
 
 class ChannelRuntimeImpl extends ChannelRuntime implements SourceCompiler {
   ChannelRuntimeImpl(this.type);
@@ -200,6 +176,7 @@ class ControllerRuntimeImpl extends ControllerRuntime
 import 'dart:async';    
 import 'package:aqueduct/aqueduct.dart';
 import '$originalFileUri';
+${(resourceController as ResourceControllerRuntimeImpl)?.directives?.join("\n") ?? ""}
     
 final instance = ControllerRuntimeImpl();
     

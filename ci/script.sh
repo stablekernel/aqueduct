@@ -11,7 +11,7 @@ cd "$TEST_DIR"
 
 pub get
 
-pub run test -j 1 -r expanded $RUNNER_ARGS
+$RUNNER_CMD $RUNNER_ARGS
 
 #if [[ "$TRAVIS_BUILD_STAGE_NAME" == "coverage" && "$TRAVIS_BRANCH" == "master" && "$TRAVIS_PULL_REQUEST" == false ]]; then
 #  pub global activate -sgit https://github.com/stablekernel/aqueduct-coverage-tool.git

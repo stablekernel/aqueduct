@@ -17,13 +17,16 @@ jobs:
   include:
     - stage: test
       script: bash ci/script.sh
-      env: TEST_DIR="aqueduct" RUNNER_ARGS="-t cli"
+      env: TEST_DIR="aqueduct" RUNNER_ARGS="-t cli" RUNNER_CMD="pub run test -j 1 -r expanded"
     - stage: test
       script: bash ci/script.sh
-      env: TEST_DIR="aqueduct" RUNNER_ARGS="-x cli"
+      env: TEST_DIR="aqueduct" RUNNER_ARGS="-x cli" RUNNER_CMD="pub run test -j 1 -r expanded"
     - stage: test
       script: bash ci/script.sh
-      env: TEST_DIR="aqueduct_test"
+      env: TEST_DIR="aqueduct_test" RUNNER_CMD="pub run test -j 1 -r expanded"
+    - stage: test
+      script: bash ci/script.sh
+      env: TEST_DIR="aqueduct" RUNNER_ARGS="" RUNNER_CMD="dart tool/generated_test_runner.dart"
 
 stages:
   - test

@@ -32,7 +32,7 @@ class ValidationContext {
   void addError(String reason) {
     final p = property;
     if (p is ManagedRelationshipDescription) {
-      errors.add("${p.entity.name}.${p.name}.${p.destinationEntity.primaryKey}");
+      errors.add("${p.entity.name}.${p.name}.${p.destinationEntity.primaryKey}: $reason");
     } else {
       errors.add("${p.entity.name}.${p.name}: $reason");
     }
@@ -296,12 +296,11 @@ class Validate {
   final Comparable _lessThanEqualTo;
   final ValidateType type;
 
-  /// Custom validations override this method to validate and pre-process this validation.
+  /// Subclasses override this method to perform any one-time initialization tasks and check for correctness.
   ///
-  /// Use this method to ensure a validator is being applied to a property of the expected type or
-  /// transforming validation arguments into a more readily usable format. For example, a [Validate.compare]
-  /// builds a list of expressions and ensures each expression's values are the same type as the property
-  /// being validated.
+  /// Use this method to ensure a validator is being applied to a property correctly. For example, a
+  /// [Validate.compare] builds a list of expressions and ensures each expression's values are the
+  /// same type as the property being validated.
   ///
   /// The value returned from this method is available in [ValidationContext.state] when this
   /// instance's [validate] method is called.
@@ -324,7 +323,7 @@ class Validate {
               relationshipInverseType: relationshipInverseType);
         }
       case ValidateType.comparison:
-        return _comparionCompiler(typeBeingValidated,
+        return _comparisonCompiler(typeBeingValidated,
             relationshipInverseType: relationshipInverseType);
       case ValidateType.regex:
         return _regexCompiler(typeBeingValidated,
@@ -337,7 +336,9 @@ class Validate {
     }
   }
 
-  /// Custom validations override this method to provide validation behavior.
+  /// Validates the [input] value.
+  ///
+  /// Subclasses override this method to provide validation behavior.
   ///
   /// [input] is the value being validated. If the value is invalid, the reason
   /// is added to [context] via [ValidationContext.addError].
@@ -513,7 +514,7 @@ class Validate {
     return comparisons;
   }
 
-  dynamic _comparionCompiler(ManagedType typeBeingValidated,
+  dynamic _comparisonCompiler(ManagedType typeBeingValidated,
       {Type relationshipInverseType}) {
     final exprs = _expressions;
     exprs.forEach((expr) {

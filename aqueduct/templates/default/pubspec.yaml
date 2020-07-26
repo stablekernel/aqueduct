@@ -7,8 +7,8 @@ environment:
   sdk: ">=2.0.0 <3.0.0"
 
 dependencies:
-  aqueduct: ^3.0.0
+  aqueduct: ^4.0.0-b1
 
 dev_dependencies:
   test: ^1.0.0
-  aqueduct_test: ^1.0.0
+  aqueduct_test: ^2.0.0-b1

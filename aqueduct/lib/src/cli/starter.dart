@@ -20,6 +20,10 @@ Future startApplication<T extends ApplicationChannel>(
     }
   });
 
-  await app.start(numberOfInstances: isolateCount);
+  if (isolateCount == 0) {
+    await app.startOnCurrentIsolate();
+  } else {
+    await app.start(numberOfInstances: isolateCount);
+  }
   parentPort.send({"status": "ok", "port": port.sendPort});
 }
