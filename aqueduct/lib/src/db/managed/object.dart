@@ -180,7 +180,7 @@ abstract class ManagedObject<T> extends Serializable {
   ///           return context;
   ///         }
   @mustCallSuper
-  ValidationContext validate({Validating forEvent = Validating.insert}) {
+  Future<ValidationContext> validate({Validating forEvent = Validating.insert}) {
     return ManagedValidator.run(this, event: forEvent);
   }
 

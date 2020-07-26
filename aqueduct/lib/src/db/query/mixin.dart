@@ -116,7 +116,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
     _propertiesToFetch = entity.identifyProperties(propertyIdentifiers);
   }
 
-  void validateInput(Validating op) {
+  Future<void> validateInput(Validating op) async {
     if (valueMap == null) {
       if (op == Validating.insert) {
         values.willInsert();
@@ -124,7 +124,7 @@ abstract class QueryMixin<InstanceType extends ManagedObject>
         values.willUpdate();
       }
 
-      final ctx = values.validate(forEvent: op);
+      final ctx = await values.validate(forEvent: op);
       if (!ctx.isValid) {
         throw ValidationException(ctx.errors);
       }

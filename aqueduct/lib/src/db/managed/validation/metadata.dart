@@ -350,7 +350,7 @@ class Validate {
   /// This method is not run when [input] is null.
   ///
   /// The type of [input] will have already been type-checked prior to executing this method.
-  void validate(ValidationContext context, dynamic input) {
+  Future<void> validate(ValidationContext context, dynamic input) async {
     switch (type) {
       case ValidateType.absent:
         {}

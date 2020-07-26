@@ -15,20 +15,20 @@ class ManagedValidator {
   ///
   /// This method does not invoke [ManagedObject.validate] - any customization provided
   /// by a [ManagedObject] subclass that overrides this method will not be invoked.
-  static ValidationContext run(ManagedObject object,
-      {Validating event = Validating.insert}) {
+  static Future<ValidationContext> run(ManagedObject object,
+      {Validating event = Validating.insert}) async {
     final context = ValidationContext();
 
-    object.entity.validators.forEach((validator) {
+    for (var validator in object.entity.validators) {
       context.property = validator.property;
       context.event = event;
       context.state = validator.state;
       if (!validator.definition.runOnInsert && event == Validating.insert) {
-        return;
+        continue;
       }
 
       if (!validator.definition.runOnUpdate && event == Validating.update) {
-        return;
+        continue;
       }
 
       var contents = object.backing.contents;
@@ -37,34 +37,32 @@ class ManagedValidator {
       if (validator.definition.type == ValidateType.present) {
         if (validator.property is ManagedRelationshipDescription) {
           final inner = object[validator.property.name] as ManagedObject;
-          if (inner == null || !inner.backing.contents.containsKey(inner.entity.primaryKey)) {
-            context.addError(
-              "key '${validator.property.name}' is required"
+          if (inner == null ||
+              !inner.backing.contents.containsKey(inner.entity.primaryKey)) {
+            context.addError("key '${validator.property.name}' is required"
                 "for ${_getEventName(event)}s.");
           }
         } else if (!contents.containsKey(key)) {
-          context.addError(
-              "key '${validator.property.name}' is required"
+          context.addError("key '${validator.property.name}' is required"
               "for ${_getEventName(event)}s.");
         }
       } else if (validator.definition.type == ValidateType.absent) {
         if (validator.property is ManagedRelationshipDescription) {
           final inner = object[validator.property.name] as ManagedObject;
           if (inner != null) {
-            context.addError(
-              "key '${validator.property.name}' is not allowed "
+            context.addError("key '${validator.property.name}' is not allowed "
                 "for ${_getEventName(event)}s.");
           }
         } else if (contents.containsKey(key)) {
-          context.addError(
-            "key '${validator.property.name}' is not allowed "
+          context.addError("key '${validator.property.name}' is not allowed "
               "for ${_getEventName(event)}s.");
         }
       } else {
         if (validator.property is ManagedRelationshipDescription) {
           final inner = object[validator.property.name] as ManagedObject;
-          if (inner == null || inner.backing.contents[inner.entity.primaryKey] == null) {
-            return;
+          if (inner == null ||
+              inner.backing.contents[inner.entity.primaryKey] == null) {
+            continue;
           }
           contents = inner.backing.contents;
           key = inner.entity.primaryKey;
@@ -72,10 +70,10 @@ class ManagedValidator {
 
         final value = contents[key];
         if (value != null) {
-          validator.validate(context, value);
+          await validator.validate(context, value);
         }
       }
-    });
+    }
 
     return context;
   }
@@ -88,8 +86,8 @@ class ManagedValidator {
 
   final dynamic state;
 
-  void validate(ValidationContext context, dynamic value) {
-    definition.validate(context, value);
+  Future<void> validate(ValidationContext context, dynamic value) async {
+    await definition.validate(context, value);
   }
 
   static String _getEventName(Validating op) {

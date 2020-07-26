@@ -28,357 +28,365 @@ void main() {
   });
 
   group("Primary key defaults", () {
-    test("@primaryKey defaults to using Validate.constant()", () {
+    test("@primaryKey defaults to using Validate.constant()", () async {
       final t = T()..id = 1;
-      expect(t.validate(forEvent: Validating.insert).isValid, true);
-      expect(t.validate(forEvent: Validating.update).isValid, false);
+      expect((await t.validate(forEvent: Validating.insert)).isValid, true);
+      expect((await t.validate(forEvent: Validating.update)).isValid, false);
     });
 
     test(
         "A primary key that isn't @primaryKey does not have Validate.constant()",
-        () {
+        () async {
       final t = NonDefaultPK()..id = 1;
-      expect(t.validate(forEvent: Validating.insert).isValid, true);
-      expect(t.validate(forEvent: Validating.update).isValid, true);
+      expect((await t.validate(forEvent: Validating.insert)).isValid, true);
+      expect((await t.validate(forEvent: Validating.update)).isValid, true);
     });
   });
 
   group("Foreign keys", () {
-    test("Validator applies to foreign key value", () {
+    test("Validator applies to foreign key value", () async {
       final fk = FK();
       fk.parent = Parent()..id = 1;
-      expect(fk.validate().isValid, false);
-      expect(fk.validate().errors.first, contains("FK.parent.id"));
+      expect((await fk.validate()).isValid, false);
+      expect((await fk.validate()).errors.first, contains("FK.parent.id"));
 
       fk.parent.id = 2;
-      expect(fk.validate().isValid, true);
+      expect((await fk.validate()).isValid, true);
     });
 
-    test("If foreign key object is null, validator is not run", () {
+    test("If foreign key object is null, validator is not run", () async {
       final fk = FK();
-      expect(fk.validate().isValid, true);
+      expect((await fk.validate()).isValid, true);
     });
 
     test(
         "If foreign key object doesn't contain primary key, validator is not run",
-        () {
+        () async {
       final fk = FK();
       fk.parent = Parent();
-      expect(fk.validate().isValid, true);
+      expect((await fk.validate()).isValid, true);
     });
 
     test(
         "If primary key has a validator, it is not run when evaluated as a foreign key",
-        () {
+        () async {
       final fk = FK();
       fk.parent = Parent()..id = 10;
-      expect(fk.validate().isValid, true);
+      expect((await fk.validate()).isValid, true);
 
-      expect(fk.parent.validate().isValid, false);
-      expect(fk.parent.validate().errors.first, contains("Parent.id"));
+      expect((await fk.parent.validate()).isValid, false);
+      expect((await fk.parent.validate()).errors.first, contains("Parent.id"));
     });
   });
 
   group("Validate.matches", () {
-    test("Valid regex reports match", () {
+    test("Valid regex reports match", () async {
       var t = T()
         ..regex = "OIASDJKASD"
         ..contain = "XcontainY";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
     });
 
-    test("Invalid regex reports failure", () {
+    test("Invalid regex reports failure", () async {
       var t = T()..regex = "OiASDJKASD";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
 
       t = T()..contain = "abcde";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
   });
 
   group("Validate.compare", () {
-    test("lessThan/int", () {
+    test("lessThan/int", () async {
       var t = T()..compareIntLessThan1 = 0;
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.compareIntLessThan1 = 1;
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
       t.compareIntLessThan1 = 10;
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
-    test("lessThanEqual/string", () {
+    test("lessThanEqual/string", () async {
       var t = T()..compareStringLessThanEqualToBar = "abc";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.compareStringLessThanEqualToBar = "bar";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.compareStringLessThanEqualToBar = "baz";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
-    test("greaterThan/double", () {
+    test("greaterThan/double", () async {
       var t = T()..compareDoubleGreaterThan1 = 2.0;
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.compareDoubleGreaterThan1 = 1.0;
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
       t.compareDoubleGreaterThan1 = 0.0;
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
-    test("greaterThanEqual/date", () {
+    test("greaterThanEqual/date", () async {
       var t = T()..compareDateGreaterThanEqualTo1990 = DateTime(2000);
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.compareDateGreaterThanEqualTo1990 = DateTime(1990);
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.compareDateGreaterThanEqualTo1990 = DateTime(1980);
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
-    test("equal", () {
+    test("equal", () async {
       var t = T()..compareIntEqualTo5 = 5;
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.compareIntEqualTo5 = 4;
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
-    test("Combine two yields and of both", () {
+    test("Combine two yields and of both", () async {
       var t = T()..compareIntBetween6And10 = 6;
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.compareIntBetween6And10 = 10;
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
 
       t.compareIntBetween6And10 = 11;
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
       t.compareIntBetween6And10 = 5;
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
   });
 
   group("Validate.length", () {
-    test("lessThan", () {
+    test("lessThan", () async {
       var t = T()..lengthLessThan5 = "abc";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.lengthLessThan5 = "abcde";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
       t.lengthLessThan5 = "abcdefgh";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
-    test("lessThanEqual", () {
+    test("lessThanEqual", () async {
       var t = T()..lengthLessThanEqualTo5 = "abc";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.lengthLessThanEqualTo5 = "abcde";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.lengthLessThanEqualTo5 = "abcdefg";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
-    test("greaterThan", () {
+    test("greaterThan", () async {
       var t = T()..lengthGreaterThan5 = "abcdefghi";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.lengthGreaterThan5 = "abcde";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
       t.lengthGreaterThan5 = "abc";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
-    test("greaterThanEqual", () {
+    test("greaterThanEqual", () async {
       var t = T()..lengthGreaterThanEqualTo5 = "abcdefgh";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.lengthGreaterThanEqualTo5 = "abcde";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.lengthGreaterThanEqualTo5 = "abc";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
-    test("equal", () {
+    test("equal", () async {
       var t = T()..lengthEqualTo2 = "ab";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.lengthEqualTo2 = "c";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
-    test("Combine two yields and of both", () {
+    test("Combine two yields and of both", () async {
       var t = T()..lengthBetween6And10 = "abcdef";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.lengthBetween6And10 = "abcdefghij";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
 
       t.lengthBetween6And10 = "abcdefghijk";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
       t.lengthBetween6And10 = "abcde";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
   });
 
   group("Validate.present", () {
-    test("Ensures key exists", () {
+    test("Ensures key exists", () async {
       var u = U();
-      expect(u.validate().isValid, false);
+      expect((await u.validate()).isValid, false);
       u.present = 1;
-      expect(u.validate().isValid, true);
+      expect((await u.validate()).isValid, true);
     });
 
-    test("Does not care about null, as long as present", () {
+    test("Does not care about null, as long as present", () async {
       var u = U()..present = null;
-      expect(u.validate().isValid, true);
+      expect((await u.validate()).isValid, true);
     });
 
-    test("Relationship primary key must be present", () {
+    test("Relationship primary key must be present", () async {
       final o = PresenceBelongsTo();
-      expect(o.validate().isValid, false);
+      expect((await o.validate()).isValid, false);
       o.present = PresenceHas();
-      expect(o.validate().isValid, false);
+      expect((await o.validate()).isValid, false);
       o.present = PresenceHas()..id = 1;
-      expect(o.validate().isValid, true);
+      expect((await o.validate()).isValid, true);
     });
 
-    test("Ensure foreign object key exists", () {
+    test("Ensure foreign object key exists", () async {
       final fk = PresenceBelongsTo();
-      expect(fk.validate().isValid, false);
+      expect((await fk.validate()).isValid, false);
     });
 
-    test("If foreign key object is null, validator fails", () {
+    test("If foreign key object is null, validator fails", () async {
       final fk = PresenceBelongsTo()..present = null;
-      expect(fk.validate().isValid, false);
+      expect((await fk.validate()).isValid, false);
     });
 
     test("If foreign key object doesn't contain primary key, validator fails",
-        () {
+        () async {
       final fk = PresenceBelongsTo()..present = PresenceHas();
-      expect(fk.validate().isValid, false);
-      expect(
-          fk.validate().errors.first, contains("PresenceBelongsTo.present.id"));
+      expect((await fk.validate()).isValid, false);
+      expect((await fk.validate()).errors.first,
+          contains("PresenceBelongsTo.present.id"));
     });
   });
 
   group("Validate.absent", () {
-    test("Ensures key is absent", () {
+    test("Ensures key is absent", () async {
       var u = U()..present = 1;
-      expect(u.validate().isValid, true);
+      expect((await u.validate()).isValid, true);
       u.absent = 1;
-      expect(u.validate().isValid, false);
+      expect((await u.validate()).isValid, false);
     });
 
-    test("Does not treat null as absent", () {
+    test("Does not treat null as absent", () async {
       var u = U()
         ..present = 1
         ..absent = null;
-      expect(u.validate().isValid, false);
+      expect((await u.validate()).isValid, false);
     });
 
-    test("Relationship key must be absent", () {
+    test("Relationship key must be absent", () async {
       final o = AbsenceBelongsTo();
-      expect(o.validate().isValid, true);
+      expect((await o.validate()).isValid, true);
 
       o.absent = AbsenceHas();
-      expect(o.validate().isValid, false);
-      expect(o.validate().errors.first, contains("AbsenceBelongsTo.absent.id"));
+      expect((await o.validate()).isValid, false);
+      expect((await o.validate()).errors.first,
+          contains("AbsenceBelongsTo.absent.id"));
 
       o.absent = AbsenceHas()..id = 1;
-      expect(o.validate().isValid, false);
-      expect(o.validate().errors.first, contains("AbsenceBelongsTo.absent.id"));
+      expect((await o.validate()).isValid, false);
+      expect((await o.validate()).errors.first,
+          contains("AbsenceBelongsTo.absent.id"));
     });
   });
 
   group("Validate.oneOf", () {
-    test("Works with String", () {
+    test("Works with String", () async {
       var t = T()..oneOfAB = "A";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.oneOfAB = "C";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
-    test("Works with int", () {
+    test("Works with int", () async {
       var t = T()..oneOf12 = 1;
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.oneOf12 = 3;
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
-    test("Implicitly added to enum types", () {
+    test("Implicitly added to enum types", () async {
       var e = EnumObject()..backing.contents["enumValues"] = "foobar";
-      expect(e.validate().isValid, false);
+      expect((await e.validate()).isValid, false);
       e.enumValues = EnumValues.abcd;
-      expect(e.validate().isValid, true);
+      expect((await e.validate()).isValid, true);
     });
   });
 
   group("Validate.constant", () {
-    test("Allows attributes during insert, not update", () {
+    test("Allows attributes during insert, not update", () async {
       var t = Constant()..constantString = "A";
-      expect(t.validate(forEvent: Validating.insert).isValid, true);
+      expect((await t.validate(forEvent: Validating.insert)).isValid, true);
 
-      expect(t.validate(forEvent: Validating.update).isValid, false);
+      expect((await t.validate(forEvent: Validating.update)).isValid, false);
     });
 
-    test("Allows relationships during insert, not update", () {
+    test("Allows relationships during insert, not update", () async {
       var t = Constant()
         ..constantRef = ConstantRef()
         ..id = 1;
-      expect(t.validate(forEvent: Validating.insert).isValid, true);
-      expect(t.validate(forEvent: Validating.update).isValid, false);
+      expect((await t.validate(forEvent: Validating.insert)).isValid, true);
+      expect((await t.validate(forEvent: Validating.update)).isValid, false);
     });
   });
 
   group("Operation", () {
-    test("Specify update only, only runs on update", () {
+    test("Specify update only, only runs on update", () async {
       var t = T()..mustBeZeroOnUpdate = 10;
-      expect(ManagedValidator.run(t, event: Validating.insert).isValid, true);
+      expect((await ManagedValidator.run(t, event: Validating.insert)).isValid,
+          true);
 
       t.mustBeZeroOnUpdate = 10;
-      expect(ManagedValidator.run(t, event: Validating.update).isValid, false);
+      expect((await ManagedValidator.run(t, event: Validating.update)).isValid,
+          false);
 
       t.mustBeZeroOnUpdate = 0;
-      expect(ManagedValidator.run(t, event: Validating.update).isValid, true);
+      expect((await ManagedValidator.run(t, event: Validating.update)).isValid,
+          true);
     });
 
-    test("Specify insert only, only runs on insert", () {
+    test("Specify insert only, only runs on insert", () async {
       var t = T()..mustBeZeroOnInsert = 10;
-      expect(ManagedValidator.run(t, event: Validating.update).isValid, true);
+      expect((await ManagedValidator.run(t, event: Validating.update)).isValid,
+          true);
 
       t.mustBeZeroOnInsert = 10;
-      expect(ManagedValidator.run(t, event: Validating.insert).isValid, false);
+      expect((await ManagedValidator.run(t, event: Validating.insert)).isValid,
+          false);
 
       t.mustBeZeroOnInsert = 0;
-      expect(ManagedValidator.run(t, event: Validating.insert).isValid, true);
+      expect((await ManagedValidator.run(t, event: Validating.insert)).isValid,
+          true);
     });
 
-    test("More than one matcher", () {
+    test("More than one matcher", () async {
       var t = T()..mustBeBayOrBaz = "bay";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.mustBeBayOrBaz = "baz";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.mustBeBayOrBaz = "bar";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
       t.mustBeBayOrBaz = "baa";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
 
     test("ManagedObject can provide add'l validations by overriding validate",
         () async {
       var v = V()..aOrbButReallyOnlyA = "a";
-      expect(v.validate().isValid, true);
+      expect((await v.validate()).isValid, true);
       v.aOrbButReallyOnlyA = "b";
-      expect(v.validate().isValid, false);
+      expect((await v.validate()).isValid, false);
     });
   });
 
   group("Custom validator verify", () {
-    test("Custom validator correctly validates a value", () {
+    test("Custom validator correctly validates a value", () async {
       var t = T()..mustByXYZ = "XYZ";
-      expect(t.validate().isValid, true);
+      expect((await t.validate()).isValid, true);
       t.mustByXYZ = "not";
-      expect(t.validate().isValid, false);
+      expect((await t.validate()).isValid, false);
     });
   });
 
-  test("Can combine both metadata and arguments to Column", () {
+  test("Can combine both metadata and arguments to Column", () async {
     final x = MultiValidate()..canOnlyBe4 = 3;
-    expect(x.validate().isValid, false);
+    expect((await x.validate()).isValid, false);
     x.canOnlyBe4 = 5;
-    expect(x.validate().isValid, false);
+    expect((await x.validate()).isValid, false);
     x.canOnlyBe4 = 4;
-    expect(x.validate().isValid, true);
+    expect((await x.validate()).isValid, true);
 
     final allValidators = x.entity.attributes['canOnlyBe4'].validators;
     expect(allValidators.length, 4);
@@ -471,7 +479,7 @@ class CustomValidate extends Validate {
       : super(onUpdate: onUpdate, onInsert: onInsert);
 
   @override
-  void validate(ValidationContext context, dynamic input) {
+  Future<void> validate(ValidationContext context, dynamic input) async {
     if (input != "XYZ") {
       context.addError("not XYZ");
     }
@@ -480,8 +488,9 @@ class CustomValidate extends Validate {
 
 class V extends ManagedObject<_V> implements _V {
   @override
-  ValidationContext validate({Validating forEvent = Validating.insert}) {
-    final context = super.validate(forEvent: forEvent);
+  Future<ValidationContext> validate(
+      {Validating forEvent = Validating.insert}) async {
+    final context = await super.validate(forEvent: forEvent);
 
     if (aOrbButReallyOnlyA == "b") {
       context.addError("can't be b");
@@ -613,12 +622,16 @@ class MultiValidate extends ManagedObject<_MultiValidate>
     implements _MultiValidate {}
 
 const validateReference = Validate.compare(lessThan: 100);
+
 class _MultiValidate {
   @primaryKey
   int id;
 
   @validateReference
   @Validate.compare(lessThan: 5)
-  @Column(validators: [Validate.compare(greaterThan: 3), Validate.compare(equalTo: 4)])
+  @Column(validators: [
+    Validate.compare(greaterThan: 3),
+    Validate.compare(equalTo: 4)
+  ])
   int canOnlyBe4;
 }
