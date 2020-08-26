@@ -37,12 +37,11 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     var buffer = StringBuffer();
     buffer.write("INSERT INTO ${builder.sqlTableName} ");
 
-    if (builder.columnValueBuilders.isEmpty) {
-      buffer.write("VALUES (DEFAULT) ");
-    } else {
+    if (builder.columnValueBuilders.isNotEmpty) {
       buffer.write("(${builder.sqlColumnsToInsert}) ");
-      buffer.write("VALUES (${builder.sqlValuesToInsert}) ");
     }
+
+    buffer.write("VALUES (${builder.sqlValuesToInsert}) ");
 
     if ((builder.returning?.length ?? 0) > 0) {
       buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
@@ -51,7 +50,58 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     final results = await context.persistentStore
         .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
-    return builder.instancesForRows<InstanceType>(results as List<List<dynamic>>).first;
+    return builder
+        .instancesForRows<InstanceType>(results as List<List<dynamic>>)
+        .first;
+  }
+
+  @override
+  Future<List<InstanceType>> insertMany(List<InstanceType> objects) async {
+    if (objects.isEmpty) {
+      return [];
+    }
+
+    var buffer = StringBuffer();
+
+    final allColumns = <String>{};
+    final builders = <PostgresQueryBuilder>[];
+
+    for (int i = 0; i < objects.length; i++) {
+      values = objects[i];
+      validateInput(Validating.insert);
+
+      builders.add(PostgresQueryBuilder(this, "$i"));
+      allColumns.addAll(builders.last.columnValueKeys);
+    }
+
+    buffer.write("INSERT INTO ${builders.first.sqlTableName} ");
+
+    if (allColumns.isEmpty) {
+      buffer.write("VALUES ");
+    } else {
+      buffer.write("(${allColumns.join(',')}) VALUES ");
+    }
+
+    final valuesToInsert = <String>[];
+    final allVariables = <String, dynamic>{};
+
+    for (final builder in builders) {
+      valuesToInsert.add("(${builder.valuesToInsert(allColumns)})");
+      allVariables.addAll(builder.variables);
+    }
+
+    buffer.writeAll(valuesToInsert, ",");
+    buffer.write(" ");
+
+    if ((builders.first.returning?.length ?? 0) > 0) {
+      buffer.write("RETURNING ${builders.first.sqlColumnsToReturn}");
+    }
+
+    final results = await context.persistentStore
+        .executeQuery(buffer.toString(), allVariables, timeoutInSeconds);
+
+    return builders.first
+        .instancesForRows<InstanceType>(results as List<List<dynamic>>);
   }
 
   @override

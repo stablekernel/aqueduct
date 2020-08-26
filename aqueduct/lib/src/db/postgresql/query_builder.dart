@@ -8,22 +8,28 @@ import '../db.dart';
 import 'row_instantiator.dart';
 
 class PostgresQueryBuilder extends TableBuilder {
-  PostgresQueryBuilder(PostgresQuery query) : super(query) {
+  PostgresQueryBuilder(PostgresQuery query, [String prefixIndex = ""])
+      : valueKeyPrefix = "v${prefixIndex}_",
+        placeholderKeyPrefix = "@v${prefixIndex}_",
+        super(query) {
     (query.valueMap ?? query.values?.backing?.contents)
         .forEach(addColumnValueBuilder);
-
-    columnValueBuilders.forEach((cv) {
-      variables[cv.sqlColumnName(withPrefix: valueKeyPrefix)] = cv.value;
-    });
 
     finalize(variables);
   }
 
-  static const String valueKeyPrefix = "v_";
+  final String valueKeyPrefix;
+  final String placeholderKeyPrefix;
 
   final Map<String, dynamic> variables = {};
 
-  final List<ColumnValueBuilder> columnValueBuilders = [];
+  final Map<String, ColumnValueBuilder> columnValueBuildersByKey = {};
+
+  Iterable<String> get columnValueKeys =>
+      columnValueBuildersByKey.keys.toList().reversed;
+
+  Iterable<ColumnValueBuilder> get columnValueBuilders =>
+      columnValueBuildersByKey.values;
 
   bool get containsJoins => returning.reversed.any((p) => p is TableBuilder);
 
@@ -39,7 +45,7 @@ class PostgresQueryBuilder extends TableBuilder {
 
   void addColumnValueBuilder(String key, dynamic value) {
     final builder = _createColumnValueBuilder(key, value);
-    columnValueBuilders.add(builder);
+    columnValueBuildersByKey[builder.sqlColumnName()] = builder;
     variables[builder.sqlColumnName(withPrefix: valueKeyPrefix)] =
         builder.value;
   }
@@ -83,21 +89,35 @@ class PostgresQueryBuilder extends TableBuilder {
   String get sqlColumnsAndValuesToUpdate {
     return columnValueBuilders.map((m) {
       final columnName = m.sqlColumnName();
-      final variableName =
-          m.sqlColumnName(withPrefix: "@$valueKeyPrefix", withTypeSuffix: true);
+      final variableName = m.sqlColumnName(
+        withPrefix: placeholderKeyPrefix,
+        withTypeSuffix: true,
+      );
       return "$columnName=$variableName";
     }).join(",");
   }
 
-  String get sqlColumnsToInsert {
-    return columnValueBuilders.map((c) => c.sqlColumnName()).join(",");
+  String get sqlColumnsToInsert => columnValueKeys.join(",");
+
+  String get sqlValuesToInsert => valuesToInsert(columnValueKeys);
+
+  String valuesToInsert(Iterable<String> forKeys) {
+    if (forKeys.isEmpty) {
+      return "DEFAULT";
+    }
+    return forKeys.map(_valueToInsert).join(",");
   }
 
-  String get sqlValuesToInsert {
-    return columnValueBuilders
-        .map((c) => c.sqlColumnName(
-            withTypeSuffix: true, withPrefix: "@$valueKeyPrefix"))
-        .join(",");
+  String _valueToInsert(String key) {
+    final builder = columnValueBuildersByKey[key];
+    if (builder == null) {
+      return "DEFAULT";
+    }
+
+    return builder.sqlColumnName(
+      withTypeSuffix: true,
+      withPrefix: placeholderKeyPrefix,
+    );
   }
 
   String get sqlColumnsToReturn {

@@ -290,7 +290,8 @@ class InMemoryAuthStorage extends AuthServerDelegate {
 class DefaultPersistentStore extends PersistentStore {
   @override
   Query<T> newQuery<T extends ManagedObject>(
-      ManagedContext context, ManagedEntity entity, {T values}) {
+      ManagedContext context, ManagedEntity entity,
+      {T values}) {
     final q = _MockQuery<T>.withEntity(context, entity);
     if (values != null) {
       q.values = values;
@@ -413,6 +414,11 @@ class _MockQuery<InstanceType extends ManagedObject> extends Object
   @override
   Future<InstanceType> insert() async {
     throw Exception("insert() in _MockQuery");
+  }
+
+  @override
+  Future<List<InstanceType>> insertMany(List<InstanceType> objects) async {
+    throw Exception("insertMany(...) in _MockQuery");
   }
 
   @override

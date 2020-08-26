@@ -33,7 +33,11 @@ abstract class Query<InstanceType extends ManagedObject> {
           "Invalid context. The data model of 'context' does not contain '$InstanceType'.");
     }
 
-    return context.persistentStore.newQuery<InstanceType>(context, entity, values: values);
+    return context.persistentStore.newQuery<InstanceType>(
+      context,
+      entity,
+      values: values,
+    );
   }
 
   /// Creates a new [Query] without a static type.
@@ -246,9 +250,11 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// all [ManagedSet] properties and [ManagedObject] properties that do not have a [Relate] annotation. If you attempt
   /// to set a property that isn't allowed on [values], an error is thrown.
   ///
-  /// If a property of [values] is a [ManagedObject] with a [Relate] annotation, you may provide a value for its primary key
-  /// property. This value will be stored in the foreign key column that backs the property. You may set properties
-  /// of this type immediately, without having to create an instance of the related type:
+  /// If a property of [values] is a [ManagedObject] with a [Relate] annotation,
+  /// you may provide a value for its primary key property. This value will be
+  /// stored in the foreign key column that backs the property. You may set
+  /// properties of this type immediately, without having to create an instance
+  /// of the related type:
   ///
   ///         // Assumes that Employee is declared with the following property:
   ///         // @Relate(#employees)
@@ -259,8 +265,8 @@ abstract class Query<InstanceType extends ManagedObject> {
   ///           ..values.manager.id = 10;
   ///         await q.insert();
   ///
-  /// WARNING: You may replace this property with a new instance of [InstanceType]. When doing so, a copy
-  /// of the object is created and assigned to this property.
+  /// WARNING: You may replace this property with a new instance of [InstanceType].
+  /// When doing so, a copy of the object is created and assigned to this property.
   ///
   ///         final o = SomeObject()
   ///           ..id = 1;
@@ -302,6 +308,27 @@ abstract class Query<InstanceType extends ManagedObject> {
   /// If the [InstanceType] has properties with [Validate] metadata, those validations
   /// will be executed prior to sending the query to the database.
   Future<InstanceType> insert();
+
+  /// Inserts an [InstanceType]s into the underlying database.
+  ///
+  /// The [Query] must not have its [values] nor [valueMap] property set. This
+  /// operation will insert a row for each item in [objects] to the database in
+  /// [context]. The return value is a [Future] that completes with the newly
+  /// inserted [InstanceType]s. Example:
+  ///
+  ///       final users = [
+  ///          User()..email = 'user1@example.dev',
+  ///          User()..email = 'user2@example.dev',
+  ///       ];
+  ///       final q = Query<User>();
+  ///       var newUsers = await q.insertMany(users);
+  ///
+  /// If the [InstanceType] has properties with [Validate] metadata, those
+  /// validations will be executed prior to sending the query to the database.
+  ///
+  /// The method guaranties that either all rows will be inserted and returned
+  /// or exception will be thrown and non of the rows will be written to the database.
+  Future<List<InstanceType>> insertMany(List<InstanceType> objects);
 
   /// Updates [InstanceType]s in the underlying database.
   ///
