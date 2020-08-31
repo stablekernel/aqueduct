@@ -153,16 +153,8 @@ void main() {
     test("Match an integer", () async {
       final defaultTestClient = Agent.onPort(4000);
       final response = await defaultTestClient.request("/foo?num").get();
-      expect(
-        response,
-        hasHeaders({
-          "x-num": greaterThan(5)
-        }));
-      expect(
-        response,
-        hasHeaders({
-          "x-num": 10
-        }));
+      expect(response, hasHeaders({"x-num": greaterThan(5)}));
+      expect(response, hasHeaders({"x-num": 10}));
     });
 
     test("DateTime isBefore,isAfter, etc.", () async {
@@ -332,7 +324,7 @@ void main() {
             contains("Body after decoding"),
             contains("{'foo': 'notbar'}"),
             contains("body differs for the following reasons"),
-            contains("was 'bar' instead of 'notbar' at location ['foo']"),
+            contains("at location [\'foo\'] is \'bar\' instead of \'notbar\'"),
           ]));
     });
   });
@@ -360,7 +352,7 @@ void main() {
       },
           allOf([
             contains("[1, 2]"),
-            contains("longer than expected at location [2]")
+            contains("at location [2] is [1, 2, 3] which longer than expected")
           ]));
 
       expectFailureFor(() {
@@ -384,7 +376,7 @@ void main() {
       },
           allOf([
             contains("{'foo': 'notbar', 'x': 'y'}"),
-            contains("was 'bar' instead of 'notbar'")
+            contains("at location [\'foo\'] is \'bar\' instead of \'notbar\'")
           ]));
     });
 
@@ -396,13 +388,16 @@ void main() {
 
       expect(response, hasBody({"foo": isString, "x": 5}));
 
-      expectFailureFor(() {
-        expect(response, hasBody({"foo": isNot(isString), "x": 5}));
-      },
-          allOf([
-            contains("{'foo': <not <Instance of \'String\'>>, 'x': 5}"),
-            contains('does not match not <Instance of \'String\'> at location')
-          ]));
+      expectFailureFor(
+        () {
+          expect(response, hasBody({"foo": isNot(isString), "x": 5}));
+        },
+        allOf([
+          contains("{'foo': <not <Instance of \'String\'>>, 'x': 5}"),
+          contains(
+              "at location ['foo'] is 'bar' which does not match not <Instance of \'String\'>")
+        ]),
+      );
     });
 
     test("Partial match, one level", () async {

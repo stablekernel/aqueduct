@@ -125,11 +125,11 @@ void main() {
     });
 
     test("greaterThanEqual/date", () {
-      var t = T()..compareDateGreaterThanEqualTo1990 = DateTime(2000);
+      var t = T()..compareDateGreaterThanEqualTo1990 = DateTime.utc(2000);
       expect(t.validate().isValid, true);
-      t.compareDateGreaterThanEqualTo1990 = DateTime(1990);
+      t.compareDateGreaterThanEqualTo1990 = DateTime.utc(1990);
       expect(t.validate().isValid, true);
-      t.compareDateGreaterThanEqualTo1990 = DateTime(1980);
+      t.compareDateGreaterThanEqualTo1990 = DateTime.utc(1980);
       expect(t.validate().isValid, false);
     });
 
@@ -613,12 +613,16 @@ class MultiValidate extends ManagedObject<_MultiValidate>
     implements _MultiValidate {}
 
 const validateReference = Validate.compare(lessThan: 100);
+
 class _MultiValidate {
   @primaryKey
   int id;
 
   @validateReference
   @Validate.compare(lessThan: 5)
-  @Column(validators: [Validate.compare(greaterThan: 3), Validate.compare(equalTo: 4)])
+  @Column(validators: [
+    Validate.compare(greaterThan: 3),
+    Validate.compare(equalTo: 4)
+  ])
   int canOnlyBe4;
 }
