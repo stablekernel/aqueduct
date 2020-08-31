@@ -258,6 +258,7 @@ ManagedAttributeDescription.make<${attribute.declaredType}>(entity, '${attribute
     nullable: ${attribute.isNullable},
     includedInDefaultResultSet: ${attribute.isIncludedInDefaultResultSet},
     autoincrement: ${attribute.autoincrement},
+    size:${attribute.size},
     validators: $validatorStr.expand<ManagedValidator>((i) => i as Iterable<ManagedValidator>).toList())    
     """;
   }
@@ -277,6 +278,7 @@ ManagedRelationshipDescription.make<${relationship.declaredType}>(
   unique: ${relationship.isUnique},
   indexed: ${relationship.isIndexed},
   nullable: ${relationship.isNullable},
+  size:${relationship.size}
   includedInDefaultResultSet: ${relationship.isIncludedInDefaultResultSet},
   validators: [${_getValidators(ctx, relationship, importUris: importUris)}].expand<ManagedValidator>((i) => i as Iterable<ManagedValidator>).toList())
     """;

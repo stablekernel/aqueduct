@@ -128,6 +128,7 @@ class Column {
       bool indexed = false,
       bool omitByDefault = false,
       bool autoincrement = false,
+      int size,
       List<Validate> validators = const []})
       : isPrimaryKey = primaryKey,
         databaseType = databaseType,
@@ -137,9 +138,10 @@ class Column {
         isIndexed = indexed,
         shouldOmitByDefault = omitByDefault,
         autoincrement = autoincrement,
+        size=size,
         validators = validators;
 
-
+  final int size;
   /// When true, indicates that this property is the primary key.
   ///
   /// Only one property of a class may have primaryKey equal to true.
@@ -240,4 +242,5 @@ const Column primaryKey = Column(
   primaryKey: true,
   databaseType: ManagedPropertyType.bigInteger,
   autoincrement: true,
+  size: 8,
   validators: [Validate.constant()]);

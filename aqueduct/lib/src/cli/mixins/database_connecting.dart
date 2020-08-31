@@ -1,17 +1,18 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/cli/metadata.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:aqueduct/src/db/persistent_store/persistent_store.dart';
-import 'package:aqueduct/src/db/postgresql/postgresql_persistent_store.dart';
 import 'package:safe_config/safe_config.dart';
 import 'package:aqueduct/src/cli/command.dart';
 
 abstract class CLIDatabaseConnectingCommand implements CLICommand, CLIProject {
   static const String flavorPostgreSQL = "postgres";
+  static const String flavorMySql = "mysql";
 
-  DatabaseConfiguration connectedDatabase;
+  DatabaseConfigurationExt connectedDatabase;
 
   @Flag("use-ssl",
       help: "Whether or not the database connection should use SSL",
@@ -22,15 +23,23 @@ abstract class CLIDatabaseConnectingCommand implements CLICommand, CLIProject {
       abbr: "c",
       help:
           "A database connection URI string. If this option is set, database-config is ignored.",
-      valueHelp: "postgres://user:password@localhost:port/databaseName")
+      valueHelp: "[postgres|mysql]://user:password@localhost:port/databaseName")
   String get databaseConnectionString => decode("connect");
 
   @Option("flavor",
       abbr: "f",
       help: "The database driver flavor to use.",
       defaultsTo: "postgres",
-      allowed: ["postgres"])
-  String get databaseFlavor => decode("flavor");
+      allowed: ["postgres", "mysql"])
+  String get databaseFlavor {
+    if (_databaseFlavor != null) {
+      return _databaseFlavor;
+    }
+    return decode("flavor");
+    // return _databaseFlavor;
+  }
+
+  String _databaseFlavor;
 
   @Option("database-config",
       help:
@@ -52,10 +61,10 @@ abstract class CLIDatabaseConnectingCommand implements CLICommand, CLIProject {
       throw CLIException("No database flavor selected. See --flavor.");
     }
 
-    if (databaseFlavor == flavorPostgreSQL) {
+    if (databaseFlavor == flavorPostgreSQL || databaseFlavor == flavorMySql) {
       if (databaseConnectionString != null) {
         try {
-          connectedDatabase = DatabaseConfiguration();
+          connectedDatabase = DatabaseConfigurationExt();
           connectedDatabase.decode(databaseConnectionString);
         } catch (_) {
           throw CLIException("Invalid database configuration.", instructions: [
@@ -75,7 +84,7 @@ abstract class CLIDatabaseConnectingCommand implements CLICommand, CLIProject {
 
         try {
           connectedDatabase =
-              DatabaseConfiguration.fromFile(databaseConfigurationFile);
+              DatabaseConfigurationExt.fromFile(databaseConfigurationFile);
         } catch (_) {
           throw CLIException("Invalid database configuration.", instructions: [
             "File located at ${databaseConfigurationFile.path}.",
@@ -84,14 +93,13 @@ abstract class CLIDatabaseConnectingCommand implements CLICommand, CLIProject {
           ]);
         }
       }
-
-      return _persistentStore = PostgreSQLPersistentStore(
-          connectedDatabase.username,
-          connectedDatabase.password,
-          connectedDatabase.host,
-          connectedDatabase.port,
-          connectedDatabase.databaseName,
-          useSSL: useSSL);
+      if (databaseFlavor != connectedDatabase.schema) {
+        _databaseFlavor = connectedDatabase.schema;
+      }
+      PersistentStoreConnection connection =
+          PersistentStoreConnection.fromConfig(
+              connectedDatabase.schema, connectedDatabase);
+      return connection.persistentStore;
     }
 
     throw CLIException("Invalid flavor $databaseFlavor");
@@ -103,6 +111,29 @@ abstract class CLIDatabaseConnectingCommand implements CLICommand, CLIProject {
   }
 
   String get _dbConfigFormat {
-    return "\n\tusername: username\n\tpassword: password\n\thost: host\n\tport: port\n\tdatabaseName: name\n";
+    return "\n\tschema: [postgres|mysql]\n\tusername: username\n\tpassword: password\n\thost: host\n\tport: port\n\tdatabaseName: name\n";
+  }
+}
+
+class DatabaseConfigurationExt extends DatabaseConfiguration {
+  DatabaseConfigurationExt() : super();
+
+  DatabaseConfigurationExt.fromFile(File file) : super.fromFile(file);
+
+  DatabaseConfigurationExt.fromString(String yaml) : super.fromString(yaml);
+
+  DatabaseConfigurationExt.fromMap(Map<dynamic, dynamic> yaml)
+      : super.fromMap(yaml);
+
+  @optionalConfiguration
+  String schema;
+
+  @override
+  void decode(dynamic value) {
+    super.decode(value);
+    if (value is String) {
+      var uri = Uri.parse(value);
+      schema = uri.scheme;
+    }
   }
 }

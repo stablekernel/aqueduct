@@ -5,7 +5,7 @@ homepage: https://aqueduct.io
 documentation:
 
 environment:
-  sdk: ">=2.0.0 <3.0.0"
+  sdk: ">=2.6.0 <3.0.0"
 
 dependencies:
   args: ^1.5.0
@@ -23,6 +23,7 @@ dependencies:
   safe_config: ^3.0.0-b2
   yaml: ^2.1.15
   runtime: ^1.0.0-9
+  sqljocky5: ^2.2.1
 
 dev_dependencies:
   matcher: '>=0.12.3 <0.14.0'

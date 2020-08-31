@@ -1,29 +1,30 @@
-import 'package:aqueduct/src/db/managed/property_description.dart';
+import 'package:aqueduct/src/db/managed/managed.dart';
 import 'package:aqueduct/src/db/query/matcher_internal.dart';
-import 'package:aqueduct/src/db/query/predicate.dart';
+import 'package:aqueduct/src/db/query/query.dart';
 import 'package:aqueduct/src/db/shared/builders/column.dart';
 import 'package:aqueduct/src/db/shared/builders/expression.dart';
 import 'package:aqueduct/src/db/shared/builders/table.dart';
 import 'package:aqueduct/src/db/shared/returnable.dart';
 
-class PostgreSQLColumnExpressionBuilder extends ColumnExpressionBuilder {
-  PostgreSQLColumnExpressionBuilder(DbWrapper dbWrapper, TableBuilder table,
+class MySqlColumnExpressionBuilder extends ColumnExpressionBuilder {
+  MySqlColumnExpressionBuilder(DbWrapper dbWrapper, TableBuilder table,
       ManagedPropertyDescription property, PredicateExpression expression,
       {String prefix = ""})
       : super(dbWrapper, table, property, expression, prefix: prefix);
 
   @override
-  QueryPredicate comparisonPredicate(PredicateOperator operator,dynamic value) {
+  QueryPredicate comparisonPredicate(
+      PredicateOperator operator, dynamic value) {
     final name = sqlColumnName(withTableNamespace: true);
     final variableName = sqlColumnName(withPrefix: defaultPrefix);
-
     return QueryPredicate(
-        "$name ${ColumnBuilder.symbolTable[operator]} @$variableName$sqlTypeSuffix",
+        "$name ${ColumnBuilder.symbolTable[operator]} ?/*$variableName$sqlTypeSuffix*/",
         {variableName: convertValueForStorage(value)});
   }
 
   @override
-  QueryPredicate containsPredicate(Iterable values, {bool within = true}) {
+  QueryPredicate containsPredicate(Iterable<dynamic> values,
+      {bool within = true}) {
     var tokenList = [];
     var pairedMap = <String, dynamic>{};
 
@@ -32,7 +33,7 @@ class PostgreSQLColumnExpressionBuilder extends ColumnExpressionBuilder {
       final prefix = "$defaultPrefix${counter}_";
 
       final variableName = sqlColumnName(withPrefix: prefix);
-      tokenList.add("@$variableName$sqlTypeSuffix");
+      tokenList.add("?/*$variableName$sqlTypeSuffix*/");
       pairedMap[variableName] = convertValueForStorage(value);
 
       counter++;
@@ -46,7 +47,7 @@ class PostgreSQLColumnExpressionBuilder extends ColumnExpressionBuilder {
   @override
   QueryPredicate nullPredicate({bool isNull = true}) {
     final name = sqlColumnName(withTableNamespace: true);
-    return QueryPredicate("$name ${isNull ? "ISNULL" : "NOTNULL"}", {});
+    return QueryPredicate("$name ${isNull ? "IS NULL" : "IS NOT NULL"}", {});
   }
 
   @override
@@ -58,7 +59,7 @@ class PostgreSQLColumnExpressionBuilder extends ColumnExpressionBuilder {
     final operation = insideRange ? "BETWEEN" : "NOT BETWEEN";
 
     return QueryPredicate(
-        "$name $operation @$lhsName$sqlTypeSuffix AND @$rhsName$sqlTypeSuffix",
+        "$name $operation ?/*$lhsName$sqlTypeSuffix*/ AND ?/*$rhsName$sqlTypeSuffix*/",
         {
           lhsName: convertValueForStorage(lhsValue),
           rhsName: convertValueForStorage(rhsValue)
@@ -75,7 +76,12 @@ class PostgreSQLColumnExpressionBuilder extends ColumnExpressionBuilder {
 
     var matchValue = allowSpecialCharacters ? value : escapeLikeString(value);
 
-    var operation = caseSensitive ? "LIKE" : "ILIKE";
+    if (operator == PredicateStringOperator.equals) {
+      return QueryPredicate(
+          "$n = ?/*$variableName$sqlTypeSuffix*/", {variableName: matchValue});
+    }
+
+    var operation = "LIKE";//caseSensitive ? "LIKE" : "ILIKE";
     if (invertOperator) {
       operation = "NOT $operation";
     }
@@ -93,7 +99,7 @@ class PostgreSQLColumnExpressionBuilder extends ColumnExpressionBuilder {
         break;
     }
 
-    return QueryPredicate("$n $operation @$variableName$sqlTypeSuffix",
+    return QueryPredicate("$n $operation ?/*$variableName$sqlTypeSuffix*/",
         {variableName: matchValue});
   }
 }

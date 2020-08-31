@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import '../db.dart';
 import '../query/mixin.dart';
 import 'postgresql_query_reduce.dart';
@@ -8,6 +7,7 @@ import 'query_builder.dart';
 class PostgresQuery<InstanceType extends ManagedObject> extends Object
     with QueryMixin<InstanceType>
     implements Query<InstanceType> {
+
   PostgresQuery(this.context);
 
   PostgresQuery.withEntity(this.context, ManagedEntity entity) {
