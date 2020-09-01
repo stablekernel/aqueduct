@@ -95,10 +95,7 @@ class SchemaBuilder {
 
   /// Validates and deletes a table in [schema].
   void deleteTable(String tableName) {
-    var table = schema.tableForName(tableName);
-    if (table == null) {
-      throw SchemaException("Table $tableName does not exist.");
-    }
+    var table = _getTable(tableName);
 
     schema.removeTable(table);
 
@@ -111,12 +108,9 @@ class SchemaBuilder {
 
   /// Alters a table in [schema].
   void alterTable(String tableName, void modify(SchemaTable targetTable)) {
-    var existingTable = schema.tableForName(tableName);
-    if (existingTable == null) {
-      throw SchemaException("Table $tableName does not exist.");
-    }
-
+    var existingTable = _getTable(tableName);
     var newTable = SchemaTable.from(existingTable);
+
     modify(newTable);
     schema.replaceTable(existingTable, newTable);
 
@@ -165,10 +159,7 @@ class SchemaBuilder {
   /// Validates and adds a column to a table in [schema].
   void addColumn(String tableName, SchemaColumn column,
       {String unencodedInitialValue}) {
-    var table = schema.tableForName(tableName);
-    if (table == null) {
-      throw SchemaException("Table $tableName does not exist.");
-    }
+    var table = _getTable(tableName);
 
     table.addColumn(column);
     if (store != null) {
@@ -182,15 +173,8 @@ class SchemaBuilder {
 
   /// Validates and deletes a column in a table in [schema].
   void deleteColumn(String tableName, String columnName) {
-    var table = schema.tableForName(tableName);
-    if (table == null) {
-      throw SchemaException("Table $tableName does not exist.");
-    }
-
-    var column = table.columnForName(columnName);
-    if (column == null) {
-      throw SchemaException("Column $columnName does not exists.");
-    }
+    var table = _getTable(tableName);
+    var column = _getColumn(table, columnName);
 
     table.removeColumn(column);
 
@@ -203,15 +187,8 @@ class SchemaBuilder {
 
   /// Validates and renames a column in a table in [schema].
   void renameColumn(String tableName, String columnName, String newName) {
-    var table = schema.tableForName(tableName);
-    if (table == null) {
-      throw SchemaException("Table $tableName does not exist.");
-    }
-
-    var column = table.columnForName(columnName);
-    if (column == null) {
-      throw SchemaException("Column $columnName does not exists.");
-    }
+    var table = _getTable(tableName);
+    var column = _getColumn(table, columnName);
 
     table.renameColumn(column, newName);
 
@@ -238,17 +215,10 @@ class SchemaBuilder {
   void alterColumn(String tableName, String columnName,
       void modify(SchemaColumn targetColumn),
       {String unencodedInitialValue}) {
-    var table = schema.tableForName(tableName);
-    if (table == null) {
-      throw SchemaException("Table $tableName does not exist.");
-    }
-
-    var existingColumn = table[columnName];
-    if (existingColumn == null) {
-      throw SchemaException("Column $columnName does not exist.");
-    }
-
+    var table = _getTable(tableName);
+    var existingColumn = _getColumn(table, columnName);
     var newColumn = SchemaColumn.from(existingColumn);
+
     modify(newColumn);
 
     if (existingColumn.type != newColumn.type) {
@@ -332,7 +302,8 @@ class SchemaBuilder {
     }
 
     if (store == null && innerCommands.isNotEmpty) {
-      commands.add("database.alterColumn(\"$tableName\", \"$columnName\", (c) {${innerCommands.join(";")};});");
+      commands.add(
+          "database.alterColumn(\"$tableName\", \"$columnName\", (c) {${innerCommands.join(";")};});");
     }
   }
 
@@ -380,9 +351,10 @@ class SchemaBuilder {
       addColumn(difference.actualTable.name, c);
 
       if (!c.isNullable && c.defaultValue == null) {
-        changeList?.add("WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
-          "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
-          "SchemaColumn(\"${c.name}\", ...)'.");
+        changeList?.add(
+            "WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
+            "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
+            "SchemaColumn(\"${c.name}\", ...)'.");
       }
     });
 
@@ -405,10 +377,12 @@ class SchemaBuilder {
       });
 
       if (columnDiff.expectedColumn.isNullable &&
-        !columnDiff.actualColumn.isNullable && columnDiff.actualColumn.defaultValue == null) {
-        changeList?.add("WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
-          "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
-          "SchemaColumn(\"${columnDiff.actualColumn.name}\", ...)'.");
+          !columnDiff.actualColumn.isNullable &&
+          columnDiff.actualColumn.defaultValue == null) {
+        changeList?.add(
+            "WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
+            "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
+            "SchemaColumn(\"${columnDiff.actualColumn.name}\", ...)'.");
       }
     });
 
@@ -423,6 +397,24 @@ class SchemaBuilder {
         }
       });
     }
+  }
+
+  SchemaTable _getTable(String tableName) {
+    var table = schema.tableForName(tableName);
+    if (table == null) {
+      throw SchemaException("Table $tableName does not exist.");
+    }
+
+    return table;
+  }
+
+  SchemaColumn _getColumn(SchemaTable table, String columnName) {
+    var column = table.columnForName(columnName);
+    if (column == null) {
+      throw SchemaException("Column $columnName does not exist.");
+    }
+
+    return column;
   }
 
   static String _getNewTableExpression(SchemaTable table) {
