@@ -5,6 +5,8 @@ import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
+import 'script_utils.dart';
+
 class MigrationBuilderExecutable extends Executable<Map<String, dynamic>> {
   MigrationBuilderExecutable(Map<String, dynamic> message)
       : inputSchema =
@@ -39,12 +41,6 @@ class MigrationBuilderExecutable extends Executable<Map<String, dynamic>> {
       return {"error": e.message};
     }
   }
-
-  static List<String> importsForPackage(String packageName) => [
-        "package:aqueduct/aqueduct.dart",
-        "package:$packageName/$packageName.dart",
-        "package:runtime/runtime.dart"
-      ];
 }
 
 class MigrationBuilderResult {
@@ -63,8 +59,7 @@ Future<MigrationBuilderResult> generateMigrationFileForProject(
   final resultMap = await IsolateExecutor.run(
       MigrationBuilderExecutable.input(initialSchema, inputVersion),
       packageConfigURI: project.packageConfigUri,
-      imports:
-          MigrationBuilderExecutable.importsForPackage(project.packageName),
+      imports: importsForPackage(project.packageName),
       logHandler: project.displayProgress);
 
   if (resultMap.containsKey("error")) {

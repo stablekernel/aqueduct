@@ -5,6 +5,8 @@ import 'package:aqueduct/src/cli/command.dart';
 import 'package:aqueduct/src/cli/mixins/project.dart';
 import 'package:isolate_executor/isolate_executor.dart';
 
+import 'script_utils.dart';
+
 class GetSchemaExecutable extends Executable<Map<String, dynamic>> {
   GetSchemaExecutable(Map<String, dynamic> message) : super(message);
 
@@ -20,17 +22,11 @@ class GetSchemaExecutable extends Executable<Map<String, dynamic>> {
       return {"error": e.message};
     }
   }
-
-  static List<String> importsForPackage(String packageName) => [
-        "package:aqueduct/aqueduct.dart",
-        "package:$packageName/$packageName.dart",
-        "package:runtime/runtime.dart"
-      ];
 }
 
 Future<Schema> getProjectSchema(CLIProject project) async {
   final response = await IsolateExecutor.run(GetSchemaExecutable({}),
-      imports: GetSchemaExecutable.importsForPackage(project.libraryName),
+      imports: importsForPackage(project.libraryName),
       packageConfigURI: project.packageConfigUri,
       logHandler: project.displayProgress);
 

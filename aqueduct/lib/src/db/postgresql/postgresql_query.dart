@@ -44,14 +44,8 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("VALUES (${builder.sqlValuesToInsert}) ");
     }
 
-    if ((builder.returning?.length ?? 0) > 0) {
-      buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
-    }
-
-    final results = await context.persistentStore
-        .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
-
-    return builder.instancesForRows<InstanceType>(results as List<List<dynamic>>).first;
+    return _returningInstancesForRows(builder, buffer)
+        .then((value) => value.first);
   }
 
   @override
@@ -70,14 +64,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw canModifyAllInstancesError;
     }
 
-    if ((builder.returning?.length ?? 0) > 0) {
-      buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
-    }
-
-    final results = await context.persistentStore
-        .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
-
-    return builder.instancesForRows(results as List<List<dynamic>>);
+    return _returningInstancesForRows(builder, buffer);
   }
 
   @override
@@ -180,10 +167,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("OFFSET $offset ");
     }
 
-    final results = await context.persistentStore
-        .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
-
-    return builder.instancesForRows(results as List<List<dynamic>>);
+    return _instancesForRows(builder, buffer);
   }
 
   void validatePageDescriptor() {
@@ -198,6 +182,24 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw StateError(
           "Invalid query page descriptor. Bounding value for column '${pageDescriptor.propertyName}' has invalid type.");
     }
+  }
+
+  Future<List<InstanceType>> _returningInstancesForRows(
+      PostgresQueryBuilder builder, StringBuffer buffer) async {
+    if ((builder.returning?.length ?? 0) > 0) {
+      buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
+    }
+
+    return _instancesForRows(builder, buffer);
+  }
+
+  Future<List<InstanceType>> _instancesForRows(
+      PostgresQueryBuilder builder, StringBuffer buffer) async {
+    final results = await context.persistentStore
+        .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
+
+    return builder
+        .instancesForRows<InstanceType>(results as List<List<dynamic>>);
   }
 
   static final StateError canModifyAllInstancesError = StateError(

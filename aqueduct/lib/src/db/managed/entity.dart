@@ -184,25 +184,8 @@ class ManagedEntity implements APIComponentDocumenter {
   /// on this entity was selected. Returns that attribute.
   ManagedAttributeDescription identifyAttribute<T, U extends ManagedObject>(
       T propertyIdentifier(U x)) {
-    final keyPaths = identifyProperties(propertyIdentifier);
-    if (keyPaths.length != 1) {
-      throw ArgumentError(
-          "Invalid property selector. Cannot access more than one property for this operation.");
-    }
-
-    final firstKeyPath = keyPaths.first;
-    if (firstKeyPath.dynamicElements != null) {
-      throw ArgumentError(
-          "Invalid property selector. Cannot access subdocuments for this operation.");
-    }
-
-    final elements = firstKeyPath.path;
-    if (elements.length > 1) {
-      throw ArgumentError(
-          "Invalid property selector. Cannot use relationships for this operation.");
-    }
-
-    final propertyName = elements.first.name;
+    final propertyName = _getPropertyName(propertyIdentifier,
+        "Invalid property selector. Cannot use relationships for this operation.");
     var attribute = attributes[propertyName];
     if (attribute == null) {
       if (relationships.containsKey(propertyName)) {
@@ -227,25 +210,8 @@ class ManagedEntity implements APIComponentDocumenter {
   ManagedRelationshipDescription
       identifyRelationship<T, U extends ManagedObject>(
           T propertyIdentifier(U x)) {
-    final keyPaths = identifyProperties(propertyIdentifier);
-    if (keyPaths.length != 1) {
-      throw ArgumentError(
-          "Invalid property selector. Cannot access more than one property for this operation.");
-    }
-
-    final firstKeyPath = keyPaths.first;
-    if (firstKeyPath.dynamicElements != null) {
-      throw ArgumentError(
-          "Invalid property selector. Cannot access subdocuments for this operation.");
-    }
-
-    final elements = firstKeyPath.path;
-    if (elements.length > 1) {
-      throw ArgumentError(
-          "Invalid property selector. Cannot identify a nested relationship for this operation.");
-    }
-
-    final propertyName = elements.first.name;
+    final propertyName = _getPropertyName(propertyIdentifier,
+        "Invalid property selector. Cannot identify a nested relationship for this operation.");
     var desc = relationships[propertyName];
     if (desc == null) {
       throw ArgumentError(
@@ -338,6 +304,28 @@ class ManagedEntity implements APIComponentDocumenter {
   void documentComponents(APIDocumentContext context) {
     final obj = document(context);
     context.schema.register(name, obj, representation: instanceType);
+  }
+
+  String _getPropertyName<T, U extends ManagedObject>(
+      T propertiesIdentifier(U x), String errorMessage) {
+    final keyPaths = identifyProperties(propertiesIdentifier);
+    if (keyPaths.length != 1) {
+      throw ArgumentError(
+          "Invalid property selector. Cannot access more than one property for this operation.");
+    }
+
+    final firstKeyPath = keyPaths.first;
+    if (firstKeyPath.dynamicElements != null) {
+      throw ArgumentError(
+          "Invalid property selector. Cannot access subdocuments for this operation.");
+    }
+
+    final elements = firstKeyPath.path;
+    if (elements.length > 1) {
+      throw ArgumentError(errorMessage);
+    }
+
+    return elements.first.name;
   }
 }
 
