@@ -303,6 +303,10 @@ class ManagedEntity implements APIComponentDocumenter {
         return;
       }
 
+      if (def.isPrivate) {
+        return;
+      }
+
       final schemaProperty = def.documentSchemaObject(context);
       schemaProperties[name] = schemaProperty;
     });
