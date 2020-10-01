@@ -419,12 +419,12 @@ class ManagedObjectController<InstanceType extends ManagedObject>
                 ?.length ??
             0) >
         0) {
-      ops["get"].id = "get$entityName";
-      ops["put"].id = "update$entityName";
-      ops["delete"].id = "delete$entityName";
+      ops["get"]?.id = "get$entityName";
+      ops["put"]?.id = "update$entityName";
+      ops["delete"]?.id = "delete$entityName";
     } else {
-      ops["get"].id = "get${entityName}s";
-      ops["post"].id = "create$entityName";
+      ops["get"]?.id = "get${entityName}s";
+      ops["post"]?.id = "create$entityName";
     }
 
     return ops;
