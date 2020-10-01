@@ -57,6 +57,17 @@ void main() {
     expect(received.raw.uri.query, "k=v%20v");
   });
 
+  test("Lsit query parameters are encoded as separate keys", () async {
+    final req = agent.request("/")
+      ..query = {
+        "k": ["v", "w"]
+      };
+    await req.get();
+
+    final received = await server.next();
+    expect(received.raw.uri.query, "k=v&k=w");
+  });
+
   test("Headers get added to request", () async {
     final req = agent.request("/")
       ..headers["k"] = "v"

@@ -76,12 +76,19 @@ class TestRequest {
 
     var url = _baseUrl.resolve(actualPath).toString();
     if ((query?.length ?? 0) > 0) {
-      final pairs = query.keys.map((key) {
-        final val = query[key];
+      final pairs = <String>[];
+
+      query.forEach((key, val) {
         if (val == null || val == true) {
-          return "$key";
+          pairs.add("$key");
+        } else if (val is List) {
+          val.forEach((innerVal) {
+            final urlEncoded = Uri.encodeComponent('$innerVal');
+            pairs.add("$key=$urlEncoded");
+          });
         } else {
-          return "$key=${Uri.encodeComponent("$val")}";
+          final urlEncoded = Uri.encodeComponent('$val');
+          pairs.add("$key=$urlEncoded");
         }
       });
 
