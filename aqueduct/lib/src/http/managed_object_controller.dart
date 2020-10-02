@@ -414,17 +414,18 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
     final entityName = _query.entity.name;
 
-    if ((path.parameters
-                ?.where((p) => p.location == APIParameterLocation.path)
-                ?.length ??
-            0) >
-        0) {
-      ops["get"]?.id = "get$entityName";
-      ops["put"]?.id = "update$entityName";
-      ops["delete"]?.id = "delete$entityName";
-    } else {
-      ops["get"]?.id = "get${entityName}s";
-      ops["post"]?.id = "create$entityName";
+    final int paramLength = path.parameters
+            ?.where((p) => p.location == APIParameterLocation.path)
+            ?.length ??
+        0;
+
+    if (paramLength == 0) {
+      ops["get"].id = "get${entityName}s";
+      ops["post"].id = "create$entityName";
+    } else if (paramLength == 1) {
+      ops["get"].id = "get$entityName";
+      ops["put"].id = "update$entityName";
+      ops["delete"].id = "delete$entityName";
     }
 
     return ops;
