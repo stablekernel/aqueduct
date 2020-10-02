@@ -419,13 +419,27 @@ class ManagedObjectController<InstanceType extends ManagedObject>
             ?.length ??
         0;
 
-    if (paramLength == 0) {
-      ops["get"].id = "get${entityName}s";
-      ops["post"].id = "create$entityName";
-    } else if (paramLength == 1) {
-      ops["get"].id = "get$entityName";
-      ops["put"].id = "update$entityName";
-      ops["delete"].id = "delete$entityName";
+    if (paramLength < 2) {
+      for (var o in ops.keys) {
+        switch (ops[o].id) {
+          case "getObject":
+            ops[o].id = "get$entityName";
+            break;
+          case "getObjects":
+            ops[o].id = "get${entityName}s";
+            break;
+          case "createObject":
+            ops[o].id = "create$entityName";
+            break;
+          case "updateObject":
+            ops[o].id = "update$entityName";
+            break;
+          case "deleteObject":
+            ops[o].id = "delete$entityName";
+            break;
+          default:
+        }
+      }
     }
 
     return ops;
