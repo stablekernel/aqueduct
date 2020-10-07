@@ -20,7 +20,7 @@ import 'package:aqueduct_test/aqueduct_test.dart';
 /// [TestHarnessORMMixin.resetData].
 ///
 ///         class Harness extends TestHarness<MyChannel>
-///           with TestHarnessManagedAuthMixin<MyChannel>, TestHarnessORMMixin {
+///           with TestHarnessAuthMixin<MyChannel>, TestHarnessORMMixin {
 ///             Agent publicAgent;
 ///
 ///             @override
