@@ -51,7 +51,7 @@ A [router](http/routing.md) determines which controller object should handle a r
 Controller get entryPoint {
   final router = Router();
 
-  // Handles /users, /users/1, /users/2, etc.
+  // Handles /projects, /projects/1, /projects/2, etc.
   router
     .route("/projects/[:id]")
     .link(() => ProjectController());
