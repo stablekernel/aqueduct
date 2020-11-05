@@ -230,7 +230,7 @@ Since the second segment of the path is optional, the path `/heroes` still match
 @override
 Future<RequestOrResponse> handle(Request request) async {
   if (request.path.variables.containsKey('id')) {
-    final id = int.parse(request.path.variables['id']);
+    final id = int.tryParse(request.path.variables['id']);
     final hero = _heroes.firstWhere((hero) => hero['id'] == id, orElse: () => null);
     if (hero == null) {
       return Response.notFound();
