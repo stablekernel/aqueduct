@@ -9,7 +9,7 @@ environment:
 
 dependencies:
   args: ^1.5.0
-  analyzer: '>=0.39.4 <0.50.0'
+  analyzer: '>=0.39.4 <0.41.0'
   crypto: ^2.0.6
   logging: ^0.11.3
   isolate_executor: ^2.0.0
