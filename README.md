@@ -10,7 +10,7 @@ If this is your first time viewing Aqueduct, check out [the tour](https://aquedu
 
 ## Getting Started
 
-1. [Install Dart](https://www.dartlang.org/install).
+1. [Install Dart](https://dart.dev/get-dart#install).
 2. Activate Aqueduct
 
         pub global activate aqueduct
