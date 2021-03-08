@@ -22,7 +22,7 @@ class UserController extends ResourceController {
       return Response.notFound();
     }
 
-    if (request.authorization.ownerID != id) {
+    if (request.authorization!.ownerID != id) {
       // Filter out stuff for non-owner of user
     }
 
@@ -32,7 +32,7 @@ class UserController extends ResourceController {
   @Operation.put("id")
   Future<Response> updateUser(
       @Bind.path("id") int id, @Bind.body() User user) async {
-    if (request.authorization.ownerID != id) {
+    if (request.authorization!.ownerID != id) {
       return Response.unauthorized();
     }
 
@@ -50,7 +50,7 @@ class UserController extends ResourceController {
 
   @Operation.delete("id")
   Future<Response> deleteUser(@Bind.path("id") int id) async {
-    if (request.authorization.ownerID != id) {
+    if (request.authorization!.ownerID != id) {
       return Response.unauthorized();
     }
 

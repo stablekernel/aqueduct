@@ -18,7 +18,7 @@ abstract class MockServer<T> {
   Future open();
 
   /// Concrete implementations override this method to close an event listener.
-  Future close();
+  Future? close();
 
   /// Adds an event to this server.
   void add(T value) {
@@ -86,7 +86,7 @@ class MockHTTPServer extends MockServer<Request> {
   int port;
 
   /// The underlying [HttpServer] listening for requests.
-  HttpServer server;
+  HttpServer? server;
 
   /// The response to be returned if there are no queued responses
   ///
@@ -98,7 +98,7 @@ class MockHTTPServer extends MockServer<Request> {
   /// The default delay is null which is no delay. If set, all subsequent
   /// queued responses delayed by this amount, unless they have their own delay.
   /// Changes to this value do not affect responses already in the queue.
-  Duration defaultDelay;
+  Duration? defaultDelay;
 
   /// The number of currently queued responses
   int get queuedResponseCount => _responseQueue.length;
@@ -110,9 +110,9 @@ class MockHTTPServer extends MockServer<Request> {
   /// Adds a static response to the response queue. Each request removes the earliest enqueued
   /// response before sending it. Optionally includes a [delay] before sending
   /// the response to simulate long-running tasks or network issues.
-  void queueResponse(Response resp, {Duration delay}) {
+  void queueResponse(Response resp, {Duration? delay}) {
     _responseQueue
-        .add(_MockServerResponse(object: resp, delay: delay ?? defaultDelay));
+        .add(_MockServerResponse(object: resp, delay: delay ?? defaultDelay!));
   }
 
   /// Enqueues a function that creates a response for the next request.
@@ -122,9 +122,9 @@ class MockHTTPServer extends MockServer<Request> {
   /// it returns is sent back to the client.
   ///
   /// Optionally includes a [delay] before sending the response to simulate long-running tasks or network issues.
-  void queueHandler(Response handler(Request request), {Duration delay}) {
+  void queueHandler(Response handler(Request request), {Duration? delay}) {
     _responseQueue.add(
-        _MockServerResponse(handler: handler, delay: delay ?? defaultDelay));
+        _MockServerResponse(handler: handler, delay: delay ?? defaultDelay!));
   }
 
   /// Enqueues an outage; the next request will not receive a response.
@@ -140,7 +140,7 @@ class MockHTTPServer extends MockServer<Request> {
   @override
   Future open() async {
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, port);
-    server.map((req) => Request(req)).listen((req) async {
+    server?.map((req) => Request(req)).listen((req) async {
       add(req);
 
       await req.body.decode();
@@ -154,14 +154,14 @@ class MockHTTPServer extends MockServer<Request> {
 
   /// Shuts down the server listening for HTTP requests.
   @override
-  Future close() {
+  Future? close() {
     return server?.close();
   }
 
-  Future<Response> _dequeue(Request incoming) async {
+  Future<Response?> _dequeue(Request incoming) async {
     if (_responseQueue.isEmpty) {
       if (defaultDelay != null) {
-        await Future.delayed(defaultDelay);
+        await Future.delayed(defaultDelay!);
       }
       return defaultResponse;
     }
@@ -175,7 +175,7 @@ class MockHTTPServer extends MockServer<Request> {
       }
 
       if (defaultDelay != null) {
-        await Future.delayed(defaultDelay);
+        await Future.delayed(defaultDelay!);
       }
 
       return null;
@@ -192,19 +192,19 @@ class _MockServerResponse {
   _MockServerResponse(
       {this.object, this.handler, this.delay, this.outageCount = 0});
 
-  final Duration delay;
+  final Duration? delay;
 
-  final Response object;
-  final _MockRequestHandler handler;
+  final Response? object;
+  final _MockRequestHandler? handler;
   int outageCount;
 
-  Future<Response> respond(Request req) async {
+  Future<Response?> respond(Request req) async {
     if (delay != null) {
-      await Future.delayed(delay);
+      await Future.delayed(delay!);
     }
 
     if (handler != null) {
-      return handler(req);
+      return handler!(req);
     } else if (object != null) {
       return object;
     }

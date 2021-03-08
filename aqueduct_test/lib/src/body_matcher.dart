@@ -13,7 +13,7 @@ class HTTPBodyMatcher extends Matcher {
     }
   }
 
-  Matcher contentMatcher;
+  late Matcher contentMatcher;
 
   @override
   bool matches(dynamic item, Map matchState) {

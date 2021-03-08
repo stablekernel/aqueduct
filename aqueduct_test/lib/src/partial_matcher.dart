@@ -82,7 +82,7 @@ class PartialMapMatcher extends Matcher {
     }
 
     final mismatches =
-        matchState["PartialMatcher.mismatches"] as List<String> ?? <String>[];
+        matchState["PartialMatcher.mismatches"] as List<String>? ?? <String>[];
     if (mismatches.isNotEmpty) {
       mismatchDescription
           .add("the following keys differ from partial matcher: \n");
@@ -90,7 +90,7 @@ class PartialMapMatcher extends Matcher {
         final matcher = _matcherMap[s];
         final value = item[s];
         mismatchDescription.add("  - '$s' ");
-        matcher.describeMismatch(
+        matcher?.describeMismatch(
             value, mismatchDescription, matchState, verbose);
         mismatchDescription.add("\n");
       });

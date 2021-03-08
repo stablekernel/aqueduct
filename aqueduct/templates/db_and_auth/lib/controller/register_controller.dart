@@ -17,7 +17,7 @@ class RegisterController extends ResourceController {
 
     user
       ..salt = AuthUtility.generateRandomSalt()
-      ..hashedPassword = authServer.hashPassword(user.password, user.salt);
+      ..hashedPassword = authServer.hashPassword(user.password!, user.salt!);
 
     final query = Query<User>(context)..values = user;
 
@@ -25,8 +25,8 @@ class RegisterController extends ResourceController {
     final token = await authServer.authenticate(
         user.username,
         user.password,
-        request.authorization.credentials.username,
-        request.authorization.credentials.password);
+        request.authorization!.credentials!.username,
+        request.authorization!.credentials!.password);
 
     final response = AuthController.tokenResponse(token);
     final newBody = u.asMap()..["authorization"] = response.body;
@@ -61,8 +61,8 @@ class RegisterController extends ResourceController {
     context.schema.register("UserRegistration", userRegistration);
 
     context.defer(() {
-      final userSchema = context.document.components.resolve(userSchemaRef);
-      userRegistration.properties.addAll(userSchema.properties);
+      final userSchema = context.document.components!.resolve(userSchemaRef);
+      userRegistration.properties!.addAll(userSchema!.properties!);
     });
   }
 }

@@ -11,9 +11,9 @@ import 'matchers.dart';
 class HTTPResponseMatcher extends Matcher {
   HTTPResponseMatcher(this.statusCode, this.headers, this.body);
 
-  final int statusCode;
-  final HTTPHeaderMatcher headers;
-  final HTTPBodyMatcher body;
+  final int? statusCode;
+  final HTTPHeaderMatcher? headers;
+  final HTTPBodyMatcher? body;
 
   @override
   bool matches(dynamic item, Map matchState) {
@@ -26,7 +26,7 @@ class HTTPResponseMatcher extends Matcher {
     final shouldMatchHeaders = headers != null;
     final shouldMatchBody = body != null;
 
-    final response = item as TestResponse;
+    final response = item;
     if (shouldMatchStatusCode) {
       if (response.statusCode != statusCode) {
         matchState["HTTPResponseMatcher.statusCode"] = response.statusCode;
@@ -35,14 +35,14 @@ class HTTPResponseMatcher extends Matcher {
     }
 
     if (shouldMatchHeaders) {
-      if (!headers.matches(response.headers, matchState)) {
+      if (!headers!.matches(response.headers, matchState)) {
         matchState["HTTPResponseMatcher.didFailOnHeaders"] = true;
         return false;
       }
     }
 
     if (shouldMatchBody) {
-      if (!body.matches(response.body.as(), matchState)) {
+      if (!body!.matches(response.body.as(), matchState)) {
         matchState["HTTPResponseMatcher.didFailOnBody"] = true;
         return false;
       }
@@ -64,13 +64,13 @@ class HTTPResponseMatcher extends Matcher {
     description.add("\n");
 
     if (headers != null) {
-      headers.describe(description);
+      headers!.describe(description);
     } else {
       description.add("- Headers can be anything\n");
     }
 
     if (body != null) {
-      body.describe(description);
+      body!.describe(description);
     } else {
       description.add("- Body can be anything");
     }
@@ -95,12 +95,12 @@ class HTTPResponseMatcher extends Matcher {
     }
 
     if (matchState["HTTPResponseMatcher.didFailOnHeaders"] == true) {
-      headers.describeMismatch(
+      headers?.describeMismatch(
           response.headers, mismatchDescription, matchState, verbose);
     }
 
     if (matchState["HTTPResponseMatcher.didFailOnBody"] == true) {
-      body.describeMismatch(
+      body?.describeMismatch(
           response.body.as(), mismatchDescription, matchState, verbose);
     }
 

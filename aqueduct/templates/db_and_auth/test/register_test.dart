@@ -8,7 +8,7 @@ void main() {
   });
 
   test("Can create user", () async {
-    final response = await harness.publicAgent.post("/register", body: {
+    final response = await harness.publicAgent!.post("/register", body: {
       "username": "bob@stablekernel.com",
       "password": "foobaraxegrind12%"
     });
@@ -24,12 +24,12 @@ void main() {
   });
 
   test("Trying to create existing user fails", () async {
-    await harness.publicAgent.post("/register", body: {
+    await harness.publicAgent!.post("/register", body: {
       "username": "bob@stablekernel.com",
       "password": "someotherpassword"
     });
 
-    final response = await harness.publicAgent.post("/register", body: {
+    final response = await harness.publicAgent!.post("/register", body: {
       "username": "bob@stablekernel.com",
       "password": "foobaraxegrind12%"
     });
@@ -37,7 +37,7 @@ void main() {
   });
 
   test("Omit password fails", () async {
-    final response = await harness.publicAgent.post("/register", body: {
+    final response = await harness.publicAgent!.post("/register", body: {
       "username": "bobby.bones@stablekernel.com",
     });
 
@@ -45,7 +45,7 @@ void main() {
   });
 
   test("Omit username fails", () async {
-    final response = await harness.publicAgent
+    final response = await harness.publicAgent!
         .post("/register", body: {"username": "foobaraxegrind12%"});
 
     expect(response, hasStatus(400));

@@ -9,10 +9,10 @@ class Model extends ManagedObject<_Model> implements _Model {
 
 class _Model {
   @primaryKey
-  int id;
+  int? id;
 
   @Column(indexed: true)
-  String name;
+  String? name;
 
-  DateTime createdAt;
+  DateTime? createdAt;
 }

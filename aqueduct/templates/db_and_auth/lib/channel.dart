@@ -12,8 +12,8 @@ import 'package:wildfire/wildfire.dart';
 class WildfireChannel extends ApplicationChannel
     implements AuthRedirectControllerDelegate {
   final HTMLRenderer htmlRenderer = HTMLRenderer();
-  AuthServer authServer;
-  ManagedContext context;
+  AuthServer? authServer;
+  ManagedContext? context;
 
   /// Initialize services in this method.
   ///
@@ -26,9 +26,9 @@ class WildfireChannel extends ApplicationChannel
     logger.onRecord.listen(
         (rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
-    final config = WildfireConfiguration(options.configurationFilePath);
+    final config = WildfireConfiguration(options!.configurationFilePath!);
 
-    context = contextWithConnectionInfo(config.database);
+    context = contextWithConnectionInfo(config.database!);
 
     final authStorage = ManagedAuthDelegate<User>(context);
     authServer = AuthServer(authStorage);
@@ -49,25 +49,25 @@ class WildfireChannel extends ApplicationChannel
 
     router
         .route("/auth/form")
-        .link(() => AuthRedirectController(authServer, delegate: this));
+        .link(() => AuthRedirectController(authServer!, delegate: this));
 
     /* Create an account */
     router
         .route("/register")
-        .link(() => Authorizer.basic(authServer))
-        .link(() => RegisterController(context, authServer));
+        .link(() => Authorizer.basic(authServer!))!
+        .link(() => RegisterController(context!, authServer!));
 
     /* Gets profile for user with bearer token */
     router
         .route("/me")
-        .link(() => Authorizer.bearer(authServer))
-        .link(() => IdentityController(context));
+        .link(() => Authorizer.bearer(authServer!))!
+        .link(() => IdentityController(context!));
 
     /* Gets all users or one specific user by id */
     router
         .route("/users/[:id]")
-        .link(() => Authorizer.bearer(authServer))
-        .link(() => UserController(context, authServer));
+        .link(() => Authorizer.bearer(authServer!))!
+        .link(() => UserController(context!, authServer!));
 
     return router;
   }
@@ -90,8 +90,13 @@ class WildfireChannel extends ApplicationChannel
   }
 
   @override
-  Future<String> render(AuthRedirectController forController, Uri requestUri,
-      String responseType, String clientID, String state, String scope) async {
+  Future<String?> render(
+      AuthRedirectController forController,
+      Uri requestUri,
+      String? responseType,
+      String? clientID,
+      String? state,
+      String? scope) async {
     final map = {
       "response_type": responseType,
       "client_id": clientID,
@@ -116,5 +121,5 @@ class WildfireChannel extends ApplicationChannel
 class WildfireConfiguration extends Configuration {
   WildfireConfiguration(String fileName) : super.fromFile(File(fileName));
 
-  DatabaseConfiguration database;
+  DatabaseConfiguration? database;
 }

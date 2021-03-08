@@ -10,8 +10,9 @@ part of aqueduct_test.client;
 class TestRequest {
   TestRequest._(this._client);
 
+  // ignore: prefer_final_fields
   HttpClient _client;
-  Uri _baseUrl;
+  Uri? _baseUrl;
 
   /// The base URL of the request.
   ///
@@ -19,14 +20,14 @@ class TestRequest {
   /// when this request is executed.
   ///
   /// This property is set to [Agent.baseURL] of the creating agent.
-  set baseURL(String baseURL) {
-    _baseUrl = Uri.parse(baseURL);
+  set baseURL(String? baseURL) {
+    _baseUrl = baseURL != null ? Uri.parse(baseURL) : null;
   }
 
-  String get baseURL => _baseUrl.toString();
+  String? get baseURL => _baseUrl != null ? _baseUrl.toString() : null;
 
   /// The path of the request; will be appended to [baseURL].
-  String path;
+  String? path;
 
   /// The Content-Type that [body] should be encoded in.
   ///
@@ -51,7 +52,7 @@ class TestRequest {
   /// Query parameters to add to the request.
   ///
   /// Key-value pairs in this property will be appended to the request URI after being properly URL encoded.
-  Map<String, dynamic> query = {};
+  Map<String, dynamic>? query = {};
 
   /// HTTP headers to add to the request.
   ///
@@ -70,14 +71,14 @@ class TestRequest {
     }
 
     var actualPath = path;
-    while (actualPath.startsWith("/")) {
+    while (actualPath!.startsWith("/")) {
       actualPath = actualPath.substring(1);
     }
 
-    var url = _baseUrl.resolve(actualPath).toString();
+    var url = _baseUrl!.resolve(actualPath).toString();
     if ((query?.length ?? 0) > 0) {
-      final pairs = query.keys.map((key) {
-        final val = query[key];
+      final pairs = query?.keys.map((key) {
+        final val = query?[key];
         if (val == null || val == true) {
           return "$key";
         } else {
@@ -85,7 +86,7 @@ class TestRequest {
         }
       });
 
-      url = "$url?${pairs.join("&")}";
+      url = "$url?${pairs!.join("&")}";
     }
 
     return url;
@@ -168,14 +169,14 @@ class TestRequest {
 
     final request = await _client.openUrl(method.toUpperCase(), uri);
 
-    headers?.forEach((headerKey, headerValue) {
-      request.headers.add(headerKey, headerValue);
+    headers.forEach((headerKey, headerValue) {
+      request.headers.add(headerKey, headerValue as Object);
     });
 
     if (body != null) {
       final bytes = _bodyBytes;
       request.headers.contentType = contentType;
-      request.headers.contentLength = bytes.length;
+      request.headers.contentLength = bytes!.length;
       request.add(bytes);
     }
 
@@ -188,7 +189,7 @@ class TestRequest {
     return response;
   }
 
-  List<int> get _bodyBytes {
+  List<int>? get _bodyBytes {
     if (body == null) {
       return null;
     }

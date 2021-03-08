@@ -6,7 +6,7 @@ import 'package:wildfire/wildfire.dart';
 /// Override methods in this class to set up routes and initialize services like
 /// database connections. See http://aqueduct.io/docs/http/channel/.
 class WildfireChannel extends ApplicationChannel {
-  ManagedContext context;
+  late ManagedContext context;
 
   /// Initialize services in this method.
   ///
@@ -19,8 +19,8 @@ class WildfireChannel extends ApplicationChannel {
     logger.onRecord.listen(
         (rec) => print("$rec ${rec.error ?? ""} ${rec.stackTrace ?? ""}"));
 
-    final config = WildfireConfiguration(options.configurationFilePath);
-    context = contextWithConnectionInfo(config.database);
+    final config = WildfireConfiguration(options!.configurationFilePath!);
+    context = contextWithConnectionInfo(config.database!);
   }
 
   /// Construct the request channel.
@@ -67,5 +67,5 @@ class WildfireChannel extends ApplicationChannel {
 class WildfireConfiguration extends Configuration {
   WildfireConfiguration(String fileName) : super.fromFile(File(fileName));
 
-  DatabaseConfiguration database;
+  DatabaseConfiguration? database;
 }

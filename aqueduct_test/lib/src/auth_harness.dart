@@ -42,7 +42,7 @@ abstract class TestHarnessAuthMixin<T extends ApplicationChannel>
   /// Return that [AuthServer] from this method, e.g.,
   ///
   ///             AuthServer get authServer => channel.authServer;
-  AuthServer get authServer;
+  AuthServer? get authServer;
 
   /// Creates a OAuth2 client identifier and returns an [Agent] that makes requests on behalf of that client.
   ///
@@ -54,18 +54,18 @@ abstract class TestHarnessAuthMixin<T extends ApplicationChannel>
   /// NOTE: This method adds rows to a database table managed by your test application and [TestHarnessORMMixin.resetData]
   /// will delete those rows. To ensure clients exist for all tests, add clients in [TestHarnessORMMixin.seed].
   Future<Agent> addClient(String id,
-      {String secret, String redirectUri, List<String> allowedScope}) async {
+      {String? secret, String? redirectUri, List<String>? allowedScope}) async {
     final client = AuthClient.public(id,
-        allowedScopes: allowedScope?.map((s) => AuthScope(s))?.toList());
+        allowedScopes: allowedScope?.map((s) => AuthScope(s)).toList());
 
     if (secret != null) {
       client
         ..salt = AuthUtility.generateRandomSalt()
-        ..hashedSecret = AuthUtility.generatePasswordHash(secret, client.salt)
+        ..hashedSecret = AuthUtility.generatePasswordHash(secret, client.salt!)
         ..redirectURI = redirectUri;
     }
 
-    await authServer.addClient(client);
+    await authServer?.addClient(client);
 
     final authorizationHeader =
         "Basic ${base64.encode("$id:${secret ?? ""}".codeUnits)}";
@@ -80,21 +80,21 @@ abstract class TestHarnessAuthMixin<T extends ApplicationChannel>
   /// [fromAgent] must be a client authenticated agent, typically created by [addClient]. If [scopes] is non-null,
   /// the access token will have the included scope if valid.
   Future<Agent> loginUser(Agent fromAgent, String username, String password,
-      {List<String> scopes}) async {
+      {List<String>? scopes}) async {
     final authorizationHeader = fromAgent.headers["authorization"];
     if (authorizationHeader is! String) {
       throw ArgumentError(
           "expected header 'Authorization' to have String type");
     }
     const parser = AuthorizationBasicParser();
-    final credentials = parser.parse(authorizationHeader as String);
+    final credentials = parser.parse(authorizationHeader);
 
     try {
-      final token = await authServer.authenticate(
+      final token = await authServer?.authenticate(
           username, password, credentials.username, credentials.password,
-          requestedScopes: scopes?.map((s) => AuthScope(s))?.toList());
+          requestedScopes: scopes?.map((s) => AuthScope(s)).toList());
       return Agent.from(fromAgent)
-        ..headers["authorization"] = "Bearer ${token.accessToken}";
+        ..headers["authorization"] = "Bearer ${token?.accessToken}";
     } on AuthServerException catch (e) {
       if (e.reason == AuthRequestError.invalidGrant) {
         throw ArgumentError("Invalid username/password.");

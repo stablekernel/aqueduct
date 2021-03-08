@@ -22,8 +22,9 @@ class Schema {
   ///
   /// This is preferred method of creating an instance of this type. Each [ManagedEntity]
   /// in [dataModel] will correspond to a [SchemaTable] in [tables].
-  Schema.fromDataModel(ManagedDataModel dataModel) {
-    _tables = dataModel.entities.map((e) => SchemaTable.fromEntity(e)).toList();
+  Schema.fromDataModel(ManagedDataModel? dataModel) {
+    _tables =
+        dataModel?.entities.map((e) => SchemaTable.fromEntity(e)).toList();
   }
 
   /// Creates a deep copy of [otherSchema].

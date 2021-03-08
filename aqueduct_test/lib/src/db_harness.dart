@@ -31,7 +31,7 @@ abstract class TestHarnessORMMixin {
   ///
   /// An [ApplicationChannel] should expose its [ManagedContext] service as a property.
   /// Return the context from this method.
-  ManagedContext get context;
+  ManagedContext? get context;
 
   /// Override this method to insert static data for each test run.
   ///
@@ -53,8 +53,8 @@ abstract class TestHarnessORMMixin {
   ///
   /// This method should be invoked in [TestHarness.afterStart] and typically is invoked
   /// in [tearDown] for your test suite.
-  Future resetData({Logger logger}) async {
-    await context.persistentStore.close();
+  Future resetData({Logger? logger}) async {
+    await context?.persistentStore?.close();
     await addSchema(logger: logger);
     await seed();
   }
@@ -63,14 +63,14 @@ abstract class TestHarnessORMMixin {
   ///
   /// This method executes database commands to create temporary tables in the test database.
   /// It is invoked by [resetData].
-  Future addSchema({Logger logger}) async {
+  Future addSchema({Logger? logger}) async {
     final builder = SchemaBuilder.toSchema(
-        context.persistentStore, Schema.fromDataModel(context.dataModel),
+        context?.persistentStore, Schema.fromDataModel(context?.dataModel),
         isTemporary: true);
 
     for (var cmd in builder.commands) {
       logger?.info("$cmd");
-      await context.persistentStore.execute(cmd);
+      await context?.persistentStore?.execute(cmd);
     }
   }
 }

@@ -228,7 +228,7 @@ Matcher hasHeaders(Map<String, dynamic> headerMatcher,
 /// For details on [failIfContainsUnmatchedHeader], see [hasHeaders].
 Matcher hasResponse(int statusCode,
     {dynamic body,
-    Map<String, dynamic> headers,
+    Map<String, dynamic>? headers,
     bool failIfContainsUnmatchedHeader = false}) {
   return HTTPResponseMatcher(
       statusCode,
@@ -251,8 +251,8 @@ Matcher hasResponse(int statusCode,
 ///           await client.request("/foo").get(),
 ///           200, body: "foo", headers: {"x-foo": "foo"});
 ///         print("$response");
-TestResponse expectResponse(TestResponse response, int statusCode,
-    {dynamic body, Map<String, dynamic> headers}) {
+TestResponse? expectResponse(TestResponse? response, int statusCode,
+    {dynamic body, Map<String, dynamic>? headers}) {
   expect(response, hasResponse(statusCode, body: body, headers: headers));
   return response;
 }

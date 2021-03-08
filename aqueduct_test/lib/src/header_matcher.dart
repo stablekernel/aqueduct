@@ -100,7 +100,7 @@ class HTTPHeaderMatcher extends Matcher {
   Description describeMismatch(dynamic item, Description mismatchDescription,
       Map matchState, bool verbose) {
     final extraKeys =
-        matchState["HTTPHeaderMatcher.extra"] as List<String> ?? <String>[];
+        matchState["HTTPHeaderMatcher.extra"] as List<String>? ?? <String>[];
     if (extraKeys.isNotEmpty) {
       mismatchDescription
           .add("actual has extra headers: ")
@@ -109,7 +109,7 @@ class HTTPHeaderMatcher extends Matcher {
     }
 
     final mismatches =
-        matchState["HTTPHeaderMatcher.mismatches"] as List<String> ??
+        matchState["HTTPHeaderMatcher.mismatches"] as List<String>? ??
             <String>[];
     if (mismatches.isNotEmpty) {
       mismatchDescription.add("the following headers differ: "

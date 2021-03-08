@@ -71,15 +71,15 @@ class TestResponseBody extends BodyDecoder {
   TestResponseBody(HttpClientResponse response)
       : _response = response,
         super(response) {
-    _hasContent = (response.headers.contentLength ?? 0) > 0 ||
+    _hasContent = response.headers.contentLength > 0 ||
         response.headers.chunkedTransferEncoding;
   }
 
   final HttpClientResponse _response;
-  bool _hasContent;
+  late bool _hasContent;
 
   @override
-  ContentType get contentType => _response.headers.contentType;
+  ContentType? get contentType => _response.headers.contentType;
 
   @override
   bool get isEmpty => !_hasContent;
