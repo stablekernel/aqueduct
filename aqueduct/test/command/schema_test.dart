@@ -13,8 +13,8 @@ void main() {
   setUp(() async {
     cli = await CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory))
         .createProject();
-    await cli!.agent.getDependencies(offline: true);
-    cli!.agent.addOrReplaceFile("lib/application_test.dart", """
+    await cli!.agent!.getDependencies(offline: true);
+    cli!.agent!.addOrReplaceFile("lib/application_test.dart", """
 import 'package:aqueduct/aqueduct.dart';
 
 class TestObject extends ManagedObject<_TestObject> {}

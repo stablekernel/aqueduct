@@ -228,7 +228,7 @@ enum BindingType { query, header, body, path }
 /// For example, the following controller requires the header 'X-Request-ID' for both of its operation methods:
 ///
 ///         class UserController extends ResourceController {
-///           requiredBinding
+///           @requiredBinding
 ///           @Bind.header("x-request-id")
 ///           String requestID;
 ///

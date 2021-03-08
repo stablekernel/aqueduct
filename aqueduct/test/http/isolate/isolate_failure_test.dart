@@ -32,7 +32,7 @@ void main() {
 
       crashingApp.options.context = {"crashIn": "dontCrash"};
       await crashingApp.start(consoleLogging: true);
-      var response = await http.get("http://localhost:8888/t");
+      var response = await http.get(Uri.parse("http://localhost:8888/t"));
       expect(response.statusCode, 200);
       await crashingApp.stop();
     });
@@ -94,7 +94,7 @@ void main() {
 }
 
 class TimeoutChannel extends ApplicationChannel {
-  Timer timer;
+  Timer? timer;
 
   @override
   Controller get entryPoint {
@@ -103,7 +103,8 @@ class TimeoutChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    final timeoutLength = options.context["timeout${server.identifier}"] as int;
+    final timeoutLength =
+        options!.context["timeout${server!.identifier}"] as int?;
     if (timeoutLength == null) {
       return;
     }
@@ -143,7 +144,7 @@ class CrashChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = Router();
-    if (options.context["crashIn"] == "addRoutes") {
+    if (options!.context["crashIn"] == "addRoutes") {
       throw TestException("addRoutes");
     }
     router.route("/t").linkFunction((req) async => Response.ok("t_ok"));
@@ -152,7 +153,7 @@ class CrashChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    if (options.context["crashIn"] == "prepare") {
+    if (options!.context["crashIn"] == "prepare") {
       throw TestException("prepare");
     }
   }
@@ -160,7 +161,7 @@ class CrashChannel extends ApplicationChannel {
 
 class TestChannel extends ApplicationChannel {
   static Future initializeApplication(ApplicationOptions config) async {
-    final v = config.context["startup"] as List<int> ?? [];
+    final v = config.context["startup"] as List<int>;
     v.add(1);
     config.context["startup"] = v;
   }
@@ -171,7 +172,7 @@ class TestChannel extends ApplicationChannel {
     router.route("/t").linkFunction((req) async => Response.ok("t_ok"));
     router.route("/r").linkFunction((req) async => Response.ok("r_ok"));
     router.route("startup").linkFunction((r) async {
-      var total = options.context["startup"].fold(0, (a, b) => a + b);
+      var total = options!.context["startup"].fold(0, (a, b) => a + b);
       return Response.ok("$total");
     });
     return router;

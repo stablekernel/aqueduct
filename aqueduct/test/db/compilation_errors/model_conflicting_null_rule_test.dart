@@ -18,9 +18,9 @@ class Owner extends ManagedObject<_Owner> implements _Owner {}
 
 class _Owner {
   @primaryKey
-  int id;
+  int? id;
 
-  FailingChild gen;
+  FailingChild? gen;
 }
 
 class FailingChild extends ManagedObject<_FailingChild>
@@ -28,8 +28,8 @@ class FailingChild extends ManagedObject<_FailingChild>
 
 class _FailingChild {
   @primaryKey
-  int id;
+  int? id;
 
   @Relate(Symbol('gen'), onDelete: DeleteRule.nullify, isRequired: true)
-  Owner ref;
+  late Owner ref;
 }

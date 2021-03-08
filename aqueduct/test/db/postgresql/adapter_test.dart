@@ -6,8 +6,8 @@ import 'package:test/test.dart';
 
 void main() {
   group("Behavior", () {
-    PostgreSQLPersistentStore persistentStore;
-    SocketProxy proxy;
+    PostgreSQLPersistentStore? persistentStore;
+    SocketProxy? proxy;
 
     setUp(() async {
       persistentStore = PostgreSQLPersistentStore(
@@ -20,14 +20,14 @@ void main() {
     });
 
     test("A down connection will restart", () async {
-      var result = await persistentStore.execute("select 1");
+      var result = await persistentStore!.execute("select 1");
       expect(result, [
         [1]
       ]);
 
-      await persistentStore.close();
+      await persistentStore?.close();
 
-      result = await persistentStore.execute("select 1");
+      result = await persistentStore!.execute("select 1");
       expect(result, [
         [1]
       ]);
@@ -37,7 +37,7 @@ void main() {
         "Ask for multiple connections at once, yield one successful connection",
         () async {
       var connections = await Future.wait([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-          .map((_) => persistentStore.getDatabaseConnection()));
+          .map((_) => persistentStore!.getDatabaseConnection()));
       var first = connections.first;
       expect(connections, everyElement(first));
     });
@@ -46,7 +46,7 @@ void main() {
         () async {
       var expectedValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
       var values = await Future.wait(
-          expectedValues.map((i) => persistentStore.execute("select $i")));
+          expectedValues.map((i) => persistentStore!.execute("select $i")));
 
       expect(
           values,
@@ -63,7 +63,7 @@ void main() {
           "dart", "dart", "localhost", 5432, "xyzxyznotadb");
       var expectedValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
       var values = await Future.wait(expectedValues.map(
-          (i) => persistentStore.execute("select $i").catchError((e) => e)));
+          (i) => persistentStore!.execute("select $i").catchError((e) => e)));
       expect(values, everyElement(const TypeMatcher<QueryException>()));
     });
 
@@ -75,15 +75,15 @@ void main() {
 
       var expectedValues = [1, 2, 3, 4, 5];
       var values = await Future.wait(expectedValues.map(
-          (i) => persistentStore.execute("select $i").catchError((e) => e)));
+          (i) => persistentStore!.execute("select $i").catchError((e) => e)));
       expect(values, everyElement(const TypeMatcher<QueryException>()));
 
       proxy = SocketProxy(5433, 5432);
-      await proxy.open();
+      await proxy!.open();
 
       expectedValues = [5, 6, 7, 8, 9];
       values = await Future.wait(
-          expectedValues.map((i) => persistentStore.execute("select $i")));
+          expectedValues.map((i) => persistentStore!.execute("select $i")));
       expect(
           values,
           expectedValues
@@ -99,15 +99,15 @@ void main() {
           "dart", "dart", "localhost", 5433, "dart_test");
 
       try {
-        await persistentStore.executeQuery("SELECT 1", null, 20);
+        await persistentStore!.executeQuery("SELECT 1", null, 20);
         expect(true, false);
         // ignore: empty_catches
       } on QueryException {}
 
       proxy = SocketProxy(5433, 5432);
-      await proxy.open();
+      await proxy!.open();
 
-      var x = await persistentStore.executeQuery("SELECT 1", null, 20);
+      var x = await persistentStore!.executeQuery("SELECT 1", null, 20);
       expect(x, [
         [1]
       ]);
@@ -133,19 +133,19 @@ void main() {
 class SocketProxy {
   SocketProxy(this.src, this.dest);
 
-  final int src;
-  final int dest;
+  final int? src;
+  final int? dest;
 
   bool isEnabled = true;
 
-  ServerSocket _server;
+  ServerSocket? _server;
   List<SocketPair> _pairs = [];
 
   Future open() async {
-    _server = await ServerSocket.bind("localhost", src);
-    _server.listen((socket) async {
+    _server = await ServerSocket.bind("localhost", src!);
+    _server!.listen((socket) async {
       // ignore: close_sinks
-      final outgoing = await Socket.connect("localhost", dest);
+      final outgoing = await Socket.connect("localhost", dest!);
 
       outgoing.listen((bytes) {
         if (isEnabled) {
@@ -164,7 +164,7 @@ class SocketProxy {
   }
 
   Future close() async {
-    await _server.close();
+    await _server?.close();
     await Future.wait(_pairs.map((sp) async {
       await sp.src?.close();
       await sp.dest?.close();
@@ -175,6 +175,6 @@ class SocketProxy {
 class SocketPair {
   SocketPair(this.src, this.dest);
 
-  final Socket src;
-  final Socket dest;
+  final Socket? src;
+  final Socket? dest;
 }

@@ -11,7 +11,7 @@ import 'package:yaml/yaml.dart';
 import '../not_tests/cli_helpers.dart';
 
 void main() {
-  CLIClient cli;
+  CLIClient? cli;
 
   setUpAll(() async {
     await CLIClient.activateCLI();
@@ -23,7 +23,7 @@ void main() {
     ProjectAgent.projectsDirectory.listSync().forEach((e) {
       e.deleteSync(recursive: true);
     });
-    cli.clearOutput();
+    cli?.clearOutput();
   });
 
   tearDownAll(() {
@@ -33,54 +33,54 @@ void main() {
 
   group("Project naming", () {
     test("Appropriately named project gets created correctly", () async {
-      final res = await cli
+      final res = await cli!
           .run("create", ["test_project", "--offline", "--stacktrace"]);
       expect(res, 0);
 
       expect(
           Directory.fromUri(
-                  cli.agent.workingDirectory.uri.resolve("test_project/"))
+                  cli!.agent!.workingDirectory.uri.resolve("test_project/"))
               .existsSync(),
           true);
     });
 
     test("Project name with bad characters fails immediately", () async {
-      final res = await cli.run("create", ["!@", "--offline"]);
+      final res = await cli!.run("create", ["!@", "--offline"]);
       expect(res, isNot(0));
-      expect(cli.output, contains("Invalid project name"));
-      expect(cli.output, contains("snake_case"));
+      expect(cli!.output, contains("Invalid project name"));
+      expect(cli!.output, contains("snake_case"));
 
       expect(ProjectAgent.projectsDirectory.listSync().isEmpty, true);
     });
 
     test("Project name with uppercase characters fails immediately", () async {
-      final res = await cli.run("create", ["ANeatApp", "--offline"]);
+      final res = await cli!.run("create", ["ANeatApp", "--offline"]);
       expect(res, isNot(0));
-      expect(cli.output, contains("Invalid project name"));
-      expect(cli.output, contains("snake_case"));
+      expect(cli!.output, contains("Invalid project name"));
+      expect(cli!.output, contains("snake_case"));
 
       expect(
           Directory.fromUri(
-                  cli.agent.workingDirectory.uri.resolve("test_project/"))
+                  cli!.agent!.workingDirectory.uri.resolve("test_project/"))
               .existsSync(),
           false);
     });
 
     test("Project name with dashes fails immediately", () async {
-      final res = await cli.run("create", ["a-neat-app", "--offline"]);
+      final res = await cli!.run("create", ["a-neat-app", "--offline"]);
       expect(res, isNot(0));
-      expect(cli.output, contains("Invalid project name"));
-      expect(cli.output, contains("snake_case"));
+      expect(cli!.output, contains("Invalid project name"));
+      expect(cli!.output, contains("snake_case"));
 
       expect(
           Directory.fromUri(
-                  cli.agent.workingDirectory.uri.resolve("test_project/"))
+                  cli!.agent!.workingDirectory.uri.resolve("test_project/"))
               .existsSync(),
           false);
     });
 
     test("Not providing name returns error", () async {
-      final res = await cli.run("create");
+      final res = await cli!.run("create");
       expect(res, isNot(0));
     });
   });
@@ -90,9 +90,9 @@ void main() {
       // This test will fail if you add or change the name of a template.
       // If you are adding a template, just add it to this list. If you are renaming/deleting a template,
       // make sure there is still a 'default' template.
-      await cli.run("create", ["list-templates"]);
+      await cli!.run("create", ["list-templates"]);
       var names = ["db", "db_and_auth", "default"];
-      var lines = cli.output.split("\n");
+      var lines = cli!.output.split("\n");
 
       expect(lines.length, names.length + 4);
       for (var n in names) {
@@ -102,10 +102,10 @@ void main() {
 
     test("Template gets generated from local path, project points to it",
         () async {
-      var res = await cli.run("create", ["test_project", "--offline"]);
+      var res = await cli!.run("create", ["test_project", "--offline"]);
       expect(res, 0);
 
-      var aqueductLocationString = File.fromUri(cli.agent.workingDirectory.uri
+      var aqueductLocationString = File.fromUri(cli!.agent!.workingDirectory.uri
               .resolve("test_project/")
               .resolve(".packages"))
           .readAsStringSync()
@@ -140,14 +140,14 @@ void main() {
 
       test("Tests run on template generated from local path", () async {
         expect(
-            await cli
+            await cli!
                 .run("create", ["test_project", "-t", template, "--offline"]),
             0);
 
         final cmd = Platform.isWindows ? "pub.bat" : "pub";
         var res = Process.runSync(cmd, ["run", "test", "-j", "1"],
             runInShell: true,
-            workingDirectory: cli.agent.workingDirectory.uri
+            workingDirectory: cli!.agent!.workingDirectory.uri
                 .resolve("test_project")
                 .toFilePath(windows: Platform.isWindows));
 

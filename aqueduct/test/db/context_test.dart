@@ -8,8 +8,8 @@ void main() {
   group("Multiple contexts, same data model", () {
     final dm = ManagedDataModel([T, U]);
 
-    ManagedContext ctx1;
-    ManagedContext ctx2;
+    ManagedContext? ctx1;
+    ManagedContext? ctx2;
 
     setUp(() async {
       ctx1 = await contextWithDataModel(dm);
@@ -22,7 +22,7 @@ void main() {
     });
 
     test("Queries are sent to the correct database", () async {
-      var q = Query<T>(ctx1)..values.name = "bob";
+      var q = Query<T>(ctx1)..values!.name = "bob";
       await q.insert();
 
       final t1 = await Query<T>(ctx1).fetch();
@@ -34,13 +34,13 @@ void main() {
     });
 
     test("If one context is released, other context's is OK", () async {
-      var q = Query<T>(ctx1)..values.name = "bob";
+      var q = Query<T>(ctx1)..values!.name = "bob";
       await q.insert();
 
-      await ctx1.close();
+      await ctx1!.close();
       ctx1 = null;
 
-      q = Query<T>(ctx2)..values.name = "fred";
+      q = Query<T>(ctx2)..values!.name = "fred";
       await q.insert();
 
       final t2 = await Query<T>(ctx2).fetch();
@@ -51,8 +51,8 @@ void main() {
   });
 
   group("Multiple contexts, different data model", () {
-    ManagedContext ctx1;
-    ManagedContext ctx2;
+    ManagedContext? ctx1;
+    ManagedContext? ctx2;
 
     setUp(() async {
       ctx1 = await contextWithDataModel(ManagedDataModel([T]));
@@ -94,17 +94,17 @@ void main() {
 
 class _T {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 }
 
 class T extends ManagedObject<_T> implements _T {}
 
 class _U {
   @primaryKey
-  int id;
-  String name;
+  late int id;
+  String? name;
 }
 
 class U extends ManagedObject<_U> implements _U {}

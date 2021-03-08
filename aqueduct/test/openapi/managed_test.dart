@@ -8,17 +8,17 @@ import 'package:test/test.dart';
 import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
-  APIDocument doc;
-  ManagedDataModel dataModel;
+  APIDocument? doc;
+  ManagedDataModel? dataModel;
 
   setUpAll(() async {
     dataModel = ManagedDataModel([Model1, Model2, Model3]);
-    final dbCtx = ManagedContext(dataModel, DefaultPersistentStore());
+    final dbCtx = ManagedContext(dataModel!, DefaultPersistentStore());
     doc = APIDocument()
       ..info = APIInfo("x", "1.0.0")
       ..paths = {}
       ..components = APIComponents();
-    final ctx = APIDocumentContext(doc);
+    final ctx = APIDocumentContext(doc!);
 
     final router = Router()
       ..route("/path").link(() => BindManagedObjectController())
@@ -26,7 +26,7 @@ void main() {
       ..route("/subclass/[:id]").link(() => MOCSubclass(dbCtx));
     router.didAddToChannel();
     router.documentComponents(ctx);
-    doc.paths = router.documentPaths(ctx);
+    doc!.paths = router.documentPaths(ctx);
 
     dbCtx.documentComponents(ctx);
     await ctx.finalize();
@@ -34,76 +34,76 @@ void main() {
 
   group("Entity descriptions", () {
     test("Contains all entities in data model", () {
-      expect(doc.components.schemas.length, 3);
+      expect(doc!.components!.schemas!.length, 3);
     });
 
     test("Schema object contains all persistent attributes with correct types",
         () {
-      final entity = doc.components.schemas["Model1"];
-      expect(entity.properties["string"].type, APIType.string);
-      expect(entity.properties["dateTime"].type, APIType.string);
-      expect(entity.properties["dateTime"].format, "date-time");
-      expect(entity.properties["id"].type, APIType.integer);
-      expect(entity.properties["boolean"].type, APIType.boolean);
+      final entity = doc!.components!.schemas!["Model1"];
+      expect(entity!.properties!["string"]!.type, APIType.string);
+      expect(entity.properties!["dateTime"]!.type!, APIType.string);
+      expect(entity.properties!["dateTime"]!.format, "date-time");
+      expect(entity.properties!["id"]!.type, APIType.integer);
+      expect(entity.properties!["boolean"]!.type, APIType.boolean);
 
-      expect(entity.properties["id"].isReadOnly, false);
-      expect(entity.properties["id"].description,
+      expect(entity.properties!["id"]!.isReadOnly, false);
+      expect(entity.properties!["id"]!.description,
           contains("This is the primary identifier"));
-      expect(entity.properties["string"].description,
+      expect(entity.properties!["string"]!.description,
           contains("No two objects may have the same value for this field"));
     });
 
     test("Schema object contains all transient attributes", () {
-      final entity = doc.components.schemas["Model1"];
-      expect(entity.properties["getter"].type, APIType.string);
-      expect(entity.properties["getter"].isWriteOnly, false);
-      expect(entity.properties["getter"].isReadOnly, true);
+      final entity = doc!.components!.schemas!["Model1"]!;
+      expect(entity.properties!["getter"]!.type, APIType.string);
+      expect(entity.properties!["getter"]!.isWriteOnly, false);
+      expect(entity.properties!["getter"]!.isReadOnly, true);
 
-      expect(entity.properties["setter"].type, APIType.integer);
-      expect(entity.properties["setter"].isWriteOnly, true);
-      expect(entity.properties["setter"].isReadOnly, false);
+      expect(entity.properties!["setter"]!.type, APIType.integer);
+      expect(entity.properties!["setter"]!.isWriteOnly, true);
+      expect(entity.properties!["setter"]!.isReadOnly, false);
 
-      expect(entity.properties["field"].type, APIType.string);
-      expect(entity.properties["field"].format, "date-time");
-      expect(entity.properties["field"].isWriteOnly, false);
-      expect(entity.properties["field"].isReadOnly, false);
+      expect(entity.properties!["field"]!.type, APIType.string);
+      expect(entity.properties!["field"]!.format, "date-time");
+      expect(entity.properties!["field"]!.isWriteOnly, false);
+      expect(entity.properties!["field"]!.isReadOnly, false);
     });
 
     test("Schema contains to-many relationships", () {
-      final entity = doc.components.schemas["Model1"];
-      expect(entity.properties["model2s"].type, APIType.array);
-      expect(entity.properties["model2s"].isReadOnly, true);
-      expect(entity.properties["model2s"].items.referenceURI.path,
+      final entity = doc!.components!.schemas!["Model1"]!;
+      expect(entity.properties!["model2s"]!.type, APIType.array);
+      expect(entity.properties!["model2s"]!.isReadOnly, true);
+      expect(entity.properties!["model2s"]!.items!.referenceURI!.path,
           "/components/schemas/Model2");
     });
 
     test("Schema contains to-one relationships", () {
-      final entity = doc.components.schemas["Model1"];
-      expect(entity.properties["model3"].isReadOnly, true);
-      expect(entity.properties["model3"].referenceURI.path,
+      final entity = doc!.components!.schemas!["Model1"]!;
+      expect(entity.properties!["model3"]!.isReadOnly, true);
+      expect(entity.properties!["model3"]!.referenceURI!.path,
           "/components/schemas/Model3");
     });
 
     test("Entity with uniquePropertySet is included in description", () {
-      final entity = doc.components.schemas["Model1"];
+      final entity = doc!.components!.schemas!["Model1"]!;
       expect(entity.description, contains("string"));
       expect(entity.description, contains("dateTime"));
     });
 
     test("Schema contains belongs-to relationships as the primary key", () {
-      final model2 = doc.components.schemas["Model2"];
-      expect(model2.properties["model1"].type, APIType.object);
-      expect(model2.properties["model1"].isReadOnly, false);
-      expect(model2.properties["model1"].properties.length, 1);
-      expect(
-          model2.properties["model1"].properties["id"].type, APIType.integer);
+      final model2 = doc!.components!.schemas!["Model2"]!;
+      expect(model2.properties!["model1"]!.type, APIType.object);
+      expect(model2.properties!["model1"]!.isReadOnly, false);
+      expect(model2.properties!["model1"]!.properties!.length, 1);
+      expect(model2.properties!["model1"]!.properties!["id"]!.type,
+          APIType.integer);
 
-      final model3 = doc.components.schemas["Model3"];
-      expect(model3.properties["model1"].type, APIType.object);
-      expect(model2.properties["model1"].isReadOnly, false);
-      expect(model3.properties["model1"].properties.length, 1);
-      expect(
-          model3.properties["model1"].properties["id"].type, APIType.integer);
+      final model3 = doc!.components!.schemas!["Model3"]!;
+      expect(model3.properties!["model1"]!.type, APIType.object);
+      expect(model2.properties!["model1"]!.isReadOnly, false);
+      expect(model3.properties!["model1"]!.properties!.length, 1);
+      expect(model3.properties!["model1"]!.properties!["id"]!.type,
+          APIType.integer);
     });
 
     test(
@@ -113,97 +113,99 @@ void main() {
       const propName = "notIncluded";
 
       // just make sure we're right that Model3.notIncluded is actually a property...
-      expect(dataModel.entityForType(model).attributes[propName], isNotNull);
+      expect(dataModel!.entityForType(model)!.attributes[propName], isNotNull);
 
-      final model3 = doc.components.schemas[model.toString()];
+      final model3 = doc!.components!.schemas![model.toString()]!;
       // ... since we're checking that it doesn't exist in the spec
-      expect(model3.properties[propName], isNull);
+      expect(model3.properties![propName], isNull);
     });
 
     test("Entity default value is available in schema", () {
-      final schema = doc.components.schemas["Model1"];
-      expect(schema.properties["boolean"].defaultValue, "true");
+      final schema = doc!.components!.schemas!["Model1"]!;
+      expect(schema.properties!["boolean"]!.defaultValue, "true");
     });
   });
 
   group("Validation additions", () {
-    APISchemaObject schema;
+    APISchemaObject? schema;
 
     setUpAll(() {
-      schema = doc.components.schemas["Model3"];
+      schema = doc!.components!.schemas!["Model3"]!;
     });
 
     test("Custom validator documents schema object", () {
-      expect(schema.properties["customValidate"].maxProperties, 2);
+      expect(schema!.properties!["customValidate"]!.maxProperties, 2);
     });
 
     test("Regex validator contains pattern in schema object", () {
-      expect(schema.properties["matches"].pattern, "xb");
+      expect(schema!.properties!["matches"]!.pattern, "xb");
     });
 
     test("Schema object contains maximum if min value in validator", () {
-      expect(schema.properties["lessThan"].maximum, 1);
-      expect(schema.properties["lessThan"].exclusiveMaximum, true);
-      expect(schema.properties["lessThan"].minimum, isNull);
-      expect(schema.properties["lessThan"].exclusiveMinimum, isNull);
+      expect(schema!.properties!["lessThan"]!.maximum, 1);
+      expect(schema!.properties!["lessThan"]!.exclusiveMaximum, true);
+      expect(schema!.properties!["lessThan"]!.minimum, isNull);
+      expect(schema!.properties!["lessThan"]!.exclusiveMinimum, isNull);
     });
 
     test(
         "Schema object contains maximumExclusive if min exclusive value in validator",
         () {
-      expect(schema.properties["lessThanEqualTo"].maximum, 1);
-      expect(schema.properties["lessThanEqualTo"].exclusiveMaximum, false);
-      expect(schema.properties["lessThanEqualTo"].minimum, isNull);
-      expect(schema.properties["lessThanEqualTo"].exclusiveMinimum, isNull);
+      expect(schema!.properties!["lessThanEqualTo"]!.maximum, 1);
+      expect(schema!.properties!["lessThanEqualTo"]!.exclusiveMaximum, false);
+      expect(schema!.properties!["lessThanEqualTo"]!.minimum, isNull);
+      expect(schema!.properties!["lessThanEqualTo"]!.exclusiveMinimum, isNull);
     });
 
     test("Schema object contains minimum if max value in validator", () {
-      expect(schema.properties["greaterThan"].maximum, isNull);
-      expect(schema.properties["greaterThan"].exclusiveMaximum, isNull);
-      expect(schema.properties["greaterThan"].minimum, 1);
-      expect(schema.properties["greaterThan"].exclusiveMinimum, true);
+      expect(schema!.properties!["greaterThan"]!.maximum, isNull);
+      expect(schema!.properties!["greaterThan"]!.exclusiveMaximum, isNull);
+      expect(schema!.properties!["greaterThan"]!.minimum, 1);
+      expect(schema!.properties!["greaterThan"]!.exclusiveMinimum, true);
     });
 
     test(
         "Schema object contains minimumExclusive if max exclusive value in validator",
         () {
-      expect(schema.properties["greaterThanEqualTo"].maximum, isNull);
-      expect(schema.properties["greaterThanEqualTo"].exclusiveMaximum, isNull);
-      expect(schema.properties["greaterThanEqualTo"].minimum, 1);
-      expect(schema.properties["greaterThanEqualTo"].exclusiveMinimum, false);
+      expect(schema!.properties!["greaterThanEqualTo"]!.maximum, isNull);
+      expect(
+          schema!.properties!["greaterThanEqualTo"]!.exclusiveMaximum, isNull);
+      expect(schema!.properties!["greaterThanEqualTo"]!.minimum, 1);
+      expect(
+          schema!.properties!["greaterThanEqualTo"]!.exclusiveMinimum, false);
     });
 
     test("Schema object contains range if range validator", () {
-      expect(schema.properties["range"].maximum, 5);
-      expect(schema.properties["range"].exclusiveMaximum, true);
-      expect(schema.properties["range"].minimum, 1);
-      expect(schema.properties["range"].exclusiveMinimum, false);
+      expect(schema!.properties!["range"]!.maximum, 5);
+      expect(schema!.properties!["range"]!.exclusiveMaximum, true);
+      expect(schema!.properties!["range"]!.minimum, 1);
+      expect(schema!.properties!["range"]!.exclusiveMinimum, false);
     });
 
     test("Schema object has equal max/min length if equals length validator",
         () {
-      expect(schema.properties["lengthEqualTo"].maxLength, 20);
-      expect(schema.properties["lengthEqualTo"].minLength, 20);
+      expect(schema!.properties!["lengthEqualTo"]!.maxLength, 20);
+      expect(schema!.properties!["lengthEqualTo"]!.minLength, 20);
     });
 
     test("Schema object has diff max/min length if range length validator", () {
-      expect(schema.properties["lengthRange"].maxLength, 19);
-      expect(schema.properties["lengthRange"].minLength, 10);
+      expect(schema!.properties!["lengthRange"]!.maxLength, 19);
+      expect(schema!.properties!["lengthRange"]!.minLength, 10);
     });
 
     test("Schema object has enum if Validate.oneOf", () {
-      expect(schema.properties["oneOf"].enumerated, ["1", "2"]);
+      expect(schema!.properties!["oneOf"]!.enumerated, ["1", "2"]);
     });
 
     test("Compare matcher on non-num type isn't emitted", () {
-      expect(schema.properties["nonNumCompare"].exclusiveMinimum, isNull);
-      expect(schema.properties["nonNumCompare"].minimum, isNull);
-      expect(schema.properties["nonNumCompare"].exclusiveMaximum, isNull);
-      expect(schema.properties["nonNumCompare"].maximum, isNull);
+      expect(schema!.properties!["nonNumCompare"]!.exclusiveMinimum, isNull);
+      expect(schema!.properties!["nonNumCompare"]!.minimum, isNull);
+      expect(schema!.properties!["nonNumCompare"]!.exclusiveMaximum, isNull);
+      expect(schema!.properties!["nonNumCompare"]!.maximum, isNull);
     });
 
     test("Enums are restricted to enum values", () {
-      expect(schema.properties["options"].enumerated, ["case1", "case2"]);
+      expect(schema!.properties!["options"]!.enumerated, ["case1", "case2"]);
     });
   });
 
@@ -211,40 +213,40 @@ void main() {
     test(
         "If ResourceController binds ManagedObject, schema component definition comes from context",
         () {
-      final schema = doc.components.schemas["Model1"];
-      expect(schema.properties["string"].type, APIType.string);
-      expect(schema.properties["dateTime"], isNotNull);
-      expect(schema.properties["getter"], isNotNull);
-      expect(schema.properties["setter"], isNotNull);
-      expect(schema.properties["field"], isNotNull);
-      expect(schema.properties["id"], isNotNull);
-      expect(schema.properties["boolean"], isNotNull);
+      final schema = doc!.components!.schemas!["Model1"]!;
+      expect(schema.properties!["string"]!.type, APIType.string);
+      expect(schema.properties!["dateTime"], isNotNull);
+      expect(schema.properties!["getter"], isNotNull);
+      expect(schema.properties!["setter"], isNotNull);
+      expect(schema.properties!["field"], isNotNull);
+      expect(schema.properties!["id"], isNotNull);
+      expect(schema.properties!["boolean"], isNotNull);
     });
 
     test("Can emit document for ManagedObjectController", () {
-      expect(doc.paths["/model"].operations.length, 2);
+      expect(doc!.paths!["/model"]!.operations!.length, 2);
       expect(
-          doc.paths["/model"].operations["get"].responses["200"]
-              .content["application/json"].schema.type,
+          doc!.paths!["/model"]!.operations!["get"]!.responses!["200"]!
+              .content!["application/json"]!.schema!.type,
           APIType.array);
       expect(
-          doc.paths["/model"].operations["get"].responses["200"]
-              .content["application/json"].schema.items.referenceURI.path,
+          doc!.paths!["/model"]!.operations!["get"]!.responses!["200"]!
+              .content!["application/json"]!.schema!.items!.referenceURI!.path,
           "/components/schemas/Model1");
       expect(
-          doc.paths["/model"].operations["post"].requestBody
-              .content["application/json"].schema.referenceURI.path,
+          doc!.paths!["/model"]!.operations!["post"]!.requestBody!
+              .content!["application/json"]!.schema!.referenceURI!.path,
           "/components/schemas/Model1");
 
-      expect(doc.paths["/model/{id}"].operations.length, 3);
+      expect(doc!.paths!["/model/{id}"]!.operations!.length, 3);
 
-      expect(doc.paths["/subclass"].operations.length, 2);
-      expect(doc.paths["/subclass/{id}"].operations.length, 3);
+      expect(doc!.paths!["/subclass"]!.operations!.length, 2);
+      expect(doc!.paths!["/subclass/{id}"]!.operations!.length, 3);
     });
   });
 
   test("Can encode into JSON", () {
-    expect(json.encode(doc.asMap()), isNotNull);
+    expect(json.encode(doc!.asMap()), isNotNull);
   });
 }
 
@@ -256,46 +258,46 @@ class Model1 extends ManagedObject<_Model1> implements _Model1 {
   ///
   /// description
   @Serialize()
-  String get getter => null;
+  String? get getter => null;
 
   @Serialize()
   set setter(int s) {}
 
   @Serialize()
-  DateTime field;
+  DateTime? field;
 }
 
 @Table(uniquePropertySet: [Symbol('string'), Symbol('dateTime')])
 class _Model1 {
   @primaryKey
-  int id;
+  late int id;
 
   /// title
   ///
   /// description
   @Column(unique: true)
-  String string;
+  String? string;
 
-  DateTime dateTime;
+  DateTime? dateTime;
 
   @Column(defaultValue: 'true')
-  bool boolean;
+  bool? boolean;
 
   /// title
   ///
   /// description
-  ManagedSet<Model2> model2s;
-  Model3 model3;
+  ManagedSet<Model2>? model2s;
+  Model3? model3;
 }
 
 class Model2 extends ManagedObject<_Model2> implements _Model2 {}
 
 class _Model2 {
   @primaryKey
-  int id;
+  late int id;
 
   @Relate(Symbol('model2s'))
-  Model1 model1;
+  Model1? model1;
 }
 
 class Model3 extends ManagedObject<_Model3> implements _Model3 {}
@@ -303,48 +305,48 @@ class Model3 extends ManagedObject<_Model3> implements _Model3 {}
 @Table(uniquePropertySet: [Symbol('matches'), Symbol('lessThan')])
 class _Model3 {
   @primaryKey
-  int id;
+  late int id;
 
   @Column(omitByDefault: true)
-  String notIncluded;
+  String? notIncluded;
 
   @CustomValidate()
-  String customValidate;
+  String? customValidate;
 
   @Validate.matches("xb")
-  String matches;
+  String? matches;
 
   @Validate.compare(lessThan: 1)
-  int lessThan;
+  int? lessThan;
 
   @Validate.compare(lessThanEqualTo: 1)
-  int lessThanEqualTo;
+  int? lessThanEqualTo;
 
   @Validate.compare(greaterThan: 1)
-  int greaterThan;
+  int? greaterThan;
 
   @Validate.compare(greaterThanEqualTo: 1)
-  int greaterThanEqualTo;
+  int? greaterThanEqualTo;
 
   @Validate.compare(greaterThanEqualTo: 1, lessThan: 5)
-  int range;
+  int? range;
 
   @Validate.length(equalTo: 20)
-  String lengthEqualTo;
+  String? lengthEqualTo;
 
   @Validate.length(lessThan: 20, greaterThanEqualTo: 10)
-  String lengthRange;
+  String? lengthRange;
 
   @Validate.oneOf(["1", "2"])
-  String oneOf;
+  String? oneOf;
 
   @Validate.compare(greaterThan: "hello")
-  String nonNumCompare;
+  String? nonNumCompare;
 
   @Relate(Symbol('model3'))
-  Model1 model1;
+  Model1? model1;
 
-  MOEnum options;
+  MOEnum? options;
 }
 
 class CustomValidate extends Validate {

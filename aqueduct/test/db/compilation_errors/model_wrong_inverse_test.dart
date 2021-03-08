@@ -18,9 +18,9 @@ class MissingInverse1 extends ManagedObject<_MissingInverse1> {}
 
 class _MissingInverse1 {
   @primaryKey
-  int id;
+  late int id;
 
-  MissingInverseWrongSymbol inverse;
+  MissingInverseWrongSymbol? inverse;
 }
 
 class MissingInverseWrongSymbol
@@ -28,8 +28,8 @@ class MissingInverseWrongSymbol
 
 class _MissingInverseWrongSymbol {
   @primaryKey
-  int id;
+  late int id;
 
   @Relate(Symbol('foobar'))
-  MissingInverse1 has;
+  MissingInverse1? has;
 }

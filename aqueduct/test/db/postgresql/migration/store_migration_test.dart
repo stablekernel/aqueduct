@@ -116,7 +116,7 @@ class EmptyMigration extends Migration {
 class MCase11 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(SchemaTable("t", [
+    database!.createTable(SchemaTable("t", [
       SchemaColumn("id", ManagedPropertyType.integer,
           isPrimaryKey: true, autoincrement: true)
     ]));
@@ -124,7 +124,7 @@ class MCase11 extends Migration {
 
   @override
   Future seed() async {
-    await store.execute("INSERT INTO t VALUES (default)");
+    await store!.execute("INSERT INTO t VALUES (default)");
   }
 
   @override
@@ -134,7 +134,7 @@ class MCase11 extends Migration {
 class MCase12 extends Migration {
   @override
   Future upgrade() async {
-    database.addColumn("t", SchemaColumn("v", ManagedPropertyType.integer),
+    database!.addColumn("t", SchemaColumn("v", ManagedPropertyType.integer),
         unencodedInitialValue: "10");
   }
 

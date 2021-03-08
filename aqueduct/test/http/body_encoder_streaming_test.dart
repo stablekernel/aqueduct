@@ -16,7 +16,7 @@ void main() {
   });
 
   group("Unencoded list of bytes", () {
-    HttpServer server;
+    HttpServer? server;
 
     tearDown(() async {
       await server?.close(force: true);
@@ -28,7 +28,7 @@ void main() {
         ..contentType = ContentType("application", "octet-stream");
       server = await bindAndRespondWith(response);
 
-      var resultFuture = http.get("http://localhost:8888");
+      var resultFuture = http.get(Uri.parse("http://localhost:8888"));
 
       sc.add([1, 2, 3, 4]);
       sc.add([5, 6, 7, 8]);
@@ -64,7 +64,7 @@ void main() {
             e.toString(), contains("Connection closed while receiving data"));
       }
 
-      expect(serverHasNoMoreConnections(server), completes);
+      expect(serverHasNoMoreConnections(server!), completes);
     });
 
     test("Stream a list of bytes with incorrect content type returns 500",
@@ -77,7 +77,7 @@ void main() {
         ..contentType = ContentType("application", "silly");
       server = await bindAndRespondWith(response);
 
-      var resultFuture = http.get("http://localhost:8888");
+      var resultFuture = http.get(Uri.parse("http://localhost:8888"));
 
       sc.add([1, 2, 3, 4]);
       sc.add([5, 6, 7, 8]);
@@ -95,7 +95,7 @@ void main() {
   });
 
   group("Streaming codec", () {
-    HttpServer server;
+    HttpServer? server;
 
     tearDown(() async {
       await server?.close(force: true);
@@ -107,7 +107,7 @@ void main() {
         ..contentType = ContentType("text", "plain", charset: "utf-8");
       server = await bindAndRespondWith(response);
 
-      var resultFuture = http.get("http://localhost:8888");
+      var resultFuture = http.get(Uri.parse("http://localhost:8888"));
 
       sc.add("abcd");
       sc.add("efgh");
@@ -145,21 +145,21 @@ void main() {
             e.toString(), contains("Connection closed while receiving data"));
       }
 
-      expect(serverHasNoMoreConnections(server), completes);
+      expect(serverHasNoMoreConnections(server!), completes);
     });
   });
 
   group("Compression", () {
-    HttpServer server;
-    HttpClient client;
+    HttpServer? server;
+    HttpClient? client;
 
     setUp(() async {
       client = HttpClient();
     });
 
     tearDown(() async {
-      await server.close();
-      client.close(force: true);
+      await server?.close();
+      client?.close(force: true);
     });
 
     test(
@@ -169,7 +169,7 @@ void main() {
       server = await bindAndRespondWith(
           Response.ok(sc.stream)..contentType = ContentType.text);
 
-      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
+      var req = await client!.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
 
       var respFuture = req.close();
@@ -199,7 +199,7 @@ void main() {
       server = await bindAndRespondWith(
           Response.ok(sc.stream)..contentType = ContentType.text);
 
-      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
+      var req = await client!.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
       req.headers.add("accept-encoding", "deflate");
       var respFuture = req.close();
@@ -228,7 +228,7 @@ void main() {
       var ct = ContentType("application", "1");
       server =
           await bindAndRespondWith(Response.ok(sc.stream)..contentType = ct);
-      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
+      var req = await client!.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
       req.headers.add("accept-encoding", "gzip");
       var respFuture = req.close();
@@ -255,7 +255,7 @@ void main() {
           .add(ct, const Utf8Codec(), allowCompression: false);
       server =
           await bindAndRespondWith(Response.ok(sc.stream)..contentType = ct);
-      var req = await client.getUrl(Uri.parse("http://localhost:8888"));
+      var req = await client!.getUrl(Uri.parse("http://localhost:8888"));
       req.headers.clear();
       req.headers.add("accept-encoding", "gzip");
       var respFuture = req.close();
@@ -275,10 +275,10 @@ void main() {
   });
 
   group("Client cancellation", () {
-    HttpServer server;
+    HttpServer? server;
 
     tearDown(() async {
-      await server.close(force: true);
+      await server?.close(force: true);
     });
 
     test("Client request is cancelled during stream cleans up appropriately",
@@ -288,7 +288,7 @@ void main() {
         ..contentType = ContentType("application", "octet-stream");
       var initiateResponseCompleter = Completer();
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
-      server.map((req) => Request(req)).listen((req) async {
+      server!.map((req) => Request(req)).listen((req) async {
         var next = PassthruController();
         next.linkFunction((req) async {
           initiateResponseCompleter.complete();
@@ -305,13 +305,13 @@ void main() {
       await initiateResponseCompleter.future;
 
       sc.add([1, 2, 3, 4]);
-      expect(server.connectionsInfo().active, 1);
+      expect(server!.connectionsInfo().active, 1);
 
       await socket.close();
       socket.destroy();
       await sc.close();
 
-      expect(serverHasNoMoreConnections(server), completes);
+      expect(serverHasNoMoreConnections(server!), completes);
     });
   });
 
@@ -320,17 +320,17 @@ void main() {
   // and the error message is: SocketException: Write failed (OS Error: An existing connection was forcibly closed by the remote host.
   // 3317  , errno = 10054)
   final entityTooLarge = () {
-    HttpServer server;
-    HttpClient client;
+    HttpServer? server;
+    HttpClient? client;
 
     setUp(() async {
       client = HttpClient();
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
-      server.idleTimeout = const Duration(seconds: 1);
+      server!.idleTimeout = const Duration(seconds: 1);
     });
 
     tearDown(() async {
-      client.close(force: true);
+      client?.close(force: true);
       await server?.close(force: true);
     });
 
@@ -355,11 +355,11 @@ void main() {
           var body = await req.body.decode<Map<String, dynamic>>();
           return Response.ok(body);
         });
-      server.listen((req) {
+      server!.listen((req) {
         controller.receive(Request(req));
       });
 
-      var req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      var req = await client!.postUrl(Uri.parse("http://localhost:8123"));
       req.headers.add(
           HttpHeaders.contentTypeHeader, "application/json; charset=utf-8");
       var body = {"key": List.generate(8192 * 50, (_) => "a").join(" ")};
@@ -378,10 +378,10 @@ void main() {
         }
       }
 
-      await serverHasNoMoreConnections(server);
+      await serverHasNoMoreConnections(server!);
 
       // Make sure we can still send some more requests;
-      req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req = await client!.postUrl(Uri.parse("http://localhost:8123"));
       req.headers.add(
           HttpHeaders.contentTypeHeader, "application/json; charset=utf-8");
       body = {"key": "a"};
@@ -401,11 +401,11 @@ void main() {
           return Response.ok(body)
             ..contentType = ContentType("application", "octet-stream");
         });
-      server.listen((req) {
+      server!.listen((req) {
         controller.receive(Request(req));
       });
 
-      var req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      var req = await client!.postUrl(Uri.parse("http://localhost:8123"));
       req.headers
           .add(HttpHeaders.contentTypeHeader, "application/octet-stream");
       req.add(List.generate(8192 * 100, (_) => 1));
@@ -423,10 +423,10 @@ void main() {
         }
       }
 
-      expect(serverHasNoMoreConnections(server), completes);
+      expect(serverHasNoMoreConnections(server!), completes);
 
       // Make sure we can still send some more requests;
-      req = await client.postUrl(Uri.parse("http://localhost:8123"));
+      req = await client!.postUrl(Uri.parse("http://localhost:8123"));
       req.headers
           .add(HttpHeaders.contentTypeHeader, "application/octet-stream");
       req.add([1, 2, 3, 4]);
@@ -469,7 +469,16 @@ class CrashingCodec extends Codec<String, List<int>> {
   @override
   CrashingEncoder get encoder => CrashingEncoder();
   @override
-  Converter<List<int>, String> get decoder => null;
+  Converter<List<int>, String> get decoder =>
+      EmptyConverter<List<int>, String>() as Converter<List<int>, String>;
+}
+
+class EmptyConverter<T, U> extends Converter {
+  @override
+  // ignore: type_annotate_public_apis
+  T? convert(input) {
+    return null;
+  }
 }
 
 class CrashingEncoder extends Converter<String, List<int>> {

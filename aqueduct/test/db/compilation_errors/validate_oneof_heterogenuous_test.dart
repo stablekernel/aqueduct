@@ -5,10 +5,10 @@ class FailingHeterogenous extends ManagedObject<_FH> {}
 
 class _FH {
   @primaryKey
-  int id;
+  late int id;
 
   @Validate.oneOf(["x", 1])
-  int d;
+  int? d;
 }
 
 void main() {

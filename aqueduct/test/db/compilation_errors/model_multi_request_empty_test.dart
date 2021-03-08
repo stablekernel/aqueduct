@@ -19,5 +19,5 @@ class MultiUniqueFailureNoElement
 @Table.unique([])
 class _MultiUniqueFailureNoElement {
   @primaryKey
-  int id;
+  late int id;
 }

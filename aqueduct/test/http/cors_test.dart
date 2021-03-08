@@ -17,7 +17,7 @@ void main() {
   });
 
   tearDownAll(() async {
-    await app?.stop();
+    await app.stop();
   });
 
   group(
@@ -26,26 +26,27 @@ void main() {
     // This group ensures that if a controller has or doesn't have a policy, if it is not a CORS request,
     // no CORS headers/processing occurs.
     test("Controller with no policy returns correctly", () async {
-      var resp = await http.get("http://localhost:8000/nopolicy");
+      var resp = await http.get(Uri.parse("http://localhost:8000/nopolicy"));
       expect(resp.statusCode, 200);
       expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("Controller with permissive default policy returns correctly",
         () async {
-      var resp = await http.get("http://localhost:8000/defaultpolicy");
+      var resp =
+          await http.get(Uri.parse("http://localhost:8000/defaultpolicy"));
       expect(resp.statusCode, 200);
       expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("Controller with restrict policy returns correctly", () async {
-      var resp = await http.get("http://localhost:8000/restrictive");
+      var resp = await http.get(Uri.parse("http://localhost:8000/restrictive"));
       expect(resp.statusCode, 200);
       expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("Invalid resource 404s", () async {
-      var resp = await http.get("http://localhost:8000/foobar");
+      var resp = await http.get(Uri.parse("http://localhost:8000/foobar"));
       expect(resp.statusCode, 404);
       expectThatNoCORSProcessingOccurred(resp);
     });
@@ -56,14 +57,14 @@ void main() {
       () {
     // This group ensures that if the Origin is invalid for a resource, that CORS processing aborts.
     test("Valid endpoint returns correctly, mis-matched origin", () async {
-      var resp = await http.get("http://localhost:8000/restrictive",
+      var resp = await http.get(Uri.parse("http://localhost:8000/restrictive"),
           headers: {"Origin": "not this"});
       expect(resp.statusCode, 200);
       expectThatNoCORSProcessingOccurred(resp);
     });
 
     test("Valid endpoint, case match failure", () async {
-      var resp = await http.get("http://localhost:8000/restrictive",
+      var resp = await http.get(Uri.parse("http://localhost:8000/restrictive"),
           headers: {"Origin": "http://Exclusive.com"});
       expect(resp.statusCode, 200);
       expectThatNoCORSProcessingOccurred(resp);
@@ -72,7 +73,7 @@ void main() {
     test("Invalid resource gets CORS headers to expose 404 to calling client",
         () async {
       // In this case, there is no 'resource', so we add the origin so the calling client can see the 404. Not sure on this behavior.
-      var resp = await http.get("http://localhost:8000/foobar",
+      var resp = await http.get(Uri.parse("http://localhost:8000/foobar"),
           headers: {"Origin": "http://abc.com"});
       expect(resp.statusCode, 404);
       expect(resp.headers["access-control-allow-origin"], "http://abc.com");
@@ -85,11 +86,11 @@ void main() {
     test(
         "Unauthorized resource with invalid origin does not attach CORS headers",
         () async {
-      var resp = await http.get("http://localhost:8000/restrictive_auth",
-          headers: {
-            "Origin": "http://Exclusive.com",
-            "Authorization": "Bearer noauth"
-          });
+      var resp = await http
+          .get(Uri.parse("http://localhost:8000/restrictive_auth"), headers: {
+        "Origin": "http://Exclusive.com",
+        "Authorization": "Bearer noauth"
+      });
       expect(resp.statusCode, 401);
       expectThatNoCORSProcessingOccurred(resp);
     });
@@ -102,7 +103,7 @@ void main() {
     test(
         "Origin and credentials are returned if credentials are supported and origin is specific, origin must be non-*",
         () async {
-      var resp = await http.get("http://localhost:8000/restrictive",
+      var resp = await http.get(Uri.parse("http://localhost:8000/restrictive"),
           headers: {"Origin": "http://exclusive.com"});
       expect(resp.statusCode, 200);
       expect(
@@ -116,7 +117,8 @@ void main() {
     test(
         "Normal/Simple Requests: Origin and credentials are returned if credentials are supported and origin is catch-all, origin must be non-*",
         () async {
-      var resp = await http.get("http://localhost:8000/defaultpolicy",
+      var resp = await http.get(
+          Uri.parse("http://localhost:8000/defaultpolicy"),
           headers: {"Origin": "http://foobar.com"});
       expect(resp.statusCode, 200);
       expect(resp.headers["access-control-allow-origin"], "http://foobar.com");
@@ -129,7 +131,8 @@ void main() {
     test(
         "Normal/Simple Requests: If credentials are not supported and origin is valid, only set origin",
         () async {
-      var resp = await http.get("http://localhost:8000/restrictive_nocreds",
+      var resp = await http.get(
+          Uri.parse("http://localhost:8000/restrictive_nocreds"),
           headers: {"Origin": "http://exclusive.com"});
       expect(resp.statusCode, 200);
       expect(
@@ -146,7 +149,8 @@ void main() {
       () {
     // This group ensures that headers are exposed correctly
     test("Empty exposed headers returns no header to indicate them", () async {
-      var resp = await http.get("http://localhost:8000/defaultpolicy",
+      var resp = await http.get(
+          Uri.parse("http://localhost:8000/defaultpolicy"),
           headers: {"Origin": "http://foobar.com"});
       expect(resp.statusCode, 200);
       expect(resp.headers["access-control-allow-origin"], "http://foobar.com");
@@ -157,7 +161,8 @@ void main() {
     });
 
     test("If one exposed header, return it in ACEH", () async {
-      var resp = await http.get("http://localhost:8000/restrictive_nocreds",
+      var resp = await http.get(
+          Uri.parse("http://localhost:8000/restrictive_nocreds"),
           headers: {"Origin": "http://exclusive.com"});
       expect(resp.statusCode, 200);
       expect(
@@ -169,10 +174,11 @@ void main() {
     });
 
     test("If multiple exposed headers, return them in ACEH", () async {
-      var resp = await http.get("http://localhost:8000/restrictive", headers: {
-        "Authorization": "Bearer auth",
-        "Origin": "http://exclusive.com"
-      });
+      var resp = await http.get(Uri.parse("http://localhost:8000/restrictive"),
+          headers: {
+            "Authorization": "Bearer auth",
+            "Origin": "http://exclusive.com"
+          });
 
       expect(resp.statusCode, 200);
       expect(
@@ -536,22 +542,22 @@ void main() {
 
   group("Generators and policies", () {
     test("Headers don't continue to pile up when using a generator", () async {
-      http.Response lastResponse;
+      http.Response? lastResponse;
 
       for (var i = 0; i < 10; i++) {
-        lastResponse = await http.get("http://localhost:8000/add",
+        lastResponse = await http.get(Uri.parse("http://localhost:8000/add"),
             headers: {"Origin": "http://www.a.com"});
         expect(lastResponse.statusCode, 200);
       }
 
       expect(
-          lastResponse.headers["access-control-expose-headers"]
+          lastResponse!.headers["access-control-expose-headers"]!
               .indexOf("X-Header"),
           greaterThanOrEqualTo(0));
       expect(
-          lastResponse.headers["access-control-expose-headers"]
+          lastResponse.headers["access-control-expose-headers"]!
               .indexOf("X-Header"),
-          lastResponse.headers["access-control-expose-headers"]
+          lastResponse.headers["access-control-expose-headers"]!
               .lastIndexOf("X-Header"));
     });
   });
@@ -581,13 +587,13 @@ class CORSChannel extends ApplicationChannel with AuthValidator {
 
     router
         .route("/opts")
-        .link(() => Authorizer(this))
+        .link(() => Authorizer(this))!
         .link(() => OptionsController());
     router.route("/restrictive").link(() => RestrictiveOriginController());
     router.route("/single_method").link(() => SingleMethodController());
     router
         .route("/restrictive_auth")
-        .link(() => Authorizer(this))
+        .link(() => Authorizer(this))!
         .link(() => RestrictiveOriginController());
     router
         .route("/restrictive_nocreds")
@@ -596,19 +602,19 @@ class CORSChannel extends ApplicationChannel with AuthValidator {
     router.route("/defaultpolicy").link(() => DefaultPolicyController());
     router
         .route("/nopolicyauth")
-        .link(() => Authorizer(this))
+        .link(() => Authorizer(this))!
         .link(() => NoPolicyController());
     router
         .route("/defaultpolicyauth")
-        .link(() => Authorizer(this))
+        .link(() => Authorizer(this))!
         .link(() => DefaultPolicyController());
     return router;
   }
 
   @override
-  FutureOr<Authorization> validate<T>(
+  FutureOr<Authorization?> validate<T>(
       AuthorizationParser<T> parser, T authorizationData,
-      {List<AuthScope> requiredScope}) {
+      {List<AuthScope>? requiredScope}) {
     if (authorizationData == "noauth") {
       return null;
     }
@@ -646,9 +652,9 @@ class DefaultPolicyController extends ResourceController {
 
 class RestrictiveNoCredsOriginController extends ResourceController {
   RestrictiveNoCredsOriginController() {
-    policy.allowedOrigins = ["http://exclusive.com"];
-    policy.allowCredentials = false;
-    policy.exposedResponseHeaders = ["foobar"];
+    policy!.allowedOrigins = ["http://exclusive.com"];
+    policy!.allowCredentials = false;
+    policy!.exposedResponseHeaders = ["foobar"];
   }
 
   @Operation.get()
@@ -664,8 +670,8 @@ class RestrictiveNoCredsOriginController extends ResourceController {
 
 class RestrictiveOriginController extends ResourceController {
   RestrictiveOriginController() {
-    policy.allowedOrigins = ["http://exclusive.com"];
-    policy.exposedResponseHeaders = ["foobar", "x-foo"];
+    policy!.allowedOrigins = ["http://exclusive.com"];
+    policy!.exposedResponseHeaders = ["foobar", "x-foo"];
   }
 
   @Operation.get()
@@ -692,13 +698,13 @@ class OptionsController extends ResourceController {
 
 class SingleMethodController extends ResourceController {
   SingleMethodController() {
-    policy.allowedMethods = ["GET"];
+    policy!.allowedMethods = ["GET"];
   }
 }
 
 class AdditiveController extends ResourceController {
   AdditiveController() {
-    policy.exposedResponseHeaders.add("X-Header");
+    policy!.exposedResponseHeaders.add("X-Header");
   }
 
   @Operation.get()

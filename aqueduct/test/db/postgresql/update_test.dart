@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
-  ManagedContext context;
+  ManagedContext? context;
 
   tearDown(() async {
     await context?.close();
@@ -67,24 +67,24 @@ void main() {
   test("Setting relationship to a value succeeds", () async {
     context = await contextWithModels([Child, Parent]);
 
-    var q = Query<Parent>(context)..values.name = "Bob";
+    var q = Query<Parent>(context)..values!.name = "Bob";
     var parent = await q.insert();
 
     var childQuery = Query<Child>(context)
-      ..values.name = "Fred"
-      ..values.parent = parent;
+      ..values!.name = "Fred"
+      ..values!.parent = parent;
 
     var child = await childQuery.insert();
-    expect(child.parent.id, parent.id);
+    expect(child.parent!.id, parent.id);
 
-    q = Query<Parent>(context)..values.name = "Sally";
+    q = Query<Parent>(context)..values!.name = "Sally";
     var newParent = await q.insert();
 
     childQuery = Query<Child>(context)
       ..where((o) => o.id).equalTo(child.id)
-      ..values.parent = newParent;
+      ..values!.parent = newParent;
     child = (await childQuery.update()).first;
-    expect(child.parent.id, newParent.id);
+    expect(child.parent!.id, newParent.id);
   });
 
   test("Setting relationship to null succeeds", () async {
@@ -99,7 +99,7 @@ void main() {
       ..parent = parent;
     var childQuery = Query<Child>(context)..values = child;
     child = await childQuery.insert();
-    expect(child.parent.id, parent.id);
+    expect(child.parent!.id, parent.id);
 
     childQuery = Query<Child>(context)
       ..where((o) => o.id).equalTo(child.id)
@@ -131,7 +131,7 @@ void main() {
 
     req = Query<TestModel>(context);
     var fetchResponse = await req.fetchOne();
-    expect(fetchResponse.name, "Bob");
+    expect(fetchResponse!.name, "Bob");
     expect(fetchResponse.emailAddress, "1@a.com");
   });
 
@@ -179,7 +179,7 @@ void main() {
 
     var updateQuery = Query<TestModel>(context)
       ..where((o) => o.emailAddress).equalTo("1@a.com")
-      ..values.emailAddress = "3@a.com";
+      ..values!.emailAddress = "3@a.com";
     var updatedObject = (await updateQuery.update()).first;
 
     expect(updatedObject.emailAddress, "3@a.com");
@@ -202,15 +202,15 @@ void main() {
 
     req = Query<TestModel>(context)
       ..predicate = QueryPredicate("name = @name", {"name": "Bob"})
-      ..values.name = "John";
+      ..values!.name = "John";
 
     var response = await req.updateOne();
-    expect(response.name, "John");
+    expect(response!.name, "John");
     expect(response.emailAddress, "1@a.com");
 
     req = Query<TestModel>(context)
       ..predicate = QueryPredicate("name = @name", {"name": "Bob"})
-      ..values.name = "John";
+      ..values!.name = "John";
 
     response = await req.updateOne();
     expect(response, isNull);
@@ -234,7 +234,7 @@ void main() {
 
     req = Query<TestModel>(context)
       ..predicate = QueryPredicate("name is not null", null)
-      ..values.name = "Joe";
+      ..values!.name = "Joe";
 
     try {
       var _ = await req.updateOne();
@@ -260,7 +260,7 @@ void main() {
     req = Query<TestModel>(context)..values = fred;
     await req.insert();
 
-    req = Query<TestModel>(context)..values.name = "Joe";
+    req = Query<TestModel>(context)..values!.name = "Joe";
 
     try {
       var _ = await req.update();
@@ -290,7 +290,7 @@ void main() {
 
     req = Query<TestModel>(context)
       ..canModifyAllInstances = true
-      ..values.name = "Fred";
+      ..values!.name = "Fred";
 
     var res = await req.update();
     expect(res.map((tm) => tm.name), everyElement("Fred"));
@@ -317,7 +317,7 @@ void main() {
     try {
       var q = Query<TestModel>(context)
         ..where((o) => o.emailAddress).equalTo("2@a.com")
-        ..values.emailAddress = "1@a.com";
+        ..values!.emailAddress = "1@a.com";
       await q.updateOne();
       expect(true, false);
     } on QueryException catch (e) {
@@ -328,16 +328,16 @@ void main() {
   test("Can use enum to set property to be stored in db", () async {
     context = await contextWithModels([EnumObject]);
 
-    var q = Query<EnumObject>(context)..values.enumValues = EnumValues.efgh;
+    var q = Query<EnumObject>(context)..values!.enumValues = EnumValues.efgh;
 
     await q.insert();
 
-    q = Query<EnumObject>(context)..values.enumValues = EnumValues.abcd;
+    q = Query<EnumObject>(context)..values!.enumValues = EnumValues.abcd;
 
     await q.insert();
 
     q = Query<EnumObject>(context)
-      ..values.enumValues = EnumValues.other18Letters
+      ..values!.enumValues = EnumValues.other18Letters
       ..where((o) => o.enumValues).equalTo(EnumValues.efgh);
 
     var result = await q.update();
@@ -350,44 +350,44 @@ class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 
   @Column(nullable: true, unique: true)
-  String emailAddress;
+  String? emailAddress;
 }
 
 class Child extends ManagedObject<_Child> implements _Child {}
 
 class _Child {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 
   @Relate(Symbol('child'), isRequired: false, onDelete: DeleteRule.cascade)
-  Parent parent;
+  Parent? parent;
 }
 
 class Parent extends ManagedObject<_Parent> implements _Child {}
 
 class _Parent {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 
-  Child child;
+  Child? child;
 }
 
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 
 class _EnumObject {
   @primaryKey
-  int id;
+  late int id;
 
-  EnumValues enumValues;
+  EnumValues? enumValues;
 }
 
 enum EnumValues { abcd, efgh, other18Letters }

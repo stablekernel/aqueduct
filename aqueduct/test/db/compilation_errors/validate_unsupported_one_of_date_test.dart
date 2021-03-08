@@ -5,10 +5,10 @@ class UnsupportedDateOneOf extends ManagedObject<_UDAOO> {}
 
 class _UDAOO {
   @primaryKey
-  int id;
+  late int id;
 
   @Validate.oneOf(["2016-01-01T00:00:00", "2017-01-01T00:00:00"])
-  DateTime compareDateOneOf20162017;
+  DateTime? compareDateOneOf20162017;
 }
 
 void main() {

@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
-  HttpServer server;
+  HttpServer? server;
 
   tearDown(() async {
     await server?.close();
@@ -19,7 +19,7 @@ void main() {
       throw Response.ok(null);
     }));
 
-    final r = await http.get("http://localhost:4040");
+    final r = await http.get(Uri.parse("http://localhost:4040"));
     expect(r.statusCode, 200);
   });
 
@@ -28,7 +28,7 @@ void main() {
       throw StateError("error");
     }));
 
-    final r = await http.get("http://localhost:4040");
+    final r = await http.get(Uri.parse("http://localhost:4040"));
     expect(r.statusCode, 500);
   });
 
@@ -37,7 +37,7 @@ void main() {
       throw HandlerException(Response.ok(null));
     }));
 
-    final r = await http.get("http://localhost:4040");
+    final r = await http.get(Uri.parse("http://localhost:4040"));
     expect(r.statusCode, 200);
   });
 
@@ -47,7 +47,7 @@ void main() {
       throw CrashingTestHandlerException();
     }));
 
-    final r = await http.get("http://localhost:4040");
+    final r = await http.get(Uri.parse("http://localhost:4040"));
     expect(r.statusCode, 500);
   });
 
@@ -57,7 +57,7 @@ void main() {
       throw Response.ok(PassthruController());
     }));
 
-    final r = await http.get("http://localhost:4040");
+    final r = await http.get(Uri.parse("http://localhost:4040"));
     expect(r.statusCode, 500);
   });
 }

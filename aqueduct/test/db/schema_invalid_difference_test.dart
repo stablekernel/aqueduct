@@ -9,7 +9,7 @@ void main() {
     ]);
 
     final dest = Schema.from(original)
-      ..tableForName("_u").columnForName("id").type =
+      ..tableForName("_u")!.columnForName("id")!.type =
           ManagedPropertyType.doublePrecision;
 
     try {
@@ -34,7 +34,7 @@ void main() {
     final dest = Schema.from(original)
       ..addTable(SchemaTable(
           "_v", [SchemaColumn("id", ManagedType.integer, isPrimaryKey: true)]))
-      ..tableForName("_t").columnForName("_u_id").relatedTableName = "_v";
+      ..tableForName("_t")!.columnForName("_u_id")!.relatedTableName = "_v";
 
     try {
       SchemaDifference(original, dest);
@@ -51,10 +51,10 @@ void main() {
     ]);
 
     final dest = Schema.from(original)
-      ..tableForName("_u").addColumn(SchemaColumn(
+      ..tableForName("_u")!.addColumn(SchemaColumn(
           "replacement", ManagedPropertyType.integer,
           isPrimaryKey: true))
-      ..tableForName("_u").columnForName("id").isPrimaryKey = false;
+      ..tableForName("_u")!.columnForName("id")!.isPrimaryKey = false;
 
     try {
       SchemaDifference(original, dest);
@@ -77,7 +77,7 @@ void main() {
       SchemaDifference(
           original,
           Schema.from(original)
-            ..tableForName("_u").columnForName("auto").autoincrement = false);
+            ..tableForName("_u")!.columnForName("auto")!.autoincrement = false);
       fail('unreachable');
     } on SchemaException catch (e) {
       expect(e.toString(),
@@ -88,7 +88,7 @@ void main() {
       SchemaDifference(
           original,
           Schema.from(original)
-            ..tableForName("_u").columnForName("not_auto").autoincrement =
+            ..tableForName("_u")!.columnForName("not_auto")!.autoincrement =
                 true);
       fail('unreachable');
     } on SchemaException catch (e) {
@@ -109,7 +109,7 @@ void main() {
       SchemaDifference(
           original,
           Schema.from(original)
-            ..tableForName("_u").columnForName("i").type =
+            ..tableForName("_u")!.columnForName("i")!.type =
                 ManagedPropertyType.string);
       fail('unreachable');
     } on SchemaException catch (e) {

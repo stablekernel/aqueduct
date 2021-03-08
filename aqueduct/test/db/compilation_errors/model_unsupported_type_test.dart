@@ -6,9 +6,9 @@ class InvalidModel extends ManagedObject<_InvalidModel>
 
 class _InvalidModel {
   @primaryKey
-  int id;
+  late int id;
 
-  Uri uri;
+  Uri? uri;
 }
 
 void main() {

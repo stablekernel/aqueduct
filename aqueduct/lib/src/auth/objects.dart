@@ -224,7 +224,7 @@ class Authorization {
   final int? ownerID;
 
   /// The [AuthValidator] that granted this permission.
-  final AuthValidator validator;
+  final AuthValidator? validator;
 
   /// Basic authorization credentials, if provided.
   ///
@@ -286,7 +286,7 @@ class AuthScope {
   /// list of valid characters. A modifier adds an additional restriction to a scope, without having to make up a segment.
   /// An example is the 'readonly' modifier above. A route that requires `user:posts.readonly` would allow passage when the token
   /// has `user`, `user:posts` or `user:posts.readonly`. A route that required `user:posts` would not allow `user:posts.readonly`.
-  factory AuthScope(String scopeString) {
+  factory AuthScope(String? scopeString) {
     final cached = _cache[scopeString];
     if (cached != null) {
       return cached;
@@ -347,7 +347,7 @@ class AuthScope {
     });
   }
 
-  static final Map<String, AuthScope> _cache = {};
+  static final Map<String?, AuthScope> _cache = {};
 
   final String _scopeString;
 
@@ -427,14 +427,12 @@ class AuthScope {
     // If we aren't restricted by modifier, let's make sure we have access.
     final thisIterator = _segments.iterator;
     for (var incomingSegment in incomingScope._segments) {
-      thisIterator.moveNext();
-      final current = thisIterator.current;
-
       // If the incoming scope is more restrictive than this scope,
       // then it's not allowed.
-      if (current == null) {
+      if (!thisIterator.moveNext()) {
         return false;
       }
+      final current = thisIterator.current;
 
       // If we have a mismatch here, then we're going
       // down the wrong path.

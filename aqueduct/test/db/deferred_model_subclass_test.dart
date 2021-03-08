@@ -6,8 +6,8 @@ void main() {
     var dataModel =
         ManagedDataModel([OverriddenTotalModel, PartialReferenceModel]);
 
-    var entity = dataModel.entityForType(OverriddenTotalModel);
-    var field = entity.attributes["field"];
+    var entity = dataModel.entityForType(OverriddenTotalModel)!;
+    var field = entity.attributes["field"]!;
     expect(field.isUnique, true);
     expect(field.validators.length, 1);
   });
@@ -20,17 +20,17 @@ class _OverriddenTotalModel extends PartialModel {
   @override
   @Column(indexed: true, unique: true)
   @Validate.oneOf(["a", "b"])
-  String field;
+  String? field;
 }
 
 class PartialModel {
   @primaryKey
-  int id;
+  late int id;
 
   @Column(indexed: true)
-  String field;
+  String? field;
 
-  ManagedSet<PartialReferenceModel> hasManyRelationship;
+  ManagedSet<PartialReferenceModel>? hasManyRelationship;
 
   static String tableName() {
     return "predefined";
@@ -42,10 +42,10 @@ class PartialReferenceModel extends ManagedObject<_PartialReferenceModel>
 
 class _PartialReferenceModel {
   @primaryKey
-  int id;
+  late int id;
 
-  String field;
+  String? field;
 
   @Relate.deferred(DeleteRule.cascade, isRequired: true)
-  PartialModel foreignKeyColumn;
+  PartialModel? foreignKeyColumn;
 }

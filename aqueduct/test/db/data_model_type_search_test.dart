@@ -7,8 +7,8 @@ void main() {
       () {
     final dm = ManagedDataModel.fromCurrentMirrorSystem();
     final ctx = ManagedContext(dm, null);
-    final m = ctx.dataModel.entityForType(Mixin);
-    expect(m.attributes["serialized"].isTransient, true);
+    final m = ctx.dataModel.entityForType(Mixin)!;
+    expect(m.attributes["serialized"]!.isTransient, true);
 
     final o = Mixin();
     o.serialized = "a";
@@ -23,10 +23,10 @@ void main() {
       () {
     final dm = ManagedDataModel([Mixin]);
     final ctx = ManagedContext(dm, null);
-    final m = ctx.dataModel.entityForType(Mixin);
+    final m = ctx.dataModel.entityForType(Mixin)!;
     expect(m.properties.length, 3);
-    expect(m.attributes["serialized"].isTransient, true);
-    expect(m.attributes["y"].isTransient, true);
+    expect(m.attributes["serialized"]!.isTransient, true);
+    expect(m.attributes["y"]!.isTransient, true);
     expect(m.attributes["x"], isNull);
 
     final o = Mixin();
@@ -41,17 +41,17 @@ void main() {
 
 class Mixin extends ManagedObject<_Mixin> with MixinEntity implements _Mixin {
   @Serialize()
-  int y;
+  int? y;
 }
 
 class _Mixin {
   @primaryKey
-  int id;
+  late int id;
 }
 
 abstract class MixinEntity {
   @Serialize()
-  String serialized;
+  String? serialized;
 
-  int x;
+  int? x;
 }

@@ -39,16 +39,16 @@ class QueryPredicate {
   ///
   /// If [predicates] is null or empty, an empty predicate is returned. If [predicates] contains only
   /// one predicate, that predicate is returned.
-  factory QueryPredicate.and(Iterable<QueryPredicate?> predicates) {
+  factory QueryPredicate.and(Iterable<QueryPredicate?>? predicates) {
     var predicateList = predicates
-        .where((p) => p?.format != null && p!.format!.isNotEmpty)
+        ?.where((p) => p?.format != null && p!.format!.isNotEmpty)
         .toList();
 
-    if (predicateList.isEmpty) {
+    if (predicateList?.isEmpty ?? true) {
       return QueryPredicate.empty();
     }
 
-    if (predicateList.length == 1) {
+    if (predicateList!.length == 1) {
       return predicateList.first!;
     }
 

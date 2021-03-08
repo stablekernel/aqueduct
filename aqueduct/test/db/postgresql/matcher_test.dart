@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
-  ManagedContext context;
+  ManagedContext? context;
 
   setUpAll(() async {
     context = await contextWithModels([TestModel, InnerModel]);
@@ -11,19 +11,19 @@ void main() {
     var names = ["Bob", "Fred", "Tim", "Sally", "Kanye", "Lisa"];
     for (var name in names) {
       var q = Query<TestModel>(context)
-        ..values.name = name
-        ..values.email = "$counter@a.com";
+        ..values!.name = name
+        ..values!.email = "$counter@a.com";
       await q.insert();
 
       counter++;
     }
 
     var q = Query<InnerModel>(context)
-      ..values.name = "Bob's"
-      ..values.owner = (TestModel()..id = 1);
+      ..values!.name = "Bob's"
+      ..values!.owner = (TestModel()..id = 1);
     await q.insert();
 
-    q = Query<InnerModel>(context)..values.name = "No one's";
+    q = Query<InnerModel>(context)..values!.name = "No one's";
     await q.insert();
   });
 
@@ -375,7 +375,7 @@ void main() {
     var q = Query<InnerModel>(context)..where((o) => o.owner).identifiedBy(1);
     var results = await q.fetch();
     expect(results.length, 1);
-    expect(results.first.owner.id, 1);
+    expect(results.first.owner!.id, 1);
 
     // Does not include null values; this is intentional.
     q = Query<InnerModel>(context)..where((o) => o.owner).not.identifiedBy(1);
@@ -509,24 +509,24 @@ class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 
   @Column(nullable: true, unique: true)
-  String email;
+  String? email;
 
-  InnerModel inner;
+  InnerModel? inner;
 }
 
 class InnerModel extends ManagedObject<_InnerModel> implements _InnerModel {}
 
 class _InnerModel {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 
   @Relate(Symbol('inner'))
-  TestModel owner;
+  TestModel? owner;
 }

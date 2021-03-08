@@ -7,7 +7,7 @@ import 'package:test/test.dart';
 
 void main() {
   group("App launch status", () {
-    Application<TestChannel> app;
+    Application<TestChannel>? app;
 
     tearDown(() async {
       await app?.stop();
@@ -17,22 +17,22 @@ void main() {
         "didFinishLaunching is false before launch, true after, false after stop",
         () async {
       app = Application<TestChannel>();
-      expect(app.isRunning, false);
+      expect(app!.isRunning, false);
 
-      await app.startOnCurrentIsolate();
-      expect(app.isRunning, true);
+      await app!.startOnCurrentIsolate();
+      expect(app!.isRunning, true);
 
-      await app.stop();
-      expect(app.isRunning, false);
+      await app!.stop();
+      expect(app!.isRunning, false);
     });
   });
 
   group("Application lifecycle", () {
-    Application<TestChannel> app;
+    Application<TestChannel>? app;
 
     setUp(() async {
       app = Application<TestChannel>();
-      await app.startOnCurrentIsolate();
+      await app!.startOnCurrentIsolate();
     });
 
     tearDown(() async {
@@ -40,43 +40,43 @@ void main() {
     });
 
     test("Application starts", () async {
-      expect(app.channel, isNotNull);
-      expect(app.supervisors.length, 0);
+      expect(app!.channel, isNotNull);
+      expect(app!.supervisors.length, 0);
     });
 
     test("Application responds to request", () async {
-      var response = await http.get("http://localhost:8888/t");
+      var response = await http.get(Uri.parse("http://localhost:8888/t"));
       expect(response.statusCode, 200);
     });
 
     test("Application properly routes request", () async {
-      var tResponse = await http.get("http://localhost:8888/t");
-      var rResponse = await http.get("http://localhost:8888/r");
+      var tResponse = await http.get(Uri.parse("http://localhost:8888/t"));
+      var rResponse = await http.get(Uri.parse("http://localhost:8888/r"));
 
       expect(tResponse.body, '"t_ok"');
       expect(rResponse.body, '"r_ok"');
     });
 
     test("Application gzips content", () async {
-      var resp = await http
-          .get("http://localhost:8888/t", headers: {"Accept-Encoding": "gzip"});
+      var resp = await http.get(Uri.parse("http://localhost:8888/t"),
+          headers: {"Accept-Encoding": "gzip"});
       expect(resp.headers["content-encoding"], "gzip");
     });
 
     test("Application stops", () async {
-      await app.stop();
+      await app!.stop();
 
       var successful = false;
       try {
-        var _ = await http.get("http://localhost:8888/t");
+        var _ = await http.get(Uri.parse("http://localhost:8888/t"));
         successful = true;
       } catch (e) {
         expect(e, isNotNull);
       }
       expect(successful, false);
 
-      await app.startOnCurrentIsolate();
-      var resp = await http.get("http://localhost:8888/t");
+      await app!.startOnCurrentIsolate();
+      var resp = await http.get(Uri.parse("http://localhost:8888/t"));
       expect(resp.statusCode, 200);
     });
 
@@ -85,7 +85,7 @@ void main() {
         () async {
       var sum = 0;
       for (var i = 0; i < 10; i++) {
-        var result = await http.get("http://localhost:8888/startup");
+        var result = await http.get(Uri.parse("http://localhost:8888/startup"));
         sum += int.parse(json.decode(result.body) as String);
       }
       expect(sum, 10);
@@ -116,7 +116,7 @@ void main() {
 
       crashingApp.options.context = {"crashIn": "dontCrash"};
       await crashingApp.startOnCurrentIsolate();
-      var response = await http.get("http://localhost:8888/t");
+      var response = await http.get(Uri.parse("http://localhost:8888/t"));
       expect(response.statusCode, 200);
       await crashingApp.stop();
     });
@@ -136,7 +136,7 @@ class CrashingTestChannel extends ApplicationChannel {
   @override
   Controller get entryPoint {
     final router = Router();
-    if (options.context["crashIn"] == "addRoutes") {
+    if (options!.context["crashIn"] == "addRoutes") {
       throw TestException("addRoutes");
     }
     router.route("/t").link(() => TController());
@@ -145,7 +145,7 @@ class CrashingTestChannel extends ApplicationChannel {
 
   @override
   Future prepare() async {
-    if (options.context["crashIn"] == "prepare") {
+    if (options!.context["crashIn"] == "prepare") {
       throw TestException("prepare");
     }
   }
@@ -153,7 +153,7 @@ class CrashingTestChannel extends ApplicationChannel {
 
 class TestChannel extends ApplicationChannel {
   static Future initializeApplication(ApplicationOptions config) async {
-    final v = config.context["startup"] as List<int> ?? [];
+    final v = config.context["startup"] as List<int>;
     v.add(1);
     config.context["startup"] = v;
   }
@@ -164,7 +164,7 @@ class TestChannel extends ApplicationChannel {
     router.route("/t").link(() => TController());
     router.route("/r").link(() => RController());
     router.route("startup").linkFunction((r) async {
-      var total = options.context["startup"].fold(0, (a, b) => a + b);
+      var total = options!.context["startup"].fold(0, (a, b) => a + b);
       return Response.ok("$total");
     });
     return router;

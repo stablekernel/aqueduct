@@ -21,7 +21,7 @@ class MultiUniqueFailureSingleElement
 @Table.unique([Symbol('a')])
 class _MultiUniqueFailureSingleElement {
   @primaryKey
-  int id;
+  late int id;
 
-  int a;
+  int? a;
 }

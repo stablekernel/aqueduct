@@ -4,7 +4,7 @@ import 'package:postgres/postgres.dart';
 import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
-  ManagedContext context;
+  ManagedContext? context;
 
   tearDown(() async {
     await context?.close();
@@ -138,7 +138,7 @@ void main() {
 
     refModelReq = Query<RefModel>(context)
       ..returningProperties((r) => [r.id, r.test]);
-    refObj = await refModelReq.fetchOne();
+    refObj = (await refModelReq.fetchOne())!;
     expect(refObj.test, null);
   });
 
@@ -190,15 +190,16 @@ class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 
   @Column(nullable: true, unique: true)
-  String email;
+  String? email;
 
-  ManagedSet<RefModel> ref;
+  ManagedSet<RefModel>? ref;
 
+  // ignore: unused_element
   static String tableName() {
     return "simple";
   }
@@ -213,10 +214,10 @@ class RefModel extends ManagedObject<_RefModel> implements _RefModel {}
 
 class _RefModel {
   @primaryKey
-  int id;
+  late int id;
 
   @Relate(Symbol('ref'), isRequired: false, onDelete: DeleteRule.nullify)
-  TestModel test;
+  TestModel? test;
 }
 
 class GRestrictInverse extends ManagedObject<_GRestrictInverse>
@@ -224,21 +225,21 @@ class GRestrictInverse extends ManagedObject<_GRestrictInverse>
 
 class _GRestrictInverse {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 
-  ManagedSet<GRestrict> test;
+  ManagedSet<GRestrict>? test;
 }
 
 class GRestrict extends ManagedObject<_GRestrict> implements _GRestrict {}
 
 class _GRestrict {
   @primaryKey
-  int id;
+  late int id;
 
   @Relate(Symbol('test'), isRequired: false, onDelete: DeleteRule.restrict)
-  GRestrictInverse test;
+  GRestrictInverse? test;
 }
 
 class GCascadeInverse extends ManagedObject<_GCascadeInverse>
@@ -246,19 +247,19 @@ class GCascadeInverse extends ManagedObject<_GCascadeInverse>
 
 class _GCascadeInverse {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 
-  ManagedSet<GCascade> test;
+  ManagedSet<GCascade>? test;
 }
 
 class GCascade extends ManagedObject<_GCascade> implements _GCascade {}
 
 class _GCascade {
   @primaryKey
-  int id;
+  late int id;
 
   @Relate(Symbol('test'), isRequired: false, onDelete: DeleteRule.cascade)
-  GCascadeInverse test;
+  GCascadeInverse? test;
 }

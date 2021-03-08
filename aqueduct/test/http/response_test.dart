@@ -69,8 +69,8 @@ void main() {
       () {
     var response = Response.ok(null,
         headers: {HttpHeaders.contentTypeHeader: "application/xml"});
-    expect(response.contentType.primaryType, "application");
-    expect(response.contentType.subType, "xml");
+    expect(response.contentType!.primaryType, "application");
+    expect(response.contentType!.subType, "xml");
   });
 
   test(
@@ -79,7 +79,7 @@ void main() {
     var response = Response.ok(null, headers: {
       HttpHeaders.contentTypeHeader: ContentType("application", "xml")
     });
-    expect(response.contentType.primaryType, "application");
-    expect(response.contentType.subType, "xml");
+    expect(response.contentType!.primaryType, "application");
+    expect(response.contentType!.subType, "xml");
   });
 }

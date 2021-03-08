@@ -406,7 +406,7 @@ return entity.symbolMap[Symbol(symbolName)];
     // Need to import any relationships types and metadata types
     // todo: limit import of importUris to only show symbols required to replicate metadata
     final directives = entity.relationships!.values.map((r) {
-      var mirror = reflectType(r!.declaredType);
+      var mirror = reflectType(r!.declaredType!);
       if (mirror.isSubtypeOf(reflectType(ManagedSet))) {
         mirror = mirror.typeArguments.first;
       }

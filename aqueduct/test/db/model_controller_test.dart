@@ -12,60 +12,61 @@ import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   Controller.letUncaughtExceptionsEscape = true;
-  ManagedContext context;
-  HttpServer server;
+  ManagedContext? context;
+  HttpServer? server;
 
   setUpAll(() async {
     context = await contextWithModels([TestModel, StringModel]);
 
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8888);
     var router = Router();
-    router.route("/users/[:id]").link(() => TestModelController(context));
-    router.route("/string/:id").link(() => StringController(context));
+    router.route("/users/[:id]").link(() => TestModelController(context!));
+    router.route("/string/:id").link(() => StringController(context!));
     router.didAddToChannel();
 
-    server.listen((req) async {
+    server!.listen((req) async {
       // ignore: unawaited_futures
       router.receive(Request(req));
     });
   });
 
   tearDownAll(() async {
-    await context.close();
+    await context?.close();
     await server?.close(force: true);
   });
 
   test("Request with no path parameters OK", () async {
-    var response = await http.get("http://localhost:8888/users");
+    var response = await http.get(Uri.parse("http://localhost:8888/users"));
     expect(response.statusCode, 200);
   });
 
   test("Request with path parameter of type needing parse OK", () async {
-    var response = await http.get("http://localhost:8888/users/1");
+    var response = await http.get(Uri.parse("http://localhost:8888/users/1"));
     expect(response.statusCode, 200);
   });
 
   test("Request with path parameter of wrong type returns 404", () async {
-    var response = await http.get("http://localhost:8888/users/foo");
+    var response = await http.get(Uri.parse("http://localhost:8888/users/foo"));
     expect(response.statusCode, 404);
   });
 
   test("Request with path parameter and body", () async {
-    var response = await http.put("http://localhost:8888/users/2",
+    var response = await http.put(Uri.parse("http://localhost:8888/users/2"),
         headers: {"Content-Type": "application/json;charset=utf-8"},
         body: json.encode({"name": "joe"}));
     expect(response.statusCode, 200);
   });
 
   test("Request without path parameter and body", () async {
-    var response = await http.post("http://localhost:8888/users",
+    var response = await http.post(Uri.parse("http://localhost:8888/users"),
         headers: {"Content-Type": "application/json;charset=utf-8"},
         body: json.encode({"name": "joe"}));
     expect(response.statusCode, 200);
   });
 
   test("Non-integer, oddly named identifier", () async {
-    var response = await http.get("http://localhost:8888/string/bar");
+    var response =
+        await http.get(Uri.parse("http://localhost:8888/string/bar"));
     expect(response.body, '"bar"');
   });
 }
@@ -81,7 +82,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values.backing.contents.isNotEmpty) {
+    if (query!.values!.backing.contents!.isNotEmpty) {
       statusCode = 400;
     }
 
@@ -105,7 +106,7 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values.backing.contents.isNotEmpty) {
+    if (query!.values!.backing.contents!.isNotEmpty) {
       statusCode = 400;
     }
 
@@ -116,10 +117,10 @@ class TestModelController extends QueryController<TestModel> {
   Future<Response> putOne(@Bind.path("id") int id) async {
     int statusCode = 200;
 
-    if (query.values == null) {
+    if (query!.values == null) {
       statusCode = 400;
     }
-    if (query.values.name != "joe") {
+    if (query!.values!.name != "joe") {
       statusCode = 400;
     }
     if (query == null) {
@@ -135,11 +136,11 @@ class TestModelController extends QueryController<TestModel> {
       statusCode = 400;
     }
 
-    if (query.values == null) {
+    if (query!.values == null) {
       statusCode = 400;
     }
 
-    if (query.values.name != "joe") {
+    if (query!.values!.name != "joe") {
       statusCode = 400;
     }
 
@@ -149,10 +150,10 @@ class TestModelController extends QueryController<TestModel> {
   @Operation.post()
   Future<Response> create() async {
     int statusCode = 200;
-    if (query.values == null) {
+    if (query!.values == null) {
       statusCode = 400;
     }
-    if (query.values.name != "joe") {
+    if (query!.values!.name != "joe") {
       statusCode = 400;
     }
     if (query == null) {
@@ -172,10 +173,10 @@ class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
   @Column(primaryKey: true)
-  int id;
+  late int id;
 
-  String name;
-  String email;
+  String? name;
+  String? email;
 }
 
 class StringController extends QueryController<StringModel> {
@@ -195,5 +196,5 @@ class StringModel extends ManagedObject<_StringModel> implements _StringModel {}
 
 class _StringModel {
   @Column(primaryKey: true)
-  String foo;
+  String? foo;
 }

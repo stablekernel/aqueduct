@@ -3,7 +3,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
-  ManagedContext context;
+  ManagedContext? context;
   tearDown(() async {
     await context?.close();
     context = null;
@@ -18,7 +18,7 @@ void main() {
 
     req = Query<TestModel>(context)
       ..predicate = QueryPredicate("id = @id", {"id": item.id});
-    item = await req.fetchOne();
+    item = (await req.fetchOne())!;
 
     expect(item.name, "Joe");
     expect(item.email, "a@a.com");
@@ -31,7 +31,7 @@ void main() {
     var someOtherContext = ManagedContext(ManagedDataModel([]), null);
     try {
       Query.forEntity(
-          context.dataModel.entityForType(TestModel), someOtherContext);
+          context!.dataModel.entityForType(TestModel)!, someOtherContext);
       expect(true, false);
     } on StateError catch (e) {
       expect(e.toString(),
@@ -52,7 +52,7 @@ void main() {
       ..predicate = QueryPredicate("id = @id", {"id": item.id})
       ..returningProperties((t) => [t.id, t.name]);
 
-    item = await req.fetchOne();
+    item = (await req.fetchOne())!;
 
     expect(item.name, "Joe");
     expect(item.id, id);
@@ -260,7 +260,7 @@ void main() {
     expect(
         res
             .map((p) => p.text)
-            .where((text) => num.parse(text) % 2 == 0)
+            .where((text) => num.parse(text!) % 2 == 0)
             .toList()
             .length,
         5);
@@ -269,13 +269,13 @@ void main() {
     query.where((o) => o.owner).identifiedBy(u1.id);
     res = await query.fetch();
 
-    GenUser user = res.first.owner;
+    GenUser user = res.first.owner!;
     expect(user, isNotNull);
     expect(res.length, 5);
     expect(
         res
             .map((p) => p.text)
-            .where((text) => num.parse(text) % 2 == 0)
+            .where((text) => num.parse(text!) % 2 == 0)
             .toList()
             .length,
         5);
@@ -287,7 +287,7 @@ void main() {
         .insert();
 
     var req = Query<GenPost>(context);
-    p1 = await req.fetchOne();
+    p1 = (await req.fetchOne())!;
 
     expect(p1.owner, isNull);
   });
@@ -299,14 +299,14 @@ void main() {
 
     var result = await iq.insert();
     expect(result.id, greaterThan(0));
-    expect(result.backing.contents["text"], isNull);
+    expect(result.backing.contents!["text"], isNull);
 
     var fq = Query<Omit>(context)
       ..predicate = QueryPredicate("id=@id", {"id": result.id});
 
     var fResult = await fq.fetchOne();
-    expect(fResult.id, result.id);
-    expect(fResult.backing.contents["text"], isNull);
+    expect(fResult!.id, result.id);
+    expect(fResult.backing.contents!["text"], isNull);
   });
 
   test(
@@ -322,7 +322,7 @@ void main() {
     }
 
     try {
-      var q = Query<GenUser>(context)..join(set: (u) => u.posts);
+      var q = Query<GenUser>(context)..join(set: (u) => u.posts!);
 
       await q.fetchOne();
 
@@ -338,19 +338,19 @@ void main() {
       () async {
     context = await contextWithModels([GenUser, GenPost]);
 
-    var u1 = await (Query<GenUser>(context)..values.name = "Joe").insert();
+    var u1 = await (Query<GenUser>(context)..values!.name = "Joe").insert();
 
     await (Query<GenPost>(context)
-          ..values.text = "text"
-          ..values.owner = u1)
+          ..values!.text = "text"
+          ..values!.owner = u1)
         .insert();
 
     var q = Query<GenPost>(context)
       ..returningProperties((p) => [p.id, p.owner]);
 
     var result = await q.fetchOne();
-    expect(result.owner.id, 1);
-    expect(result.owner.backing.contents.length, 1);
+    expect(result!.owner!.id, 1);
+    expect(result.owner!.backing.contents!.length, 1);
 
     try {
       q = Query<GenPost>(context)
@@ -368,7 +368,7 @@ void main() {
     await Query<PrivateField>(context).insert();
     var q = Query<PrivateField>(context);
     var result = await q.fetchOne();
-    expect(result.public, "x");
+    expect(result!.public, "x");
   });
 
   test(
@@ -376,13 +376,13 @@ void main() {
       () async {
     context = await contextWithModels([EnumObject]);
 
-    var q = Query<EnumObject>(context)..values.enumValues = EnumValues.abcd;
+    var q = Query<EnumObject>(context)..values!.enumValues = EnumValues.abcd;
 
     await q.insert();
 
     q = Query<EnumObject>(context);
     var result = await q.fetchOne();
-    expect(result.enumValues, EnumValues.abcd);
+    expect(result!.enumValues, EnumValues.abcd);
     expect(result.asMap()["enumValues"], "abcd");
 
     q = Query<EnumObject>(context)
@@ -399,19 +399,19 @@ void main() {
   test("Can fetch enum value that is null", () async {
     context = await contextWithModels([EnumObject]);
 
-    var q = Query<EnumObject>(context)..values.enumValues = null;
+    var q = Query<EnumObject>(context)..values!.enumValues = null;
 
     await q.insert();
     q = Query<EnumObject>(context);
     var result = await q.fetchOne();
-    expect(result.enumValues, null);
+    expect(result!.enumValues, null);
     expect(result.asMap()["enumValues"], isNull);
   });
 
   test("When fetching invalid enum value from db, throws error", () async {
     context = await contextWithModels([EnumObject]);
 
-    await context.persistentStore
+    await context!.persistentStore!
         .execute("INSERT INTO _enumobject (enumValues) VALUES ('foobar')");
 
     try {
@@ -439,26 +439,26 @@ void main() {
   });
 
   group("Fetch by id", () {
-    int id;
+    int? id;
     setUp(() async {
       context = await contextWithModels([TestModel]);
-      id = (await context.insertObject(TestModel(name: "bob"))).id;
+      id = (await context!.insertObject(TestModel(name: "bob"))).id;
     });
 
     test("If object exists and type is specified, find object", () async {
-      final o = await context.fetchObjectWithID<TestModel>(id);
-      expect(o.name, "bob");
+      final o = await context!.fetchObjectWithID<TestModel>(id);
+      expect(o!.name, "bob");
     });
 
     test("If object does not exist and type is specified, return null",
         () async {
-      final o = await context.fetchObjectWithID<TestModel>(id + 1);
+      final o = await context!.fetchObjectWithID<TestModel>(id! + 1);
       expect(o, isNull);
     });
 
     test("If type is not specified, throw error", () async {
       try {
-        await context.fetchObjectWithID(id);
+        await context!.fetchObjectWithID(id);
         fail('unreachable');
       } on ArgumentError catch (e) {
         expect(e.message, contains("Unknown entity"));
@@ -467,7 +467,7 @@ void main() {
 
     test("If type is not found in data model, throw error", () async {
       try {
-        await context.fetchObjectWithID<Omit>(id);
+        await context!.fetchObjectWithID<Omit>(id);
         fail('unreachable');
       } on ArgumentError catch (e) {
         expect(e.message, contains("Unknown entity"));
@@ -477,14 +477,14 @@ void main() {
     test(
         "If identifier type is not the same type as return type, throw exception with 404",
         () async {
-      final o = await context.fetchObjectWithID<TestModel>("not-an-int");
+      final o = await context!.fetchObjectWithID<TestModel>("not-an-int");
       expect(o, isNull);
     });
   });
 }
 
 class TestModel extends ManagedObject<_TestModel> implements _TestModel {
-  TestModel({String name, String email}) {
+  TestModel({String? name, String? email}) {
     this.name = name;
     this.email = email;
   }
@@ -492,13 +492,14 @@ class TestModel extends ManagedObject<_TestModel> implements _TestModel {
 
 class _TestModel {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 
   @Column(nullable: true, unique: true)
-  String email;
+  String? email;
 
+  // ignore: unused_element
   static String tableName() {
     return "simple";
   }
@@ -513,12 +514,13 @@ class GenUser extends ManagedObject<_GenUser> implements _GenUser {}
 
 class _GenUser {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 
-  ManagedSet<GenPost> posts;
+  ManagedSet<GenPost>? posts;
 
+  // ignore: unused_element
   static String tableName() {
     return "GenUser";
   }
@@ -528,22 +530,22 @@ class GenPost extends ManagedObject<_GenPost> implements _GenPost {}
 
 class _GenPost {
   @primaryKey
-  int id;
+  late int id;
 
-  String text;
+  String? text;
 
   @Relate(Symbol('posts'), onDelete: DeleteRule.cascade, isRequired: false)
-  GenUser owner;
+  GenUser? owner;
 }
 
 class Omit extends ManagedObject<_Omit> implements _Omit {}
 
 class _Omit {
   @primaryKey
-  int id;
+  late int id;
 
   @Column(omitByDefault: true)
-  String text;
+  String? text;
 }
 
 class PrivateField extends ManagedObject<_PrivateField>
@@ -552,28 +554,28 @@ class PrivateField extends ManagedObject<_PrivateField>
     _private = "x";
   }
 
-  set public(String p) {
+  set public(String? p) {
     _private = p;
   }
 
-  String get public => _private;
+  String? get public => _private;
 }
 
 class _PrivateField {
   @primaryKey
-  int id;
+  late int id;
 
-  String _private;
+  String? _private;
 }
 
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 
 class _EnumObject {
   @primaryKey
-  int id;
+  late int id;
 
   @Column(nullable: true)
-  EnumValues enumValues;
+  EnumValues? enumValues;
 }
 
 enum EnumValues { abcd, efgh, other18 }

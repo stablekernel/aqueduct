@@ -8,7 +8,7 @@ class HTMLRenderer {
       String path, Map<String, String?> templateVariables) async {
     final template = await _loadHTMLTemplate(path);
 
-    return template?.replaceAllMapped(RegExp("{{([a-zA-Z_]+)}}"), (match) {
+    return template!.replaceAllMapped(RegExp("{{([a-zA-Z_]+)}}"), (match) {
       final key = match.group(1);
       return templateVariables[key] ?? "null";
     });

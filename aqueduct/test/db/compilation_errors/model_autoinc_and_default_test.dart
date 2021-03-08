@@ -5,10 +5,10 @@ class AutoincrementAndDefault extends ManagedObject<_AutoincrementAndDefault> {}
 
 class _AutoincrementAndDefault {
   @primaryKey
-  int id;
+  int? id;
 
   @Column(autoincrement: true, defaultValue: "1")
-  int i;
+  int i = 1;
 }
 
 void main() {

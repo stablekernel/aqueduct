@@ -4,12 +4,12 @@ import 'package:test/test.dart';
 class InvalidTransientModel extends ManagedObject<_InvalidTransientModel>
     implements _InvalidTransientModel {
   @Serialize()
-  Uri uri;
+  Uri? uri;
 }
 
 class _InvalidTransientModel {
   @primaryKey
-  int id;
+  late int id;
 }
 
 void main() {

@@ -11,7 +11,7 @@ import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   group("Router basics", () {
-    HttpServer server;
+    HttpServer? server;
 
     tearDown(() async {
       await server?.close(force: true);
@@ -26,7 +26,7 @@ void main() {
 
       server = await enableRouter(router);
 
-      var response = await http.get("http://localhost:4040/player");
+      var response = await http.get(Uri.parse("http://localhost:4040/player"));
       expect(response.statusCode, equals(200));
     });
 
@@ -39,7 +39,8 @@ void main() {
 
       server = await enableRouter(router);
 
-      var response = await http.get("http://localhost:4040/notplayer");
+      var response =
+          await http.get(Uri.parse("http://localhost:4040/notplayer"));
       expect(response.statusCode, equals(404));
       // No Accept header, so allow HTML
       expect(response.body, contains("<html>"));
@@ -54,7 +55,8 @@ void main() {
 
       server = await enableRouter(router);
 
-      var response = await http.get("http://localhost:4040/notplayer",
+      var response = await http.get(
+          Uri.parse("http://localhost:4040/notplayer"),
           headers: {HttpHeaders.acceptHeader: "application/json"});
       expect(response.statusCode, equals(404));
       expect(response.headers[HttpHeaders.contentTypeHeader], isNull);
@@ -70,7 +72,8 @@ void main() {
 
       server = await enableRouter(router);
 
-      var response = await http.get("http://localhost:4040/player/foobar");
+      var response =
+          await http.get(Uri.parse("http://localhost:4040/player/foobar"));
       expect(response.statusCode, equals(200));
       expect(response.body, equals('"foobar"'));
     });
@@ -81,10 +84,11 @@ void main() {
 
       server = await enableRouter(router);
 
-      var response = await http.get("http://localhost:4040/api/player");
+      var response =
+          await http.get(Uri.parse("http://localhost:4040/api/player"));
       expect(response.statusCode, equals(202));
 
-      response = await http.get("http://localhost:4040/player");
+      response = await http.get(Uri.parse("http://localhost:4040/player"));
       expect(response.statusCode, equals(404));
 
       expect(router.basePath, "/api");
@@ -94,7 +98,7 @@ void main() {
       var router = Router(basePath: "/api");
       router.route("/a").link(() => Handler());
       server = await enableRouter(router);
-      var response = await http.get("http://localhost:4040/api/a");
+      var response = await http.get(Uri.parse("http://localhost:4040/api/a"));
       expect(response.statusCode, equals(202));
     });
 
@@ -103,23 +107,23 @@ void main() {
       router.route("/a/[:id]").linkFunction((req) async {
         // ignore: unawaited_futures
         req.respond(Response(200, null, null));
-        return null;
+        return Future.value();
       });
       router.route("/a/:id/f").linkFunction((req) async {
         // ignore: unawaited_futures
         req.respond(Response(201, null, null));
-        return null;
+        return Future.value();
       });
 
       server = await enableRouter(router);
 
-      var response = await http.get("http://localhost:4040/a");
+      var response = await http.get(Uri.parse("http://localhost:4040/a"));
       expect(response.statusCode, equals(200));
 
-      response = await http.get("http://localhost:4040/a/1");
+      response = await http.get(Uri.parse("http://localhost:4040/a/1"));
       expect(response.statusCode, equals(200));
 
-      response = await http.get("http://localhost:4040/a/1/f");
+      response = await http.get(Uri.parse("http://localhost:4040/a/1/f"));
       expect(response.statusCode, equals(201));
     });
 
@@ -129,18 +133,18 @@ void main() {
             .linkFunction((req) async => Response.ok(req.path.variables));
       server = await enableRouter(router);
 
-      var response = await http.get("http://localhost:4040/api/a/1");
+      var response = await http.get(Uri.parse("http://localhost:4040/api/a/1"));
       expect(response.statusCode, 200);
       expect(json.decode(response.body), {"id": "1"});
 
-      response = await http.get("http://localhost:4040/api/a");
+      response = await http.get(Uri.parse("http://localhost:4040/api/a"));
       expect(response.statusCode, 200);
       expect(json.decode(response.body), {});
     });
   });
 
   group("Router ordering", () {
-    HttpServer server;
+    HttpServer? server;
     var router = Router();
     setUpAll(() async {
       router.route("/").linkFunction((req) async {
@@ -175,64 +179,68 @@ void main() {
     });
 
     test("Empty", () async {
-      var response = await http.get("http://localhost:4040");
+      var response = await http.get(Uri.parse("http://localhost:4040"));
       expect(response.body, '"/"');
-      response = await http.get("http://localhost:4040/");
+      response = await http.get(Uri.parse("http://localhost:4040/"));
       expect(response.body, '"/"');
     });
 
     test("Root level items", () async {
-      var response = await http.get("http://localhost:4040/users");
+      var response = await http.get(Uri.parse("http://localhost:4040/users"));
       expect(response.body, '"/users/null"');
 
-      response = await http.get("http://localhost:4040/locations");
+      response = await http.get(Uri.parse("http://localhost:4040/locations"));
       expect(response.body, '"/locations/null"');
 
-      response = await http.get("http://localhost:4040/equipment");
+      response = await http.get(Uri.parse("http://localhost:4040/equipment"));
       expect(response.body, '"/equipment/null/null"');
 
-      response = await http.get("http://localhost:4040/file");
+      response = await http.get(Uri.parse("http://localhost:4040/file"));
       expect(response.statusCode, 404);
     });
 
     test("2nd level items", () async {
-      var response = await http.get("http://localhost:4040/users/1");
+      var response = await http.get(Uri.parse("http://localhost:4040/users/1"));
       expect(response.body, '"/users/1"');
 
-      response = await http.get("http://localhost:4040/locations/1");
+      response = await http.get(Uri.parse("http://localhost:4040/locations/1"));
       expect(response.body, '"/locations/1"');
 
-      response = await http.get("http://localhost:4040/equipment/1");
+      response = await http.get(Uri.parse("http://localhost:4040/equipment/1"));
       expect(response.body, '"/equipment/1/null"');
 
-      response = await http.get("http://localhost:4040/file/1");
+      response = await http.get(Uri.parse("http://localhost:4040/file/1"));
       expect(response.body, '"/file/1"');
 
-      response = await http.get("http://localhost:4040/file/1/2/3");
+      response = await http.get(Uri.parse("http://localhost:4040/file/1/2/3"));
       expect(response.body, '"/file/1/2/3"');
     });
 
     test("3rd level items", () async {
-      var response = await http.get("http://localhost:4040/users/1/vacation");
+      var response =
+          await http.get(Uri.parse("http://localhost:4040/users/1/vacation"));
       expect(response.statusCode, 404);
 
-      response = await http.get("http://localhost:4040/locations/1/vacation");
+      response = await http
+          .get(Uri.parse("http://localhost:4040/locations/1/vacation"));
       expect(response.body, '"/locations/1/vacation"');
 
-      response = await http.get("http://localhost:4040/locations/1/alarms");
+      response =
+          await http.get(Uri.parse("http://localhost:4040/locations/1/alarms"));
       expect(response.body, '"/locations/1/alarms/null"');
 
-      response =
-          await http.get("http://localhost:4040/locations/1/alarms/code");
+      response = await http
+          .get(Uri.parse("http://localhost:4040/locations/1/alarms/code"));
       expect(response.body, '"/locations/1/alarms/code"');
 
-      response = await http.get("http://localhost:4040/equipment/1/code");
+      response =
+          await http.get(Uri.parse("http://localhost:4040/equipment/1/code"));
       expect(response.body, '"/equipment/1/code"');
     });
   });
 
   group("Disambiguate *", () {
-    HttpServer server;
+    HttpServer? server;
     var router = Router();
     setUpAll(() async {
       router.route("/*").linkFunction(
@@ -247,11 +255,11 @@ void main() {
     });
 
     test("Disambiguate *", () async {
-      var r1 = await http.get("http://localhost:4040/a");
-      var r2 = await http.get("http://localhost:4040/b");
-      var r3 = await http.get("http://localhost:4040/ab");
-      var r4 = await http.get("http://localhost:4040/a/b");
-      var r5 = await http.get("http://localhost:4040/");
+      var r1 = await http.get(Uri.parse("http://localhost:4040/a"));
+      var r2 = await http.get(Uri.parse("http://localhost:4040/b"));
+      var r3 = await http.get(Uri.parse("http://localhost:4040/ab"));
+      var r4 = await http.get(Uri.parse("http://localhost:4040/a/b"));
+      var r5 = await http.get(Uri.parse("http://localhost:4040/"));
 
       expect(r1.body, "\"a\"");
       expect(r2.body, "\"*b\"");
@@ -262,7 +270,7 @@ void main() {
   });
 
   group("Controller linking", () {
-    HttpServer server;
+    HttpServer? server;
 
     tearDown(() async {
       await server?.close();
@@ -278,10 +286,10 @@ void main() {
 
       root.didAddToChannel();
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
-      server.map((httpReq) => Request(httpReq)).listen(root.receive);
+      server!.map((httpReq) => Request(httpReq)).listen(root.receive);
 
-      expect((await http.get("http://localhost:4040/1")).body, "1");
-      expect((await http.get("http://localhost:4040/2")).body, "2");
+      expect((await http.get(Uri.parse("http://localhost:4040/1"))).body, "1");
+      expect((await http.get(Uri.parse("http://localhost:4040/2"))).body, "2");
     });
 
     test("Router delivers prepare to all controllers", () async {

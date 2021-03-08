@@ -5,10 +5,10 @@ class FailingDateTime extends ManagedObject<_FDT> {}
 
 class _FDT {
   @primaryKey
-  int id;
+  late int id;
 
   @Validate.compare(greaterThanEqualTo: "19x34")
-  DateTime d;
+  DateTime? d;
 }
 
 void main() {

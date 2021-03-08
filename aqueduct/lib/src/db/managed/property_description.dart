@@ -104,7 +104,7 @@ abstract class ManagedPropertyDescription {
   dynamic convertFromPrimitiveValue(dynamic value);
 
   /// The type of the variable that this property represents.
-  final Type declaredType;
+  final Type? declaredType;
 
   /// Returns an [APISchemaObject] that represents this property.
   ///
@@ -152,7 +152,7 @@ abstract class ManagedPropertyDescription {
 /// adds two properties to [ManagedPropertyDescription] that are only valid for non-relationship types, [isPrimaryKey] and [defaultValue].
 class ManagedAttributeDescription extends ManagedPropertyDescription {
   ManagedAttributeDescription(
-      ManagedEntity entity, String name, ManagedType? type, Type declaredType,
+      ManagedEntity entity, String name, ManagedType? type, Type? declaredType,
       {Serialize? transientStatus,
       bool primaryKey = false,
       String? defaultValue,
@@ -381,7 +381,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
       ManagedEntity entity,
       String name,
       ManagedType? type,
-      Type declaredType,
+      Type? declaredType,
       this.destinationEntity,
       this.deleteRule,
       this.relationshipType,
@@ -486,8 +486,7 @@ class ManagedRelationshipDescription extends ManagedPropertyDescription {
         throw ValidationException(["invalid input type for '$name'"]);
       }
 
-      final instance = destinationEntity.instanceOf()
-        ..readFromMap(value as Map<String, dynamic>);
+      final instance = destinationEntity.instanceOf()..readFromMap(value);
 
       return instance;
     }

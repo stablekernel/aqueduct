@@ -4,26 +4,26 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/src/dev/context_helpers.dart';
 
 void main() {
-  ManagedContext context;
+  ManagedContext? context;
   setUp(() async {
     context = await contextWithModels([Model]);
   });
 
   tearDown(() async {
-    await context.close();
+    await context?.close();
   });
 
   test("Transaction returns value of closure", () async {
-    String v = await context.transaction((t) async {
+    String v = (await context!.transaction((t) async {
       final o = await Query.insertObject(t, Model()..name = "Bob");
-      return o.name;
-    });
+      return o.name!;
+    }))!;
     expect(v, "Bob");
   });
 
   test("Queries in transaction block are executed in transaction", () async {
-    await context.transaction((t) async {
-      final q1 = Query<Model>(t)..values.name = "Bob";
+    await context!.transaction((t) async {
+      final q1 = Query<Model>(t)..values!.name = "Bob";
       await q1.insert();
 
       await Query.insertObject(t, Model()..name = "Fred");
@@ -38,7 +38,7 @@ void main() {
   });
 
   test("A transaction returns null if it completes successfully", () async {
-    final result = await context.transaction((t) async {
+    final result = await context!.transaction((t) async {
       await Query.insertObject(t, Model()..name = "Bob");
     });
 
@@ -49,7 +49,7 @@ void main() {
       "Queries outside of transaction block while transaction block is running are queued until transaction is complete",
       () async {
     // ignore: unawaited_futures
-    context.transaction((t) async {
+    context!.transaction((t) async {
       await Query.insertObject(t, Model()..name = "1");
       await Query.insertObject(t, Model()..name = "2");
       await Query.insertObject(t, Model()..name = "3");
@@ -63,7 +63,7 @@ void main() {
       "Error thrown from query rolls back transaction and is thrown by transaction method",
       () async {
     try {
-      await context.transaction((t) async {
+      await context!.transaction((t) async {
         await Query.insertObject(t, Model()..name = "1");
         // This query will fail because name is null
         await Query.insertObject(t, Model());
@@ -81,7 +81,7 @@ void main() {
       "Error thrown from non-query code in transaction rolls back transaction and thrown by transaction method",
       () async {
     try {
-      await context.transaction((t) async {
+      await context!.transaction((t) async {
         await Query.insertObject(t, Model()..name = "1");
         throw StateError("hello");
       });
@@ -96,7 +96,7 @@ void main() {
   test("A thrown rollback rolls back transaction and throws rollback",
       () async {
     try {
-      await context.transaction((t) async {
+      await context!.transaction((t) async {
         final res = await Query.insertObject(t, Model()..name = "1");
 
         if (res.name == "1") {
@@ -116,9 +116,10 @@ void main() {
   test(
       "Queries executed through persistentStore.execute use transaction context",
       () async {
-    await context.transaction((t) async {
+    await context!.transaction((t) async {
       await Query.insertObject(t, Model()..name = "1");
-      await t.persistentStore.execute("INSERT INTO _Model (name) VALUES ('2')");
+      await t.persistentStore!
+          .execute("INSERT INTO _Model (name) VALUES ('2')");
       await Query.insertObject(t, Model()..name = "3");
     });
 
@@ -129,11 +130,11 @@ void main() {
       "Query on original context within transaction block times out and cancels transaction",
       () async {
     try {
-      await context.transaction((t) async {
+      await context!.transaction((t) async {
         await Query.insertObject(t, Model()..name = "1");
         final q = Query<Model>(context)
           ..timeoutInSeconds = 1
-          ..values.name = '2';
+          ..values!.name = '2';
         await q.insert();
         await Query.insertObject(t, Model()..name = "3");
       });
@@ -149,9 +150,9 @@ void main() {
 
 class _Model {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 }
 
 class Model extends ManagedObject<_Model> implements _Model {}

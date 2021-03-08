@@ -5,10 +5,10 @@ class FailingLength extends ManagedObject<_FLEN> {}
 
 class _FLEN {
   @primaryKey
-  int id;
+  late int id;
 
   @Validate.length(equalTo: 6)
-  int d;
+  int? d;
 }
 
 void main() {

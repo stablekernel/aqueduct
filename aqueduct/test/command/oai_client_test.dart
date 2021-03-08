@@ -13,7 +13,7 @@ void main() {
     await CLIClient.activateCLI();
     final t = CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory));
     templateCli = await t.createProject(template: "db_and_auth");
-    await templateCli!.agent.getDependencies(offline: true);
+    await templateCli!.agent!.getDependencies(offline: true);
   });
 
   setUp(() {
@@ -31,7 +31,7 @@ void main() {
     await projectUnderTestCli!.run("document", ["client"]);
 
     final clientContents =
-        projectUnderTestCli!.agent.getFile("client.html")?.readAsStringSync();
+        projectUnderTestCli!.agent!.getFile("client.html")?.readAsStringSync();
     expect(clientContents, contains('spec: {"openapi":"3.0.0"'));
     expect(
         clientContents,
@@ -52,7 +52,7 @@ void main() {
         .run("document", ["client", "--host", "https://server.com/v1/"]);
 
     final clientContents =
-        projectUnderTestCli!.agent.getFile("client.html")?.readAsStringSync();
+        projectUnderTestCli!.agent!.getFile("client.html")?.readAsStringSync();
     expect(clientContents, contains('spec: {"openapi":"3.0.0"'));
     expect(
         clientContents,

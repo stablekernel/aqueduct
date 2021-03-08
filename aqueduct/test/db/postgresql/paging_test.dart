@@ -4,7 +4,7 @@ import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   group("Offset/limit", () {
-    ManagedContext context;
+    ManagedContext? context;
 
     setUpAll(() async {
       context = await contextWithModels([PageableTestModel]);
@@ -52,7 +52,7 @@ void main() {
   });
 
   group("Paging", () {
-    ManagedContext context;
+    ManagedContext? context;
 
     var check = (List checkIDs, List<PageableTestModel> values) {
       expect(checkIDs.length, values.length);
@@ -271,7 +271,7 @@ void main() {
   });
 
   group("Failure cases", () {
-    ManagedContext context;
+    ManagedContext? context;
     var check = (List checkIDs, List<PageableTestModel> values) {
       expect(checkIDs.length, values.length);
       var ids = values.map((v) => v.id).toList();
@@ -349,26 +349,26 @@ class PageableTestModel extends ManagedObject<_PageableTestModel>
 
 class _PageableTestModel {
   @primaryKey
-  int id;
+  late int id;
 
-  String value;
+  String? value;
 }
 
 class HasMany extends ManagedObject<_HasMany> implements _HasMany {}
 
 class _HasMany {
   @primaryKey
-  int id;
+  late int id;
 
-  ManagedSet<BelongsTo> objects;
+  ManagedSet<BelongsTo>? objects;
 }
 
 class BelongsTo extends ManagedObject<_BelongsTo> implements _BelongsTo {}
 
 class _BelongsTo {
   @primaryKey
-  int id;
+  late int id;
 
   @Relate(Symbol('objects'))
-  HasMany hasMany;
+  HasMany? hasMany;
 }

@@ -7,26 +7,26 @@ import 'package:test/test.dart';
 import 'package:http/http.dart' as http;
 
 void main() {
-  ServerRoot server;
+  ServerRoot? server;
 
   setUp(() async {
     DefaultRecyclable.stateCount = 0;
     MiddlewareRecyclable.stateCount = 0;
 
     server = ServerRoot();
-    await server.open();
+    await server!.open();
   });
 
   tearDown(() async {
-    await server.close();
+    await server?.close();
   });
 
   test("A controller that does not implement Recyclable is reused", () async {
-    server.root.link(() => DefaultController());
-    server.root.didAddToChannel();
+    server!.root.link(() => DefaultController());
+    server!.root.didAddToChannel();
 
-    final r1 = await http.get("http://localhost:4040");
-    final r2 = await http.get("http://localhost:4040");
+    final r1 = await http.get(Uri.parse("http://localhost:4040"));
+    final r2 = await http.get(Uri.parse("http://localhost:4040"));
 
     final firstAddress = json.decode(r1.body)["hashCode"];
     final secondAddress = json.decode(r2.body)["hashCode"];
@@ -36,11 +36,11 @@ void main() {
   test(
       "A controller that implements Recyclable creates a instance for each request",
       () async {
-    server.root.link(() => DefaultRecyclable());
-    server.root.didAddToChannel();
+    server!.root.link(() => DefaultRecyclable());
+    server!.root.didAddToChannel();
 
-    final r1 = await http.get("http://localhost:4040");
-    final r2 = await http.get("http://localhost:4040");
+    final r1 = await http.get(Uri.parse("http://localhost:4040"));
+    final r2 = await http.get(Uri.parse("http://localhost:4040"));
 
     final firstAddress = json.decode(r1.body)["hashCode"];
     final secondAddress = json.decode(r2.body)["hashCode"];
@@ -49,24 +49,24 @@ void main() {
 
   test("Receiving simultaneous request will always use a Recyclable instance",
       () async {
-    server.root.link(() => DefaultRecyclable());
-    server.root.didAddToChannel();
+    server!.root.link(() => DefaultRecyclable());
+    server!.root.didAddToChannel();
 
     final addresses = await Future.wait([
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["hashCode"]),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["hashCode"]),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["hashCode"]),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["hashCode"]),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["hashCode"]),
     ]);
 
@@ -77,24 +77,24 @@ void main() {
   });
 
   test("A Recyclable instance reuses recycleState", () async {
-    server.root.link(() => DefaultRecyclable());
-    server.root.didAddToChannel();
+    server!.root.link(() => DefaultRecyclable());
+    server!.root.didAddToChannel();
 
     final states = await Future.wait([
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["state"]),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["state"]),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["state"]),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["state"]),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["state"]),
     ]);
 
@@ -102,18 +102,18 @@ void main() {
   });
 
   test("recycleState is only called once", () async {
-    server.root.link(() => DefaultRecyclable());
-    server.root.didAddToChannel();
+    server!.root.link(() => DefaultRecyclable());
+    server!.root.didAddToChannel();
 
     await Future.wait([
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["state"]),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["state"]),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body)["state"]),
     ]);
 
@@ -123,26 +123,26 @@ void main() {
   test(
       "A recycled controller always sends unhandled requests to the next linked controller",
       () async {
-    server.root
-        .link(() => MiddlewareRecyclable())
+    server!.root
+        .link(() => MiddlewareRecyclable())!
         .link(() => DefaultController());
-    server.root.didAddToChannel();
+    server!.root.didAddToChannel();
 
     final List<Map<String, dynamic>> responses = await Future.wait([
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body) as Map<String, dynamic>),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body) as Map<String, dynamic>),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body) as Map<String, dynamic>),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body) as Map<String, dynamic>),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body) as Map<String, dynamic>),
     ]);
 
@@ -166,26 +166,26 @@ void main() {
   test(
       "A recycled controller sends unhandled request to the next linked recyclable",
       () async {
-    server.root
-        .link(() => MiddlewareRecyclable())
+    server!.root
+        .link(() => MiddlewareRecyclable())!
         .link(() => DefaultRecyclable());
-    server.root.didAddToChannel();
+    server!.root.didAddToChannel();
 
     final List<Map<String, dynamic>> responses = await Future.wait([
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body) as Map<String, dynamic>),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body) as Map<String, dynamic>),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body) as Map<String, dynamic>),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body) as Map<String, dynamic>),
       http
-          .get("http://localhost:4040")
+          .get(Uri.parse("http://localhost:4040"))
           .then((r) => json.decode(r.body) as Map<String, dynamic>),
     ]);
 
@@ -213,16 +213,16 @@ void main() {
 class ServerRoot {
   ServerRoot();
 
-  HttpServer server;
+  HttpServer? server;
   Controller root = ClosureController((req) => req);
 
   Future open() async {
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4040);
-    server.map((httpReq) => Request(httpReq)).listen(root.receive);
+    server!.map((httpReq) => Request(httpReq)).listen(root.receive);
   }
 
   Future close() {
-    return server.close();
+    return server!.close();
   }
 }
 
@@ -234,8 +234,8 @@ class DefaultController extends Controller {
 }
 
 class DefaultRecyclable extends Controller implements Recyclable<String> {
-  static int stateCount;
-  String state;
+  static int stateCount = 0;
+  String? state;
 
   @override
   FutureOr<RequestOrResponse> handle(Request req) {
@@ -243,7 +243,7 @@ class DefaultRecyclable extends Controller implements Recyclable<String> {
   }
 
   @override
-  void restore(String state) {
+  void restore(String? state) {
     this.state = state;
   }
 
@@ -255,8 +255,8 @@ class DefaultRecyclable extends Controller implements Recyclable<String> {
 }
 
 class MiddlewareRecyclable extends Controller implements Recyclable<String> {
-  static int stateCount;
-  String state;
+  static int stateCount = 0;
+  String? state;
 
   @override
   FutureOr<RequestOrResponse> handle(Request req) {
@@ -269,7 +269,7 @@ class MiddlewareRecyclable extends Controller implements Recyclable<String> {
   }
 
   @override
-  void restore(String state) {
+  void restore(String? state) {
     this.state = state;
   }
 

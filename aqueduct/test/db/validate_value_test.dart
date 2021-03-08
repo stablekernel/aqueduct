@@ -50,7 +50,7 @@ void main() {
       expect(fk.validate().isValid, false);
       expect(fk.validate().errors.first, contains("FK.parent.id"));
 
-      fk.parent.id = 2;
+      fk.parent!.id = 2;
       expect(fk.validate().isValid, true);
     });
 
@@ -74,8 +74,8 @@ void main() {
       fk.parent = Parent()..id = 10;
       expect(fk.validate().isValid, true);
 
-      expect(fk.parent.validate().isValid, false);
-      expect(fk.parent.validate().errors.first, contains("Parent.id"));
+      expect(fk.parent!.validate().isValid, false);
+      expect(fk.parent!.validate().errors.first, contains("Parent.id"));
     });
   });
 
@@ -296,7 +296,7 @@ void main() {
     });
 
     test("Implicitly added to enum types", () {
-      var e = EnumObject()..backing.contents["enumValues"] = "foobar";
+      var e = EnumObject()..backing.contents!["enumValues"] = "foobar";
       expect(e.validate().isValid, false);
       e.enumValues = EnumValues.abcd;
       expect(e.validate().isValid, true);
@@ -380,7 +380,7 @@ void main() {
     x.canOnlyBe4 = 4;
     expect(x.validate().isValid, true);
 
-    final allValidators = x.entity.attributes['canOnlyBe4'].validators;
+    final allValidators = x.entity.attributes['canOnlyBe4']!.validators;
     expect(allValidators.length, 4);
   });
 }
@@ -389,81 +389,81 @@ class T extends ManagedObject<_T> implements _T {}
 
 class _T {
   @primaryKey
-  int id;
+  late int id;
 
   @Validate.matches(r"^[A-Z]+$")
-  String regex;
+  String? regex;
 
   @Validate.matches("contain")
-  String contain;
+  String? contain;
 
   @Validate.compare(lessThan: 1)
-  int compareIntLessThan1;
+  int? compareIntLessThan1;
 
   @Validate.compare(greaterThan: 1.0)
-  double compareDoubleGreaterThan1;
+  double? compareDoubleGreaterThan1;
 
   @Validate.compare(lessThanEqualTo: "bar")
-  String compareStringLessThanEqualToBar;
+  String? compareStringLessThanEqualToBar;
 
   @Validate.compare(greaterThanEqualTo: "1990-01-01T00:00:00Z")
-  DateTime compareDateGreaterThanEqualTo1990;
+  DateTime? compareDateGreaterThanEqualTo1990;
 
   @Validate.compare(equalTo: 5)
-  int compareIntEqualTo5;
+  int? compareIntEqualTo5;
 
   @Validate.compare(lessThan: 11, greaterThan: 5)
-  int compareIntBetween6And10;
+  int? compareIntBetween6And10;
 
   @Validate.length(lessThan: 5)
-  String lengthLessThan5;
+  String? lengthLessThan5;
 
   @Validate.length(lessThanEqualTo: 5)
-  String lengthLessThanEqualTo5;
+  String? lengthLessThanEqualTo5;
 
   @Validate.length(greaterThan: 5)
-  String lengthGreaterThan5;
+  String? lengthGreaterThan5;
 
   @Validate.length(greaterThanEqualTo: 5)
-  String lengthGreaterThanEqualTo5;
+  String? lengthGreaterThanEqualTo5;
 
   @Validate.length(equalTo: 2)
-  String lengthEqualTo2;
+  String? lengthEqualTo2;
 
   @Validate.length(lessThan: 11, greaterThan: 5)
-  String lengthBetween6And10;
+  String? lengthBetween6And10;
 
   @Validate.oneOf(["A", "B"])
-  String oneOfAB;
+  String? oneOfAB;
 
   @Validate.oneOf([1, 2])
-  int oneOf12;
+  int? oneOf12;
 
   @Validate.compare(equalTo: 0, onInsert: true, onUpdate: false)
-  int mustBeZeroOnInsert;
+  int? mustBeZeroOnInsert;
 
   @Validate.compare(equalTo: 0, onInsert: false, onUpdate: true)
-  int mustBeZeroOnUpdate;
+  int? mustBeZeroOnUpdate;
 
   @Validate.compare(greaterThan: "bar")
   @Validate.oneOf(["baa", "bar", "bay", "baz"])
-  String mustBeBayOrBaz;
+  String? mustBeBayOrBaz;
 
   @CustomValidate()
-  String mustByXYZ;
+  String? mustByXYZ;
 }
 
 class U extends ManagedObject<_U> implements _U {}
 
 class _U {
   @primaryKey
-  int id;
+  late int id;
 
   @Validate.present()
-  int present;
+  int? present;
 
   @Validate.absent()
-  int absent;
+  int? absent;
 }
 
 class CustomValidate extends Validate {
@@ -495,40 +495,40 @@ class Constant extends ManagedObject<_Constant> implements _Constant {}
 
 class _Constant {
   @primaryKey
-  int id;
+  late int id;
 
   @Validate.constant()
-  String constantString;
+  String? constantString;
 
   @Validate.constant()
   @Relate(#constant)
-  ConstantRef constantRef;
+  ConstantRef? constantRef;
 }
 
 class ConstantRef extends ManagedObject<_ConstantRef> implements _ConstantRef {}
 
 class _ConstantRef {
   @primaryKey
-  int id;
+  late int id;
 
-  Constant constant;
+  Constant? constant;
 }
 
 class _V {
   @primaryKey
-  int id;
+  late int id;
 
   @Validate.oneOf(["a", "b"])
-  String aOrbButReallyOnlyA;
+  String? aOrbButReallyOnlyA;
 }
 
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 
 class _EnumObject {
   @primaryKey
-  int id;
+  late int id;
 
-  EnumValues enumValues;
+  EnumValues? enumValues;
 }
 
 enum EnumValues { abcd, efgh, other18 }
@@ -537,11 +537,11 @@ class FK extends ManagedObject<_FK> implements _FK {}
 
 class _FK {
   @primaryKey
-  int id;
+  late int id;
 
   @Validate.compare(greaterThan: 1)
   @Relate(#fk)
-  Parent parent;
+  Parent? parent;
 }
 
 class Parent extends ManagedObject<_Parent> implements _Parent {}
@@ -549,18 +549,18 @@ class Parent extends ManagedObject<_Parent> implements _Parent {}
 class _Parent {
   @Validate.compare(greaterThan: 100)
   @primaryKey
-  int id;
+  late int id;
 
-  FK fk;
+  FK? fk;
 }
 
 class PresenceHas extends ManagedObject<_PresenceHas> implements _PresenceHas {}
 
 class _PresenceHas {
   @primaryKey
-  int id;
+  late int id;
 
-  ManagedSet<PresenceBelongsTo> present;
+  ManagedSet<PresenceBelongsTo>? present;
 }
 
 class PresenceBelongsTo extends ManagedObject<_PresenceBelongsTo>
@@ -568,20 +568,20 @@ class PresenceBelongsTo extends ManagedObject<_PresenceBelongsTo>
 
 class _PresenceBelongsTo {
   @primaryKey
-  int id;
+  late int id;
 
   @Validate.present(onInsert: true)
   @Relate(#present)
-  PresenceHas present;
+  PresenceHas? present;
 }
 
 class AbsenceHas extends ManagedObject<_AbsenceHas> implements _AbsenceHas {}
 
 class _AbsenceHas {
   @primaryKey
-  int id;
+  late int id;
 
-  ManagedSet<AbsenceBelongsTo> absent;
+  ManagedSet<AbsenceBelongsTo>? absent;
 }
 
 class AbsenceBelongsTo extends ManagedObject<_AbsenceBelongsTo>
@@ -589,11 +589,11 @@ class AbsenceBelongsTo extends ManagedObject<_AbsenceBelongsTo>
 
 class _AbsenceBelongsTo {
   @primaryKey
-  int id;
+  late int id;
 
   @Validate.absent(onInsert: true)
   @Relate(#absent)
-  AbsenceHas absent;
+  AbsenceHas? absent;
 }
 
 class NonDefaultPK extends ManagedObject<_NonDefaultPK>
@@ -604,9 +604,9 @@ class _NonDefaultPK {
       primaryKey: true,
       databaseType: ManagedPropertyType.bigInteger,
       autoincrement: true)
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 }
 
 class MultiValidate extends ManagedObject<_MultiValidate>
@@ -616,7 +616,7 @@ const validateReference = Validate.compare(lessThan: 100);
 
 class _MultiValidate {
   @primaryKey
-  int id;
+  late int id;
 
   @validateReference
   @Validate.compare(lessThan: 5)
@@ -624,5 +624,5 @@ class _MultiValidate {
     Validate.compare(greaterThan: 3),
     Validate.compare(equalTo: 4)
   ])
-  int canOnlyBe4;
+  int? canOnlyBe4;
 }

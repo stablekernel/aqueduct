@@ -72,7 +72,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw canModifyAllInstancesError;
     }
 
-    if (builder.returning.length > 0) {
+    if (builder.returning.isNotEmpty) {
       buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 

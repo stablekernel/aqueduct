@@ -17,8 +17,8 @@ void main() {
       var now = DateTime.now().toUtc();
       for (var i = 0; i < 5; i++) {
         var q = Query<TestModel>(app.channel.context)
-          ..values.createdAt = now
-          ..values.name = "$i";
+          ..values!.createdAt = now
+          ..values!.name = "$i";
         allObjects.add(await q.insert());
 
         now = now.add(const Duration(seconds: 1));
@@ -26,7 +26,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.channel.context.close();
+      await app.channel.context?.close();
       await app.stop();
     });
 
@@ -45,7 +45,7 @@ void main() {
       var expectedMap = {
         "id": 1,
         "name": "Fred",
-        "createdAt": allObjects.first.createdAt.toIso8601String()
+        "createdAt": allObjects.first.createdAt!.toIso8601String()
       };
 
       var resp = await client.put("/controller/1", body: {"name": "Fred"});
@@ -91,7 +91,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.channel.context.close();
+      await app.channel.context?.close();
       await app.stop();
     });
 
@@ -124,7 +124,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.channel.context.close();
+      await app.channel.context?.close();
       await app.stop();
     });
 
@@ -161,8 +161,8 @@ void main() {
       var now = DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {
         var q = Query<TestModel>(app.channel.context)
-          ..values.createdAt = now
-          ..values.name = "${9 - i}";
+          ..values!.createdAt = now
+          ..values!.name = "${9 - i}";
         allObjects.add(await q.insert());
 
         now = now.add(const Duration(seconds: 1));
@@ -170,7 +170,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.channel.context.close();
+      await app.channel.context?.close();
       await app.stop();
     });
 
@@ -221,7 +221,7 @@ void main() {
       expect(
           await client
               .request(
-                  "/controller?pageBy=createdAt&pageAfter=${allObjects[5].createdAt.toIso8601String()}")
+                  "/controller?pageBy=createdAt&pageAfter=${allObjects[5].createdAt!.toIso8601String()}")
               .get(),
           hasResponse(200,
               body: allObjects.sublist(6).map((m) => m.asMap()).toList()));
@@ -231,7 +231,7 @@ void main() {
       expect(
           await client
               .request(
-                  "/controller?pageBy=createdAt&pagePrior=${allObjects[5].createdAt.toIso8601String()}")
+                  "/controller?pageBy=createdAt&pagePrior=${allObjects[5].createdAt!.toIso8601String()}")
               .get(),
           hasResponse(200,
               body: allObjects
@@ -277,8 +277,8 @@ void main() {
       var now = DateTime.now().toUtc();
       for (var i = 0; i < 10; i++) {
         var q = Query<TestModel>(app.channel.context)
-          ..values.createdAt = now
-          ..values.name = "${9 - i}";
+          ..values!.createdAt = now
+          ..values!.name = "${9 - i}";
         allObjects.add(await q.insert());
 
         now = now.add(const Duration(seconds: 1));
@@ -286,7 +286,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await app.channel.context.close();
+      await app.channel.context?.close();
       await app.stop();
     });
 
@@ -304,7 +304,7 @@ void main() {
 }
 
 class TestChannel extends ApplicationChannel {
-  ManagedContext context;
+  ManagedContext? context;
 
   @override
   Future prepare() async {
@@ -313,14 +313,14 @@ class TestChannel extends ApplicationChannel {
         "dart", "dart", "localhost", 5432, "dart_test");
     context = ManagedContext(dataModel, persistentStore);
 
-    var targetSchema = Schema.fromDataModel(context.dataModel);
+    var targetSchema = Schema.fromDataModel(context!.dataModel);
     var schemaBuilder = SchemaBuilder.toSchema(
-        context.persistentStore, targetSchema,
+        context!.persistentStore, targetSchema,
         isTemporary: true);
 
     var commands = schemaBuilder.commands;
     for (var cmd in commands) {
-      await context.persistentStore.execute(cmd);
+      await context!.persistentStore!.execute(cmd);
     }
   }
 
@@ -329,10 +329,10 @@ class TestChannel extends ApplicationChannel {
     final router = Router();
     router
         .route("/controller/[:id]")
-        .link(() => ManagedObjectController<TestModel>(context));
+        .link(() => ManagedObjectController<TestModel>(context!));
 
     router.route("/dynamic/[:id]").link(() => ManagedObjectController.forEntity(
-        context.dataModel.entityForType(TestModel), context));
+        context!.dataModel.entityForType(TestModel)!, context!));
     return router;
   }
 }
@@ -341,8 +341,8 @@ class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
-  DateTime createdAt;
+  String? name;
+  DateTime? createdAt;
 }

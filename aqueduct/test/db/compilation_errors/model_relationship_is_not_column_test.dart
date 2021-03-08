@@ -18,18 +18,18 @@ class InvalidMetadata extends ManagedObject<_InvalidMetadata> {}
 
 class _InvalidMetadata {
   @Column(primaryKey: true)
-  int id;
+  late int id;
 
   @Relate(Symbol('foo'))
   @Column(indexed: true)
-  InvalidMetadata1 bar;
+  InvalidMetadata1? bar;
 }
 
 class InvalidMetadata1 extends ManagedObject<_InvalidMetadata1> {}
 
 class _InvalidMetadata1 {
   @primaryKey
-  int id;
+  late int id;
 
-  InvalidMetadata foo;
+  InvalidMetadata? foo;
 }

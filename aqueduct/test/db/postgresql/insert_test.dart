@@ -5,7 +5,7 @@ import 'package:test/test.dart';
 import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
-  ManagedContext context;
+  ManagedContext? context;
 
   tearDown(() async {
     await context?.close();
@@ -16,9 +16,9 @@ void main() {
       () async {
     context = await contextWithModels([TestModel]);
 
-    var q = Query<TestModel>(context)..values.id = 1;
+    var q = Query<TestModel>(context)..values!.id = 1;
 
-    expect(q.values.id, 1);
+    expect(q.values!.id, 1);
   });
 
   test("May set values to null, but the query will fail", () async {
@@ -76,7 +76,7 @@ void main() {
 
   test("Insert from static method", () async {
     context = await contextWithModels([TestModel]);
-    final o = await Query.insertObject(context, TestModel()..name = "Bob");
+    final o = await Query.insertObject(context!, TestModel()..name = "Bob");
     expect(o.id, isNotNull);
     expect(o.name, "Bob");
   });
@@ -117,20 +117,20 @@ void main() {
     context = await contextWithModels([MultiUnique]);
 
     var q = Query<MultiUnique>(context)
-      ..values.a = "a"
-      ..values.b = "b";
+      ..values!.a = "a"
+      ..values!.b = "b";
 
     await q.insert();
 
     q = Query<MultiUnique>(context)
-      ..values.a = "a"
-      ..values.b = "a";
+      ..values!.a = "a"
+      ..values!.b = "a";
 
     await q.insert();
 
     q = Query<MultiUnique>(context)
-      ..values.a = "a"
-      ..values.b = "b";
+      ..values!.a = "a"
+      ..values!.b = "b";
     try {
       await q.insert();
       expect(true, false);
@@ -167,8 +167,8 @@ void main() {
       ..name = "jay"
       ..emailAddress = "2@a.com";
 
-    final models = await Query.insertObjects(context, [m, n]);
-    final bob = models[0];
+    final models = await Query.insertObjects(context!, [m, n]);
+    final bob = models![0];
     final jay = models[1];
 
     expect(bob is TestModel, true);
@@ -196,7 +196,7 @@ void main() {
       ..emailAddress = "2@a.com";
 
     try {
-      await Query.insertObjects(context, [goodModel, badModel]);
+      await Query.insertObjects(context!, [goodModel, badModel]);
       fail("unreachable");
     } catch (e) {
       expect(e, isNotNull);
@@ -221,7 +221,7 @@ void main() {
       ..predicate =
           QueryPredicate("emailAddress = @email", {"email": "2@a.com"});
 
-    result = await readReq.fetchOne();
+    result = (await readReq.fetchOne())!;
     expect(result.name, "bob");
   });
 
@@ -283,7 +283,7 @@ void main() {
     p = await pq.insert();
 
     expect(p.id, greaterThan(0));
-    expect(p.owner.id, greaterThan(0));
+    expect(p.owner!.id, greaterThan(0));
   });
 
   test("Timestamp inserted correctly by default", () async {
@@ -359,7 +359,7 @@ void main() {
   test("Can use insert private properties", () async {
     context = await contextWithModels([PrivateField]);
 
-    await (Query<PrivateField>(context)..values.public = "abc").insert();
+    await (Query<PrivateField>(context)..values!.public = "abc").insert();
     var q = Query<PrivateField>(context);
     var result = await q.fetch();
     expect(result.first.public, "abc");
@@ -368,7 +368,7 @@ void main() {
   test("Can use enum to set property to be stored in db", () async {
     context = await contextWithModels([EnumObject]);
 
-    var q = Query<EnumObject>(context)..values.enumValues = EnumValues.efgh;
+    var q = Query<EnumObject>(context)..values!.enumValues = EnumValues.efgh;
 
     var result = await q.insert();
     expect(result.enumValues, EnumValues.efgh);
@@ -377,7 +377,7 @@ void main() {
   test("Can insert enum value that is null", () async {
     context = await contextWithModels([EnumObject]);
 
-    var q = Query<EnumObject>(context)..values.enumValues = null;
+    var q = Query<EnumObject>(context)..values!.enumValues = null;
 
     var result = await q.insert();
     expect(result.enumValues, isNull);
@@ -400,14 +400,15 @@ class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 
   @Column(nullable: true, unique: true)
-  String emailAddress;
+  String? emailAddress;
 
-  static String tableName() {
+  // ignore: unused_element
+  static String? tableName() {
     return "simple";
   }
 }
@@ -416,45 +417,45 @@ class GenUser extends ManagedObject<_GenUser> implements _GenUser {}
 
 class _GenUser {
   @primaryKey
-  int id;
-  String name;
+  late int id;
+  String? name;
 
-  ManagedSet<GenPost> posts;
+  ManagedSet<GenPost>? posts;
 }
 
 class GenPost extends ManagedObject<_GenPost> implements _GenPost {}
 
 class _GenPost {
   @primaryKey
-  int id;
-  String text;
+  late int id;
+  String? text;
 
   @Relate(Symbol('posts'))
-  GenUser owner;
+  GenUser? owner;
 }
 
 class GenTime extends ManagedObject<_GenTime> implements _GenTime {}
 
 class _GenTime {
   @primaryKey
-  int id;
+  late int id;
 
-  String text;
+  String? text;
 
   @Column(defaultValue: "(now() at time zone 'utc')")
-  DateTime dateCreated;
+  DateTime dateCreated = DateTime.now();
 }
 
 class TransientModel extends ManagedObject<_Transient> implements _Transient {
   @Serialize()
-  String transientValue;
+  String? transientValue;
 }
 
 class _Transient {
   @primaryKey
-  int id;
+  late int id;
 
-  String value;
+  String? value;
 }
 
 class BoringObject extends ManagedObject<_BoringObject>
@@ -462,33 +463,33 @@ class BoringObject extends ManagedObject<_BoringObject>
 
 class _BoringObject {
   @primaryKey
-  int id;
+  late int id;
 }
 
 class PrivateField extends ManagedObject<_PrivateField>
     implements _PrivateField {
-  set public(String p) {
+  set public(String? p) {
     _private = p;
   }
 
-  String get public => _private;
+  String? get public => _private;
 }
 
 class _PrivateField {
   @primaryKey
-  int id;
+  late int id;
 
-  String _private;
+  String? _private;
 }
 
 class EnumObject extends ManagedObject<_EnumObject> implements _EnumObject {}
 
 class _EnumObject {
   @primaryKey
-  int id;
+  late int id;
 
   @Column(nullable: true)
-  EnumValues enumValues;
+  EnumValues? enumValues;
 }
 
 class MultiUnique extends ManagedObject<_MultiUnique> implements _MultiUnique {}
@@ -496,10 +497,10 @@ class MultiUnique extends ManagedObject<_MultiUnique> implements _MultiUnique {}
 @Table.unique([Symbol('a'), Symbol('b')])
 class _MultiUnique {
   @primaryKey
-  int id;
+  late int id;
 
-  String a;
-  String b;
+  String? a;
+  String? b;
 }
 
 enum EnumValues { abcd, efgh, other18 }

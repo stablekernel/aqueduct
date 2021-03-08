@@ -10,7 +10,7 @@ import "package:test/test.dart";
 import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
-  HttpServer server;
+  HttpServer? server;
 
   setUpAll(() {
     ManagedContext(ManagedDataModel([TestModel]), DefaultPersistentStore());
@@ -56,7 +56,7 @@ void main() {
       expect(response.statusCode, 200);
       expect(json.decode(response.body), m);
 
-      response = await http.post("http://localhost:4040/");
+      response = await http.post(Uri.parse("http://localhost:4040/"));
       expect(response.statusCode, 200);
       expect(response.headers["content-type"], isNull);
       expect(response.body, "");
@@ -153,8 +153,9 @@ void main() {
     test("Can get a list of bytes from an octet-stream", () async {
       server = await enableController("/", () => ByteListController());
 
-      final response = await http.post("http://localhost:4040",
+      final response = await http.post(Uri.parse("http://localhost:4040"),
           headers: {"Content-Type": "application/octet-stream"},
+          // ignore: return_of_invalid_type_from_catch_error
           body: [1, 2, 3]).catchError((err) => null);
 
       expect(response.statusCode, 200);
@@ -230,14 +231,16 @@ void main() {
 
 Future<http.Response> postJSON(dynamic body) {
   if (body == null) {
-    return http.post("http://localhost:4040", headers: {
+    return http.post(Uri.parse("http://localhost:4040"), headers: {
       "Content-Type": "application/json"
+      // ignore: return_of_invalid_type_from_catch_error
     }).catchError((err) => null);
   }
   return http
-      .post("http://localhost:4040",
+      .post(Uri.parse("http://localhost:4040"),
           headers: {"Content-Type": "application/json"},
           body: json.encode(body))
+      // ignore: return_of_invalid_type_from_catch_error
       .catchError((err) => null);
 }
 
@@ -245,13 +248,13 @@ class TestModel extends ManagedObject<_TestModel> implements _TestModel {}
 
 class _TestModel {
   @primaryKey
-  int id;
+  late int id;
 
-  String name;
+  String? name;
 }
 
 class TestSerializable extends Serializable {
-  Map<String, dynamic> contents;
+  Map<String, dynamic>? contents;
 
   @override
   void readFromMap(Map<String, dynamic> object) {
@@ -259,7 +262,7 @@ class TestSerializable extends Serializable {
   }
 
   @override
-  Map<String, dynamic> asMap() {
+  Map<String, dynamic>? asMap() {
     return contents;
   }
 }
@@ -271,7 +274,7 @@ class CrashModel extends Serializable {
   }
 
   @override
-  Map<String, dynamic> asMap() {
+  Map<String, dynamic>? asMap() {
     return null;
   }
 }
@@ -292,14 +295,14 @@ class ListTestController extends ResourceController {
 
 class OptionalTestController extends ResourceController {
   @Operation.post()
-  Future<Response> create({@Bind.body() TestModel tm}) async {
+  Future<Response> create({@Bind.body() TestModel? tm}) async {
     return Response.ok(tm);
   }
 }
 
 class PropertyTestController extends ResourceController {
   @Bind.body()
-  TestModel tm;
+  TestModel? tm;
 
   @Operation.post()
   Future<Response> create() async {

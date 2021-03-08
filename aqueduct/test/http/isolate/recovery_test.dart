@@ -12,7 +12,7 @@ void main() {
 
     tearDown(() async {
       print("stopping");
-      await app?.stop();
+      await app.stop();
       print("stopped");
     });
 
@@ -26,10 +26,10 @@ void main() {
       await app.start(numberOfInstances: 1);
 
       // This request will generate an uncaught exception
-      var failFuture = http.get("http://localhost:8888/?crash=true");
+      var failFuture = http.get(Uri.parse("http://localhost:8888/?crash=true"));
 
       // This request will come in right after the failure but should succeed
-      var successFuture = http.get("http://localhost:8888/");
+      var successFuture = http.get(Uri.parse("http://localhost:8888/"));
 
       // Ensure both requests respond with 200, since the failure occurs asynchronously AFTER the response has been generated
       // for the failure case.
@@ -46,7 +46,8 @@ void main() {
       expect(errorMessage.stackTrace, isNotNull);
 
       // And then we should make sure everything is working just fine.
-      expect((await http.get("http://localhost:8888/")).statusCode, 200);
+      expect((await http.get(Uri.parse("http://localhost:8888/"))).statusCode,
+          200);
       print("succeeded in final request");
     });
 
@@ -68,9 +69,9 @@ void main() {
 
       // Throw some deferred crashers then some success messages at the server
       var failFutures = Iterable.generate(5)
-          .map((_) => http.get("http://localhost:8888/?crash=true"));
+          .map((_) => http.get(Uri.parse("http://localhost:8888/?crash=true")));
 
-      var successResponse = await http.get("http://localhost:8888/");
+      var successResponse = await http.get(Uri.parse("http://localhost:8888/"));
       expect(successResponse.statusCode, 200);
       expect((await Future.wait(failFutures)).map((r) => r.statusCode),
           everyElement(200));

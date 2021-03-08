@@ -147,15 +147,15 @@ void main() {
 }
 
 class ClientServer {
-  HttpServer server;
-  HttpClient client;
+  HttpServer? server;
+  HttpClient? client;
 
   List<Request> _requests = [];
 
   Future open() async {
     client = HttpClient();
     server = await HttpServer.bind(InternetAddress.loopbackIPv4, 8123);
-    server.map((r) => Request(r)).listen((r) {
+    server!.map((r) => Request(r)).listen((r) {
       _requests.add(r);
       r.raw.response.statusCode = 200;
       r.raw.response.close();
@@ -164,14 +164,14 @@ class ClientServer {
 
   Future close() async {
     _requests = [];
-    client.close(force: true);
-    await server.close();
+    client?.close(force: true);
+    await server?.close();
   }
 
-  Future<Request> getWithTypes(List<String> contentTypeStrings) async {
+  Future<Request> getWithTypes(List<String>? contentTypeStrings) async {
     assert(_requests.isEmpty);
 
-    var req = await client.openUrl("GET", Uri.parse("http://localhost:8123"));
+    var req = await client!.openUrl("GET", Uri.parse("http://localhost:8123"));
     if (contentTypeStrings != null) {
       if (contentTypeStrings.isEmpty) {
         req.headers.set(HttpHeaders.acceptHeader, "");

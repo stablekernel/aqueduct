@@ -18,20 +18,20 @@ class DupInverseHas extends ManagedObject<_DupInverseHas> {}
 
 class _DupInverseHas {
   @primaryKey
-  int id;
+  late int id;
 
-  ManagedSet<DupInverse> inverse;
+  ManagedSet<DupInverse>? inverse;
 }
 
 class DupInverse extends ManagedObject<_DupInverse> {}
 
 class _DupInverse {
   @primaryKey
-  int id;
+  late int id;
 
   @Relate(Symbol('inverse'))
-  DupInverseHas foo;
+  DupInverseHas? foo;
 
   @Relate(Symbol('inverse'))
-  DupInverseHas bar;
+  DupInverseHas? bar;
 }

@@ -18,7 +18,7 @@ void main() {
 }
 
 class MutablePropertyController extends Controller {
-  String mutableProperty;
+  String? mutableProperty;
 
   @override
   FutureOr<RequestOrResponse> handle(Request request) {

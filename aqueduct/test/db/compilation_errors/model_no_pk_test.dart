@@ -5,7 +5,7 @@ class NoPrimaryKey extends ManagedObject<_NoPrimaryKey>
     implements _NoPrimaryKey {}
 
 class _NoPrimaryKey {
-  String foo;
+  String? foo;
 }
 
 void main() {

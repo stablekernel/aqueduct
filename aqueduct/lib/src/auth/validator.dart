@@ -21,7 +21,7 @@ abstract class AuthValidator {
   /// If this method throws an [AuthServerException], an appropriate status code is sent for the details of the exception.
   ///
   /// If [requiredScope] is provided, a request's authorization must have at least that much scope to pass the [Authorizer].
-  FutureOr<Authorization> validate<T>(
+  FutureOr<Authorization?> validate<T>(
       AuthorizationParser<T> parser, T authorizationData,
       {List<AuthScope>? requiredScope});
 

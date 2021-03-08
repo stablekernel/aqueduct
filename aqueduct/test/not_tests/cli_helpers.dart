@@ -10,7 +10,7 @@ import 'package:command_line_agent/command_line_agent.dart';
 class CLIClient {
   CLIClient(this.agent);
 
-  final CommandLineAgent agent;
+  final CommandLineAgent? agent;
 
   ProjectAgent get projectAgent {
     if (agent is ProjectAgent) {
@@ -20,7 +20,7 @@ class CLIClient {
     throw StateError("is not a project terminal");
   }
 
-  List<String> defaultArgs;
+  List<String>? defaultArgs;
 
   String get output {
     return _output.toString();
@@ -41,15 +41,16 @@ class CLIClient {
   }
 
   Directory get defaultMigrationDirectory {
-    return Directory.fromUri(agent.workingDirectory.uri.resolve("migrations/"));
+    return Directory.fromUri(
+        agent!.workingDirectory.uri.resolve("migrations/"));
   }
 
   Directory get libraryDirectory {
-    return Directory.fromUri(agent.workingDirectory.uri.resolve("lib/"));
+    return Directory.fromUri(agent!.workingDirectory.uri.resolve("lib/"));
   }
 
   void delete() {
-    agent.workingDirectory.deleteSync(recursive: true);
+    agent!.workingDirectory.deleteSync(recursive: true);
   }
 
   CLIClient replicate(Uri uri) {
@@ -63,7 +64,7 @@ class CLIClient {
       dstDirectory.deleteSync(recursive: true);
     }
     CommandLineAgent.copyDirectory(
-        src: agent.workingDirectory.uri, dst: dstUri);
+        src: agent!.workingDirectory.uri, dst: dstUri);
     return CLIClient(ProjectAgent.existing(dstUri));
   }
 
@@ -73,7 +74,7 @@ class CLIClient {
 
   Future<CLIClient> createProject(
       {String name = "application_test",
-      String template,
+      String? template,
       bool offline = true}) async {
     if (template == null) {
       final client = CLIClient(ProjectAgent(name, dependencies: {
@@ -111,9 +112,7 @@ class TestChannel extends ApplicationChannel {
     } catch (_) {}
 
     final args = <String>[];
-    if (template != null) {
-      args.addAll(["-t", template]);
-    }
+    args.addAll(["-t", template]);
 
     if (offline) {
       args.add("--offline");
@@ -162,14 +161,14 @@ class TestChannel extends ApplicationChannel {
     return files;
   }
 
-  Future<int> run(String command, [List<String> args]) async {
+  Future<int> run(String command, [List<String>? args]) async {
     args ??= [];
     args.insert(0, command);
     args.addAll(defaultArgs ?? []);
 
     print("Running 'aqueduct ${args.join(" ")}'");
     final saved = Directory.current;
-    Directory.current = agent.workingDirectory;
+    Directory.current = agent!.workingDirectory;
 
     var cmd = Runner()..outputSink = _output;
     var results = cmd.options.parse(args);
@@ -184,14 +183,14 @@ class TestChannel extends ApplicationChannel {
     return exitCode;
   }
 
-  CLITask start(String command, List<String> inputArgs) {
+  CLITask start(String command, List<String>? inputArgs) {
     final args = inputArgs ?? [];
     args.insert(0, command);
     args.addAll(defaultArgs ?? []);
 
     print("Starting 'aqueduct ${args.join(" ")}'");
     final saved = Directory.current;
-    Directory.current = agent.workingDirectory;
+    Directory.current = agent!.workingDirectory;
 
     var cmd = Runner()..outputSink = _output;
     var results = cmd.options.parse(args);
@@ -202,7 +201,7 @@ class TestChannel extends ApplicationChannel {
       if (cmd.runningProcess != null) {
         t.cancel();
         Directory.current = saved;
-        task.process = cmd.runningProcess;
+        task.process = cmd.runningProcess!;
         task._processStarted.complete(true);
       } else {
         elapsed += 100;
@@ -235,14 +234,14 @@ class TestChannel extends ApplicationChannel {
 }
 
 class CLIResult {
-  int exitCode;
+  int? exitCode;
   StringBuffer collectedOutput = StringBuffer();
 
   String get output => collectedOutput.toString();
 }
 
 class CLITask {
-  StoppableProcess process;
+  StoppableProcess? process;
 
   Future get hasStarted => _processStarted.future;
 

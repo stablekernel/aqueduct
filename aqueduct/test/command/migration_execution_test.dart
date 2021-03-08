@@ -11,19 +11,19 @@ import 'package:test/test.dart';
 
 import '../not_tests/cli_helpers.dart';
 
-CLIClient cli;
+CLIClient? cli;
 DatabaseConfiguration connectInfo = DatabaseConfiguration.withConnectionInfo(
     "dart", "dart", "localhost", 5432, "dart_test");
 String connectString =
     "postgres://${connectInfo.username}:${connectInfo.password}@${connectInfo.host}:${connectInfo.port}/${connectInfo.databaseName}";
 
 void main() {
-  PostgreSQLPersistentStore store;
+  PostgreSQLPersistentStore? store;
 
   setUpAll(() async {
     final t = CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory));
     cli = await t.createProject();
-    await cli.agent.getDependencies(offline: true);
+    await cli!.agent!.getDependencies(offline: true);
   });
 
   setUp(() async {
@@ -35,10 +35,10 @@ void main() {
         connectInfo.port,
         connectInfo.databaseName);
 
-    if (cli.defaultMigrationDirectory.existsSync()) {
-      cli.defaultMigrationDirectory.deleteSync(recursive: true);
+    if (cli!.defaultMigrationDirectory.existsSync()) {
+      cli!.defaultMigrationDirectory.deleteSync(recursive: true);
     }
-    cli.defaultMigrationDirectory.createSync();
+    cli!.defaultMigrationDirectory.createSync();
   });
 
   tearDown(() async {
@@ -49,7 +49,7 @@ void main() {
     ];
 
     await Future.wait(tables.map((t) {
-      return store.execute("DROP TABLE IF EXISTS $t");
+      return store!.execute("DROP TABLE IF EXISTS $t");
     }));
     await store?.close();
   });
@@ -58,17 +58,17 @@ void main() {
 
   test("Upgrade with no migration files returns 0 exit code", () async {
     expect(await runMigrationCases([]), 0);
-    expect(cli.output, contains("No migration files"));
+    expect(cli!.output, contains("No migration files"));
   });
 
   test("Generate and execute initial schema makes workable DB", () async {
     expect(await runMigrationCases(["Case1"]), 0);
-    var version = await store
+    var version = await store!
         .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
     expect(version, [
       [1]
     ]);
-    expect(await columnsOfTable(store, "_testobject"), ["id", "foo"]);
+    expect(await columnsOfTable(store!, "_testobject"), ["id", "foo"]);
   });
 
   test(
@@ -76,64 +76,64 @@ void main() {
       () async {
     expect(await runMigrationCases(["Case2"]), 0);
 
-    var versionRow = await store.execute(
+    var versionRow = await store!.execute(
             "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql")
         as List<List<dynamic>>;
     expect(versionRow.first.first, 1);
     var updateDate = versionRow.first.last;
 
-    cli.clearOutput();
+    cli!.clearOutput();
     expect(await runMigrationCases(["Case2"]), 0);
-    versionRow = await store.execute(
+    versionRow = await store!.execute(
             "SELECT versionNumber, dateOfUpgrade FROM _aqueduct_version_pgsql")
         as List<List>;
     expect(versionRow.length, 1);
     expect(versionRow.first.last, equals(updateDate));
-    expect(cli.output, contains("already current (version: 1)"));
+    expect(cli!.output, contains("already current (version: 1)"));
   });
 
   test("Multiple migration files are ran", () async {
     expect(await runMigrationCases(["Case31", "Case32"]), 0);
 
-    var version = await store
+    var version = await store!
         .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
     expect(version, [
       [1],
       [2]
     ]);
-    expect(await columnsOfTable(store, "_testobject"), ["id", "foo"]);
-    expect(await columnsOfTable(store, "_foo"), ["id", "testobject_id"]);
+    expect(await columnsOfTable(store!, "_testobject"), ["id", "foo"]);
+    expect(await columnsOfTable(store!, "_foo"), ["id", "testobject_id"]);
   });
 
   test("Only later migration files are ran if already at a version", () async {
     expect(await runMigrationCases(["Case41"]), 0);
-    var version = await store
+    var version = await store!
         .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
     expect(version, [
       [1]
     ]);
-    cli.clearOutput();
+    cli!.clearOutput();
 
-    expect(await columnsOfTable(store, "_testobject"), ["id", "foo"]);
-    expect(await tableExists(store, "_foo"), false);
+    expect(await columnsOfTable(store!, "_testobject"), ["id", "foo"]);
+    expect(await tableExists(store!, "_foo"), false);
 
     expect(await runMigrationCases(["Case42"], fromVersion: 1), 0);
-    version = await store
+    version = await store!
         .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
     expect(version, [
       [1],
       [2]
     ]);
 
-    expect(await columnsOfTable(store, "_testobject"), ["id", "foo"]);
-    expect(await columnsOfTable(store, "_foo"), ["id", "testobject_id"]);
+    expect(await columnsOfTable(store!, "_testobject"), ["id", "foo"]);
+    expect(await columnsOfTable(store!, "_foo"), ["id", "testobject_id"]);
   });
 
   test("If migration throws exception, rollback any changes", () async {
     expect(await runMigrationCases(["Case5"]), isNot(0));
 
-    expect(await tableExists(store, store.versionTable.name), false);
-    expect(await tableExists(store, "_testobject"), false);
+    expect(await tableExists(store!, store!.versionTable.name!), false);
+    expect(await tableExists(store!, "_testobject"), false);
   });
 
   test(
@@ -147,42 +147,42 @@ void main() {
       () async {
     expect(await runMigrationCases(["Case61", "Case62", "Case63"]), isNot(0));
 
-    expect(cli.output.contains("Applied schema version 1 successfully"), true);
-    expect(cli.output, contains("relation \"_unknowntable\" does not exist"));
+    expect(cli!.output.contains("Applied schema version 1 successfully"), true);
+    expect(cli!.output, contains("relation \"_unknowntable\" does not exist"));
 
-    expect(await tableExists(store, store.versionTable.name), false);
-    expect(await tableExists(store, "_testobject"), false);
-    expect(await tableExists(store, "_foo"), false);
+    expect(await tableExists(store!, store!.versionTable.name!), false);
+    expect(await tableExists(store!, "_testobject"), false);
+    expect(await tableExists(store!, "_foo"), false);
   });
 
   test(
       "If migrations have already been applied, and migrations occur where the first fails, those pending migrations are cancelled",
       () async {
     expect(await runMigrationCases(["Case61"]), 0);
-    expect(cli.output.contains("Applied schema version 1 successfully"), true);
-    cli.clearOutput();
+    expect(cli!.output.contains("Applied schema version 1 successfully"), true);
+    cli!.clearOutput();
 
     expect(await runMigrationCases(["Case62", "Case63"], fromVersion: 1),
         isNot(0));
 
-    expect(cli.output, contains("relation \"_unknowntable\" does not exist"));
+    expect(cli!.output, contains("relation \"_unknowntable\" does not exist"));
 
-    final version = await store
+    final version = await store!
         .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");
     expect(version, [
       [1],
     ]);
 
-    expect(await tableExists(store, store.versionTable.name), true);
-    expect(await tableExists(store, "_testobject"), true);
-    expect(await tableExists(store, "_foo"), false);
+    expect(await tableExists(store!, store!.versionTable.name!), true);
+    expect(await tableExists(store!, "_testobject"), true);
+    expect(await tableExists(store!, "_foo"), false);
   });
 
   test("If seed fails, all schema changes are rolled back", () async {
     expect(await runMigrationCases(["Case7"]), isNot(0));
 
-    expect(await tableExists(store, store.versionTable.name), false);
-    expect(await tableExists(store, "_testobject"), false);
+    expect(await tableExists(store!, store!.versionTable.name!), false);
+    expect(await tableExists(store!, "_testobject"), false);
   });
 
   test(
@@ -240,20 +240,20 @@ List<MigrationSource> getOrderedTestMigrations(List<String> names,
 }
 
 Future runMigrationCases(List<String> migrationNames,
-    {int fromVersion = 0, StringSink log}) async {
+    {int fromVersion = 0, StringSink? log}) async {
   final migs =
       getOrderedTestMigrations(migrationNames, fromVersion: fromVersion);
 
   for (var mig in migs) {
-    final file = File.fromUri(cli.defaultMigrationDirectory.uri
+    final file = File.fromUri(cli!.defaultMigrationDirectory.uri
         .resolve("${mig.versionNumber}_name.migration.dart"));
     file.writeAsStringSync(
         "import 'dart:async';\nimport 'package:aqueduct/aqueduct.dart';\n${mig.source}");
   }
 
-  final res = await cli.run("db", ["upgrade", "--connect", connectString]);
+  final res = await cli!.run("db", ["upgrade", "--connect", connectString]);
 
-  log?.write(cli.output);
+  log?.write(cli!.output);
 
   return res;
 }
@@ -261,7 +261,7 @@ Future runMigrationCases(List<String> migrationNames,
 class Case1 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(SchemaTable(
+    database!.createTable(SchemaTable(
       "_TestObject",
       [
         SchemaColumn("id", ManagedPropertyType.bigInteger,
@@ -290,7 +290,7 @@ class Case1 extends Migration {
 class Case2 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(SchemaTable(
+    database!.createTable(SchemaTable(
       "_TestObject",
       [
         SchemaColumn("id", ManagedPropertyType.bigInteger,
@@ -319,7 +319,7 @@ class Case2 extends Migration {
 class Case31 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(SchemaTable(
+    database!.createTable(SchemaTable(
       "_TestObject",
       [
         SchemaColumn("id", ManagedPropertyType.bigInteger,
@@ -348,7 +348,7 @@ class Case31 extends Migration {
 class Case32 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(SchemaTable(
+    database!.createTable(SchemaTable(
       "_Foo",
       [
         SchemaColumn("id", ManagedPropertyType.bigInteger,
@@ -377,7 +377,7 @@ class Case32 extends Migration {
 class Case41 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(SchemaTable(
+    database!.createTable(SchemaTable(
       "_TestObject",
       [
         SchemaColumn("id", ManagedPropertyType.bigInteger,
@@ -406,7 +406,7 @@ class Case41 extends Migration {
 class Case42 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(SchemaTable(
+    database!.createTable(SchemaTable(
       "_Foo",
       [
         SchemaColumn("id", ManagedPropertyType.bigInteger,
@@ -435,7 +435,7 @@ class Case42 extends Migration {
 class Case5 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(SchemaTable(
+    database!.createTable(SchemaTable(
       "_TestObject",
       [
         SchemaColumn("id", ManagedPropertyType.bigInteger,
@@ -452,7 +452,7 @@ class Case5 extends Migration {
             isUnique: false),
       ],
     ));
-    database.deleteTable("_Foo");
+    database!.deleteTable("_Foo");
   }
 
   @override
@@ -465,7 +465,7 @@ class Case5 extends Migration {
 class Case61 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(SchemaTable(
+    database!.createTable(SchemaTable(
       "_TestObject",
       [
         SchemaColumn("id", ManagedPropertyType.bigInteger,
@@ -494,7 +494,7 @@ class Case61 extends Migration {
 class Case62 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(SchemaTable(
+    database!.createTable(SchemaTable(
       "_Foo",
       [
         SchemaColumn("id", ManagedPropertyType.bigInteger,
@@ -523,7 +523,7 @@ class Case62 extends Migration {
 class Case63 extends Migration {
   @override
   Future upgrade() async {
-    database.addColumn(
+    database!.addColumn(
         "_TestObject",
         SchemaColumn("name", ManagedPropertyType.string,
             isPrimaryKey: false,
@@ -544,7 +544,7 @@ class Case63 extends Migration {
 class Case7 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(SchemaTable(
+    database!.createTable(SchemaTable(
       "_TestObject",
       [
         SchemaColumn("id", ManagedPropertyType.bigInteger,
@@ -568,7 +568,7 @@ class Case7 extends Migration {
 
   @override
   Future seed() async {
-    await database.store
+    await database!.store!
         .execute("INSERT INTO InvalidTable (foo) VALUES ('foo')");
   }
 }
@@ -576,7 +576,7 @@ class Case7 extends Migration {
 class Case81 extends Migration {
   @override
   Future upgrade() async {
-    database.createTable(SchemaTable(
+    database!.createTable(SchemaTable(
       "_TestObject",
       [
         SchemaColumn("id", ManagedPropertyType.bigInteger,
@@ -594,14 +594,14 @@ class Case81 extends Migration {
 
   @override
   Future seed() async {
-    await store.execute("INSERT INTO _TestObject VALUES (default)");
+    await store!.execute("INSERT INTO _TestObject VALUES (default)");
   }
 }
 
 class Case82 extends Migration {
   @override
   Future upgrade() async {
-    database.addColumn(
+    database!.addColumn(
         "_TestObject",
         SchemaColumn("name", ManagedPropertyType.string,
             isPrimaryKey: false,

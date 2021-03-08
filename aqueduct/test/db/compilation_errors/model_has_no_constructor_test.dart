@@ -19,5 +19,5 @@ class HasNoDefaultConstructor extends ManagedObject<_ConstructorTableDef> {
 
 class _ConstructorTableDef {
   @primaryKey
-  int id;
+  late int id;
 }

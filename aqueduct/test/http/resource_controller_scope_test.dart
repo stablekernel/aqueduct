@@ -9,7 +9,7 @@ import 'package:aqueduct/src/dev/helpers.dart';
 
 void main() {
   final app = Application<Channel>();
-  Agent client;
+  Agent? client;
 
   setUpAll(() async {
     await app.startOnCurrentIsolate();
@@ -38,63 +38,63 @@ void main() {
   test(
       "If method has no scope restrictions (but Authorizer does), allow request if passes authorizer",
       () async {
-    client.headers["authorization"] = "Bearer level1";
-    expectResponse(await client.request("/level1-authorizer").get(), 200);
+    client!.headers["authorization"] = "Bearer level1";
+    expectResponse(await client!.request("/level1-authorizer").get(), 200);
   });
 
   test("When no Authorizer and method has scope, a 500 error is thrown",
       () async {
     // Log warning
-    client.headers["authorization"] = "Bearer level1";
-    expectResponse(await client.request("/no-authorizer").put(), 500);
+    client!.headers["authorization"] = "Bearer level1";
+    expectResponse(await client!.request("/no-authorizer").put(), 500);
   });
 
   test(
       "When no Authorizer and method does not have scope, request is successful",
       () async {
-    client.headers["authorization"] = "Bearer level1";
-    expectResponse(await client.request("/no-authorizer").get(), 200);
+    client!.headers["authorization"] = "Bearer level1";
+    expectResponse(await client!.request("/no-authorizer").get(), 200);
   });
 
   test("If token has sufficient scope for method, allow it", () async {
-    client.headers["authorization"] = "Bearer level1";
-    expectResponse(await client.request("/level1-authorizer").put(), 200);
+    client!.headers["authorization"] = "Bearer level1";
+    expectResponse(await client!.request("/level1-authorizer").put(), 200);
   });
 
   test(
       "If token does not have sufficient scope for method, return 403 and include required scope in body",
       () async {
-    client.headers["authorization"] = "Bearer level1";
-    expectResponse(await client.request("/level1-authorizer").post(), 403,
+    client!.headers["authorization"] = "Bearer level1";
+    expectResponse(await client!.request("/level1-authorizer").post(), 403,
         body: {"error": "insufficient_scope", "scope": "level1 level2"});
   });
 
   test(
       "If token has sufficient scope for method requiring multiple scopes, allow it",
       () async {
-    client.headers["authorization"] = "Bearer level1 level2";
-    expectResponse(await client.request("/level1-authorizer").delete(), 200);
+    client!.headers["authorization"] = "Bearer level1 level2";
+    expectResponse(await client!.request("/level1-authorizer").delete(), 200);
   });
 
   test(
       "If token has sufficient scope for only ONE of required scopes, do not allow it",
       () async {
-    client.headers["authorization"] = "Bearer level1";
-    expectResponse(await client.request("/level1-authorizer").delete(), 403,
+    client!.headers["authorization"] = "Bearer level1";
+    expectResponse(await client!.request("/level1-authorizer").delete(), 403,
         body: {"error": "insufficient_scope", "scope": "level1 level2"});
   });
 
   test(
       "If token does not have any sufficient scopes for method requiring multiple scopes, do not allow it",
       () async {
-    client.headers["authorization"] = "Bearer no-scope";
-    expectResponse(await client.request("/authorizer").delete(), 403,
+    client!.headers["authorization"] = "Bearer no-scope";
+    expectResponse(await client!.request("/authorizer").delete(), 403,
         body: {"error": "insufficient_scope", "scope": "level1 level2"});
   });
 }
 
 class Channel extends ApplicationChannel {
-  AuthServer authServer;
+  AuthServer? authServer;
 
   @override
   Controller get entryPoint {
@@ -105,15 +105,16 @@ class Channel extends ApplicationChannel {
     router.route("/no-authorizer").link(() => C1());
     router
         .route("/level1-authorizer")
-        .link(() => Authorizer.bearer(authServer, scopes: ["level1"]))
+        .link(() => Authorizer.bearer(authServer!, scopes: ["level1"]))!
         .link(() => C1());
     router
         .route("/level1-subscope-authorizer")
-        .link(() => Authorizer.bearer(authServer, scopes: ["level1:subscope"]))
+        .link(
+            () => Authorizer.bearer(authServer!, scopes: ["level1:subscope"]))!
         .link(() => C1());
     router
         .route("/authorizer")
-        .link(() => Authorizer.bearer(authServer))
+        .link(() => Authorizer.bearer(authServer!))!
         .link(() => C1());
 
     return router;
