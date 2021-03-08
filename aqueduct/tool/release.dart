@@ -37,11 +37,7 @@ class Runner {
   List<Function> _cleanup = [];
   bool get isDryRun => options["dry-run"] as bool;
   bool get docsOnly => options["docs-only"] as bool;
-<<<<<<< Updated upstream
-  String get name => options["name"] as String;
-=======
   String? get name => options["name"] as String?;
->>>>>>> Stashed changes
   Uri baseReferenceURL =
       Uri.parse("https://www.dartdocs.org/documentation/aqueduct/latest/");
 
@@ -252,11 +248,7 @@ class Runner {
   }
 
   Future postGithubRelease(
-<<<<<<< Updated upstream
-      String version, String name, String description) async {
-=======
       String? version, String? name, String? description) async {
->>>>>>> Stashed changes
     var body =
         json.encode({"tag_name": version, "name": name, "body": description});
 
@@ -265,12 +257,8 @@ class Runner {
 
     if (!isDryRun) {
       var response = await http.post(
-<<<<<<< Updated upstream
-          "https://api.github.com/repos/stablekernel/aqueduct/releases",
-=======
           Uri.parse(
               "https://api.github.com/repos/stablekernel/aqueduct/releases"),
->>>>>>> Stashed changes
           headers: {
             "Content-Type": "application/json",
             "Authorization": "Bearer ${configuration.githubToken}"
@@ -353,13 +341,8 @@ class Runner {
       }
 
       var qualifiedKey =
-<<<<<<< Updated upstream
-          libraries.fold(resolution.qualifiedName, (String p, e) {
-        return p.replaceFirst("$e.", "");
-=======
           libraries.fold(resolution.qualifiedName, (String? p, e) {
         return p?.replaceFirst("$e.", "");
->>>>>>> Stashed changes
       });
       if (!qualifiedMap.containsKey(qualifiedKey)) {
         qualifiedMap[qualifiedKey!] = [resolution];
@@ -403,11 +386,7 @@ class Runner {
     for (var subdirectory in subdirectories) {
       var dirName = subdirectory
           .uri.pathSegments[subdirectory.uri.pathSegments.length - 2];
-<<<<<<< Updated upstream
-      var destinationDir =
-=======
       Directory? destinationDir =
->>>>>>> Stashed changes
           Directory.fromUri(destination.uri.resolve("$dirName"));
 
       for (var t in transformers) {
@@ -506,15 +485,9 @@ class APIReferenceTransformer extends Transformer {
       var symbol = match.group(1);
       var resolution = bestGuessForSymbol(symbol);
       if (resolution != null) {
-<<<<<<< Updated upstream
-        symbol = symbol.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-        var replacement = constructedReferenceURLFrom(
-            baseReferenceURL, resolution.link.split("/"));
-=======
         symbol = symbol?.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         var replacement = constructedReferenceURLFrom(
             baseReferenceURL, resolution.link?.split("/"));
->>>>>>> Stashed changes
         contents = contents.replaceRange(
             match.start, match.end, "<a href=\"$replacement\">$symbol</a>");
       } else {
@@ -531,11 +504,7 @@ class APIReferenceTransformer extends Transformer {
     }
 
     final symbol = inputSymbol
-<<<<<<< Updated upstream
-        .replaceAll("<T>", "")
-=======
         ?.replaceAll("<T>", "")
->>>>>>> Stashed changes
         .replaceAll("@", "")
         .replaceAll("()", "");
 
@@ -555,24 +524,14 @@ class APIReferenceTransformer extends Transformer {
   }
 }
 
-<<<<<<< Updated upstream
-Uri constructedReferenceURLFrom(Uri base, List<String> relativePathComponents) {
-  var subdirectories =
-      relativePathComponents.sublist(0, relativePathComponents.length - 1);
-=======
 Uri constructedReferenceURLFrom(
     Uri base, List<String>? relativePathComponents) {
   var subdirectories =
       relativePathComponents?.sublist(0, relativePathComponents.length - 1) ??
           [];
->>>>>>> Stashed changes
   Uri enclosingDir = subdirectories.fold(base, (Uri prev, elem) {
     return prev.resolve("$elem/");
   });
 
-<<<<<<< Updated upstream
-  return enclosingDir.resolve(relativePathComponents.last);
-=======
   return enclosingDir.resolve(relativePathComponents?.last ?? "");
->>>>>>> Stashed changes
 }
