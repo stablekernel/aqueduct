@@ -303,11 +303,7 @@ class SchemaColumnDifference {
 
       if (expectedColumn!.isUnique != actualColumn!.isUnique) {
         _differingProperties.add(_PropertyDifference(
-<<<<<<< Updated upstream
-            "isUnique", expectedColumn.isUnique, actualColumn.isUnique));
-=======
             "isUnique", expectedColumn!.isUnique, actualColumn!.isUnique));
->>>>>>> Stashed changes
       }
 
       if (expectedColumn!.isNullable != actualColumn!.isNullable) {
@@ -359,11 +355,7 @@ class SchemaColumnDifference {
 
     return _differingProperties.map((property) {
       return property.getErrorMessage(
-<<<<<<< Updated upstream
-          expectedColumn.table.name, expectedColumn.name);
-=======
           expectedColumn!.table!.name ?? '', expectedColumn!.name);
->>>>>>> Stashed changes
     }).toList();
   }
 

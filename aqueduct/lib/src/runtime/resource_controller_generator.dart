@@ -208,11 +208,7 @@ String getOperationSource(
     ResourceControllerOperation operation) {
   final scopeElements = operation.scopes
       ?.map((s) => "AuthScope(${sourcifyValue(s.toString())})")
-<<<<<<< Updated upstream
-      ?.join(",");
-=======
       .join(",");
->>>>>>> Stashed changes
   final namedParameters = operation.namedParameters
       .map((p) => getParameterSource(context, runtime, p!))
       .join(",");

@@ -41,11 +41,7 @@ class FileController extends Controller {
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
   FileController(String pathOfDirectoryToServe,
       {FutureOr<Response> onFileNotFound(
-<<<<<<< Updated upstream
-          FileController controller, Request req)})
-=======
           FileController controller, Request req)?})
->>>>>>> Stashed changes
       : _servingDirectory = Uri.directory(pathOfDirectoryToServe),
         _onFileNotFound = onFileNotFound;
 

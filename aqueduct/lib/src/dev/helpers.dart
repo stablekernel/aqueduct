@@ -183,11 +183,7 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   @override
   void removeTokens(AuthServer server, dynamic resourceOwnerID) {
     return tokens
-<<<<<<< Updated upstream
-        .removeWhere((t) => t.resourceOwnerIdentifier == resourceOwnerID);
-=======
         .removeWhere((t) => t?.resourceOwnerIdentifier == resourceOwnerID);
->>>>>>> Stashed changes
   }
 
   @override
@@ -225,11 +221,7 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   FutureOr addToken(AuthServer server, AuthToken token,
       {AuthCode? issuedFrom}) {
     if (issuedFrom != null) {
-<<<<<<< Updated upstream
-      var existingIssued = tokens.firstWhere((t) => t.code == issuedFrom?.code,
-=======
       var existingIssued = tokens.firstWhere((t) => t?.code == issuedFrom.code,
->>>>>>> Stashed changes
           orElse: () => null);
       var replacement = TestToken.from(token);
       replacement.code = issuedFrom.code;
@@ -289,21 +281,12 @@ class InMemoryAuthStorage extends AuthServerDelegate {
       tokens.removeWhere((c) => c?.code == code);
 
   @override
-<<<<<<< Updated upstream
-  FutureOr<AuthClient> getClient(AuthServer server, String clientID) =>
-      clients[clientID];
-
-  @override
-  FutureOr removeClient(AuthServer server, String clientID) =>
-      clients.remove(clientID);
-=======
   FutureOr<AuthClient?> getClient(AuthServer server, String? clientID) =>
       clients?[clientID];
 
   @override
   FutureOr removeClient(AuthServer server, String clientID) =>
       clients?.remove(clientID);
->>>>>>> Stashed changes
 
   @override
   List<AuthScope> getAllowedScopes(ResourceOwner owner) => allowedScopes;
@@ -313,11 +296,7 @@ class DefaultPersistentStore extends PersistentStore {
   @override
   Query<T> newQuery<T extends ManagedObject>(
       ManagedContext context, ManagedEntity entity,
-<<<<<<< Updated upstream
-      {T values}) {
-=======
       {T? values}) {
->>>>>>> Stashed changes
     final q = _MockQuery<T>.withEntity(context, entity);
     if (values != null) {
       q.values = values;

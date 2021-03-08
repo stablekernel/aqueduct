@@ -97,13 +97,8 @@ class RowInstantiator {
 
     if (table.joinedBy?.relationshipType == ManagedRelationshipType.hasMany) {
       // If to many, put in a managed set.
-<<<<<<< Updated upstream
-      final list = (instance[table.joinedBy.name] ??
-          table.joinedBy.destinationEntity.setOf([])) as ManagedSet;
-=======
       final list = (instance[table.joinedBy!.name] ??
           table.joinedBy!.destinationEntity.setOf([])) as ManagedSet;
->>>>>>> Stashed changes
 
       if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
         list.add(innerInstanceWrapper.instance);

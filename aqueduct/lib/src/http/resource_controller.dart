@@ -301,11 +301,7 @@ abstract class ResourceController extends Controller
         if (p.location == BindingType.body) {
           errors.add("missing required ${p.locationName}");
         } else {
-<<<<<<< Updated upstream
-          errors.add("missing required ${p.locationName} '${p.name ?? ""}'");
-=======
           errors.add("missing required ${p.locationName} '${p.name}'");
->>>>>>> Stashed changes
         }
         return null;
       }

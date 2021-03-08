@@ -7,11 +7,7 @@ abstract class CLIDocumentOptions implements CLICommand {
       abbr: "r",
       help:
           "Whether relative URLs are resolved against the first server in document")
-<<<<<<< Updated upstream
-  bool get resolveRelativeUrls => decode("resolve-relative-urls");
-=======
   bool get resolveRelativeUrls => decode("resolve-relative-urls") ?? false;
->>>>>>> Stashed changes
 
   @Option("title", help: "API Docs: Title")
   String? get title => decode("title");

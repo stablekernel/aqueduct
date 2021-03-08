@@ -123,11 +123,7 @@ class ManagedContext implements APIComponentDocumenter {
   ///
   /// If any insertion fails, no objects will be inserted into the database and an exception
   /// is thrown.
-<<<<<<< Updated upstream
-  Future<List<T>> insertObjects<T extends ManagedObject>(
-=======
   Future<List<T>?> insertObjects<T extends ManagedObject>(
->>>>>>> Stashed changes
       List<T> objects) async {
     return transaction((transitionCtx) =>
         Future.wait(objects.map((o) => transitionCtx.insertObject(o))));
@@ -137,11 +133,7 @@ class ManagedContext implements APIComponentDocumenter {
   ///
   /// If [T] cannot be inferred, an error is thrown. If [identifier] is not the same type as [T]'s primary key,
   /// null is returned.
-<<<<<<< Updated upstream
-  Future<T> fetchObjectWithID<T extends ManagedObject>(
-=======
   Future<T?> fetchObjectWithID<T extends ManagedObject>(
->>>>>>> Stashed changes
       dynamic identifier) async {
     final entity = dataModel.entityForType(T);
     if (entity == null) {

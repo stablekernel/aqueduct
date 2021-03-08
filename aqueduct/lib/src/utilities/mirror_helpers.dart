@@ -24,9 +24,5 @@ List<T> allMetadataOfType<T>(DeclarationMirror dm) {
 }
 
 String getMethodAndClassName(VariableMirror mirror) {
-<<<<<<< Updated upstream
-  return "${MirrorSystem.getName(mirror.owner.owner.simpleName)}.${MirrorSystem.getName(mirror.owner.simpleName)}";
-=======
   return "${MirrorSystem.getName(mirror.owner!.owner!.simpleName)}.${MirrorSystem.getName(mirror.owner!.simpleName)}";
->>>>>>> Stashed changes
 }

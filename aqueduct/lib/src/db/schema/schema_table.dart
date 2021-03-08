@@ -80,13 +80,8 @@ class SchemaTable {
   List<SchemaColumn?> get columns => List.unmodifiable(_columnStorage ?? []);
 
   bool get hasForeignKeyInUniqueSet => columns
-<<<<<<< Updated upstream
-      .where((c) => c.isForeignKey)
-      .any((c) => uniqueColumnSet?.contains(c.name) ?? false);
-=======
       .where((c) => c?.isForeignKey ?? false)
       .any((c) => uniqueColumnSet?.contains(c?.name) ?? false);
->>>>>>> Stashed changes
 
   List<SchemaColumn>? _columnStorage;
   List<String>? _uniqueColumnSet;

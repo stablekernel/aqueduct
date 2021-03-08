@@ -41,16 +41,8 @@ class QueryPredicate {
   /// one predicate, that predicate is returned.
   factory QueryPredicate.and(Iterable<QueryPredicate?> predicates) {
     var predicateList = predicates
-<<<<<<< Updated upstream
-        ?.where((p) => p?.format != null && p.format.isNotEmpty)
-        ?.toList();
-    if (predicateList == null) {
-      return QueryPredicate.empty();
-    }
-=======
         .where((p) => p?.format != null && p!.format!.isNotEmpty)
         .toList();
->>>>>>> Stashed changes
 
     if (predicateList.isEmpty) {
       return QueryPredicate.empty();
@@ -65,15 +57,9 @@ class QueryPredicate {
     final allFormatStrings = [];
     final valueMap = <String?, dynamic>{};
     for (var predicate in predicateList) {
-<<<<<<< Updated upstream
-      final duplicateKeys = predicate.parameters?.keys
-              ?.where((k) => valueMap.keys.contains(k))
-              ?.toList() ??
-=======
       final duplicateKeys = predicate?.parameters?.keys
               .where((k) => valueMap.keys.contains(k))
               .toList() ??
->>>>>>> Stashed changes
           [];
 
       if (duplicateKeys.isNotEmpty) {

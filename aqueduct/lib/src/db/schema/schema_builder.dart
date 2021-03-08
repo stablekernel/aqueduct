@@ -384,13 +384,8 @@ class SchemaBuilder {
 
       if (!c.isNullable && c.defaultValue == null) {
         changeList?.add(
-<<<<<<< Updated upstream
-            "WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
-            "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
-=======
             "WARNING: This migration may fail if table '${difference.actualTable?.name}' already has rows. "
             "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable?.name}\", "
->>>>>>> Stashed changes
             "SchemaColumn(\"${c.name}\", ...)'.");
       }
     });
@@ -413,15 +408,6 @@ class SchemaBuilder {
         c.deleteRule = columnDiff.actualColumn!.deleteRule;
       });
 
-<<<<<<< Updated upstream
-      if (columnDiff.expectedColumn.isNullable &&
-          !columnDiff.actualColumn.isNullable &&
-          columnDiff.actualColumn.defaultValue == null) {
-        changeList?.add(
-            "WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
-            "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
-            "SchemaColumn(\"${columnDiff.actualColumn.name}\", ...)'.");
-=======
       if (columnDiff.expectedColumn!.isNullable &&
           !columnDiff.actualColumn!.isNullable &&
           columnDiff.actualColumn!.defaultValue == null) {
@@ -429,7 +415,6 @@ class SchemaBuilder {
             "WARNING: This migration may fail if table '${difference.actualTable!.name}' already has rows. "
             "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable!.name}\", "
             "SchemaColumn(\"${columnDiff.actualColumn!.name}\", ...)'.");
->>>>>>> Stashed changes
       }
     });
 

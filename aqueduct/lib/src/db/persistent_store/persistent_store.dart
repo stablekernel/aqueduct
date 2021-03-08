@@ -21,11 +21,7 @@ abstract class PersistentStore {
   /// should mixin [QueryMixin] to most of the behavior provided by a query.
   Query<T> newQuery<T extends ManagedObject>(
       ManagedContext context, ManagedEntity entity,
-<<<<<<< Updated upstream
-      {T values});
-=======
       {T? values});
->>>>>>> Stashed changes
 
   /// Executes an arbitrary command.
   Future execute(String sql, {Map<String, dynamic> substitutionValues});

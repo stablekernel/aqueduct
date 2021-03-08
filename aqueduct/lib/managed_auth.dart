@@ -239,7 +239,7 @@ class ResourceOwnerTableDefinition implements ResourceOwner {
   /// The username of a resource owner.
   @override
   @Column(unique: true, indexed: true)
-  late String username;
+  String? username;
 
   /// The hashed password of a resource owner.
   @override

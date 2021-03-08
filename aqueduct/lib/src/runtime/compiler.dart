@@ -36,11 +36,7 @@ class AqueductCompiler extends Compiler {
   List<Uri> getUrisToResolve(BuildContext context) {
     return context.context
         .getSubclassesOf(ManagedObject)
-<<<<<<< Updated upstream
-        .map((c) => c.location.sourceUri)
-=======
         .map((c) => c.location!.sourceUri)
->>>>>>> Stashed changes
         .toList();
   }
 

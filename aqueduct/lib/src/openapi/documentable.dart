@@ -288,11 +288,8 @@ class APIComponentCollection<T extends APIObject> {
         return APISecurityScheme.empty() as T;
       case APICallback:
         return APICallback.empty() as T;
-<<<<<<< Updated upstream
-=======
       default:
         throw StateError("cannot reference API object of type $T");
->>>>>>> Stashed changes
     }
   }
 

@@ -92,13 +92,8 @@ class PostgreSQLPersistentStore extends PersistentStore
   /// Defaults to 30 seconds.
   final Duration connectTimeout = const Duration(seconds: 30);
 
-<<<<<<< Updated upstream
-  PostgreSQLConnection _databaseConnection;
-  Completer<PostgreSQLConnection> _pendingConnectionCompleter;
-=======
   PostgreSQLConnection? _databaseConnection;
   Completer<PostgreSQLConnection>? _pendingConnectionCompleter;
->>>>>>> Stashed changes
 
   /// Retrieves the query execution context of this store.
   ///
@@ -318,7 +313,7 @@ class PostgreSQLPersistentStore extends PersistentStore
     } on PostgreSQLException catch (e) {
       logger.fine(() =>
           "Query (${DateTime.now().toUtc().difference(now).inMilliseconds}ms) $formatString $values");
-      logger.warning(() => e.toString());
+      logger.warning(e.toString);
       final interpreted = _interpretException(e);
       if (interpreted != null) {
         throw interpreted;

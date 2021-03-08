@@ -72,11 +72,7 @@ class RunUpgradeExecutable extends Executable<Map<String, dynamic>> {
     } on QueryException catch (e) {
       if (e.event == QueryExceptionEvent.transport) {
         final databaseUrl =
-<<<<<<< Updated upstream
-            "${dbInfo.username}:${dbInfo.password}@${dbInfo.host}:${dbInfo.port}/${dbInfo.databaseName}";
-=======
             "${dbInfo!.username}:${dbInfo!.password}@${dbInfo!.host}:${dbInfo!.port}/${dbInfo!.databaseName}";
->>>>>>> Stashed changes
         return {
           "error":
               "There was an error connecting to the database '$databaseUrl'. Reason: ${e.message}."
@@ -93,11 +89,7 @@ class RunUpgradeExecutable extends Executable<Map<String, dynamic>> {
       };
     } on PostgreSQLException catch (e) {
       if (e.severity == PostgreSQLSeverity.error &&
-<<<<<<< Updated upstream
-          e.message.contains("contains null values")) {
-=======
           e.message!.contains("contains null values")) {
->>>>>>> Stashed changes
         return {
           "error": "There was an issue when adding or altering column '${e.tableName}.${e.columnName}'. "
               "This column cannot be null, but there already exist rows that would violate this constraint. "

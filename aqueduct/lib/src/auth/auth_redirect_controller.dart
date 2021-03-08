@@ -166,21 +166,13 @@ class AuthRedirectController extends ResourceController {
         final authCode = await authServer.authenticateForCode(
             username, password, clientID,
             requestedScopes: scopes);
-<<<<<<< Updated upstream
-        return _redirectResponse(client.redirectURI, state,
-=======
         return _redirectResponse(client?.redirectURI, state,
->>>>>>> Stashed changes
             code: authCode.code);
       } else if (responseType == "token") {
         final token = await authServer.authenticate(
             username, password, clientID, null,
             requestedScopes: scopes);
-<<<<<<< Updated upstream
-        return _redirectResponse(client.redirectURI, state, token: token);
-=======
         return _redirectResponse(client?.redirectURI, state, token: token);
->>>>>>> Stashed changes
       } else {
         return _redirectResponse(null, state,
             error:
@@ -264,15 +256,9 @@ class AuthRedirectController extends ResourceController {
     return ops;
   }
 
-<<<<<<< Updated upstream
-  Response _redirectResponse(final String inputUri, String clientStateOrNull,
-      {String code, AuthToken token, AuthServerException error}) {
-    final uriString = inputUri ?? error.client?.redirectURI;
-=======
   Response _redirectResponse(final String? inputUri, String? clientStateOrNull,
       {String? code, AuthToken? token, AuthServerException? error}) {
     final uriString = inputUri ?? error?.client?.redirectURI;
->>>>>>> Stashed changes
     if (uriString == null) {
       return Response.badRequest(body: {"error": error?.reasonString});
     }

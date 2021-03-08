@@ -60,13 +60,8 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
         op?.namedParameters,
         ivarParameters
       ]
-<<<<<<< Updated upstream
-          .expand((i) => i)
-          .map((p) => reflectType(p.type).location.sourceUri)
-=======
           .expand((i) => i!)
           .map((p) => reflectType(p!.type).location?.sourceUri)
->>>>>>> Stashed changes
           .where((uri) =>
               uri != null &&
               (uri.scheme == "package" ||

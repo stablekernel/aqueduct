@@ -442,9 +442,5 @@ class _FunctionController extends Controller {
 abstract class ControllerRuntime {
   bool get isMutable;
 
-<<<<<<< Updated upstream
-  ResourceControllerRuntime get resourceController;
-=======
   ResourceControllerRuntime? get resourceController;
->>>>>>> Stashed changes
 }
