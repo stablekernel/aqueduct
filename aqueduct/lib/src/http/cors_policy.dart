@@ -13,7 +13,7 @@ import 'http.dart';
 /// Application-wide defaults can be managed by modifying [defaultPolicy] in a [ApplicationChannel]'s constructor.
 ///
 class CORSPolicy {
-  /// Create a new instance of [CORSPolicy].
+  /// Create a instance of [CORSPolicy].
   ///
   /// Values are set to match [defaultPolicy].
   CORSPolicy() {
@@ -51,7 +51,7 @@ class CORSPolicy {
     return _defaultPolicy ??= CORSPolicy._defaults();
   }
 
-  static CORSPolicy _defaultPolicy;
+  static CORSPolicy? _defaultPolicy;
 
   /// List of 'Simple' CORS headers.
   ///
@@ -79,33 +79,33 @@ class CORSPolicy {
   /// The list of case-sensitive allowed origins.
   ///
   /// Defaults to '*'. Case-sensitive. In the specification (http://www.w3.org/TR/cors/), this is 'list of origins'.
-  List<String> allowedOrigins;
+  late List<String> allowedOrigins;
 
   /// Whether or not to allow use of credentials, including Authorization and cookies.
   ///
   /// Defaults to true. In the specification (http://www.w3.org/TR/cors/), this is 'supports credentials'.
-  bool allowCredentials;
+  late bool allowCredentials;
 
   /// Which response headers to expose to the client.
   ///
   /// Defaults to empty. In the specification (http://www.w3.org/TR/cors/), this is 'list of exposed headers'.
   ///
   ///
-  List<String> exposedResponseHeaders;
+  late List<String> exposedResponseHeaders;
 
   /// Which HTTP methods are allowed.
   ///
   /// Defaults to POST, PUT, DELETE, and GET. Case-sensitive. In the specification (http://www.w3.org/TR/cors/), this is 'list of methods'.
-  List<String> allowedMethods;
+  late List<String> allowedMethods;
 
   /// The allowed request headers.
   ///
   /// Defaults to authorization, x-requested-with, x-forwarded-for. Must be lowercase.
   /// Use in conjunction with [simpleRequestHeaders]. In the specification (http://www.w3.org/TR/cors/), this is 'list of headers'.
-  List<String> allowedRequestHeaders;
+  late List<String> allowedRequestHeaders;
 
   /// The number of seconds to cache a pre-flight request for a requesting client.
-  int cacheInSeconds;
+  int? cacheInSeconds;
 
   /// Returns a map of HTTP headers for a request based on this policy.
   ///
@@ -164,12 +164,12 @@ class CORSPolicy {
     var requestedHeaders = request.headers
         .value("access-control-request-headers")
         ?.split(",")
-        ?.map((str) => str.trim().toLowerCase())
-        ?.toList();
+        .map((str) => str.trim().toLowerCase())
+        .toList();
     if (requestedHeaders?.isNotEmpty ?? false) {
       var nonSimpleHeaders =
-          requestedHeaders.where((str) => !simpleRequestHeaders.contains(str));
-      if (nonSimpleHeaders.any((h) => !allowedRequestHeaders.contains(h))) {
+          requestedHeaders?.where((str) => !simpleRequestHeaders.contains(str));
+      if (nonSimpleHeaders!.any((h) => !allowedRequestHeaders.contains(h))) {
         return false;
       }
     }

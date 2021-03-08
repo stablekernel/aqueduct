@@ -22,15 +22,15 @@ class RootObject extends ManagedObject<_RootObject> implements _RootObject {
 
 class _RootObject {
   @primaryKey
-  int rid;
+  late int rid;
 
-  int value1;
-  int value2;
+  int? value1;
+  int? value2;
 
-  ManagedSet<ChildObject> children;
-  ChildObject child;
+  ManagedSet<ChildObject>? children;
+  ChildObject? child;
 
-  ManagedSet<RootJoinObject> join;
+  ManagedSet<RootJoinObject>? join;
 }
 
 class ChildObject extends ManagedObject<_ChildObject> implements _ChildObject {
@@ -53,19 +53,19 @@ class ChildObject extends ManagedObject<_ChildObject> implements _ChildObject {
 
 class _ChildObject {
   @primaryKey
-  int cid;
+  late int cid;
 
-  int value1;
-  int value2;
+  int? value1;
+  int? value2;
 
-  ManagedSet<GrandChildObject> grandChildren;
-  GrandChildObject grandChild;
+  ManagedSet<GrandChildObject>? grandChildren;
+  GrandChildObject? grandChild;
 
   @Relate(Symbol('children'))
-  RootObject parents;
+  RootObject? parents;
 
   @Relate(Symbol('child'))
-  RootObject parent;
+  RootObject? parent;
 }
 
 class GrandChildObject extends ManagedObject<_GrandChildObject>
@@ -89,16 +89,16 @@ class GrandChildObject extends ManagedObject<_GrandChildObject>
 
 class _GrandChildObject {
   @primaryKey
-  int gid;
+  late int gid;
 
-  int value1;
-  int value2;
+  int? value1;
+  int? value2;
 
   @Relate(Symbol('grandChildren'))
-  ChildObject parents;
+  ChildObject? parents;
 
   @Relate(Symbol('grandChild'))
-  ChildObject parent;
+  ChildObject? parent;
 }
 
 class OtherRootObject extends ManagedObject<_OtherRootObject>
@@ -122,12 +122,12 @@ class OtherRootObject extends ManagedObject<_OtherRootObject>
 
 class _OtherRootObject {
   @primaryKey
-  int id;
+  late int id;
 
-  int value1;
-  int value2;
+  int? value1;
+  int? value2;
 
-  ManagedSet<RootJoinObject> join;
+  ManagedSet<RootJoinObject>? join;
 }
 
 class RootJoinObject extends ManagedObject<_RootJoinObject>
@@ -143,13 +143,13 @@ class RootJoinObject extends ManagedObject<_RootJoinObject>
 
 class _RootJoinObject {
   @primaryKey
-  int id;
+  late int id;
 
   @Relate(Symbol('join'))
-  OtherRootObject other;
+  OtherRootObject? other;
 
   @Relate(Symbol('join'))
-  RootObject root;
+  RootObject? root;
 }
 
 /*
@@ -248,19 +248,19 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
 
     if (root.child != null) {
       var child = root.child;
-      child.parent = root;
+      child?.parent = root;
       var cQ = Query<ChildObject>(ctx)..values = child;
-      child.cid = (await cQ.insert()).cid;
+      child?.cid = (await cQ.insert()).cid;
 
-      if (child.grandChild != null) {
-        var gc = child.grandChild;
-        gc.parent = child;
+      if (child?.grandChild != null) {
+        var gc = child?.grandChild;
+        gc?.parent = child;
         var gq = Query<GrandChildObject>(ctx)..values = gc;
-        gc.gid = (await gq.insert()).gid;
+        gc?.gid = (await gq.insert()).gid;
       }
 
       if (child?.grandChildren != null) {
-        for (var gc in child.grandChildren) {
+        for (var gc in child!.grandChildren!) {
           gc.parents = child;
           var gq = Query<GrandChildObject>(ctx)..values = gc;
           gc.gid = (await gq.insert()).gid;
@@ -269,20 +269,20 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
     }
 
     if (root.children != null) {
-      for (var child in root.children) {
+      for (var child in root.children!) {
         child.parents = root;
         var cQ = Query<ChildObject>(ctx)..values = child;
         child.cid = (await cQ.insert()).cid;
 
         if (child.grandChild != null) {
           var gc = child.grandChild;
-          gc.parent = child;
+          gc?.parent = child;
           var gq = Query<GrandChildObject>(ctx)..values = gc;
-          gc.gid = (await gq.insert()).gid;
+          gc?.gid = (await gq.insert()).gid;
         }
 
-        if (child?.grandChildren != null) {
-          for (var gc in child.grandChildren) {
+        if (child.grandChildren != null) {
+          for (var gc in child.grandChildren!) {
             gc.parents = child;
             var gq = Query<GrandChildObject>(ctx)..values = gc;
             gc.gid = (await gq.insert()).gid;
@@ -292,9 +292,9 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
     }
 
     if (root.join != null) {
-      for (var join in root.join) {
+      for (var join in root.join!) {
         var otherQ = Query<OtherRootObject>(ctx)..values = join.other;
-        join.other.id = (await otherQ.insert()).id;
+        join.other?.id = (await otherQ.insert()).id;
 
         join.root = RootObject()..rid = root.rid;
 
@@ -307,7 +307,7 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
   return rootObjects;
 }
 
-Map fullObjectMap(Type t, dynamic v, {Map<String, dynamic> and}) {
+Map fullObjectMap(Type t, dynamic v, {Map<String, dynamic>? and}) {
   var idName = "id";
   if (t == RootObject) {
     idName = "rid";

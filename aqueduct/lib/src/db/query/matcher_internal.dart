@@ -41,9 +41,6 @@ class ComparisonExpression implements PredicateExpression {
       case PredicateOperator.equalTo:
         return PredicateOperator.notEqual;
     }
-
-    // this line just shuts up the analyzer
-    return null;
   }
 }
 

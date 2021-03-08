@@ -20,15 +20,15 @@ class RunUpgradeExecutable extends Executable<Map<String, dynamic>> {
       this.inputSchema, this.dbInfo, this.sources, this.currentVersion)
       : super({
           "schema": inputSchema.asMap(),
-          "dbInfo": dbInfo.asMap(),
+          "dbInfo": dbInfo?.asMap(),
           "migrations": sources.map((source) => source.asMap()).toList(),
           "currentVersion": currentVersion
         });
 
   final Schema inputSchema;
-  final DBInfo dbInfo;
+  final DBInfo? dbInfo;
   final List<MigrationSource> sources;
-  final int currentVersion;
+  final int? currentVersion;
 
   @override
   Future<Map<String, dynamic>> execute() async {
@@ -38,11 +38,11 @@ class RunUpgradeExecutable extends Executable<Map<String, dynamic>> {
     PostgreSQLPersistentStore.logger.onRecord
         .listen((r) => log("${r.message}"));
 
-    PersistentStore store;
-    if (dbInfo != null && dbInfo.flavor == "postgres") {
-      store = PostgreSQLPersistentStore(dbInfo.username, dbInfo.password,
-          dbInfo.host, dbInfo.port, dbInfo.databaseName,
-          timeZone: dbInfo.timeZone);
+    PersistentStore? store;
+    if (dbInfo != null && dbInfo!.flavor == "postgres") {
+      store = PostgreSQLPersistentStore(dbInfo!.username, dbInfo!.password,
+          dbInfo!.host, dbInfo!.port, dbInfo!.databaseName,
+          timeZone: dbInfo!.timeZone);
     }
 
     var migrationTypes = currentMirrorSystem()
@@ -65,14 +65,18 @@ class RunUpgradeExecutable extends Executable<Map<String, dynamic>> {
     }).toList();
 
     try {
-      final updatedSchema = await store.upgrade(inputSchema, instances);
+      final updatedSchema = await store!.upgrade(inputSchema, instances);
       await store.close();
 
       return updatedSchema.asMap();
     } on QueryException catch (e) {
       if (e.event == QueryExceptionEvent.transport) {
         final databaseUrl =
+<<<<<<< Updated upstream
             "${dbInfo.username}:${dbInfo.password}@${dbInfo.host}:${dbInfo.port}/${dbInfo.databaseName}";
+=======
+            "${dbInfo!.username}:${dbInfo!.password}@${dbInfo!.host}:${dbInfo!.port}/${dbInfo!.databaseName}";
+>>>>>>> Stashed changes
         return {
           "error":
               "There was an error connecting to the database '$databaseUrl'. Reason: ${e.message}."
@@ -89,7 +93,11 @@ class RunUpgradeExecutable extends Executable<Map<String, dynamic>> {
       };
     } on PostgreSQLException catch (e) {
       if (e.severity == PostgreSQLSeverity.error &&
+<<<<<<< Updated upstream
           e.message.contains("contains null values")) {
+=======
+          e.message!.contains("contains null values")) {
+>>>>>>> Stashed changes
         return {
           "error": "There was an issue when adding or altering column '${e.tableName}.${e.columnName}'. "
               "This column cannot be null, but there already exist rows that would violate this constraint. "
@@ -127,11 +135,11 @@ class DBInfo {
         timeZone = map["timeZone"] as String;
 
   final String flavor;
-  final String username;
-  final String password;
-  final String host;
-  final int port;
-  final String databaseName;
+  final String? username;
+  final String? password;
+  final String? host;
+  final int? port;
+  final String? databaseName;
   final String timeZone;
 
   Map<String, dynamic> asMap() {

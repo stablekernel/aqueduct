@@ -5,13 +5,15 @@ import 'route_node.dart';
 ///
 /// Contains [RouteSegment]s for each path segment. This class is used internally by [Router].
 class RouteSpecification {
-  /// Creates a new [RouteSpecification] from a [String].
+  /// Creates a [RouteSpecification] from a [String].
   ///
   /// The [patternString] must be stripped of any optionals.
   RouteSpecification(String patternString) {
     segments = _splitPathSegments(patternString);
-    variableNames =
-        segments.where((e) => e.isVariable).map((e) => e.variableName).toList();
+    variableNames = segments
+        .where((e) => e.isVariable)
+        .map((e) => e.variableName as String)
+        .toList();
   }
 
   static List<RouteSpecification> specificationsForRoutePattern(
@@ -22,13 +24,13 @@ class RouteSpecification {
   }
 
   /// A list of this specification's [RouteSegment]s.
-  List<RouteSegment> segments;
+  late List<RouteSegment> segments;
 
   /// A list of all variables in this route.
-  List<String> variableNames;
+  late List<String> variableNames;
 
   /// A reference back to the [Controller] to be used when this specification is matched.
-  Controller controller;
+  Controller? controller;
 
   @override
   String toString() => segments.join("/");

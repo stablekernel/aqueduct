@@ -17,7 +17,7 @@ class QueryExpressionJunction<T, InstanceType> {
 /// of an object in [Query.where]. You invoke methods from this type to add an expression to the query for the selected property.
 /// Example:
 ///
-///         final query = new Query<Employee>()
+///         final query = Query<Employee>()
 ///           ..where((e) => e.name).equalTo("Bob");
 ///
 class QueryExpression<T, InstanceType> {
@@ -43,7 +43,7 @@ class QueryExpression<T, InstanceType> {
   }
 
   bool _invertNext = false;
-  PredicateExpression _expression;
+  late PredicateExpression _expression;
 
   // ignore: use_to_and_as_if_applicable
   QueryExpressionJunction<T, InstanceType> _createJunction() =>
@@ -54,7 +54,7 @@ class QueryExpression<T, InstanceType> {
   /// You use this method to apply an inversion to the expression that follows. For example,
   /// the following example would only return objects where the 'id' is  *not* equal to '5'.
   ///
-  ///         final query = new Query<Employee>()
+  ///         final query = Query<Employee>()
   ///           ..where((e) => e.name).not.equalTo("Bob");
   QueryExpression<T, InstanceType> get not {
     _invertNext = !_invertNext;
@@ -72,7 +72,7 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       final query = new Query<User>()
+  ///       final query = Query<User>()
   ///         ..where((u) => u.id ).equalTo(1);
   ///
   QueryExpressionJunction<T, InstanceType> equalTo(T value,
@@ -97,7 +97,7 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       final query = new Query<Employee>()
+  ///       final query = Query<Employee>()
   ///         ..where((e) => e.id).notEqualTo(60000);
   ///
   QueryExpressionJunction<T, InstanceType> notEqualTo(T value,
@@ -127,7 +127,7 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       final query = new Query<User>()
+  ///       final query = Query<User>()
   ///         ..where((u) => u.name ).like("bob");
   ///
   QueryExpressionJunction<T, InstanceType> like(String value,
@@ -151,7 +151,7 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       final query = new Query<Employee>()
+  ///       final query = Query<Employee>()
   ///         ..where((e) => e.id).notEqualTo(60000);
   ///
   QueryExpressionJunction<T, InstanceType> notLike(String value,
@@ -174,7 +174,7 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       var query = new Query<Employee>()
+  ///       var query = Query<Employee>()
   ///         ..where((e) => e.salary).greaterThan(60000);
   QueryExpressionJunction<T, InstanceType> greaterThan(T value) {
     expression = ComparisonExpression(value, PredicateOperator.greaterThan);
@@ -191,7 +191,7 @@ class QueryExpression<T, InstanceType> {
   /// rows are selected if the value is alphabetically 'after or the same as' [value].
   /// Example:
   ///
-  ///       var query = new Query<Employee>()
+  ///       var query = Query<Employee>()
   ///         ..where((e) => e.salary).greaterThanEqualTo(60000);
   QueryExpressionJunction<T, InstanceType> greaterThanEqualTo(T value) {
     expression =
@@ -209,7 +209,7 @@ class QueryExpression<T, InstanceType> {
   /// rows are selected if the value is alphabetically 'before' [value].
   /// Example:
   ///
-  ///       var query = new Query<Employee>()
+  ///       var query = Query<Employee>()
   ///         ..where((e) => e.salary).lessThan(60000);
   QueryExpressionJunction<T, InstanceType> lessThan(T value) {
     expression = ComparisonExpression(value, PredicateOperator.lessThan);
@@ -226,7 +226,7 @@ class QueryExpression<T, InstanceType> {
   /// rows are selected if the value is alphabetically 'before or the same as' [value].
   /// Example:
   ///
-  ///       var query = new Query<Employee>()
+  ///       var query = Query<Employee>()
   ///         ..where((e) => e.salary).lessThanEqualTo(60000);
   QueryExpressionJunction<T, InstanceType> lessThanEqualTo(T value) {
     expression = ComparisonExpression(value, PredicateOperator.lessThanEqualTo);
@@ -243,7 +243,7 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       var query = new Query<Employee>()
+  ///       var query = Query<Employee>()
   ///         ..where((s) => s.title).contains("Director");
   ///
   QueryExpressionJunction<T, InstanceType> contains(String value,
@@ -262,7 +262,7 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       var query = new Query<Employee>()
+  ///       var query = Query<Employee>()
   ///         ..where((s) => s.name).beginsWith("B");
   QueryExpressionJunction<T, InstanceType> beginsWith(String value,
       {bool caseSensitive = true}) {
@@ -280,7 +280,7 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       var query = new Query<Employee>()
+  ///       var query = Query<Employee>()
   ///         ..where((e) => e.name).endsWith("son");
   QueryExpressionJunction<T, InstanceType> endsWith(String value,
       {bool caseSensitive = true}) {
@@ -298,14 +298,14 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       var query = new Query<Employee>()
+  ///       var query = Query<Employee>()
   ///         ..where((e) => e.department).oneOf(["Engineering", "HR"]);
-  QueryExpressionJunction<T, InstanceType> oneOf(Iterable<T> values) {
+  QueryExpressionJunction<T, InstanceType> oneOf(Iterable<T>? values) {
     if (values?.isEmpty ?? true) {
       throw ArgumentError(
           "'Query.where.oneOf' cannot be the empty set or null.");
     }
-    expression = SetMembershipExpression(values.toList());
+    expression = SetMembershipExpression(values!.toList());
 
     return _createJunction();
   }
@@ -320,7 +320,7 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       var query = new Query<Employee>()
+  ///       var query = Query<Employee>()
   ///         ..where((e) => e.salary).between(80000, 100000);
   QueryExpressionJunction<T, InstanceType> between(T lhs, T rhs) {
     expression = RangeExpression(lhs, rhs, within: true);
@@ -338,7 +338,7 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       var query = new Query<Employee>()
+  ///       var query = Query<Employee>()
   ///         ..where((e) => e.salary).outsideOf(80000, 100000);
   QueryExpressionJunction<T, InstanceType> outsideOf(T lhs, T rhs) {
     expression = RangeExpression(lhs, rhs, within: false);
@@ -353,7 +353,7 @@ class QueryExpression<T, InstanceType> {
   /// This method may only be used on belongs-to relationships; i.e., those that have a [Relate] annotation.
   /// The type of [identifier] must match the primary key type of the selected object this expression is being applied to.
   ///
-  ///       var q = new Query<Employee>()
+  ///       var q = Query<Employee>()
   ///         ..where((e) => e.manager).identifiedBy(5);
   QueryExpressionJunction<T, InstanceType> identifiedBy(dynamic identifier) {
     expression = ComparisonExpression(identifier, PredicateOperator.equalTo);
@@ -369,7 +369,7 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       var q = new Query<Employee>()
+  ///       var q = Query<Employee>()
   ///         ..where((e) => e.manager).isNull();
   QueryExpressionJunction<T, InstanceType> isNull() {
     expression = const NullCheckExpression(shouldBeNull: true);
@@ -385,7 +385,7 @@ class QueryExpression<T, InstanceType> {
   ///
   /// Example:
   ///
-  ///       var q = new Query<Employee>()
+  ///       var q = Query<Employee>()
   ///         ..where((e) => e.manager).isNotNull();
   QueryExpressionJunction<T, InstanceType> isNotNull() {
     expression = const NullCheckExpression(shouldBeNull: false);

@@ -1,18 +1,17 @@
 import 'dart:mirrors';
 
-Iterable<ClassMirror> classHierarchyForClass(ClassMirror t) sync* {
+Iterable<ClassMirror?> classHierarchyForClass(ClassMirror? t) sync* {
   var tableDefinitionPtr = t;
-  while (tableDefinitionPtr.superclass != null) {
+  while (tableDefinitionPtr?.superclass != null) {
     yield tableDefinitionPtr;
-    tableDefinitionPtr = tableDefinitionPtr.superclass;
+    tableDefinitionPtr = tableDefinitionPtr?.superclass;
   }
 }
 
-T firstMetadataOfType<T>(DeclarationMirror dm, {TypeMirror dynamicType}) {
+T? firstMetadataOfType<T>(DeclarationMirror dm, {TypeMirror? dynamicType}) {
   final tMirror = dynamicType ?? reflectType(T);
-  return dm.metadata
-      .firstWhere((im) => im.type.isSubtypeOf(tMirror), orElse: () => null)
-      ?.reflectee as T;
+  return dm.metadata.firstWhere((im) => im.type.isSubtypeOf(tMirror)).reflectee
+      as T?;
 }
 
 List<T> allMetadataOfType<T>(DeclarationMirror dm) {
@@ -25,5 +24,9 @@ List<T> allMetadataOfType<T>(DeclarationMirror dm) {
 }
 
 String getMethodAndClassName(VariableMirror mirror) {
+<<<<<<< Updated upstream
   return "${MirrorSystem.getName(mirror.owner.owner.simpleName)}.${MirrorSystem.getName(mirror.owner.simpleName)}";
+=======
+  return "${MirrorSystem.getName(mirror.owner!.owner!.simpleName)}.${MirrorSystem.getName(mirror.owner!.simpleName)}";
+>>>>>>> Stashed changes
 }

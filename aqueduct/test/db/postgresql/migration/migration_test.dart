@@ -191,8 +191,7 @@ void main() {
       expect(defs["u"].uniqueSet, ["b", "c"]);
     });
 
-    test("Create new table with foreign key in its unique column set",
-        () async {
+    test("Create table with foreign key in its unique column set", () async {
       final schemas = [
         Schema.empty(),
         Schema([
@@ -222,7 +221,7 @@ void main() {
     });
 
     test(
-        "Add new foreign key column while setting a new unique column set that contains it",
+        "Add foreign key column while setting a unique column set that contains it",
         () async {
       final schemas = [
         Schema.empty(),
@@ -263,7 +262,7 @@ void main() {
     });
 
     test(
-        "Add new foreign key column while changing a unique column set to contain that foreign key",
+        "Add foreign key column while changing a unique column set to contain that foreign key",
         () async {
       final schemas = [
         Schema.empty(),
@@ -758,8 +757,7 @@ void main() {
           deleteRule: "SET NULL");
     });
 
-    test(
-        "Add a new table and a foreign key from an existing table to the new table",
+    test("Add a table and a foreign key from an existing table to the table",
         () async {
       final schemas = [
         Schema.empty(),
@@ -790,7 +788,7 @@ void main() {
           deleteRule: "SET NULL");
     });
 
-    test("Add a new foreign key column", () async {
+    test("Add a foreign key column", () async {
       final schemas = [
         Schema.empty(),
         Schema([
@@ -823,7 +821,7 @@ void main() {
           deleteRule: "SET NULL");
     });
 
-    test("Add a new unique (has-one) foreign key column", () async {
+    test("Add a unique (has-one) foreign key column", () async {
       final schemas = [
         Schema.empty(),
         Schema([

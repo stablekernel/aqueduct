@@ -75,8 +75,7 @@ void main() {
   });
 
   group("Success Cases: refresh_token", () {
-    test(
-        "Confidental Client gets a new access token, retains same access token",
+    test("Confidental Client gets a access token, retains same access token",
         () async {
       var resToken = await grant("com.stablekernel.app1", "kilimanjaro", user1);
 
@@ -166,8 +165,7 @@ void main() {
   });
 
   group("Success Cases: authorization_code", () {
-    test("Exchange valid code gets new access token with refresh token",
-        () async {
+    test("Exchange valid code gets access token with refresh token", () async {
       var code = await authenticationServer.authenticateForCode(
           user1["username"], user1["password"], "com.stablekernel.redirect");
       var res =

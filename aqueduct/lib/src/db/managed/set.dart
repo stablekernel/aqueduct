@@ -36,7 +36,7 @@ class ManagedSet<InstanceType extends ManagedObject> extends Object
     _innerValues = List<InstanceType>.from(items);
   }
 
-  List<InstanceType> _innerValues;
+  late List<InstanceType> _innerValues;
 
   /// The number of elements in this set.
   @override

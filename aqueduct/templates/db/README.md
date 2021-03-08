@@ -7,7 +7,7 @@ Run `aqueduct serve` from this directory to run the application. For running wit
 You must have a `config.yaml` file that has correct database connection info, which should point to a local database. To configure a database to match your application's schema, run the following commands:
 
 ```
-# if this is a new project, run db generate first
+# if this is a project, run db generate first
 aqueduct db generate
 aqueduct db upgrade --connect postgres://user:password@localhost:5432/app_name
 ```

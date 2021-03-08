@@ -13,25 +13,25 @@ class DataModelCompiler {
         .map((c) => c.reflectedType);
 
     _builders = instanceTypes.map((t) => EntityBuilder(t)).toList();
-    _builders.forEach((b) {
+    _builders?.forEach((b) {
       b.compile(_builders);
     });
     _validate();
 
-    _builders.forEach((b) {
-      b.link(_builders.map((eb) => eb.entity).toList());
+    _builders?.forEach((b) {
+      b.link(_builders!.map((eb) => eb.entity).toList());
       m[b.entity.instanceType.toString()] = b.runtime;
     });
 
     return m;
   }
 
-  List<EntityBuilder> _builders;
+  List<EntityBuilder>? _builders;
 
   void _validate() {
     // Check for dupe tables
-    _builders.forEach((builder) {
-      final withSameName = _builders
+    _builders?.forEach((builder) {
+      final withSameName = _builders!
           .where((eb) => eb.name == builder.name)
           .map((eb) => eb.instanceTypeName)
           .toList();
@@ -41,7 +41,7 @@ class DataModelCompiler {
       }
     });
 
-    _builders.forEach((b) => b.validate(_builders));
+    _builders?.forEach((b) => b.validate(_builders!));
   }
 
   static bool _isTypeManagedObjectSubclass(ClassMirror mirror) {
@@ -108,7 +108,7 @@ class ManagedDataModelErrorImpl extends ManagedDataModelError {
       String instanceName,
       Symbol property,
       String destinationTableName,
-      Symbol expectedProperty) {
+      Symbol? expectedProperty) {
     var expectedString = "Some property";
     if (expectedProperty != null) {
       expectedString = "'${_getName(expectedProperty)}'";
@@ -242,7 +242,7 @@ class ManagedDataModelErrorImpl extends ManagedDataModelError {
         "in this way.");
   }
 
-  static String _getPersistentClassName(ManagedEntity entity) {
+  static String? _getPersistentClassName(ManagedEntity? entity) {
     if (entity == null) {
       return null;
     }
@@ -254,7 +254,7 @@ class ManagedDataModelErrorImpl extends ManagedDataModelError {
     return entity.tableDefinition;
   }
 
-  static String _getInstanceClassName(ManagedEntity entity) {
+  static String? _getInstanceClassName(ManagedEntity? entity) {
     if (entity == null) {
       return null;
     }
@@ -263,9 +263,9 @@ class ManagedDataModelErrorImpl extends ManagedDataModelError {
       return null;
     }
 
-    return _getName(reflectType(entity.instanceType).simpleName);
+    return _getName(reflectType(entity.instanceType!).simpleName);
   }
 
-  static String _getName(Symbol s) =>
+  static String? _getName(Symbol? s) =>
       s != null ? MirrorSystem.getName(s) : null;
 }

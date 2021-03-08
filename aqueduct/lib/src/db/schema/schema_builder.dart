@@ -33,30 +33,30 @@ class SchemaBuilder {
   /// If [store] is null, this builder will emit [commands] that are Dart statements that replicate the methods invoked on this object.
   ///  Otherwise, [commands] are SQL commands (for the database represented by [store]) that are equivalent to the method invoked on this object.
   SchemaBuilder.toSchema(PersistentStore store, Schema targetSchema,
-      {bool isTemporary = false, List<String> changeList})
+      {bool isTemporary = false, List<String>? changeList})
       : this.fromDifference(
             store, SchemaDifference(Schema.empty(), targetSchema),
             isTemporary: isTemporary, changeList: changeList);
 
   // Creates a builder
   SchemaBuilder.fromDifference(this.store, SchemaDifference difference,
-      {this.isTemporary = false, List<String> changeList}) {
+      {this.isTemporary = false, List<String>? changeList}) {
     schema = difference.expectedSchema;
     _generateSchemaCommands(difference,
         changeList: changeList, temporary: isTemporary);
   }
 
   /// The starting schema of this builder.
-  Schema inputSchema;
+  Schema? inputSchema;
 
   /// The resulting schema of this builder as operations are applied to it.
-  Schema schema;
+  late Schema schema;
 
   /// The persistent store to validate and construct operations.
   ///
   /// If this value is not-null, [commands] is a list of SQL commands for the underlying database that change the schema in response to
   /// methods invoked on this object. If this value is null, [commands] is a list Dart statements that replicate the methods invoked on this object.
-  PersistentStore store;
+  PersistentStore? store;
 
   /// Whether or not this builder should create temporary tables.
   bool isTemporary;
@@ -72,7 +72,7 @@ class SchemaBuilder {
     schema.addTable(table);
 
     if (store != null) {
-      commands.addAll(store.createTable(table, isTemporary: isTemporary));
+      commands.addAll(store!.createTable(table, isTemporary: isTemporary));
     } else {
       commands.add(_getNewTableExpression(table));
     }
@@ -87,14 +87,14 @@ class SchemaBuilder {
 
     schema.renameTable(table, newName);
     if (store != null) {
-      commands.addAll(store.renameTable(table, newName));
+      commands.addAll(store!.renameTable(table, newName));
     } else {
       commands.add("database.renameTable('$currentTableName', '$newName');");
     }
   }
 
   /// Validates and deletes a table in [schema].
-  void deleteTable(String tableName) {
+  void deleteTable(String? tableName) {
     var table = schema.tableForName(tableName);
     if (table == null) {
       throw SchemaException("Table $tableName does not exist.");
@@ -103,14 +103,14 @@ class SchemaBuilder {
     schema.removeTable(table);
 
     if (store != null) {
-      commands.addAll(store.deleteTable(table));
+      commands.addAll(store!.deleteTable(table));
     } else {
       commands.add('database.deleteTable("${tableName}");');
     }
   }
 
   /// Alters a table in [schema].
-  void alterTable(String tableName, void modify(SchemaTable targetTable)) {
+  void alterTable(String? tableName, void modify(SchemaTable targetTable)) {
     var existingTable = schema.tableForName(tableName);
     if (existingTable == null) {
       throw SchemaException("Table $tableName does not exist.");
@@ -128,30 +128,30 @@ class SchemaBuilder {
     final innerCommands = <String>[];
     if (shouldAddUnique) {
       if (store != null) {
-        commands.addAll(store.addTableUniqueColumnSet(newTable));
+        commands.addAll(store!.addTableUniqueColumnSet(newTable));
       } else {
         innerCommands.add(
-            "t.uniqueColumnSet = [${newTable.uniqueColumnSet.map((s) => "\"$s\"").join(',')}]");
+            "t.uniqueColumnSet = [${newTable.uniqueColumnSet?.map((s) => "\"$s\"").join(',')}]");
       }
     } else if (shouldRemoveUnique) {
       if (store != null) {
-        commands.addAll(store.deleteTableUniqueColumnSet(newTable));
+        commands.addAll(store!.deleteTableUniqueColumnSet(newTable));
       } else {
         innerCommands.add("t.uniqueColumnSet = null");
       }
     } else {
-      final haveSameLength = existingTable.uniqueColumnSet.length ==
-          newTable.uniqueColumnSet.length;
-      final haveSameKeys = existingTable.uniqueColumnSet
-          .every((s) => newTable.uniqueColumnSet.contains(s));
+      final haveSameLength = existingTable.uniqueColumnSet!.length ==
+          newTable.uniqueColumnSet!.length;
+      final haveSameKeys = existingTable.uniqueColumnSet!
+          .every((s) => newTable.uniqueColumnSet!.contains(s));
 
       if (!haveSameKeys || !haveSameLength) {
         if (store != null) {
-          commands.addAll(store.deleteTableUniqueColumnSet(newTable));
-          commands.addAll(store.addTableUniqueColumnSet(newTable));
+          commands.addAll(store!.deleteTableUniqueColumnSet(newTable));
+          commands.addAll(store!.addTableUniqueColumnSet(newTable));
         } else {
           innerCommands.add(
-              "t.uniqueColumnSet = [${newTable.uniqueColumnSet.map((s) => "\"$s\"").join(',')}]");
+              "t.uniqueColumnSet = [${newTable.uniqueColumnSet!.map((s) => "\"$s\"").join(',')}]");
         }
       }
     }
@@ -163,8 +163,8 @@ class SchemaBuilder {
   }
 
   /// Validates and adds a column to a table in [schema].
-  void addColumn(String tableName, SchemaColumn column,
-      {String unencodedInitialValue}) {
+  void addColumn(String? tableName, SchemaColumn column,
+      {String? unencodedInitialValue}) {
     var table = schema.tableForName(tableName);
     if (table == null) {
       throw SchemaException("Table $tableName does not exist.");
@@ -172,16 +172,16 @@ class SchemaBuilder {
 
     table.addColumn(column);
     if (store != null) {
-      commands.addAll(store.addColumn(table, column,
+      commands.addAll(store!.addColumn(table, column,
           unencodedInitialValue: unencodedInitialValue));
     } else {
       commands.add(
-          'database.addColumn("${column.table.name}", ${_getNewColumnExpression(column)});');
+          'database.addColumn("${column.table?.name}", ${_getNewColumnExpression(column)});');
     }
   }
 
   /// Validates and deletes a column in a table in [schema].
-  void deleteColumn(String tableName, String columnName) {
+  void deleteColumn(String? tableName, String? columnName) {
     var table = schema.tableForName(tableName);
     if (table == null) {
       throw SchemaException("Table $tableName does not exist.");
@@ -195,14 +195,14 @@ class SchemaBuilder {
     table.removeColumn(column);
 
     if (store != null) {
-      commands.addAll(store.deleteColumn(table, column));
+      commands.addAll(store!.deleteColumn(table, column));
     } else {
       commands.add('database.deleteColumn("${tableName}", "${columnName}");');
     }
   }
 
   /// Validates and renames a column in a table in [schema].
-  void renameColumn(String tableName, String columnName, String newName) {
+  void renameColumn(String? tableName, String columnName, String newName) {
     var table = schema.tableForName(tableName);
     if (table == null) {
       throw SchemaException("Table $tableName does not exist.");
@@ -216,7 +216,7 @@ class SchemaBuilder {
     table.renameColumn(column, newName);
 
     if (store != null) {
-      commands.addAll(store.renameColumn(table, column, newName));
+      commands.addAll(store!.renameColumn(table, column, newName));
     } else {
       commands.add(
           "database.renameColumn('$tableName', '$columnName', '$newName');");
@@ -235,9 +235,9 @@ class SchemaBuilder {
   ///           c.isIndexed = true;
   ///           c.isNullable = false;
   ///         }), unencodedInitialValue: "0");
-  void alterColumn(String tableName, String columnName,
+  void alterColumn(String? tableName, String? columnName,
       void modify(SchemaColumn targetColumn),
-      {String unencodedInitialValue}) {
+      {String? unencodedInitialValue}) {
     var table = schema.tableForName(tableName);
     if (table == null) {
       throw SchemaException("Table $tableName does not exist.");
@@ -286,9 +286,9 @@ class SchemaBuilder {
     if (existingColumn.isIndexed != newColumn.isIndexed) {
       if (store != null) {
         if (newColumn.isIndexed) {
-          commands.addAll(store.addIndexToColumn(table, newColumn));
+          commands.addAll(store!.addIndexToColumn(table, newColumn));
         } else {
-          commands.addAll(store.deleteIndexFromColumn(table, newColumn));
+          commands.addAll(store!.deleteIndexFromColumn(table, newColumn));
         }
       } else {
         innerCommands.add("c.isIndexed = ${newColumn.isIndexed}");
@@ -297,7 +297,7 @@ class SchemaBuilder {
 
     if (existingColumn.isUnique != newColumn.isUnique) {
       if (store != null) {
-        commands.addAll(store.alterColumnUniqueness(table, newColumn));
+        commands.addAll(store!.alterColumnUniqueness(table, newColumn));
       } else {
         innerCommands.add('c.isUnique = ${newColumn.isUnique}');
       }
@@ -305,7 +305,7 @@ class SchemaBuilder {
 
     if (existingColumn.defaultValue != newColumn.defaultValue) {
       if (store != null) {
-        commands.addAll(store.alterColumnDefaultValue(table, newColumn));
+        commands.addAll(store!.alterColumnDefaultValue(table, newColumn));
       } else {
         final value = newColumn.defaultValue == null
             ? 'null'
@@ -316,8 +316,8 @@ class SchemaBuilder {
 
     if (existingColumn.isNullable != newColumn.isNullable) {
       if (store != null) {
-        commands.addAll(store.alterColumnNullability(
-            table, newColumn, unencodedInitialValue));
+        commands.addAll(store!
+            .alterColumnNullability(table, newColumn, unencodedInitialValue));
       } else {
         innerCommands.add('c.isNullable = ${newColumn.isNullable}');
       }
@@ -325,7 +325,7 @@ class SchemaBuilder {
 
     if (existingColumn.deleteRule != newColumn.deleteRule) {
       if (store != null) {
-        commands.addAll(store.alterColumnDeleteRule(table, newColumn));
+        commands.addAll(store!.alterColumnDeleteRule(table, newColumn));
       } else {
         innerCommands.add('c.deleteRule = ${newColumn.deleteRule}');
       }
@@ -338,7 +338,7 @@ class SchemaBuilder {
   }
 
   void _generateSchemaCommands(SchemaDifference difference,
-      {List<String> changeList, bool temporary = false}) {
+      {List<String>? changeList, bool temporary = false}) {
     // We need to remove foreign keys from the initial table add and defer
     // them until after all tables in the schema have been created.
     // These can occur in both columns and multi column unique.
@@ -351,7 +351,9 @@ class SchemaBuilder {
       if (copy.hasForeignKeyInUniqueSet) {
         copy.uniqueColumnSet = null;
       }
-      copy.columns.where((c) => c.isForeignKey).forEach(copy.removeColumn);
+      copy.columns
+          .where((c) => c?.isForeignKey ?? false)
+          .forEach(copy.removeColumn);
 
       changeList?.add("Adding table '${copy.name}'");
       createTable(copy);
@@ -364,8 +366,8 @@ class SchemaBuilder {
     });
 
     difference.tablesToDelete.forEach((t) {
-      changeList?.add("Deleting table '${t.name}'");
-      deleteTable(t.name);
+      changeList?.add("Deleting table '${t?.name}'");
+      deleteTable(t?.name);
     });
 
     difference.tablesToModify.forEach((t) {
@@ -374,38 +376,44 @@ class SchemaBuilder {
   }
 
   void _generateTableCommands(SchemaTableDifference difference,
-      {List<String> changeList}) {
+      {List<String>? changeList}) {
     difference.columnsToAdd.forEach((c) {
       changeList?.add(
-          "Adding column '${c.name}' to table '${difference.actualTable.name}'");
-      addColumn(difference.actualTable.name, c);
+          "Adding column '${c!.name}' to table '${difference.actualTable?.name}'");
+      addColumn(difference.actualTable?.name, c!);
 
       if (!c.isNullable && c.defaultValue == null) {
         changeList?.add(
+<<<<<<< Updated upstream
             "WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
             "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
+=======
+            "WARNING: This migration may fail if table '${difference.actualTable?.name}' already has rows. "
+            "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable?.name}\", "
+>>>>>>> Stashed changes
             "SchemaColumn(\"${c.name}\", ...)'.");
       }
     });
 
     difference.columnsToRemove.forEach((c) {
       changeList?.add(
-          "Deleting column '${c.name}' from table '${difference.actualTable.name}'");
-      deleteColumn(difference.actualTable.name, c.name);
+          "Deleting column '${c?.name}' from table '${difference.actualTable?.name}'");
+      deleteColumn(difference.actualTable?.name, c?.name);
     });
 
     difference.columnsToModify.forEach((columnDiff) {
       changeList?.add(
-          "Modifying column '${columnDiff.actualColumn.name}' in '${difference.actualTable.name}'");
-      alterColumn(difference.actualTable.name, columnDiff.actualColumn.name,
+          "Modifying column '${columnDiff.actualColumn?.name}' in '${difference.actualTable?.name}'");
+      alterColumn(difference.actualTable?.name, columnDiff.actualColumn?.name,
           (c) {
-        c.isIndexed = columnDiff.actualColumn.isIndexed;
-        c.defaultValue = columnDiff.actualColumn.defaultValue;
-        c.isUnique = columnDiff.actualColumn.isUnique;
-        c.isNullable = columnDiff.actualColumn.isNullable;
-        c.deleteRule = columnDiff.actualColumn.deleteRule;
+        c.isIndexed = columnDiff.actualColumn!.isIndexed;
+        c.defaultValue = columnDiff.actualColumn!.defaultValue;
+        c.isUnique = columnDiff.actualColumn!.isUnique;
+        c.isNullable = columnDiff.actualColumn!.isNullable;
+        c.deleteRule = columnDiff.actualColumn!.deleteRule;
       });
 
+<<<<<<< Updated upstream
       if (columnDiff.expectedColumn.isNullable &&
           !columnDiff.actualColumn.isNullable &&
           columnDiff.actualColumn.defaultValue == null) {
@@ -413,17 +421,26 @@ class SchemaBuilder {
             "WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
             "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
             "SchemaColumn(\"${columnDiff.actualColumn.name}\", ...)'.");
+=======
+      if (columnDiff.expectedColumn!.isNullable &&
+          !columnDiff.actualColumn!.isNullable &&
+          columnDiff.actualColumn!.defaultValue == null) {
+        changeList?.add(
+            "WARNING: This migration may fail if table '${difference.actualTable!.name}' already has rows. "
+            "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable!.name}\", "
+            "SchemaColumn(\"${columnDiff.actualColumn!.name}\", ...)'.");
+>>>>>>> Stashed changes
       }
     });
 
     if (difference.uniqueSetDifference?.hasDifferences ?? false) {
       changeList?.add(
-          "Setting unique column constraint of '${difference.actualTable.name}' to ${difference.uniqueSetDifference.actualColumnNames}.");
-      alterTable(difference.actualTable.name, (t) {
-        if (difference.uniqueSetDifference.actualColumnNames.isEmpty) {
+          "Setting unique column constraint of '${difference.actualTable?.name}' to ${difference.uniqueSetDifference!.actualColumnNames}.");
+      alterTable(difference.actualTable?.name, (t) {
+        if (difference.uniqueSetDifference!.actualColumnNames.isEmpty) {
           t.uniqueColumnSet = null;
         } else {
-          t.uniqueColumnSet = difference.uniqueSetDifference.actualColumnNames;
+          t.uniqueColumnSet = difference.uniqueSetDifference!.actualColumnNames;
         }
       });
     }
@@ -436,7 +453,7 @@ class SchemaBuilder {
     builder.write("]");
 
     if (table.uniqueColumnSet != null) {
-      var set = table.uniqueColumnSet.map((p) => '"$p"').join(",");
+      var set = table.uniqueColumnSet!.map((p) => '"$p"').join(",");
       builder.write(", uniqueColumnSetNames: [$set]");
     }
 
@@ -444,16 +461,16 @@ class SchemaBuilder {
     return builder.toString();
   }
 
-  static String _getNewColumnExpression(SchemaColumn column) {
+  static String _getNewColumnExpression(SchemaColumn? column) {
     var builder = StringBuffer();
-    if (column.relatedTableName != null) {
+    if (column?.relatedTableName != null) {
       builder
-          .write('SchemaColumn.relationship("${column.name}", ${column.type}');
+          .write('SchemaColumn.relationship("${column!.name}", ${column.type}');
       builder.write(", relatedTableName: \"${column.relatedTableName}\"");
       builder.write(", relatedColumnName: \"${column.relatedColumnName}\"");
       builder.write(", rule: ${column.deleteRule}");
     } else {
-      builder.write('SchemaColumn("${column.name}", ${column.type}');
+      builder.write('SchemaColumn("${column!.name}", ${column.type}');
       if (column.isPrimaryKey) {
         builder.write(", isPrimaryKey: true");
       } else {

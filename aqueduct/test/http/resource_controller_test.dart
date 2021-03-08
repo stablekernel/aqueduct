@@ -650,10 +650,10 @@ class BooleanQueryParamController extends ResourceController {
 }
 
 class HTTPParameterController extends ResourceController {
-  @requiredBinding
+  requiredBinding
   @Bind.header("X-Request-id")
   String requestId;
-  @requiredBinding
+  requiredBinding
   @Bind.query("Shaqs")
   int numberOfShaqs;
   @Bind.header("Location")

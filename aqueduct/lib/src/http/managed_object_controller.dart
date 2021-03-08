@@ -22,7 +22,7 @@ import 'http.dart';
 /// - GET /<name>/:id -> Fetch Object by ID
 /// - PUT /<name>/:id -> Update Object by ID, HTTP Request Body contains update values.
 /// - DELETE /<name>/:id -> Delete Object by ID
-/// - POST /<name> -> Create new Object, HTTP Request Body contains update values.
+/// - POST /<name> -> Create Object, HTTP Request Body contains update values.
 /// - GET /<name> -> Fetch instances of Object
 ///
 /// You may use this class without subclassing, but you may also subclass it to modify the executed [Query] prior to its execution, or modify the returned [Response] after the query has been completed.
@@ -44,7 +44,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     _query = Query<InstanceType>(context);
   }
 
-  /// Creates a new [ManagedObjectController] without a static type.
+  /// Creates a [ManagedObjectController] without a static type.
   ///
   /// This method is used when generating instances of this type dynamically from runtime values,
   /// where the static type argument cannot be defined. Behaves just like the unnamed constructor.
@@ -62,12 +62,12 @@ class ManagedObjectController<InstanceType extends ManagedObject>
     return "/$name/[:id]";
   }
 
-  Query<InstanceType> _query;
+  late Query<InstanceType> _query;
 
   /// Executed prior to a fetch by ID query.
   ///
   /// You may modify the [query] prior to its execution in this method. The [query] will have a single matcher, where the [InstanceType]'s primary key
-  /// is equal to the first path argument in the [Request]. You may also return a new [Query],
+  /// is equal to the first path argument in the [Request]. You may also return a [Query],
   /// but it must have the same [InstanceType] as this controller. If you return null from this method, no [Query] will be executed
   /// and [didNotFindObject] will immediately be called.
   FutureOr<Query<InstanceType>> willFindObjectWithQuery(
@@ -92,14 +92,14 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.get("id")
   Future<Response> getObject(@Bind.path("id") String id) async {
-    var primaryKey = _query.entity.primaryKey;
+    var primaryKey = _query.entity?.primaryKey;
     final parsedIdentifier =
-        _getIdentifierFromPath(id, _query.entity.properties[primaryKey]);
+        _getIdentifierFromPath(id, _query.entity?.properties[primaryKey]);
     _query.where((o) => o[primaryKey]).equalTo(parsedIdentifier);
 
     _query = await willFindObjectWithQuery(_query);
 
-    var result = await _query?.fetchOne();
+    var result = await _query.fetchOne();
 
     if (result == null) {
       return didNotFindObject();
@@ -110,7 +110,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   /// Executed prior to an insert query being executed.
   ///
-  /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
+  /// You may modify the [query] prior to its execution in this method. You may also return a [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no values will be inserted and [didInsertObject] will immediately be called with the value null.
   FutureOr<Query<InstanceType>> willInsertObjectWithQuery(
@@ -127,19 +127,19 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.post()
   Future<Response> createObject() async {
-    final instance = _query.entity.instanceOf() as InstanceType;
+    final instance = _query.entity?.instanceOf() as InstanceType;
     instance.readFromMap(request.body.as());
     _query.values = instance;
 
     _query = await willInsertObjectWithQuery(_query);
-    var result = await _query?.insert();
+    var result = await _query.insert();
 
     return didInsertObject(result);
   }
 
   /// Executed prior to a delete query being executed.
   ///
-  /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
+  /// You may modify the [query] prior to its execution in this method. You may also return a [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no delete operation will be performed and [didNotFindObjectToDeleteWithID] will immediately be called with the value null.
   FutureOr<Query<InstanceType>> willDeleteObjectWithQuery(
@@ -163,14 +163,14 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.delete("id")
   Future<Response> deleteObject(@Bind.path("id") String id) async {
-    var primaryKey = _query.entity.primaryKey;
+    var primaryKey = _query.entity?.primaryKey;
     final parsedIdentifier =
-        _getIdentifierFromPath(id, _query.entity.properties[primaryKey]);
+        _getIdentifierFromPath(id, _query.entity?.properties[primaryKey]);
     _query.where((o) => o[primaryKey]).equalTo(parsedIdentifier);
 
     _query = await willDeleteObjectWithQuery(_query);
 
-    var result = await _query?.delete();
+    var result = await _query.delete();
 
     if (result == 0) {
       return didNotFindObjectToDeleteWithID(id);
@@ -181,7 +181,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   /// Executed prior to a update query being executed.
   ///
-  /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
+  /// You may modify the [query] prior to its execution in this method. You may also return a [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no values will be inserted and [didNotFindObjectToUpdateWithID] will immediately be called with the value null.
   FutureOr<Query<InstanceType>> willUpdateObjectWithQuery(
@@ -205,18 +205,18 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   @Operation.put("id")
   Future<Response> updateObject(@Bind.path("id") String id) async {
-    var primaryKey = _query.entity.primaryKey;
+    var primaryKey = _query.entity?.primaryKey;
     final parsedIdentifier =
-        _getIdentifierFromPath(id, _query.entity.properties[primaryKey]);
+        _getIdentifierFromPath(id, _query.entity?.properties[primaryKey]);
     _query.where((o) => o[primaryKey]).equalTo(parsedIdentifier);
 
-    final instance = _query.entity.instanceOf() as InstanceType;
-    instance.readFromMap(request.body.as());
+    final instance = _query.entity?.instanceOf() as InstanceType?;
+    instance?.readFromMap(request.body.as());
     _query.values = instance;
 
     _query = await willUpdateObjectWithQuery(_query);
 
-    var results = await _query?.updateOne();
+    var results = await _query.updateOne();
     if (results == null) {
       return didNotFindObjectToUpdateWithID(id);
     } else {
@@ -226,7 +226,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
   /// Executed prior to a fetch query being executed.
   ///
-  /// You may modify the [query] prior to its execution in this method. You may also return a new [Query],
+  /// You may modify the [query] prior to its execution in this method. You may also return a [Query],
   /// but it must have the same type argument as this controller. If you return null from this method,
   /// no objects will be fetched and [didFindObjects] will immediately be called with the value null.
   FutureOr<Query<InstanceType>> willFindObjectsWithQuery(
@@ -237,7 +237,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
   /// Executed after a list of objects has been fetched.
   ///
   /// By default, returns [Response.ok] with the encoded list of founds objects (which may be the empty list).
-  FutureOr<Response> didFindObjects(List<InstanceType> objects) {
+  FutureOr<Response> didFindObjects(List<InstanceType>? objects) {
     return Response.ok(objects);
   }
 
@@ -259,7 +259,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       ///
       /// Must be a key in the object type being fetched. Must
       /// provide either pageAfter or pagePrior. Use with count.
-      @Bind.query("pageBy") String pageBy,
+      @Bind.query("pageBy") String? pageBy,
 
       /// A value-based offset into an ordered list of objects.
       ///
@@ -267,7 +267,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       /// value for the property named by pageBy is greater than
       /// the value of pageAfter. Must provide pageBy, and the type
       /// of the property designated by pageBy must be the same as pageAfter.
-      @Bind.query("pageAfter") String pageAfter,
+      @Bind.query("pageAfter") String? pageAfter,
 
       /// A value-based offset into an ordered list of objects.
       ///
@@ -275,13 +275,13 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       /// value for the property named by pageBy is less than
       /// the value of pageAfter. Must provide pageBy, and the type
       /// of the property designated by pageBy must be the same as pageAfter.
-      @Bind.query("pagePrior") String pagePrior,
+      @Bind.query("pagePrior") String? pagePrior,
 
       /// Designates a sorting strategy for the returned objects.
       ///
       /// This value must take the form 'name,asc' or 'name,desc', where name
       /// is the property of the returned objects to sort on.
-      @Bind.query("sortBy") List<String> sortBy}) async {
+      @Bind.query("sortBy") List<String>? sortBy}) async {
     _query.fetchLimit = count;
     _query.offset = offset;
 
@@ -301,7 +301,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
         });
       }
 
-      var pageByProperty = _query.entity.properties[pageBy];
+      var pageByProperty = _query.entity?.properties[pageBy];
       if (pageByProperty == null) {
         throw Response.badRequest(body: {"error": "cannot page by '$pageBy'"});
       }
@@ -320,7 +320,7 @@ class ManagedObjectController<InstanceType extends ManagedObject>
                 "invalid 'sortyBy' format. syntax: 'name,asc' or 'name,desc'."
           });
         }
-        if (_query.entity.properties[split.first] == null) {
+        if (_query.entity?.properties[split.first] == null) {
           throw Response.badRequest(
               body: {"error": "cannot sort by '$sortBy'"});
         }
@@ -339,19 +339,19 @@ class ManagedObjectController<InstanceType extends ManagedObject>
 
     _query = await willFindObjectsWithQuery(_query);
 
-    var results = await _query?.fetch();
+    var results = await _query.fetch();
 
     return didFindObjects(results);
   }
 
   @override
-  APIRequestBody documentOperationRequestBody(
+  APIRequestBody? documentOperationRequestBody(
       APIDocumentContext context, Operation operation) {
     if (operation.method == "POST" || operation.method == "PUT") {
       return APIRequestBody.schema(
           context.schema.getObjectWithType(InstanceType),
           contentTypes: ["application/json"],
-          required: true);
+          isRequired: true);
     }
 
     return null;
@@ -412,37 +412,37 @@ class ManagedObjectController<InstanceType extends ManagedObject>
       APIDocumentContext context, String route, APIPath path) {
     final ops = super.documentOperations(context, route, path);
 
-    final entityName = _query.entity.name;
+    final entityName = _query.entity?.name;
 
     if ((path.parameters
-                ?.where((p) => p.location == APIParameterLocation.path)
-                ?.length ??
+                ?.where((p) => p?.location == APIParameterLocation.path)
+                .length ??
             0) >
         0) {
-      ops["get"].id = "get$entityName";
-      ops["put"].id = "update$entityName";
-      ops["delete"].id = "delete$entityName";
+      ops["get"]?.id = "get$entityName";
+      ops["put"]?.id = "update$entityName";
+      ops["delete"]?.id = "delete$entityName";
     } else {
-      ops["get"].id = "get${entityName}s";
-      ops["post"].id = "create$entityName";
+      ops["get"]?.id = "get${entityName}s";
+      ops["post"]?.id = "create$entityName";
     }
 
     return ops;
   }
 
   dynamic _getIdentifierFromPath(
-      String value, ManagedPropertyDescription desc) {
+      String value, ManagedPropertyDescription? desc) {
     return _parseValueForProperty(value, desc, onError: Response.notFound());
   }
 
-  dynamic _parseValueForProperty(String value, ManagedPropertyDescription desc,
-      {Response onError}) {
+  dynamic _parseValueForProperty(String value, ManagedPropertyDescription? desc,
+      {Response? onError}) {
     if (value == "null") {
       return null;
     }
 
     try {
-      switch (desc.type.kind) {
+      switch (desc?.type?.kind) {
         case ManagedPropertyType.string:
           return value;
         case ManagedPropertyType.bigInteger:
@@ -461,11 +461,11 @@ class ManagedObjectController<InstanceType extends ManagedObject>
           return null;
         case ManagedPropertyType.document:
           return null;
+        default:
+          return null;
       }
     } on FormatException {
       throw onError ?? Response.badRequest();
     }
-
-    return null;
   }
 }

@@ -3,7 +3,7 @@ import 'dart:convert';
 abstract class AuthorizationParser<T> {
   const AuthorizationParser();
 
-  T parse(String authorizationHeader);
+  T? parse(String? authorizationHeader);
 }
 
 /// Parses a Bearer token from an Authorization header.
@@ -17,7 +17,7 @@ class AuthorizationBearerParser extends AuthorizationParser<String> {
   ///
   /// If [authorizationHeader] is malformed or null, throws an [AuthorizationParserException].
   @override
-  String parse(String authorizationHeader) {
+  String? parse(String? authorizationHeader) {
     if (authorizationHeader == null) {
       throw AuthorizationParserException(
           AuthorizationParserExceptionReason.missing);
@@ -38,10 +38,10 @@ class AuthorizationBearerParser extends AuthorizationParser<String> {
 /// See [AuthorizationBasicParser] for getting instances of this type.
 class AuthBasicCredentials {
   /// The username of a Basic Authorization header.
-  String username;
+  String? username;
 
   /// The password of a Basic Authorization header.
-  String password;
+  String? password;
 
   @override
   String toString() => "$username:$password";
@@ -59,7 +59,7 @@ class AuthorizationBasicParser
   ///
   /// If [authorizationHeader] is malformed or null, throws an [AuthorizationParserException].
   @override
-  AuthBasicCredentials parse(String authorizationHeader) {
+  AuthBasicCredentials parse(String? authorizationHeader) {
     if (authorizationHeader == null) {
       throw AuthorizationParserException(
           AuthorizationParserExceptionReason.missing);
@@ -72,7 +72,7 @@ class AuthorizationBasicParser
           AuthorizationParserExceptionReason.malformed);
     }
 
-    final base64String = match[1];
+    final base64String = match[1]!;
     String decodedCredentials;
     try {
       decodedCredentials =

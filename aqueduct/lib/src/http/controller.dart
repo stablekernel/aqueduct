@@ -16,9 +16,9 @@ typedef _Handler = FutureOr<RequestOrResponse> Function(Request request);
 /// A [Controller] must return an instance of this type from its [Controller.handle] method.
 abstract class RequestOrResponse {}
 
-/// An interface that [Controller] subclasses implement to generate a new controller for each request.
+/// An interface that [Controller] subclasses implement to generate a controller for each request.
 ///
-/// If a [Controller] implements this interface, a new [Controller] is created for each request. Controllers
+/// If a [Controller] implements this interface, a [Controller] is created for each request. Controllers
 /// must implement this interface if they declare setters or non-final properties, as those properties could
 /// change during request handling.
 ///
@@ -30,13 +30,13 @@ abstract class Recyclable<T> implements Controller {
   /// Returns state information that is reused across instances of this type.
   ///
   /// This method is called once when this instance is first created. It is passed
-  /// to each new instance of this type via [restore].
-  T get recycledState;
+  /// to each instance of this type via [restore].
+  T? get recycledState;
 
-  /// Provides a new instance of this type with the [recycledState] of this type.
+  /// Provides a instance of this type with the [recycledState] of this type.
   ///
-  /// Use this method it provide compiled runtime information to a new instance.
-  void restore(T state);
+  /// Use this method it provide compiled runtime information to a instance.
+  void restore(T? state);
 }
 
 /// An interface for linking controllers.
@@ -44,7 +44,7 @@ abstract class Recyclable<T> implements Controller {
 /// All [Controller]s implement this interface.
 abstract class Linkable {
   /// See [Controller.link].
-  Linkable link(Controller instantiator());
+  Linkable? link(Controller instantiator());
 
   /// See [Controller.linkFunction].
   Linkable linkFunction(FutureOr<RequestOrResponse> handle(Request request));
@@ -81,15 +81,15 @@ abstract class Controller
   /// Receives requests that this controller does not respond to.
   ///
   /// This value is set by [link] or [linkFunction].
-  Controller get nextController => _nextController;
+  Controller? get nextController => _nextController;
 
   /// An instance of the 'aqueduct' logger.
   Logger get logger => Logger("aqueduct");
 
   /// The CORS policy of this controller.
-  CORSPolicy policy = CORSPolicy();
+  CORSPolicy? policy = CORSPolicy();
 
-  Controller _nextController;
+  Controller? _nextController;
 
   /// Links a controller to the receiver to form a request channel.
   ///
@@ -101,12 +101,12 @@ abstract class Controller
   /// are marked as final.
   ///
   /// If the returned controller has properties that are not marked as final, it must implement [Recyclable].
-  /// When a controller implements [Recyclable], [instantiator] is called for each new request that
+  /// When a controller implements [Recyclable], [instantiator] is called for each request that
   /// reaches this point of the channel. See [Recyclable] for more details.
   ///
   /// See [linkFunction] for a variant of this method that takes a closure instead of an object.
   @override
-  Linkable link(Controller instantiator()) {
+  Linkable? link(Controller instantiator()) {
     final instance = instantiator();
     if (instance is Recyclable) {
       _nextController = _ControllerRecycler(instantiator, instance);
@@ -156,7 +156,7 @@ abstract class Controller
       return _handlePreflightRequest(req);
     }
 
-    Request next;
+    Request? next;
     try {
       try {
         final result = await handle(req);
@@ -238,7 +238,7 @@ abstract class Controller
           ? {
               "controller": "$runtimeType",
               "error": "$caughtValue.",
-              "stacktrace": trace?.toString()
+              "stacktrace": trace.toString()
             }
           : null;
 
@@ -269,11 +269,11 @@ abstract class Controller
   }
 
   @override
-  Map<String, APIPath> documentPaths(APIDocumentContext context) =>
+  Map<String, APIPath>? documentPaths(APIDocumentContext context) =>
       nextController?.documentPaths(context);
 
   @override
-  Map<String, APIOperation> documentOperations(
+  Map<String, APIOperation>? documentOperations(
       APIDocumentContext context, String route, APIPath path) {
     if (nextController == null) {
       return {};
@@ -294,11 +294,11 @@ abstract class Controller
         controllerToDictatePolicy = lastControllerInChain;
       } else {
         if (policy != null) {
-          if (!policy.validatePreflightRequest(req.raw)) {
+          if (!policy!.validatePreflightRequest(req.raw)) {
             await _sendResponse(req, Response.forbidden());
             logger.info(req.toDebugString(includeHeaders: true));
           } else {
-            await _sendResponse(req, policy.preflightResponse(req));
+            await _sendResponse(req, policy!.preflightResponse(req));
             logger.info(req.toDebugString());
           }
 
@@ -314,7 +314,7 @@ abstract class Controller
       return handleError(req, any, stacktrace);
     }
 
-    return controllerToDictatePolicy?.receive(req);
+    return controllerToDictatePolicy.receive(req);
   }
 
   Future _sendResponse(Request request, Response response,
@@ -330,7 +330,7 @@ abstract class Controller
   Controller get _lastController {
     var controller = this;
     while (controller.nextController != null) {
-      controller = controller.nextController;
+      controller = controller.nextController!;
     }
     return controller;
   }
@@ -344,43 +344,43 @@ class _ControllerRecycler<T> extends Controller {
   }
 
   _ControllerGeneratorClosure generator;
-  CORSPolicy policyOverride;
-  T recycleState;
+  CORSPolicy? policyOverride;
+  T? recycleState;
 
-  Recyclable<T> _nextInstanceToReceive;
+  Recyclable<T>? _nextInstanceToReceive;
 
-  Recyclable<T> get nextInstanceToReceive => _nextInstanceToReceive;
+  Recyclable<T>? get nextInstanceToReceive => _nextInstanceToReceive;
 
-  set nextInstanceToReceive(Recyclable<T> instance) {
+  set nextInstanceToReceive(Recyclable<T>? instance) {
     _nextInstanceToReceive = instance;
-    instance.restore(recycleState);
-    instance._nextController = nextController;
+    instance?.restore(recycleState);
+    instance?._nextController = nextController;
     if (policyOverride != null) {
-      instance.policy = policyOverride;
+      instance?.policy = policyOverride;
     }
   }
 
   @override
-  CORSPolicy get policy {
-    return nextInstanceToReceive.policy;
+  CORSPolicy? get policy {
+    return nextInstanceToReceive?.policy;
   }
 
   @override
-  set policy(CORSPolicy p) {
+  set policy(CORSPolicy? p) {
     policyOverride = p;
   }
 
   @override
-  Linkable link(Controller instantiator()) {
+  Linkable? link(Controller instantiator()) {
     final c = super.link(instantiator);
-    nextInstanceToReceive._nextController = c as Controller;
+    nextInstanceToReceive?._nextController = c as Controller;
     return c;
   }
 
   @override
   Linkable linkFunction(FutureOr<RequestOrResponse> handle(Request request)) {
     final c = super.linkFunction(handle);
-    nextInstanceToReceive._nextController = c as Controller;
+    nextInstanceToReceive?._nextController = c as Controller;
     return c;
   }
 
@@ -388,7 +388,7 @@ class _ControllerRecycler<T> extends Controller {
   Future receive(Request req) {
     final next = nextInstanceToReceive;
     nextInstanceToReceive = generator() as Recyclable<T>;
-    return next.receive(req);
+    return next!.receive(req);
   }
 
   @override
@@ -400,26 +400,26 @@ class _ControllerRecycler<T> extends Controller {
   void didAddToChannel() {
     // don't call super, since nextInstanceToReceive's nextController is set to the same instance,
     // and it must call nextController.prepare
-    nextInstanceToReceive.didAddToChannel();
+    nextInstanceToReceive?.didAddToChannel();
   }
 
   @override
   void documentComponents(APIDocumentContext components) =>
-      nextInstanceToReceive.documentComponents(components);
+      nextInstanceToReceive?.documentComponents(components);
 
   @override
-  Map<String, APIPath> documentPaths(APIDocumentContext components) =>
-      nextInstanceToReceive.documentPaths(components);
+  Map<String, APIPath>? documentPaths(APIDocumentContext components) =>
+      nextInstanceToReceive?.documentPaths(components);
 
   @override
-  Map<String, APIOperation> documentOperations(
+  Map<String, APIOperation>? documentOperations(
           APIDocumentContext components, String route, APIPath path) =>
-      nextInstanceToReceive.documentOperations(components, route, path);
+      nextInstanceToReceive?.documentOperations(components, route, path);
 }
 
 @PreventCompilation()
 class _FunctionController extends Controller {
-  _FunctionController(this._handler) : assert(_handler != null);
+  _FunctionController(this._handler);
 
   final _Handler _handler;
 
@@ -429,7 +429,7 @@ class _FunctionController extends Controller {
   }
 
   @override
-  Map<String, APIOperation> documentOperations(
+  Map<String, APIOperation>? documentOperations(
       APIDocumentContext context, String route, APIPath path) {
     if (nextController == null) {
       return {};
@@ -442,5 +442,9 @@ class _FunctionController extends Controller {
 abstract class ControllerRuntime {
   bool get isMutable;
 
+<<<<<<< Updated upstream
   ResourceControllerRuntime get resourceController;
+=======
+  ResourceControllerRuntime? get resourceController;
+>>>>>>> Stashed changes
 }

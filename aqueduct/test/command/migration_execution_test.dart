@@ -156,7 +156,7 @@ void main() {
   });
 
   test(
-      "If migrations have already been applied, and new migrations occur where the first fails, those pending migrations are cancelled",
+      "If migrations have already been applied, and migrations occur where the first fails, those pending migrations are cancelled",
       () async {
     expect(await runMigrationCases(["Case61"]), 0);
     expect(cli.output.contains("Applied schema version 1 successfully"), true);
@@ -186,7 +186,7 @@ void main() {
   });
 
   test(
-      "If migration fails because adding a new non-nullable column to an table, a friendly error is emitted",
+      "If migration fails because adding a non-nullable column to an table, a friendly error is emitted",
       () async {
     StringBuffer buf = StringBuffer();
     expect(await runMigrationCases(["Case81", "Case82"], log: buf), isNot(0));

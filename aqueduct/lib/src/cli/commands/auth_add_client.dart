@@ -12,19 +12,19 @@ import 'package:aqueduct/aqueduct.dart';
 class CLIAuthAddClient extends CLICommand
     with CLIDatabaseConnectingCommand, CLIDatabaseManagingCommand, CLIProject {
   @Option("id", abbr: "i", help: "The client ID to insert.")
-  String get clientID => decode("id");
+  String? get clientID => decode("id");
 
   @Option("secret",
       abbr: "s",
       help:
           "The client secret. This secret will be hashed on insertion, so you *must* store it somewhere. For public clients, this option may be omitted.")
-  String get secret => decode("secret");
+  String? get secret => decode("secret");
 
   @Option("redirect-uri",
       abbr: "r",
       help:
           "The redirect URI of the client if it supports the authorization code or implicit flow. May be omitted.")
-  String get redirectUri => decode("redirect-uri");
+  String? get redirectUri => decode("redirect-uri");
 
   @Option("hash-function",
       help:
@@ -49,27 +49,27 @@ class CLIAuthAddClient extends CLICommand
       help:
           "Number of hash rounds to apply to secret. Must match AuthServer.hashRounds.",
       defaultsTo: "1000")
-  int get hashRounds => decode("hash-rounds");
+  int get hashRounds => decode("hash-rounds") ?? 1000;
 
   @Option("hash-length",
       help:
           "Length in bytes of secret key after hashing. Must match AuthServer.hashLength.",
       defaultsTo: "32")
-  int get hashLength => decode("hash-length");
+  int get hashLength => decode("hash-length") ?? 32;
 
   @Option("allowed-scopes",
       help:
           "A space-delimited list of allowed scopes. Omit if application does not support scopes.",
       defaultsTo: "")
-  List<String> get allowedScopes {
-    String v = decode("allowed-scopes") as String;
-    if (v.isEmpty) {
+  List<String>? get allowedScopes {
+    String? v = decode("allowed-scopes") as String?;
+    if (v?.isEmpty ?? true) {
       return null;
     }
-    return v?.split(" ")?.toList();
+    return v?.split(" ").toList();
   }
 
-  ManagedContext context;
+  ManagedContext? context;
 
   @override
   Future<int> handle() async {
@@ -86,7 +86,7 @@ class CLIAuthAddClient extends CLICommand
         hashLength: hashLength,
         hashRounds: hashRounds,
         hashFunction: hashFunction)
-      ..allowedScopes = allowedScopes?.map((s) => AuthScope(s))?.toList();
+      ..allowedScopes = allowedScopes?.map((s) => AuthScope(s)).toList();
 
     var managedCredentials = ManagedAuthClient.fromClient(credentials);
 
@@ -108,9 +108,9 @@ class CLIAuthAddClient extends CLICommand
       return 0;
     } on QueryException catch (e) {
       if (e.event == QueryExceptionEvent.conflict) {
-        if (e.offendingItems.contains("id")) {
+        if (e.offendingItems!.contains("id")) {
           displayError("Client ID '$clientID' already exists.");
-        } else if (e.offendingItems.contains("redirectURI")) {
+        } else if (e.offendingItems!.contains("redirectURI")) {
           displayError("Redirect URI '$redirectUri' already exists.");
         }
 

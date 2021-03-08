@@ -29,7 +29,7 @@ class Application<T extends ApplicationChannel> {
   /// The [ApplicationServer] listening for HTTP requests while under test.
   ///
   /// This property is only valid when an application is started via [startOnCurrentIsolate].
-  ApplicationServer server;
+  ApplicationServer? server;
 
   /// The [ApplicationChannel] handling requests while under test.
   ///
@@ -125,7 +125,7 @@ class Application<T extends ApplicationChannel> {
 
       server = ApplicationServer(_runtime.channelType, options, 1);
 
-      await server.start();
+      await server!.start();
       _hasFinishedLaunching = true;
     } catch (e, st) {
       logger.severe("$e", this, st);

@@ -8,7 +8,6 @@ import 'package:aqueduct/src/runtime/resource_controller/documenter.dart';
 import 'package:aqueduct/src/runtime/resource_controller/utility.dart';
 import 'package:aqueduct/src/runtime/resource_controller_generator.dart';
 import 'package:aqueduct/src/utilities/mirror_helpers.dart';
-import 'package:meta/meta.dart';
 import 'package:runtime/runtime.dart' hide firstMetadataOfType;
 
 class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
@@ -19,7 +18,7 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
         .whereType<VariableMirror>()
         .where((decl) => decl.metadata.any((im) => im.reflectee is Bind))
         .map((decl) {
-      final isRequired = allDeclarations[decl.simpleName]
+      final isRequired = allDeclarations[decl.simpleName]!
           .metadata
           .any((im) => im.reflectee is RequiredBinding);
       return getParameterForVariable(decl, isRequired: isRequired);
@@ -55,14 +54,19 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
 
   List<String> get directives {
     final directives = <String>[];
-    operations.forEach((op) {
+    operations?.forEach((op) {
       final imports = [
-        op.positionalParameters,
-        op.namedParameters,
+        op?.positionalParameters,
+        op?.namedParameters,
         ivarParameters
       ]
+<<<<<<< Updated upstream
           .expand((i) => i)
           .map((p) => reflectType(p.type).location.sourceUri)
+=======
+          .expand((i) => i!)
+          .map((p) => reflectType(p!.type).location?.sourceUri)
+>>>>>>> Stashed changes
           .where((uri) =>
               uri != null &&
               (uri.scheme == "package" ||
@@ -75,25 +79,25 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
   }
 
   List<String> get unsatisfiableOperations {
-    return operations
+    return operations!
         .where((op) {
-          final argPathParameters = op.positionalParameters
-              .where((p) => p.location == BindingType.path);
+          final argPathParameters = op!.positionalParameters
+              .where((p) => p?.location == BindingType.path);
 
           return !argPathParameters
-              .every((p) => op.pathVariables.contains(p.name));
+              .every((p) => op.pathVariables.contains(p?.name));
         })
-        .map((op) => op.dartMethodName)
+        .map((op) => op!.dartMethodName)
         .toList();
   }
 
   List<String> get conflictingOperations {
-    return operations
+    return operations!
         .where((op) {
-          final possibleConflicts = operations.where((b) => b != op);
+          final possibleConflicts = operations!.where((b) => b != op);
 
           return possibleConflicts.any((opToCompare) {
-            if (opToCompare.httpMethod != op.httpMethod) {
+            if (opToCompare!.httpMethod != op!.httpMethod) {
               return false;
             }
 
@@ -105,7 +109,7 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
                 .every((p) => op.pathVariables.contains(p));
           });
         })
-        .map((op) => op.dartMethodName)
+        .map((op) => op!.dartMethodName)
         .toList();
   }
 
@@ -114,11 +118,11 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
       ResourceControllerOperationInvocationArgs args) {
     final rcMirror = reflect(untypedController);
 
-    args.instanceVariables.forEach((k, v) => rcMirror.setField(Symbol(k), v));
+    args.instanceVariables?.forEach((k, v) => rcMirror.setField(Symbol(k), v));
   }
 
   ResourceControllerParameter getParameterForVariable(VariableMirror mirror,
-      {@required bool isRequired}) {
+      {required bool isRequired}) {
     final metadata = mirror.metadata
         .firstWhere((im) => im.reflectee is Bind)
         .reflectee as Bind;
@@ -240,11 +244,11 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
     }
 
     return ResourceControllerParameter(
-        acceptFilter: metadata.accept,
-        ignoreFilter: metadata.ignore,
-        rejectFilter: metadata.reject,
-        requireFilter: metadata.require,
-        name: metadata.name,
+        acceptFilter: metadata.accept!,
+        ignoreFilter: metadata.ignore!,
+        rejectFilter: metadata.reject!,
+        requireFilter: metadata.require!,
+        name: metadata.name!,
         type: mirror.type.reflectedType,
         symbolName: MirrorSystem.getName(mirror.simpleName),
         location: metadata.bindingType,
@@ -284,12 +288,12 @@ class ResourceControllerRuntimeImpl extends ResourceControllerRuntime {
             .toList(),
         scopes: getMethodScopes(mirror),
         dartMethodName: MirrorSystem.getName(symbol),
-        httpMethod: operation.method.toUpperCase(),
+        httpMethod: operation!.method.toUpperCase(),
         pathVariables: operation.pathVariables,
         invoker: (rc, args) {
           return reflect(rc)
-              .invoke(symbol, args.positionalArguments,
-                  args.namedArguments.map((k, v) => MapEntry(Symbol(k), v)))
+              .invoke(symbol, args.positionalArguments!,
+                  args.namedArguments!.map((k, v) => MapEntry(Symbol(k), v)))
               .reflectee as Future<Response>;
         });
   }
@@ -311,14 +315,14 @@ void _enforceTypeCanBeParsedFromString(
     return;
   }
 
-  final classMirror = typeMirror as ClassMirror;
+  final classMirror = typeMirror;
   if (!classMirror.staticMembers.containsKey(#parse)) {
     throw _makeError(
         varMirror, 'Parameter type does not implement static parse method.');
   }
 
   final parseMethod = classMirror.staticMembers[#parse];
-  final params = parseMethod.parameters.where((p) => !p.isOptional).toList();
+  final params = parseMethod!.parameters.where((p) => !p.isOptional).toList();
   if (params.length == 1 &&
       params.first.type.isAssignableTo(reflectType(String))) {
     return;
@@ -358,7 +362,8 @@ dynamic _convertParameterWithMirror(
   final classMirror = typeMirror as ClassMirror;
   final parseDecl = classMirror.declarations[#parse];
   try {
-    return classMirror.invoke(parseDecl.simpleName, [parameterValue]).reflectee;
+    return classMirror
+        .invoke(parseDecl!.simpleName, [parameterValue]).reflectee;
   } catch (_) {
     throw ArgumentError("invalid value");
   }

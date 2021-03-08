@@ -23,8 +23,8 @@ import 'auth.dart';
 ///
 ///         router
 ///           .route("/protected-route")
-///           .link(() =>new Authorizer.bearer(authServer))
-///           .link(() => new ProtectedResourceController());
+///           .link(() =>Authorizer.bearer(authServer))
+///           .link(() => ProtectedResourceController());
 class Authorizer extends Controller {
   /// Creates an instance of [Authorizer].
   ///
@@ -36,8 +36,8 @@ class Authorizer extends Controller {
   ///
   /// If [scopes] is provided, the authorization granted must have access to *all* scopes according to [validator].
   Authorizer(this.validator,
-      {this.parser = const AuthorizationBearerParser(), List<String> scopes})
-      : scopes = scopes?.map((s) => AuthScope(s))?.toList();
+      {this.parser = const AuthorizationBearerParser(), List<String>? scopes})
+      : scopes = scopes?.map((s) => AuthScope(s)).toList();
 
   /// Creates an instance of [Authorizer] with Basic Authentication parsing.
   ///
@@ -54,7 +54,7 @@ class Authorizer extends Controller {
   ///         Authorization: Bearer ap9ijlarlkz8jIOa9laweo
   ///
   /// If [scopes] is provided, the bearer token must have access to *all* scopes according to [validator].
-  Authorizer.bearer(AuthValidator validator, {List<String> scopes})
+  Authorizer.bearer(AuthValidator validator, {List<String>? scopes})
       : this(validator,
             parser: const AuthorizationBearerParser(), scopes: scopes);
 
@@ -63,7 +63,7 @@ class Authorizer extends Controller {
   /// This object will check credentials parsed from the Authorization header and produce an
   /// [Authorization] object representing the authorization the credentials have. It may also
   /// reject a request. This is typically an instance of [AuthServer].
-  final AuthValidator validator;
+  final AuthValidator? validator;
 
   /// The list of required scopes.
   ///
@@ -72,7 +72,7 @@ class Authorizer extends Controller {
   ///
   /// This property is set with a list of scope strings in a constructor. Each scope string is parsed into
   /// an [AuthScope] and added to this list.
-  final List<AuthScope> scopes;
+  final List<AuthScope>? scopes;
 
   /// Parses the Authorization header.
   ///
@@ -92,7 +92,7 @@ class Authorizer extends Controller {
     try {
       final value = parser.parse(authData);
       request.authorization =
-          await validator.validate(parser, value, requiredScope: scopes);
+          await validator?.validate(parser, value, requiredScope: scopes);
       if (request.authorization == null) {
         return Response.unauthorized();
       }
@@ -104,7 +104,7 @@ class Authorizer extends Controller {
       if (e.reason == AuthRequestError.invalidScope) {
         return Response.forbidden(body: {
           "error": "insufficient_scope",
-          "scope": scopes.map((s) => s.toString()).join(" ")
+          "scope": scopes?.map((s) => s.toString()).join(" ")
         });
       }
 
@@ -135,7 +135,7 @@ class Authorizer extends Controller {
           final body = resp.body as Map<String, dynamic>;
           if (body.containsKey("scope")) {
             final declaredScopes = (body["scope"] as String).split(" ");
-            final scopesToAdd = scopes
+            final scopesToAdd = scopes!
                 .map((s) => s.toString())
                 .where((s) => !declaredScopes.contains(s));
             body["scope"] =
@@ -184,18 +184,18 @@ class Authorizer extends Controller {
   }
 
   @override
-  Map<String, APIOperation> documentOperations(
+  Map<String, APIOperation>? documentOperations(
       APIDocumentContext context, String route, APIPath path) {
     final operations = super.documentOperations(context, route, path);
 
-    operations.forEach((_, op) {
+    operations?.forEach((_, op) {
       op.addResponse(400, context.responses["MalformedAuthorizationHeader"]);
       op.addResponse(401, context.responses["InsufficientAccess"]);
       op.addResponse(403, context.responses["InsufficientScope"]);
 
       final requirements = validator
-          .documentRequirementsForAuthorizer(context, this, scopes: scopes);
-      requirements.forEach((req) {
+          ?.documentRequirementsForAuthorizer(context, this, scopes: scopes);
+      requirements?.forEach((req) {
         op.addSecurityRequirement(req);
       });
     });

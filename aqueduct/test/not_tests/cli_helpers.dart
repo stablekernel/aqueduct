@@ -91,11 +91,11 @@ import '$name.dart';
 
 class TestChannel extends ApplicationChannel {
   Controller get entryPoint {
-    final router = new Router();
+    final router = Router();
     router
       .route("/example")
       .linkFunction((request) async {
-        return new Response.ok({"key": "value"});
+        return Response.ok({"key": "value"});
       });
 
     return router;

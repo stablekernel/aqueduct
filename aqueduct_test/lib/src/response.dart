@@ -19,7 +19,7 @@ class TestResponse {
   /// not need to invoke [TestResponseBody.decode] or any of its asynchronous
   /// decoding methods.
   final TestResponseBody body;
-  
+
   /// HTTP response.
   HttpClientResponse get innerResponse => _innerResponse;
 
@@ -61,7 +61,7 @@ class TestResponse {
 
 /// Instances of these type represent the body of a [TestResponse].
 class TestResponseBody extends BodyDecoder {
-  /// Creates a new instance of this type.
+  /// Creates a instance of this type.
   ///
   /// Instances of this type decode [response]'s body based on its content-type.
   ///

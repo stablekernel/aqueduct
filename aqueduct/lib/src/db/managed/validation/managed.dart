@@ -19,21 +19,22 @@ class ManagedValidator {
       {Validating event = Validating.insert}) {
     final context = ValidationContext();
 
-    object.entity.validators.forEach((validator) {
-      context.property = validator.property;
+    object.entity.validators?.forEach((validator) {
+      context.property = validator!.property;
       context.event = event;
       context.state = validator.state;
-      if (!validator.definition.runOnInsert && event == Validating.insert) {
+      if (!validator.definition!.runOnInsert && event == Validating.insert) {
         return;
       }
 
-      if (!validator.definition.runOnUpdate && event == Validating.update) {
+      if (!validator.definition!.runOnUpdate && event == Validating.update) {
         return;
       }
 
       var contents = object.backing.contents;
-      var key = validator.property.name;
+      var key = validator.property?.name;
 
+<<<<<<< Updated upstream
       if (validator.definition.type == ValidateType.present) {
         if (validator.property is ManagedRelationshipDescription) {
           final inner = object[validator.property.name] as ManagedObject;
@@ -44,31 +45,57 @@ class ManagedValidator {
           }
         } else if (!contents.containsKey(key)) {
           context.addError("key '${validator.property.name}' is required"
+=======
+      if (validator.definition!.type == ValidateType.present) {
+        if (validator.property is ManagedRelationshipDescription?) {
+          final inner = object[validator.property?.name] as ManagedObject?;
+          if (inner == null ||
+              !inner.backing.contents!.containsKey(inner.entity.primaryKey)) {
+            context.addError("key '${validator.property?.name}' is required"
+                "for ${_getEventName(event)}s.");
+          }
+        } else if (!contents!.containsKey(key)) {
+          context.addError("key '${validator.property?.name}' is required"
+>>>>>>> Stashed changes
               "for ${_getEventName(event)}s.");
         }
-      } else if (validator.definition.type == ValidateType.absent) {
+      } else if (validator.definition!.type == ValidateType.absent) {
         if (validator.property is ManagedRelationshipDescription) {
-          final inner = object[validator.property.name] as ManagedObject;
+          final inner = object[validator.property?.name] as ManagedObject?;
           if (inner != null) {
+<<<<<<< Updated upstream
             context.addError("key '${validator.property.name}' is not allowed "
                 "for ${_getEventName(event)}s.");
           }
         } else if (contents.containsKey(key)) {
           context.addError("key '${validator.property.name}' is not allowed "
+=======
+            context.addError("key '${validator.property?.name}' is not allowed "
+                "for ${_getEventName(event)}s.");
+          }
+        } else if (contents!.containsKey(key)) {
+          context.addError("key '${validator.property?.name}' is not allowed "
+>>>>>>> Stashed changes
               "for ${_getEventName(event)}s.");
         }
       } else {
         if (validator.property is ManagedRelationshipDescription) {
+<<<<<<< Updated upstream
           final inner = object[validator.property.name] as ManagedObject;
           if (inner == null ||
               inner.backing.contents[inner.entity.primaryKey] == null) {
+=======
+          final inner = object[validator.property?.name] as ManagedObject?;
+          if (inner == null ||
+              inner.backing.contents![inner.entity.primaryKey] == null) {
+>>>>>>> Stashed changes
             return;
           }
           contents = inner.backing.contents;
           key = inner.entity.primaryKey;
         }
 
-        final value = contents[key];
+        final value = contents?[key];
         if (value != null) {
           validator.validate(context, value);
         }
@@ -79,15 +106,15 @@ class ManagedValidator {
   }
 
   /// The property being validated.
-  ManagedPropertyDescription property;
+  ManagedPropertyDescription? property;
 
   /// The metadata associated with this instance.
-  final Validate definition;
+  final Validate? definition;
 
   final dynamic state;
 
   void validate(ValidationContext context, dynamic value) {
-    definition.validate(context, value);
+    definition?.validate(context, value);
   }
 
   static String _getEventName(Validating op) {

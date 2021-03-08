@@ -22,20 +22,23 @@ class TableBuilder implements Returnable {
 
     columnSortBuilders = query.sortDescriptors
             ?.map((s) => ColumnSortBuilder(this, s.key, s.order))
-            ?.toList() ??
+            .toList() ??
         [];
 
     if (query.pageDescriptor != null) {
-      columnSortBuilders.add(ColumnSortBuilder(
-          this, query.pageDescriptor.propertyName, query.pageDescriptor.order));
+      columnSortBuilders.add(ColumnSortBuilder(this,
+          query.pageDescriptor!.propertyName, query.pageDescriptor!.order));
 
-      if (query.pageDescriptor.boundingValue != null) {
-        final prop = entity.properties[query.pageDescriptor.propertyName];
-        final operator = query.pageDescriptor.order == QuerySortOrder.ascending
+      if (query.pageDescriptor!.boundingValue != null) {
+        final prop = entity?.properties[query.pageDescriptor!.propertyName];
+        final operator = query.pageDescriptor!.order == QuerySortOrder.ascending
             ? PredicateOperator.greaterThan
             : PredicateOperator.lessThan;
-        final expr = ColumnExpressionBuilder(this, prop,
-            ComparisonExpression(query.pageDescriptor.boundingValue, operator));
+        final expr = ColumnExpressionBuilder(
+            this,
+            prop,
+            ComparisonExpression(
+                query.pageDescriptor!.boundingValue, operator));
         expressionBuilders.add(expr);
       }
     }
@@ -49,34 +52,34 @@ class TableBuilder implements Returnable {
   }
 
   TableBuilder.implicit(this.parent, this.joinedBy)
-      : entity = joinedBy.inverse.entity,
+      : entity = joinedBy?.inverse.entity,
         _manualPredicate = QueryPredicate.empty() {
     tableAlias = createTableAlias();
     returning = <Returnable>[];
     columnSortBuilders = [];
   }
 
-  final ManagedEntity entity;
-  final TableBuilder parent;
-  final ManagedRelationshipDescription joinedBy;
+  final ManagedEntity? entity;
+  final TableBuilder? parent;
+  final ManagedRelationshipDescription? joinedBy;
   final List<ColumnExpressionBuilder> expressionBuilders = [];
-  String tableAlias;
-  QueryPredicate predicate;
-  List<ColumnSortBuilder> columnSortBuilders;
-  List<Returnable> returning;
+  String? tableAlias;
+  QueryPredicate? predicate;
+  late List<ColumnSortBuilder> columnSortBuilders;
+  late List<Returnable?> returning;
   int aliasCounter = 0;
 
-  final QueryPredicate _manualPredicate;
+  final QueryPredicate? _manualPredicate;
 
-  ManagedRelationshipDescription get foreignKeyProperty =>
-      joinedBy.relationshipType == ManagedRelationshipType.belongsTo
+  ManagedRelationshipDescription? get foreignKeyProperty =>
+      joinedBy?.relationshipType == ManagedRelationshipType.belongsTo
           ? joinedBy
-          : joinedBy.inverse;
+          : joinedBy?.inverse;
 
   bool isJoinOnProperty(ManagedRelationshipDescription relationship) {
-    return joinedBy.destinationEntity == relationship.destinationEntity &&
-        joinedBy.entity == relationship.entity &&
-        joinedBy.name == relationship.name;
+    return joinedBy?.destinationEntity == relationship.destinationEntity &&
+        joinedBy?.entity == relationship.entity &&
+        joinedBy?.name == relationship.name;
   }
 
   List<ColumnBuilder> get flattenedColumnsToReturn {
@@ -94,10 +97,10 @@ class TableBuilder implements Returnable {
     ColumnBuilder left, right;
     if (identical(foreignKeyProperty, joinedBy)) {
       left = ColumnBuilder(parent, joinedBy);
-      right = ColumnBuilder(this, entity.primaryKeyAttribute);
+      right = ColumnBuilder(this, entity?.primaryKeyAttribute);
     } else {
-      left = ColumnBuilder(parent, parent.entity.primaryKeyAttribute);
-      right = ColumnBuilder(this, joinedBy.inverse);
+      left = ColumnBuilder(parent, parent?.entity?.primaryKeyAttribute);
+      right = ColumnBuilder(this, joinedBy?.inverse);
     }
 
     var leftColumn = left.sqlColumnName(withTableNamespace: true);
@@ -107,7 +110,7 @@ class TableBuilder implements Returnable {
 
   String createTableAlias() {
     if (parent != null) {
-      return parent.createTableAlias();
+      return parent!.createTableAlias();
     }
 
     tableAlias ??= "t0";
@@ -115,13 +118,13 @@ class TableBuilder implements Returnable {
     return "t$aliasCounter";
   }
 
-  void finalize(Map<String, dynamic> variables) {
+  void finalize(Map<String?, dynamic> variables) {
     final allExpressions = [_manualPredicate]
       ..addAll(expressionBuilders.map((c) => c.predicate));
 
     predicate = QueryPredicate.and(allExpressions);
     if (predicate?.parameters != null) {
-      variables.addAll(predicate.parameters);
+      variables.addAll(predicate!.parameters!);
     }
 
     returning.whereType<TableBuilder>().forEach((r) {
@@ -130,7 +133,7 @@ class TableBuilder implements Returnable {
   }
 
   void addColumnExpressions(
-      List<QueryExpression<dynamic, dynamic>> expressions) {
+      List<QueryExpression<dynamic, dynamic>>? expressions) {
     if (expressions == null) {
       return;
     }
@@ -200,9 +203,9 @@ class TableBuilder implements Returnable {
       return this;
     } else {
       final head = keyPath[0] as ManagedRelationshipDescription;
-      TableBuilder join = returning
-          .whereType<TableBuilder>()
-          .firstWhere((m) => m.isJoinOnProperty(head), orElse: () => null);
+      TableBuilder? join = returning.whereType<TableBuilder?>().firstWhere(
+          (m) => m?.isJoinOnProperty(head) ?? false,
+          orElse: () => null);
       if (join == null) {
         join = TableBuilder.implicit(this, head);
         addJoinTableBuilder(join);
@@ -235,15 +238,15 @@ class TableBuilder implements Returnable {
       Methods that return portions of a SQL statement for this object
    */
 
-  String get sqlTableName {
+  String? get sqlTableName {
     if (tableAlias == null) {
-      return entity.tableName;
+      return entity?.tableName;
     }
 
-    return "${entity.tableName} $tableAlias";
+    return "${entity?.tableName} $tableAlias";
   }
 
-  String get sqlTableReference => tableAlias ?? entity.tableName;
+  String? get sqlTableReference => tableAlias ?? entity?.tableName;
 
   String get sqlInnerSelect {
     var nestedJoins =
@@ -257,7 +260,7 @@ class TableBuilder implements Returnable {
     var columnsWithoutNamespace =
         flattenedColumns.map((p) => p.sqlColumnName()).join(",");
 
-    var outerWhereString = " WHERE ${predicate.format}";
+    var outerWhereString = " WHERE ${predicate?.format}";
     var selectString =
         "SELECT $columnsWithNamespace FROM $sqlTableName $nestedJoins";
     var alias = "$sqlTableReference($columnsWithoutNamespace)";

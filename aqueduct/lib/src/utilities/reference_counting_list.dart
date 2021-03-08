@@ -29,7 +29,7 @@ class ReferenceCountingList<T extends ReferenceCountable> extends ListBase<T> {
 }
 
 class ReferenceCountable {
-  ReferenceCountingList _owner;
+  ReferenceCountingList? _owner;
   int _retainCount = 0;
 
   void release() {

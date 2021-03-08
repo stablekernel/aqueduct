@@ -14,70 +14,70 @@ class Response implements RequestOrResponse {
   ///
   /// There exist convenience constructors for common response status codes
   /// and you should prefer to use those.
-  Response(int statusCode, Map<String, dynamic> headers, dynamic body) {
+  Response(int statusCode, Map<String, dynamic>? headers, dynamic body) {
     this.body = body;
     this.headers = LowercaseMap.fromMap(headers ?? {});
     this.statusCode = statusCode;
   }
 
   /// Represents a 200 response.
-  Response.ok(dynamic body, {Map<String, dynamic> headers})
+  Response.ok(dynamic body, {Map<String, dynamic>? headers})
       : this(HttpStatus.ok, headers, body);
 
   /// Represents a 201 response.
   ///
   /// The [location] is a URI that is added as the Location header.
   Response.created(String location,
-      {dynamic body, Map<String, dynamic> headers})
+      {dynamic body, Map<String, dynamic>? headers})
       : this(
             HttpStatus.created,
             _headersWith(headers, {HttpHeaders.locationHeader: location}),
             body);
 
   /// Represents a 202 response.
-  Response.accepted({Map<String, dynamic> headers})
+  Response.accepted({Map<String, dynamic>? headers})
       : this(HttpStatus.accepted, headers, null);
 
   /// Represents a 204 response.
-  Response.noContent({Map<String, dynamic> headers})
+  Response.noContent({Map<String, dynamic>? headers})
       : this(HttpStatus.noContent, headers, null);
 
   /// Represents a 304 response.
   ///
   /// Where [lastModified] is the last modified date of the resource
   /// and [cachePolicy] is the same policy as applied when this resource was first fetched.
-  Response.notModified(DateTime lastModified, CachePolicy cachePolicy) {
+  Response.notModified(DateTime lastModified, CachePolicy? cachePolicy) {
     statusCode = HttpStatus.notModified;
     headers = {HttpHeaders.lastModifiedHeader: HttpDate.format(lastModified)};
     this.cachePolicy = cachePolicy;
   }
 
   /// Represents a 400 response.
-  Response.badRequest({Map<String, dynamic> headers, dynamic body})
+  Response.badRequest({Map<String, dynamic>? headers, dynamic body})
       : this(HttpStatus.badRequest, headers, body);
 
   /// Represents a 401 response.
-  Response.unauthorized({Map<String, dynamic> headers, dynamic body})
+  Response.unauthorized({Map<String, dynamic>? headers, dynamic body})
       : this(HttpStatus.unauthorized, headers, body);
 
   /// Represents a 403 response.
-  Response.forbidden({Map<String, dynamic> headers, dynamic body})
+  Response.forbidden({Map<String, dynamic>? headers, dynamic body})
       : this(HttpStatus.forbidden, headers, body);
 
   /// Represents a 404 response.
-  Response.notFound({Map<String, dynamic> headers, dynamic body})
+  Response.notFound({Map<String, dynamic>? headers, dynamic body})
       : this(HttpStatus.notFound, headers, body);
 
   /// Represents a 409 response.
-  Response.conflict({Map<String, dynamic> headers, dynamic body})
+  Response.conflict({Map<String, dynamic>? headers, dynamic body})
       : this(HttpStatus.conflict, headers, body);
 
   /// Represents a 410 response.
-  Response.gone({Map<String, dynamic> headers, dynamic body})
+  Response.gone({Map<String, dynamic>? headers, dynamic body})
       : this(HttpStatus.gone, headers, body);
 
   /// Represents a 500 response.
-  Response.serverError({Map<String, dynamic> headers, dynamic body})
+  Response.serverError({Map<String, dynamic>? headers, dynamic body})
       : this(HttpStatus.internalServerError, headers, body);
 
   /// The default value of a [contentType].
@@ -138,14 +138,14 @@ class Response implements RequestOrResponse {
   Map<String, dynamic> _headers = LowercaseMap();
 
   /// The HTTP status code of this response.
-  int statusCode;
+  late int statusCode;
 
   /// Cache policy that sets 'Cache-Control' headers for this instance.
   ///
   /// If null (the default), no 'Cache-Control' headers are applied. Otherwise,
   /// the value returned by [CachePolicy.headerValue] will be applied to this instance for the header name
   /// 'Cache-Control'.
-  CachePolicy cachePolicy;
+  CachePolicy? cachePolicy;
 
   /// The content type of the body of this response.
   ///
@@ -158,7 +158,7 @@ class Response implements RequestOrResponse {
   ///
   /// If the key is present and the value is a [String], this value is the result of passing the value to [ContentType.parse].
   /// If the key is present and the value is a [ContentType], this property is equal to that value.
-  ContentType get contentType {
+  ContentType? get contentType {
     if (_contentType != null) {
       return _contentType;
     }
@@ -180,11 +180,11 @@ class Response implements RequestOrResponse {
         "Invalid content-type response header. Is not 'String' or 'ContentType'.");
   }
 
-  set contentType(ContentType t) {
+  set contentType(ContentType? t) {
     _contentType = t;
   }
 
-  ContentType _contentType;
+  ContentType? _contentType;
 
   /// Whether or nor this instance has explicitly has its [contentType] property.
   ///
@@ -202,7 +202,7 @@ class Response implements RequestOrResponse {
   bool encodeBody = true;
 
   static Map<String, dynamic> _headersWith(
-      Map<String, dynamic> inputHeaders, Map<String, dynamic> otherHeaders) {
+      Map<String, dynamic>? inputHeaders, Map<String, dynamic> otherHeaders) {
     var m = LowercaseMap.fromMap(inputHeaders ?? {});
     m.addAll(otherHeaders);
     return m;

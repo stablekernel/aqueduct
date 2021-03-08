@@ -5,30 +5,37 @@ homepage: https://aqueduct.io
 documentation:
 
 environment:
-  sdk: ">=2.0.0 <3.0.0"
+  sdk: ">=2.12.0 <3.0.0"
 
 dependencies:
-  args: ^1.5.0
-  analyzer: '>=0.39.4 <0.50.0'
-  crypto: ^2.0.6
-  logging: ^0.11.3
-  isolate_executor: ^2.0.0
-  meta: ^1.1.5
-  open_api: ^2.0.1
-  password_hash: ^2.0.0
-  path: ^1.6.1
-  postgres: ^2.1.1
-  pub_cache: '>=0.2.0 <0.3.0'
-  pub_semver: ^1.4.0
-  safe_config: ^3.0.0-b2
-  yaml: ^2.1.15
-  runtime: ^1.0.0-9
+  args: ^2.0.0
+  analyzer: ^1.1.0
+  crypto: ^3.0.0
+  logging: ^1.0.0
+  isolate_executor:
+    git: https://github.com/j4qfrost/dart-isolate-executor
+  open_api:
+    git: https://github.com/j4qfrost/open-api-dart
+  password_hash:
+    git: https://github.com/Derrick56007/dart-password-hash
+  path: ^1.8.0
+  postgres:
+    git: https://github.com/j4qfrost/postgresql-dart
+  pub_cache:
+    git: https://github.com/j4qfrost/pub_cache
+  pub_semver: ^2.0.0
+  safe_config:
+    git: https://github.com/j4qfrost/safe_config
+  yaml: ^3.1.0
+  runtime:
+    git: https://github.com/j4qfrost/dart-runtime.git
 
 dev_dependencies:
-  matcher: '>=0.12.3 <0.14.0'
-  test: ^1.3.0
-  http: '>=0.11.3+7 <0.13.0'
-  command_line_agent: ^1.0.0-b2
+  matcher: ^0.12.10
+  test: ^1.16.5
+  http: ^0.13.0
+  command_line_agent:
+    git: https://github.com/j4qfrost/dart-test-terminal
   aqueduct_test:
     path: ../aqueduct_test
 

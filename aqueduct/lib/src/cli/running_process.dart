@@ -25,7 +25,7 @@ class StoppableProcess {
   final _StopProcess _stop;
   final Completer<int> _completer = Completer<int>();
 
-  Future stop(int exitCode, {String reason}) async {
+  Future stop(int exitCode, {String? reason}) async {
     if (_completer.isCompleted) {
       return;
     }

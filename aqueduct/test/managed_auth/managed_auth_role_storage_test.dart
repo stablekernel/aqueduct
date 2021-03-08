@@ -290,7 +290,7 @@ class User extends ManagedObject<_User>
 
 class _User extends ResourceOwnerTableDefinition {
   @Column(nullable: true)
-  String role;
+  String? role;
 }
 
 Future<List<User>> createUsers(ManagedContext ctx, int count) async {
@@ -327,7 +327,7 @@ class RoleBasedAuthStorage extends ManagedAuthDelegate<User> {
       : super(context, tokenLimit: tokenLimit);
 
   @override
-  Future<User> getResourceOwner(AuthServer server, String username) {
+  Future<User?> getResourceOwner(AuthServer server, String username) {
     var query = Query<User>(context)
       ..where((o) => o.username).equalTo(username)
       ..returningProperties(

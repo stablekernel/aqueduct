@@ -35,9 +35,9 @@ class ApplicationIsolateSupervisor {
   final List<MessageHubMessage> _pendingMessageQueue = [];
 
   bool get _isLaunching => _launchCompleter != null;
-  SendPort _serverSendPort;
-  Completer _launchCompleter;
-  Completer _stopCompleter;
+  SendPort? _serverSendPort;
+  Completer? _launchCompleter;
+  Completer? _stopCompleter;
 
   static const String messageKeyStop = "_MessageStop";
   static const String messageKeyListening = "_MessageListening";
@@ -51,9 +51,9 @@ class ApplicationIsolateSupervisor {
     isolate.addErrorListener(receivePort.sendPort);
     logger.fine(
         "ApplicationIsolateSupervisor($identifier).resume will resume isolate");
-    isolate.resume(isolate.pauseCapability);
+    isolate.resume(isolate.pauseCapability!);
 
-    return _launchCompleter.future.timeout(startupTimeout, onTimeout: () {
+    return _launchCompleter!.future.timeout(startupTimeout, onTimeout: () {
       logger.fine(
           "ApplicationIsolateSupervisor($identifier).resume timed out waiting for isolate start");
       throw TimeoutException(
@@ -67,12 +67,12 @@ class ApplicationIsolateSupervisor {
     _stopCompleter = Completer();
     logger.fine(
         "ApplicationIsolateSupervisor($identifier).stop sending stop to supervised isolate");
-    _serverSendPort.send(messageKeyStop);
+    _serverSendPort!.send(messageKeyStop);
 
     try {
-      await _stopCompleter.future.timeout(const Duration(seconds: 5));
+      await _stopCompleter!.future.timeout(const Duration(seconds: 5));
     } on TimeoutException {
-      logger?.severe(
+      logger.severe(
           "Isolate ($identifier) not responding to stop message, terminating.");
       isolate.kill();
     }
@@ -84,7 +84,7 @@ class ApplicationIsolateSupervisor {
     if (message is SendPort) {
       _serverSendPort = message;
     } else if (message == messageKeyListening) {
-      _launchCompleter.complete();
+      _launchCompleter!.complete();
       _launchCompleter = null;
       logger.fine(
           "ApplicationIsolateSupervisor($identifier) isolate listening acknowledged");
@@ -93,7 +93,7 @@ class ApplicationIsolateSupervisor {
           "ApplicationIsolateSupervisor($identifier) stop message acknowledged");
       receivePort.close();
 
-      _stopCompleter?.complete();
+      _stopCompleter!.complete();
       _stopCompleter = null;
     } else if (message is List) {
       logger.fine(
@@ -119,14 +119,14 @@ class ApplicationIsolateSupervisor {
     supervisingApplication.supervisors
         .where((sup) => sup != this)
         .forEach((supervisor) {
-      supervisor._serverSendPort.send(message);
+      supervisor._serverSendPort!.send(message);
     });
   }
 
   void _handleIsolateException(dynamic error, StackTrace stacktrace) {
     if (_isLaunching) {
       final appException = ApplicationStartupException(error);
-      _launchCompleter.completeError(appException, stacktrace);
+      _launchCompleter!.completeError(appException, stacktrace);
     } else {
       logger.severe("Uncaught exception in isolate.", error, stacktrace);
     }

@@ -5,8 +5,8 @@ import 'package:aqueduct/src/auth/auth.dart';
 import 'package:aqueduct/src/http/resource_controller_interfaces.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
 import 'package:logging/logging.dart';
-import 'package:meta/meta.dart';
 import 'package:runtime/runtime.dart';
+import 'package:meta/meta.dart';
 
 import 'http.dart';
 
@@ -69,26 +69,26 @@ abstract class ResourceController extends Controller
   ResourceController() {
     _runtime =
         (RuntimeContext.current.runtimes[runtimeType] as ControllerRuntime)
-            ?.resourceController;
+            .resourceController!;
   }
 
   @override
   Null get recycledState => null;
 
-  ResourceControllerRuntime _runtime;
+  late ResourceControllerRuntime _runtime;
 
   /// The request being processed by this [ResourceController].
   ///
   /// It is this [ResourceController]'s responsibility to return a [Response] object for this request. Operation methods
   /// may access this request to determine how to respond to it.
-  Request request;
+  late Request request;
 
   /// Parameters parsed from the URI of the request, if any exist.
   ///
   /// These values are attached by a [Router] instance that precedes this [Controller]. Is null
   /// if no [Router] preceded the controller and is the empty map if there are no values. The keys
   /// are the case-sensitive name of the path variables as defined by [Router.route].
-  Map<String, String> get pathVariables => request.path?.variables;
+  Map<String, String>? get pathVariables => request.path.variables;
 
   /// Types of content this [ResourceController] will accept.
   ///
@@ -99,7 +99,7 @@ abstract class ResourceController extends Controller
   /// will automatically respond with an Unsupported Media Type response.
   ///
   /// By default, an instance will accept HTTP request bodies with 'application/json; charset=utf-8' encoding.
-  List<ContentType> acceptedContentTypes = [ContentType.json];
+  List<ContentType?> acceptedContentTypes = [ContentType.json];
 
   /// The default content type of responses from this [ResourceController].
   ///
@@ -155,17 +155,17 @@ abstract class ResourceController extends Controller
   /// this method. When overriding this method, call the superclass' implementation and add the additional parameters
   /// to the returned list before returning the combined list.
   @mustCallSuper
-  List<APIParameter> documentOperationParameters(
+  List<APIParameter?> documentOperationParameters(
       APIDocumentContext context, Operation operation) {
-    return _runtime.documenter
-        ?.documentOperationParameters(this, context, operation);
+    return _runtime.documenter!
+        .documentOperationParameters(this, context, operation);
   }
 
   /// Returns a documented summary for [operation].
   ///
   /// By default, this method returns null and the summary is derived from documentation comments
   /// above the operation method. You may override this method to manually add a summary to an operation.
-  String documentOperationSummary(
+  String? documentOperationSummary(
       APIDocumentContext context, Operation operation) {
     return null;
   }
@@ -174,7 +174,7 @@ abstract class ResourceController extends Controller
   ///
   /// By default, this method returns null and the description is derived from documentation comments
   /// above the operation method. You may override this method to manually add a description to an operation.
-  String documentOperationDescription(
+  String? documentOperationDescription(
       APIDocumentContext context, Operation operation) {
     return null;
   }
@@ -184,10 +184,10 @@ abstract class ResourceController extends Controller
   /// If an operation method binds an [Bind.body] argument or accepts form data, this method returns a [APIRequestBody]
   /// that describes the bound body type. You may override this method to take an alternative approach or to augment the
   /// automatically generated request body documentation.
-  APIRequestBody documentOperationRequestBody(
+  APIRequestBody? documentOperationRequestBody(
       APIDocumentContext context, Operation operation) {
-    return _runtime.documenter
-        ?.documentOperationRequestBody(this, context, operation);
+    return _runtime.documenter!
+        .documentOperationRequestBody(this, context, operation);
   }
 
   /// Returns a map of possible responses for [operation].
@@ -215,27 +215,28 @@ abstract class ResourceController extends Controller
   @override
   Map<String, APIOperation> documentOperations(
       APIDocumentContext context, String route, APIPath path) {
-    return _runtime.documenter?.documentOperations(this, context, route, path);
+    return _runtime.documenter!.documentOperations(this, context, route, path);
   }
 
   @override
   void documentComponents(APIDocumentContext context) {
-    _runtime.documenter?.documentComponents(this, context);
+    _runtime.documenter!.documentComponents(this, context);
   }
 
   bool _requestContentTypeIsSupported(Request req) {
-    var incomingContentType = request.raw.headers.contentType;
+    var incomingContentType = request.raw.headers.contentType!;
     return acceptedContentTypes.firstWhere((ct) {
-          return ct.primaryType == incomingContentType.primaryType &&
-              ct.subType == incomingContentType.subType;
+          return ct?.primaryType == incomingContentType.primaryType &&
+              ct?.subType == incomingContentType.subType;
         }, orElse: () => null) !=
         null;
   }
 
   List<String> _allowedMethodsForPathVariables(Iterable<String> pathVariables) {
-    return _runtime.operations
-        .where((op) => op.isSuitableForRequest(null, pathVariables.toList()))
-        .map((op) => op.httpMethod)
+    return _runtime.operations!
+        .where((op) =>
+            op?.isSuitableForRequest(null, pathVariables.toList()) ?? false)
+        .map((op) => op!.httpMethod)
         .toList();
   }
 
@@ -268,10 +269,10 @@ abstract class ResourceController extends Controller
         throw Response.serverError();
       }
 
-      if (!AuthScope.verify(operation.scopes, request.authorization.scopes)) {
+      if (!AuthScope.verify(operation.scopes, request.authorization!.scopes)) {
         throw Response.forbidden(body: {
           "error": "insufficient_scope",
-          "scope": operation.scopes.map((s) => s.toString()).join(" ")
+          "scope": operation.scopes!.map((s) => s.toString()).join(" ")
         });
       }
     }
@@ -300,7 +301,11 @@ abstract class ResourceController extends Controller
         if (p.location == BindingType.body) {
           errors.add("missing required ${p.locationName}");
         } else {
+<<<<<<< Updated upstream
           errors.add("missing required ${p.locationName} '${p.name ?? ""}'");
+=======
+          errors.add("missing required ${p.locationName} '${p.name}'");
+>>>>>>> Stashed changes
         }
         return null;
       }
@@ -308,7 +313,7 @@ abstract class ResourceController extends Controller
 
     args.positionalArguments = operation.positionalParameters
         .map((p) {
-          return errorCatchWrapper(p, () {
+          return errorCatchWrapper(p!, () {
             final value = p.decode(request);
 
             checkIfMissingRequiredAndEmitErrorIfSo(p, value);
@@ -321,7 +326,7 @@ abstract class ResourceController extends Controller
 
     final namedEntries = operation.namedParameters
         .map((p) {
-          return errorCatchWrapper(p, () {
+          return errorCatchWrapper(p!, () {
             final value = p.decode(request);
             if (value == null) {
               return null;
@@ -335,7 +340,7 @@ abstract class ResourceController extends Controller
 
     args.namedArguments = Map<String, dynamic>.fromEntries(namedEntries);
 
-    final ivarEntries = _runtime.ivarParameters
+    final ivarEntries = _runtime.ivarParameters!
         .map((p) {
           return errorCatchWrapper(p, () {
             final value = p.decode(request);

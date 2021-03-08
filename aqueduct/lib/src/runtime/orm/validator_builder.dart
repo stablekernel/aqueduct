@@ -10,39 +10,51 @@ import 'package:aqueduct/src/db/managed/validation/metadata.dart';
 class ValidatorBuilder {
   ValidatorBuilder(this.property, this.metadata);
 
-  final PropertyBuilder property;
-  final Validate metadata;
+  final PropertyBuilder? property;
+  final Validate? metadata;
   dynamic _state;
-  ManagedValidator _validator;
+  ManagedValidator? _validator;
 
-  ManagedValidator get managedValidator => _validator;
+  ManagedValidator? get managedValidator => _validator;
 
+<<<<<<< Updated upstream
   void compile(List<EntityBuilder> entityBuilders) {}
+=======
+  void compile(List<EntityBuilder>? entityBuilders) {}
+>>>>>>> Stashed changes
 
   void validate(List<EntityBuilder> entityBuilders) {
-    if (property.isRelationship) {
-      if (property.relationshipType != ManagedRelationshipType.belongsTo) {
+    if (property!.isRelationship) {
+      if (property!.relationshipType != ManagedRelationshipType.belongsTo) {
         throw ManagedDataModelError(
+<<<<<<< Updated upstream
             "Invalid '@Validate' on property '${property.parent.name}.${property.name}'. Validations cannot be performed on has-one or has-many relationships.");
+=======
+            "Invalid '@Validate' on property '${property?.parent.name}.${property!.name}'. Validations cannot be performed on has-one or has-many relationships.");
+>>>>>>> Stashed changes
       }
     }
-    Type type;
+    Type? type;
     var prop = property;
-    if (property.isRelationship) {
-      if (property.relationshipType != ManagedRelationshipType.belongsTo) {
+    if (property!.isRelationship) {
+      if (property!.relationshipType != ManagedRelationshipType.belongsTo) {
         throw ManagedDataModelError(
-            "Invalid '@Validate' on property '${property.parent.name}.${property.name}'. Validations cannot be performed on has-one or has-many relationships.");
+            "Invalid '@Validate' on property '${property!.parent.name}.${property!.name}'. Validations cannot be performed on has-one or has-many relationships.");
       }
 
-      type = property.relatedProperty.parent.instanceType.reflectedType;
-      prop = property.relatedProperty.parent.primaryKeyProperty;
+      type = property!.relatedProperty?.parent.instanceType.reflectedType;
+      prop = property!.relatedProperty?.parent.primaryKeyProperty;
     }
 
     try {
-      _state = metadata.compile(prop.type, relationshipInverseType: type);
+      _state = metadata?.compile(prop!.type!, relationshipInverseType: type);
     } on ValidateCompilationError catch (e) {
       throw ManagedDataModelError(
+<<<<<<< Updated upstream
           "Invalid '@Validate' on property '${property.parent.name}.${property.name}'. Reason: ${e.reason}");
+=======
+          "Invalid '@Validate' on property '${property?.parent.name}.${property?.name}'. Reason: ${e.reason}");
+>>>>>>> Stashed changes
     }
   }
 

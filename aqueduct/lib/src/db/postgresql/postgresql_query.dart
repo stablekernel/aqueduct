@@ -18,10 +18,10 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
   ManagedContext context;
 
   @override
-  ManagedEntity get entity =>
+  ManagedEntity? get entity =>
       _entity ?? context.dataModel.entityForType(InstanceType);
 
-  ManagedEntity _entity;
+  ManagedEntity? _entity;
 
   @override
   QueryReduceOperation<InstanceType> get reduce {
@@ -44,11 +44,11 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       buffer.write("VALUES (${builder.sqlValuesToInsert}) ");
     }
 
-    if ((builder.returning?.length ?? 0) > 0) {
+    if (builder.returning.isNotEmpty) {
       buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 
-    final results = await context.persistentStore
+    final results = await context.persistentStore!
         .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder
@@ -72,18 +72,18 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw canModifyAllInstancesError;
     }
 
-    if ((builder.returning?.length ?? 0) > 0) {
+    if (builder.returning.length > 0) {
       buffer.write("RETURNING ${builder.sqlColumnsToReturn}");
     }
 
     final results = await context.persistentStore
-        .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
+        ?.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder.instancesForRows(results as List<List<dynamic>>);
   }
 
   @override
-  Future<InstanceType> updateOne() async {
+  Future<InstanceType?> updateOne() async {
     var results = await update();
     if (results.length == 1) {
       return results.first;
@@ -92,7 +92,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     }
 
     throw StateError(
-        "Query error. 'updateOne' modified more than one row in '${entity.tableName}'. "
+        "Query error. 'updateOne' modified more than one row in '${entity?.tableName}'. "
         "This was likely unintended and may be indicativate of a more serious error. Query "
         "should add 'where' constraints on a unique column.");
   }
@@ -110,14 +110,14 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       throw canModifyAllInstancesError;
     }
 
-    final result = await context.persistentStore.executeQuery(
+    final result = await context.persistentStore?.executeQuery(
         buffer.toString(), builder.variables, timeoutInSeconds,
         returnType: PersistentStoreQueryReturnType.rowCount);
     return result as int;
   }
 
   @override
-  Future<InstanceType> fetchOne() async {
+  Future<InstanceType?> fetchOne() async {
     var builder = createFetchBuilder();
 
     if (!builder.containsJoins) {
@@ -129,7 +129,7 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
       return results.first;
     } else if (results.length > 1) {
       throw StateError(
-          "Query error. 'fetchOne' returned more than one row from '${entity.tableName}'. "
+          "Query error. 'fetchOne' returned more than one row from '${entity?.tableName}'. "
           "This was likely unintended and may be indicativate of a more serious error. Query "
           "should add 'where' constraints on a unique column.");
     }
@@ -183,22 +183,22 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     }
 
     final results = await context.persistentStore
-        .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
+        ?.executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
     return builder.instancesForRows(results as List<List<dynamic>>);
   }
 
   void validatePageDescriptor() {
-    var prop = entity.attributes[pageDescriptor.propertyName];
+    var prop = entity?.attributes[pageDescriptor?.propertyName];
     if (prop == null) {
       throw StateError(
-          "Invalid query page descriptor. Column '${pageDescriptor.propertyName}' does not exist for table '${entity.tableName}'");
+          "Invalid query page descriptor. Column '${pageDescriptor?.propertyName}' does not exist for table '${entity?.tableName}'");
     }
 
-    if (pageDescriptor.boundingValue != null &&
-        !prop.isAssignableWith(pageDescriptor.boundingValue)) {
+    if (pageDescriptor?.boundingValue != null &&
+        !prop.isAssignableWith(pageDescriptor!.boundingValue)) {
       throw StateError(
-          "Invalid query page descriptor. Bounding value for column '${pageDescriptor.propertyName}' has invalid type.");
+          "Invalid query page descriptor. Bounding value for column '${pageDescriptor!.propertyName}' has invalid type.");
     }
   }
 

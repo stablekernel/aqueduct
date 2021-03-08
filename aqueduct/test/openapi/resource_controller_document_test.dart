@@ -203,7 +203,7 @@ class A extends ResourceController {
   @Bind.query("optionalQueryProperty")
   int propQ;
 
-  @requiredBinding
+  requiredBinding
   @Bind.header("requiredHeaderProperty")
   String propH;
 

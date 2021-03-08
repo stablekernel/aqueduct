@@ -4,7 +4,7 @@ import 'http.dart';
 ///
 /// Typically used by [FileController]. See [FileController.addCachePolicy].
 class CachePolicy {
-  /// Creates a new cache policy.
+  /// Creates a cache policy.
   ///
   /// Policies applied to [Response.cachePolicy] will add the appropriate
   /// headers to that response. See properties for definitions of arguments
@@ -34,7 +34,7 @@ class CachePolicy {
   /// Sets how long a resource is valid for.
   ///
   /// Sets 'Cache-Control: max-age=x', where 'x' is [expirationFromNow] in seconds.
-  final Duration expirationFromNow;
+  final Duration? expirationFromNow;
 
   /// Constructs a header value configured from this instance.
   ///
@@ -53,7 +53,7 @@ class CachePolicy {
     }
 
     if (expirationFromNow != null) {
-      items.add("max-age=${expirationFromNow.inSeconds}");
+      items.add("max-age=${expirationFromNow!.inSeconds}");
     }
 
     if (requireConditionalRequest) {

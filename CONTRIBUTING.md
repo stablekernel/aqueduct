@@ -1,10 +1,10 @@
 - For bug fixes, please file an issue or submit a pull request to master. 
 - For documentation improvements (typos, errors, etc.), please submit a pull request to the branch `docs/source`.
-- For new features that are not already identified in issues, please file a new issue to discuss.
+- For features that are not already identified in issues, please file a issue to discuss.
 
 ## Pull Request Requirements
 
-Please document the intent of the pull request. All non-documentation pull requests must also include automated tests that cover the new code, including failure cases. If applicable, please update the documentation in the `docs/source` branch.
+Please document the intent of the pull request. All non-documentation pull requests must also include automated tests that cover the code, including failure cases. If applicable, please update the documentation in the `docs/source` branch.
 
 ## Running Tests
 

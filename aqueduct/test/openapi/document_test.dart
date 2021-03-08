@@ -317,7 +317,7 @@ void main() {
         expect(ctx.schema.getObjectWithType(String), isNotNull);
       });
 
-      test("getObject and getObjectWithType always return new instance", () {
+      test("getObject and getObjectWithType always return instance", () {
         final doc = APIDocument()..components = APIComponents();
         final ctx = APIDocumentContext(doc);
 

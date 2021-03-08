@@ -1,5 +1,5 @@
-String sourcifyValue(dynamic v, {String onError}) {
-  if (v is String) {
+String sourcifyValue(dynamic v, {String? onError}) {
+  if (v is String?) {
     if (v == null) {
       return "null";
     }

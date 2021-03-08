@@ -14,10 +14,10 @@ import 'package:aqueduct/src/http/http.dart';
 /// Used internally.
 class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
   @Option("port", abbr: "p", help: "Port to listen on", defaultsTo: "8111")
-  int get port => decode("port");
+  int get port => decode("port")!;
 
   @override
-  StoppableProcess runningProcess;
+  StoppableProcess? runningProcess;
 
   Directory get _hostedDirectory =>
       Directory.fromUri(projectDirectory.uri.resolve(".aqueduct_spec"));
@@ -28,7 +28,7 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
 
     runningProcess = await _listen();
 
-    return runningProcess.exitCode;
+    return runningProcess!.exitCode;
   }
 
   @override

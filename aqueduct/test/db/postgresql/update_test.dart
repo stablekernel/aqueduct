@@ -64,7 +64,7 @@ void main() {
     }
   });
 
-  test("Setting relationship to a new value succeeds", () async {
+  test("Setting relationship to a value succeeds", () async {
     context = await contextWithModels([Child, Parent]);
 
     var q = Query<Parent>(context)..values.name = "Bob";
@@ -163,7 +163,7 @@ void main() {
     expect(results.first.name, "Bob");
   });
 
-  test("Update object with new value for column in predicate", () async {
+  test("Update object with value for column in predicate", () async {
     context = await contextWithModels([TestModel]);
     var m1 = TestModel()
       ..name = "Bob"

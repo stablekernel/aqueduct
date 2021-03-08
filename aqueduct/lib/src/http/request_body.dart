@@ -11,7 +11,7 @@ import 'http.dart';
 ///
 /// See also [CodecRegistry] for how decoding occurs.
 class RequestBody extends BodyDecoder {
-  /// Creates a new instance of this type.
+  /// Creates a instance of this type.
   ///
   /// Instances of this type decode [request]'s body based on its content-type.
   ///
@@ -33,7 +33,7 @@ class RequestBody extends BodyDecoder {
   bool get _hasContent =>
       _hasContentLength || _request.headers.chunkedTransferEncoding;
 
-  bool get _hasContentLength => (_request.headers.contentLength ?? 0) > 0;
+  bool get _hasContentLength => (_request.headers.contentLength) > 0;
 
   @override
   Stream<List<int>> get bytes {
@@ -57,40 +57,41 @@ class RequestBody extends BodyDecoder {
       _originalByteStream.listen((chunk) {
         _bytesRead += chunk.length;
         if (_bytesRead > maxSize) {
-          _bufferingController.addError(Response(
+          _bufferingController!.addError(Response(
               HttpStatus.requestEntityTooLarge,
               null,
               {"error": "entity length exceeds maximum"}));
-          _bufferingController.close();
+          _bufferingController!.close();
           return;
         }
 
-        _bufferingController.add(chunk);
+        _bufferingController!.add(chunk);
       }, onDone: () {
-        _bufferingController.close();
+        _bufferingController!.close();
       }, onError: (e, StackTrace st) {
-        if (!_bufferingController.isClosed) {
-          _bufferingController.addError(e, st);
-          _bufferingController.close();
+        if (!_bufferingController!.isClosed) {
+          _bufferingController!.addError(e as Object, st);
+          _bufferingController!.close();
         }
       }, cancelOnError: true);
     }
 
-    return _bufferingController.stream;
+    return _bufferingController!.stream;
   }
 
   @override
-  ContentType get contentType => _request.headers.contentType;
+  ContentType? get contentType => _request.headers.contentType;
 
   @override
   bool get isEmpty => !_hasContent;
 
   bool get isFormData =>
       contentType != null &&
-      contentType.primaryType == "application" &&
-      contentType.subType == "x-www-form-urlencoded";
+      contentType!.primaryType == "application" &&
+      contentType!.subType == "x-www-form-urlencoded";
 
   final Stream<List<int>> _originalByteStream;
-  StreamController<List<int>> _bufferingController;
+  // ignore: close_sinks
+  StreamController<List<int>>? _bufferingController;
   int _bytesRead = 0;
 }

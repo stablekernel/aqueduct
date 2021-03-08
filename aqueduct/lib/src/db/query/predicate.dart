@@ -11,7 +11,7 @@ import 'query.dart';
 /// have parameterized values, for which the corresponding value is in the [parameters] map. A parameter is prefixed with '@' in the format string. Currently,
 /// the format string's parameter syntax is defined by the [PersistentStore] it is used on. An example of that format:
 ///
-///     var predicate = new QueryPredicate("x = @xValue", {"xValue" : 5});
+///     var predicate = QueryPredicate("x = @xValue", {"xValue" : 5});
 class QueryPredicate {
   /// Default constructor
   ///
@@ -39,38 +39,49 @@ class QueryPredicate {
   ///
   /// If [predicates] is null or empty, an empty predicate is returned. If [predicates] contains only
   /// one predicate, that predicate is returned.
-  factory QueryPredicate.and(Iterable<QueryPredicate> predicates) {
+  factory QueryPredicate.and(Iterable<QueryPredicate?> predicates) {
     var predicateList = predicates
+<<<<<<< Updated upstream
         ?.where((p) => p?.format != null && p.format.isNotEmpty)
         ?.toList();
     if (predicateList == null) {
       return QueryPredicate.empty();
     }
+=======
+        .where((p) => p?.format != null && p!.format!.isNotEmpty)
+        .toList();
+>>>>>>> Stashed changes
 
     if (predicateList.isEmpty) {
       return QueryPredicate.empty();
     }
 
     if (predicateList.length == 1) {
-      return predicateList.first;
+      return predicateList.first!;
     }
 
     // If we have duplicate keys anywhere, we need to disambiguate them.
     int dupeCounter = 0;
     final allFormatStrings = [];
-    final valueMap = <String, dynamic>{};
+    final valueMap = <String?, dynamic>{};
     for (var predicate in predicateList) {
+<<<<<<< Updated upstream
       final duplicateKeys = predicate.parameters?.keys
               ?.where((k) => valueMap.keys.contains(k))
               ?.toList() ??
+=======
+      final duplicateKeys = predicate?.parameters?.keys
+              .where((k) => valueMap.keys.contains(k))
+              .toList() ??
+>>>>>>> Stashed changes
           [];
 
       if (duplicateKeys.isNotEmpty) {
-        var fmt = predicate.format;
-        Map<String, String> dupeMap = {};
+        var fmt = predicate?.format;
+        Map<String?, String> dupeMap = {};
         duplicateKeys.forEach((key) {
           final replacementKey = "$key$dupeCounter";
-          fmt = fmt.replaceAll("@$key", "@$replacementKey");
+          fmt = fmt?.replaceAll("@$key", "@$replacementKey");
           dupeMap[key] = replacementKey;
           dupeCounter++;
         });
@@ -80,7 +91,7 @@ class QueryPredicate {
           valueMap[dupeMap[key] ?? key] = value;
         });
       } else {
-        allFormatStrings.add(predicate.format);
+        allFormatStrings.add(predicate?.format);
         valueMap.addAll(predicate?.parameters ?? {});
       }
     }
@@ -93,11 +104,11 @@ class QueryPredicate {
   ///
   /// This is the predicate text. Do not write dynamic values directly to the format string, instead, prefix an identifier with @
   /// and add that identifier to the [parameters] map.
-  String format;
+  String? format;
 
   /// A map of values to replace in the format string at execution time.
   ///
   /// Input values should not be in the format string, but instead provided in this map.
   /// Keys of this map will be searched for in the format string and be replaced by the value in this map.
-  Map<String, dynamic> parameters;
+  Map<String?, dynamic>? parameters;
 }

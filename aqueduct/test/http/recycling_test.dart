@@ -34,7 +34,7 @@ void main() {
   });
 
   test(
-      "A controller that implements Recyclable creates a new instance for each request",
+      "A controller that implements Recyclable creates a instance for each request",
       () async {
     server.root.link(() => DefaultRecyclable());
     server.root.didAddToChannel();
@@ -47,8 +47,7 @@ void main() {
     expect(firstAddress, isNot(secondAddress));
   });
 
-  test(
-      "Receiving simultaneous request will always use a new Recyclable instance",
+  test("Receiving simultaneous request will always use a Recyclable instance",
       () async {
     server.root.link(() => DefaultRecyclable());
     server.root.didAddToChannel();

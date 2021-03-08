@@ -30,7 +30,7 @@ import 'package:aqueduct_test/aqueduct_test.dart';
 ///             Application<T> get application => channel.application;
 ///
 ///             Future seed() async {
-///               // Create a new OAuth2 client that users can authenticate with
+///               // Create a OAuth2 client that users can authenticate with
 ///               publicAgent = await addClient("com.public.client");
 ///             }
 ///         }
@@ -44,9 +44,9 @@ abstract class TestHarnessAuthMixin<T extends ApplicationChannel>
   ///             AuthServer get authServer => channel.authServer;
   AuthServer get authServer;
 
-  /// Creates a new OAuth2 client identifier and returns an [Agent] that makes requests on behalf of that client.
+  /// Creates a OAuth2 client identifier and returns an [Agent] that makes requests on behalf of that client.
   ///
-  /// A new [AuthClient] is added to the [authServer]'s database. Returns an [Agent] that will
+  /// A [AuthClient] is added to the [authServer]'s database. Returns an [Agent] that will
   /// execute requests with a basic authorization header that contains [id] and [secret].
   ///
   /// If [secret] is null, [redirectUri] is ignored (public clients cannot have a redirect URI).
@@ -83,7 +83,8 @@ abstract class TestHarnessAuthMixin<T extends ApplicationChannel>
       {List<String> scopes}) async {
     final authorizationHeader = fromAgent.headers["authorization"];
     if (authorizationHeader is! String) {
-      throw ArgumentError("expected header 'Authorization' to have String type");
+      throw ArgumentError(
+          "expected header 'Authorization' to have String type");
     }
     const parser = AuthorizationBasicParser();
     final credentials = parser.parse(authorizationHeader as String);

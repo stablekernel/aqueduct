@@ -24,8 +24,8 @@ abstract class AuthRedirectControllerDelegate {
   ///
   ///
   /// If not null, [scope] should also be included as an additional form parameter.
-  Future<String> render(AuthRedirectController forController, Uri requestUri,
-      String responseType, String clientID, String state, String scope);
+  Future<String?> render(AuthRedirectController forController, Uri requestUri,
+      String? responseType, String? clientID, String? state, String? scope);
 }
 
 /// [Controller] for issuing OAuth 2.0 authorization codes and tokens.
@@ -40,10 +40,10 @@ abstract class AuthRedirectControllerDelegate {
 ///
 ///       router
 ///         .route("/auth/code")
-///         .link(() => new AuthRedirectController(authServer));
+///         .link(() => AuthRedirectController(authServer));
 ///
 class AuthRedirectController extends ResourceController {
-  /// Creates a new instance of an [AuthRedirectController].
+  /// Creates a instance of an [AuthRedirectController].
   ///
   /// [authServer] is the required authorization server. If [delegate] is provided, this controller will return a login page for all GET requests.
   AuthRedirectController(this.authServer,
@@ -69,20 +69,20 @@ class AuthRedirectController extends ResourceController {
   /// server have the same value for 'state' as passed in. This value is usually a randomly generated
   /// session identifier.
   @Bind.query("state")
-  String state;
+  String? state;
 
   /// Must be 'code' or 'token'.
   @Bind.query("response_type")
-  String responseType;
+  String? responseType;
 
   /// The client ID of the authenticating client.
   ///
   /// This must be a valid client ID according to [authServer].\
   @Bind.query("client_id")
-  String clientID;
+  String? clientID;
 
   /// Renders an HTML login form.
-  final AuthRedirectControllerDelegate delegate;
+  final AuthRedirectControllerDelegate? delegate;
 
   /// Returns an HTML login form.
   ///
@@ -97,7 +97,7 @@ class AuthRedirectController extends ResourceController {
       {
 
       /// A space-delimited list of access scopes to be requested by the form submission on the returned page.
-      @Bind.query("scope") String scope}) async {
+      @Bind.query("scope") String? scope}) async {
     if (delegate == null) {
       return Response(405, {}, null);
     }
@@ -110,7 +110,7 @@ class AuthRedirectController extends ResourceController {
       return _unsupportedResponseTypeResponse;
     }
 
-    final renderedPage = await delegate.render(
+    final renderedPage = await delegate?.render(
         this, request.raw.uri, responseType, clientID, state, scope);
     if (renderedPage == null) {
       return Response.notFound();
@@ -131,13 +131,13 @@ class AuthRedirectController extends ResourceController {
       {
 
       /// The username of the authenticating user.
-      @Bind.query("username") String username,
+      @Bind.query("username") String? username,
 
       /// The password of the authenticating user.
-      @Bind.query("password") String password,
+      @Bind.query("password") String? password,
 
       /// A space-delimited list of access scopes being requested.
-      @Bind.query("scope") String scope}) async {
+      @Bind.query("scope") String? scope}) async {
     final client = await authServer.getClient(clientID);
 
     if (client?.redirectURI == null) {
@@ -154,10 +154,10 @@ class AuthRedirectController extends ResourceController {
     }
 
     try {
-      final scopes = scope?.split(" ")?.map((s) => AuthScope(s))?.toList();
+      final scopes = scope?.split(" ").map((s) => AuthScope(s)).toList();
 
       if (responseType == "code") {
-        if (client.hashedSecret == null) {
+        if (client?.hashedSecret == null) {
           return _redirectResponse(null, state,
               error: AuthServerException(
                   AuthRequestError.unauthorizedClient, client));
@@ -166,13 +166,21 @@ class AuthRedirectController extends ResourceController {
         final authCode = await authServer.authenticateForCode(
             username, password, clientID,
             requestedScopes: scopes);
+<<<<<<< Updated upstream
         return _redirectResponse(client.redirectURI, state,
+=======
+        return _redirectResponse(client?.redirectURI, state,
+>>>>>>> Stashed changes
             code: authCode.code);
       } else if (responseType == "token") {
         final token = await authServer.authenticate(
             username, password, clientID, null,
             requestedScopes: scopes);
+<<<<<<< Updated upstream
         return _redirectResponse(client.redirectURI, state, token: token);
+=======
+        return _redirectResponse(client?.redirectURI, state, token: token);
+>>>>>>> Stashed changes
       } else {
         return _redirectResponse(null, state,
             error:
@@ -193,29 +201,24 @@ class AuthRedirectController extends ResourceController {
   }
 
   @override
-  APIRequestBody documentOperationRequestBody(
+  APIRequestBody? documentOperationRequestBody(
       APIDocumentContext context, Operation operation) {
     final body = super.documentOperationRequestBody(context, operation);
     if (operation.method == "POST") {
-      body.content["application/x-www-form-urlencoded"].schema
-          .properties["password"].format = "password";
-      body.content["application/x-www-form-urlencoded"].schema.required = [
-        "client_id",
-        "state",
-        "response_type",
-        "username",
-        "password"
-      ];
+      body?.content?["application/x-www-form-urlencoded"]?.schema!
+          .properties?["password"]?.format = "password";
+      body?.content?["application/x-www-form-urlencoded"]?.schema?.isRequired =
+          ["client_id", "state", "response_type", "username", "password"];
     }
     return body;
   }
 
   @override
-  List<APIParameter> documentOperationParameters(
+  List<APIParameter?> documentOperationParameters(
       APIDocumentContext context, Operation operation) {
     final params = super.documentOperationParameters(context, operation);
-    params.where((p) => p.name != "scope").forEach((p) {
-      p.isRequired = true;
+    params.where((p) => p?.name != "scope").forEach((p) {
+      p?.isRequired = true;
     });
     return params;
   }
@@ -261,11 +264,17 @@ class AuthRedirectController extends ResourceController {
     return ops;
   }
 
+<<<<<<< Updated upstream
   Response _redirectResponse(final String inputUri, String clientStateOrNull,
       {String code, AuthToken token, AuthServerException error}) {
     final uriString = inputUri ?? error.client?.redirectURI;
+=======
+  Response _redirectResponse(final String? inputUri, String? clientStateOrNull,
+      {String? code, AuthToken? token, AuthServerException? error}) {
+    final uriString = inputUri ?? error?.client?.redirectURI;
+>>>>>>> Stashed changes
     if (uriString == null) {
-      return Response.badRequest(body: {"error": error.reasonString});
+      return Response.badRequest(body: {"error": error?.reasonString});
     }
 
     Uri redirectURI;
@@ -277,8 +286,8 @@ class AuthRedirectController extends ResourceController {
     }
 
     final queryParameters =
-        Map<String, String>.from(redirectURI.queryParameters);
-    String fragment;
+        Map<String, String?>.from(redirectURI.queryParameters);
+    String fragment = "";
 
     if (responseType == "code") {
       if (code != null) {

@@ -25,7 +25,7 @@ class QueryPage {
   /// The property of the model object to page on.
   ///
   /// This property must have an inherent order, such as an [int] or [DateTime]. The database must be able to compare the values of this property using comparison operator '<' and '>'.
-  String propertyName;
+  String? propertyName;
 
   /// The point within an ordered set of result values in which rows will begin being fetched from.
   ///

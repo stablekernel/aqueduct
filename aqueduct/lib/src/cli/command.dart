@@ -14,7 +14,7 @@ import 'package:pub_semver/pub_semver.dart';
 class CLIException implements Exception {
   CLIException(this.message, {this.instructions});
 
-  final List<String> instructions;
+  final List<String>? instructions;
   final String message;
 
   @override
@@ -32,50 +32,50 @@ abstract class CLICommand {
     arguments.forEach((arg) {
       if (!arg.isGetter) {
         throw StateError("Declaration "
-            "${MirrorSystem.getName(arg.owner.simpleName)}.${MirrorSystem.getName(arg.simpleName)} "
+            "${MirrorSystem.getName(arg.owner!.simpleName)}.${MirrorSystem.getName(arg.simpleName)} "
             "has CLI annotation, but is not a getter.");
       }
 
-      final Argument argType = firstMetadataOfType(arg);
-      argType.addToParser(options);
+      final Argument? argType = firstMetadataOfType(arg);
+      argType?.addToParser(options);
     });
   }
 
   /// Options for this command.
   args.ArgParser options = args.ArgParser(allowTrailingOptions: true);
 
-  args.ArgResults _argumentValues;
+  args.ArgResults? _argumentValues;
 
-  List<String> get remainingArguments => _argumentValues.rest;
+  List<String>? get remainingArguments => _argumentValues?.rest;
 
-  args.ArgResults get command => _argumentValues.command;
+  args.ArgResults? get command => _argumentValues?.command;
 
-  StoppableProcess get runningProcess {
+  StoppableProcess? get runningProcess {
     return _commandMap.values
-        .firstWhere((cmd) => cmd.runningProcess != null, orElse: () => null)
+        .firstWhere((cmd) => cmd?.runningProcess != null, orElse: () => null)
         ?.runningProcess;
   }
 
   @Flag("version", help: "Prints version of this tool", negatable: false)
-  bool get showVersion => decode("version");
+  bool get showVersion => decode("version") ?? false;
 
   @Flag("color", help: "Toggles ANSI color", negatable: true, defaultsTo: true)
-  bool get showColors => decode("color");
+  bool get showColors => decode("color") ?? true;
 
   @Flag("help", abbr: "h", help: "Shows this", negatable: false)
-  bool get helpMeItsScary => decode("help");
+  bool get helpMeItsScary => decode("help") ?? false;
 
   @Flag("stacktrace",
       help: "Shows the stacktrace if an error occurs", defaultsTo: false)
-  bool get showStacktrace => decode("stacktrace");
+  bool get showStacktrace => decode("stacktrace") ?? false;
 
   @Flag("machine",
       help:
           "Output is machine-readable, usable for creating tools on top of this CLI. Behavior varies by command.",
       defaultsTo: false)
-  bool get isMachineOutput => decode("machine");
+  bool get isMachineOutput => decode("machine") ?? false;
 
-  final Map<String, CLICommand> _commandMap = {};
+  final Map<String, CLICommand?> _commandMap = {};
 
   StringSink _outputSink = stdout;
 
@@ -84,19 +84,24 @@ abstract class CLICommand {
   set outputSink(StringSink sink) {
     _outputSink = sink;
     _commandMap.values.forEach((cmd) {
-      cmd.outputSink = sink;
+      cmd?.outputSink = sink;
     });
   }
 
-  Version get toolVersion => _toolVersion;
-  Version _toolVersion;
+  Version? get toolVersion => _toolVersion;
+  Version? _toolVersion;
 
   static const _delimiter = "-- ";
   static const _tabs = "    ";
   static const _errorDelimiter = "*** ";
 
+<<<<<<< Updated upstream
   T decode<T>(String key) {
     final val = _argumentValues[key];
+=======
+  T? decode<T>(String key) {
+    final val = _argumentValues?[key];
+>>>>>>> Stashed changes
     if (T == int && val is String) {
       return int.parse(val) as T;
     }
@@ -125,13 +130,13 @@ abstract class CLICommand {
   /// Do not override this method. This method invokes [handle] within a try-catch block
   /// and will invoke [cleanup] when complete.
   Future<int> process(args.ArgResults results,
-      {List<String> commandPath}) async {
+      {List<String>? commandPath}) async {
     final parentCommandNames = commandPath ?? <String>[];
 
     if (results.command != null) {
       parentCommandNames.add(name);
-      return _commandMap[results.command.name]
-          .process(results.command, commandPath: parentCommandNames);
+      return _commandMap[results.command!.name]!
+          .process(results.command!, commandPath: parentCommandNames);
     }
 
     try {
@@ -151,7 +156,7 @@ abstract class CLICommand {
       preProcess();
 
       if (helpMeItsScary) {
-        printHelp(parentCommandName: parentCommandNames?.join(" "));
+        printHelp(parentCommandName: parentCommandNames.join(" "));
         return 0;
       }
 
@@ -176,7 +181,7 @@ abstract class CLICommand {
   Future determineToolVersion() async {
     try {
       var toolLibraryFilePath = (await Isolate.resolvePackageUri(
-              currentMirrorSystem().findLibrary(#aqueduct).uri))
+              currentMirrorSystem().findLibrary(#aqueduct).uri))!
           .toFilePath(windows: Platform.isWindows);
       var aqueductDirectory = Directory(FileSystemEntity.parentOf(
           FileSystemEntity.parentOf(toolLibraryFilePath)));
@@ -218,7 +223,7 @@ abstract class CLICommand {
     if (!showColors) {
       return "";
     }
-    return _lookupTable[color];
+    return _lookupTable[color]!;
   }
 
   String get name;
@@ -254,7 +259,7 @@ abstract class CLICommand {
     CLIColor.none: "\u001b[0m",
   };
 
-  void printHelp({String parentCommandName}) {
+  void printHelp({String? parentCommandName}) {
     print("$description");
     print("$detailedDescription");
     print("");

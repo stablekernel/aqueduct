@@ -17,15 +17,15 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
 
   @Option("template",
       abbr: "t", help: "Name of the template to use", defaultsTo: "default")
-  String get templateName => decode("template");
+  String get templateName => decode("template") ?? "default";
 
   @Flag("offline",
       negatable: false,
       help: "Will fetch dependencies from a local cache if they exist.")
-  bool get offline => decode("offline");
+  bool get offline => decode("offline") ?? false;
 
-  String get projectName =>
-      remainingArguments.isNotEmpty ? remainingArguments.first : null;
+  String? get projectName =>
+      remainingArguments!.isNotEmpty ? remainingArguments!.first : null;
 
   @override
   Future<int> handle() async {
@@ -34,12 +34,12 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
       return 1;
     }
 
-    if (!isSnakeCase(projectName)) {
+    if (!isSnakeCase(projectName!)) {
       displayError("Invalid project name ($projectName is not snake_case).");
       return 1;
     }
 
-    var destDirectory = destinationDirectoryFromPath(projectName);
+    var destDirectory = destinationDirectoryFromPath(projectName!);
     if (destDirectory.existsSync()) {
       displayError("${destDirectory.path} already exists, stopping.");
       return 1;
@@ -48,7 +48,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     destDirectory.createSync();
 
     final templateSourceDirectory =
-        Directory.fromUri(getTemplateLocation(templateName));
+        Directory.fromUri(getTemplateLocation(templateName) ?? Uri());
     if (!templateSourceDirectory.existsSync()) {
       displayError("No template at ${templateSourceDirectory.path}.");
       return 1;
@@ -56,11 +56,11 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
 
     displayProgress("Template source is: ${templateSourceDirectory.path}");
     displayProgress("See more templates with 'aqueduct create list-templates'");
-    copyProjectFiles(destDirectory, templateSourceDirectory, projectName);
+    copyProjectFiles(destDirectory, templateSourceDirectory, projectName!);
 
     createProjectSpecificFiles(destDirectory.path);
-    if (aqueductPackageRef.sourceType == "path") {
-      final aqueductLocation = aqueductPackageRef.resolve().location;
+    if (aqueductPackageRef?.sourceType == "path") {
+      final aqueductLocation = aqueductPackageRef!.resolve()!.location;
 
       addDependencyOverridesToPackage(destDirectory.path, {
         "aqueduct": aqueductLocation.uri,
@@ -79,7 +79,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
     }
 
     displayProgress("Success.");
-    displayInfo("New project '$projectName' successfully created.");
+    displayInfo("project '$projectName' successfully created.");
     displayProgress("Project is located at ${destDirectory.path}");
     displayProgress("Open this directory in IntelliJ IDEA, Atom or VS Code.");
     displayProgress(
@@ -206,7 +206,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
   void copyProjectFiles(Directory destinationDirectory,
       Directory sourceDirectory, String projectName) {
     displayInfo(
-        "Copying template files to new project directory (${destinationDirectory.path})...");
+        "Copying template files to project directory (${destinationDirectory.path})...");
     try {
       destinationDirectory.createSync();
 
@@ -249,10 +249,10 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
           .timeout(const Duration(seconds: 60));
       process.stdout
           .transform(utf8.decoder)
-          .listen((output) => outputSink?.write(output));
+          .listen((output) => outputSink.write(output));
       process.stderr
           .transform(utf8.decoder)
-          .listen((output) => outputSink?.write(output));
+          .listen((output) => outputSink.write(output));
 
       final exitCode = await process.exitCode;
 
@@ -295,7 +295,7 @@ class CLITemplateCreator extends CLICommand with CLIAqueductGlobal {
 class CLITemplateList extends CLICommand with CLIAqueductGlobal {
   @override
   Future<int> handle() async {
-    final templateRootDirectory = Directory.fromUri(templateDirectory);
+    final templateRootDirectory = Directory.fromUri(templateDirectory ?? Uri());
     final templateDirectories = await templateRootDirectory
         .list()
         .where((fse) => fse is Directory)
@@ -336,18 +336,18 @@ class CLITemplateList extends CLICommand with CLIAqueductGlobal {
 class CLIAqueductGlobal {
   PubCache pub = PubCache();
 
-  PackageRef get aqueductPackageRef {
+  PackageRef? get aqueductPackageRef {
     return pub
         .getGlobalApplications()
         .firstWhere((app) => app.name == "aqueduct")
         .getDefiningPackageRef();
   }
 
-  Uri get templateDirectory {
-    return aqueductPackageRef.resolve().location.uri.resolve("templates/");
+  Uri? get templateDirectory {
+    return aqueductPackageRef?.resolve()?.location.uri.resolve("templates/");
   }
 
-  Uri getTemplateLocation(String templateName) {
-    return templateDirectory.resolve("$templateName/");
+  Uri? getTemplateLocation(String templateName) {
+    return templateDirectory?.resolve("$templateName/");
   }
 }

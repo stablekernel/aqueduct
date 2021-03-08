@@ -160,7 +160,7 @@
 ## 2.2.0
 
 - The default template created by `aqueduct create` is now mostly empty. Available templates can be listed with `aqueduct create list-templates` and selected with the command-line option `--template`.
-- Bug fixes where `aqueduct auth` would fail to insert new Client IDs.
+- Bug fixes where `aqueduct auth` would fail to insert Client IDs.
 - `joinMany` and `joinOne` are deprecated, use `join(set:)` and `join(object:)` instead.
 - `HTTPCodecRepository` replaces `Response.addEncoder` and `HTTPBody.addDecoder`.
 - `Stream`s may now be `Response` bodies.
@@ -192,7 +192,7 @@
 
 - Allow binding to system-assigned port so tests can be run in parallel
 - Change `aqueduct serve` default port to 8081 so can develop in parallel to Angular2 apps that default to 8080
-- Remove `SecurityContext` reference from `ApplicationConfiguration`. SSL configured via new `aqueduct serve` arguments `ssl-key-path` and `ssl-certificate-path`, or overriding `securityContext` in `RequestSink`.
+- Remove `SecurityContext` reference from `ApplicationConfiguration`. SSL configured via `aqueduct serve` arguments `ssl-key-path` and `ssl-certificate-path`, or overriding `securityContext` in `RequestSink`.
 
 ## 2.0.1
 
@@ -233,7 +233,7 @@
 
 
 ## 1.0.4
-- BREAKING CHANGE: Added new `Response.contentType` property. Adding "Content-Type" to the headers of a `Response` no longer has any effect; use this property instead.
+- BREAKING CHANGE: Added `Response.contentType` property. Adding "Content-Type" to the headers of a `Response` no longer has any effect; use this property instead.
 - `ManagedDataModel`s now scan all libraries for `ManagedObject<T>` subclasses to generate a data model. Use `ManagedDataModel.fromCurrentMirrorSystem` to create instances of `ManagedDataModel`.
 - The *last* instantiated `ManagedContext` now becomes the `ManagedContext.defaultContext`; prior to this change, it was the first instantiated context. Added `ManagedContext.standalone` to opt out of setting the default context.
 - @HTTPQuery parameters in HTTPController responder method will now only allow multiple keys in the query string if and only if the argument type is a List.

@@ -17,12 +17,12 @@ String getInvokerSource(BuildContext context,
 
   var counter = 0;
   op.positionalParameters.forEach((p) {
-    buf.writeln("    args.positionalArguments[$counter] as ${p.type},");
+    buf.writeln("    args.positionalArguments[$counter] as ${p!.type},");
     counter++;
   });
 
   op.namedParameters.forEach((p) {
-    var defaultValue = sourcifyValue(p.defaultValue);
+    var defaultValue = sourcifyValue(p!.defaultValue);
 
     buf.writeln(
         "    ${p.symbolName}: args.namedArguments['${p.symbolName}'] as ${p.type} ?? $defaultValue,");
@@ -39,7 +39,7 @@ String getApplyRequestPropertiesSource(
   StringBuffer buf = StringBuffer();
   final subclassName = MirrorSystem.getName(runtime.type.simpleName);
 
-  runtime.ivarParameters.forEach((f) {
+  runtime.ivarParameters?.forEach((f) {
     buf.writeln("(untypedController as $subclassName).${f.symbolName} "
         "= args.instanceVariables['${f.symbolName}'] as ${f.type};");
   });
@@ -49,11 +49,11 @@ String getApplyRequestPropertiesSource(
 
 String getResourceControllerImplSource(
     BuildContext context, ResourceControllerRuntimeImpl runtime) {
-  final ivarSources = runtime.ivarParameters
+  final ivarSources = runtime.ivarParameters!
       .map((i) => getParameterSource(context, runtime, i))
       .join(",\n");
-  final operationSources = runtime.operations
-      .map((o) => getOperationSource(context, runtime, o))
+  final operationSources = runtime.operations!
+      .map((o) => getOperationSource(context, runtime, o!))
       .join(",\n");
 
   return """
@@ -80,32 +80,29 @@ String getDecoderSource(
       {
         return getElementDecoderSource(parameter.type);
       }
-      break;
     case BindingType.header:
       {
         return getListDecoderSource(parameter);
       }
-      break;
     case BindingType.query:
       {
         return getListDecoderSource(parameter);
       }
-      break;
     case BindingType.body:
       {
         return getBodyDecoderSource(parameter);
       }
-      break;
+    default:
+      throw StateError("unknown parameter");
   }
-  throw StateError("unknown parameter");
 }
 
-String sourcifyFilter(List<String> filter) {
+String sourcifyFilter(List<String>? filter) {
   if (filter == null) {
     return "null";
   }
 
-  return "[${filter?.map((s) => "'$s'")?.join(",")}]";
+  return "[${filter.map((s) => "'$s'").join(",")}]";
 }
 
 String getBodyDecoderSource(ResourceControllerParameter p) {
@@ -211,12 +208,16 @@ String getOperationSource(
     ResourceControllerOperation operation) {
   final scopeElements = operation.scopes
       ?.map((s) => "AuthScope(${sourcifyValue(s.toString())})")
+<<<<<<< Updated upstream
       ?.join(",");
+=======
+      .join(",");
+>>>>>>> Stashed changes
   final namedParameters = operation.namedParameters
-      .map((p) => getParameterSource(context, runtime, p))
+      .map((p) => getParameterSource(context, runtime, p!))
       .join(",");
   final positionalParameters = operation.positionalParameters
-      .map((p) => getParameterSource(context, runtime, p))
+      .map((p) => getParameterSource(context, runtime, p!))
       .join(",");
   final pathVars = operation.pathVariables.map((s) => "'$s'").join(",");
 

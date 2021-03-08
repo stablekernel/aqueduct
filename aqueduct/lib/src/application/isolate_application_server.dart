@@ -27,7 +27,7 @@ class ApplicationIsolateServer extends ApplicationServer {
   }
 
   SendPort supervisingApplicationPort;
-  ReceivePort supervisingReceivePort;
+  late ReceivePort supervisingReceivePort;
 
   @override
   Future start({bool shareHttpServer = false}) async {

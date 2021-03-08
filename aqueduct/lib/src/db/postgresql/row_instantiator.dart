@@ -8,7 +8,7 @@ class RowInstantiator {
   RowInstantiator(this.rootTableBuilder, this.returningValues);
 
   final TableBuilder rootTableBuilder;
-  final List<Returnable> returningValues;
+  final List<Returnable?> returningValues;
 
   Map<TableBuilder, Map<dynamic, ManagedObject>> distinctObjects = {};
 
@@ -16,17 +16,17 @@ class RowInstantiator {
     try {
       return rows
           .map((row) => instanceFromRow(row.iterator, returningValues.iterator))
-          .where((wrapper) => wrapper.isNew)
-          .map((wrapper) => wrapper.instance as U)
+          .where((wrapper) => wrapper!.isNew)
+          .map((wrapper) => wrapper!.instance as U)
           .toList();
     } on ValidationException catch (e) {
       throw StateError("Database error when retrieving value. ${e.toString()}");
     }
   }
 
-  InstanceWrapper instanceFromRow(
-      Iterator<dynamic> rowIterator, Iterator<Returnable> returningIterator,
-      {TableBuilder table}) {
+  InstanceWrapper? instanceFromRow(
+      Iterator<dynamic> rowIterator, Iterator<Returnable?> returningIterator,
+      {TableBuilder? table}) {
     table ??= rootTableBuilder;
 
     // Inspect the primary key first.  We are guaranteed to have the primary key come first in any rowIterator.
@@ -61,9 +61,9 @@ class RowInstantiator {
 
   ManagedObject createInstanceWithPrimaryKeyValue(
       TableBuilder table, dynamic primaryKeyValue) {
-    var instance = table.entity.instanceOf();
+    var instance = table.entity!.instanceOf();
 
-    instance[table.entity.primaryKey] = primaryKeyValue;
+    instance[table.entity!.primaryKey!] = primaryKeyValue;
 
     var typeMap = distinctObjects[table];
     if (typeMap == null) {
@@ -76,7 +76,7 @@ class RowInstantiator {
     return instance;
   }
 
-  ManagedObject getExistingInstance(
+  ManagedObject? getExistingInstance(
       TableBuilder table, dynamic primaryKeyValue) {
     var byType = distinctObjects[table];
     if (byType == null) {
@@ -95,17 +95,22 @@ class RowInstantiator {
     var innerInstanceWrapper =
         instanceFromRow(rowIterator, table.returning.iterator, table: table);
 
-    if (table.joinedBy.relationshipType == ManagedRelationshipType.hasMany) {
+    if (table.joinedBy?.relationshipType == ManagedRelationshipType.hasMany) {
       // If to many, put in a managed set.
+<<<<<<< Updated upstream
       final list = (instance[table.joinedBy.name] ??
           table.joinedBy.destinationEntity.setOf([])) as ManagedSet;
+=======
+      final list = (instance[table.joinedBy!.name] ??
+          table.joinedBy!.destinationEntity.setOf([])) as ManagedSet;
+>>>>>>> Stashed changes
 
       if (innerInstanceWrapper != null && innerInstanceWrapper.isNew) {
         list.add(innerInstanceWrapper.instance);
       }
-      instance[table.joinedBy.name] = list;
+      instance[table.joinedBy!.name] = list;
     } else {
-      var existingInnerInstance = instance[table.joinedBy.name];
+      var existingInnerInstance = instance[table.joinedBy!.name];
 
       // If not assigned yet, assign this value (which may be null). If assigned,
       // don't overwrite with a null row that may come after. Once we have it, we have it.
@@ -113,7 +118,7 @@ class RowInstantiator {
       // Now if it is belongsTo, we may have already populated it with the foreign key object.
       // In this case, we do need to override it
       if (existingInnerInstance == null) {
-        instance[table.joinedBy.name] = innerInstanceWrapper?.instance;
+        instance[table.joinedBy!.name] = innerInstanceWrapper?.instance;
       }
     }
   }
@@ -126,7 +131,7 @@ class RowInstantiator {
       // This is a belongsTo relationship (otherwise it wouldn't be a column), keep the foreign key.
       if (value != null) {
         var innerInstance = desc.destinationEntity.instanceOf();
-        innerInstance[desc.destinationEntity.primaryKey] = value;
+        innerInstance[desc.destinationEntity.primaryKey!] = value;
         instance[desc.name] = innerInstance;
       } else {
         // If null, explicitly add null to map so the value is populated.
@@ -138,7 +143,7 @@ class RowInstantiator {
   }
 
   void exhaustNullInstanceIterator(
-      Iterator<dynamic> rowIterator, Iterator<Returnable> returningIterator) {
+      Iterator<dynamic> rowIterator, Iterator<Returnable?> returningIterator) {
     while (returningIterator.moveNext()) {
       var ret = returningIterator.current;
       if (ret is TableBuilder) {

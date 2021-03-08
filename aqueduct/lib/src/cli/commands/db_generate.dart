@@ -14,7 +14,7 @@ class CLIDatabaseGenerate extends CLICommand
           "Name of the generated migration. Automaticaly lower- and snakecased.",
       defaultsTo: "unnamed")
   String get migrationName {
-    final String name = decode("name");
+    final String name = decode("name")!;
 
     return _toSnakeCase(name);
   }
@@ -76,13 +76,13 @@ class CLIDatabaseGenerate extends CLICommand
         "* If you were expecting more declarations, ensure the files are visible in the application library file.");
     displayProgress("");
 
-    result.changeList?.forEach(displayProgress);
+    result.changeList.forEach(displayProgress);
 
     newMigrationFile.writeAsStringSync(result.source);
 
-    displayInfo("Created new migration file (version $versionNumber).",
+    displayInfo("Created migration file (version $versionNumber).",
         color: CLIColor.boldGreen);
-    displayProgress("New file is located at ${newMigrationFile.path}");
+    displayProgress("file is located at ${newMigrationFile.path}");
 
     return 0;
   }

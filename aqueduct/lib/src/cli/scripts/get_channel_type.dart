@@ -19,9 +19,6 @@ class GetChannelExecutable extends Executable<String> {
     }
     var runtime = channels.first;
 
-    if (runtime == null) {
-      return null;
-    }
     return MirrorSystem.getName(reflectClass(runtime.channelType).simpleName);
   }
 

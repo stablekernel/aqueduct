@@ -91,7 +91,7 @@ void main() {
       expect(await q.fetch(), hasLength(5));
     });
 
-    test("Can add a new public client", () async {
+    test("Can add a public client", () async {
       var client = AuthUtility.generateAPICredentialPair("pub-id", null,
           hashLength: auth.hashLength,
           hashRounds: auth.hashRounds,
@@ -1060,7 +1060,7 @@ void main() {
         ..values = manualCode;
       manualCode = await manualInsertQuery.insert();
 
-      // Make a new code, should kill the race condition code and the first generated code in the loop.
+      // Make a code, should kill the race condition code and the first generated code in the loop.
       // Other user codes remain
       var newCode = await auth.authenticateForCode(createdUsers.first.username,
           User.defaultPassword, "com.stablekernel.redirect");
@@ -1076,7 +1076,7 @@ void main() {
       expect(codesInDB.contains(codes.last.code), true);
       expect(codesInDB.contains(newCode.code), true);
 
-      // Make a new code, but with a different client, should still kill off the oldest expiring code.
+      // Make a code, but with a different client, should still kill off the oldest expiring code.
       var lastCode = await auth.authenticateForCode(createdUsers.first.username,
           User.defaultPassword, "com.stablekernel.redirect2");
       codesInDB = (await codeQuery.fetch()).map((ac) => ac.code).toList();
@@ -1134,7 +1134,7 @@ void main() {
         ..values = manualToken;
       manualToken = await manualInsertQuery.insert();
 
-      // Make a new token, should kill the race condition token and the first generated token in the loop.
+      // Make a token, should kill the race condition token and the first generated token in the loop.
       // Other user token remain
       var newToken = await auth.authenticate(createdUsers.first.username,
           User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
@@ -1151,7 +1151,7 @@ void main() {
       expect(tokensInDB.contains(tokens.last.accessToken), true);
       expect(tokensInDB.contains(newToken.accessToken), true);
 
-      // Make a new token, but with a different client, should still kill off the oldest token code.
+      // Make a token, but with a different client, should still kill off the oldest token code.
       var lastToken = await auth.authenticate(createdUsers.first.username,
           User.defaultPassword, "com.stablekernel.app2", "fuji");
       tokensInDB =

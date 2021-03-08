@@ -67,7 +67,7 @@ void main() {
       return contents.replaceRange(lastCurly, lastCurly, """
         @override 
         void documentComponents(APIDocumentContext ctx) {
-          throw new Exception("Hello!");
+          throw Exception("Hello!");
         }
       """);
     });

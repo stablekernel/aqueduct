@@ -37,8 +37,8 @@ class PostgresQueryReduce<T extends ManagedObject>
     return _execute("sum(${_columnName(selector)})");
   }
 
-  String _columnName(dynamic selector(T object)) {
-    return query.entity.identifyAttribute(selector).name;
+  String? _columnName(dynamic selector(T object)) {
+    return query.entity?.identifyAttribute(selector).name;
   }
 
   Future<U> _execute<U>(String function) async {
@@ -56,8 +56,8 @@ class PostgresQueryReduce<T extends ManagedObject>
     try {
       final result = await connection
           .query(buffer.toString(), substitutionValues: builder.variables)
-          .timeout(Duration(seconds: query.timeoutInSeconds));
-      return result.first.first as U;
+          .timeout(Duration(seconds: query.timeoutInSeconds!));
+      return result?.first.first as U;
     } on TimeoutException catch (e) {
       throw QueryException.transport("timed out connecting to database",
           underlyingException: e);

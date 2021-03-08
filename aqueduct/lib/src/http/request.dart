@@ -9,7 +9,7 @@ typedef _ResponseModifier = void Function(Response resp);
 
 /// A single HTTP request.
 ///
-/// Instances of this class travel through a [Controller] chain to be responded to, sometimes acquiring new values
+/// Instances of this class travel through a [Controller] chain to be responded to, sometimes acquiring values
 /// as they go through controllers. Each instance of this class has a standard library [HttpRequest]. You should not respond
 /// directly to the [HttpRequest], as [Controller]s take that responsibility.
 class Request implements RequestOrResponse {
@@ -59,7 +59,7 @@ class Request implements RequestOrResponse {
   /// Information about the client connection.
   ///
   /// Note: accessing this property incurs a significant performance penalty.
-  HttpConnectionInfo get connectionInfo => raw.connectionInfo;
+  HttpConnectionInfo? get connectionInfo => raw.connectionInfo;
 
   /// The response object of this [Request].
   ///
@@ -73,9 +73,9 @@ class Request implements RequestOrResponse {
   /// permission information from the authenticator. Use this to determine client, resource owner
   /// or other properties of the authentication information in the request. This value will be
   /// null if no permission has been set.
-  Authorization authorization;
+  Authorization? authorization;
 
-  List<_ResponseModifier> _responseModifiers;
+  List<_ResponseModifier>? _responseModifiers;
 
   /// The acceptable content types for a [Response] returned for this instance.
   ///
@@ -90,9 +90,9 @@ class Request implements RequestOrResponse {
       try {
         var contentTypes = raw.headers[HttpHeaders.acceptHeader]
                 ?.expand((h) => h.split(",").map((s) => s.trim()))
-                ?.where((h) => h.isNotEmpty)
-                ?.map(ContentType.parse)
-                ?.toList() ??
+                .where((h) => h.isNotEmpty)
+                .map(ContentType.parse)
+                .toList() ??
             [];
 
         contentTypes.sort((c1, c2) {
@@ -123,10 +123,10 @@ class Request implements RequestOrResponse {
             body: {"error": "accept header is malformed"});
       }
     }
-    return _cachedAcceptableTypes;
+    return _cachedAcceptableTypes!;
   }
 
-  List<ContentType> _cachedAcceptableTypes;
+  List<ContentType>? _cachedAcceptableTypes;
 
   /// Whether a [Response] may contain a body of type [contentType].
   ///
@@ -183,7 +183,7 @@ class Request implements RequestOrResponse {
   /// The timestamp for when this request was responded to.
   ///
   /// Used for logging.
-  DateTime respondDate;
+  DateTime? respondDate;
 
   /// Allows a [Controller] to modify the response eventually created for this request, without creating that response itself.
   ///
@@ -203,13 +203,13 @@ class Request implements RequestOrResponse {
   ///         }
   void addResponseModifier(void modifier(Response response)) {
     _responseModifiers ??= [];
-    _responseModifiers.add(modifier);
+    _responseModifiers!.add(modifier);
   }
 
   String get _sanitizedHeaders {
     StringBuffer buf = StringBuffer("{");
 
-    raw?.headers?.forEach((k, v) {
+    raw.headers.forEach((k, v) {
       buf.write("${_truncatedString(k)} : ${_truncatedString(v.join(","))}\\n");
     });
     buf.write("}");
@@ -252,13 +252,13 @@ class Request implements RequestOrResponse {
     }
 
     response.statusCode = aqueductResponse.statusCode;
-    aqueductResponse.headers?.forEach((k, v) {
-      response.headers.add(k, v);
+    aqueductResponse.headers.forEach((k, v) {
+      response.headers.add(k, v as Object);
     });
 
     if (aqueductResponse.cachePolicy != null) {
       response.headers.add(HttpHeaders.cacheControlHeader,
-          aqueductResponse.cachePolicy.headerValue);
+          aqueductResponse.cachePolicy!.headerValue);
     }
 
     if (body == null) {
@@ -272,7 +272,7 @@ class Request implements RequestOrResponse {
     if (body is List<int>) {
       if (compressionType.value != null) {
         response.headers
-            .add(HttpHeaders.contentEncodingHeader, compressionType.value);
+            .add(HttpHeaders.contentEncodingHeader, compressionType.value!);
       }
       response.headers.add(HttpHeaders.contentLengthHeader, body.length);
 
@@ -284,7 +284,7 @@ class Request implements RequestOrResponse {
       final bodyStream = _responseBodyStream(aqueductResponse, compressionType);
       if (compressionType.value != null) {
         response.headers
-            .add(HttpHeaders.contentEncodingHeader, compressionType.value);
+            .add(HttpHeaders.contentEncodingHeader, compressionType.value!);
       }
       response.headers.add(HttpHeaders.transferEncodingHeader, "chunked");
       response.bufferOutput = aqueductResponse.bufferOutput;
@@ -299,13 +299,13 @@ class Request implements RequestOrResponse {
     throw StateError("Invalid response body. Could not encode.");
   }
 
-  List<int> _responseBodyBytes(
+  List<int>? _responseBodyBytes(
       Response resp, _Reference<String> compressionType) {
     if (resp.body == null) {
       return null;
     }
 
-    Codec<dynamic, List<int>> codec;
+    Codec<dynamic, List<int>>? codec;
     if (resp.encodeBody) {
       codec =
           CodecRegistry.defaultInstance.codecForContentType(resp.contentType);
@@ -342,7 +342,7 @@ class Request implements RequestOrResponse {
 
   Stream<List<int>> _responseBodyStream(
       Response resp, _Reference<String> compressionType) {
-    Codec<dynamic, List<int>> codec;
+    Codec<dynamic, List<int>>? codec;
     if (resp.encodeBody) {
       codec =
           CodecRegistry.defaultInstance.codecForContentType(resp.contentType);
@@ -398,7 +398,7 @@ class Request implements RequestOrResponse {
       bool includeHeaders = false}) {
     var builder = StringBuffer();
     if (includeRequestIP) {
-      builder.write("${raw.connectionInfo?.remoteAddress?.address} ");
+      builder.write("${raw.connectionInfo?.remoteAddress.address} ");
     }
     if (includeMethod) {
       builder.write("${raw.method} ");
@@ -408,7 +408,7 @@ class Request implements RequestOrResponse {
     }
     if (includeElapsedTime && respondDate != null) {
       builder
-          .write("${respondDate.difference(receivedDate).inMilliseconds}ms ");
+          .write("${respondDate!.difference(receivedDate).inMilliseconds}ms ");
     }
     if (includeStatusCode) {
       builder.write("${raw.response.statusCode} ");
@@ -434,5 +434,5 @@ class HTTPStreamingException implements Exception {
 class _Reference<T> {
   _Reference(this.value);
 
-  T value;
+  T? value;
 }

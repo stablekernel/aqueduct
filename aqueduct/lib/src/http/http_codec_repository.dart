@@ -83,7 +83,7 @@ class CodecRegistry {
 
     if (contentType.charset != null) {
       var innerCodecs = _defaultCharsetMap[contentType.primaryType] ?? {};
-      innerCodecs[contentType.subType] = contentType.charset;
+      innerCodecs[contentType.subType] = contentType.charset!;
       _defaultCharsetMap[contentType.primaryType] = innerCodecs;
     }
   }
@@ -107,28 +107,28 @@ class CodecRegistry {
   /// Whether or not [contentType] has been configured to be compressed.
   ///
   /// See also [setAllowsCompression].
-  bool isContentTypeCompressable(ContentType contentType) {
+  bool isContentTypeCompressable(ContentType? contentType) {
     var subtypeCompress =
-        _fullySpecifiedCompressionMap[contentType.primaryType];
+        _fullySpecifiedCompressionMap[contentType?.primaryType];
     if (subtypeCompress != null) {
-      if (subtypeCompress.containsKey(contentType.subType)) {
-        return subtypeCompress[contentType.subType];
+      if (subtypeCompress.containsKey(contentType?.subType)) {
+        return subtypeCompress[contentType?.subType] ?? false;
       }
     }
 
-    return _primaryTypeCompressionMap[contentType.primaryType] ?? false;
+    return _primaryTypeCompressionMap[contentType?.primaryType] ?? false;
   }
 
   /// Returns a [Codec] for [contentType].
   ///
   /// See [add].
-  Codec<dynamic, List<int>> codecForContentType(ContentType contentType) {
+  Codec<dynamic, List<int>>? codecForContentType(ContentType? contentType) {
     if (contentType == null) {
       return null;
     }
 
-    Codec contentCodec;
-    Codec<String, List<int>> charsetCodec;
+    Codec? contentCodec;
+    Codec<String, List<int>>? charsetCodec;
 
     var subtypes = _fullySpecificedCodecs[contentType.primaryType];
     if (subtypes != null) {
@@ -137,7 +137,7 @@ class CodecRegistry {
 
     contentCodec ??= _primaryTypeCodecs[contentType.primaryType];
 
-    if ((contentType?.charset?.length ?? 0) > 0) {
+    if ((contentType.charset?.length ?? 0) > 0) {
       charsetCodec = _codecForCharset(contentType.charset);
     } else if (contentType.primaryType == "text" && contentCodec == null) {
       charsetCodec = latin1;
@@ -152,7 +152,7 @@ class CodecRegistry {
       if (contentCodec is! Codec<dynamic, List<int>>) {
         throw StateError("Invalid codec selected. Does not emit 'List<int>'.");
       }
-      return contentCodec as Codec<dynamic, List<int>>;
+      return contentCodec;
     }
 
     if (charsetCodec != null) {
@@ -162,7 +162,7 @@ class CodecRegistry {
     return null;
   }
 
-  Codec<String, List<int>> _codecForCharset(String charset) {
+  Codec<String, List<int>> _codecForCharset(String? charset) {
     var encoding = Encoding.getByName(charset);
     if (encoding == null) {
       throw Response(415, null, {"error": "invalid charset '$charset'"});
@@ -171,7 +171,7 @@ class CodecRegistry {
     return encoding;
   }
 
-  Codec<String, List<int>> _defaultCharsetCodecForType(ContentType type) {
+  Codec<String, List<int>>? _defaultCharsetCodecForType(ContentType type) {
     var inner = _defaultCharsetMap[type.primaryType];
     if (inner == null) {
       return null;

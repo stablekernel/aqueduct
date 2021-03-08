@@ -41,7 +41,11 @@ class FileController extends Controller {
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
   FileController(String pathOfDirectoryToServe,
       {FutureOr<Response> onFileNotFound(
+<<<<<<< Updated upstream
           FileController controller, Request req)})
+=======
+          FileController controller, Request req)?})
+>>>>>>> Stashed changes
       : _servingDirectory = Uri.directory(pathOfDirectoryToServe),
         _onFileNotFound = onFileNotFound;
 
@@ -78,9 +82,9 @@ class FileController extends Controller {
   };
 
   final Map<String, ContentType> _extensionMap = Map.from(_defaultExtensionMap);
-  final List<_PolicyPair> _policyPairs = [];
+  final List<_PolicyPair?> _policyPairs = [];
   final Uri _servingDirectory;
-  final _OnFileNotFound _onFileNotFound;
+  final _OnFileNotFound? _onFileNotFound;
 
   /// Returns a [ContentType] for a file extension.
   ///
@@ -88,7 +92,7 @@ class FileController extends Controller {
   /// e.g. both '.jpg' and 'jpg' are valid inputs to this method.
   ///
   /// Returns null if there is no entry for [extension]. Entries can be added with [setContentTypeForExtension].
-  ContentType contentTypeForExtension(String extension) {
+  ContentType? contentTypeForExtension(String extension) {
     if (extension.startsWith(".")) {
       return _extensionMap[extension.substring(1)];
     }
@@ -137,9 +141,10 @@ class FileController extends Controller {
   ///
   /// Evaluates each policy added by [addCachePolicy] against the [path] and
   /// returns it if exists.
-  CachePolicy cachePolicyForPath(String path) {
+  CachePolicy? cachePolicyForPath(String path) {
     return _policyPairs
-        .firstWhere((pair) => pair.shouldApplyToPath(path), orElse: () => null)
+        .firstWhere((pair) => pair?.shouldApplyToPath(path) ?? false,
+            orElse: () => null)
         ?.policy;
   }
 
@@ -150,7 +155,7 @@ class FileController extends Controller {
     }
 
     var relativePath = request.path.remainingPath;
-    var fileUri = _servingDirectory.resolve(relativePath);
+    var fileUri = _servingDirectory.resolve(relativePath!);
     File file;
     if (FileSystemEntity.isDirectorySync(fileUri.toFilePath())) {
       file = File.fromUri(fileUri.resolve("index.html"));
@@ -160,7 +165,7 @@ class FileController extends Controller {
 
     if (!file.existsSync()) {
       if (_onFileNotFound != null) {
-        return _onFileNotFound(this, request);
+        return _onFileNotFound!(this, request);
       }
 
       var response = Response.notFound();
@@ -210,7 +215,7 @@ class FileController extends Controller {
     };
   }
 
-  CachePolicy _policyForFile(File file) => cachePolicyForPath(file.path);
+  CachePolicy? _policyForFile(File file) => cachePolicyForPath(file.path);
 }
 
 typedef _ShouldApplyToPath = bool Function(String path);

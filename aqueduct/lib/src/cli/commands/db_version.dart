@@ -12,7 +12,7 @@ class CLIDatabaseVersion extends CLICommand
   @override
   Future<int> handle() async {
     try {
-      var current = await persistentStore.schemaVersion;
+      var current = await persistentStore?.schemaVersion;
       displayInfo("Current version: $current");
       if (current == 0) {
         displayProgress("This database hasn't had a migration yet.");
@@ -21,11 +21,11 @@ class CLIDatabaseVersion extends CLICommand
       displayError("Could not connect to database.");
       displayError("Reason: ${e.message}");
       displayProgress("Attempted database connection configuration:");
-      displayProgress("  Host: ${connectedDatabase.host}");
-      displayProgress("  Port: ${connectedDatabase.port}");
-      displayProgress("  Username: ${connectedDatabase.username}");
+      displayProgress("  Host: ${connectedDatabase!.host}");
+      displayProgress("  Port: ${connectedDatabase!.port}");
+      displayProgress("  Username: ${connectedDatabase!.username}");
       displayProgress("  Password: *** not echoed ***");
-      displayProgress("  Database: ${connectedDatabase.databaseName}");
+      displayProgress("  Database: ${connectedDatabase!.databaseName}");
 
       return 1;
     }
@@ -34,7 +34,7 @@ class CLIDatabaseVersion extends CLICommand
   }
 
   @override
-  Future cleanup() => persistentStore.close();
+  Future cleanup() => persistentStore!.close();
 
   @override
   String get name {

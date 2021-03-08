@@ -10,7 +10,7 @@ import 'package:aqueduct/src/utilities/mirror_helpers.dart';
 
 class PropertyBuilder {
   PropertyBuilder(this.parent, this.declaration)
-      : relate = firstMetadataOfType(declaration),
+      : relate = firstMetadataOfType(declaration)!,
         column = firstMetadataOfType(declaration),
         serialize = _getTransienceForProperty(declaration) {
     name = _getName();
@@ -24,56 +24,56 @@ class PropertyBuilder {
         .map((v) => ValidatorBuilder(this, v))
         .toList();
 
-    if (column?.validators?.isNotEmpty ?? false) {
+    if (column?.validators.isNotEmpty ?? false) {
       _validators
-          .addAll(column.validators.map((v) => ValidatorBuilder(this, v)));
+          .addAll(column!.validators.map((v) => ValidatorBuilder(this, v)));
     }
 
     if (type?.isEnumerated ?? false) {
       _validators.add(ValidatorBuilder(
-          this, Validate.oneOf(type.enumerationMap.values.toList())));
+          this, Validate.oneOf(type!.enumerationMap?.values.toList())));
     }
   }
 
   final EntityBuilder parent;
   final DeclarationMirror declaration;
-  final Relate relate;
-  final Column column;
+  final Relate? relate;
+  final Column? column;
 
-  List<ValidatorBuilder> get validators => _validators;
-  Serialize serialize;
+  List<ValidatorBuilder?> get validators => _validators;
+  Serialize? serialize;
 
-  ManagedAttributeDescription attribute;
-  ManagedRelationshipDescription relationship;
+  ManagedAttributeDescription? attribute;
+  ManagedRelationshipDescription? relationship;
   List<ManagedValidator> managedValidators = [];
 
-  String name;
-  ManagedType type;
+  late String name;
+  ManagedType? type;
 
   bool get isRelationship => relatedProperty != null;
-  PropertyBuilder relatedProperty;
-  ManagedRelationshipType relationshipType;
+  PropertyBuilder? relatedProperty;
+  ManagedRelationshipType? relationshipType;
   bool primaryKey = false;
-  String defaultValue;
+  String? defaultValue;
   bool nullable = false;
   bool unique = false;
   bool includeInDefaultResultSet = true;
   bool indexed = false;
   bool autoincrement = false;
-  DeleteRule deleteRule;
-  List<ValidatorBuilder> _validators;
+  DeleteRule? deleteRule;
+  List<ValidatorBuilder?> _validators = [];
 
-  void compile(List<EntityBuilder> entityBuilders) {
+  void compile(List<EntityBuilder>? entityBuilders) {
     if (type == null) {
       if (relate != null) {
         relatedProperty =
             _getRelatedEntityBuilderFrom(entityBuilders).getInverseOf(this);
-        type = relatedProperty.parent.primaryKeyProperty.type;
+        type = relatedProperty?.parent.primaryKeyProperty?.type;
         relationshipType = ManagedRelationshipType.belongsTo;
         includeInDefaultResultSet = true;
-        deleteRule = relate.onDelete;
-        nullable = !relate.isRequired;
-        relatedProperty.setInverse(this);
+        deleteRule = relate!.onDelete;
+        nullable = !relate!.isRequired;
+        relatedProperty?.setInverse(this);
         unique =
             relatedProperty?.relationshipType == ManagedRelationshipType.hasOne;
       }
@@ -87,7 +87,7 @@ class PropertyBuilder {
       autoincrement = column?.autoincrement ?? false;
     }
 
-    validators.forEach((vb) => vb.compile(entityBuilders));
+    validators.forEach((vb) => vb?.compile(entityBuilders));
   }
 
   void validate(List<EntityBuilder> entityBuilders) {
@@ -95,7 +95,7 @@ class PropertyBuilder {
       if (!isRelationship ||
           relationshipType == ManagedRelationshipType.belongsTo) {
         throw ManagedDataModelErrorImpl.invalidType(
-            declaration.owner.simpleName, declaration.simpleName);
+            declaration.owner!.simpleName, declaration.simpleName);
       }
     }
 
@@ -104,12 +104,12 @@ class PropertyBuilder {
         throw ManagedDataModelErrorImpl.invalidMetadata(
             parent.tableDefinitionTypeName, declaration.simpleName);
       }
-      if (relate != null && relatedProperty.relate != null) {
+      if (relate != null && relatedProperty?.relate != null) {
         throw ManagedDataModelErrorImpl.dualMetadata(
             parent.tableDefinitionTypeName,
             declaration.simpleName,
-            relatedProperty.parent.tableDefinitionTypeName,
-            relatedProperty.name);
+            relatedProperty!.parent.tableDefinitionTypeName,
+            relatedProperty!.name);
       }
     } else {
       if (defaultValue != null && autoincrement) {
@@ -125,14 +125,14 @@ class PropertyBuilder {
           parent.tableDefinitionTypeName, declaration.simpleName);
     }
 
-    validators.forEach((vb) => vb.validate(entityBuilders));
+    validators.forEach((vb) => vb?.validate(entityBuilders));
   }
 
   void link(List<ManagedEntity> others) {
-    validators.forEach((v) => v.link(others));
+    validators.forEach((v) => v?.link(others));
     if (isRelationship) {
       var destinationEntity =
-          others.firstWhere((e) => e == relatedProperty.parent.entity);
+          others.firstWhere((e) => e == relatedProperty?.parent.entity);
 
       final dartType =
           ((declaration as VariableMirror).type as ClassMirror).reflectedType;
@@ -144,12 +144,12 @@ class PropertyBuilder {
           destinationEntity,
           deleteRule,
           relationshipType,
-          relatedProperty.name,
+          relatedProperty!.name,
           unique: unique,
           indexed: true,
           nullable: nullable,
           includedInDefaultResultSet: includeInDefaultResultSet,
-          validators: validators.map((v) => v.managedValidator).toList());
+          validators: validators.map((v) => v?.managedValidator).toList());
     } else {
       final dartType = getDeclarationType().reflectedType;
       attribute = ManagedAttributeDescription(
@@ -162,7 +162,7 @@ class PropertyBuilder {
           nullable: nullable,
           includedInDefaultResultSet: includeInDefaultResultSet,
           autoincrement: autoincrement,
-          validators: validators.map((v) => v.managedValidator).toList());
+          validators: validators.map((v) => v?.managedValidator).toList());
     }
   }
 
@@ -179,7 +179,7 @@ class PropertyBuilder {
 
   ClassMirror getDeclarationType() {
     final decl = declaration;
-    TypeMirror type;
+    TypeMirror? type;
     if (decl is MethodMirror) {
       if (decl.isGetter) {
         type = decl.returnType;
@@ -196,15 +196,15 @@ class PropertyBuilder {
           "in table definition '${parent.tableDefinitionTypeName}'.");
     }
 
-    return type as ClassMirror;
+    return type;
   }
 
-  ManagedType _getType() {
+  ManagedType? _getType() {
     final declType = getDeclarationType();
     try {
       if (column?.databaseType != null) {
         return ManagedType(
-            declType.reflectedType, column.databaseType, null, null);
+            declType.reflectedType, column!.databaseType!, null, null);
       }
 
       return getManagedTypeFromType(declType);
@@ -230,10 +230,10 @@ class PropertyBuilder {
         "as this method shouldn't be invoked on non-property or non-accessors.");
   }
 
-  EntityBuilder _getRelatedEntityBuilderFrom(List<EntityBuilder> builders) {
+  EntityBuilder _getRelatedEntityBuilderFrom(List<EntityBuilder>? builders) {
     final expectedInstanceType = getDeclarationType();
-    if (!relate.isDeferred) {
-      return builders.firstWhere((b) => b.instanceType == expectedInstanceType,
+    if (!relate!.isDeferred) {
+      return builders!.firstWhere((b) => b.instanceType == expectedInstanceType,
           orElse: () {
         throw ManagedDataModelErrorImpl.noDestinationEntity(
             parent.tableDefinitionTypeName,
@@ -242,11 +242,11 @@ class PropertyBuilder {
       });
     }
 
-    final possibleEntities = builders.where((e) {
+    final possibleEntities = builders?.where((e) {
       return e.tableDefinitionType.isSubtypeOf(expectedInstanceType);
     }).toList();
 
-    if (possibleEntities.length > 1) {
+    if (possibleEntities!.length > 1) {
       throw ManagedDataModelErrorImpl.multipleDestinationEntities(
           parent.tableDefinitionTypeName,
           declaration.simpleName,
@@ -262,16 +262,16 @@ class PropertyBuilder {
         expectedInstanceType.simpleName);
   }
 
-  static Serialize _getTransienceForProperty(DeclarationMirror declaration) {
-    Serialize metadata = firstMetadataOfType<Serialize>(declaration);
+  static Serialize? _getTransienceForProperty(DeclarationMirror declaration) {
+    Serialize? metadata = firstMetadataOfType<Serialize>(declaration);
     if (declaration is VariableMirror) {
       return metadata;
     }
 
     final m = declaration as MethodMirror;
-    if (m.isGetter && metadata.isAvailableAsOutput) {
+    if (m.isGetter && metadata!.isAvailableAsOutput) {
       return const Serialize(output: true, input: false);
-    } else if (m.isSetter && metadata.isAvailableAsInput) {
+    } else if (m.isSetter && metadata!.isAvailableAsInput) {
       return const Serialize(input: true, output: false);
     }
 

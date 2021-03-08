@@ -37,12 +37,12 @@ class Table {
   /// Each instance of the associated table definition is unique for these properties.
   ///
   /// null if not set.
-  final List<Symbol> uniquePropertySet;
+  final List<Symbol>? uniquePropertySet;
 
   /// The name of the underlying database table.
   ///
   /// If this value is not set, the name defaults to the name of the table definition class.
-  final String name;
+  final String? name;
 }
 
 /// Possible values for a delete rule in a [Relate].
@@ -121,9 +121,9 @@ class Column {
   /// pass the string "2". If the default value is a string, it must also be wrapped in single quotes: "'defaultValue'".
   const Column(
       {bool primaryKey = false,
-      ManagedPropertyType databaseType,
+      ManagedPropertyType? databaseType,
       bool nullable = false,
-      String defaultValue,
+      String? defaultValue,
       bool unique = false,
       bool indexed = false,
       bool omitByDefault = false,
@@ -148,7 +148,7 @@ class Column {
   ///
   /// By default, the database column type is inferred from the Dart type of the property, e.g. a Dart [String] is a PostgreSQL text type.
   /// This allows you to override the default type mapping for the annotated property.
-  final ManagedPropertyType databaseType;
+  final ManagedPropertyType? databaseType;
 
   /// Indicates whether or not the property can be null or not.
   ///
@@ -167,7 +167,7 @@ class Column {
   ///
   ///           ...
   ///         }
-  final String defaultValue;
+  final String? defaultValue;
 
   /// Whether or not the property is unique among all instances.
   ///

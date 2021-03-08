@@ -15,7 +15,7 @@ abstract class CLIDatabaseManagingCommand implements CLICommand, CLIProject {
           "The directory where migration files are stored. Relative paths are relative to the application-directory.",
       defaultsTo: "migrations")
   Directory get migrationDirectory {
-    final dir = Directory(decode("migration-directory")).absolute;
+    final dir = Directory(decode("migration-directory") ?? "").absolute;
 
     if (!dir.existsSync()) {
       dir.createSync();
@@ -42,7 +42,7 @@ abstract class CLIDatabaseManagingCommand implements CLICommand, CLIProject {
   }
 
   Future<Schema> schemaByApplyingMigrationSources(List<MigrationSource> sources,
-      {Schema fromSchema}) async {
+      {Schema? fromSchema}) async {
     fromSchema ??= Schema.empty();
 
     if (sources.isNotEmpty) {

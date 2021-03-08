@@ -33,16 +33,20 @@ class Runner {
   }
 
   ArgResults options;
-  ReleaseConfig configuration;
+  late ReleaseConfig configuration;
   List<Function> _cleanup = [];
   bool get isDryRun => options["dry-run"] as bool;
   bool get docsOnly => options["docs-only"] as bool;
+<<<<<<< Updated upstream
   String get name => options["name"] as String;
+=======
+  String? get name => options["name"] as String?;
+>>>>>>> Stashed changes
   Uri baseReferenceURL =
       Uri.parse("https://www.dartdocs.org/documentation/aqueduct/latest/");
 
   Future cleanup() async {
-    return Future.forEach(_cleanup, (f) => f());
+    return Future.forEach(_cleanup, (Function f) => f());
   }
 
   Future<int> run() async {
@@ -59,8 +63,8 @@ class Runner {
         "Preparing release: '$name'... ${isDryRun ? "(dry-run)" : ""} ${docsOnly ? "(docs-only)" : ""}");
 
     var master = await directoryWithBranch("master");
-    String upcomingVersion;
-    String changeset;
+    String? upcomingVersion;
+    String? changeset;
     if (!docsOnly) {
       var previousVersion = await latestVersion();
       upcomingVersion = await versionFromDirectory(master);
@@ -194,14 +198,15 @@ class Runner {
   Future<String> latestVersion() async {
     print("Getting latest version...");
     var response = await http.get(
-        "https://api.github.com/repos/stablekernel/aqueduct/releases/latest",
+        Uri.parse(
+            "https://api.github.com/repos/stablekernel/aqueduct/releases/latest"),
         headers: {"Authorization": "Bearer ${configuration.githubToken}"});
 
     if (response.statusCode != 200) {
       throw "latestVersion failed with status code ${response.statusCode}. Reason: ${response.body}";
     }
 
-    final tag = json.decode(response.body)["tag_name"] as String;
+    final tag = json.decode(response.body)?["tag_name"] as String?;
     if (tag == null) {
       throw "latestVersion failed. Reason: no tag found";
     }
@@ -247,7 +252,11 @@ class Runner {
   }
 
   Future postGithubRelease(
+<<<<<<< Updated upstream
       String version, String name, String description) async {
+=======
+      String? version, String? name, String? description) async {
+>>>>>>> Stashed changes
     var body =
         json.encode({"tag_name": version, "name": name, "body": description});
 
@@ -256,7 +265,12 @@ class Runner {
 
     if (!isDryRun) {
       var response = await http.post(
+<<<<<<< Updated upstream
           "https://api.github.com/repos/stablekernel/aqueduct/releases",
+=======
+          Uri.parse(
+              "https://api.github.com/repos/stablekernel/aqueduct/releases"),
+>>>>>>> Stashed changes
           headers: {
             "Content-Type": "application/json",
             "Authorization": "Bearer ${configuration.githubToken}"
@@ -333,19 +347,24 @@ class Runner {
     var nameMap = <String, List<SymbolResolution>>{};
     resolutions.forEach((resolution) {
       if (!nameMap.containsKey(resolution.name)) {
-        nameMap[resolution.name] = [resolution];
+        nameMap[resolution.name!] = [resolution];
       } else {
-        nameMap[resolution.name].add(resolution);
+        nameMap[resolution.name]!.add(resolution);
       }
 
       var qualifiedKey =
+<<<<<<< Updated upstream
           libraries.fold(resolution.qualifiedName, (String p, e) {
         return p.replaceFirst("$e.", "");
+=======
+          libraries.fold(resolution.qualifiedName, (String? p, e) {
+        return p?.replaceFirst("$e.", "");
+>>>>>>> Stashed changes
       });
       if (!qualifiedMap.containsKey(qualifiedKey)) {
-        qualifiedMap[qualifiedKey] = [resolution];
+        qualifiedMap[qualifiedKey!] = [resolution];
       } else {
-        qualifiedMap[qualifiedKey].add(resolution);
+        qualifiedMap[qualifiedKey]?.add(resolution);
       }
     });
 
@@ -359,7 +378,7 @@ class Runner {
     for (var f in files) {
       var filename = f.uri.pathSegments.last;
 
-      List<int> contents;
+      List<int>? contents;
       for (var transformer in transformers) {
         if (!transformer.shouldIncludeItem(filename)) {
           break;
@@ -384,7 +403,11 @@ class Runner {
     for (var subdirectory in subdirectories) {
       var dirName = subdirectory
           .uri.pathSegments[subdirectory.uri.pathSegments.length - 2];
+<<<<<<< Updated upstream
       var destinationDir =
+=======
+      Directory? destinationDir =
+>>>>>>> Stashed changes
           Directory.fromUri(destination.uri.resolve("$dirName"));
 
       for (var t in transformers) {
@@ -409,7 +432,7 @@ class Runner {
 class ReleaseConfig extends Configuration {
   ReleaseConfig(String filename) : super.fromFile(File(filename));
 
-  String githubToken;
+  String? githubToken;
 }
 
 //////
@@ -422,10 +445,10 @@ class SymbolResolution {
     type = map["type"];
   }
 
-  String name;
-  String qualifiedName;
-  String type;
-  String link;
+  String? name;
+  String? qualifiedName;
+  String? type;
+  String? link;
 
   @override
   String toString() => "$name: $qualifiedName $link $type";
@@ -483,9 +506,15 @@ class APIReferenceTransformer extends Transformer {
       var symbol = match.group(1);
       var resolution = bestGuessForSymbol(symbol);
       if (resolution != null) {
+<<<<<<< Updated upstream
         symbol = symbol.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
         var replacement = constructedReferenceURLFrom(
             baseReferenceURL, resolution.link.split("/"));
+=======
+        symbol = symbol?.replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+        var replacement = constructedReferenceURLFrom(
+            baseReferenceURL, resolution.link?.split("/"));
+>>>>>>> Stashed changes
         contents = contents.replaceRange(
             match.start, match.end, "<a href=\"$replacement\">$symbol</a>");
       } else {
@@ -496,18 +525,22 @@ class APIReferenceTransformer extends Transformer {
     return utf8.encode(contents);
   }
 
-  SymbolResolution bestGuessForSymbol(String inputSymbol) {
+  SymbolResolution? bestGuessForSymbol(String? inputSymbol) {
     if (symbolMap.isEmpty) {
       return null;
     }
 
     final symbol = inputSymbol
+<<<<<<< Updated upstream
         .replaceAll("<T>", "")
+=======
+        ?.replaceAll("<T>", "")
+>>>>>>> Stashed changes
         .replaceAll("@", "")
         .replaceAll("()", "");
 
-    var possible = symbolMap["qualified"][symbol];
-    possible ??= symbolMap["name"][symbol];
+    var possible = symbolMap["qualified"]?[symbol];
+    possible ??= symbolMap["name"]?[symbol];
 
     if (possible == null) {
       return null;
@@ -518,16 +551,28 @@ class APIReferenceTransformer extends Transformer {
     }
 
     return possible.firstWhere((r) => r.type == "class",
-        orElse: () => possible.first);
+        orElse: () => possible!.first);
   }
 }
 
+<<<<<<< Updated upstream
 Uri constructedReferenceURLFrom(Uri base, List<String> relativePathComponents) {
   var subdirectories =
       relativePathComponents.sublist(0, relativePathComponents.length - 1);
+=======
+Uri constructedReferenceURLFrom(
+    Uri base, List<String>? relativePathComponents) {
+  var subdirectories =
+      relativePathComponents?.sublist(0, relativePathComponents.length - 1) ??
+          [];
+>>>>>>> Stashed changes
   Uri enclosingDir = subdirectories.fold(base, (Uri prev, elem) {
     return prev.resolve("$elem/");
   });
 
+<<<<<<< Updated upstream
   return enclosingDir.resolve(relativePathComponents.last);
+=======
+  return enclosingDir.resolve(relativePathComponents?.last ?? "");
+>>>>>>> Stashed changes
 }

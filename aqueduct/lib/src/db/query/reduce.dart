@@ -44,7 +44,7 @@ abstract class QueryReduceOperation<T extends ManagedObject> {
   ///
   /// [selector] identifies the property being evaluated, e.g.
   ///
-  ///         var query = new Query<User>();
+  ///         var query = Query<User>();
   ///         var youngestUser = await query.reduce.minimum((user) => user.age);
   ///
   /// The property must be an attribute and its type must be [String], [int], [double], or [DateTime].
@@ -54,7 +54,7 @@ abstract class QueryReduceOperation<T extends ManagedObject> {
   ///
   /// [selector] identifies the property being evaluated, e.g.
   ///
-  ///         var query = new Query<User>();
+  ///         var query = Query<User>();
   ///         var yearsLivesByAllUsers = await query.reduce.sum((user) => user.age);
   ///
   /// The property must be an attribute and its type must be an [num], i.e. [int] or [double].

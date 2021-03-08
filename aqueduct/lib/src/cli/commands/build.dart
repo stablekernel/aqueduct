@@ -14,13 +14,14 @@ class CLIBuild extends CLICommand with CLIProject {
       help:
           "Whether or not the 'build' directory should be left intact after the application is compiled.",
       defaultsTo: false)
-  bool get retainBuildArtifacts => decode("retain-build-artifacts");
+  bool get retainBuildArtifacts => decode("retain-build-artifacts") ?? false;
 
   @Option("build-directory",
       help:
           "The directory to store build artifacts during compilation. By default, this directory is deleted when this command completes. See 'retain-build-artifacts' flag.",
       defaultsTo: "build")
-  Directory get buildDirectory => Directory(decode("build-directory")).absolute;
+  Directory get buildDirectory =>
+      Directory(decode("build-directory") ?? "").absolute;
 
   @override
   Future<int> handle() async {
@@ -69,7 +70,7 @@ import 'package:aqueduct/aqueduct.dart';
 import 'package:args/args.dart' as arg_package;
 import 'package:$packageName/$libraryName.dart';
 
-${method.source.replaceFirst("Application<ApplicationChannel>", "Application<$channelName>").replaceFirst("_runnerFunc", "main")}
+${method.source?.replaceFirst("Application<ApplicationChannel>", "Application<$channelName>").replaceFirst("_runnerFunc", "main")}
 """;
   }
 }

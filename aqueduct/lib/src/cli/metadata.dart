@@ -13,8 +13,8 @@ class Flag implements Argument {
       this.hide = false});
 
   final String name;
-  final String abbr;
-  final String help;
+  final String? abbr;
+  final String? help;
   final bool defaultsTo;
   final bool negatable;
   final bool hide;
@@ -41,12 +41,12 @@ class Option implements Argument {
       this.hide = false});
 
   final String name;
-  final String abbr;
-  final String help;
-  final String valueHelp;
-  final Iterable<String> allowed;
-  final Map<String, String> allowedHelp;
-  final String defaultsTo;
+  final String? abbr;
+  final String? help;
+  final String? valueHelp;
+  final Iterable<String>? allowed;
+  final Map<String, String>? allowedHelp;
+  final String? defaultsTo;
   final bool hide;
 
   @override
@@ -74,12 +74,12 @@ class MultiOption implements Argument {
       this.splitsCommas = true});
 
   final String name;
-  final String abbr;
-  final String help;
-  final Iterable<String> allowed;
-  final String valueHelp;
-  final Map<String, String> allowedHelp;
-  final Iterable<String> defaultsTo;
+  final String? abbr;
+  final String? help;
+  final Iterable<String>? allowed;
+  final String? valueHelp;
+  final Map<String, String>? allowedHelp;
+  final Iterable<String>? defaultsTo;
   final bool splitsCommas;
   final bool hide;
 

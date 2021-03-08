@@ -16,7 +16,7 @@ import 'options.dart';
 /// instance of an [ApplicationChannel] subclass. Instances are created by [Application]
 /// and shouldn't be created otherwise.
 class ApplicationServer {
-  /// Creates a new server.
+  /// Creates a server.
   ///
   /// You should not need to invoke this method directly.
   ApplicationServer(this.channelType, this.options, this.identifier) {
@@ -30,20 +30,20 @@ class ApplicationServer {
   ApplicationOptions options;
 
   /// The underlying [HttpServer].
-  HttpServer server;
+  HttpServer? server;
 
   /// The instance of [ApplicationChannel] serving requests.
-  ApplicationChannel channel;
+  late ApplicationChannel channel;
 
   /// The cached entrypoint of [channel].
-  Controller entryPoint;
+  Controller? entryPoint;
 
   final Type channelType;
 
   /// Target for sending messages to other [ApplicationChannel.messageHub]s.
   ///
   /// Events are added to this property by instances of [ApplicationMessageHub] and should not otherwise be used.
-  EventSink<dynamic> hubSink;
+  EventSink<dynamic>? hubSink;
 
   /// Whether or not this server requires an HTTPS listener.
   bool get requiresHTTPS => _requiresHTTPS;
@@ -67,7 +67,7 @@ class ApplicationServer {
     await channel.prepare();
 
     entryPoint = channel.entryPoint;
-    entryPoint.didAddToChannel();
+    entryPoint!.didAddToChannel();
 
     logger.fine("ApplicationServer($identifier).start binding HTTP");
     final securityContext = channel.securityContext;
@@ -95,7 +95,7 @@ class ApplicationServer {
     logger.fine("ApplicationServer($identifier).close Closing HTTP listener");
     await server?.close(force: true);
     logger.fine("ApplicationServer($identifier).close Closing channel");
-    await channel?.close();
+    await channel.close();
 
     // This is actually closed by channel.messageHub.close, but this shuts up the analyzer.
     hubSink?.close();
@@ -106,10 +106,10 @@ class ApplicationServer {
   ///
   /// [ApplicationChannel.willStartReceivingRequests] is invoked after this opening has completed.
   Future didOpen() async {
-    server.serverHeader = "aqueduct/$identifier";
+    server?.serverHeader = "aqueduct/$identifier";
 
     logger.fine("ApplicationServer($identifier).didOpen start listening");
-    server.map((baseReq) => Request(baseReq)).listen(entryPoint.receive);
+    server?.map((baseReq) => Request(baseReq)).listen(entryPoint?.receive);
 
     channel.willStartReceivingRequests();
     logger.info("Server aqueduct/$identifier started.");

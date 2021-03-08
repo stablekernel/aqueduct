@@ -27,15 +27,15 @@ import 'managed.dart';
 ///
 ///            @override
 ///            Future prepare() async {
-///               var store = new PostgreSQLPersistentStore(...);
-///               var dataModel = new ManagedDataModel.fromCurrentMirrorSystem();
-///               context = new ManagedContext(dataModel, store);
+///               var store = PostgreSQLPersistentStore(...);
+///               var dataModel = ManagedDataModel.fromCurrentMirrorSystem();
+///               context = ManagedContext(dataModel, store);
 ///            }
 ///
 ///            @override
 ///            Controller get entryPoint {
-///              final router = new Router();
-///              router.route("/path").link(() => new DBController(context));
+///              final router = Router();
+///              router.route("/path").link(() => DBController(context));
 ///              return router;
 ///            }
 ///         }
@@ -58,7 +58,7 @@ class ManagedContext implements APIComponentDocumenter {
         dataModel = parentContext.dataModel;
 
   /// The persistent store that [Query]s on this context are executed through.
-  PersistentStore persistentStore;
+  PersistentStore? persistentStore;
 
   /// The data model containing the [ManagedEntity]s that describe the [ManagedObject]s this instance works with.
   final ManagedDataModel dataModel;
@@ -84,15 +84,15 @@ class ManagedContext implements APIComponentDocumenter {
   /// Example usage:
   ///
   ///         await context.transaction((transaction) async {
-  ///            final q = new Query<Model>(transaction)
+  ///            final q = Query<Model>(transaction)
   ///             ..values = someObject;
   ///            await q.insert();
   ///            ...
   ///         });
-  Future<T> transaction<T>(
+  Future<T?> transaction<T>(
       Future<T> transactionBlock(ManagedContext transaction)) {
-    return persistentStore.transaction(
-        ManagedContext.childOf(this), transactionBlock);
+    return persistentStore!
+        .transaction(ManagedContext.childOf(this), transactionBlock);
   }
 
   /// Closes this context and release its underlying resources.
@@ -101,13 +101,13 @@ class ManagedContext implements APIComponentDocumenter {
   /// A context may not be reused once it has been closed.
   Future close() async {
     await persistentStore?.close();
-    dataModel?.release();
+    dataModel.release();
   }
 
   /// Returns an entity for a type from [dataModel].
   ///
   /// See [ManagedDataModel.entityForType].
-  ManagedEntity entityForType(Type type) {
+  ManagedEntity? entityForType(Type type) {
     return dataModel.entityForType(type);
   }
 
@@ -123,7 +123,11 @@ class ManagedContext implements APIComponentDocumenter {
   ///
   /// If any insertion fails, no objects will be inserted into the database and an exception
   /// is thrown.
+<<<<<<< Updated upstream
   Future<List<T>> insertObjects<T extends ManagedObject>(
+=======
+  Future<List<T>?> insertObjects<T extends ManagedObject>(
+>>>>>>> Stashed changes
       List<T> objects) async {
     return transaction((transitionCtx) =>
         Future.wait(objects.map((o) => transitionCtx.insertObject(o))));
@@ -133,7 +137,11 @@ class ManagedContext implements APIComponentDocumenter {
   ///
   /// If [T] cannot be inferred, an error is thrown. If [identifier] is not the same type as [T]'s primary key,
   /// null is returned.
+<<<<<<< Updated upstream
   Future<T> fetchObjectWithID<T extends ManagedObject>(
+=======
+  Future<T?> fetchObjectWithID<T extends ManagedObject>(
+>>>>>>> Stashed changes
       dynamic identifier) async {
     final entity = dataModel.entityForType(T);
     if (entity == null) {
@@ -142,7 +150,7 @@ class ManagedContext implements APIComponentDocumenter {
     }
 
     final primaryKey = entity.primaryKeyAttribute;
-    if (!primaryKey.type.isAssignableWith(identifier)) {
+    if (!primaryKey!.type!.isAssignableWith(identifier)) {
       return null;
     }
 

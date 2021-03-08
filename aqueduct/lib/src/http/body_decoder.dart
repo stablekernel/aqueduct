@@ -20,7 +20,7 @@ abstract class BodyDecoder {
   /// Determines how [bytes] get decoded.
   ///
   /// A decoder is chosen from [CodecRegistry] according to this value.
-  ContentType get contentType;
+  ContentType? get contentType;
 
   /// Whether or not [bytes] is empty.
   ///
@@ -62,12 +62,12 @@ abstract class BodyDecoder {
       throw StateError(
           "'originalBytes' were not retained. Set 'retainOriginalBytes' to true prior to decoding.");
     }
-    return _bytes;
+    return _bytes ?? [];
   }
 
   final Stream<List<int>> _originalByteStream;
   dynamic _decodedData;
-  List<int> _bytes;
+  List<int>? _bytes;
 
   /// Decodes this object's bytes as [T].
   ///

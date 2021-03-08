@@ -23,7 +23,7 @@ abstract class AuthValidator {
   /// If [requiredScope] is provided, a request's authorization must have at least that much scope to pass the [Authorizer].
   FutureOr<Authorization> validate<T>(
       AuthorizationParser<T> parser, T authorizationData,
-      {List<AuthScope> requiredScope});
+      {List<AuthScope>? requiredScope});
 
   /// Provide [APISecurityRequirement]s for [authorizer].
   ///
@@ -31,6 +31,6 @@ abstract class AuthValidator {
   /// The [Authorizer] must provide the [context] it was given to document the operations, itself and optionally a list of [scopes] required to pass it.
   List<APISecurityRequirement> documentRequirementsForAuthorizer(
           APIDocumentContext context, Authorizer authorizer,
-          {List<AuthScope> scopes}) =>
+          {List<AuthScope>? scopes}) =>
       [];
 }

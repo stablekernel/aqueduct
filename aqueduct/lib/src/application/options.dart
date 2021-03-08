@@ -12,7 +12,7 @@ class ApplicationOptions {
   ///
   /// This path is provided when an application is started by the `--config-path` option to `aqueduct serve`.
   /// You may load the file at this path in [ApplicationChannel] to use configuration values.
-  String configurationFilePath;
+  String? configurationFilePath;
 
   /// The address to listen for HTTP requests on.
   ///
@@ -42,14 +42,14 @@ class ApplicationOptions {
   /// If specified - along with [privateKeyFilePath] - an [Application] will only allow secure connections over HTTPS.
   /// This value is often set through the `--ssl-certificate-path` command line option of `aqueduct serve`. For finer control
   /// over how HTTPS is configured for an application, see [ApplicationChannel.securityContext].
-  String certificateFilePath;
+  String? certificateFilePath;
 
   /// The path to a private key.
   ///
   /// If specified - along with [certificateFilePath] - an [Application] will only allow secure connections over HTTPS.
   /// This value is often set through the `--ssl-key-path` command line option of `aqueduct serve`. For finer control
   /// over how HTTPS is configured for an application, see [ApplicationChannel.securityContext].
-  String privateKeyFilePath;
+  String? privateKeyFilePath;
 
   /// Contextual configuration values for each [ApplicationChannel].
   ///

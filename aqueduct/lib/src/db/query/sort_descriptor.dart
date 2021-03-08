@@ -7,7 +7,7 @@ class QuerySortDescriptor {
   QuerySortDescriptor(this.key, this.order);
 
   /// The name of a property to sort by.
-  String key;
+  String? key;
 
   /// The order in which values should be sorted.
   ///

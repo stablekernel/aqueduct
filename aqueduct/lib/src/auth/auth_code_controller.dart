@@ -25,8 +25,8 @@ abstract class AuthCodeControllerDelegate {
   ///
   ///
   /// If not null, [scope] should also be included as an additional form parameter.
-  Future<String> render(AuthCodeController forController, Uri requestUri,
-      String responseType, String clientID, String state, String scope);
+  Future<String?> render(AuthCodeController? forController, Uri? requestUri,
+      String? responseType, String? clientID, String? state, String? scope);
 }
 
 /// [Controller] for issuing OAuth 2.0 authorization codes.
@@ -42,11 +42,11 @@ abstract class AuthCodeControllerDelegate {
 ///
 ///       router
 ///         .route("/auth/code")
-///         .link(() => new AuthCodeController(authServer));
+///         .link(() => AuthCodeController(authServer));
 ///
 @deprecated
 class AuthCodeController extends ResourceController {
-  /// Creates a new instance of an [AuthCodeController].
+  /// Creates a instance of an [AuthCodeController].
   ///
   /// [authServer] is the required authorization server. If [delegate] is provided, this controller will return a login page for all GET requests.
   AuthCodeController(this.authServer, {this.delegate}) {
@@ -64,20 +64,20 @@ class AuthCodeController extends ResourceController {
   /// server have the same value for 'state' as passed in. This value is usually a randomly generated
   /// session identifier.
   @Bind.query("state")
-  String state;
+  String? state;
 
   /// Must be 'code'.
   @Bind.query("response_type")
-  String responseType;
+  String? responseType;
 
   /// The client ID of the authenticating client.
   ///
   /// This must be a valid client ID according to [authServer].\
   @Bind.query("client_id")
-  String clientID;
+  String? clientID;
 
   /// Renders an HTML login form.
-  final AuthCodeControllerDelegate delegate;
+  final AuthCodeControllerDelegate? delegate;
 
   /// Returns an HTML login form.
   ///
@@ -92,13 +92,13 @@ class AuthCodeController extends ResourceController {
       {
 
       /// A space-delimited list of access scopes to be requested by the form submission on the returned page.
-      @Bind.query("scope") String scope}) async {
+      @Bind.query("scope") String? scope}) async {
     if (delegate == null) {
       return Response(405, {}, null);
     }
 
-    final renderedPage = await delegate.render(
-        this, request.raw.uri, responseType, clientID, state, scope);
+    final renderedPage = await delegate!
+        .render(this, request.raw.uri, responseType, clientID, state, scope);
     if (renderedPage == null) {
       return Response.notFound();
     }
@@ -118,13 +118,13 @@ class AuthCodeController extends ResourceController {
       {
 
       /// The username of the authenticating user.
-      @Bind.query("username") String username,
+      @Bind.query("username") String? username,
 
       /// The password of the authenticating user.
-      @Bind.query("password") String password,
+      @Bind.query("password") String? password,
 
       /// A space-delimited list of access scopes being requested.
-      @Bind.query("scope") String scope}) async {
+      @Bind.query("scope") String? scope}) async {
     final client = await authServer.getClient(clientID);
 
     if (state == null) {
@@ -142,12 +142,12 @@ class AuthCodeController extends ResourceController {
     }
 
     try {
-      final scopes = scope?.split(" ")?.map((s) => AuthScope(s))?.toList();
+      final scopes = scope?.split(" ").map((s) => AuthScope(s)).toList();
 
       final authCode = await authServer.authenticateForCode(
           username, password, clientID,
           requestedScopes: scopes);
-      return _redirectResponse(client.redirectURI, state, code: authCode.code);
+      return _redirectResponse(client?.redirectURI, state, code: authCode.code);
     } on FormatException {
       return _redirectResponse(null, state,
           error: AuthServerException(AuthRequestError.invalidScope, client));
@@ -157,29 +157,24 @@ class AuthCodeController extends ResourceController {
   }
 
   @override
-  APIRequestBody documentOperationRequestBody(
+  APIRequestBody? documentOperationRequestBody(
       APIDocumentContext context, Operation operation) {
     final body = super.documentOperationRequestBody(context, operation);
     if (operation.method == "POST") {
-      body.content["application/x-www-form-urlencoded"].schema
-          .properties["password"].format = "password";
-      body.content["application/x-www-form-urlencoded"].schema.required = [
-        "client_id",
-        "state",
-        "response_type",
-        "username",
-        "password"
-      ];
+      body?.content?["application/x-www-form-urlencoded"]?.schema!
+          .properties?["password"]?.format = "password";
+      body?.content?["application/x-www-form-urlencoded"]?.schema?.isRequired =
+          ["client_id", "state", "response_type", "username", "password"];
     }
     return body;
   }
 
   @override
-  List<APIParameter> documentOperationParameters(
+  List<APIParameter?> documentOperationParameters(
       APIDocumentContext context, Operation operation) {
     final params = super.documentOperationParameters(context, operation);
-    params.where((p) => p.name != "scope").forEach((p) {
-      p.isRequired = true;
+    params.where((p) => p?.name != "scope").forEach((p) {
+      p?.isRequired = true;
     });
     return params;
   }
@@ -222,16 +217,16 @@ class AuthCodeController extends ResourceController {
   }
 
   static Response _redirectResponse(
-      final String inputUri, String clientStateOrNull,
-      {String code, AuthServerException error}) {
-    final uriString = inputUri ?? error.client?.redirectURI;
+      final String? inputUri, String? clientStateOrNull,
+      {String? code, AuthServerException? error}) {
+    final uriString = inputUri ?? error?.client?.redirectURI;
     if (uriString == null) {
-      return Response.badRequest(body: {"error": error.reasonString});
+      return Response.badRequest(body: {"error": error?.reasonString});
     }
 
     final redirectURI = Uri.parse(uriString);
     final queryParameters =
-        Map<String, String>.from(redirectURI.queryParameters);
+        Map<String, String?>.from(redirectURI.queryParameters);
 
     if (code != null) {
       queryParameters["code"] = code;

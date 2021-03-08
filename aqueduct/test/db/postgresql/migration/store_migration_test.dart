@@ -73,7 +73,7 @@ void main() {
     expect(await store.schemaVersion, 2);
   });
 
-  test("Apply more than one migration to new database", () async {
+  test("Apply more than one migration to database", () async {
     await store.upgrade(Schema.empty(),
         [EmptyMigration()..version = 1, EmptyMigration()..version = 2],
         temporary: true);

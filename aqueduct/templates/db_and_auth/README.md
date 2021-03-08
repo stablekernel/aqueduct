@@ -42,7 +42,7 @@ The client id and client secret are combined into a colon (`:`) delimited string
 
 ### Register a user (POST /register)
 
-To register a new user, send a `POST /register` request. Use the following CURL command and replace the `<username>` and `<password>` with your new user and `base64Client` with your base64 encoded client credentials.
+To register a user, send a `POST /register` request. Use the following CURL command and replace the `<username>` and `<password>` with your user and `base64Client` with your base64 encoded client credentials.
 
 `curl -X POST http://localhost:8888/register -H 'Authorization: Basic <base64Client>=' -H 'Content-Type: application/json' -d '{"username":"<username>", "password": "<password>"}' -v`
 

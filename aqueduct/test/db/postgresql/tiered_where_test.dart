@@ -8,7 +8,7 @@ import 'package:aqueduct/src/dev/model_graph.dart';
   If you're going to look at these tests, you'll have to draw out the model graph defined in model_graph.dart
   to make sense of it. The size of it makes it difficult to draw in ASCII.
 
-  Explicit join = Using joinOn/joinMany to create a new sub-Query
+  Explicit join = Using joinOn/joinMany to create a sub-Query
   Implicit join = Using the property of a related object in the 'where' of a Query
  */
 

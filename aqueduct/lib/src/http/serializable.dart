@@ -43,10 +43,10 @@ abstract class Serializable {
   ///     var user = User()
   ///       ..read(values, ignore: ["id"]);
   void read(Map<String, dynamic> object,
-      {Iterable<String> accept,
-      Iterable<String> ignore,
-      Iterable<String> reject,
-      Iterable<String> require}) {
+      {Iterable<String>? accept,
+      Iterable<String>? ignore,
+      Iterable<String>? reject,
+      Iterable<String>? require}) {
     if (accept == null && ignore == null && reject == null && require == null) {
       readFromMap(object);
       return;
@@ -67,7 +67,7 @@ abstract class Serializable {
 
     if (stillRequired?.isNotEmpty ?? false) {
       throw SerializableException(
-          ["missing required input key(s): '${stillRequired.join(", ")}'"]);
+          ["missing required input key(s): '${stillRequired!.join(", ")}'"]);
     }
 
     readFromMap(copy);
@@ -94,7 +94,7 @@ abstract class Serializable {
 class SerializableException implements HandlerException {
   SerializableException(this.reasons);
 
-  final List<String> reasons;
+  final List<String>? reasons;
 
   @override
   Response get response {

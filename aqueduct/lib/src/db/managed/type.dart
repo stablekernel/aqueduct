@@ -34,7 +34,7 @@ enum ManagedPropertyType {
 
 /// Complex type storage for [ManagedEntity] attributes.
 class ManagedType {
-  /// Creates a new instance.
+  /// Creates a instance.
   ///
   /// [type] must be representable by [ManagedPropertyType].
   ManagedType(this.type, this.kind, this.elements, this.enumerationMap);
@@ -54,7 +54,7 @@ class ManagedType {
   ///
   /// If [kind] is a collection (map or list), this value stores the type of each element in the collection.
   /// Keys of map types are always [String].
-  final ManagedType elements;
+  final ManagedType? elements;
 
   /// Dart representation of this type.
   final Type type;
@@ -63,7 +63,7 @@ class ManagedType {
   bool get isEnumerated => enumerationMap != null;
 
   /// For enumerated types, this is a map of the name of the option to its Dart enum type.
-  final Map<String, dynamic> enumerationMap;
+  final Map<String, dynamic>? enumerationMap;
 
   /// Whether [dartValue] can be assigned to properties with this type.
   bool isAssignableWith(dynamic dartValue) {
@@ -91,13 +91,13 @@ class ManagedType {
       case ManagedPropertyType.string:
         {
           if (enumerationMap != null) {
-            return enumerationMap.values.contains(dartValue);
+            return enumerationMap!.values.contains(dartValue);
           }
           return dartValue is String;
         }
+      default:
+        return false;
     }
-
-    return false;
   }
 
   @override

@@ -82,7 +82,7 @@ void main() {
     projectUnderTestCli.agent.modifyFile("lib/channel.dart", (contents) {
       return contents.replaceFirst(
           "extends ApplicationChannel {", """extends ApplicationChannel {
-static Future initializeApplication(ApplicationOptions x) async { throw new Exception("error"); }            
+static Future initializeApplication(ApplicationOptions x) async { throw Exception("error"); }            
       """);
     });
 
@@ -207,9 +207,8 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   test("Use config-path, relative path", () async {
     projectUnderTestCli.agent.addOrReplaceFile("foobar.yaml", "key: value");
     projectUnderTestCli.agent.modifyFile("lib/channel.dart", (c) {
-      var newContents = c.replaceAll(
-          'return new Response.ok({"key": "value"});',
-          "return new Response.ok(new File(options.configurationFilePath).readAsStringSync())..contentType = ContentType.TEXT;");
+      var newContents = c.replaceAll('return Response.ok({"key": "value"});',
+          "return Response.ok(File(options.configurationFilePath).readAsStringSync())..contentType = ContentType.TEXT;");
       return "import 'dart:io';\n$newContents";
     });
 
@@ -224,9 +223,8 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
   test("Use config-path, absolute path", () async {
     projectUnderTestCli.agent.addOrReplaceFile("foobar.yaml", "key: value");
     projectUnderTestCli.agent.modifyFile("lib/channel.dart", (c) {
-      var newContents = c.replaceAll(
-          'return new Response.ok({"key": "value"});',
-          "return new Response.ok(new File(options.configurationFilePath).readAsStringSync())..contentType = ContentType.TEXT;");
+      var newContents = c.replaceAll('return Response.ok({"key": "value"});',
+          "return Response.ok(File(options.configurationFilePath).readAsStringSync())..contentType = ContentType.TEXT;");
       return "import 'dart:io';\n$newContents";
     });
 

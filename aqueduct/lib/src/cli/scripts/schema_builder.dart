@@ -38,7 +38,7 @@ class SchemaBuilderExecutable extends Executable<Map<String, dynamic>> {
         );
         instance.database = SchemaBuilder(null, outputSchema);
         await instance.upgrade();
-        outputSchema = instance.currentSchema;
+        outputSchema = instance.currentSchema!;
       }
       return outputSchema.asMap();
     } on SchemaException catch (e) {

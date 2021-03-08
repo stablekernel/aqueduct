@@ -49,23 +49,23 @@ void main() {
 
 //todo: Deferring these until later
 //  test("Can immediately access document property when building Query.values", () {
-//    final q = new Query<Root>();
+//    final q = Query<Root>();
 //    q.values.document["id"] = 1;
 //    expect(q.values.document["id"], 1);
 //  });
 //
 //  test("Can immediately access nested document property when building Query.values", () {
-//    final q = new Query<Root>();
+//    final q = Query<Root>();
 //    q.values.document["object"]["key"] = 1;
 //    expect(q.values.document["object"]["key"], 1);
 //  });
 //
 //  test("Can immediately access nested document list property when building Query.values", () {
-//    final q1 = new Query<Root>();
+//    final q1 = Query<Root>();
 //    q1.values.document["object"][2] = 1;
 //    expect(q1.values.document["object"][2], 1);
 //
-//    final q2 = new Query<Root>();
+//    final q2 = Query<Root>();
 //    q2.values.document[2]["object"] = 1;
 //    expect(q2.values.document[2]["object"], 1);
 //  });

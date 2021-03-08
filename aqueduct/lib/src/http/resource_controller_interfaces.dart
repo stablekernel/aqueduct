@@ -5,18 +5,17 @@ import 'package:aqueduct/src/http/http.dart';
 import 'package:aqueduct/src/http/resource_controller.dart';
 import 'package:aqueduct/src/http/resource_controller_bindings.dart';
 import 'package:aqueduct/src/openapi/openapi.dart';
-import 'package:meta/meta.dart';
 
 abstract class ResourceControllerRuntime {
-  List<ResourceControllerParameter> ivarParameters;
-  List<ResourceControllerOperation> operations;
+  List<ResourceControllerParameter>? ivarParameters;
+  List<ResourceControllerOperation?>? operations;
 
-  ResourceControllerDocumenter documenter;
+  ResourceControllerDocumenter? documenter;
 
-  ResourceControllerOperation getOperationRuntime(
+  ResourceControllerOperation? getOperationRuntime(
       String method, List<String> pathVariables) {
-    return operations.firstWhere(
-        (op) => op.isSuitableForRequest(method, pathVariables),
+    return operations?.firstWhere(
+        (op) => op?.isSuitableForRequest(method, pathVariables) ?? false,
         orElse: () => null);
   }
 
@@ -27,10 +26,10 @@ abstract class ResourceControllerRuntime {
 abstract class ResourceControllerDocumenter {
   void documentComponents(ResourceController rc, APIDocumentContext context);
 
-  List<APIParameter> documentOperationParameters(
+  List<APIParameter?> documentOperationParameters(
       ResourceController rc, APIDocumentContext context, Operation operation);
 
-  APIRequestBody documentOperationRequestBody(
+  APIRequestBody? documentOperationRequestBody(
       ResourceController rc, APIDocumentContext context, Operation operation);
 
   Map<String, APIOperation> documentOperations(ResourceController rc,
@@ -39,21 +38,21 @@ abstract class ResourceControllerDocumenter {
 
 class ResourceControllerOperation {
   ResourceControllerOperation(
-      {@required this.scopes,
-      @required this.pathVariables,
-      @required this.httpMethod,
-      @required this.dartMethodName,
-      @required this.positionalParameters,
-      @required this.namedParameters,
-      @required this.invoker});
+      {required this.scopes,
+      required this.pathVariables,
+      required this.httpMethod,
+      required this.dartMethodName,
+      required this.positionalParameters,
+      required this.namedParameters,
+      required this.invoker});
 
-  final List<AuthScope> scopes;
+  final List<AuthScope>? scopes;
   final List<String> pathVariables;
   final String httpMethod;
   final String dartMethodName;
 
-  final List<ResourceControllerParameter> positionalParameters;
-  final List<ResourceControllerParameter> namedParameters;
+  final List<ResourceControllerParameter?> positionalParameters;
+  final List<ResourceControllerParameter?> namedParameters;
 
   final Future<Response> Function(ResourceController resourceController,
       ResourceControllerOperationInvocationArgs args) invoker;
@@ -63,7 +62,7 @@ class ResourceControllerOperation {
   /// Note that [requestMethod] may be null; if this is the case, only
   /// path variables are compared.
   bool isSuitableForRequest(
-      String requestMethod, List<String> requestPathVariables) {
+      String? requestMethod, List<String> requestPathVariables) {
     if (requestMethod != null && requestMethod.toUpperCase() != httpMethod) {
       return false;
     }
@@ -78,21 +77,22 @@ class ResourceControllerOperation {
 
 class ResourceControllerParameter {
   ResourceControllerParameter(
-      {@required this.symbolName,
-      @required this.name,
-      @required this.location,
-      @required this.isRequired,
-      @required dynamic Function(dynamic input) decoder,
-      @required this.type,
-      @required this.defaultValue,
-      @required this.acceptFilter,
-      @required this.ignoreFilter,
-      @required this.requireFilter,
-      @required this.rejectFilter})
+      {required this.symbolName,
+      required this.name,
+      required this.location,
+      required this.isRequired,
+      required dynamic Function(dynamic input) decoder,
+      required this.type,
+      required this.defaultValue,
+      required this.acceptFilter,
+      required this.ignoreFilter,
+      required this.requireFilter,
+      required this.rejectFilter})
       : _decoder = decoder;
 
   // ignore: prefer_constructors_over_static_methods
   static ResourceControllerParameter make<T>(
+<<<<<<< Updated upstream
       {@required String symbolName,
       @required String name,
       @required BindingType location,
@@ -103,6 +103,18 @@ class ResourceControllerParameter {
       @required List<String> ignoreFilter,
       @required List<String> requireFilter,
       @required List<String> rejectFilter}) {
+=======
+      {required String symbolName,
+      required String name,
+      required BindingType location,
+      required bool isRequired,
+      required dynamic Function(dynamic input) decoder,
+      required dynamic defaultValue,
+      required List<String> acceptFilter,
+      required List<String> ignoreFilter,
+      required List<String> requireFilter,
+      required List<String> rejectFilter}) {
+>>>>>>> Stashed changes
     return ResourceControllerParameter(
         symbolName: symbolName,
         name: name,
@@ -143,8 +155,9 @@ class ResourceControllerParameter {
         return APIParameterLocation.query;
       case BindingType.path:
         return APIParameterLocation.path;
+      default:
+        throw StateError('unknown location');
     }
-    throw StateError('unknown location');
   }
 
   String get locationName {
@@ -157,8 +170,9 @@ class ResourceControllerParameter {
         return "header";
       case BindingType.path:
         return "path";
+      default:
+        throw StateError('invalid location');
     }
-    throw StateError('invalid location');
   }
 
   dynamic decode(Request request) {
@@ -174,8 +188,6 @@ class ResourceControllerParameter {
           }
           return _decoder(value);
         }
-        break;
-
       case BindingType.body:
         {
           if (request.body.isEmpty) {
@@ -183,7 +195,6 @@ class ResourceControllerParameter {
           }
           return _decoder(request.body);
         }
-        break;
       case BindingType.header:
         {
           final header = request.raw.headers[name];
@@ -192,8 +203,6 @@ class ResourceControllerParameter {
           }
           return _decoder(header);
         }
-        break;
-
       case BindingType.path:
         {
           final path = request.path.variables[name];
@@ -202,14 +211,14 @@ class ResourceControllerParameter {
           }
           return _decoder(path);
         }
-        break;
+      default:
+        return _decoder(request);
     }
-    return _decoder(request);
   }
 }
 
 class ResourceControllerOperationInvocationArgs {
-  Map<String, dynamic> instanceVariables;
-  Map<String, dynamic> namedArguments;
-  List<dynamic> positionalArguments;
+  Map<String, dynamic>? instanceVariables;
+  Map<String, dynamic>? namedArguments;
+  List<dynamic>? positionalArguments;
 }

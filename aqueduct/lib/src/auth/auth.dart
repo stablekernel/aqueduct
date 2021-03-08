@@ -22,7 +22,7 @@ class AuthUtility {
   ///
   ///
   static String generatePasswordHash(String password, String salt,
-      {int hashRounds = 1000, int hashLength = 32, Hash hashFunction}) {
+      {int hashRounds = 1000, int hashLength = 32, Hash? hashFunction}) {
     final generator = PBKDF2(hashAlgorithm: hashFunction ?? sha256);
     return generator.generateBase64Key(password, salt, hashRounds, hashLength);
   }
@@ -45,11 +45,11 @@ class AuthUtility {
   ///
   /// Note that [secret] is hashed with a randomly generated salt, and therefore cannot be retrieved
   /// later. The plain-text secret must be stored securely elsewhere.
-  static AuthClient generateAPICredentialPair(String clientID, String secret,
-      {String redirectURI,
+  static AuthClient generateAPICredentialPair(String? clientID, String? secret,
+      {String? redirectURI,
       int hashLength = 32,
       int hashRounds = 1000,
-      Hash hashFunction}) {
+      Hash? hashFunction}) {
     if (secret == null) {
       return AuthClient.withRedirectURI(clientID, null, null, redirectURI);
     }

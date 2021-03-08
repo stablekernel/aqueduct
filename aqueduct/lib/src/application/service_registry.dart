@@ -31,7 +31,7 @@ class ServiceRegistry {
   ///
   /// Example:
   ///       var controller = ServiceRegistry.defaultInstance.register(
-  ///         new StreamController(), (c) => c.close());
+  ///         StreamController(), (c) => c.close());
   ///
   /// If [object] has already been registered, this method does nothing and [onClose] will only be invoked once.
   T register<T>(T object, FutureOr onClose(T object)) {
