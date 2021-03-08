@@ -29,9 +29,7 @@ class Harness extends TestHarness<WildfireChannel> with TestHarnessORMMixin {
   }
 
   @override
-  Future onTearDown() async {
-
-  }
+  Future onTearDown() async {}
 
   @override
   Future seed() async {

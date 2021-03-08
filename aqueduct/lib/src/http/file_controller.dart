@@ -40,10 +40,10 @@ class FileController extends Controller {
   ///
   /// Note that the 'Last-Modified' header is always applied to a response served from this instance.
   FileController(String pathOfDirectoryToServe,
-    {FutureOr<Response> onFileNotFound(
-      FileController controller, Request req)})
-    : _servingDirectory = Uri.directory(pathOfDirectoryToServe),
-      _onFileNotFound = onFileNotFound;
+      {FutureOr<Response> onFileNotFound(
+          FileController controller, Request req)})
+      : _servingDirectory = Uri.directory(pathOfDirectoryToServe),
+        _onFileNotFound = onFileNotFound;
 
   static Map<String, ContentType> _defaultExtensionMap = {
     /* Web content */

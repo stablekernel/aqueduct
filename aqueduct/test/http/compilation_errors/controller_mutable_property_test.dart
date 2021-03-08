@@ -6,15 +6,15 @@ import 'package:test/test.dart';
 
 void main() {
   test(
-    "A controller that is not Recyclable, but declares non-final properties throws a runtime error",
+      "A controller that is not Recyclable, but declares non-final properties throws a runtime error",
       () {
-      try {
-        RuntimeContext.current;
-        fail('unreachable');
-      } on StateError catch (e) {
-        expect(e.toString(), contains("MutablePropertyController"));
-      }
-    });
+    try {
+      RuntimeContext.current;
+      fail('unreachable');
+    } on StateError catch (e) {
+      expect(e.toString(), contains("MutablePropertyController"));
+    }
+  });
 }
 
 class MutablePropertyController extends Controller {

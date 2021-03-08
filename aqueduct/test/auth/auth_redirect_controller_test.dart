@@ -176,7 +176,8 @@ void main() {
       expect(resp, hasHeaders({"content-type": "text/html; charset=utf-8"}));
     });
 
-    test("Does not allow response_type of token if allowsImplicit is false", () async {
+    test("Does not allow response_type of token if allowsImplicit is false",
+        () async {
       final req = client.request("/auth/redirect")
         ..query = {
           "client_id": "com.stablekernel.redirect",
@@ -265,7 +266,8 @@ void main() {
         "password": InMemoryAuthStorage.defaultPassword
       });
 
-      expectTokenRedirect(resp, Uri.http("stablekernel.com", "/auth/public-redirect"),
+      expectTokenRedirect(
+          resp, Uri.http("stablekernel.com", "/auth/public-redirect"),
           state: "Wisconsin@&");
     });
 
@@ -278,7 +280,8 @@ void main() {
         "scope": "user"
       });
 
-      expectTokenRedirect(resp, Uri.http("stablekernel.com", "/auth/public-scoped"),
+      expectTokenRedirect(
+          resp, Uri.http("stablekernel.com", "/auth/public-scoped"),
           state: "Wisconsin@&");
 
       final redirectURI = Uri.parse(resp.headers["location"].first);
@@ -296,7 +299,8 @@ void main() {
         "scope": "user other_scope"
       });
 
-      expectTokenRedirect(resp, Uri.http("stablekernel.com", "/auth/public-scoped"),
+      expectTokenRedirect(
+          resp, Uri.http("stablekernel.com", "/auth/public-scoped"),
           state: "Wisconsin@&");
 
       final redirectURI = Uri.parse(resp.headers["location"].first);
@@ -377,7 +381,9 @@ void main() {
         "state": "a"
       });
       expectTokenErrorRedirect(
-          resp, Uri.http("stablekernel.com", "/auth/public-redirect"), "access_denied",
+          resp,
+          Uri.http("stablekernel.com", "/auth/public-redirect"),
+          "access_denied",
           state: "a");
     });
 
@@ -389,7 +395,9 @@ void main() {
         "state": "a"
       });
       expectTokenErrorRedirect(
-          resp, Uri.http("stablekernel.com", "/auth/public-redirect"), "access_denied",
+          resp,
+          Uri.http("stablekernel.com", "/auth/public-redirect"),
+          "access_denied",
           state: "a");
     });
 
@@ -399,7 +407,9 @@ void main() {
         "password": InMemoryAuthStorage.defaultPassword,
         "state": "a"
       });
-      expectTokenErrorRedirect(resp, Uri.http("stablekernel.com", "/auth/public-redirect"),
+      expectTokenErrorRedirect(
+          resp,
+          Uri.http("stablekernel.com", "/auth/public-redirect"),
           "invalid_request",
           state: "a");
     });
@@ -500,7 +510,9 @@ void main() {
         "state": "a"
       });
       expectTokenErrorRedirect(
-          resp, Uri.http("stablekernel.com", "/auth/public-redirect"), "access_denied",
+          resp,
+          Uri.http("stablekernel.com", "/auth/public-redirect"),
+          "access_denied",
           state: "a");
     });
 
@@ -512,7 +524,9 @@ void main() {
         "state": "a"
       });
       expectTokenErrorRedirect(
-          resp, Uri.http("stablekernel.com", "/auth/public-redirect"), "access_denied",
+          resp,
+          Uri.http("stablekernel.com", "/auth/public-redirect"),
+          "access_denied",
           state: "a");
     });
 
@@ -522,7 +536,9 @@ void main() {
         "username": user1["username"],
         "state": "a"
       });
-      expectTokenErrorRedirect(resp, Uri.http("stablekernel.com", "/auth/public-redirect"),
+      expectTokenErrorRedirect(
+          resp,
+          Uri.http("stablekernel.com", "/auth/public-redirect"),
           "invalid_request",
           state: "a");
     });
@@ -654,14 +670,19 @@ void main() {
   });
 
   group("Code Invalid requests and state", () {
-    test("public client with response type code redirects with error", () async {
+    test("public client with response type code redirects with error",
+        () async {
       final resp = await codeResponse({
         "client_id": "com.stablekernel.public.redirect",
         "username": user1["username"],
         "password": user1["password"],
         "state": "a"
       });
-      expectErrorRedirect(resp, Uri.http("stablekernel.com", "/auth/public-redirect"), "unauthorized_client", state: "a");
+      expectErrorRedirect(
+          resp,
+          Uri.http("stablekernel.com", "/auth/public-redirect"),
+          "unauthorized_client",
+          state: "a");
     });
 
     test("Omit state is error", () async {
@@ -671,7 +692,8 @@ void main() {
         "password": InMemoryAuthStorage.defaultPassword
       });
 
-      expectErrorRedirect(resp, Uri.http("stablekernel.com", "/auth/redirect"), "invalid_request");
+      expectErrorRedirect(resp, Uri.http("stablekernel.com", "/auth/redirect"),
+          "invalid_request");
     });
 
     test("Failed username + state still returns state in error", () async {
@@ -700,7 +722,8 @@ void main() {
   });
 
   group("Token Invalid requests and state", () {
-    test("Does not allow response_type of token if allowsImplicit is false", () async {
+    test("Does not allow response_type of token if allowsImplicit is false",
+        () async {
       final encodedUsername = Uri.encodeQueryComponent(user1["username"]);
       final encodedPassword = Uri.encodeQueryComponent(user1["password"]);
 
@@ -721,7 +744,10 @@ void main() {
         "password": InMemoryAuthStorage.defaultPassword
       });
 
-      expectTokenErrorRedirect(resp, Uri.http("stablekernel.com", "/auth/public-redirect"), "invalid_request");
+      expectTokenErrorRedirect(
+          resp,
+          Uri.http("stablekernel.com", "/auth/public-redirect"),
+          "invalid_request");
     });
 
     test("Failed username + state still returns state in error", () async {
@@ -732,7 +758,9 @@ void main() {
         "state": "xyz"
       });
       expectTokenErrorRedirect(
-          resp, Uri.http("stablekernel.com", "/auth/public-redirect"), "access_denied",
+          resp,
+          Uri.http("stablekernel.com", "/auth/public-redirect"),
+          "access_denied",
           state: "xyz");
     });
 
@@ -744,7 +772,9 @@ void main() {
         "state": "xyz"
       });
       expectTokenErrorRedirect(
-          resp, Uri.http("stablekernel.com", "/auth/public-redirect"), "access_denied",
+          resp,
+          Uri.http("stablekernel.com", "/auth/public-redirect"),
+          "access_denied",
           state: "xyz");
     });
   });
@@ -778,8 +808,6 @@ void main() {
           state: "Wisconsin@&");
     });
   });
-
-
 }
 
 class TestChannel extends ApplicationChannel
@@ -796,15 +824,16 @@ class TestChannel extends ApplicationChannel
   @override
   Controller get entryPoint {
     final router = Router();
-    router
-        .route("/auth/code")
-        .link(() => AuthRedirectController(authServer, delegate: this, allowsImplicit: false));
+    router.route("/auth/code").link(() => AuthRedirectController(authServer,
+        delegate: this, allowsImplicit: false));
 
     router
         .route("/auth/redirect")
         .link(() => AuthRedirectController(authServer, delegate: this));
 
-    router.route("/bad-delegate").link(() => AuthRedirectController(authServer, delegate: badDelegate));
+    router
+        .route("/bad-delegate")
+        .link(() => AuthRedirectController(authServer, delegate: badDelegate));
     router.route("/nopage").link(() => AuthRedirectController(authServer));
     return router;
   }
@@ -882,7 +911,8 @@ void expectErrorRedirect(TestResponse resp, Uri requestURI, String errorReason,
   }
 }
 
-void expectTokenErrorRedirect(TestResponse resp, Uri requestURI, String errorReason,
+void expectTokenErrorRedirect(
+    TestResponse resp, Uri requestURI, String errorReason,
     {String state}) {
   expect(resp, hasStatus(HttpStatus.movedTemporarily));
 

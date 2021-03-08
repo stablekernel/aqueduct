@@ -191,8 +191,7 @@ abstract class ManagedObject<T> extends Serializable {
       if (invocation.isGetter) {
         return this[propertyName];
       } else if (invocation.isSetter) {
-        this[propertyName] =
-          invocation.positionalArguments.first;
+        this[propertyName] = invocation.positionalArguments.first;
 
         return null;
       }
@@ -268,7 +267,8 @@ abstract class ManagedObject<T> extends Serializable {
   }
 
   @override
-  APISchemaObject documentSchema(APIDocumentContext context) => entity.document(context);
+  APISchemaObject documentSchema(APIDocumentContext context) =>
+      entity.document(context);
 
   static bool _isPropertyPrivate(String propertyName) =>
       propertyName.startsWith("_");

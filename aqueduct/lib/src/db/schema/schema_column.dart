@@ -298,7 +298,7 @@ class SchemaColumnDifference {
 
       if (expectedColumn.isUnique != actualColumn.isUnique) {
         _differingProperties.add(_PropertyDifference(
-          "isUnique", expectedColumn.isUnique, actualColumn.isUnique));
+            "isUnique", expectedColumn.isUnique, actualColumn.isUnique));
       }
 
       if (expectedColumn.isNullable != actualColumn.isNullable) {
@@ -349,7 +349,8 @@ class SchemaColumnDifference {
     }
 
     return _differingProperties.map((property) {
-      return property.getErrorMessage(expectedColumn.table.name, expectedColumn.name);
+      return property.getErrorMessage(
+          expectedColumn.table.name, expectedColumn.name);
     }).toList();
   }
 
@@ -365,6 +366,6 @@ class _PropertyDifference {
 
   String getErrorMessage(String actualTableName, String expectedColumnName) {
     return "Column '${expectedColumnName}' in table '${actualTableName}' expected "
-      "'$expectedValue' for '$name', but migration files yield '$actualValue'";
+        "'$expectedValue' for '$name', but migration files yield '$actualValue'";
   }
 }

@@ -77,7 +77,6 @@ void main() {
       // Just expecting that we don't throw
       expect(true, true);
     });
-
   });
 }
 
@@ -113,8 +112,10 @@ class BodyBind extends ResourceController {
 }
 
 class StandardListSet extends ResourceController {
-  Future<Response> get1(@Bind.header("foo") List<String> a,
-      @Bind.header("id") List<String> b, @Bind.query("c") List<String> c) async {
+  Future<Response> get1(
+      @Bind.header("foo") List<String> a,
+      @Bind.header("id") List<String> b,
+      @Bind.query("c") List<String> c) async {
     return Response.ok(null);
   }
 }

@@ -1,5 +1,5 @@
 // ignore: unnecessary_const
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'package:aqueduct/aqueduct.dart';
 import 'package:aqueduct/managed_auth.dart';
 import 'package:aqueduct/src/dev/context_helpers.dart';
@@ -17,13 +17,12 @@ void main() {
 
   setUpAll(() async {
     cli = CLIClient(ProjectAgent("application_test", dependencies: {
-      "aqueduct": {
-        "path": "../.."
-      }
-    }))..defaultArgs = [
-      "--connect",
-      "postgres://dart:dart@localhost:5432/dart_test"
-    ];
+      "aqueduct": {"path": "../.."}
+    }))
+      ..defaultArgs = [
+        "--connect",
+        "postgres://dart:dart@localhost:5432/dart_test"
+      ];
     await cli.agent.getDependencies();
   });
 
@@ -160,7 +159,8 @@ void main() {
 
     test("Can set scope on client", () async {
       await cli.run("auth", ["add-client", "--id", "a.b.c"]);
-      await cli.run("auth", ["set-scope", "--id", "a.b.c", "--scopes", "abc efg"]);
+      await cli
+          .run("auth", ["set-scope", "--id", "a.b.c", "--scopes", "abc efg"]);
 
       final q = Query<ManagedAuthClient>(context);
       final results = await q.fetch();
@@ -175,8 +175,8 @@ void main() {
 
   group("Failure cases", () {
     test("Without id fails", () async {
-      final processResult = await cli
-          .run("auth", ["add-client", "--secret", "abcdef"]);
+      final processResult =
+          await cli.run("auth", ["add-client", "--secret", "abcdef"]);
       final q = Query<ManagedAuthClient>(context);
       final results = await q.fetch();
       expect(results.length, 0);
@@ -197,8 +197,8 @@ void main() {
     });
 
     test("Update scope of invalid client id fails", () async {
-      final result = await cli.run(
-          "auth", ["set-scope", "--id", "a.b.c", "--scopes", "abc efg"]);
+      final result = await cli
+          .run("auth", ["set-scope", "--id", "a.b.c", "--scopes", "abc efg"]);
       expect(result, isNot(0));
       expect(cli.output, contains("does not exist"));
     });

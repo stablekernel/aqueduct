@@ -20,7 +20,7 @@ class MigrationSource {
     final migrationTypes = analyzer.getSubclassesFromFile("Migration", uri);
     if (migrationTypes.length != 1) {
       throw StateError(
-        "Invalid migration file. Must contain exactly one 'Migration' subclass. File: '$uri'.");
+          "Invalid migration file. Must contain exactly one 'Migration' subclass. File: '$uri'.");
     }
 
     final klass = migrationTypes.first;

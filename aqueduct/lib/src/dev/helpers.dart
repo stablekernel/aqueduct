@@ -181,7 +181,8 @@ class InMemoryAuthStorage extends AuthServerDelegate {
 
   @override
   void removeTokens(AuthServer server, dynamic resourceOwnerID) {
-    return tokens.removeWhere((t) => t.resourceOwnerIdentifier == resourceOwnerID);
+    return tokens
+        .removeWhere((t) => t.resourceOwnerIdentifier == resourceOwnerID);
   }
 
   @override
@@ -218,8 +219,7 @@ class InMemoryAuthStorage extends AuthServerDelegate {
   @override
   FutureOr addToken(AuthServer server, AuthToken token, {AuthCode issuedFrom}) {
     if (issuedFrom != null) {
-      var existingIssued = tokens.firstWhere(
-          (t) => t.code == issuedFrom?.code,
+      var existingIssued = tokens.firstWhere((t) => t.code == issuedFrom?.code,
           orElse: () => null);
       var replacement = TestToken.from(token);
       replacement.code = issuedFrom.code;
@@ -278,10 +278,12 @@ class InMemoryAuthStorage extends AuthServerDelegate {
       tokens.removeWhere((c) => c.code == code);
 
   @override
-  FutureOr<AuthClient> getClient(AuthServer server, String clientID) => clients[clientID];
+  FutureOr<AuthClient> getClient(AuthServer server, String clientID) =>
+      clients[clientID];
 
   @override
-  FutureOr removeClient(AuthServer server, String clientID) => clients.remove(clientID);
+  FutureOr removeClient(AuthServer server, String clientID) =>
+      clients.remove(clientID);
 
   @override
   List<AuthScope> getAllowedScopes(ResourceOwner owner) => allowedScopes;
@@ -290,7 +292,8 @@ class InMemoryAuthStorage extends AuthServerDelegate {
 class DefaultPersistentStore extends PersistentStore {
   @override
   Query<T> newQuery<T extends ManagedObject>(
-      ManagedContext context, ManagedEntity entity, {T values}) {
+      ManagedContext context, ManagedEntity entity,
+      {T values}) {
     final q = _MockQuery<T>.withEntity(context, entity);
     if (values != null) {
       q.values = values;

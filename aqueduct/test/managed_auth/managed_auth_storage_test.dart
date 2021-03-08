@@ -69,8 +69,7 @@ void main() {
     });
 
     test("Revoked client can no longer be accessed", () async {
-      expect(
-          await auth.getClient("com.stablekernel.app1") is AuthClient, true);
+      expect(await auth.getClient("com.stablekernel.app1") is AuthClient, true);
       await auth.removeClient("com.stablekernel.app1");
       expect(await auth.getClient("com.stablekernel.app1"), isNull);
     });
@@ -263,8 +262,8 @@ void main() {
 
     test("Create token fails with wildcard password", () async {
       try {
-        await auth.authenticate(createdUser.username, "%",
-            "com.stablekernel.app1", "kilimanjaro");
+        await auth.authenticate(
+            createdUser.username, "%", "com.stablekernel.app1", "kilimanjaro");
         expect(true, false);
         // ignore: empty_catches
       } on AuthServerException {}
@@ -341,8 +340,8 @@ void main() {
     });
 
     test("Cannot verify wildcard token", () async {
-      await auth.authenticate(createdUser.username,
-        User.defaultPassword, "com.stablekernel.app1", "kilimanjaro");
+      await auth.authenticate(createdUser.username, User.defaultPassword,
+          "com.stablekernel.app1", "kilimanjaro");
 
       try {
         await auth.verify("%");
@@ -1036,7 +1035,8 @@ void main() {
       var manualCode = ManagedAuthToken()
         ..code = "ASDFGHJ"
         ..issueDate = DateTime.now().toUtc()
-        ..expirationDate = DateTime.now().add(const Duration(seconds: 60)).toUtc()
+        ..expirationDate =
+            DateTime.now().add(const Duration(seconds: 60)).toUtc()
         ..client = (ManagedAuthClient()..id = "com.stablekernel.redirect")
         ..resourceOwner = (User()..id = createdUsers.first.id);
 
@@ -1111,7 +1111,8 @@ void main() {
         ..accessToken = "ASDFGHJ"
         ..refreshToken = "ABCHASDS"
         ..issueDate = DateTime.now().toUtc()
-        ..expirationDate = DateTime.now().add(const Duration(seconds: 60)).toUtc()
+        ..expirationDate =
+            DateTime.now().add(const Duration(seconds: 60)).toUtc()
         ..client = (ManagedAuthClient()..id = "com.stablekernel.app1")
         ..resourceOwner = (User()..id = createdUsers.first.id);
 

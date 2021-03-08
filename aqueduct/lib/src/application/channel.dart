@@ -268,7 +268,7 @@ class ApplicationMessageHub extends Stream<dynamic> implements Sink<dynamic> {
 
 abstract class ChannelRuntime {
   Iterable<APIComponentDocumenter> getDocumentableChannelComponents(
-    ApplicationChannel channel);
+      ApplicationChannel channel);
 
   Type get channelType;
 
@@ -280,4 +280,3 @@ abstract class ChannelRuntime {
 
   Future runGlobalInitialization(ApplicationOptions config);
 }
-

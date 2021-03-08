@@ -127,14 +127,18 @@ void main() {
   });
 
   test("Encode with x-www-form-urlencoded", () {
-    final codec = CodecRegistry
-      .defaultInstance
-      .codecForContentType(ContentType("application", "x-www-form-urlencoded"));
+    final codec = CodecRegistry.defaultInstance.codecForContentType(
+        ContentType("application", "x-www-form-urlencoded"));
 
     expect(codec.encode(<String, dynamic>{"k": "v"}), "k=v".codeUnits);
     expect(codec.encode(<String, dynamic>{"k": "v!v"}), "k=v%21v".codeUnits);
-    expect(codec.encode(<String, dynamic>{"k1": "v1", "k2": "v2"}), "k1=v1&k2=v2".codeUnits);
-    expect(codec.encode(<String, dynamic>{"k": ["v1", "v!"]}), "k=v1&k=v%21".codeUnits);
+    expect(codec.encode(<String, dynamic>{"k1": "v1", "k2": "v2"}),
+        "k1=v1&k2=v2".codeUnits);
+    expect(
+        codec.encode(<String, dynamic>{
+          "k": ["v1", "v!"]
+        }),
+        "k=v1&k=v%21".codeUnits);
   });
 
   group("Compression", () {

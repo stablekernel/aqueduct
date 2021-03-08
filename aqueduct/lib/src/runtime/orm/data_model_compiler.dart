@@ -9,8 +9,8 @@ class DataModelCompiler {
     final m = <String, dynamic>{};
 
     final instanceTypes = context.types
-      .where(_isTypeManagedObjectSubclass)
-      .map((c) => c.reflectedType);
+        .where(_isTypeManagedObjectSubclass)
+        .map((c) => c.reflectedType);
 
     _builders = instanceTypes.map((t) => EntityBuilder(t)).toList();
     _builders.forEach((b) {

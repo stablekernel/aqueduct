@@ -1,5 +1,5 @@
 // ignore: unnecessary_const
-@Timeout(const Duration(seconds: 120))
+@Timeout(Duration(seconds: 120))
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';

@@ -371,8 +371,8 @@ void main() {
       });
 
       expect(resp.statusCode, 400);
-      expect(json.decode(resp.body),
-          {"error": "missing required query 'Shaqs'"});
+      expect(
+          json.decode(resp.body), {"error": "missing required query 'Shaqs'"});
     });
 
     test("missing required method header param fails", () async {
@@ -395,8 +395,8 @@ void main() {
       });
 
       expect(resp.statusCode, 400);
-      expect(json.decode(resp.body),
-          {"error": "missing required query 'Table'"});
+      expect(
+          json.decode(resp.body), {"error": "missing required query 'Table'"});
     });
 
     test("reports all missing required parameters", () async {
@@ -445,8 +445,8 @@ void main() {
 
       expect(resp.statusCode, 400);
 
-      expect(json.decode(resp.body)["error"],
-          contains("missing required query"));
+      expect(
+          json.decode(resp.body)["error"], contains("missing required query"));
       expect(json.decode(resp.body)["error"], contains("Table"));
       expect(json.decode(resp.body)["error"], contains("Shaqs"));
     });
@@ -763,7 +763,8 @@ class NoBindController extends ResourceController {
   }
 }
 
-Future<HttpServer> enableController(String pattern, Controller instantiate()) async {
+Future<HttpServer> enableController(
+    String pattern, Controller instantiate()) async {
   var router = Router();
   router.route(pattern).link(instantiate);
   router.didAddToChannel();

@@ -37,33 +37,31 @@ class ManagedValidator {
       if (validator.definition.type == ValidateType.present) {
         if (validator.property is ManagedRelationshipDescription) {
           final inner = object[validator.property.name] as ManagedObject;
-          if (inner == null || !inner.backing.contents.containsKey(inner.entity.primaryKey)) {
-            context.addError(
-              "key '${validator.property.name}' is required"
+          if (inner == null ||
+              !inner.backing.contents.containsKey(inner.entity.primaryKey)) {
+            context.addError("key '${validator.property.name}' is required"
                 "for ${_getEventName(event)}s.");
           }
         } else if (!contents.containsKey(key)) {
-          context.addError(
-              "key '${validator.property.name}' is required"
+          context.addError("key '${validator.property.name}' is required"
               "for ${_getEventName(event)}s.");
         }
       } else if (validator.definition.type == ValidateType.absent) {
         if (validator.property is ManagedRelationshipDescription) {
           final inner = object[validator.property.name] as ManagedObject;
           if (inner != null) {
-            context.addError(
-              "key '${validator.property.name}' is not allowed "
+            context.addError("key '${validator.property.name}' is not allowed "
                 "for ${_getEventName(event)}s.");
           }
         } else if (contents.containsKey(key)) {
-          context.addError(
-            "key '${validator.property.name}' is not allowed "
+          context.addError("key '${validator.property.name}' is not allowed "
               "for ${_getEventName(event)}s.");
         }
       } else {
         if (validator.property is ManagedRelationshipDescription) {
           final inner = object[validator.property.name] as ManagedObject;
-          if (inner == null || inner.backing.contents[inner.entity.primaryKey] == null) {
+          if (inner == null ||
+              inner.backing.contents[inner.entity.primaryKey] == null) {
             return;
           }
           contents = inner.backing.contents;

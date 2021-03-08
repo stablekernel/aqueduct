@@ -119,6 +119,7 @@ class ColumnExpressionBuilder extends ColumnBuilder {
   }
 
   String escapeLikeString(String input) {
-    return input.replaceAllMapped(RegExp(r"(\\|%|_)"), (Match m) => "\\${m[0]}");
+    return input.replaceAllMapped(
+        RegExp(r"(\\|%|_)"), (Match m) => "\\${m[0]}");
   }
 }

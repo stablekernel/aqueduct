@@ -35,7 +35,8 @@ class CLISetup extends CLICommand with CLIProject {
   Future<int> handle() async {
     if (shouldSetupHeroku) {
       displayInfo("This option has been deprecated.");
-      displayProgress("Please see https://aqueduct.io/docs/deploy/deploy_heroku/ for instructions.");
+      displayProgress(
+          "Please see https://aqueduct.io/docs/deploy/deploy_heroku/ for instructions.");
       return 0;
     } else /*if (shouldSetupTests*/ {
       return setupTestEnvironment();

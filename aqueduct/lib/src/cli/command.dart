@@ -95,7 +95,6 @@ abstract class CLICommand {
   static const _tabs = "    ";
   static const _errorDelimiter = "*** ";
 
-
   T decode<T>(String key) {
     final val = _argumentValues[key];
     if (T == int && val is String) {
@@ -184,7 +183,8 @@ abstract class CLICommand {
       var toolPubspecFile =
           File.fromUri(aqueductDirectory.absolute.uri.resolve("pubspec.yaml"));
 
-      final toolPubspecContents = loadYaml(toolPubspecFile.readAsStringSync()) as Map;
+      final toolPubspecContents =
+          loadYaml(toolPubspecFile.readAsStringSync()) as Map;
       final toolVersion = toolPubspecContents["version"] as String;
       _toolVersion = Version.parse(toolVersion);
     } catch (e) {

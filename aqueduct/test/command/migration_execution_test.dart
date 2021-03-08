@@ -1,5 +1,5 @@
 // ignore: unnecessary_const
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:async';
 import 'dart:io';
 
@@ -13,12 +13,11 @@ import '../not_tests/cli_helpers.dart';
 
 CLIClient cli;
 DatabaseConfiguration connectInfo = DatabaseConfiguration.withConnectionInfo(
-  "dart", "dart", "localhost", 5432, "dart_test");
+    "dart", "dart", "localhost", 5432, "dart_test");
 String connectString =
-  "postgres://${connectInfo.username}:${connectInfo.password}@${connectInfo.host}:${connectInfo.port}/${connectInfo.databaseName}";
+    "postgres://${connectInfo.username}:${connectInfo.password}@${connectInfo.host}:${connectInfo.port}/${connectInfo.databaseName}";
 
 void main() {
-
   PostgreSQLPersistentStore store;
 
   setUpAll(() async {
@@ -148,10 +147,8 @@ void main() {
       () async {
     expect(await runMigrationCases(["Case61", "Case62", "Case63"]), isNot(0));
 
-    expect(cli.output.contains("Applied schema version 1 successfully"),
-        true);
-    expect(
-      cli.output, contains("relation \"_unknowntable\" does not exist"));
+    expect(cli.output.contains("Applied schema version 1 successfully"), true);
+    expect(cli.output, contains("relation \"_unknowntable\" does not exist"));
 
     expect(await tableExists(store, store.versionTable.name), false);
     expect(await tableExists(store, "_testobject"), false);
@@ -162,15 +159,13 @@ void main() {
       "If migrations have already been applied, and new migrations occur where the first fails, those pending migrations are cancelled",
       () async {
     expect(await runMigrationCases(["Case61"]), 0);
-    expect(cli.output.contains("Applied schema version 1 successfully"),
-        true);
+    expect(cli.output.contains("Applied schema version 1 successfully"), true);
     cli.clearOutput();
 
     expect(await runMigrationCases(["Case62", "Case63"], fromVersion: 1),
         isNot(0));
 
-    expect(
-      cli.output, contains("relation \"_unknowntable\" does not exist"));
+    expect(cli.output, contains("relation \"_unknowntable\" does not exist"));
 
     final version = await store
         .execute("SELECT versionNumber FROM _aqueduct_version_pgsql");

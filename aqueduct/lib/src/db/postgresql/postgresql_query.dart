@@ -51,7 +51,9 @@ class PostgresQuery<InstanceType extends ManagedObject> extends Object
     final results = await context.persistentStore
         .executeQuery(buffer.toString(), builder.variables, timeoutInSeconds);
 
-    return builder.instancesForRows<InstanceType>(results as List<List<dynamic>>).first;
+    return builder
+        .instancesForRows<InstanceType>(results as List<List<dynamic>>)
+        .first;
   }
 
   @override

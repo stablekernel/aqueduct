@@ -1,5 +1,5 @@
 // ignore: unnecessary_const
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:async';
 import 'dart:io';
 
@@ -54,9 +54,7 @@ void main() {
           "addedColumn", ManagedPropertyType.integer,
           defaultValue: "2"));
       tableToKeep.removeColumn(tableToKeep.columnForName("columnToDelete"));
-      tableToKeep
-          .columnForName("columnToEdit")
-          .defaultValue = "'foo'";
+      tableToKeep.columnForName("columnToEdit").defaultValue = "'foo'";
 
       schema.removeTable(schema.tableForName("tableToDelete"));
 

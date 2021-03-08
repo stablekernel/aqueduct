@@ -415,10 +415,12 @@ void main() {
 
     var joinEntity = model.entityForType(JoinMany);
     expect(
-      joinEntity.relationships["left"].destinationEntity.instanceType == LeftMany,
+        joinEntity.relationships["left"].destinationEntity.instanceType ==
+            LeftMany,
         true);
-    expect(joinEntity
-      .relationships["right"].destinationEntity.instanceType == RightMany,
+    expect(
+        joinEntity.relationships["right"].destinationEntity.instanceType ==
+            RightMany,
         true);
   });
 

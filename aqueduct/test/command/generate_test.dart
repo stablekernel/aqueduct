@@ -1,5 +1,5 @@
 // ignore: unnecessary_const
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:io';
 import 'package:command_line_agent/command_line_agent.dart';
 import 'package:test/test.dart';
@@ -10,7 +10,9 @@ void main() {
   CLIClient projectUnderTestCli;
 
   setUpAll(() async {
-    templateCli = await CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory)).createProject();
+    templateCli =
+        await CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory))
+            .createProject();
     await templateCli.agent.getDependencies(offline: true);
   });
 
@@ -32,14 +34,17 @@ class _TestObject {
       """);
   });
 
-
   tearDown(() {
     projectUnderTestCli.delete();
   });
 
   test("Run without pub get yields error", () async {
-    File.fromUri(projectUnderTestCli.agent.workingDirectory.uri.resolve("pubspec.lock")).deleteSync();
-    File.fromUri(projectUnderTestCli.agent.workingDirectory.uri.resolve(".packages")).deleteSync();
+    File.fromUri(projectUnderTestCli.agent.workingDirectory.uri
+            .resolve("pubspec.lock"))
+        .deleteSync();
+    File.fromUri(
+            projectUnderTestCli.agent.workingDirectory.uri.resolve(".packages"))
+        .deleteSync();
 
     var res = await projectUnderTestCli.run("db", ["generate"]);
     expect(res, isNot(0));
@@ -56,8 +61,9 @@ class _TestObject {
       "If there are no migration files, create an initial one that validates to schema",
       () async {
     // Putting a non-migration file in there to ensure that this doesn't prevent from being ugpraded
-        projectUnderTestCli.defaultMigrationDirectory.createSync();
-        projectUnderTestCli.agent.addOrReplaceFile("migrations/notmigration.dart", " ");
+    projectUnderTestCli.defaultMigrationDirectory.createSync();
+    projectUnderTestCli.agent
+        .addOrReplaceFile("migrations/notmigration.dart", " ");
 
     var res = await projectUnderTestCli.run("db", ["generate"]);
     expect(res, 0);
@@ -105,7 +111,8 @@ class _TestObject {
   });
 
   test("Can specify migration name other than default", () async {
-    var res = await projectUnderTestCli.run("db", ["generate", "--name", "InitializeDatabase"]);
+    var res = await projectUnderTestCli
+        .run("db", ["generate", "--name", "InitializeDatabase"]);
     expect(res, 0);
     projectUnderTestCli.clearOutput();
 
@@ -115,12 +122,13 @@ class _TestObject {
           "String foo;", "@Column(indexed: true) String foo;");
     });
 
-    res = await projectUnderTestCli.run("db", ["generate", "--name", "add_index"]);
+    res = await projectUnderTestCli
+        .run("db", ["generate", "--name", "add_index"]);
     expect(res, 0);
     projectUnderTestCli.clearOutput();
 
     expect(
-      projectUnderTestCli.defaultMigrationDirectory
+        projectUnderTestCli.defaultMigrationDirectory
             .listSync()
             .where((fse) => !fse.uri.pathSegments.last.startsWith(".")),
         hasLength(2));
@@ -141,12 +149,12 @@ class _TestObject {
 
   test("Can specify migration directory other than default, relative path",
       () async {
-    var res = await projectUnderTestCli.run(
-        "db", ["generate", "--migration-directory", "foobar"]);
+    var res = await projectUnderTestCli
+        .run("db", ["generate", "--migration-directory", "foobar"]);
     expect(res, 0);
 
-    final migDir =
-        Directory.fromUri(projectUnderTestCli.agent.workingDirectory.uri.resolve("foobar/"));
+    final migDir = Directory.fromUri(
+        projectUnderTestCli.agent.workingDirectory.uri.resolve("foobar/"));
     final files = migDir.listSync();
     expect(
         files.any((fse) => fse is File && fse.path.endsWith("migration.dart")),
@@ -155,8 +163,8 @@ class _TestObject {
 
   test("Can specify migration directory other than default, absolute path",
       () async {
-    final migDir =
-        Directory.fromUri(projectUnderTestCli.agent.workingDirectory.uri.resolve("foobar/"));
+    final migDir = Directory.fromUri(
+        projectUnderTestCli.agent.workingDirectory.uri.resolve("foobar/"));
     var res = await projectUnderTestCli.run("db", [
       "generate",
       "--migration-directory",

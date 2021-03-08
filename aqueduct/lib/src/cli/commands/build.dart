@@ -123,7 +123,6 @@ Future _runnerFunc(List<String> args, dynamic sendPort) async {
     ..certificateFilePath = values['ssl-certificate-path'] as String
     ..privateKeyFilePath = values['ssl-key-path'] as String;
 
-
   final isolateCountString = values['isolates'];
   if (isolateCountString == null) {
     await app.startOnCurrentIsolate();

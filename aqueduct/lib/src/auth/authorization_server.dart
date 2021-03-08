@@ -93,7 +93,7 @@ class AuthServer implements AuthValidator, APIComponentDocumenter {
 
   /// Used during OpenAPI documentation.
   final APISecuritySchemeOAuth2Flow documentedImplicitFlow =
-  APISecuritySchemeOAuth2Flow.empty()..scopes = {};
+      APISecuritySchemeOAuth2Flow.empty()..scopes = {};
 
   static const String tokenTypeBearer = "bearer";
 
@@ -428,7 +428,7 @@ class AuthServer implements AuthValidator, APIComponentDocumenter {
     final basic = APISecurityScheme.http("basic")
       ..description =
           "This endpoint requires an OAuth2 Client ID and Secret as the Basic Authentication username and password. "
-          "If the client ID does not have a secret (public client), the password is the empty string (retain the separating colon, e.g. 'com.aqueduct.app:').";
+              "If the client ID does not have a secret (public client), the password is the empty string (retain the separating colon, e.g. 'com.aqueduct.app:').";
     context.securitySchemes.register("oauth2-client-authentication", basic);
 
     final oauth2 = APISecurityScheme.oauth2({

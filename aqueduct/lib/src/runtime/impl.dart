@@ -262,6 +262,6 @@ class SerializableRuntimeImpl extends SerializableRuntime {
 
     throw ArgumentError(
         "Unsupported type '${MirrorSystem.getName(type.simpleName)}' "
-          "for 'APIComponentDocumenter.documentType'.");
+        "for 'APIComponentDocumenter.documentType'.");
   }
 }

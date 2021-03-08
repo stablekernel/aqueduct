@@ -212,8 +212,7 @@ void main() {
 
     test("Return 404 if there is no endpoint for OPTIONS (No CORS Headers)",
         () async {
-      var req =
-          await HttpClient().open("OPTIONS", "localhost", 8000, "foobar");
+      var req = await HttpClient().open("OPTIONS", "localhost", 8000, "foobar");
       var resp = await req.close();
       await resp.drain();
 
@@ -240,8 +239,8 @@ void main() {
     // This group ensures that if the Origin is invalid, we return a 403.
 
     test("If origin is correct, get 200 from OPTIONS", () async {
-      var req = await HttpClient()
-          .open("OPTIONS", "localhost", 8000, "restrictive");
+      var req =
+          await HttpClient().open("OPTIONS", "localhost", 8000, "restrictive");
       req.headers.set("Origin", "http://exclusive.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       var resp = await req.close();
@@ -260,8 +259,8 @@ void main() {
     test(
         "If origin is invalid because of case-sensitivity, get 403 from OPTIONS",
         () async {
-      var req = await HttpClient()
-          .open("OPTIONS", "localhost", 8000, "restrictive");
+      var req =
+          await HttpClient().open("OPTIONS", "localhost", 8000, "restrictive");
       req.headers.set("Origin", "http://Exclusive.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       var resp = await req.close();
@@ -271,8 +270,8 @@ void main() {
     });
 
     test("If origin is invalid, get 403 from OPTIONS", () async {
-      var req = await HttpClient()
-          .open("OPTIONS", "localhost", 8000, "restrictive");
+      var req =
+          await HttpClient().open("OPTIONS", "localhost", 8000, "restrictive");
       req.headers.set("Origin", "http://foobar.com");
       req.headers.set("Access-Control-Request-Method", "POST");
       var resp = await req.close();

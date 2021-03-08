@@ -58,7 +58,11 @@ abstract class Migration {
       Schema existingSchema, Schema newSchema, int version,
       {List<String> changeList}) {
     final diff = existingSchema.differenceFrom(newSchema);
-    final source = SchemaBuilder.fromDifference(null, diff, changeList: changeList).commands.map((line) => "\t\t$line").join("\n");
+    final source =
+        SchemaBuilder.fromDifference(null, diff, changeList: changeList)
+            .commands
+            .map((line) => "\t\t$line")
+            .join("\n");
 
     return """
 import 'dart:async';

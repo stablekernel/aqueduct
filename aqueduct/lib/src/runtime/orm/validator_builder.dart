@@ -17,15 +17,13 @@ class ValidatorBuilder {
 
   ManagedValidator get managedValidator => _validator;
 
-  void compile(List<EntityBuilder> entityBuilders) {
-  }
+  void compile(List<EntityBuilder> entityBuilders) {}
 
   void validate(List<EntityBuilder> entityBuilders) {
     if (property.isRelationship) {
       if (property.relationshipType != ManagedRelationshipType.belongsTo) {
         throw ManagedDataModelError(
-          "Invalid '@Validate' on property '${property.parent.name}.${property
-            .name}'. Validations cannot be performed on has-one or has-many relationships.");
+            "Invalid '@Validate' on property '${property.parent.name}.${property.name}'. Validations cannot be performed on has-one or has-many relationships.");
       }
     }
     Type type;
@@ -43,7 +41,8 @@ class ValidatorBuilder {
     try {
       _state = metadata.compile(prop.type, relationshipInverseType: type);
     } on ValidateCompilationError catch (e) {
-      throw ManagedDataModelError("Invalid '@Validate' on property '${property.parent.name}.${property.name}'. Reason: ${e.reason}");
+      throw ManagedDataModelError(
+          "Invalid '@Validate' on property '${property.parent.name}.${property.name}'. Reason: ${e.reason}");
     }
   }
 

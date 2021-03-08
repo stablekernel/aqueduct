@@ -11,7 +11,6 @@ class _Model {
   @primaryKey
   int id;
 
-
   @Column(indexed: true)
   String name;
 

@@ -46,13 +46,16 @@ class AuthRedirectController extends ResourceController {
   /// Creates a new instance of an [AuthRedirectController].
   ///
   /// [authServer] is the required authorization server. If [delegate] is provided, this controller will return a login page for all GET requests.
-  AuthRedirectController(this.authServer, {this.delegate, this.allowsImplicit = true}) {
+  AuthRedirectController(this.authServer,
+      {this.delegate, this.allowsImplicit = true}) {
     acceptedContentTypes = [
       ContentType("application", "x-www-form-urlencoded")
     ];
   }
 
-  static Response _unsupportedResponseTypeResponse = Response.badRequest(body: "<h1>Error</h1><p>unsupported_response_type</p>")..contentType = ContentType.html;
+  static Response _unsupportedResponseTypeResponse = Response.badRequest(
+      body: "<h1>Error</h1><p>unsupported_response_type</p>")
+    ..contentType = ContentType.html;
 
   /// A reference to the [AuthServer] used to grant authorization codes and access tokens.
   final AuthServer authServer;
@@ -156,25 +159,31 @@ class AuthRedirectController extends ResourceController {
       if (responseType == "code") {
         if (client.hashedSecret == null) {
           return _redirectResponse(null, state,
-              error: AuthServerException(AuthRequestError.unauthorizedClient, client));
+              error: AuthServerException(
+                  AuthRequestError.unauthorizedClient, client));
         }
 
         final authCode = await authServer.authenticateForCode(
             username, password, clientID,
             requestedScopes: scopes);
-        return _redirectResponse(client.redirectURI, state, code: authCode.code);
+        return _redirectResponse(client.redirectURI, state,
+            code: authCode.code);
       } else if (responseType == "token") {
-        final token = await authServer.authenticate(username, password, clientID, null, requestedScopes: scopes);
+        final token = await authServer.authenticate(
+            username, password, clientID, null,
+            requestedScopes: scopes);
         return _redirectResponse(client.redirectURI, state, token: token);
       } else {
         return _redirectResponse(null, state,
-            error: AuthServerException(AuthRequestError.invalidRequest, client));
+            error:
+                AuthServerException(AuthRequestError.invalidRequest, client));
       }
     } on FormatException {
       return _redirectResponse(null, state,
           error: AuthServerException(AuthRequestError.invalidScope, client));
     } on AuthServerException catch (e) {
-      if (responseType == "token" && e.reason == AuthRequestError.invalidGrant) {
+      if (responseType == "token" &&
+          e.reason == AuthRequestError.invalidGrant) {
         return _redirectResponse(null, state,
             error: AuthServerException(AuthRequestError.accessDenied, client));
       }
@@ -252,8 +261,7 @@ class AuthRedirectController extends ResourceController {
     return ops;
   }
 
-  Response _redirectResponse(
-      final String inputUri, String clientStateOrNull,
+  Response _redirectResponse(final String inputUri, String clientStateOrNull,
       {String code, AuthToken token, AuthServerException error}) {
     final uriString = inputUri ?? error.client?.redirectURI;
     if (uriString == null) {
@@ -292,7 +300,9 @@ class AuthRedirectController extends ResourceController {
         params["error"] = error.reasonString;
       }
 
-      fragment = params.keys.map((key) => "$key=${Uri.encodeComponent(params[key].toString())}").join("&");
+      fragment = params.keys
+          .map((key) => "$key=${Uri.encodeComponent(params[key].toString())}")
+          .join("&");
     } else {
       return _unsupportedResponseTypeResponse;
     }

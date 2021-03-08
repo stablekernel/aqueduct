@@ -1,5 +1,5 @@
 // ignore: unnecessary_const
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:io';
 
 import 'package:path/path.dart' as path_lib;
@@ -105,8 +105,7 @@ void main() {
       var res = await cli.run("create", ["test_project", "--offline"]);
       expect(res, 0);
 
-      var aqueductLocationString = File.fromUri(cli
-              .agent.workingDirectory.uri
+      var aqueductLocationString = File.fromUri(cli.agent.workingDirectory.uri
               .resolve("test_project/")
               .resolve(".packages"))
           .readAsStringSync()
@@ -141,7 +140,8 @@ void main() {
 
       test("Tests run on template generated from local path", () async {
         expect(
-            await cli.run("create", ["test_project", "-t", template, "--offline"]),
+            await cli
+                .run("create", ["test_project", "-t", template, "--offline"]),
             0);
 
         final cmd = Platform.isWindows ? "pub.bat" : "pub";

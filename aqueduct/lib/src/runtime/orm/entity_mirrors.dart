@@ -22,7 +22,7 @@ ManagedType getManagedTypeFromType(TypeMirror type) {
   } else if (type.isSubtypeOf(reflectType(Map))) {
     if (!type.typeArguments.first.isAssignableTo(reflectType(String))) {
       throw UnsupportedError(
-        "Invalid type '${type.reflectedType}' for 'ManagedType'. Key is invalid; must be 'String'.");
+          "Invalid type '${type.reflectedType}' for 'ManagedType'. Key is invalid; must be 'String'.");
     }
     kind = ManagedPropertyType.map;
     elements = getManagedTypeFromType(type.typeArguments.last);
@@ -40,12 +40,11 @@ ManagedType getManagedTypeFromType(TypeMirror type) {
     });
   } else {
     throw UnsupportedError(
-      "Invalid type '${type.reflectedType}' for 'ManagedType'.");
+        "Invalid type '${type.reflectedType}' for 'ManagedType'.");
   }
 
   return ManagedType(type.reflectedType, kind, elements, enumerationMap);
 }
-
 
 // Expanding the list of ivars for each class yields duplicates of
 // any ivar is overridden. Since the order in which ivars are returned

@@ -332,7 +332,8 @@ class SchemaBuilder {
     }
 
     if (store == null && innerCommands.isNotEmpty) {
-      commands.add("database.alterColumn(\"$tableName\", \"$columnName\", (c) {${innerCommands.join(";")};});");
+      commands.add(
+          "database.alterColumn(\"$tableName\", \"$columnName\", (c) {${innerCommands.join(";")};});");
     }
   }
 
@@ -380,9 +381,10 @@ class SchemaBuilder {
       addColumn(difference.actualTable.name, c);
 
       if (!c.isNullable && c.defaultValue == null) {
-        changeList?.add("WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
-          "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
-          "SchemaColumn(\"${c.name}\", ...)'.");
+        changeList?.add(
+            "WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
+            "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
+            "SchemaColumn(\"${c.name}\", ...)'.");
       }
     });
 
@@ -405,10 +407,12 @@ class SchemaBuilder {
       });
 
       if (columnDiff.expectedColumn.isNullable &&
-        !columnDiff.actualColumn.isNullable && columnDiff.actualColumn.defaultValue == null) {
-        changeList?.add("WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
-          "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
-          "SchemaColumn(\"${columnDiff.actualColumn.name}\", ...)'.");
+          !columnDiff.actualColumn.isNullable &&
+          columnDiff.actualColumn.defaultValue == null) {
+        changeList?.add(
+            "WARNING: This migration may fail if table '${difference.actualTable.name}' already has rows. "
+            "Add an 'unencodedInitialValue' to the statement 'database.addColumn(\"${difference.actualTable.name}\", "
+            "SchemaColumn(\"${columnDiff.actualColumn.name}\", ...)'.");
       }
     });
 

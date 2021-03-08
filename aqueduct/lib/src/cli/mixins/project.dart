@@ -32,7 +32,7 @@ abstract class CLIProject implements CLICommand {
             "Failed to locate pubspec.yaml in project directory '${projectDirectory.path}'");
       }
       var yamlContents = file.readAsStringSync();
-      final yaml = loadYaml(yamlContents) as Map<dynamic, dynamic> ;
+      final yaml = loadYaml(yamlContents) as Map<dynamic, dynamic>;
       _pubspec = yaml.cast<String, dynamic>();
     }
 
@@ -101,15 +101,14 @@ abstract class CLIProject implements CLICommand {
 
   Future<String> getChannelName() async {
     final name = await IsolateExecutor.run(GetChannelExecutable({}),
-      packageConfigURI: packageConfigUri,
-      imports: GetChannelExecutable.importsForPackage(libraryName),
-      logHandler: displayProgress);
+        packageConfigURI: packageConfigUri,
+        imports: GetChannelExecutable.importsForPackage(libraryName),
+        logHandler: displayProgress);
     if (name == null) {
       throw CLIException(
-        "No ApplicationChannel subclass found in $packageName/$libraryName");
+          "No ApplicationChannel subclass found in $packageName/$libraryName");
     }
 
     return name;
   }
-
 }

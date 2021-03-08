@@ -1,5 +1,5 @@
 // ignore: unnecessary_const
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:io';
 
 import 'package:command_line_agent/command_line_agent.dart';
@@ -12,7 +12,9 @@ void main() {
   CLIClient projectUnderTestCli;
 
   setUpAll(() async {
-    templateCli = await CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory)).createProject();
+    templateCli =
+        await CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory))
+            .createProject();
     await templateCli.agent.getDependencies(offline: true);
   });
 
@@ -33,7 +35,6 @@ class _TestObject {
 }
       """);
   });
-
 
   tearDown(() {
     projectUnderTestCli.delete();
@@ -60,8 +61,8 @@ class _TestObject {
     var res = await projectUnderTestCli.run("db", ["generate"]);
     expect(res, 0);
 
-    projectUnderTestCli.agent.modifyFile("migrations/00000001_initial.migration.dart",
-        (contents) {
+    projectUnderTestCli.agent
+        .modifyFile("migrations/00000001_initial.migration.dart", (contents) {
       const upgradeLocation = "upgrade()";
       final nextLine =
           contents.indexOf("\n", contents.indexOf(upgradeLocation));
@@ -81,8 +82,8 @@ class _TestObject {
     var res = await projectUnderTestCli.run("db", ["generate"]);
     expect(res, 0);
 
-    projectUnderTestCli.agent.modifyFile("migrations/00000001_initial.migration.dart",
-        (contents) {
+    projectUnderTestCli.agent
+        .modifyFile("migrations/00000001_initial.migration.dart", (contents) {
       const upgradeLocation = "upgrade()";
       final nextLine =
           contents.indexOf("\n", contents.indexOf(upgradeLocation));

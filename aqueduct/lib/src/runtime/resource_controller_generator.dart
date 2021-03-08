@@ -170,7 +170,7 @@ String getElementDecoderSource(Type type) {
 String getListDecoderSource(ResourceControllerParameter p) {
   if (reflectType(p.type).isSubtypeOf(reflectType(List))) {
     final mapper = getElementDecoderSource(
-      reflectType(p.type).typeArguments.first.reflectedType);
+        reflectType(p.type).typeArguments.first.reflectedType);
     return """(v) {
   return ${p.type}.from((v as List).map($mapper));  
 }  """;
@@ -209,7 +209,9 @@ String getOperationSource(
     BuildContext context,
     ResourceControllerRuntimeImpl runtime,
     ResourceControllerOperation operation) {
-  final scopeElements = operation.scopes?.map((s) => "AuthScope(${sourcifyValue(s.toString())})")?.join(",");
+  final scopeElements = operation.scopes
+      ?.map((s) => "AuthScope(${sourcifyValue(s.toString())})")
+      ?.join(",");
   final namedParameters = operation.namedParameters
       .map((p) => getParameterSource(context, runtime, p))
       .join(",");

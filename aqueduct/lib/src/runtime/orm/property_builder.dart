@@ -16,7 +16,6 @@ class PropertyBuilder {
     name = _getName();
     type = _getType();
 
-
     /* this collection of validators via 1. Validate metadata 2. Column metadata 3. implicit enum
     * is replicated in the generated code. if more implicit validators are created, a more general
     * purpose solution should be created
@@ -153,8 +152,8 @@ class PropertyBuilder {
           validators: validators.map((v) => v.managedValidator).toList());
     } else {
       final dartType = getDeclarationType().reflectedType;
-      attribute = ManagedAttributeDescription(parent.entity, name, type,
-          dartType,
+      attribute = ManagedAttributeDescription(
+          parent.entity, name, type, dartType,
           primaryKey: primaryKey,
           transientStatus: serialize,
           defaultValue: defaultValue,

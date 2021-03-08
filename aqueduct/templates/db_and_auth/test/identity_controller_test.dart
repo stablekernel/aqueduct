@@ -21,9 +21,7 @@ Future main() async {
   });
 
   test("Identity returns user associated with bearer token", () async {
-    expectResponse(await userClient.get("/me"), 200, body: {
-      "id": greaterThan(0),
-      "username": defaultUser.username
-    });
+    expectResponse(await userClient.get("/me"), 200,
+        body: {"id": greaterThan(0), "username": defaultUser.username});
   });
 }

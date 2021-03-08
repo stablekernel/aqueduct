@@ -104,7 +104,9 @@ class QueryExpression<T, InstanceType> {
       {bool caseSensitive = true}) {
     if (value is String) {
       expression = StringExpression(value, PredicateStringOperator.equals,
-          caseSensitive: caseSensitive, invertOperator: true, allowSpecialCharacters: false);
+          caseSensitive: caseSensitive,
+          invertOperator: true,
+          allowSpecialCharacters: false);
     } else {
       expression = ComparisonExpression(value, PredicateOperator.notEqual);
     }
@@ -131,7 +133,7 @@ class QueryExpression<T, InstanceType> {
   QueryExpressionJunction<T, InstanceType> like(String value,
       {bool caseSensitive = true}) {
     expression = StringExpression(value, PredicateStringOperator.equals,
-          caseSensitive: caseSensitive, allowSpecialCharacters: true);
+        caseSensitive: caseSensitive, allowSpecialCharacters: true);
 
     return _createJunction();
   }
@@ -155,7 +157,9 @@ class QueryExpression<T, InstanceType> {
   QueryExpressionJunction<T, InstanceType> notLike(String value,
       {bool caseSensitive = true}) {
     expression = StringExpression(value, PredicateStringOperator.equals,
-          caseSensitive: caseSensitive, invertOperator: true, allowSpecialCharacters: true);
+        caseSensitive: caseSensitive,
+        invertOperator: true,
+        allowSpecialCharacters: true);
 
     return _createJunction();
   }
@@ -298,7 +302,8 @@ class QueryExpression<T, InstanceType> {
   ///         ..where((e) => e.department).oneOf(["Engineering", "HR"]);
   QueryExpressionJunction<T, InstanceType> oneOf(Iterable<T> values) {
     if (values?.isEmpty ?? true) {
-      throw ArgumentError("'Query.where.oneOf' cannot be the empty set or null.");
+      throw ArgumentError(
+          "'Query.where.oneOf' cannot be the empty set or null.");
     }
     expression = SetMembershipExpression(values.toList());
 

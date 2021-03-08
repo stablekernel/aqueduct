@@ -48,7 +48,8 @@ class CLIDocumentServe extends CLICommand with CLIProject, CLIDocumentOptions {
       ..addCachePolicy(const CachePolicy(requireConditionalRequest: true),
           (p) => p.endsWith(".json"))
       ..addCachePolicy(
-          const CachePolicy(expirationFromNow: Duration(days: 300)), (p) => true)
+          const CachePolicy(expirationFromNow: Duration(days: 300)),
+          (p) => true)
       ..logger.onRecord.listen((rec) {
         outputSink.writeln("${rec.message} ${rec.stackTrace ?? ""}");
       });

@@ -165,8 +165,8 @@ void main() {
     test(
         "Logging after socket is closed throws uncaught exception, still works correctly after",
         () async {
-          final request = await HttpClient().get("localhost", 8000, "/detach");
-          final response = await request.close();
+      final request = await HttpClient().get("localhost", 8000, "/detach");
+      final response = await request.close();
       try {
         await response.toList();
         expect(true, false);

@@ -8,4 +8,3 @@ Future main(List<String> args) async {
   final values = runner.options.parse(args);
   exitCode = await runner.process(values);
 }
-

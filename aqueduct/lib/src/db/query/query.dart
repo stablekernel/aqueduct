@@ -33,7 +33,8 @@ abstract class Query<InstanceType extends ManagedObject> {
           "Invalid context. The data model of 'context' does not contain '$InstanceType'.");
     }
 
-    return context.persistentStore.newQuery<InstanceType>(context, entity, values: values);
+    return context.persistentStore
+        .newQuery<InstanceType>(context, entity, values: values);
   }
 
   /// Creates a new [Query] without a static type.

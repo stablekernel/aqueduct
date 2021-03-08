@@ -215,8 +215,8 @@ Future<List<RootObject>> populateModelGraph(ManagedContext ctx) async {
             GrandChildObject.withCounter() // 6
           ])),
         (ChildObject.withCounter() // 3
-              ..grandChild = GrandChildObject.withCounter() // 7
-            ),
+          ..grandChild = GrandChildObject.withCounter() // 7
+        ),
         (ChildObject.withCounter() // 4
           ..grandChildren = ManagedSet.from([
             GrandChildObject.withCounter() // 8

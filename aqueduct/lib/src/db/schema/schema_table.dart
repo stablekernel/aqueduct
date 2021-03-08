@@ -79,9 +79,8 @@ class SchemaTable {
   List<SchemaColumn> get columns => List.unmodifiable(_columnStorage ?? []);
 
   bool get hasForeignKeyInUniqueSet => columns
-    .where((c) => c.isForeignKey)
-    .any((c) => uniqueColumnSet?.contains(c.name) ?? false);
-
+      .where((c) => c.isForeignKey)
+      .any((c) => uniqueColumnSet?.contains(c.name) ?? false);
 
   List<SchemaColumn> _columnStorage;
   List<String> _uniqueColumnSet;

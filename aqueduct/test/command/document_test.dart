@@ -1,5 +1,5 @@
 // ignore: unnecessary_const
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:convert';
 
 import 'package:command_line_agent/command_line_agent.dart';
@@ -61,7 +61,8 @@ void main() {
   });
 
   test("Can view error stacktrace when failing to doc", () async {
-    terminal.agent.modifyFile("lib/controller/identity_controller.dart", (contents) {
+    terminal.agent.modifyFile("lib/controller/identity_controller.dart",
+        (contents) {
       final lastCurly = contents.lastIndexOf("}");
       return contents.replaceRange(lastCurly, lastCurly, """
         @override 
@@ -71,8 +72,8 @@ void main() {
       """);
     });
 
-    final exitCode = await terminal
-        .run("document", ["--machine", "--stacktrace"]);
+    final exitCode =
+        await terminal.run("document", ["--machine", "--stacktrace"]);
     expect(exitCode, isNot(0));
     expect(terminal.output, contains("IdentityController.documentComponents"));
     expect(terminal.output, contains("Exception: Hello!"));

@@ -1,5 +1,5 @@
 // ignore: unnecessary_const
-@Tags(const ["cli"])
+@Tags(["cli"])
 import 'dart:async';
 import 'dart:io';
 
@@ -27,7 +27,9 @@ void main() {
   CLITask task;
 
   setUpAll(() async {
-    templateCli = await CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory)).createProject();
+    templateCli =
+        await CLIClient(CommandLineAgent(ProjectAgent.projectsDirectory))
+            .createProject();
     await templateCli.agent.getDependencies(offline: true);
   });
 
@@ -53,7 +55,8 @@ void main() {
             .readAsStringSync());
     var thisVersion = Version.parse(thisPubspec["version"] as String);
     expect(projectUnderTestCli.output, contains("CLI Version: $thisVersion"));
-    expect(projectUnderTestCli.output, contains("Aqueduct project version: $thisVersion"));
+    expect(projectUnderTestCli.output,
+        contains("Aqueduct project version: $thisVersion"));
 
     var result = await http.get("http://localhost:8888/example");
     expect(result.statusCode, 200);
@@ -71,7 +74,8 @@ void main() {
     // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
-    expect(projectUnderTestCli.output, contains("No ApplicationChannel subclass"));
+    expect(
+        projectUnderTestCli.output, contains("No ApplicationChannel subclass"));
   });
 
   test("Exception throw during initializeApplication halts startup", () async {
@@ -88,7 +92,8 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
     expect(projectUnderTestCli.output, contains("Application failed to start"));
-    expect(projectUnderTestCli.output, contains("Exception: error")); // error generated
+    expect(projectUnderTestCli.output,
+        contains("Exception: error")); // error generated
     expect(projectUnderTestCli.output,
         contains("TestChannel.initializeApplication")); // stacktrace
   });
@@ -132,14 +137,14 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
         .resolve("server.key")
         .toFilePath(windows: Platform.isWindows));
 
-    task = projectUnderTestCli.start(
-        "serve", ["--ssl-key-path", "server.key", "-n", "1"]);
+    task = projectUnderTestCli
+        .start("serve", ["--ssl-key-path", "server.key", "-n", "1"]);
     // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
 
-    task = projectUnderTestCli.start(
-        "serve", ["--ssl-certificate-path", "server.crt", "-n", "1"]);
+    task = projectUnderTestCli
+        .start("serve", ["--ssl-certificate-path", "server.crt", "-n", "1"]);
     // ignore: unawaited_futures
     task.hasStarted.catchError((_) => null);
     expect(await task.exitCode, isNot(0));
@@ -150,8 +155,8 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
         .resolve("server.key")
         .toFilePath(windows: Platform.isWindows));
 
-    var badCertFile =
-        File.fromUri(projectUnderTestCli.agent.workingDirectory.uri.resolve("server.crt"));
+    var badCertFile = File.fromUri(
+        projectUnderTestCli.agent.workingDirectory.uri.resolve("server.crt"));
     badCertFile.writeAsStringSync("foobar");
 
     task = projectUnderTestCli.start("serve", [
@@ -208,8 +213,8 @@ static Future initializeApplication(ApplicationOptions x) async { throw new Exce
       return "import 'dart:io';\n$newContents";
     });
 
-    task = projectUnderTestCli.start(
-        "serve", ["--config-path", "foobar.yaml", "-n", "1"]);
+    task = projectUnderTestCli
+        .start("serve", ["--config-path", "foobar.yaml", "-n", "1"]);
     await task.hasStarted;
 
     var result = await http.get("http://localhost:8888/example");

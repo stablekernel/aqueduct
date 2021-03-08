@@ -9,11 +9,8 @@ import 'isolate_supervisor.dart';
 import 'options.dart';
 
 class ApplicationIsolateServer extends ApplicationServer {
-  ApplicationIsolateServer(
-      Type channelType,
-      ApplicationOptions configuration,
-      int identifier,
-      this.supervisingApplicationPort,
+  ApplicationIsolateServer(Type channelType, ApplicationOptions configuration,
+      int identifier, this.supervisingApplicationPort,
       {bool logToConsole = false})
       : super(channelType, configuration, identifier) {
     if (logToConsole) {
@@ -74,7 +71,8 @@ class ApplicationIsolateServer extends ApplicationServer {
   }
 }
 
-typedef IsolateEntryFunction = void Function(ApplicationInitialServerMessage message);
+typedef IsolateEntryFunction = void Function(
+    ApplicationInitialServerMessage message);
 
 class ApplicationInitialServerMessage {
   ApplicationInitialServerMessage(this.streamTypeName, this.streamLibraryURI,
