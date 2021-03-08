@@ -226,7 +226,7 @@ Matcher hasHeaders(Map<String, dynamic> headerMatcher,
 ///     });
 ///
 /// For details on [failIfContainsUnmatchedHeader], see [hasHeaders].
-Matcher hasResponse(int statusCode,
+Matcher hasResponse(int? statusCode,
     {dynamic body,
     Map<String, dynamic>? headers,
     bool failIfContainsUnmatchedHeader = false}) {

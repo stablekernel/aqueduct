@@ -6,21 +6,21 @@ import 'package:aqueduct_test/src/response_matcher.dart';
 import 'package:test/test.dart';
 
 void main() {
-  MockHTTPServer server;
+  MockHTTPServer? server;
   final agent = Agent.onPort(8000);
 
   setUp(() async {
     server = MockHTTPServer(8000);
-    await server.open();
+    await server!.open();
   });
 
   tearDown(() async {
-    await server.close();
+    await server?.close();
   });
 
   test("Mismatched body shows decoded body and teh reason for the mismatch",
       () async {
-    server.queueHandler((req) {
+    server!.queueHandler((req) {
       return Response.ok({"key": "value"});
     });
 

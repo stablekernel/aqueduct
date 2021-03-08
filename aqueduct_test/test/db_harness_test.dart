@@ -20,7 +20,7 @@ void main() {
     final q = Query<Model>(harness.channel.context)
       ..sortBy((o) => o.name, QuerySortOrder.ascending);
 
-    await Query.insertObject(harness.channel.context, Model()..name = "fred");
+    await Query.insertObject(harness.channel.context!, Model()..name = "fred");
     expect((await q.fetch()).map((m) => m.name).toList(), ["bob", "fred"]);
 
     await harness.resetData();
@@ -29,7 +29,7 @@ void main() {
 }
 
 class Channel extends ApplicationChannel {
-  ManagedContext context;
+  ManagedContext? context;
 
   @override
   Future prepare() async {
@@ -58,18 +58,18 @@ class HarnessSubclass extends TestHarness<Channel> with TestHarnessORMMixin {
 
   @override
   Future seed() async {
-    await Query.insertObject(context, Model()..name = "bob");
+    await Query.insertObject(context!, Model()..name = "bob");
   }
 
   @override
-  ManagedContext get context => channel.context;
+  ManagedContext? get context => channel.context;
 }
 
 class _Model {
   @primaryKey
-  int id;
+  int? id;
 
-  String name;
+  String? name;
 }
 
 class Model extends ManagedObject<_Model> implements _Model {}

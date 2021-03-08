@@ -53,10 +53,10 @@ void main() {
     final DateTime xTimestamp = DateTime.parse("1984-08-04T00:00:00Z");
     final DateTime xDate = DateTime.parse("1981-08-04T00:00:00Z");
 
-    HttpServer server;
+    HttpServer? server;
     setUpAll(() async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
-      server.listen((req) {
+      server!.listen((req) {
         req.response.statusCode = 200;
 
         if (req.uri.query.contains("timestamp")) {
@@ -269,7 +269,7 @@ void main() {
     });
 
     tearDown(() async {
-      await server?.close();
+      await server.close();
     });
 
     test("Can match empty body", () async {
@@ -336,7 +336,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await server?.close();
+      await server.close();
     });
 
     test("List of terms", () async {
@@ -456,7 +456,7 @@ void main() {
     });
 
     tearDownAll(() async {
-      await server?.close();
+      await server.close();
     });
 
     test("Succeeds on fully specificed spec", () async {
@@ -467,7 +467,7 @@ void main() {
           await defaultTestClient.request("/foo").get(), 200,
           body: {"a": "b"}, headers: {"content-type": ContentType.json});
 
-      expect(resp.statusCode, 200);
+      expect(resp!.statusCode, 200);
     });
 
     test("Omit status code from matcher, matching ignores it", () async {

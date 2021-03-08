@@ -8,7 +8,7 @@ import 'package:aqueduct_test/aqueduct_test.dart';
 
 void main() {
   group("Agent instantiation", () {
-    Application app;
+    Application? app;
 
     tearDown(() async {
       await app?.stop();
@@ -16,14 +16,14 @@ void main() {
 
     test("Create from app, explicit port", () async {
       app = Application<SomeChannel>()..options.port = 4111;
-      await app.startOnCurrentIsolate();
+      await app!.startOnCurrentIsolate();
       final client = Agent(app);
       expect(client.baseURL, "http://localhost:4111");
     });
 
     test("Create from app, assigned port", () async {
       app = Application<SomeChannel>()..options.port = 0;
-      await app.startOnCurrentIsolate();
+      await app!.startOnCurrentIsolate();
 
       final client = Agent(app);
       final response = await client.request("/").get();
@@ -44,7 +44,7 @@ void main() {
     test("Create from unstarted app, start app, works OK", () async {
       app = Application<SomeChannel>()..options.port = 0;
       final tc = Agent(app);
-      await app.startOnCurrentIsolate();
+      await app!.startOnCurrentIsolate();
 
       expectResponse(await tc.request("/").get(), 200);
     });
@@ -72,7 +72,7 @@ void main() {
     });
 
     tearDown(() async {
-      await server?.close();
+      await server.close();
     });
 
     test("Host created correctly", () {
@@ -123,8 +123,8 @@ void main() {
 
     test("HTTP requests are issued", () async {
       final defaultTestClient = Agent.onPort(4040);
-      expect(await defaultTestClient.request("/foo").get() is TestResponse,
-          true);
+      expect(
+          await defaultTestClient.request("/foo").get() is TestResponse, true);
       var msg = await server.next();
       expect(msg.path.string, "/foo");
       expect(msg.method, "GET");
@@ -145,8 +145,8 @@ void main() {
       expect(msg.body.as(), {"foo": "bar"});
 
       expect(
-          await defaultTestClient
-              .execute("PATCH", "/foo", body: {"foo": "bar"}) is TestResponse,
+          await defaultTestClient.execute("PATCH", "/foo", body: {"foo": "bar"})
+              is TestResponse,
           true);
       msg = await server.next();
       expect(msg.path.string, "/foo");
@@ -205,7 +205,7 @@ void main() {
       expect(
           resp, hasResponse(200, body: everyElement({"id": greaterThan(0)})));
 
-      await server?.close(force: true);
+      await server.close(force: true);
     });
 
     test("Query parameters are provided when using execute", () async {
@@ -247,15 +247,15 @@ void main() {
   });
 
   group("Response handling", () {
-    HttpServer server;
+    HttpServer? server;
 
     tearDown(() async {
-      await server.close(force: true);
+      await server?.close(force: true);
     });
 
     test("Responses have body", () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
-      server.listen((req) {
+      server!.listen((req) {
         final resReq = Request(req);
         resReq.respond(Response.ok([
           {"a": "b"}
@@ -264,36 +264,36 @@ void main() {
 
       final defaultTestClient = Agent.onPort(4000);
       final response = await defaultTestClient.request("/foo").get();
-      expect(response.body.as<List>().length, 1);
+      expect(response!.body.as<List>().length, 1);
       expect(response.body.as<List>().first["a"], "b");
     });
 
     test("Responses with no body don't return one", () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
-      server.listen((req) {
+      server!.listen((req) {
         req.response.statusCode = 200;
         req.response.close();
       });
 
       final defaultTestClient = Agent.onPort(4000);
       final response = await defaultTestClient.request("/foo").get();
-      expect(response.body.isEmpty, true);
+      expect(response!.body.isEmpty, true);
     });
 
     test("Request with accept adds header", () async {
       server = await HttpServer.bind(InternetAddress.loopbackIPv4, 4000);
-      server.listen((req) {
+      server!.listen((req) {
         final resReq = Request(req);
         resReq.respond(Response.ok(
             {"ACCEPT": req.headers.value(HttpHeaders.acceptHeader)}));
       });
 
-      final  client = Agent.onPort(4000);
-      final  req = client.request("/foo")
+      final client = Agent.onPort(4000);
+      final req = client.request("/foo")
         ..accept = [ContentType.json, ContentType.text];
 
       final response = await req.post();
-      expect(response.body.as<Map<String, dynamic>>(), {
+      expect(response!.body.as<Map<String, dynamic>>(), {
         "ACCEPT": "application/json; charset=utf-8,text/plain; charset=utf-8"
       });
     });

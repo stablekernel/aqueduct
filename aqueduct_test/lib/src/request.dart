@@ -121,7 +121,7 @@ class TestRequest {
   ///
   /// The returned [Future] will complete with an instance of [TestResponse] which can be used
   /// in test expectations using [hasResponse] or [hasStatus].
-  Future<TestResponse> post() {
+  Future<TestResponse?> post() {
     return _executeRequest("POST");
   }
 
@@ -129,7 +129,7 @@ class TestRequest {
   ///
   /// The returned [Future] will complete with an instance of [TestResponse] which can be used
   /// in test expectations using [hasResponse] or [hasStatus].
-  Future<TestResponse> method(String verb) {
+  Future<TestResponse?> method(String verb) {
     return _executeRequest(verb);
   }
 
@@ -137,7 +137,7 @@ class TestRequest {
   ///
   /// The returned [Future] will complete with an instance of [TestResponse] which can be used
   /// in test expectations using [hasResponse] or [hasStatus].
-  Future<TestResponse> put() {
+  Future<TestResponse?> put() {
     return _executeRequest("PUT");
   }
 
@@ -145,7 +145,7 @@ class TestRequest {
   ///
   /// The returned [Future] will complete with an instance of [TestResponse] which can be used
   /// in test expectations using [hasResponse] or [hasStatus].
-  Future<TestResponse> get() {
+  Future<TestResponse?> get() {
     return _executeRequest("GET");
   }
 
@@ -153,7 +153,7 @@ class TestRequest {
   ///
   /// The returned [Future] will complete with an instance of [TestResponse] which can be used
   /// in test expectations using [hasResponse] or [hasStatus].
-  Future<TestResponse> delete() {
+  Future<TestResponse?> delete() {
     return _executeRequest("DELETE");
   }
 

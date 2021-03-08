@@ -7,7 +7,7 @@ void main() {
         redirectURI: "http://a.com");
     expect(client.id, "a");
     expect(client.hashedSecret,
-        AuthUtility.generatePasswordHash("b", client.salt));
+        AuthUtility.generatePasswordHash("b", client.salt!));
     expect(client.redirectURI, "http://a.com");
   });
 
@@ -16,7 +16,7 @@ void main() {
     final client = AuthUtility.generateAPICredentialPair("a", "b");
     expect(client.id, "a");
     expect(client.hashedSecret,
-        AuthUtility.generatePasswordHash("b", client.salt));
+        AuthUtility.generatePasswordHash("b", client.salt!));
     expect(client.redirectURI, isNull);
   });
 

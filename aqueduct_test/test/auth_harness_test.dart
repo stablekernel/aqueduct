@@ -16,14 +16,15 @@ void main() {
 
     final user = await harness.createUser();
     final userClient =
-        await harness.loginUser(public, user.username, "password");
+        await harness.loginUser(public, user.username!, "password");
     final authHeader = userClient.headers["authorization"];
     expect(authHeader, startsWith("Bearer"));
 
     final q = Query<ManagedAuthToken>(harness.context)
-      ..where((o) => o.accessToken).equalTo((authHeader as String).substring(7));
+      ..where((o) => o.accessToken)
+          .equalTo((authHeader as String).substring(7));
     final token = await q.fetchOne();
-    expect(token.client.id, "id");
+    expect(token!.client.id, "id");
   });
 
   test("Can use confidental client to authenticate", () async {
@@ -34,14 +35,15 @@ void main() {
 
     final user = await harness.createUser();
     final userClient =
-        await harness.loginUser(confidential, user.username, "password");
+        await harness.loginUser(confidential, user.username!, "password");
     final authHeader = userClient.headers["authorization"];
     expect(authHeader, startsWith("Bearer"));
 
     final q = Query<ManagedAuthToken>(harness.context)
-      ..where((o) => o.accessToken).equalTo((authHeader as String).substring(7));
+      ..where((o) => o.accessToken)
+          .equalTo((authHeader as String).substring(7));
     final token = await q.fetchOne();
-    expect(token.client.id, "confidential-id");
+    expect(token!.client.id, "confidential-id");
   });
 
   test("Can authenticate user with client and access protected route",
@@ -54,11 +56,11 @@ void main() {
     final user = await harness.createUser();
 
     final userWithCorrectScope = await harness
-        .loginUser(scopeAgent, user.username, "password", scopes: ["scope"]);
+        .loginUser(scopeAgent, user.username!, "password", scopes: ["scope"]);
     expectResponse(await userWithCorrectScope.request("/endpoint").get(), 200);
 
     final userWithIncorrectScope = await harness.loginUser(
-        scopeAgent, user.username, "password",
+        scopeAgent, user.username!, "password",
         scopes: ["not-scope"]);
     expectResponse(
         await userWithIncorrectScope.request("/endpoint").get(), 403);
@@ -74,11 +76,11 @@ void main() {
     final user = await harness.createUser();
 
     final userWithCorrectScope = await harness
-        .loginUser(scopeAgent, user.username, "password", scopes: ["scope"]);
+        .loginUser(scopeAgent, user.username!, "password", scopes: ["scope"]);
     expectResponse(await userWithCorrectScope.request("/endpoint").get(), 200);
 
     final userWithIncorrectScope = await harness.loginUser(
-        scopeAgent, user.username, "password",
+        scopeAgent, user.username!, "password",
         scopes: ["not-scope"]);
     expectResponse(
         await userWithIncorrectScope.request("/endpoint").get(), 403);
@@ -89,7 +91,7 @@ void main() {
         await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
     final user = await harness.createUser();
     try {
-      await harness.loginUser(scopeAgent, user.username, "incorrect");
+      await harness.loginUser(scopeAgent, user.username!, "incorrect");
       fail('unreachable');
     } on ArgumentError catch (e) {
       expect(e.toString(), contains("Invalid username/password."));
@@ -102,7 +104,7 @@ void main() {
         await harness.addClient("scope", allowedScope: ["scope", "not-scope"]);
     final user = await harness.createUser();
     try {
-      await harness.loginUser(scopeAgent, user.username, "password",
+      await harness.loginUser(scopeAgent, user.username!, "password",
           scopes: ["whatever"]);
       fail('unreachable');
     } on ArgumentError catch (e) {
@@ -113,8 +115,8 @@ void main() {
 }
 
 class Channel extends ApplicationChannel {
-  ManagedContext context;
-  AuthServer authServer;
+  ManagedContext? context;
+  AuthServer? authServer;
 
   @override
   Future prepare() async {
@@ -130,7 +132,7 @@ class Channel extends ApplicationChannel {
     final router = Router();
     router
         .route("/endpoint")
-        .link(() => Authorizer.bearer(authServer, scopes: ["scope"]))
+        .link(() => Authorizer.bearer(authServer!, scopes: ["scope"]))!
         .linkFunction((req) async => Response.ok({"key": "value"}));
     return router;
   }
@@ -142,11 +144,10 @@ class HarnessSubclass extends TestHarness<Channel>
   Future seed() async {}
 
   @override
-  AuthServer get authServer => channel.authServer;
+  AuthServer get authServer => channel.authServer!;
 
   @override
-  ManagedContext get context => channel.context;
-
+  ManagedContext get context => channel.context!;
 
   @override
   Future onSetUp() async {
