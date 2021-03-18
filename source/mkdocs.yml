@@ -1,5 +1,7 @@
 site_name: Aqueduct
-theme: 'material'
+theme:
+  name: material
+  custom_dir: overrides
 markdown_extensions:
   - codehilite
   - markdown.extensions.admonition

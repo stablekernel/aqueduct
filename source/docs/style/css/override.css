@@ -42,3 +42,15 @@ a.md-nav__link--active {
 label[for="toc"] {
   display: none;
 }
+
+.md-announce {
+  --md-footer-bg-color: #ffffff;
+  --md-footer-fg-color: rgb(33, 160, 221);
+  --md-typeset-a-color: var(--md-footer-fg-color);
+
+  --md-accent-fg-color: rgb(22, 105, 143); /* affects a:hover */
+}
+
+.md-announce a {
+  text-decoration: underline;
+}
