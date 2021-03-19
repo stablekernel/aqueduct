@@ -21,7 +21,7 @@ class MyController extends ResourceController {
   }
 
   @Operation.post()
-  Future<Response> postForm() async {}
+  Future<Response> postForm() async {
     final boundary = request.raw.headers.contentType.parameters["boundary"];
     final transformer = MimeMultipartTransformer(boundary);
     final bodyBytes = await request.body.decode<List<int>>();
