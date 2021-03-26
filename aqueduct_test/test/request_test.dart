@@ -57,7 +57,7 @@ void main() {
     expect(received.raw.uri.query, "k=v%20v");
   });
 
-  test("Lsit query parameters are encoded as separate keys", () async {
+  test("List query parameters are encoded as separate keys", () async {
     final req = agent.request("/")
       ..query = {
         "k": ["v", "w"]
