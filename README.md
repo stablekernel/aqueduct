@@ -1,6 +1,6 @@
 ![Aqueduct](https://s3.amazonaws.com/aqueduct-collateral/aqueduct.png)
 
-[![OSX/Linux Build Status](https://travis-ci.org/stablekernel/aqueduct.svg?branch=master)](https://travis-ci.org/stablekernel/aqueduct) [![Windows Build status](https://ci.appveyor.com/api/projects/status/l2uy4r0yguhg4pis?svg=true)](https://ci.appveyor.com/project/joeconwaystk/aqueduct) [![codecov](https://codecov.io/gh/stablekernel/aqueduct/branch/master/graph/badge.svg)](https://codecov.io/gh/stablekernel/aqueduct) 
+[![OSX/Linux Build Status](https://travis-ci.org/stablekernel/aqueduct.svg?branch=master)](https://travis-ci.org/stablekernel/aqueduct) [![Windows Build status](https://ci.appveyor.com/api/projects/status/l2uy4r0yguhg4pis?svg=true)](https://ci.appveyor.com/project/joeconwaystk/aqueduct) [![codecov](https://codecov.io/gh/stablekernel/aqueduct/branch/master/graph/badge.svg)](https://codecov.io/gh/stablekernel/aqueduct)
 
 [![Slack](https://slackaqueductsignup.herokuapp.com/badge.svg)](http://slackaqueductsignup.herokuapp.com/)
 
@@ -30,3 +30,5 @@ You can find the API reference [here](https://www.dartdocs.org/documentation/aqu
 You can find in-depth and conceptual guides [here](https://aqueduct.io/docs/).
 
 An ever-expanding repository of Aqueduct examples is [here](https://github.com/stablekernel/aqueduct_examples).
+
+*If you are migrating from Aqueduct 2.5 to Aqueduct 3.0, see [the migration guide](https://aqueduct.io/docs/migration/).*
