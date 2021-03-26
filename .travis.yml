@@ -1,0 +1,33 @@
+language: dart
+dart:
+  - stable
+addons:
+  postgresql: "9.6"
+
+services:
+  - postgresql
+
+before_install:
+  - bash ci/before_install.sh
+
+after_success:
+  - bash ci/after_script.sh
+
+jobs:
+  include:
+    - stage: test
+      script: bash ci/script.sh
+      env: TEST_DIR="aqueduct" RUNNER_ARGS="-t cli"
+    - stage: test
+      script: bash ci/script.sh
+      env: TEST_DIR="aqueduct" RUNNER_ARGS="-x cli"
+    - stage: test
+      script: bash ci/script.sh
+      env: TEST_DIR="aqueduct_test"
+
+stages:
+  - test
+
+branches:
+  only:
+    - master
