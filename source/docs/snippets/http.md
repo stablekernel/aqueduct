@@ -156,7 +156,7 @@ class AppChannel extends ApplicationChannel {
 
 ```dart
 class AppChannel extends ApplicationChannel {
-  final StreamController<String> controller = new StreamController<String>();  
+    final StreamController<String> controller = StreamController<String>.broadcast();  
 
   @override
   Future prepare() async {
