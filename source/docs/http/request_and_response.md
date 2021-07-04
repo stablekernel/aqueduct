@@ -9,11 +9,10 @@ A `Request` is created for each HTTP request to your application. A `Request` st
 All properties of a request are available in its `raw` property (a Dart standard library `HttpRequest`). A `Request` has `attachments` that data can be attached to in a controller for use by a linked controller:
 
 ```dart
-router.route("/path").linkFunction((req) {
-  req.attachments["key"] = "value";
-}).linkFunction((req) {
-  return Response.ok({"key": req.attachments["value"]});
-});
+    router
+        .route("/path")
+        .linkFunction((req) => req..attachments["key"] = "value")
+        .linkFunction((req) => Response.ok({"key": req.attachments["key"]}));
 ```
 
 A `Request` also has two built-in attachments, `authorization` and `path`. `authorization` contains authorization information from an `Authorizer` and `path` has request path information from a `Router`.
